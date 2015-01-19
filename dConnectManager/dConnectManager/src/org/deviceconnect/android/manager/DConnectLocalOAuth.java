@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
@@ -42,6 +43,7 @@ public class DConnectLocalOAuth {
      */
     public static final String[] IGNORE_PROFILE = {
         AuthorizationProfileConstants.PROFILE_NAME,
+        AvailabilityProfileConstants.PROFILE_NAME,
         SystemProfileConstants.PROFILE_NAME,
         NetworkServiceDiscoveryProfileConstants.PROFILE_NAME,
         DConnectFilesProfile.PROFILE_NAME,

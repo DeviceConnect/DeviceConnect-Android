@@ -3,7 +3,7 @@ SW Device Plugin
 本プロジェクトをビルドするためには、下記の準備が必要です。
 1. Sony Add-on SDK v3.0のインストール
    以下のURLを参照。
-   http://developer.sonymobile.com/knowledge-base/sony-add-on-sdk/install-the-sony-add-on-sdk/
+   https://developer.sony.com/develop/wearables/smartwatch-2-apis/get-started/
 
 2. SmartExtensionAPIプロジェクトのインポート
 2.1. Eclipseのメニュー [File] > [New] > [Project...]を選択

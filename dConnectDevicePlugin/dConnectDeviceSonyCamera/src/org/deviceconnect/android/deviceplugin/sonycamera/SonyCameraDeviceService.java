@@ -25,10 +25,11 @@ import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraNetwo
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraSystemProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraZoomProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
+import org.deviceconnect.android.deviceplugin.sonycamera.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.UserSettings;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.db.DBCacheController;
+import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
@@ -39,16 +40,10 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants.NetworkType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.example.sony.cameraremote.ServerDevice;
-import com.example.sony.cameraremote.SimpleCameraEventObserver;
-import com.example.sony.cameraremote.SimpleRemoteApi;
-import com.example.sony.cameraremote.SimpleSsdpClient;
-import com.example.sony.cameraremote.utils.SimpleLiveviewSlicer;
-import com.example.sony.cameraremote.utils.SimpleLiveviewSlicer.Payload;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -58,6 +53,13 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+
+import com.example.sony.cameraremote.ServerDevice;
+import com.example.sony.cameraremote.SimpleCameraEventObserver;
+import com.example.sony.cameraremote.SimpleRemoteApi;
+import com.example.sony.cameraremote.SimpleSsdpClient;
+import com.example.sony.cameraremote.utils.SimpleLiveviewSlicer;
+import com.example.sony.cameraremote.utils.SimpleLiveviewSlicer.Payload;
 
 /**
  * SonyCameraデバイスプラグイン用サービス.
@@ -72,14 +74,6 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     private static final String DEVICE_NAME = "Sony Camera";
     /** デバイスID. */
     private static final String DEVICE_ID = "sony_camera";
-    /** カメラステータス. */
-    private static String mRecorderState = "";
-    /** 接続中カメラが利用できるRemote API一覧. */
-    private static String mAvailableApiList = "";
-    /** プレビュースレッド調整用スリープ時間設定. */
-    private static final int SLEEP_MSEC = 200;
-    /** プレビューの最大値を定義. */
-    private static final int MAX_PREVIEW = 10;
     /** リトライ回数. */
     private static final int MAX_RETRY_COUNT = 3;
     /** 待機時間. */
@@ -90,8 +84,18 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     /** 静止画撮影モード. */
     private static final String SONY_CAMERA_SHOOT_MODE_PIC = "still";
 
+    /** 撮影中. */
+    private static final String SONY_CAMERA_STATUS_RECORDING = "MovieRecording";
+    /** 停止中. */
+    private static final String SONY_CAMERA_STATUS_IDLE = "IDLE";
+
     /** ロガー. */
     private Logger mLogger = Logger.getLogger("sonycamera.dplugin");
+
+    /** カメラステータス. */
+    private String mRecorderState = "";
+    /** 接続中カメラが利用できるRemote API一覧. */
+    private String mAvailableApiList = "";
 
     /** SonyCameraとの接続管理クライアント. */
     private SimpleSsdpClient mSsdpClient;
@@ -151,12 +155,17 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      */
     private String mSSID;
 
+    /**
+     * Server for MotionJPEG.
+     */
+    private MixedReplaceMediaServer mServer;
+    
     @Override
     public void onCreate() {
         mLogger.entering(this.getClass().getName(), "onCreate");
         super.onCreate();
 
-        EventManager.INSTANCE.setController(new DBCacheController(this));
+        EventManager.INSTANCE.setController(new MemoryCacheController());
 
         mSettings = new UserSettings(this);
         mSsdpClient = new SimpleSsdpClient();
@@ -186,6 +195,10 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         super.onDestroy();
         mExecutor.shutdown();
         deleteSonyCameraSDK();
+        if (mServer != null) {
+            mServer.stop();
+            mServer = null;
+        }
     }
 
     @Override
@@ -348,9 +361,10 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         }
 
         if (mAvailableApiList.indexOf("getStillSize") == -1) {
-            MessageUtils.setNotSupportActionError(response);
+            MessageUtils.setNotSupportAttributeError(response);
             return true;
         }
+        
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -414,7 +428,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                         List<Bundle> recorders = new ArrayList<Bundle>();
                         Bundle recorder = new Bundle();
                         recorder.putString(MediaStreamRecordingProfile.PARAM_ID, deviceId);
-                        recorder.putString(MediaStreamRecordingProfile.PARAM_NAME, "SonyCamera");
+                        recorder.putString(MediaStreamRecordingProfile.PARAM_NAME, DEVICE_NAME);
                         recorder.putString(MediaStreamRecordingProfile.PARAM_STATE, mRecorderState);
                         recorder.putInt(MediaStreamRecordingProfile.PARAM_IMAGE_WIDTH, width);
                         recorder.putInt(MediaStreamRecordingProfile.PARAM_IMAGE_HEIGHT, height);
@@ -494,7 +508,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             return true;
         }
 
-        if ("MovieRecording".equals(mEventObserver.getCameraStatus())) {
+        if (SONY_CAMERA_STATUS_RECORDING.equals(mEventObserver.getCameraStatus())) {
             // 撮影中は、さらに撮影できないのでエラーを返す
             MessageUtils.setIllegalDeviceStateError(response);
             return true;
@@ -585,14 +599,14 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * @return 即座に返答する場合はtrue、それ以外はfalse
      */
     public boolean onPostRecord(final Intent request, final Intent response, final String deviceId,
-            final String target, final long timeslice) {
+            final String target, final Long timeslice) {
 
         if (deviceId == null || !deviceId.equals(DEVICE_ID)) {
             MessageUtils.setEmptyDeviceIdError(response);
             return true;
         }
 
-        if ("MovieRecording".equals(mEventObserver.getCameraStatus())) {
+        if (SONY_CAMERA_STATUS_RECORDING.equals(mEventObserver.getCameraStatus())) {
             // 撮影中は、さらに撮影できないのでエラーを返す
             MessageUtils.setIllegalDeviceStateError(response);
             return true;
@@ -625,6 +639,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                 try {
                     JSONObject replyJson = mRemoteApi.startMovieRec();
                     if (isErrorReply(replyJson)) {
+                        MessageUtils.setIllegalDeviceStateError(response);
                         sendErrorResponse(request, response);
                     } else {
                         JSONArray resultsObj = replyJson.getJSONArray("result");
@@ -662,7 +677,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             return true;
         }
 
-        if ("IDLE".equals(mEventObserver.getCameraStatus())) {
+        if (SONY_CAMERA_STATUS_IDLE.equals(mEventObserver.getCameraStatus())) {
             // 撮影が開始されていないので、エラーを返す。
             MessageUtils.setIllegalDeviceStateError(response);
             return true;
@@ -750,20 +765,21 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     /**
      * 写真撮影を通知する.
      * 
-     * @param mediaid メディアID
+     * @param path 写真へのパス
      * @param uri 写真へのURI
      */
-    public void notifyTakePhoto(final String mediaid, final String uri) {
+    public void notifyTakePhoto(final String path, final String uri) {
         mLogger.entering(this.getClass().getName(), "notifyTakePhoto");
 
         List<Event> evts = EventManager.INSTANCE.getEventList(DEVICE_ID,
                 MediaStreamRecordingProfileConstants.PROFILE_NAME, null,
                 MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
 
+        String photoPath = mFileMgr.getBasePath().getPath().toString() + "/" + path;
         for (Event evt : evts) {
             Bundle photo = new Bundle();
-            photo.putString(MediaStreamRecordingProfile.PARAM_PATH, mFileMgr.getBasePath().getPath().toString() + "/"
-                    + mediaid);
+            photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
+            photo.putString(MediaStreamRecordingProfile.PARAM_PATH, photoPath);
             photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
 
             Intent intent = new Intent(IntentDConnectMessage.ACTION_EVENT);
@@ -777,34 +793,6 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             sendEvent(intent, evt.getAccessToken());
         }
         mLogger.exiting(this.getClass().getName(), "notifyTakePhoto");
-    }
-
-    /**
-     * 通知.
-     * 
-     * @param mediaId メディアID
-     * @param uri プレビューへのURI
-     */
-    public void notifyDataAvailable(final String mediaId, final String uri) {
-        List<Event> evts = EventManager.INSTANCE.getEventList(DEVICE_ID,
-                MediaStreamRecordingProfileConstants.PROFILE_NAME, null,
-                MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
-        for (Event evt : evts) {
-            Bundle media = new Bundle();
-            media.putString(MediaStreamRecordingProfile.PARAM_PATH, mediaId);
-            media.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
-            media.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
-
-            Intent intent = new Intent(IntentDConnectMessage.ACTION_EVENT);
-            intent.setComponent(ComponentName.unflattenFromString(evt.getReceiverName()));
-            intent.putExtra(DConnectMessage.EXTRA_DEVICE_ID, DEVICE_ID);
-            intent.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfile.PROFILE_NAME);
-            intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfile.ATTRIBUTE_ON_DATA_AVAILABLE);
-            intent.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
-            intent.putExtra(MediaStreamRecordingProfile.PARAM_MEDIA, media);
-
-            sendEvent(intent, evt.getAccessToken());
-        }
     }
 
     /**
@@ -879,7 +867,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         for (Event evt : evts) {
             Bundle camera = new Bundle();
             camera.putString(NetworkServiceDiscoveryProfile.PARAM_NAME, DEVICE_NAME);
-            camera.putString(NetworkServiceDiscoveryProfile.PARAM_TYPE, "WiFi");
+            camera.putString(NetworkServiceDiscoveryProfile.PARAM_TYPE, NetworkType.WIFI.getValue());
             camera.putBoolean(NetworkServiceDiscoveryProfile.PARAM_STATE, true);
             camera.putBoolean(NetworkServiceDiscoveryProfile.PARAM_ONLINE, true);
             camera.putString(NetworkServiceDiscoveryProfile.PARAM_CONFIG, "");
@@ -887,7 +875,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             Intent intent = new Intent(IntentDConnectMessage.ACTION_EVENT);
             intent.setComponent(ComponentName.unflattenFromString(evt.getReceiverName()));
             intent.putExtra(DConnectMessage.EXTRA_DEVICE_ID, DEVICE_ID);
-            intent.putExtra(DConnectMessage.EXTRA_PROFILE, NetworkServiceDiscoveryProfile.PROFILE_NAME);
+            intent.putExtra(DConnectMessage.EXTRA_PROFILE,
+                    NetworkServiceDiscoveryProfile.PROFILE_NAME);
             intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
                     NetworkServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
             intent.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
@@ -896,7 +885,6 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             sendEvent(intent, evt.getAccessToken());
         }
         mLogger.exiting(this.getClass().getName(), "createSonyCameraSDK");
-
     }
 
     /**
@@ -976,64 +964,33 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     /**
      * プレビューを追加する.
      * 
+     * @param request リクエスト
+     * @param response レスポンス
+     * 
      * @return プレビューの開始ができた場合はtrue、それ以外はfalse
      */
-    public synchronized boolean startPreview() {
+    public synchronized boolean onPutPreview(final Intent request, final Intent response) {
         if (mRemoteApi == null) {
-            return false;
+            MessageUtils.setIllegalDeviceStateError(response, "The sony camera is not connected.");
+            return true;
         }
         if (mWhileFetching) {
-            return false;
+            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+            MediaStreamRecordingProfile.setUri(response, mServer.getUrl());
+            return true;
         }
-        startPreview(mRemoteApi);
-        return true;
+        startPreview(request, response);
+        return false;
     }
 
     /**
-     * プレビューを停止する.
-     * @return result
-     */
-    public synchronized boolean stopPreview() {
-        if (mRemoteApi == null) {
-            return false;
-        }
-        if (!mWhileFetching) {
-            return false;
-        }
-        stopPreview(mRemoteApi);
-        return true;
-    }
-
-    /**
-     * プレビューを削除する.
+     * プレビューを開始する.
      * 
-     * @param api SonyCameraSDKのインスタンス
+     * @param request リクエスト
+     * @param response レスポンス
      */
-    private void stopPreview(final SimpleRemoteApi api) {
-        mWhileFetching = false;
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    JSONObject replyJson = mRemoteApi.stopLiveview();
-                    if (!isErrorReply(replyJson)) {
-                        mLogger.warning("cannot stop preview.");
-                    }
-                } catch (IOException e) {
-                    mLogger.warning("IOException while fetching: " + e.getMessage());
-                }
-            }
-        });
-    }
-
-    /**
-     * プレビューを追加すり.
-     * 
-     * @param api SonyCameraSDKのインスタンス
-     */
-    private void startPreview(final SimpleRemoteApi api) {
+    private void startPreview(final Intent request, final Intent response) {
         mWhileFetching = true;
-
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -1041,7 +998,6 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                 try {
                     // Prepare for connecting.
                     JSONObject replyJson = null;
-
                     replyJson = mRemoteApi.startLiveview();
                     if (!isErrorReply(replyJson)) {
                         JSONArray resultsObj = replyJson.getJSONArray("result");
@@ -1059,54 +1015,45 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
                     if (slicer == null) {
                         mWhileFetching = false;
+                        mLogger.warning("Failed to start a SimpleLiveviewSlicer.");
                         return;
                     }
 
-                    long time = System.currentTimeMillis();
-                    int count = 0;
+                    if (mServer == null) {
+                        mServer = new MixedReplaceMediaServer();
+                        mServer.setServerName("SonyCameraDevicePlugin Server");
+                        mServer.setContentType("image/jpg");
+                        String ip = mServer.start();
+                        if (ip == null) {
+                            mWhileFetching = false;
+                            mLogger.warning("Failed to start server.");
+                            sendErrorResponse(request, response);
+                            return;
+                        }
+                    }
+
+                    MediaStreamRecordingProfile.setUri(response, mServer.getUrl());
+                    sendResponse(request, response);
+
                     while (mWhileFetching) {
                         final Payload payload = slicer.nextPayload();
                         if (payload == null) { // never occurs
                             continue;
                         }
-
-                        if (System.currentTimeMillis() - time > SLEEP_MSEC) {
-                            List<Event> evts = EventManager.INSTANCE.getEventList(DEVICE_ID,
-                                    MediaStreamRecordingProfileConstants.PROFILE_NAME, null,
-                                    MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
-                            if (evts.size() > 0) {
-                                String mediaId = "preview" + count + ".jpg";
-                                if (!mFileMgr.removeFile(mediaId)) {
-                                    mLogger.warning("cannot remove file: " + mediaId);
-                                }
-                                String uri = mFileMgr.saveFile(mediaId, payload.getJpegData());
-                                notifyDataAvailable(mediaId, uri);
-                                count++;
-                                count %= MAX_PREVIEW;
-                            }
-                            time = System.currentTimeMillis();
-                        }
+                        mServer.offerMedia(payload.getJpegData());
                     }
                 } catch (IOException e) {
                     mLogger.warning("IOException while fetching: " + e.getMessage());
                 } catch (JSONException e) {
                     mLogger.warning("JSONException while fetching");
                 } finally {
-                    // slicerのclose()に著しく時間がかかる場合があるので、別スレッドでclose()を実行する。
-                    final SimpleLiveviewSlicer tmp = slicer;
                     if (slicer != null) {
-                        (new Thread() {
-                            @Override
-                            public void run() {
-                                try {
-                                    tmp.close();
-                                } catch (IOException e) {
-                                    mLogger.warning(
-                                            "IOException while closing slicer: "
-                                                    + e.getMessage());
-                                }
-                            }
-                        }).start();
+                        try {
+                            slicer.close();
+                        } catch (IOException e) {
+                            mLogger.warning(
+                                    "IOException while closing slicer: " + e.getMessage());
+                        }
                     }
                     try {
                         mRemoteApi.stopLiveview();
@@ -1114,11 +1061,9 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                         mLogger.warning("IOException while closing slicer: " + e.getMessage());
                     }
 
-                    for (int i = 0; i < MAX_PREVIEW; i++) {
-                        String mediaId = "preview" + i + ".jpg";
-                        if (!mFileMgr.removeFile(mediaId)) {
-                            mLogger.warning("cannot remove file: " + mediaId);
-                        }
+                    if (mServer != null) {
+                        mServer.stop();
+                        mServer = null;
                     }
 
                     mWhileFetching = false;
@@ -1126,6 +1071,46 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             }
         }).start();
     }
+    /**
+     * プレビューを停止する.
+     * @param request リクエスト
+     * @param response レスポンス
+     * @return result
+     */
+    public synchronized boolean onDeletePreview(final Intent request, final Intent response) {
+        if (mRemoteApi == null) {
+            MessageUtils.setIllegalDeviceStateError(response, "The sony camera is not connected.");
+            return true;
+        }
+        if (!mWhileFetching) {
+            MessageUtils.setIllegalDeviceStateError(response, "Preview has not been started.");
+            return true;
+        }
+        stopPreview();
+        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    /**
+     * プレビューを削除する.
+     */
+    private void stopPreview() {
+        mWhileFetching = false;
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject replyJson = mRemoteApi.stopLiveview();
+                    if (!isErrorReply(replyJson)) {
+                        mLogger.warning("cannot stop preview.");
+                    }
+                } catch (IOException e) {
+                    mLogger.warning("IOException while fetching: " + e.getMessage());
+                }
+            }
+        });
+    }
+
 
     /**
      * SonyCameraデバイスのチェックを行う.
@@ -1211,9 +1196,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             return true;
         }
 
-        /**
-         * タイムゾーンをSonyCameraの入力仕様に合わせて変換
-         */
+         // タイムゾーンをSonyCameraの入力仕様に合わせて変換
         int index = date.indexOf("+");
         final String mDate = date.substring(0, index) + "Z";
         String timeZoneData = date.substring(index + 1);
@@ -1407,7 +1390,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * 
      * @return result Available API List
      */
-    public String getAvailableApi() {
+    private String getAvailableApi() {
         String result = null;
         try {
             JSONObject replyJson = mRemoteApi.getAvailableApiList();

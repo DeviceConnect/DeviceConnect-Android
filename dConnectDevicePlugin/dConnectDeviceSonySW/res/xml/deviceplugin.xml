@@ -7,6 +7,6 @@
      <profile name="deviceorientation" />
      <profile name="vibration" />
      <profile name="notification" />
-     <profile name="file" />
+     <profile name="canvas" />
     
     </deviceplugin-provider> 

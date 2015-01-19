@@ -7,7 +7,7 @@
 package org.deviceconnect.android.deviceplugin.sw;
 
 import org.deviceconnect.android.deviceplugin.sw.profile.SWDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.sw.profile.SWFileProfile;
+import org.deviceconnect.android.deviceplugin.sw.profile.SWCanvasProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWNetworkServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWNotificationProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWSystemProfile;
@@ -18,7 +18,6 @@ import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.android.provider.FileManager;
 
 /**
  * 本デバイスプラグインのプロファイルをDeviceConnectに登録するサービス.
@@ -34,7 +33,7 @@ public class SWService extends DConnectMessageService {
         addProfile(new SWDeviceOrientationProfile());
         addProfile(new SWNotificationProfile());
         addProfile(new SWVibrationProfile());
-        addProfile(new SWFileProfile(new FileManager(this)));
+        addProfile(new SWCanvasProfile());
     }
 
     @Override

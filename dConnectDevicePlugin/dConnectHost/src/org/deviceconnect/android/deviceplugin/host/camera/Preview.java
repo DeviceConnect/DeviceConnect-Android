@@ -7,20 +7,16 @@
 package org.deviceconnect.android.deviceplugin.host.camera;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.provider.FileManager;
 
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Camera;
-import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.Size;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -33,7 +29,7 @@ import android.widget.Toast;
  * 
  * @author NTT DOCOMO, INC.
  */
-class Preview extends ViewGroup implements SurfaceHolder.Callback, PictureCallback {
+class Preview extends ViewGroup implements SurfaceHolder.Callback {
     /** デバック用タグ. */
     public static final String LOG_TAG = "DeviceConnectCamera:Preview";
 
@@ -51,34 +47,32 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback, PictureCallba
     /** カメラのインスタンス. */
     private Camera mCamera;
 
-    /** ファイル管理クラス. */
-    private FileManager mFileMgr;
-
-    /** 日付のフォーマット. */
-    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
-
-    /** ファイル名に付けるプレフィックス. */
-    private static final String FILENAME_PREFIX = "android_camera_";
-
-    /** ファイルの拡張子. */
-    private static final String FILE_EXTENSION = ".png";
     /**
      * ホストデバイスプラグインから渡されたリクエストID.<br>
      * - Broadcastで指示された場合は設定する。<br>
      * - アプリ内ならの指示ならnullを設定する。<br>
      */
-    private String mRequestid = null;
+    private String mRequestid;
 
     /**
      * コンストラクタ.
      * 
      * @param context このクラスが属するコンテキスト
      */
-    Preview(final Context context) {
+    public Preview(final Context context) {
         super(context);
 
-        // ファイル管理クラスの作成
-        mFileMgr = new FileManager(this.getContext());
+        mSurfaceView = new SurfaceView(context);
+        addView(mSurfaceView);
+
+        // Install a SurfaceHolder.Callback so we get notified when the
+        // underlying surface is created and destroyed.
+        mHolder = mSurfaceView.getHolder();
+        mHolder.addCallback(this);
+    }
+
+    public Preview(Context context, AttributeSet attrs) {
+        super(context, attrs);
 
         mSurfaceView = new SurfaceView(context);
         addView(mSurfaceView);
@@ -186,6 +180,19 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback, PictureCallba
         }
     }
 
+
+    @Override
+    public void surfaceChanged(final SurfaceHolder holder, final int format, final int w, final int h) {
+        // Now that the size is known, set up the camera parameters and begin
+        // the preview.
+        Camera.Parameters parameters = mCamera.getParameters();
+        parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+        requestLayout();
+
+        mCamera.setParameters(parameters);
+        mCamera.startPreview();
+    }
+
     /**
      * 最適なプレビューサイズを取得する. 指定されたサイズに最適なものがない場合にはnullを返却する。
      * 
@@ -231,85 +238,14 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback, PictureCallba
         return optimalSize;
     }
 
-    @Override
-    public void surfaceChanged(final SurfaceHolder holder, final int format, final int w, final int h) {
-        // Now that the size is known, set up the camera parameters and begin
-        // the preview.
-        Camera.Parameters parameters = mCamera.getParameters();
-        parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
-        requestLayout();
-
-        mCamera.setParameters(parameters);
-        mCamera.startPreview();
-    }
-
-    /**
-     * 写真撮影後に実行される処理.
-     */
-    @Override
-    public void onPictureTaken(final byte[] data, final Camera c) {
-        if (BuildConfig.DEBUG) {
-            Log.d(LOG_TAG, "onPictureTaken() - mRequestid:" + mRequestid);
-            Log.i(TAG, "@@@@@  savePhoto");
-        }
-        String fileName = FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
-        try {
-            mFileMgr.saveFile(fileName, data);
-        } catch (IOException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-        }
-        if (BuildConfig.DEBUG) {
-            Log.i(TAG, "fileName:" + fileName);
-        }
-        String pictureUri = "content://org.deviceconnect.android.deviceplugin.host.provider/" + fileName;
-
-        mCamera.startPreview();
-
-        /* Toast表示 */
-        String debugToast = getResources().getString(R.string.shutter) + " requestid:" + mRequestid + " pictureUri:"
-                + pictureUri;
-        Toast.makeText(getContext(), debugToast, Toast.LENGTH_SHORT).show();
-
-        /* リクエストIDが登録されていたら、撮影完了後にホストデバイスプラグインへ撮影完了通知を送信する */
-        if (mRequestid != null) {
-            Context context = getContext();
-            Intent intent = new Intent(CameraConst.SEND_CAMERA_TO_HOSTDP);
-            intent.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-            intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
-            intent.putExtra(CameraConst.EXTRA_REQUESTID, mRequestid);
-            intent.putExtra(CameraConst.EXTRA_PICTURE_URI, pictureUri);
-            context.sendBroadcast(intent);
-            if (BuildConfig.DEBUG) {
-                Log.d(LOG_TAG, "sendBroadcast() - action:" + CameraConst.SEND_CAMERA_TO_HOSTDP + " name:"
-                        + CameraConst.EXTRA_NAME_SHUTTER + " mRequestid:" + mRequestid + " pictureUri:" + pictureUri);
-            }
-        }
-
-        // 写真をとったので、Activityを終了する
-        ((CameraActivity) getContext()).checkCloseApplication();
-    }
-
     /**
      * 写真撮影を開始する.
      * 
      * @param requestid リクエストID(Broadcastで指示された場合は設定する。アプリ内ならの指示ならnullを設定する)
      */
-    public void takePicture(final String requestid) {
-        if (BuildConfig.DEBUG) {
-            Log.d(LOG_TAG, "takePicture() start - requestid:" + requestid);
-        }
-
-        mRequestid = requestid;
-
-        mCamera.takePicture(mShutterCallback, null, this);
-
+    public void takePicture(Camera.PictureCallback callback) {
+        mCamera.takePicture(mShutterCallback, null, callback);
         Toast.makeText(getContext(), R.string.shutter, Toast.LENGTH_SHORT).show();
-
-        if (BuildConfig.DEBUG) {
-            Log.d(LOG_TAG, "takePicture() end");
-        }
     }
 
     /**
@@ -403,7 +339,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback, PictureCallba
      * <p>
      * - シャッター音を鳴らすために使用する。
      */
-    private Camera.ShutterCallback mShutterCallback = new Camera.ShutterCallback() {
+    private final Camera.ShutterCallback mShutterCallback = new Camera.ShutterCallback() {
         @Override
         public void onShutter() {
             // NOP

@@ -7,10 +7,11 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,8 +21,6 @@ import org.deviceconnect.android.deviceplugin.host.audio.AudioConst;
 import org.deviceconnect.android.deviceplugin.host.audio.AudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraActivity;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraConst;
-import org.deviceconnect.android.deviceplugin.host.video.PhotoActivity;
-import org.deviceconnect.android.deviceplugin.host.video.PhotoConst;
 import org.deviceconnect.android.deviceplugin.host.video.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.video.VideoRecorder;
 import org.deviceconnect.android.event.Event;
@@ -42,10 +41,6 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProfile {
-
-    /** Debug Tag. */
-    private static final String TAG = "HOST";
-
     /** ログを出力するかどうか. */
     public static final boolean LOG_DEBUG = true;
 
@@ -53,14 +48,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      * リクエストマップ. - Key: カメラリクエストID - Val: カメラ応答Broadcast 未受信ならnull /
      * 受信済なら画像URI(画像ID)
      */
-    private static HashMap<String, String> mRequestMap = new HashMap<String, String>();
+    private static Map<String, String> mRequestMap = new ConcurrentHashMap<String, String>();
 
     /**
      * リクエストマップを取得する.
      * 
      * @return リクエストマップ
      */
-    public static HashMap<String, String> getRequestMap() {
+    public static Map<String, String> getRequestMap() {
         return mRequestMap;
     }
 
@@ -124,7 +119,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     @Override
     protected boolean onPostTakePhoto(final Intent request, final Intent response, final String deviceId,
             final String target) {
-
         // カメラアプリにシャッター通知
         final String requestid = "" + UUID.randomUUID().hashCode();
 
@@ -141,6 +135,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             // カメラアプリがすでに前にある
             if (CameraActivity.class.getName().equals(mClassName)) {
                 Intent mIntent = new Intent();
+                mIntent.setClass(getContext(), CameraActivity.class);
                 mIntent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
                 mIntent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
                 mIntent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
@@ -148,8 +143,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             } else {
                 Intent mIntent = new Intent();
                 mIntent.setClass(getContext(), CameraActivity.class);
-                mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 mIntent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
+                mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 mIntent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
                 mIntent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
                 getContext().startActivity(mIntent);
@@ -158,13 +153,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-
                     final long POLLING_WAIT_TIMEOUT = 10000;
                     final long POLLING_WAIT_TIME = 500;
                     long now = System.currentTimeMillis();
                     try {
                         do {
-
                             Thread.sleep(POLLING_WAIT_TIME);
                         } while (mRequestMap.get(requestid) == null
                                 && System.currentTimeMillis() - now < POLLING_WAIT_TIMEOUT);
@@ -174,117 +167,93 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         }
                     }
 
-                    int result = DConnectMessage.RESULT_OK;
-                    String pictureUri = mRequestMap.get(requestid);
-
+                    String pictureUri = mRequestMap.remove(requestid);
                     if (pictureUri == null) {
-                        result = DConnectMessage.RESULT_ERROR;
-                        pictureUri = "null";
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                        getContext().sendBroadcast(response);
+                        return;
                     }
-
-                    if (result == DConnectMessage.RESULT_OK) {
-                        ((HostDeviceService) getContext()).notifyTakePhoto(pictureUri);
-                    }
-
-                    // 配列から消去する
-                    mRequestMap.remove(requestid);
 
                     // レスポンスを返す
-                    response.putExtra(DConnectMessage.EXTRA_RESULT, result);
-                    response.putExtra("uri", pictureUri);
-                    response.putExtra("mediaid", requestid);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    setUri(response, pictureUri);
+                    getContext().sendBroadcast(response);
 
-                    List<Event> events = EventManager.INSTANCE.getEventList(
-                            deviceId,
-                            HostMediaStreamingRecordingProfile.PROFILE_NAME,
-                            null,
-                            HostMediaStreamingRecordingProfile.ATTRIBUTE_ON_PHOTO);
-
+                    List<Event> events = EventManager.INSTANCE.getEventList(deviceId,
+                            PROFILE_NAME, null, ATTRIBUTE_ON_PHOTO);
                     for (int i = 0; i < events.size(); i++) {
-                        Event event = events.get(i);
-                        Intent mIntent = EventManager.createEventMessage(event);
+                        Intent mIntent = EventManager.createEventMessage(events.get(i));
                         Bundle photo = new Bundle();
-
-                        HostMediaStreamingRecordingProfile.setPath(photo, pictureUri);
-                        HostMediaStreamingRecordingProfile.setMIMEType(photo, "image/png");
-                        HostMediaStreamingRecordingProfile.setPhoto(mIntent, photo);
-
+                        setPath(photo, pictureUri);
+                        setMIMEType(photo, "image/png");
+                        setPhoto(mIntent, photo);
                         getContext().sendBroadcast(mIntent);
                     }
-
-                    getContext().sendBroadcast(response);
                 }
             }).start();
         }
 
-        mLogger.exiting(this.getClass().getName(), "onPostReceive", false);
+        mLogger.exiting(getClass().getName(), "onPostReceive", false);
         return false;
 
     }
 
     @Override
-    protected boolean onPutOnDataAvailable(final Intent request, final Intent response, final String deviceId,
-            final String sessionKey) {
-
+    protected boolean onPutPreview(Intent request, Intent response, String deviceId) {
         if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
+            createEmptyDeviceId(response);
+            return true;
+        } else if (!checkDeviceId(deviceId)) {
+            createNotFoundDevice(response);
+            return true;
         } else {
-            EventError error = EventManager.INSTANCE.addEvent(request);
-
-            if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).registerDeviceId(deviceId);
-                Intent mIntent = new Intent();
-                mIntent.setClass(getContext(), PhotoActivity.class);
-                mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                this.getContext().startActivity(mIntent);
-
+            String uri = ((HostDeviceService) getContext()).startWebServer();
+            if (uri != null) {
                 setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else if (error == EventError.FAILED) {
-                MessageUtils.setUnknownError(response, "Failed to insert event for db.");
-            } else if (error == EventError.NOT_FOUND) {
-                MessageUtils.setUnknownError(response, "Not found event.");
+                setUri(response, uri);
             } else {
-                MessageUtils.setUnknownError(response);
+                MessageUtils.setIllegalServerStateError(response, 
+                        "Failed to start web server.");
             }
-        }
 
-        mLogger.exiting(this.getClass().getName(), "onPutOnDataAvailable");
-        return true;
+            String className = getClassnameOfTopActivity();
+            if (CameraActivity.class.getName().equals(className)) {
+                Intent mIntent = new Intent();
+                mIntent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
+                mIntent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_PREVIEW);
+                getContext().sendBroadcast(mIntent);
+            } else {
+                Intent mIntent = new Intent();
+                mIntent.setClass(getContext(), CameraActivity.class);
+                mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                mIntent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
+                mIntent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_PREVIEW);
+                getContext().startActivity(mIntent);
+            }
+            return true;
+        }
     }
 
     @Override
-    protected boolean onDeleteOnDataAvailable(final Intent request, final Intent response, final String deviceId,
-            final String sessionKey) {
+    protected boolean onDeletePreview(Intent request, Intent response, String deviceId) {
         if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
+            createEmptyDeviceId(response);
+            return true;
+        } else if (!checkDeviceId(deviceId)) {
+            createNotFoundDevice(response);
+            return true;
         } else {
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-
-                Intent mIntent = new Intent(PhotoConst.SEND_HOSTDP_TO_PHOTO);
-                mIntent.putExtra(PhotoConst.EXTRA_NAME, PhotoConst.EXTRA_VALUE_EXIT);
-                this.getContext().sendBroadcast(mIntent);
-                setResult(response, DConnectMessage.RESULT_OK);
-
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (error == EventError.INVALID_PARAMETER) {
-                MessageUtils.setInvalidRequestParameterError(response);
-            } else if (error == EventError.FAILED) {
-                MessageUtils.setUnknownError(response, "Failed to uninsert event for db.");
-            } else if (error == EventError.NOT_FOUND) {
-                MessageUtils.setUnknownError(response, "Not found event.");
-            } else {
-                MessageUtils.setUnknownError(response);
+            ((HostDeviceService) getContext()).stopWebServer();
+            String className = getClassnameOfTopActivity();
+            if (CameraActivity.class.getName().equals(className)) {
+                Intent mIntent = new Intent();
+                mIntent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
+                mIntent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_FINISH);
+                getContext().sendBroadcast(mIntent);
             }
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
         }
-
-        return true;
     }
 
     @Override
@@ -300,13 +269,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         } else {
             String mClassName = getClassnameOfTopActivity();
 
-            if (target == null) {
-                Intent mIntent = new Intent();
-                mIntent.setClass(getContext(), VideoRecorder.class);
-                mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                this.getContext().startActivity(mIntent);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (target.equals("video")) {
+            if (target == null || target.equals("video")) {
                 if (VideoRecorder.class.getName().equals(mClassName)) {
                     MessageUtils.setError(response, 100, "Running video recoder, yet");
                     return true;
@@ -314,9 +277,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 Intent mIntent = new Intent();
                 mIntent.setClass(getContext(), VideoRecorder.class);
                 mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                this.getContext().startActivity(mIntent);
+                getContext().startActivity(mIntent);
                 setResult(response, DConnectMessage.RESULT_OK);
-
             } else if (target.equals("audio")) {
                 if (AudioRecorder.class.getName().equals(mClassName)) {
                     MessageUtils.setError(response, 100, "Running audio recoder, yet");
@@ -326,14 +288,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 Intent mIntent = new Intent();
                 mIntent.setClass(getContext(), AudioRecorder.class);
                 mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                this.getContext().startActivity(mIntent);
+                getContext().startActivity(mIntent);
                 setResult(response, DConnectMessage.RESULT_OK);
-
             }
 
             return true;
         }
-
     }
 
     @Override
@@ -353,17 +313,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             if (VideoRecorder.class.getName().equals(mClassName)) {
                 Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEO);
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_RECORD_STOP);
-                this.getContext().sendBroadcast(mIntent);
+                getContext().sendBroadcast(mIntent);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (AudioRecorder.class.getName().equals(mClassName)) {
                 Intent mIntent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
                 mIntent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_STOP);
-                this.getContext().sendBroadcast(mIntent);
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (PhotoActivity.class.getName().equals(mClassName)) {
-                Intent mIntent = new Intent(PhotoConst.SEND_HOSTDP_TO_PHOTO);
-                mIntent.putExtra(PhotoConst.EXTRA_NAME, PhotoConst.EXTRA_VALUE_EXIT);
-                this.getContext().sendBroadcast(mIntent);
+                getContext().sendBroadcast(mIntent);
                 setResult(response, DConnectMessage.RESULT_OK);
             }
 
@@ -390,7 +345,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             } else if (AudioRecorder.class.getName().equals(mClassName)) {
                 Intent mIntent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
                 mIntent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_PAUSE);
-                this.getContext().sendBroadcast(mIntent);
+                getContext().sendBroadcast(mIntent);
                 setResult(response, DConnectMessage.RESULT_OK);
             }
 
@@ -412,13 +367,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
             String mClassName = getClassnameOfTopActivity();
             if (VideoRecorder.class.getName().equals(mClassName)) {
-
                 MessageUtils.setError(response, 201, "not support");
-
             } else if (AudioRecorder.class.getName().equals(mClassName)) {
                 Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
                 intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_RESUME);
-                this.getContext().sendBroadcast(intent);
+                getContext().sendBroadcast(intent);
                 setResult(response, DConnectMessage.RESULT_OK);
             }
         }
@@ -480,5 +433,4 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     private void createEmptyDeviceId(final Intent response) {
         MessageUtils.setEmptyDeviceIdError(response);
     }
-
 }

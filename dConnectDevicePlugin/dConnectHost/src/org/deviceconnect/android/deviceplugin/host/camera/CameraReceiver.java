@@ -7,7 +7,7 @@
 
 package org.deviceconnect.android.deviceplugin.host.camera;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRecordingProfile;
 
@@ -37,19 +37,19 @@ public class CameraReceiver extends BroadcastReceiver {
                 String requestid = intent.getStringExtra(CameraConst.EXTRA_REQUESTID);
                 String pictureUri = intent.getStringExtra(CameraConst.EXTRA_PICTURE_URI);
 
-                HashMap<String, String> requestMap = HostMediaStreamingRecordingProfile.getRequestMap();
+                Map<String, String> requestMap = HostMediaStreamingRecordingProfile.getRequestMap();
                 requestMap.put(requestid, pictureUri);
             } else if (name.compareTo(CameraConst.EXTRA_NAME_ZOOMIN) == 0) {
 
                 String requestid = intent.getStringExtra(CameraConst.EXTRA_REQUESTID);
 
-                HashMap<String, String> requestMap = HostMediaStreamingRecordingProfile.getRequestMap();
+                Map<String, String> requestMap = HostMediaStreamingRecordingProfile.getRequestMap();
                 requestMap.put(requestid, "zoomin");
             } else if (name.compareTo(CameraConst.EXTRA_NAME_ZOOMOUT) == 0) {
 
                 String requestid = intent.getStringExtra(CameraConst.EXTRA_REQUESTID);
 
-                HashMap<String, String> requestMap = HostMediaStreamingRecordingProfile.getRequestMap();
+                Map<String, String> requestMap = HostMediaStreamingRecordingProfile.getRequestMap();
                 requestMap.put(requestid, "zoomout");
             }
         }

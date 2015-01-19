@@ -11,7 +11,10 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +47,11 @@ public class HostFileProfile extends FileProfile {
     private static final String TAG = "HOST";
 
     /** FileManager. */
-    private static FileManager mFileManager;
+    private FileManager mFileManager;
+
+    /** SimpleDataFormat. */
+    private SimpleDateFormat mDataFormat = new SimpleDateFormat(
+            "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 
     /**
      * コンストラクタ.
@@ -152,47 +159,86 @@ public class HostFileProfile extends FileProfile {
                         setResult(response, DConnectMessage.RESULT_ERROR);
                         MessageUtils.setUnknownError(response, "Dir is not exist:" + tmpDir);
                         getContext().sendBroadcast(response);
+                    } else if (order != null && !order.endsWith("desc") && !order.endsWith("asc")) {
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        getContext().sendBroadcast(response);
                     } else {
+                        // Set arraylist from respFileList
+                        ArrayList<FileAttribute> filelist = new ArrayList<FileAttribute>();
+                        filelist = setArryList(respFileList, filelist);
+
+                        // Sort
+                        filelist = sortFilelist(order, filelist);
 
                         List<Bundle> resp = new ArrayList<Bundle>();
                         Bundle respParam = new Bundle();
 
                         // ..のフォルダを追加(常時)
                         if (!currentTop) {
-                            File mParentDir = new File("..");
-                            String mMineType = "folder/dir";
-                            respParam = addResponseParamToArray(mParentDir, respParam, mMineType);
-
+                            File parentDir = new File("..");
+                            String path = parentDir.getPath().replaceAll("" + mFileManager.getBasePath(), "");
+                            String name = parentDir.getName();
+                            Long size = parentDir.length();
+                            String mineType = "folder/dir";
+                            int filetype = 1;
+                            String date = mDataFormat.format(parentDir.lastModified());
+                            FileAttribute fa = new FileAttribute(path, name, mineType, filetype, size, date);
+                            respParam = addResponseParamToArray(fa, respParam);
                             resp.add((Bundle) respParam.clone());
                         }
 
-                        File[] tmpRespFileList = null;
+                        ArrayList<FileAttribute> tmpfilelist = new ArrayList<FileAttribute>();
                         if (order != null && order.endsWith("desc")) {
-                            int last = respFileList.length;
-                            tmpRespFileList = new File[last];
-                            for (File file : respFileList) {
-
-                                tmpRespFileList[last - 1] = file;
-                                last--;
+                            int last = filelist.size();
+                            for (int i = last - 1; i >= 0; i--) {
+                                tmpfilelist.add(filelist.get(i));
                             }
-                            respFileList = tmpRespFileList;
+                            filelist = tmpfilelist;
                         }
 
                         int counter = 0;
                         int tmpLimit = 0;
                         int tmpOffset = 0;
-                        if (limit != null && limit >= 0) {
-                            tmpLimit = limit;
+                        if (limit != null) {
+                            if (limit >= 0) {
+                                tmpLimit = limit;
+                            } else {
+                                MessageUtils.setInvalidRequestParameterError(response);
+                                getContext().sendBroadcast(response);
+                                return;
+                            }
+                        } else {
+                            if (request.getStringExtra(PARAM_LIMIT) != null) {
+                                MessageUtils.setInvalidRequestParameterError(response);
+                                getContext().sendBroadcast(response);
+                                return;
+                            }
                         }
-                        if (offset != null && offset >= 0) {
-                            tmpOffset = offset;
+                        if (offset != null) {
+                            if (offset >= 0) {
+                                tmpOffset = offset;
+                            } else {
+                                MessageUtils.setInvalidRequestParameterError(response);
+                                getContext().sendBroadcast(response);
+                                return;
+                            }
+                        } else {
+                            if (request.getStringExtra(PARAM_OFFSET) != null) {
+                                MessageUtils.setInvalidRequestParameterError(response);
+                                getContext().sendBroadcast(response);
+                                return;
+                            }
+                        }
+                        if (tmpOffset > filelist.size()) {
+                            MessageUtils.setInvalidRequestParameterError(response);
+                            getContext().sendBroadcast(response);
+                            return;
                         }
                         int limitCounter = tmpLimit + tmpOffset;
 
-                        for (File file : respFileList) {
-
+                        for (FileAttribute fa : filelist) {
                             if (limit == null || (limit != null && limitCounter > counter)) {
-                                respParam = addResponseParamToArray(file, respParam, mimeType);
+                                respParam = addResponseParamToArray(fa, respParam);
                                 if (offset == null || (offset != null && counter >= offset)) {
                                     resp.add((Bundle) respParam.clone());
                                 }
@@ -202,7 +248,7 @@ public class HostFileProfile extends FileProfile {
 
                         // 結果を非同期で返信
                         setResult(response, IntentDConnectMessage.RESULT_OK);
-                        response.putExtra(PARAM_COUNT, respFileList.length);
+                        response.putExtra(PARAM_COUNT, filelist.size());
                         response.putExtra(PARAM_FILES, resp.toArray(new Bundle[resp.size()]));
                         getContext().sendBroadcast(response);
                     }
@@ -210,6 +256,93 @@ public class HostFileProfile extends FileProfile {
             }).start();
         }
         return false;
+    }
+
+    /**
+     * Sort File list. 
+     * 
+     * @param order Sort order. 
+     * @param filelist Sort filelist.
+     * @return Sorted filelist.
+     */
+    protected ArrayList<FileAttribute> sortFilelist(final String order, final ArrayList<FileAttribute> filelist) {
+        if (order != null) {
+            if (order.startsWith(PARAM_PATH)) {
+                Collections.sort(filelist, new Comparator<FileAttribute>() {
+                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
+                        return fa1.getPath().compareTo(fa2.getPath());
+                    }
+                });                                
+            } else if (order.startsWith(PARAM_FILE_NAME)) {
+                Collections.sort(filelist, new Comparator<FileAttribute>() {
+                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
+                        return fa1.getName().compareTo(fa2.getName());
+                     }
+                });
+            } else if (order.startsWith(PARAM_MIME_TYPE)) {
+                Collections.sort(filelist, new Comparator<FileAttribute>() {
+                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
+                        return fa1.getMimeType().compareTo(fa2.getMimeType());
+                     }
+                });
+            } else if (order.startsWith(PARAM_FILE_TYPE)) {
+                Collections.sort(filelist, new Comparator<FileAttribute>() {
+                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
+                        return fa1.getFileType() - fa2.getFileType();
+                    }
+                });
+            } else if (order.startsWith(PARAM_FILE_SIZE)) {
+                Collections.sort(filelist, new Comparator<FileAttribute>() {
+                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
+                        return (int) (fa1.getFileSize() - fa2.getFileSize());
+                    }
+                });
+            } else if (order.startsWith(PARAM_UPDATE_DATE)) {
+                Collections.sort(filelist, new Comparator<FileAttribute>() {
+                    public int compare(final FileAttribute fa1, final FileAttribute fa2) {
+                        return fa1.getUpdateDate().compareTo(fa2.getUpdateDate());
+                     }
+                });
+            }
+        }
+        return filelist;
+    }
+
+    /**
+     * Set Arraylist.
+     * 
+     * @param respFileList File list information.
+     * @param filelist FileAttribute list.
+     * @return FileAttribute list.
+     */
+    protected ArrayList<FileAttribute> setArryList(final File[] respFileList, final ArrayList<FileAttribute> filelist) {
+        for (File file : respFileList) {
+            String path = file.getPath().replaceAll("" + mFileManager.getBasePath(), "");
+            if (path == null) {
+                path = "unknown";
+            }
+            String name = file.getName();
+            if (name == null) {
+                name = "unknown";
+            }
+            Long size = file.length();
+            String date = mDataFormat.format(file.lastModified());
+            int filetype = 0;
+            String mimetype = null;
+            if (file.isFile()) {
+                filetype = 0;
+                mimetype = getMIMEType(file.getPath() + file.getName());
+                if (mimetype == null) {
+                    mimetype = "unknown";
+                }
+            } else {
+                filetype = 1;
+                mimetype = "dir/folder";
+            }
+            FileAttribute fileAttr = new FileAttribute(path, name, mimetype, filetype, size, date);
+            filelist.add(fileAttr);
+        }
+        return filelist;
     }
 
     @Override
@@ -395,35 +528,17 @@ public class HostFileProfile extends FileProfile {
     /**
      * ファイルパラメータ格納用メソッド.
      * 
-     * @param file ファイル.
+     * @param fa FileAttributeデータ.
      * @param respParam ファイルパラメータ格納用Bundle.
-     * @param mimeType マイムタイプ.
      * @return ファイルパラメータ格納済みBundle
      */
-    protected Bundle addResponseParamToArray(final File file, final Bundle respParam, final String mimeType) {
-
-        if (file.isFile()) {
-            // ファイルの場合
-            String path = file.getPath().replaceAll("" + mFileManager.getBasePath(), "");
-            respParam.putString(PARAM_PATH, path);
-            respParam.putString(PARAM_FILE_NAME, file.getName());
-            respParam.putString(PARAM_MIME_TYPE, getMIMEType(file.getPath() + file.getName()));
-            respParam.putString(PARAM_FILE_TYPE, "0");
-            respParam.putLong(PARAM_FILE_SIZE, file.length());
-            respParam.putString(PARAM_UPDATE_DATE,
-                    "" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(file.lastModified()));
-        } else {
-            // フォルダの場合
-            String path = file.getPath().replaceAll("" + mFileManager.getBasePath(), "");
-            respParam.putString(PARAM_PATH, path);
-            respParam.putString(PARAM_FILE_NAME, file.getName());
-            respParam.putString(PARAM_MIME_TYPE, "dir/folder");
-            respParam.putString(PARAM_FILE_TYPE, "1");
-            respParam.putLong(PARAM_FILE_SIZE, file.length());
-            respParam.putString(PARAM_UPDATE_DATE,
-                    "" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(file.lastModified()));
-        }
-
+    protected Bundle addResponseParamToArray(final FileAttribute fa, final Bundle respParam) {
+        respParam.putString(PARAM_PATH, fa.getPath());
+        respParam.putString(PARAM_FILE_NAME, fa.getName());
+        respParam.putString(PARAM_MIME_TYPE, fa.getMimeType());
+        respParam.putString(PARAM_FILE_TYPE, String.valueOf(fa.getFileType()));
+        respParam.putLong(PARAM_FILE_SIZE, fa.getFileSize());
+        respParam.putString(PARAM_UPDATE_DATE, fa.getUpdateDate());
         return respParam;
     }
 
@@ -438,7 +553,7 @@ public class HostFileProfile extends FileProfile {
         // 拡張子を取得
         String ext = MimeTypeMap.getFileExtensionFromUrl(path);
         // 小文字に変換
-        ext = ext.toLowerCase();
+        ext = ext.toLowerCase(Locale.getDefault());
         // MIME Typeを返す
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
     }
@@ -474,4 +589,103 @@ public class HostFileProfile extends FileProfile {
     private void createNotFoundDevice(final Intent response) {
         MessageUtils.setNotFoundDeviceError(response);
     }
+
+    /**
+     * File Attribute Class.
+     * 
+     */
+    public class FileAttribute {
+        /** File Path. */
+        private String mPath;
+
+        /** File Name. */
+        private String mName;
+
+        /** MIME Type. */
+        private String mMimeType;
+
+        /** File Type. */
+        private int mFileType;
+
+        /** File Size. */
+        private long mSize;
+
+        /** Update Date. */
+        private String mUpdateDate;
+
+        /**
+         * Constructor.
+         * 
+         * @param path File Path.
+         * @param name File Name.
+         * @param mimetype MIME Type.
+         * @param filetype File Type.
+         * @param size File Size.
+         * @param date Update Date.
+         */
+        public FileAttribute(final String path, final String name, final String mimetype, final int filetype,
+                final long size, final String date) {
+            this.mPath = path;
+            this.mName = name;
+            this.mMimeType = mimetype;
+            this.mFileType = filetype;
+            this.mSize = size;
+            this.mUpdateDate = date;
+        }
+
+        /**
+         * Get path.
+         * 
+         * @return path
+         */
+        public String getPath() {
+            return this.mPath;
+        }
+
+        /**
+         * Get name.
+         * 
+         * @return File Name
+         */
+        public String getName() {
+            return this.mName;
+        }
+
+        /**
+         * Get MIME Type.
+         * 
+         * @return MIME Type
+         */
+        public String getMimeType() {
+            return this.mMimeType;
+        }
+
+        /**
+         * Get File Type.
+         * 
+         * @return File Type
+         */
+        public int getFileType() {
+            return this.mFileType;
+        }
+
+        /**
+         * Get File Size.
+         * 
+         * @return File Size
+         */
+        public long getFileSize() {
+            return this.mSize;
+        }
+
+        /**
+         * Get Update Date.
+         * 
+         * @return Update Date
+         */
+        public String getUpdateDate() {
+            return this.mUpdateDate;
+        }
+    }
+
 }

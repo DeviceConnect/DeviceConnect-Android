@@ -66,13 +66,6 @@
         <receiver android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceReceiver" >
             <intent-filter>
 
-                <!-- Battry Profile -->
-                <action android:name="android.intent.action.BATTERY_CHANGED" />
-                <action android:name="android.intent.action.BATTERY_LOW" />
-                <action android:name="android.intent.action.BATTERY_OKAY" />
-                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
-                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
-
                 <!-- Connection Profile -->
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
                 <action android:name="android.net.wifi.STATE_CHANGE" />
@@ -147,9 +140,6 @@
             android:name="org.deviceconnect.android.provider.FileProvider"
             android:authorities="org.deviceconnect.android.deviceplugin.host.provider"
             android:exported="true" >
-            <meta-data
-                android:name="filelocation"
-                android:resource="@xml/filelocation" />
         </provider>
 
         <!-- LocalOAuth -->

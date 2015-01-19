@@ -6,32 +6,52 @@
  */
 package org.deviceconnect.android.deviceplugin.host.camera;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.deviceplugin.host.IHostMediaStreamRecordingService;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.provider.FileManager;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
+import android.widget.Button;
+import android.widget.ImageButton;
 
 /**
  * d-Connect連携カメラアプリ.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class CameraActivity extends Activity {
+public class CameraActivity extends Activity implements Camera.PreviewCallback {
 
     /** ハンドラー. */
-    private Handler mHandler = null;
+    private Handler mHandler;
 
     /** プレビュー画面. */
     private Preview mPreview;
@@ -48,18 +68,71 @@ public class CameraActivity extends Activity {
     /** デフォルトのカメラID. */
     private int defaultCameraId;
 
+    /** プロセス間通信でつなぐService. */
+    private IHostMediaStreamRecordingService mService;
+
+    /** ファイル管理クラス. */
+    private FileManager mFileMgr;
+
+    /** 日付のフォーマット. */
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat(
+            "yyyyMMdd_kkmmss", Locale.JAPAN);
+
+    /** ファイル名に付けるプレフィックス. */
+    private static final String FILENAME_PREFIX = "android_camera_";
+
+    /** ファイルの拡張子. */
+    private static final String FILE_EXTENSION = ".png";
+
+    /**
+     * 写真撮影後に終了するか確認するためのフラグ.
+     * <ul>
+     * <li>true: 撮影後にActivityを終了する
+     * <li>false: 撮影後もActivityを続ける
+     * </ul>
+     */
+    private boolean mFinishFlag;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         mHandler = new Handler();
-
+        mFileMgr = new FileManager(this);
+        
         // Create a RelativeLayout container that will hold a SurfaceView,
         // and set it as the content of our activity.
-        mPreview = new Preview(this);
-        setContentView(mPreview);
+        setContentView(R.layout.preview_main);
 
+        mPreview = (Preview) findViewById(R.id.preview);
+
+        Button stopBtn = (Button) findViewById(R.id.btn_stop);
+        stopBtn.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkCloseApplication();
+            }
+        });
+
+        ImageButton takeBtn = (ImageButton) findViewById(R.id.btn_take_photo);
+        takeBtn.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                takePictureRunnable(null);
+            }
+        });
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            String action = intent.getAction();
+            if (CameraConst.SEND_HOSTDP_TO_CAMERA.equals(action)) {
+                String name = intent.getStringExtra(CameraConst.EXTRA_NAME);
+                if (CameraConst.EXTRA_NAME_SHUTTER.equals(name)) {
+                    mFinishFlag = true;
+                }
+            }
+        }
         // Find the total number of cameras available
         numberOfCameras = Camera.getNumberOfCameras();
 
@@ -72,10 +145,7 @@ public class CameraActivity extends Activity {
             }
         }
 
-        /* BroadcastReceiver登録 */
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
-        registerReceiver(mReceiver, intentFilter);
+        bindService();
     }
 
     @Override
@@ -86,15 +156,24 @@ public class CameraActivity extends Activity {
         mCamera = Camera.open();
         cameraCurrentlyLocked = defaultCameraId;
         mPreview.setCamera(mCamera);
+        mCamera.setPreviewCallback(this);
 
         Intent intent = getIntent();
         if (intent != null) {
             String action = intent.getAction();
             if (CameraConst.SEND_HOSTDP_TO_CAMERA.equals(action)) {
-                String requestid = intent.getStringExtra(CameraConst.EXTRA_REQUESTID);
-                takePictureRunnable(requestid);
+                String name = intent.getStringExtra(CameraConst.EXTRA_NAME);
+                if (CameraConst.EXTRA_NAME_SHUTTER.equals(name)) {
+                    String requestid = intent.getStringExtra(CameraConst.EXTRA_REQUESTID);
+                    takePictureRunnable(requestid);
+                }
             }
         }
+
+        // BroadcastReceiver登録 
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
+        registerReceiver(mReceiver, intentFilter);
     }
 
     @Override
@@ -108,7 +187,13 @@ public class CameraActivity extends Activity {
             mCamera = null;
         }
         unregisterReceiver(mReceiver);
+    }
 
+    @Override
+    protected void onDestroy() {
+        unbindService(mServiceConnection);
+        mService = null;
+        super.onDestroy();
     }
 
     @Override
@@ -151,29 +236,16 @@ public class CameraActivity extends Activity {
             mCamera.startPreview();
             return true;
         case R.id.item_shutter:
-            mPreview.takePicture(null);
+            takePictureRunnable(null);
             return true;
         case R.id.item_zoom_in:
-            mPreview.zoomIn(null);
+            zoomInRunnable(null);
             return true;
         case R.id.item_zoom_out:
-            mPreview.zoomOut(null);
+            zoomOutRunnable(null);
             return true;
         default:
             return super.onOptionsItemSelected(item);
-        }
-    }
-
-    /**
-     * アプリケーションクローズ時処理.
-     */
-    public void checkCloseApplication() {
-        Intent intent = getIntent();
-        if (intent != null) {
-            String action = intent.getAction();
-            if (CameraConst.SEND_HOSTDP_TO_CAMERA.equals(action)) {
-                finish();
-            }
         }
     }
 
@@ -184,24 +256,22 @@ public class CameraActivity extends Activity {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             String action = intent.getAction();
-
-            if (action.compareTo(CameraConst.SEND_HOSTDP_TO_CAMERA) == 0) {
+            if (CameraConst.SEND_HOSTDP_TO_CAMERA.equals(action)) {
                 String name = intent.getStringExtra(CameraConst.EXTRA_NAME);
-                if (CameraConst.EXTRA_NAME_SHUTTER.compareTo(name) == 0) {
-                    /* シャッター操作依頼通知を受信 */
+                if (CameraConst.EXTRA_NAME_SHUTTER.equals(name)) {
+                    // シャッター操作依頼通知を受信
                     String requestid = intent.getStringExtra(CameraConst.EXTRA_REQUESTID);
-                    /* 写真撮影 */
                     takePictureRunnable(requestid);
-                } else if (CameraConst.EXTRA_NAME_ZOOMIN.compareTo(name) == 0) {
-                    /* ズームイン操作依頼通知を受信 */
+                } else if (CameraConst.EXTRA_NAME_ZOOMIN.equals(name)) {
+                    // ズームイン操作依頼通知を受信
                     String requestid = intent.getStringExtra(CameraConst.EXTRA_REQUESTID);
-                    /* ズームイン */
                     zoomInRunnable(requestid);
-                } else if (CameraConst.EXTRA_NAME_ZOOMOUT.compareTo(name) == 0) {
-                    /* ズームアウト操作依頼通知を受信 */
+                } else if (CameraConst.EXTRA_NAME_ZOOMOUT.equals(name)) {
+                    // ズームアウト操作依頼通知を受信
                     String requestid = intent.getStringExtra(CameraConst.EXTRA_REQUESTID);
-                    /* ズームアウト */
                     zoomOutRunnable(requestid);
+                } else if (CameraConst.EXTRA_NAME_FINISH.equals(name)) {
+                    checkCloseApplication();
                 }
             }
         }
@@ -216,7 +286,37 @@ public class CameraActivity extends Activity {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                mPreview.takePicture(requestid);
+                mPreview.takePicture(new Camera.PictureCallback() {
+                    @Override
+                    public void onPictureTaken(byte[] data, Camera camera) {
+                        String fileName = createNewFileName();
+                        String pictureUri = null;
+                        try {
+                            pictureUri = mFileMgr.saveFile(fileName, data);
+                        } catch (IOException e) {
+                            if (BuildConfig.DEBUG) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        // リクエストIDが登録されていたら、撮影完了後にホストデバイスプラグインへ撮影完了通知を送信する
+                        if (requestid != null) {
+                            Context context = CameraActivity.this;
+                            Intent intent = new Intent(CameraConst.SEND_CAMERA_TO_HOSTDP);
+                            intent.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+                            intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
+                            intent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
+                            intent.putExtra(CameraConst.EXTRA_PICTURE_URI, pictureUri);
+                            context.sendBroadcast(intent);
+                        }
+
+                        if (mFinishFlag) {
+                            checkCloseApplication();
+                        } else {
+                            mCamera.startPreview();
+                        }
+                    }
+                });
             }
         }, 2000);
     }
@@ -247,5 +347,76 @@ public class CameraActivity extends Activity {
                 mPreview.zoomOut(requestid);
             }
         });
+    }
+
+    /**
+     * HostDeviceServiceとデータをやり取りするためのAIDL.
+     */
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(final ComponentName name, final IBinder service) {
+            mService = IHostMediaStreamRecordingService.Stub.asInterface(service);
+        }
+        @Override
+        public void onServiceDisconnected(final ComponentName name) {
+            unbindService(mServiceConnection);
+            mService = null;
+        }
+    };
+
+    /**
+     * サービスをバインドする.
+     */
+    private void bindService() {
+        Intent mIntent = new Intent(this, HostDeviceService.class);
+        mIntent.setAction("camera");
+        bindService(mIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    /**
+     * アプリケーションクローズ時処理.
+     */
+    private void checkCloseApplication() {
+        Intent intent = getIntent();
+        if (intent != null) {
+            String action = intent.getAction();
+            if (CameraConst.SEND_HOSTDP_TO_CAMERA.equals(action)) {
+                finish();
+            }
+        }
+    }
+
+    /**
+     * 新規のファイル名を作成する.
+     * @return ファイル名
+     */
+    private String createNewFileName() {
+        return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
+    }
+
+    @Override
+    public void onPreviewFrame(final byte[] data, final Camera camera) {
+        mCamera.setPreviewCallback(null);
+
+        if (mService != null) {
+            int format = mCamera.getParameters().getPreviewFormat();
+            int width = mCamera.getParameters().getPreviewSize().width;
+            int height = mCamera.getParameters().getPreviewSize().height;
+    
+            YuvImage yuvimage = new YuvImage(data, format, width, height, null);
+            Rect rect = new Rect(0, 0, width, height);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            yuvimage.compressToJpeg(rect, 50, baos);
+            byte[] jdata = baos.toByteArray();
+            try {
+                mService.sendPreviewData(jdata, format, width, height);
+            } catch (RemoteException e) {
+                unbindService(mServiceConnection);
+                mService = null;
+                bindService();
+            }
+        }
+
+        mCamera.setPreviewCallback(this);
     }
 }

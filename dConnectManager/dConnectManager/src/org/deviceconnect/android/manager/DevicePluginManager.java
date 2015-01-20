@@ -28,6 +28,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
 
 /**
@@ -144,6 +145,7 @@ public class DevicePluginManager {
                 if (value != null) {
                     String packageName = receiverInfo.packageName;
                     String className = receiverInfo.name;
+                    String startClassName = getStartServiceClassName(packageName);
                     String hash = md5(packageName + className);
                     if (hash == null) {
                         throw new RuntimeException("Can't generate md5.");
@@ -151,7 +153,7 @@ public class DevicePluginManager {
                     sLogger.info("Added DevicePlugin: [" + hash + "]");
                     sLogger.info("    PackageName: " + packageName);
                     sLogger.info("    className: " + className);
-                    // TODO 既に同じ名前のデバイスプラグインが存在した場合の処理
+                    // MEMO 既に同じ名前のデバイスプラグインが存在した場合の処理
                     // 現在は警告を表示し、上書きする.
                     if (mPlugins.containsKey(hash)) {
                         sLogger.warning("DevicePlugin[" + hash + "] already exists.");
@@ -162,6 +164,7 @@ public class DevicePluginManager {
                     plugin.setPackageName(packageName);
                     plugin.setDeviceId(hash);
                     plugin.setDeviceName(receiverInfo.applicationInfo.loadLabel(pkgMgr).toString());
+                    plugin.setStartServiceClassName(startClassName);
                     plugin.setSupportProfiles(checkDevicePluginXML(receiverInfo));
                     mPlugins.put(hash, plugin);
                     if (mEventListener != null) {
@@ -474,6 +477,33 @@ public class DevicePluginManager {
         return pkgName;
     }
 
+    /**
+     * Get a class name of service for start.
+     * @param packageName package name of device plugin
+     * @return class name or null if there are no service for start
+     */
+    private String getStartServiceClassName(final String packageName) {
+        PackageManager pkgMgr = mContext.getPackageManager();
+        try {
+            PackageInfo pkg = pkgMgr.getPackageInfo(packageName, PackageManager.GET_SERVICES);
+            ServiceInfo[] slist = pkg.services;
+            if (slist != null) {
+                for (ServiceInfo s : slist) {
+                    ComponentName comp = new ComponentName(s.packageName, s.name);
+                    ServiceInfo ss = pkgMgr.getServiceInfo(comp, PackageManager.GET_META_DATA);
+                    if (ss.metaData != null) {
+                        Object value = ss.metaData.get(PLUGIN_META_DATA);
+                        if (value != null) {
+                            return s.name;
+                        }
+                    }
+                }
+            }
+            return null;
+        } catch (NameNotFoundException e) {
+            return null;
+        }
+    }
     /**
      * デバイスプラグインの発見、見失う通知を行うリスナー.
      * @author NTT DOCOMO, INC.

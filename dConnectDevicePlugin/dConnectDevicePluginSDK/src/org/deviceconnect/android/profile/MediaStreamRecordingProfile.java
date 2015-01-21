@@ -10,8 +10,6 @@ import java.util.List;
 
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.MediaStreamRecordingProfileConstants.RecorderState;
-import org.deviceconnect.profile.MediaStreamRecordingProfileConstants.RecordingState;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -168,6 +166,8 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
                 result = onPutOnRecordingChange(request, response, deviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_DATA_AVAILABLE)) {
                 result = onPutOnDataAvailable(request, response, deviceId, sessionKey);
+            } else if (attribute.equals(ATTRIBUTE_PREVIEW)) {
+                result = onPutPreview(request, response, deviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -194,6 +194,8 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
                 result = onDeleteOnRecordingChange(request, response, deviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_DATA_AVAILABLE)) {
                 result = onDeleteOnDataAvailable(request, response, deviceId, sessionKey);
+            } else if (attribute.equals(ATTRIBUTE_PREVIEW)) {
+                result = onDeletePreview(request, response, deviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -432,6 +434,8 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * 
+     * @deprecated This method is deprecated.
+     * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @param deviceId デバイスID
@@ -440,6 +444,23 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      */
     protected boolean onPutOnDataAvailable(final Intent request, final Intent response, final String deviceId,
             final String sessionKey) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * プレビューを開始する.
+     * <p>
+     * プレビュー送信用のサーバを起動し、そのURIをレスポンスパラメータに格納する。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * </p>
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param deviceId デバイスID
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onPutPreview(final Intent request, final Intent response, final String deviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -490,6 +511,8 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * 
+     * @deprecated This method is deprecated.
+     * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @param deviceId デバイスID
@@ -498,6 +521,23 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      */
     protected boolean onDeleteOnDataAvailable(final Intent request, final Intent response, final String deviceId,
             final String sessionKey) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * プレビューを停止する.
+     * <p>
+     * プレビュー送信用のサーバを停止する。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * </p>
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param deviceId デバイスID
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onDeletePreview(final Intent request, final Intent response, final String deviceId) {
         setUnsupportedError(response);
         return true;
     }

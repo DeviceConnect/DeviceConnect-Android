@@ -22,6 +22,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.NotificationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -197,7 +198,7 @@ public class HostNotificationProfile extends NotificationProfile {
 
             NotificationManager mNotificationManager =
                     (NotificationManager) this.getContext().getSystemService(
-                       this.getContext().NOTIFICATION_SERVICE);
+                       Context.NOTIFICATION_SERVICE);
             mNotificationManager.cancel(Integer.parseInt(notificationId));
             setResult(response, IntentDConnectMessage.RESULT_OK);
 
@@ -311,6 +312,20 @@ public class HostNotificationProfile extends NotificationProfile {
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
+                switch (error) {
+                case FAILED:
+                    MessageUtils.setUnknownError(response, "Do not unregister event.");
+                    break;
+                case INVALID_PARAMETER:
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    break;
+                case NOT_FOUND:
+                    MessageUtils.setUnknownError(response, "Event not found.");
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response);
+                    break;
+                }
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
         }
@@ -333,6 +348,20 @@ public class HostNotificationProfile extends NotificationProfile {
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
+                switch (error) {
+                case FAILED:
+                    MessageUtils.setUnknownError(response, "Do not unregister event.");
+                    break;
+                case INVALID_PARAMETER:
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    break;
+                case NOT_FOUND:
+                    MessageUtils.setUnknownError(response, "Event not found.");
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response);
+                    break;
+                }
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
         }
@@ -355,6 +384,20 @@ public class HostNotificationProfile extends NotificationProfile {
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
+                switch (error) {
+                case FAILED:
+                    MessageUtils.setUnknownError(response, "Do not unregister event.");
+                    break;
+                case INVALID_PARAMETER:
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    break;
+                case NOT_FOUND:
+                    MessageUtils.setUnknownError(response, "Event not found.");
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response);
+                    break;
+                }
                 setResult(response, DConnectMessage.RESULT_ERROR);
             }
         }

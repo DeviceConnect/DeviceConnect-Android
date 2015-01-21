@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
@@ -19,6 +20,7 @@ import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -43,6 +45,12 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /** Error. */
     private static final int ERROR_VALUE_IS_NULL = 100;
+
+    /** ミリ秒 - 秒オーダー変換用. */
+    private static final int UNIT_SEC = 1000;
+
+    /** Mute Status. */
+    private static Boolean mIsMute = false;
 
     @Override
     protected boolean onPutPlay(final Intent request, final Intent response, final String deviceId) {
@@ -115,7 +123,6 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutMedia(final Intent request, final Intent response, final String deviceId,
             final String mediaId) {
-
         if (deviceId == null) {
             createEmptyDeviceId(response);
         } else if (!checkDeviceId(deviceId)) {
@@ -144,24 +151,145 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             final String mediaId) {
         if (deviceId == null) {
             createEmptyDeviceId(response);
-            return false;
         } else if (!checkDeviceId(deviceId)) {
             createNotFoundDevice(response);
-            return false;
         } else if (TextUtils.isEmpty(mediaId)) {
             MessageUtils.setInvalidRequestParameterError(response);
-            return true;
         } else {
+            // Query table parameter.
+            String[] mParam = null;
 
-            ((HostDeviceService) getContext()).getMedia(response);
-            return false;
+            // URI
+            Uri mUriType = null;
+
+            // Query filter.
+            String mFilter = "_display_name=?";
+
+            // Query cursor.
+            Cursor cursor = null;
+
+            // Get media path.
+            Uri mUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+            String fileName = getDisplayNameFromUri(mUri);
+            if (fileName == null) {
+                mUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+                fileName = getDisplayNameFromUri(mUri);
+                if (fileName == null) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return true;
+                }
+                // Audio table key.
+                mParam = new String[] {MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.ARTIST,
+                        MediaStore.Audio.Media.COMPOSER, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DURATION,
+                        MediaStore.Audio.Media._ID, MediaStore.Audio.Media.MIME_TYPE,
+                        MediaStore.Audio.Media.DATE_ADDED, MediaStore.Audio.Media.DISPLAY_NAME};
+                mUriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+            } else {
+                // Video table key.
+                mParam = new String[] {MediaStore.Video.Media.ALBUM, MediaStore.Video.Media.ARTIST,
+                        MediaStore.Video.Media.LANGUAGE, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DURATION,
+                        MediaStore.Video.Media._ID, MediaStore.Video.Media.MIME_TYPE,
+                        MediaStore.Video.Media.DATE_ADDED, MediaStore.Video.Media.DISPLAY_NAME};
+                mUriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+            }
+            ContentResolver mContentResolver = this.getContext().getApplicationContext().getContentResolver();
+            try {
+                cursor = mContentResolver.query(mUriType, mParam, mFilter, new String[] {fileName}, null);
+                cursor.moveToFirst();
+            } catch (Exception e) {
+                if (BuildConfig.DEBUG) {
+                    e.printStackTrace();
+                }
+                MessageUtils.setInvalidRequestParameterError(response);
+                return true;
+            }
+
+            List<Bundle> list = new ArrayList<Bundle>();
+
+            if (cursor.getCount() > 0) {
+                Bundle medium = new Bundle();
+                String mId = null;
+                String mType = null;
+                String mTitle = null;
+                int mDuration = 0;
+                String mArtist = null;
+                String mComp = null;
+
+                if (mUriType == MediaStore.Audio.Media.EXTERNAL_CONTENT_URI) {
+                    mId = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
+                    mType = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE));
+                    mTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+                    mDuration = (cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION))) / UNIT_SEC;
+                    mArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+                    mComp = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.COMPOSER));
+
+                    setType(medium, "Music");
+
+                    // Make creator
+                    List<Bundle> dataList = new ArrayList<Bundle>();
+                    Bundle creator = new Bundle();
+                    setCreator(creator, mArtist);
+                    setRole(creator, "Artist");
+                    dataList.add((Bundle) creator.clone());
+                    setCreator(creator, mComp);
+                    setRole(creator, "Composer");
+                    dataList.add((Bundle) creator.clone());
+
+                    setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
+                } else {
+                    mId = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
+                    mType = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE));
+                    mTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.TITLE));
+                    mDuration = (cursor.getInt(cursor.getColumnIndex(MediaStore.Video.Media.DURATION))) / UNIT_SEC;
+                    mArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.ARTIST));
+                    String mLang = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.LANGUAGE));
+                    setLanguage(medium, mLang);
+
+                    setType(medium, "Video");
+
+                    // Make creator
+                    List<Bundle> dataList = new ArrayList<Bundle>();
+                    Bundle creatorVideo = new Bundle();
+                    setCreator(creatorVideo, mArtist);
+                    setRole(creatorVideo, "Artist");
+                    dataList.add((Bundle) creatorVideo.clone());
+                    setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
+                }
+                setMediaId(medium, mId);
+                setMIMEType(medium, mType);
+                setTitle(medium, mTitle);
+                setDuration(medium, mDuration);
+                list.add(medium);
+            }
+            setMedia(response, list.toArray(new Bundle[list.size()]));
+            setResult(response, DConnectMessage.RESULT_OK);
+            cursor.close();
         }
+        return true;
     }
+
+/**
+ * Get display name from URI.
+ * 
+ * @param mUri URI
+ * @return name display name.
+ */
+private String getDisplayNameFromUri(final Uri mUri) {
+    try {
+        ContentResolver mContentResolver = this.getContext().getApplicationContext().getContentResolver();
+        Cursor c = mContentResolver.query(mUri, null, null, null, null);
+        c.moveToFirst();
+        String name = c.getString(c.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME));
+
+        return name;
+    } catch (Exception e) {
+        return null;
+    }
+}
 
     @Override
     protected boolean onGetMediaList(Intent request, Intent response, final String deviceId, final String query,
             final String mimeType, final String[] orders, final Integer offset, final Integer limit) {
-
         if (deviceId == null) {
             createEmptyDeviceId(response);
         } else if (!checkDeviceId(deviceId)) {
@@ -217,7 +345,11 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                 mMusicFilter += " OR " + MediaStore.Audio.Media.COMPOSER + " LIKE '%" + query + "%')";
             }
             if (BuildConfig.DEBUG) {
-                Log.i(TAG, "orders" + orders);
+                if (orders != null) {
+                    for (int i = 0; i < orders.length; i++) {
+                        Log.i(TAG, "orders[" + i + "]: " + orders[i]);
+                    }
+                }
             }
             if (orders != null) {
                 mOrderBy = orders[0] + " " + orders[1];
@@ -226,15 +358,15 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             }
 
             // 音楽用のテーブルキー設定.
-            mMusicParam = new String[] { MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.ARTIST,
+            mMusicParam = new String[] {MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.ARTIST,
                     MediaStore.Audio.Media.COMPOSER, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DURATION,
-                    MediaStore.Audio.Media._ID, MediaStore.Audio.Media.MIME_TYPE, MediaStore.Audio.Media.DATE_ADDED };
+                    MediaStore.Audio.Media._ID, MediaStore.Audio.Media.MIME_TYPE, MediaStore.Audio.Media.DATE_ADDED};
             mMusicUriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 
             // 動画用のテーブルキー設定.
-            mVideoParam = new String[] { MediaStore.Video.Media.ALBUM, MediaStore.Video.Media.ARTIST,
+            mVideoParam = new String[] {MediaStore.Video.Media.ALBUM, MediaStore.Video.Media.ARTIST,
                     MediaStore.Video.Media.LANGUAGE, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DURATION,
-                    MediaStore.Video.Media._ID, MediaStore.Video.Media.MIME_TYPE, MediaStore.Video.Media.DATE_ADDED };
+                    MediaStore.Video.Media._ID, MediaStore.Video.Media.MIME_TYPE, MediaStore.Video.Media.DATE_ADDED};
 
             mVideoUriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
 
@@ -259,7 +391,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                     String mId = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media._ID));
                     String mType = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE));
                     String mTitle = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.TITLE));
-                    int mDuration = cursorMusic.getInt(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DURATION));
+                    int mDuration = (cursorMusic.getInt(cursorMusic.getColumnIndex(MediaStore.Audio.Media.DURATION)))
+                            / UNIT_SEC;
                     String mArtist = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ARTIST));
                     String mComp = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.COMPOSER));
                     // 音楽のデータ作成
@@ -272,11 +405,16 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                     setDuration(medium, mDuration);
 
                     // Creatorを作成
+                    List<Bundle> dataList = new ArrayList<Bundle>();
                     Bundle creator = new Bundle();
                     setCreator(creator, mArtist);
-                    setRole(creator, mComp);
-
-                    setCreators(medium, new Bundle[] { creator });
+                    setRole(creator, "Artist");
+                    dataList.add((Bundle) creator.clone());
+                    setCreator(creator, mComp);
+                    setRole(creator, "Composer");
+                    dataList.add((Bundle) creator.clone());
+                    
+                    setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
 
                     if (limit == null || (limit != null && limitCounter > counter)) {
                         if (offset == null || (offset != null && counter >= offset)) {
@@ -308,7 +446,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                     String mId = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media._ID));
                     String mType = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.MIME_TYPE));
                     String mTitle = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.TITLE));
-                    int mDuration = cursorVideo.getInt(cursorVideo.getColumnIndex(MediaStore.Video.Media.DURATION));
+                    int mDuration = (cursorVideo.getInt(cursorVideo.getColumnIndex(MediaStore.Video.Media.DURATION)))
+                            / UNIT_SEC;
                     String mArtist = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.ARTIST));
                     setType(medium, "Video");
                     setLanguage(medium, mLang);
@@ -318,10 +457,12 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                     setDuration(medium, mDuration);
 
                     // Creatorを作成
+                    List<Bundle> dataList = new ArrayList<Bundle>();
                     Bundle creatorVideo = new Bundle();
                     setCreator(creatorVideo, mArtist);
-
-                    setCreators(medium, new Bundle[] { creatorVideo });
+                    setRole(creatorVideo, "Artist");
+                    dataList.add((Bundle) creatorVideo.clone());
+                    setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
 
                     if (limit == null || (limit != null && limitCounter > counter)) {
                         if (offset == null || (offset != null && counter >= offset)) {
@@ -413,8 +554,16 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             createNotFoundDevice(response);
         } else {
             int pos = ((HostDeviceService) getContext()).getMediaPos();
-            setPos(response, pos);
-            setResult(response, DConnectMessage.RESULT_OK);
+            if (pos < 0) {
+                setPos(response, 0);
+                MessageUtils.setError(response, DConnectMessage.RESULT_ERROR, "Position acquisition failure.");
+            } else if (pos == Integer.MAX_VALUE) {
+                ((HostDeviceService) getContext()).setVideoMediaPosRes(response);
+                return false;
+            } else {
+                setPos(response, pos);
+                setResult(response, DConnectMessage.RESULT_OK);
+            }
         }
         return true;
     }
@@ -428,8 +577,9 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
             manager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-
+            mIsMute = true;
             setResult(response, DConnectMessage.RESULT_OK);
+            ((HostDeviceService) getContext()).sendOnStatusChangeEvent("mute");
         }
         return true;
     }
@@ -443,8 +593,9 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
             manager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-
+            mIsMute = false;
             setResult(response, DConnectMessage.RESULT_OK);
+            ((HostDeviceService) getContext()).sendOnStatusChangeEvent("unmute");
         }
         return true;
     }
@@ -456,8 +607,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         } else if (!checkDeviceId(deviceId)) {
             createNotFoundDevice(response);
         } else {
+            setMute(response, mIsMute);
             setResult(response, DConnectMessage.RESULT_OK);
-            setMute(response, true);
         }
         return true;
     }
@@ -531,7 +682,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         // 拡張子を取得
         String ext = MimeTypeMap.getFileExtensionFromUrl(path);
         // 小文字に変換
-        ext = ext.toLowerCase();
+        ext = ext.toLowerCase(Locale.getDefault());
         // MIME Typeを返す
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
     }
@@ -544,7 +695,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
      */
     private boolean checkInteger(final String value) {
         try {
-            int intValue = Integer.parseInt(value);
+            Integer.parseInt(value);
             return true;
         } catch (NumberFormatException e) {
             return false;
@@ -588,8 +739,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
      */
     public static long mediaIdFromPath(final Context context, final String path) {
         long id = 0;
-        String[] mParam = { BaseColumns._ID };
-        String[] mArgs = new String[] { path };
+        String[] mParam = {BaseColumns._ID};
+        String[] mArgs = new String[] {path};
 
         // Audio
         Uri mAudioUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;

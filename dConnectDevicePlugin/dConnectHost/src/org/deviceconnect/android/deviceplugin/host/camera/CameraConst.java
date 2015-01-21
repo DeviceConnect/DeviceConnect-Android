@@ -82,6 +82,11 @@ public final class CameraConst {
     /** 写真のURI. */
     public static final String EXTRA_PICTURE_URI = "picture_uri";
 
+    /** preview. */
+    public static final String EXTRA_NAME_PREVIEW = "preview";
+    /** finish. */
+    public static final String EXTRA_NAME_FINISH = "finish";
+    
     /** リクエストID. */
     public static final String EXTRA_REQUESTID = "request_id";
 

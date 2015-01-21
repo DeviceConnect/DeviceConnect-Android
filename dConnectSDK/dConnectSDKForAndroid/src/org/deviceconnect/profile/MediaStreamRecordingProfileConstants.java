@@ -64,9 +64,15 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
 
     /**
      * 属性: {@value} .
+     * @deprecated This parameter is deprecated.
      */
     String ATTRIBUTE_ON_DATA_AVAILABLE = "ondataavailable";
-    
+
+    /**
+     * 属性: {@value}.
+     */
+    String ATTRIBUTE_PREVIEW = "preview";
+
     /**
      * 属性: {@value} .
      */
@@ -129,6 +135,7 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
 
     /**
      * パス: {@value} .
+     * @deprecated This parameter is deprecated.
      */
     String PATH_ON_DATA_AVAILABLE = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_DATA_AVAILABLE;
 
@@ -136,6 +143,11 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
      * パス: {@value} .
      */
     String PATH_ON_RECORDING_CHANGE = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_RECORDING_CHANGE;
+
+    /**
+     * パス: {@value}.
+     */
+    String PATH_PREVIEW = PATH_PROFILE + SEPARATOR + ATTRIBUTE_PREVIEW;
 
     /**
      * パラメータ: {@value} .

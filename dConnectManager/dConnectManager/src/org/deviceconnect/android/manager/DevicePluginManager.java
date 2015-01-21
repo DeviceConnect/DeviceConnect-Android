@@ -40,6 +40,8 @@ public class DevicePluginManager {
     private final Logger sLogger = Logger.getLogger("dconnect.manager");
     /** デバイスプラグインに格納されるメタタグ名. */
     private static final String PLUGIN_META_DATA = "org.deviceconnect.android.deviceplugin";
+    /** 再起動用のサービスを表すメタデータの値. */
+    private static final String VALUE_META_DATA = "enable";
     /** マスクを定義. */
     private static final int MASK = 0xFF;
     /** デバイスプラグイン一覧. */
@@ -493,7 +495,7 @@ public class DevicePluginManager {
                     ServiceInfo ss = pkgMgr.getServiceInfo(comp, PackageManager.GET_META_DATA);
                     if (ss.metaData != null) {
                         Object value = ss.metaData.get(PLUGIN_META_DATA);
-                        if (value != null) {
+                        if (value != null && value.equals(VALUE_META_DATA)) {
                             return s.name;
                         }
                     }

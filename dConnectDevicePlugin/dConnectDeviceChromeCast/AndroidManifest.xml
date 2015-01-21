@@ -20,7 +20,15 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-
+        <!-- 再起動用のServcie. -->
+        <service
+            android:name="org.deviceconnect.android.message.DConnectLaunchService"
+            android:exported="true" >
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:value="org.deviceconnect.android.deviceplugin" />
+        </service>
+        
         <!-- 設定画面 -->
         <activity android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity" >
         </activity>

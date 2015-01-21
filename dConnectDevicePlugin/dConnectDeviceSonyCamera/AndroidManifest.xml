@@ -62,7 +62,15 @@
             android:name="org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService"
             android:exported="false" >
         </service>
-
+        <!-- 再起動用のServcie. -->
+        <service
+            android:name="org.deviceconnect.android.message.DConnectLaunchService"
+            android:exported="true" >
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:value="org.deviceconnect.android.deviceplugin" />
+        </service>
+        
         <!-- Local OAuth -->
         <activity
             android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"

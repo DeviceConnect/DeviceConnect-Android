@@ -88,6 +88,13 @@
             android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
             android:exported="false" >
         </service>
+        <service
+            android:name="org.deviceconnect.android.message.DConnectLaunchService"
+            android:exported="true" >
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:value="org.deviceconnect.android.deviceplugin" />
+        </service>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
@@ -133,8 +140,7 @@
             android:launchMode="singleInstance"
             android:screenOrientation="landscape" >
         </activity>
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.audio.AudioRecorder">
+        <activity android:name="org.deviceconnect.android.deviceplugin.host.audio.AudioRecorder" >
         </activity>
 
         <receiver android:name="org.deviceconnect.android.deviceplugin.host.video.VideoRecorder" >

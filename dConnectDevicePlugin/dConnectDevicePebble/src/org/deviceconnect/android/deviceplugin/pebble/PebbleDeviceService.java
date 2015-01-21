@@ -10,7 +10,7 @@ import java.util.Set;
 
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleBatteryProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleFileProfile;
+import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleCanvasProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleNetworkServceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleNotificationProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSettingProfile;
@@ -26,7 +26,6 @@ import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.android.provider.FileManager;
 
 /**
  * Pebbleデバイスプロバイダ.
@@ -48,16 +47,13 @@ public class PebbleDeviceService extends DConnectMessageService {
         // initialize of the EventManager
         EventManager.INSTANCE.setController(new DBCacheController(this));
 
-        // create FileManager 
-        FileManager fileMgr = new FileManager(this);
-
         // add supported profiles
         addProfile(new PebbleNotificationProfile());
         addProfile(new PebbleDeviceOrientationProfile(this));
         addProfile(new PebbleVibrationProfile());
         addProfile(new PebbleBatteryProfile(this));
         addProfile(new PebbleSettingProfile());
-        addProfile(new PebbleFileProfile(fileMgr));
+        addProfile(new PebbleCanvasProfile());
     }
 
     @Override

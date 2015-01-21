@@ -23,6 +23,7 @@ import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
+import org.deviceconnect.profile.CanvasProfileConstants.Mode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -835,12 +836,15 @@ public final class PebbleManager {
      * Pebbleで読み込めるような画像に変換する.
      * 
      * @param data 画像データ
+     * @param mode 画像描画モード
+     * @param x 画像配置座標(x)
+     * @param y 画像配置座標(y)
      * @return 変換後のデータ
      */
-    public static byte[] convertImage(byte[] data) {
+    public static byte[] convertImage(byte[] data, final String mode, final double x, final double y) {
         final int width = 144;
         final int height = 120;
-        return convertImage(data, width, height);
+        return convertImage(data, width, height, mode, x, y);
     }
 
     /**
@@ -851,11 +855,26 @@ public final class PebbleManager {
      * @param data 画像データ
      * @param width 横幅
      * @param height 縦幅
+     * @param mode 画像描画モード
+     * @param x 画像配置座標(x)
+     * @param y 画像配置座標(y)
      * @return 変換後のデータ
      */
-    public static byte[] convertImage(byte[] data, final int width, final int height) {
+    public static byte[] convertImage(byte[] data, final int width, final int height, final String mode, final double x, final double y) {
         Bitmap b = BitmapFactory.decodeByteArray(data, 0, data.length);
-        Bitmap b2 = PebbleBitmapUtil.scale(b, width, height);
+        Bitmap b2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        
+        if (mode == null || mode.equals("")) {
+            // 等倍描画モード 
+        	PebbleBitmapUtil.drawImageForNonScalesMode(b2, b, x, y);
+        } else if (mode.equals(Mode.SCALES.getValue())) {
+            // スケールモード 
+        	PebbleBitmapUtil.drawImageForScalesMode(b2, b);
+        } else if (mode.equals(Mode.FILLS.getValue())) {
+            // フィルモード 
+        	PebbleBitmapUtil.drawImageForFillsMode(b2, b);
+        }
+        
         byte[] buf = PebbleBitmapUtil.convertImageThresholding(b2);
         b.recycle();
         b2.recycle();

@@ -24,13 +24,9 @@ import android.content.IntentFilter;
 import android.hardware.Camera;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaRecorder;
-import android.media.MediaRecorder.OutputFormat;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -45,28 +41,19 @@ import android.view.Window;
 public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
 
     /** MediaRecorder. */
-    private static MediaRecorder mRecorder;
+    private MediaRecorder mRecorder;
 
     /** 録画中かどうか. */
-    private static boolean isRecording;
+    private boolean isRecording;
 
     /** SurfaceHolder. */
-    private static SurfaceHolder mHolder;
-
-    /** Activity. */
-    private static Activity mActivity;
-
-    /** Debug Tag. */
-    private static final String TAG = "HOST";
-
+    private SurfaceHolder mHolder;
+    
     /** Format Type. */
     private static final String FORMAT_TYPE = ".3gp";
 
     /** Camera. */
-    private static Camera mCamera;
-
-    /** MediaRecorder. */
-    private static MediaRecorder mMediaRecorder;
+    private Camera mCamera;
 
     /** ファイル管理クラス. */
     private FileManager mFileMgr;
@@ -91,8 +78,6 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         SurfaceView mSurfaceView = (SurfaceView) findViewById(R.id.surface_view);
         mHolder = mSurfaceView.getHolder();
         mHolder.addCallback(this);
-
-        mActivity = this;
 
         // FileManager.
         mFileMgr = new FileManager(this);
@@ -175,7 +160,6 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
      * MediaRecorderを解放.
      */
     private void releaseMediaRecorder() {
-
         if (mRecorder != null) {
             try {
                 mRecorder.stop();
@@ -190,8 +174,24 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         }
     }
 
-    private void releaseCamera() {
+    /**
+     * Cameraのインスタンスを取得.
+     * 
+     * @return cameraのインスタンス
+     */
+    private synchronized Camera getCameraInstance() {
+        Camera c = null;
+        try {
+            c = Camera.open();
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+        }
+        return c;
+    }
 
+    private synchronized void releaseCamera() {
         if (mCamera != null) {
             try {
                 mCamera.lock();
@@ -210,6 +210,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
      * 
      * @param holder フォルダ
      */
+    @Override
     public void surfaceCreated(final SurfaceHolder holder) {
     }
 
@@ -221,6 +222,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
      * @param width 幅
      * @param height 高さ
      */
+    @Override
     public void surfaceChanged(final SurfaceHolder holder, final int format, final int width, final int height) {
         mHolder = holder;
         mRecorder.setPreviewDisplay(mHolder.getSurface());
@@ -246,31 +248,13 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
      * 
      * @param holder フォルダ
      */
+    @Override
     public void surfaceDestroyed(final SurfaceHolder holder) {
-    }
-
-    /**
-     * Cameraのインスタンスを取得.
-     * 
-     * @return cameraのインスタンス
-     */
-    public static Camera getCameraInstance() {
-
-        Camera c = null;
-        try {
-            c = Camera.open();
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-        }
-        return c;
     }
 
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-
             finish();
         }
         return true;
@@ -287,7 +271,6 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
     @Override
     public boolean onKeyDown(final int keyCode, final KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_HOME) {
-
             finish();
             return true;
         } else {
@@ -299,14 +282,11 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
      * 受信用のReceiver.
      */
     private BroadcastReceiver myReceiver = new BroadcastReceiver() {
-
         @Override
         public void onReceive(final Context context, final Intent intent) {
-
             if (intent.getAction().equals(VideoConst.SEND_HOSTDP_TO_VIDEO)) {
                 String videoAction = intent.getStringExtra(VideoConst.EXTRA_NAME);
                 if (videoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_RECORD_STOP)) {
-
                     finish();
                 }
             }

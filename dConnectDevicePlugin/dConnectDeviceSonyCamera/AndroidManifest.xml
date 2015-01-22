@@ -12,8 +12,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:name="org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceApplication"
@@ -30,7 +28,11 @@
         <provider
             android:name="org.deviceconnect.android.provider.FileProvider"
             android:authorities="org.deviceconnect.android.deviceplugin.sonycamera.provider"
-            android:exported="true" />
+            android:exported="true" >
+            <meta-data
+                android:name="filelocation"
+                android:resource="@xml/filelocation" />
+        </provider>
 
         <receiver android:name="org.deviceconnect.android.deviceplugin.sonycamera.receiver.WiFiStateReceiver" >
             <intent-filter>
@@ -66,7 +68,7 @@
         <!-- Local OAuth -->
         <activity
             android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:theme="@style/AppTheme.Translucent" >
+            android:excludeFromRecents="true" >
         </activity>
         <activity android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity" >
         </activity>

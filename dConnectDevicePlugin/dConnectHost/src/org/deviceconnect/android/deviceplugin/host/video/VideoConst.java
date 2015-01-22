@@ -69,7 +69,7 @@ public final class VideoConst {
     /** 再生停止. */
     public static final String EXTRA_VALUE_VIDEO_PLAYER_STOP = "stop";
 
-    /** 再生時停止. */
+    /** 再生一時停止. */
     public static final String EXTRA_VALUE_VIDEO_PLAYER_PAUSE = "pause";
 
     /** 再生再開. */
@@ -77,6 +77,12 @@ public final class VideoConst {
 
     /** 再生場所指定. */
     public static final String EXTRA_VALUE_VIDEO_PLAYER_SEEK = "seek";
+
+    /** 現在再生場所取得. */
+    public static final String EXTRA_VALUE_VIDEO_PLAYER_GET_POS = "getpos";
+
+    /** 現在再生場所. */
+    public static final String EXTRA_VALUE_VIDEO_PLAYER_PLAY_POS = "playpos";
 
     /** 撮影するサイズ(横). */
     public static final int VIDEO_WIDTH = 320;

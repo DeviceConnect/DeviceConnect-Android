@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -17,14 +16,14 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import org.apache.http.conn.util.InetAddressUtils;
+import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServer;
 import org.deviceconnect.android.deviceplugin.host.manager.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostConnectProfile;
@@ -51,26 +50,22 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.android.profile.FileDescriptorProfile;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
-import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.FileDescriptorProfileConstants.Flag;
-import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants.CallState;
 
 import android.app.ActivityManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.content.ComponentName;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -78,6 +73,7 @@ import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -93,24 +89,11 @@ import android.webkit.MimeTypeMap;
  * @author NTT DOCOMO, INC.
  */
 public class HostDeviceService extends DConnectMessageService implements SensorEventListener {
-
-    /** onphotoイベント用マップ. */
-    private Map<String, Intent> mOnPhotoCallback = new HashMap<String, Intent>();
-
-    /** デバイスID. */
-    private static final String DEVICE_ID = "android_camera";
-
-    /** ondataavailable イベント用マップ. */
-    private Map<String, Intent> mOnDataAvailableCallback = new HashMap<String, Intent>();
+    /** マルチキャスト用のタグ. */
+    private static final String HOST_MULTICAST = "deviceplugin.host";
 
     /** ファイル管理クラス. */
     private FileManager mFileMgr;
-
-    /** ファイル名に付けるプレフィックス. */
-    private static final String FILENAME_PREFIX = "android_camera_";
-
-    /** ファイルの拡張子. */
-    private static final String FILE_EXTENSION = ".png";
 
     /** 独自エラーコード. */
     private static final int UNIQUE_ERROR_CODE = 101;
@@ -118,29 +101,32 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     /** バッファーサイズ. */
     private static final int BUFFER_SIZE = 1024;
 
-    /** 日付のフォーマット. */
-    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
-
     /** SensorManager. */
     private SensorManager mSensorManager;
 
     /** SensorManager. */
     private SensorManager mSensorManagerProximity;
 
-    /** onClick Event. */
-    private boolean onClickEventFlag = false;
-
     /** DeviceID. */
     private String mDeviceId;
 
     /** ServiceのList. */
-    List<Bundle> services;
-
-    /** 圧縮比率. */
-    private static final int COMPRESS_PERCENTAGE = 50;
+    private List<Bundle> services;
 
     /** バッテリー関連の処理と値処理. */
     private HostBatteryManager mHostBatteryManager;
+
+    /** ミリ秒 - 秒オーダー変換用. */
+    private static final int UNIT_SEC = 1000;
+    
+    /** Video Current Position response.*/
+    private Intent mResponse = null;
+    
+    /** Intent filter for battery charge event. */
+    private IntentFilter ifBatteryCharge;
+
+    /** Intent filter for battery connect event. */
+    private IntentFilter ifBatteryConnect;
 
     @Override
     public void onCreate() {
@@ -153,6 +139,9 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         // LocalOAuthの処理
         LocalOAuth2Main.initialize(getApplicationContext());
 
+        // ファイル管理クラスの作成
+        mFileMgr = new FileManager(this);
+
         // add supported profiles
         addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
         addProfile(new HostNotificationProfile());
@@ -162,8 +151,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         addProfile(new HostPhoneProfile());
         addProfile(new HostSettingsProfile());
         addProfile(new HostMediaPlayerProfile());
-        // ファイル管理クラスの作成
-        mFileMgr = new FileManager(this);
         addProfile(new HostFileProfile(mFileMgr));
         addProfile(new HostFileDescriptorProfile());
         addProfile(new HostVibrationProfile());
@@ -173,6 +160,14 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         mHostBatteryManager = new HostBatteryManager();
         mHostBatteryManager.getBatteryInfo(this.getContext());
 
+        ifBatteryCharge = new IntentFilter();
+        ifBatteryCharge.addAction(Intent.ACTION_BATTERY_CHANGED);
+        ifBatteryCharge.addAction(Intent.ACTION_BATTERY_LOW);
+        ifBatteryCharge.addAction(Intent.ACTION_BATTERY_OKAY);
+
+        ifBatteryConnect = new IntentFilter();
+        ifBatteryConnect.addAction(Intent.ACTION_POWER_CONNECTED);
+        ifBatteryConnect.addAction(Intent.ACTION_POWER_DISCONNECTED);
     }
 
     @Override
@@ -181,63 +176,9 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         if (intent == null) {
             return START_STICKY;
         }
-
         String action = intent.getAction();
-
-        if (Intent.ACTION_BATTERY_CHANGED.equals(action)
-            || Intent.ACTION_BATTERY_LOW.equals(action)
-            || Intent.ACTION_BATTERY_OKAY.equals(action)) {
-            // バッテリーが変化した時
-            
-            mHostBatteryManager.setBatteryRequest(intent);
-
-            List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId,
-                    HostBatteryProfile.PROFILE_NAME,
-                    null,
-                    HostBatteryProfile.ATTRIBUTE_ON_BATTERY_CHANGE);
-            for (int i = 0; i < events.size(); i++) {
-                Event event = events.get(i);
-                Intent mIntent = EventManager.createEventMessage(event);
-
-                HostBatteryProfile.setAttribute(mIntent, HostBatteryProfile.ATTRIBUTE_ON_BATTERY_CHANGE);
-                Bundle battery = new Bundle();
-                HostBatteryProfile.setLevel(battery, mHostBatteryManager.getBatteryLevel());
-                getContext().sendBroadcast(mIntent);
-            }
-
-            return START_STICKY;
-        } else if (Intent.ACTION_POWER_CONNECTED.equals(action)
-            || Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
-            // バッテリーが充電された時
-
-            mHostBatteryManager.setBatteryRequest(intent);
-
-            List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId,
-                    HostBatteryProfile.PROFILE_NAME,
-                    null,
-                    HostBatteryProfile.ATTRIBUTE_ON_CHARGING_CHANGE);
-
-            for (int i = 0; i < events.size(); i++) {
-                Event event = events.get(i);
-                Intent mIntent = EventManager.createEventMessage(event);
-
-                HostBatteryProfile.setAttribute(mIntent, HostBatteryProfile.ATTRIBUTE_ON_CHARGING_CHANGE);
-                Bundle charging = new Bundle();
-
-                if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
-                    HostBatteryProfile.setCharging(charging, true);
-                } else {
-                    HostBatteryProfile.setCharging(charging, false);
-                }
-
-                HostBatteryProfile.setBattery(mIntent, charging);
-                getContext().sendBroadcast(mIntent);
-            }
-
-            return START_STICKY;
-        } else if (action.equals("android.intent.action.NEW_OUTGOING_CALL")) {
+        if (action.equals("android.intent.action.NEW_OUTGOING_CALL")) {
             // Phone
-
             List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId,
                     HostPhoneProfile.PROFILE_NAME,
                     null,
@@ -246,7 +187,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             for (int i = 0; i < events.size(); i++) {
                 Event event = events.get(i);
                 Intent mIntent = EventManager.createEventMessage(event);
-
                 HostPhoneProfile.setAttribute(mIntent, HostPhoneProfile.ATTRIBUTE_ON_CONNECT);
                 Bundle phoneStatus = new Bundle();
                 HostPhoneProfile.setPhoneNumber(phoneStatus, intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER));
@@ -254,12 +194,10 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 HostPhoneProfile.setPhoneStatus(mIntent, phoneStatus);
                 getContext().sendBroadcast(mIntent);
             }
-
             return START_STICKY;
         } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
                 || WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
             // Wifi
-
             List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId,
                     HostConnectProfile.PROFILE_NAME,
                     null,
@@ -268,7 +206,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             for (int i = 0; i < events.size(); i++) {
                 Event event = events.get(i);
                 Intent mIntent = EventManager.createEventMessage(event);
-
                 HostConnectProfile.setAttribute(mIntent, HostConnectProfile.ATTRIBUTE_ON_WIFI_CHANGE);
                 Bundle wifiConnecting = new Bundle();
                 WifiManager wifiMgr = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
@@ -276,11 +213,8 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 HostConnectProfile.setConnectStatus(mIntent, wifiConnecting);
                 getContext().sendBroadcast(mIntent);
             }
-
             return START_STICKY;
-
         } else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-
             List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId,
                     HostConnectProfile.PROFILE_NAME,
                     null,
@@ -289,7 +223,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             for (int i = 0; i < events.size(); i++) {
                 Event event = events.get(i);
                 Intent mIntent = EventManager.createEventMessage(event);
-
                 HostConnectProfile.setAttribute(mIntent, HostConnectProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
                 Bundle bluetoothConnecting = new Bundle();
                 BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -297,11 +230,96 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 HostConnectProfile.setConnectStatus(mIntent, bluetoothConnecting);
                 getContext().sendBroadcast(mIntent);
             }
-
             return START_STICKY;
         }
         return super.onStartCommand(intent, flags, startId);
     }
+
+    /**
+     * Register broadcast receiver for battery charge event. 
+     */
+    public void registerBatteryChargeBroadcastReceiver() {
+        registerReceiver(mBatteryChargeBR, ifBatteryCharge);
+    }
+
+    /**
+     * Unregister broadcast receiver for battery charge event. 
+     */
+    public void unregisterBatteryChargeBroadcastReceiver() {
+        unregisterReceiver(mBatteryChargeBR);
+    }
+
+    /**
+     * Register broadcast receiver for battery connect event. 
+     */
+    public void registerBatteryConnectBroadcastReceiver() {
+        registerReceiver(mBatteryConnectBR, ifBatteryConnect);
+    }
+
+    /**
+     * Unregister broadcast receiver for battery connect event. 
+     */
+    public void unregisterBatteryConnectBroadcastReceiver() {
+        unregisterReceiver(mBatteryConnectBR);
+    }
+
+    /**
+     * Broadcast receiver for battery charge event. 
+     */
+    private BroadcastReceiver mBatteryChargeBR = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            if (Intent.ACTION_BATTERY_CHANGED.equals(action) || Intent.ACTION_BATTERY_LOW.equals(action)
+                    || Intent.ACTION_BATTERY_OKAY.equals(action)) {
+                // バッテリーが変化した時
+                mHostBatteryManager.setBatteryRequest(intent);
+                List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId, HostBatteryProfile.PROFILE_NAME,
+                        null, HostBatteryProfile.ATTRIBUTE_ON_BATTERY_CHANGE);
+
+                for (int i = 0; i < events.size(); i++) {
+                    Event event = events.get(i);
+                    Intent mIntent = EventManager.createEventMessage(event);
+                    HostBatteryProfile.setAttribute(mIntent, HostBatteryProfile.ATTRIBUTE_ON_BATTERY_CHANGE);
+                    Bundle battery = new Bundle();
+                    double level = ((double) (mHostBatteryManager.getBatteryLevel())) / ((double) getBatteryScale());
+                    HostBatteryProfile.setLevel(battery, level);
+                    HostBatteryProfile.setBattery(mIntent, battery);
+                    getContext().sendBroadcast(mIntent);
+                }
+            }
+        }
+    };
+
+    /**
+     * Broadcast receiver for battery connect event. 
+     */
+    private BroadcastReceiver mBatteryConnectBR = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            if (Intent.ACTION_POWER_CONNECTED.equals(action) || Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
+                // バッテリーが充電された時
+                mHostBatteryManager.setBatteryRequest(intent);
+                List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId, HostBatteryProfile.PROFILE_NAME,
+                        null, HostBatteryProfile.ATTRIBUTE_ON_CHARGING_CHANGE);
+
+                for (int i = 0; i < events.size(); i++) {
+                    Event event = events.get(i);
+                    Intent mIntent = EventManager.createEventMessage(event);
+                    HostBatteryProfile.setAttribute(mIntent, HostBatteryProfile.ATTRIBUTE_ON_CHARGING_CHANGE);
+                    Bundle charging = new Bundle();
+                    if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
+                        HostBatteryProfile.setCharging(charging, true);
+                    } else {
+                        HostBatteryProfile.setCharging(charging, false);
+                    }
+                    HostBatteryProfile.setBattery(mIntent, charging);
+                    getContext().sendBroadcast(mIntent);
+                }
+            }
+        }
+    };
 
     @Override
     protected SystemProfile getSystemProfile() {
@@ -319,7 +337,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * @param deviceId デバイスID
      */
     public void setDeviceId(final String deviceId) {
-        this.mDeviceId = deviceId;
+        mDeviceId = deviceId;
     }
 
     /**
@@ -359,25 +377,25 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     // Device Orientation Profile
     //
     /** 加速度 x. */
-    private static float mAccellX;
+    private float mAccellX;
 
     /** 加速度 y. */
-    private static float mAccellY;
+    private float mAccellY;
 
     /** 加速度 z. */
-    private static float mAccellZ;
+    private float mAccellZ;
 
     /** Gyro x. */
-    private static float mGyroX;
+    private float mGyroX;
 
     /** Gyro y. */
-    private static float mGyroY;
+    private float mGyroY;
 
     /** Gyro z. */
-    private static float mGyroZ;
+    private float mGyroZ;
 
-    /** 加速度計測のインターバル. */
-    private static final int INTERVAL_TIME = 200;
+    /** 前回の加速度の計測時間を保持する. */
+    private long mAccelStartTime;
 
     /**
      * Device Orientation Profile<br>
@@ -396,6 +414,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         if (sensors.size() > 0) {
             Sensor sensor = sensors.get(0);
             mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            mAccelStartTime = System.currentTimeMillis();
         }
 
         sensors = mSensorManager.getSensorList(Sensor.TYPE_GYROSCOPE);
@@ -460,17 +479,15 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         sendBroadcast(response);
     }
 
-    /**
-     * センサーの値がかわった時に呼ばれる.
-     * 
-     * @param sensorEvent センサーイベント.
-     */
+    @Override
     public void onSensorChanged(final SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
             mAccellX = sensorEvent.values[0];
             mAccellY = sensorEvent.values[1];
             mAccellZ = sensorEvent.values[2];
+
+            long interval = System.currentTimeMillis() - mAccelStartTime;
 
             Bundle orientation = new Bundle();
             Bundle a1 = new Bundle();
@@ -489,7 +506,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             orientation.putBundle(DeviceOrientationProfile.PARAM_ACCELERATION_INCLUDING_GRAVITY, a2);
             orientation.putBundle(DeviceOrientationProfile.PARAM_ROTATION_RATE, r);
             orientation.putLong(DeviceOrientationProfile.PARAM_INTERVAL, 0);
-            DeviceOrientationProfile.setInterval(orientation, INTERVAL_TIME);
+            DeviceOrientationProfile.setInterval(orientation, interval);
 
             List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId, DeviceOrientationProfile.PROFILE_NAME,
                     null, DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
@@ -497,11 +514,11 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             for (int i = 0; i < events.size(); i++) {
                 Event event = events.get(i);
                 Intent intent = EventManager.createEventMessage(event);
-
                 intent.putExtra(DeviceOrientationProfile.PARAM_ORIENTATION, orientation);
                 getContext().sendBroadcast(intent);
             }
 
+            mAccelStartTime = System.currentTimeMillis();
         } else if (sensorEvent.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
             mGyroX = sensorEvent.values[0];
             mGyroY = sensorEvent.values[1];
@@ -514,10 +531,10 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     //
 
     /** File Output Stream. */
-    private static FileOutputStream mFos = null;
+    private FileOutputStream mFos;
 
     /** File Input Stream. */
-    private static FileInputStream mFis = null;
+    private FileInputStream mFis;
 
     /**
      * FileがオープンかどうかのFlag.<br>
@@ -650,7 +667,8 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                     // 現在の時刻を取得
                     mFileDescriptorCurrentSystemTime = System.currentTimeMillis();
                     Date date = new Date();
-                    SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy'-'MM'-'dd' 'kk':'mm':'ss'+0900'");
+                    SimpleDateFormat mDateFormat = new SimpleDateFormat(
+                            "yyyy'-'MM'-'dd' 'kk':'mm':'ss'+0900'", Locale.getDefault());
                     mFileDescriptorCurrentTime = mDateFormat.format(date);
                     mFos.write(data, pos, data.length - pos);
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
@@ -804,149 +822,13 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         }
     }
 
-    /**
-     * ondataavailableイベントを登録する.
-     * 
-     * @param request リクエスト
-     * @param response レスポンス
-     * @param deviceId デバイスID
-     * @param sessionKey セッションキー
-     * @return 即座に返答する場合はtrue、それ以外はfalse
-     */
-    public boolean onPutOnDataAvailable(final Intent request, final Intent response, final String deviceId,
-            final String sessionKey) {
-
-        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        if (deviceId == null || !deviceId.equals(DEVICE_ID)) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
-        } else {
-            if (mOnDataAvailableCallback.containsKey(sessionKey)) {
-                MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
-            } else {
-                mOnDataAvailableCallback.put(sessionKey, request);
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * ondataavailableイベントを解除する.
-     * 
-     * @param request リクエスト
-     * @param response レスポンス
-     * @param deviceId デバイスID
-     * @param sessionKey セッションキー
-     * @return 即座に返答する場合はtrue、それ以外はfalse
-     */
-    public boolean onDeleteOnDataAvailable(final Intent request, final Intent response, final String deviceId,
-            final String sessionKey) {
-        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-
-        if (deviceId == null || !deviceId.equals(DEVICE_ID)) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
-        } else {
-            if (mOnDataAvailableCallback.containsKey(sessionKey)) {
-                mOnDataAvailableCallback.remove(sessionKey);
-            } else {
-                MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * 写真のデータを保存する.
-     * 
-     * @param data 写真データが格納されているbyte.
-     * @return 保存先のURI
-     * @throws IOException 写真データの読み込み失敗、もしくは書き込みの失敗時に発生
-     */
-    public String savePhoto(final byte[] data) throws IOException {
-
-        String filename = FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
-        mFileMgr.saveFile(filename, data);
-
-        return filename;
-    }
-
-    /**
-     * 写真撮影を通知する.
-     * 
-     * @param mediaid メディアID
-     */
-    public void notifyTakePhoto(final String mediaid) {
-
-        for (String key : mOnPhotoCallback.keySet()) {
-            Intent response = mOnPhotoCallback.get(key);
-            ComponentName receiver = (ComponentName) response.getParcelableExtra("receiver");
-
-            Bundle photo = new Bundle();
-            photo.putString("mediaid", mediaid);
-            photo.putString("mimetype", "image/png");
-
-            Intent intent = new Intent();
-            intent.setAction(IntentDConnectMessage.ACTION_EVENT);
-            intent.setComponent(receiver);
-            intent.putExtra("deviceid", "me");
-            intent.putExtra("profile", "mediastream_recording");
-            intent.putExtra("callback", "onphoto");
-            intent.putExtra("session_key", key);
-            intent.putExtra("photo", photo);
-
-            sendBroadcast(intent);
-        }
-    }
-
-    /**
-     * onClickEventの登録.
-     * 
-     * @param response レスポンス
-     * @param deviceId デバイスID
-     * @param sessionKey セッションキー
-     */
-    public void registerOnClick(final Intent response, final String deviceId, final String sessionKey) {
-        onClickEventFlag = true;
-        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        response.putExtra(DConnectMessage.EXTRA_VALUE, "Register onClick event");
-        sendBroadcast(response);
-    }
-
-    /**
-     * onClickEventの解除.
-     * 
-     * @param response レスポンス
-     * @param deviceId デバイスID
-     * @param sessionKey セッションキー
-     */
-    public void unregisterOnClick(final Intent response, final String deviceId, final String sessionKey) {
-        onClickEventFlag = false;
-        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        response.putExtra(DConnectMessage.EXTRA_VALUE, "Unregister onClick event");
-        sendBroadcast(response);
-    }
-
-    /**
-     * OnClickEventのフラグを取得.
-     * 
-     * @return フラグ
-     */
-    public boolean getOnClickEventFlag() {
-        return onClickEventFlag;
-    }
-
     // ----------------------------------------------
     // MediaPlayer Profile
     // ----------------------------------------------
     /** MediaPlayerのインスタンス. */
-    private static MediaPlayer mMediaPlayer;
+    private MediaPlayer mMediaPlayer;
     /** Mediaのステータス. */
-    private static int mMediaStatus = 0;
+    private int mMediaStatus = 0;
     /** Mediaが未設定. */
     private static final int MEDIA_PLAYER_NODATA = 0;
     /** Mediaがセット. */
@@ -957,6 +839,8 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     private static final int MEDIA_PLAYER_PAUSE = 3;
     /** Mediaが停止. */
     private static final int MEDIA_PLAYER_STOP = 4;
+    /** Mediaが再生完了. */
+    private static final int MEDIA_PLAYER_COMPLETE = 5;
     /** MEDIAタイプ(動画). */
     private static final int MEDIA_TYPE_VIDEO = 1;
     /** MEDIAタイプ(音楽). */
@@ -964,17 +848,28 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
 //    /** MEDIAタイプ(音声). */
 //    private static final int MEDIA_TYPE_AUDIO = 3;
     /** Media Status. */
-    private static int mSetMediaType = 0;
+    private int mSetMediaType = 0;
     /** onStatusChange Eventの状態. */
-    private static boolean onStatusChangeEventFlag = false;
+    private boolean onStatusChangeEventFlag = false;
     /** 現在再生中のファイルパス. */
-    private static String myCurrentFilePath = "";
+    private String myCurrentFilePath = "";
     /** 現在再生中のファイルパス. */
-    private static String myCurrentFileMIMEType = "";
+    private String myCurrentFileMIMEType = "";
     /** 現在再生中のPosition. */
     private int myCurrentMediaPosition = 0;
-    /** Current MediaID. */
-    private String mCurrentMediaId;
+    
+    /**
+     * サポートしているaudioのタイプ一覧.
+     */
+    private static final List<String> AUDIO_TYPE_LIST = Arrays.asList("audio/mpeg",
+            "audio/x-wav", "application/ogg", "audio/x-ms-wma", 
+            "audio/mp3", "audio/ogg", "audio/mp4");
+    
+    /**
+     * サポートしているvideoのタイプ一覧.
+     */
+    private static final List<String> VIDEO_TYPE_LIST = Arrays.asList("video/3gpp",
+            "video/mp4", "video/m4v", "video/3gpp2", "video/mpeg");
 
     /**
      * 再生するメディアをセットする(Idから).
@@ -983,8 +878,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * @param mediaId MediaID
      */
     public void putMediaId(final Intent response, final String mediaId) {
-        mCurrentMediaId = mediaId;
-
         // Videoとしてパスを取得
         Uri mUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
 
@@ -999,13 +892,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         String mMineType = getMIMEType(filePath);
 
         // パス指定の場合
-        if ("audio/mpeg".equals(mMineType)
-                || "audio/x-wav".equals(mMineType)
-                || "application/ogg".equals(mMineType)
-                || "audio/x-ms-wma".equals(mMineType)
-                || "audio/mp3".equals(mMineType)
-                || "audio/ogg".equals(mMineType)
-                || "audio/mp4".equals(mMineType)) {
+        if (AUDIO_TYPE_LIST.contains(mMineType)) {
             mMediaPlayer = new MediaPlayer();
 
             try {
@@ -1017,10 +904,17 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 mMediaPlayer.setOnCompletionListener(new OnCompletionListener() {
                     @Override
                     public void onCompletion(final MediaPlayer arg0) {
-                        mMediaStatus = MEDIA_PLAYER_STOP;
-                        sendOnStatusChangeEvent("stop");
+                        mMediaStatus = MEDIA_PLAYER_COMPLETE;
+                        sendOnStatusChangeEvent("complete");
                     }
                 });
+                mMediaPlayer.prepareAsync();
+                mMediaPlayer.setOnPreparedListener(new OnPreparedListener() {
+                    @Override
+                    public void onPrepared(final MediaPlayer mp) {
+                    }
+                });
+                
                 response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                 response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:" + filePath);
                 sendOnStatusChangeEvent("media");
@@ -1030,17 +924,24 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not regist:" + filePath);
                 sendBroadcast(response);
             }
-        } else if ("video/3gpp".equals(mMineType)
-                || "video/mp4".equals(mMineType)
-                || "video/m4v".equals(mMineType)
-                || "video/3gpp2".equals(mMineType)
-                || "video/mpeg".equals(mMineType)) {
-
+        } else if (VIDEO_TYPE_LIST.contains(mMineType)) {
             try {
 
                 mSetMediaType = MEDIA_TYPE_VIDEO;
                 myCurrentFilePath = filePath;
                 myCurrentFileMIMEType = mMineType;
+
+                mMediaPlayer = new MediaPlayer();
+                FileInputStream fis = null;
+                FileDescriptor mFd = null;
+
+                fis = new FileInputStream(myCurrentFilePath);
+                mFd = fis.getFD();
+
+                mMediaPlayer.setDataSource(mFd);
+                mMediaPlayer.prepare();
+                mMediaPlayer.release();
+                fis.close();
 
                 response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                 response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:" + filePath);
@@ -1117,7 +1018,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 MediaPlayerProfile.setStatus(mediaPlayer, status);
                 MediaPlayerProfile.setMediaId(mediaPlayer, myCurrentFilePath);
                 MediaPlayerProfile.setMIMEType(mediaPlayer, myCurrentFileMIMEType);
-                MediaPlayerProfile.setPos(mediaPlayer, myCurrentMediaPosition);
+                MediaPlayerProfile.setPos(mediaPlayer, myCurrentMediaPosition / UNIT_SEC);
                 MediaPlayerProfile.setVolume(mediaPlayer, mVolumeValue);
                 MediaPlayerProfile.setMediaPlayer(intent, mediaPlayer);
                 getContext().sendBroadcast(intent);
@@ -1136,7 +1037,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             Cursor c = getContentResolver().query(mUri, null, null, null, null);
             c.moveToFirst();
             String filename = c.getString(c.getColumnIndex(MediaStore.MediaColumns.DATA));
-
             return filename;
         } catch (Exception e) {
             return null;
@@ -1152,7 +1052,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             try {
                 mMediaStatus = MEDIA_PLAYER_PLAY;
-                mMediaPlayer.prepare();
                 mMediaPlayer.start();
             } catch (Exception e) {
                 if (BuildConfig.DEBUG) {
@@ -1162,7 +1061,11 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             sendOnStatusChangeEvent("play");
             return mMediaPlayer.getAudioSessionId();
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
-            playMedia();
+            mMediaStatus = MEDIA_PLAYER_PLAY;
+            Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
+            mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_RESUME);
+            this.getContext().sendBroadcast(mIntent);
+            sendOnStatusChangeEvent("play");
             return 0;
         }
         return 0;
@@ -1176,7 +1079,10 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     public int playMedia() {
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             try {
-                mMediaPlayer.prepare();
+                if (mMediaStatus != MEDIA_PLAYER_PAUSE && mMediaStatus != MEDIA_PLAYER_SET 
+                        && mMediaStatus != MEDIA_PLAYER_COMPLETE) {
+                    mMediaPlayer.prepare();
+                }
                 if (mMediaStatus == MEDIA_PLAYER_STOP) {
                     mMediaPlayer.seekTo(0);
                 }
@@ -1209,7 +1115,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(mIntent);
                 sendOnStatusChangeEvent("play");
-
             }
 
             return 0;
@@ -1227,7 +1132,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             try {
                 mMediaStatus = MEDIA_PLAYER_PAUSE;
-                mMediaPlayer.stop();
+                mMediaPlayer.pause();
 
             } catch (Exception e) {
                 if (BuildConfig.DEBUG) {
@@ -1255,9 +1160,61 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * @return 現在のポジション
      */
     public int getMediaPos() {
-        // ToDo 動画
-        return mMediaPlayer.getCurrentPosition();
+        if (mSetMediaType == MEDIA_TYPE_MUSIC) {
+            return mMediaPlayer.getCurrentPosition() / UNIT_SEC;
+        } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
+            String className = getClassnameOfTopActivity();
+            if (VideoPlayer.class.getName().equals(className)) {
+                // ReceiverをRegister
+                IntentFilter mIntentFilter = new IntentFilter();
+                mIntentFilter.addAction(VideoConst.SEND_VIDEOPLAYER_TO_HOSTDP);
+                registerReceiver(mReceiver, mIntentFilter);
+
+                Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
+                mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_GET_POS);
+                this.getContext().sendBroadcast(mIntent);
+                return Integer.MAX_VALUE;
+            } else {
+                return -1;
+            }
+        } else {
+            return -1;
+        }
     }
+
+    /**
+     * Video ポジションを返す為のIntentを設定.
+     * 
+     * @param response 応答用Intent.
+     */
+    public void setVideoMediaPosRes(final Intent response) {
+        if (mSetMediaType == MEDIA_TYPE_VIDEO) {
+            mResponse = response;
+        }
+    }
+
+    /**
+     * VideoPlayer用Broadcast Receiver.
+     */
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            if (intent.getAction().equals(VideoConst.SEND_VIDEOPLAYER_TO_HOSTDP)) {
+                String mVideoAction = intent.getStringExtra(VideoConst.EXTRA_NAME);
+
+                if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY_POS)) {
+                    myCurrentMediaPosition = intent.getIntExtra("pos", 0);
+                    mResponse.putExtra("pos", myCurrentMediaPosition / UNIT_SEC);
+                    mResponse.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                    sendBroadcast(mResponse);
+
+                    // ReceiverをUnregister
+                    unregisterReceiver(mReceiver);
+                }
+            }
+        }
+    };
 
     /**
      * ポジションを変える.
@@ -1267,19 +1224,18 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      */
     public void setMediaPos(final Intent response, final int pos) {
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
-            mMediaPlayer.seekTo(pos);
-            myCurrentMediaPosition = pos;
+            mMediaPlayer.seekTo(pos * UNIT_SEC);
+            myCurrentMediaPosition = pos * UNIT_SEC;
         } else {
             mMediaStatus = MEDIA_PLAYER_PAUSE;
             Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
             mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_SEEK);
-            mIntent.putExtra("pos", pos);
+            mIntent.putExtra("pos", pos * UNIT_SEC);
             this.getContext().sendBroadcast(mIntent);
-            myCurrentMediaPosition = pos;
+            myCurrentMediaPosition = pos * UNIT_SEC;
         }
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         sendBroadcast(response);
-        sendOnStatusChangeEvent("seek");
     }
 
     /**
@@ -1333,9 +1289,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                     response.putExtra(MediaPlayerProfile.PARAM_STATUS, "stop");
                 }
             }
-
             sendBroadcast(response);
-
         } else {
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             if (mMediaStatus == MEDIA_PLAYER_STOP) {
@@ -1349,82 +1303,59 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             } else {
                 response.putExtra(MediaPlayerProfile.PARAM_STATUS, "stop");
             }
-
             sendBroadcast(response);
         }
-    }
-
-    /**
-     * Mediaのプロパティを取得.
-     * 
-     * @param response レスポンス
-     */
-    public void getMedia(final Intent response) {
-        int pos = mMediaPlayer.getCurrentPosition();
-        int duration = mMediaPlayer.getDuration();
-
-        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        response.putExtra(MediaPlayerProfile.PARAM_MEDIA_ID, mCurrentMediaId);
-        response.putExtra(MediaPlayerProfile.PARAM_DURATION, duration);
-        response.putExtra(MediaPlayerProfile.PARAM_DURATION, pos);
-        response.putExtra(MediaPlayerProfile.PARAM_STATUS, mMediaStatus);
-
-        sendBroadcast(response);
     }
 
     // ================================
     // MediaStream_Recording
     // ================================
 
-    /** カウント. */
-    private int count = 0;
+    /** Lock object. */
+    private final Object mLockObj = new Object();
 
-    /** プレビューの最大値を定義. */
-    private static final int MAX_PREVIEW = 10;
+    /** Server for MotionJPEG. */
+    private MixedReplaceMediaServer mServer;
 
     /**
-     * DeviceIDを設定.
-     * 
-     * @param deviceId デバイスID
+     * Start a web server.
+     * @return url of web server or null if this server cannot start.
      */
-    public void registerDeviceId(final String deviceId) {
-        this.mDeviceId = deviceId;
+    public String startWebServer() {
+        synchronized (mLockObj) {
+            if (mServer == null) {
+                mServer = new MixedReplaceMediaServer();
+                mServer.setServerName("HostDevicePlugin Server");
+                mServer.setContentType("image/jpg");
+                String ip = mServer.start();
+                return ip;
+            } else {
+                return mServer.getUrl();
+            }
+        }
+    }
+
+    /**
+     * Stop a web server.
+     */
+    public void stopWebServer() {
+        synchronized (mLockObj) {
+            if (mServer != null) {
+                mServer.stop();
+                mServer = null;
+            }
+        }
     }
 
     /**
      * Cameraからのデータ受信用.
      */
     private IHostMediaStreamRecordingService.Stub mCameraService = new IHostMediaStreamRecordingService.Stub() {
-
         @Override
         public void sendPreviewData(final byte[] data, final int format, final int width, final int height) {
-
-            List<Event> evts = EventManager.INSTANCE.getEventList(mDeviceId,
-                    MediaStreamRecordingProfileConstants.PROFILE_NAME,
-                    null,
-                    MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
-
-            if (evts.size() > 0) {
-
-                YuvImage yuvimage = new YuvImage(data, format, width, height, null);
-
-                Rect rect = new Rect(0, 0, width, height);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                yuvimage.compressToJpeg(rect, COMPRESS_PERCENTAGE, baos);
-                byte[] jdata = baos.toByteArray();
-
-                String mediaId = "preview" + count + ".jpg";
-                String uri;
-                try {
-                    uri = mFileMgr.saveFile(mediaId, jdata);
-                    notifyDataAvailable(mediaId, uri);
-
-                    count++;
-                    count %= MAX_PREVIEW;
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
+            synchronized (mLockObj) {
+                if (mServer != null) {
+                    mServer.offerMedia(data);
                 }
             }
         }
@@ -1434,8 +1365,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * mDNSで端末検索.
      * 
      */
-    public void searchDeviceByBonjour() {
-
+    private void searchDeviceByBonjour() {
         // cacheがfalseの場合は、検索開始
         // 初回検索,すでにデバイスがある場合, Wifi接続のBroadcastがある場合は入る
         new Thread(new Runnable() {
@@ -1445,7 +1375,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
 
                 android.net.wifi.WifiManager wifi =
                         (android.net.wifi.WifiManager) getSystemService(android.content.Context.WIFI_SERVICE);
-                WifiManager.MulticastLock lock = wifi.createMulticastLock("deviceplugin.host");
+                WifiManager.MulticastLock lock = wifi.createMulticastLock(HOST_MULTICAST);
                 lock.setReferenceCounted(true);
                 lock.acquire();
             }
@@ -1457,8 +1387,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * mDNSで引っかかるように端末を起動.
      * 
      */
-    public void invokeDeviceByBonjour() {
-
+    private void invokeDeviceByBonjour() {
         // cacheがfalseの場合は、検索開始
         // 初回検索,すでにデバイスがある場合, Wifi接続のBroadcastがある場合は入る
         new Thread(new Runnable() {
@@ -1468,7 +1397,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
 
                 android.net.wifi.WifiManager wifi = (android.net.wifi.WifiManager)
                             getSystemService(android.content.Context.WIFI_SERVICE);
-                WifiManager.MulticastLock lock = wifi.createMulticastLock("deviceplugin.host");
+                WifiManager.MulticastLock lock = wifi.createMulticastLock(HOST_MULTICAST);
                 lock.setReferenceCounted(true);
                 lock.acquire();
             }
@@ -1481,7 +1410,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * 
      * @return 端末のIPアドレス
      */
-    public String getLocalIpAddress() {
+    private String getLocalIpAddress() {
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
                 NetworkInterface intf = en.nextElement();
@@ -1489,7 +1418,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                     InetAddress inetAddress = enumIpAddr.nextElement();
                     if (!inetAddress.isLoopbackAddress()
                             && InetAddressUtils.isIPv4Address(inetAddress.getHostAddress())) {
-
                         String ipAddr = inetAddress.getHostAddress();
                         return ipAddr;
                     }
@@ -1505,19 +1433,23 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
 
     @Override
     public void onAccuracyChanged(final Sensor sensor, final int accuracy) {
-
     }
 
     @Override
     public IBinder onBind(final Intent intent) {
-
         if ("camera".equals(intent.getAction())) {
-
             return mCameraService;
         } else {
-
             return mStub;
         }
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        if ("camera".equals(intent.getAction())) {
+            stopWebServer();
+        }
+        return super.onUnbind(intent);
     }
 
     /**
@@ -1582,7 +1514,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * @param mFile 判定したいURI
      * @return Videoならtrue, audioならfalse
      */
-    public static boolean checkVideo(final File mFile) {
+    private boolean checkVideo(final File mFile) {
         int height = 0;
         try {
             mMediaPlayer = new MediaPlayer();
@@ -1612,47 +1544,17 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * @param path パス
      * @return MineType
      */
-    public String getMIMEType(final String path) {
-
+    private String getMIMEType(final String path) {
         // 空文字, 日本語対策, ファイル形式のStringを取得
         String mFilename = new File(path).getName();
         int dotPos = mFilename.lastIndexOf(".");
         String mFormat = mFilename.substring(dotPos, mFilename.length());
-
         // 拡張子を取得
         String mExt = MimeTypeMap.getFileExtensionFromUrl(mFormat);
         // 小文字に変換
-        mExt = mExt.toLowerCase();
+        mExt = mExt.toLowerCase(Locale.getDefault());
         // MIME Typeを返す
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(mExt);
-    }
-
-    /**
-     * 通知.
-     * 
-     * @param mediaId メディアID
-     * @param uri プレビューへのURI
-     */
-    public void notifyDataAvailable(final String mediaId, final String uri) {
-        List<Event> evts = EventManager.INSTANCE.getEventList(mDeviceId,
-                MediaStreamRecordingProfileConstants.PROFILE_NAME, null,
-                MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
-        for (Event evt : evts) {
-            Bundle media = new Bundle();
-            media.putString(MediaStreamRecordingProfile.PARAM_PATH, mediaId);
-            media.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
-            media.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/jpg");
-
-            Intent intent = new Intent(IntentDConnectMessage.ACTION_EVENT);
-            intent.setComponent(ComponentName.unflattenFromString(evt.getReceiverName()));
-            intent.putExtra(DConnectMessage.EXTRA_DEVICE_ID, DEVICE_ID);
-            intent.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfile.PROFILE_NAME);
-            intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfile.ATTRIBUTE_ON_DATA_AVAILABLE);
-            intent.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
-            intent.putExtra(MediaStreamRecordingProfile.PARAM_MEDIA, media);
-
-            sendEvent(intent, evt.getAccessToken());
-        }
     }
 
     /**
@@ -1661,10 +1563,8 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * @return クラス名
      */
     private String getClassnameOfTopActivity() {
-
         ActivityManager mActivityManager = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
         String mClassName = mActivityManager.getRunningTasks(1).get(0).topActivity.getClassName();
-
         return mClassName;
     }
 }

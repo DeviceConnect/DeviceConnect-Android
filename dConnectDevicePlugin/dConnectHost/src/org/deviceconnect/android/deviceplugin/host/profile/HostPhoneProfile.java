@@ -15,6 +15,7 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.PhoneProfile;
 import org.deviceconnect.message.DConnectMessage;
+
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -26,14 +27,6 @@ import android.net.Uri;
  * @author NTT DOCOMO, INC.
  */
 public class HostPhoneProfile extends PhoneProfile {
-
-    /** Debug Tag. */
-    private static final String TAG = "HOST";
-
-    /**
-     * スマートフォンの通話状態.
-     */
-    public static final int STATE = 0; // 通話終了
 
     /** Error. */
     private static final int ERROR_VALUE_IS_NULL = 100;

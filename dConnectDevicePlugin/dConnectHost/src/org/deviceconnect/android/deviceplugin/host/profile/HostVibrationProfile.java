@@ -112,9 +112,10 @@ public class HostVibrationProfile extends VibrationProfile {
 
                 if (vibrator == null || !vibrator.hasVibrator()) {
                     setResult(response, IntentDConnectMessage.RESULT_ERROR);
+                } else {
+                    vibrator.cancel();
                 }
 
-                vibrator.cancel();
                 // cancel()は現在されているの振調パターンの1節しかキャンセルしないので、
                 // それ以降の振動パターンの節の再生を防ぐ為に、キャンセルされたことを示す
                 // フラグをたてる。

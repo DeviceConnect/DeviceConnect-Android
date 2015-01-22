@@ -20,6 +20,10 @@ import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 
 /**
@@ -126,5 +130,21 @@ public final class DConnectUtil {
             final JSONObject root, final Bundle b) throws JSONException {
         JSONFactory.convertBundleToJSON(root, b);
         convertUri(root);
+    }
+
+    /**
+     * AndroidManifest.xmlのversionNameを取得する.
+     * 
+     * @return versionName
+     */
+    public static String getVersionName(final Context context) {
+        PackageManager packageManager = context.getPackageManager();
+        try {
+            PackageInfo packageInfo = packageManager.getPackageInfo(context.getPackageName(),
+                    PackageManager.GET_ACTIVITIES);
+            return packageInfo.versionName;
+        } catch (NameNotFoundException e) {
+            return "Unknown";
+        }
     }
 }

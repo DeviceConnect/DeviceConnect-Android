@@ -61,6 +61,16 @@ public interface DConnectMessage extends Map<String, Object> {
     String EXTRA_RECEIVER = "receiver";
 
     /**
+     * パラメータ: {@value} .
+     */
+    String EXTRA_PRODUCT = "product";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String EXTRA_VERSION = "version";
+
+    /**
      * エクストラ:{@value}.
      */
     String EXTRA_API = "api";

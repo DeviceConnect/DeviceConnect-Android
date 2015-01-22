@@ -55,6 +55,9 @@ public final class VideoConst {
     /** 録画撮影再開. */
     public static final String EXTRA_VALUE_VIDEO_RECORD_RESUME = "resume";
 
+    /** ファイル名. */
+    public static final String EXTRA_FILE_NAME = "filename";
+
     /** Video起動のAction名. */
     public static final String SEND_HOSTDP_TO_VIDEOPLAYER =
             "org.deviceconnect.android.intent.action.SEND_HOSTDP_TO_VIDEOPLAYER";
@@ -89,5 +92,8 @@ public final class VideoConst {
 
     /** 撮影するサイズ(縦). */
     public static final int VIDEO_HEIGHT = 240;
+
+    /** Format Type. */
+    public static final String FORMAT_TYPE = ".3gp";
 
 }

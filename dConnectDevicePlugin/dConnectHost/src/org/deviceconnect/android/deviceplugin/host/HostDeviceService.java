@@ -236,6 +236,14 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     }
 
     /**
+     * Get a instance of FileManager.
+     * @return FileManager
+     */
+    public FileManager getFileManager() {
+        return mFileMgr;
+    }
+
+    /**
      * Register broadcast receiver for battery charge event. 
      */
     public void registerBatteryChargeBroadcastReceiver() {

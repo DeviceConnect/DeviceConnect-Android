@@ -19,6 +19,7 @@ import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.RemoveEventsRequest;
 import org.deviceconnect.android.manager.setting.KeywordDialogAcitivty;
 import org.deviceconnect.android.manager.setting.SettingActivity;
+import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
@@ -29,9 +30,6 @@ import org.deviceconnect.profile.SystemProfileConstants;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 
 /**
@@ -138,7 +136,7 @@ public class DConnectSystemProfile extends SystemProfile {
      */
     private boolean onGetSystemRequest(final Intent request, final Intent response) {
         setResult(response, DConnectMessage.RESULT_OK);
-        setVersion(response, getCurrentVersionName());
+        setVersion(response, DConnectUtil.getVersionName(getContext()));
 
         // サポートしているプロファイル一覧設定
         List<String> supports = new ArrayList<String>();
@@ -280,21 +278,5 @@ public class DConnectSystemProfile extends SystemProfile {
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
         return SettingActivity.class;
-    }
-
-    /**
-     * AndroidManifest.xmlのversionNameを取得する.
-     * 
-     * @return versionName
-     */
-    private String getCurrentVersionName() {
-        PackageManager packageManager = getContext().getPackageManager();
-        try {
-            PackageInfo packageInfo = packageManager.getPackageInfo(getContext().getPackageName(),
-                    PackageManager.GET_ACTIVITIES);
-            return packageInfo.versionName;
-        } catch (NameNotFoundException e) {
-            return "Unknown";
-        }
     }
 }

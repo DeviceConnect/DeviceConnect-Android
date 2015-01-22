@@ -83,11 +83,6 @@ public interface SystemProfileConstants extends DConnectProfileConstants {
     /**
      * パラメータ: {@value} .
      */
-    String PARAM_VERSION = "version";
-
-    /**
-     * パラメータ: {@value} .
-     */
     String PARAM_CONNECT = "connect";
 
     /**

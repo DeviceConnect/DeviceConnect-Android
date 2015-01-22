@@ -31,6 +31,7 @@ import org.apache.http.util.EntityUtils;
 import org.deviceconnect.android.test.DConnectTestCase;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
@@ -242,7 +243,14 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      * @return レスポンス
      */
     protected final JSONObject sendRequest(final HttpUriRequest request, final boolean requiredAuth) {
-        return sendRequest(request, requiredAuth, 0);
+        JSONObject response = sendRequest(request, requiredAuth, 0);
+        try {
+            assertEquals(response.getString(DConnectProfileConstants.PARAM_PRODUCT), DCONNECT_MANAGER_APP_NAME);
+            assertEquals(response.getString(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
+        } catch (JSONException e) {
+            return null;
+        }
+        return response;
     }
 
     /**

@@ -28,17 +28,32 @@ public interface DConnectProfileConstants {
      * パラメータ: {@value} .
      */
     String PARAM_SESSION_KEY = "sessionKey";
-    
+
     /**
      * パラメータ: {@value} .
      */
     String PARAM_URI = "uri";
 
     /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_PRODUCT = "product";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_VERSION = "version";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_HMAC = "hmac";
+
+    /**
      * セパレータ:{@value}.
      */
     String SEPARATOR = "/";
-    
+
     /**
      * パス: {@value}.
      */

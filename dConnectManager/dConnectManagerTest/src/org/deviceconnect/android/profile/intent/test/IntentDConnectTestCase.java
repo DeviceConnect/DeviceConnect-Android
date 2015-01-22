@@ -20,6 +20,7 @@ import org.deviceconnect.android.test.DConnectTestCase;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
@@ -210,6 +211,9 @@ public class IntentDConnectTestCase extends DConnectTestCase {
                 && (System.currentTimeMillis() - now) < mTimeout);
 
         Intent resp = mRequests.remove(requestCode);
+        assertEquals(resp.getStringExtra(DConnectProfileConstants.PARAM_PRODUCT), DCONNECT_MANAGER_APP_NAME);
+        assertEquals(resp.getStringExtra(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
+
         // タイムアウトしたとき、前のintentが残り、
         // その結果が次の処理で取得されることがあるよう
         mRequests.clear();

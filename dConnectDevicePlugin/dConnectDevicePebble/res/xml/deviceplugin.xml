@@ -8,6 +8,6 @@
     <profile name="settings" />
     <profile name="battery" />
     <profile name="vibration" />
-    <profile name="file" />
+    <profile name="canvas" />
 
 </deviceplugin-provider>

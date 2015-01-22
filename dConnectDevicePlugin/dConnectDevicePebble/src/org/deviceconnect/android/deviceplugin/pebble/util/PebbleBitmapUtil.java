@@ -12,7 +12,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 
 /**
  * 画像を変換するためのユーティリティクラス.
@@ -31,61 +30,91 @@ public final class PebbleBitmapUtil {
     }
 
     /**
-     * Pebbleのスクリーンサイズの枠に収まるようにアスペクト比を固定のままbitmapを拡縮する.
-     * 
-     * @param b 拡縮するbitmap
-     * @return 拡縮したBitmap
+     * スケールモードで画像をviewBitmapに描画する.
+     * @param viewBitmap SWに表示するBitmap
+     * @param bitmap 描画する画像のバイナリ
      */
-    public static Bitmap scale(final Bitmap b) {
-        return scale(b, PebbleManager.PEBBLE_SCREEN_WIDTH, PebbleManager.PEBBLE_SCREEN_HEIGHT);
-    }
+    public static void drawImageForScalesMode(final Bitmap viewBitmap, Bitmap bitmap) {
+        
+        // 描画開始地点
+        float startGridX = 0;
+        float startGridY = 0;
+        
+        // 画像サイズ取得
+        float getSizeW = bitmap.getWidth();
+        float getSizeH = bitmap.getHeight();
 
-    /**
-     * 指定されたサイズの枠に収まるようにアスペクト比を固定のままbitmapを拡縮する.
-     * <p>
-     * 返り値のBitmapは別インスタンスなので、メモリを解放する場合には、別々にrecycleすること。
-     * </p>
-     * 
-     * @param b 拡縮するbitmap
-     * @param width 横幅
-     * @param height 縦幅
-     * @return 拡縮したBitmap
-     */
-    public static Bitmap scale(final Bitmap b, final int width, final int height) {
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-
-        float scale = 1.0f;
-        int x;
-        int y;
-        int w = b.getWidth();
-        int h = b.getHeight();
-        int newW;
-        int newH;
-        if (w < width && h < height) {
-            newW = w;
-            newH = h;
-            x = (int) ((width - newW) / 2);
-            y = (int) ((height - newH) / 2);
+        // 拡大率:縦横で長い方が画面ピッタリになるように
+        float scale;
+        final int width = viewBitmap.getWidth();
+        final int height = viewBitmap.getHeight();
+        if (getSizeW > getSizeH) {
+            scale = width / getSizeW;
         } else {
-            if (w > h) {
-                scale = width / (float) w;
-                newW = width;
-                newH = (int) (h * scale);
-                x = 0;
-                y = (int) ((height - newH) / 2);
-            } else {
-                scale = height / (float) h;
-                newW = (int) (w * scale);
-                newH = height;
-                x = (int) ((width - newW) / 2);
-                y = 0;
+            scale = height / getSizeH;
+        }
+        // 目標の大きさ
+        int targetW = (int) Math.ceil(scale * getSizeW);
+        int targetH = (int) Math.ceil(scale * getSizeH);
+        
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, targetW, targetH, false);
+        
+        // 画像描写開始位置の修正
+        if (getSizeW > getSizeH) {
+            startGridY = (height / 2 - targetH / 2);
+        } else {
+            startGridX = (width / 2 - targetW / 2);
+        }
+        
+        //canvasに表示用Bitmapをセット
+        Canvas canvas = new Canvas(viewBitmap);
+        
+        //リサイズした画像をセンタリングしてcanvasにセット
+        canvas.drawBitmap(resizedBitmap, startGridX, startGridY, null);
+    }
+    
+    /**
+     * 等倍描画モードで画像をviewBitmapに描画する.
+     * @param viewBitmap SWに表示するBitmap
+     * @param bitmap 描画する画像のバイナリ
+     * @param x x座標
+     * @param y y座標
+     */
+    public static void drawImageForNonScalesMode(final Bitmap viewBitmap, final Bitmap bitmap, final double x, final double y) {
+        
+        // 描画開始地点
+        float startGridX = (float)x;
+        float startGridY = (float)y;
+        
+        //canvasに表示用Bitmapをセット
+        Canvas canvas = new Canvas(viewBitmap);
+        
+        //リサイズした画像をセンタリングしてcanvasにセット
+        canvas.drawBitmap(bitmap, startGridX, startGridY, null);
+    }
+    
+    /**
+     * フィルモードで画像をviewBitmapに描画する.
+     * @param viewBitmap SWに表示するBitmap
+     * @param bitmap 描画する画像のバイナリ
+     */
+    public static void drawImageForFillsMode(final Bitmap viewBitmap, final Bitmap bitmap) {
+        
+        // 画像サイズ取得
+        float getSizeW = bitmap.getWidth();
+        float getSizeH = bitmap.getHeight();
+        
+        //canvasに表示用Bitmapをセット
+        Canvas canvas = new Canvas(viewBitmap);
+        
+        // タイル状に敷き詰めて描画する
+        final int width = viewBitmap.getWidth();
+        final int height = viewBitmap.getHeight();
+        for (int drawY = 0; drawY <= height; drawY += getSizeH) {
+            for (int drawX = 0; drawX <= width; drawX += getSizeW) {
+                canvas.drawBitmap(bitmap, drawX, drawY, null);
             }
         }
-        Rect src = new Rect(0, 0, w, h);
-        Rect dst = new Rect(x, y, newW, newH);
-        canvas.drawBitmap(b, src, dst, MY_PAINT);
-        return bitmap;
     }
 
     /**

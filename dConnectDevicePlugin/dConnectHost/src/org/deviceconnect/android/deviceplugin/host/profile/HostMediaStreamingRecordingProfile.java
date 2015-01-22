@@ -7,8 +7,11 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +31,7 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
+import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.app.ActivityManager;
@@ -41,11 +45,43 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProfile {
-    /** ログを出力するかどうか. */
-    public static final boolean LOG_DEBUG = true;
+    /**
+     * 写真用のカメラターゲットID.
+     */
+    private static final String PHOTO_TARGET_ID = "photo";
 
     /**
-     * リクエストマップ. - Key: カメラリクエストID - Val: カメラ応答Broadcast 未受信ならnull /
+     * 写真用のカメラターゲット名.
+     */
+    private static final String PHOTO_TARGET_NAME = "AndroidHost Recorder";
+
+    /**
+     * VideoのカメラターゲットID.
+     */
+    private static final String VIDEO_TARGET_ID = "video";
+
+    /**
+     * Videoのカメラターゲット名.
+     */
+    private static final String VIDEO_TARGET_NAME = "AndroidHost Video Recorder";
+
+    /**
+     * AudioのカメラターゲットID.
+     */
+    private static final String AUDIO_TARGET_ID = "audio";
+
+    /**
+     * Audioのカメラターゲット名.
+     */
+    private static final String AUDIO_TARGET_NAME = "AndroidHost Audio Recorder";
+
+    /** 日付のフォーマット. */
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat(
+            "yyyyMMdd_kkmmss", Locale.JAPAN);
+
+    /**
+     * リクエストマップ.
+     * - Key: カメラリクエストID - Val: カメラ応答Broadcast 未受信ならnull /
      * 受信済なら画像URI(画像ID)
      */
     private static Map<String, String> mRequestMap = new ConcurrentHashMap<String, String>();
@@ -66,17 +102,48 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         } else if (!checkdeviceId(deviceId)) {
             createNotFoundDevice(response);
         } else {
-
+            String className = getClassnameOfTopActivity();
             List<Bundle> recorders = new LinkedList<Bundle>();
 
-            Bundle recorder = new Bundle();
+            Bundle cameraRecorder = new Bundle();
+            setRecorderId(cameraRecorder, PHOTO_TARGET_ID);
+            setRecorderName(cameraRecorder, PHOTO_TARGET_NAME);
+            setRecorderImageWidth(cameraRecorder, VideoConst.VIDEO_WIDTH);
+            setRecorderImageHeight(cameraRecorder, VideoConst.VIDEO_HEIGHT);
+            setRecorderMIMEType(cameraRecorder, "image/png");
+            if (CameraActivity.class.getName().equals(className)) {
+                setRecorderState(cameraRecorder, RecorderState.RECORDING);
+            } else {
+                setRecorderState(cameraRecorder, RecorderState.INACTIVE);
+            }
+            setRecorderConfig(cameraRecorder, "");
+            recorders.add(cameraRecorder);
 
-            setRecorderId(recorder, "001");
-            setRecorderName(recorder, "AndroidHost Recorder");
-            setRecorderImageWidth(recorder, VideoConst.VIDEO_WIDTH);
-            setRecorderImageHeight(recorder, VideoConst.VIDEO_HEIGHT);
-            setRecorderConfig(recorder, "");
-            recorders.add(recorder);
+            Bundle videoRecorder = new Bundle();
+            setRecorderId(videoRecorder, VIDEO_TARGET_ID);
+            setRecorderName(videoRecorder, VIDEO_TARGET_NAME);
+            setRecorderImageWidth(videoRecorder, VideoConst.VIDEO_WIDTH);
+            setRecorderImageHeight(videoRecorder, VideoConst.VIDEO_HEIGHT);
+            setRecorderMIMEType(videoRecorder, "video/3gp");
+            if (VideoRecorder.class.getName().equals(className)) {
+                setRecorderState(cameraRecorder, RecorderState.RECORDING);
+            } else {
+                setRecorderState(cameraRecorder, RecorderState.INACTIVE);
+            }
+            setRecorderConfig(videoRecorder, "");
+            recorders.add(videoRecorder);
+
+            Bundle audioRecorder = new Bundle();
+            setRecorderId(audioRecorder, AUDIO_TARGET_ID);
+            setRecorderName(audioRecorder, AUDIO_TARGET_NAME);
+            setRecorderMIMEType(videoRecorder, "audio/3gp");
+            if (AudioRecorder.class.getName().equals(className)) {
+                setRecorderState(cameraRecorder, RecorderState.RECORDING);
+            } else {
+                setRecorderState(cameraRecorder, RecorderState.INACTIVE);
+            }
+            setRecorderConfig(audioRecorder, "");
+            recorders.add(audioRecorder);
 
             setRecorders(response, recorders.toArray(new Bundle[recorders.size()]));
 
@@ -88,32 +155,25 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     @Override
     protected boolean onPutOnPhoto(final Intent request, final Intent response, final String deviceId,
             final String sessionKey) {
-
-        // イベントの登録
         EventError error = EventManager.INSTANCE.addEvent(request);
-
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
-            return true;
         } else {
             setResult(response, DConnectMessage.RESULT_ERROR);
-            return true;
         }
+        return true;
     }
 
     @Override
     protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String deviceId,
             final String sessionKey) {
-
-        // イベントの解除
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
-            return true;
         } else {
             setResult(response, DConnectMessage.RESULT_ERROR);
-            return true;
         }
+        return true;
     }
 
     @Override
@@ -130,24 +190,30 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         } else {
 
-            String mClassName = getClassnameOfTopActivity();
+            if (target != null && !PHOTO_TARGET_ID.equals(target)) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "target is invalid.");
+                return true;
+            }
 
-            // カメラアプリがすでに前にある
-            if (CameraActivity.class.getName().equals(mClassName)) {
-                Intent mIntent = new Intent();
-                mIntent.setClass(getContext(), CameraActivity.class);
-                mIntent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
-                mIntent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
-                mIntent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
-                getContext().sendBroadcast(mIntent);
+            String className = getClassnameOfTopActivity();
+            if (CameraActivity.class.getName().equals(className)) {
+                // カメラアプリがすでに前にある
+                Intent intent = new Intent();
+                intent.setClass(getContext(), CameraActivity.class);
+                intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
+                intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
+                intent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
+                getContext().sendBroadcast(intent);
             } else {
-                Intent mIntent = new Intent();
-                mIntent.setClass(getContext(), CameraActivity.class);
-                mIntent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
-                mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                mIntent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
-                mIntent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
-                getContext().startActivity(mIntent);
+                // カメラアプリを起動
+                Intent intent = new Intent();
+                intent.setClass(getContext(), CameraActivity.class);
+                intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
+                intent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
+                getContext().startActivity(intent);
             }
 
             new Thread(new Runnable() {
@@ -182,12 +248,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     List<Event> events = EventManager.INSTANCE.getEventList(deviceId,
                             PROFILE_NAME, null, ATTRIBUTE_ON_PHOTO);
                     for (int i = 0; i < events.size(); i++) {
-                        Intent mIntent = EventManager.createEventMessage(events.get(i));
+                        Intent intent = EventManager.createEventMessage(events.get(i));
                         Bundle photo = new Bundle();
                         setPath(photo, pictureUri);
                         setMIMEType(photo, "image/png");
-                        setPhoto(mIntent, photo);
-                        getContext().sendBroadcast(mIntent);
+                        setPhoto(intent, photo);
+                        getContext().sendBroadcast(intent);
                     }
                 }
             }).start();
@@ -214,21 +280,22 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             } else {
                 MessageUtils.setIllegalServerStateError(response, 
                         "Failed to start web server.");
+                return true;
             }
 
             String className = getClassnameOfTopActivity();
             if (CameraActivity.class.getName().equals(className)) {
-                Intent mIntent = new Intent();
-                mIntent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
-                mIntent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_PREVIEW);
-                getContext().sendBroadcast(mIntent);
+                Intent intent = new Intent();
+                intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
+                intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_PREVIEW);
+                getContext().sendBroadcast(intent);
             } else {
-                Intent mIntent = new Intent();
-                mIntent.setClass(getContext(), CameraActivity.class);
-                mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                mIntent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
-                mIntent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_PREVIEW);
-                getContext().startActivity(mIntent);
+                Intent intent = new Intent();
+                intent.setClass(getContext(), CameraActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
+                intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_PREVIEW);
+                getContext().startActivity(intent);
             }
             return true;
         }
@@ -246,10 +313,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             ((HostDeviceService) getContext()).stopWebServer();
             String className = getClassnameOfTopActivity();
             if (CameraActivity.class.getName().equals(className)) {
-                Intent mIntent = new Intent();
-                mIntent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
-                mIntent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_FINISH);
-                getContext().sendBroadcast(mIntent);
+                Intent intent = new Intent();
+                intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
+                intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_FINISH);
+                getContext().sendBroadcast(intent);
             }
             setResult(response, DConnectMessage.RESULT_OK);
             return true;
@@ -267,29 +334,49 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundDevice(response);
             return true;
         } else {
-            String mClassName = getClassnameOfTopActivity();
 
-            if (target == null || target.equals("video")) {
-                if (VideoRecorder.class.getName().equals(mClassName)) {
-                    MessageUtils.setError(response, 100, "Running video recoder, yet");
+            if (timeslice != null && timeslice <= 0) {
+                MessageUtils.setIllegalServerStateError(response, 
+                        "timeslice is invalid.");
+                return true;
+            }
+
+            FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
+            String className = getClassnameOfTopActivity();
+
+            if (target == null || target.equals(VIDEO_TARGET_ID)) {
+                if (VideoRecorder.class.getName().equals(className)) {
+                    MessageUtils.setIllegalDeviceStateError(response,
+                            "Running video recoder, yet");
                     return true;
                 }
-                Intent mIntent = new Intent();
-                mIntent.setClass(getContext(), VideoRecorder.class);
-                mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                getContext().startActivity(mIntent);
+                String filename = generateVideoFileName();
+                Intent intent = new Intent();
+                intent.setClass(getContext(), VideoRecorder.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra(VideoConst.EXTRA_FILE_NAME, filename);
+                getContext().startActivity(intent);
                 setResult(response, DConnectMessage.RESULT_OK);
-            } else if (target.equals("audio")) {
-                if (AudioRecorder.class.getName().equals(mClassName)) {
-                    MessageUtils.setError(response, 100, "Running audio recoder, yet");
+                setPath(response, "/" + filename);
+                setUri(response, mgr.getContentUri() + "/" + filename);
+            } else if (target.equals(AUDIO_TARGET_ID)) {
+                if (AudioRecorder.class.getName().equals(className)) {
+                    MessageUtils.setIllegalDeviceStateError(response,
+                            "Running video recoder, yet");
                     return true;
                 }
-
-                Intent mIntent = new Intent();
-                mIntent.setClass(getContext(), AudioRecorder.class);
-                mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                getContext().startActivity(mIntent);
+                String filename = generateAudioFileName();
+                Intent intent = new Intent();
+                intent.setClass(getContext(), AudioRecorder.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra(AudioConst.EXTRA_FINE_NAME, filename);
+                getContext().startActivity(intent);
                 setResult(response, DConnectMessage.RESULT_OK);
+                setPath(response, "/" + filename);
+                setUri(response, mgr.getContentUri() + "/" + filename);
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response, 
+                        "target is invalid.");
             }
 
             return true;
@@ -308,18 +395,19 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         } else {
 
             // 今起動しているActivityを判定する
-            String mClassName = getClassnameOfTopActivity();
-
-            if (VideoRecorder.class.getName().equals(mClassName)) {
-                Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEO);
-                mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_RECORD_STOP);
-                getContext().sendBroadcast(mIntent);
+            String className = getClassnameOfTopActivity();
+            if (VideoRecorder.class.getName().equals(className)) {
+                Intent intent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEO);
+                intent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_RECORD_STOP);
+                getContext().sendBroadcast(intent);
                 setResult(response, DConnectMessage.RESULT_OK);
-            } else if (AudioRecorder.class.getName().equals(mClassName)) {
-                Intent mIntent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
-                mIntent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_STOP);
-                getContext().sendBroadcast(mIntent);
+            } else if (AudioRecorder.class.getName().equals(className)) {
+                Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
+                intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_STOP);
+                getContext().sendBroadcast(intent);
                 setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setIllegalDeviceStateError(response);
             }
 
             return true;
@@ -338,15 +426,16 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         } else {
 
-            String mClassName = getClassnameOfTopActivity();
-
-            if (VideoRecorder.class.getName().equals(mClassName)) {
-                MessageUtils.setError(response, 201, "not support");
-            } else if (AudioRecorder.class.getName().equals(mClassName)) {
-                Intent mIntent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
-                mIntent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_PAUSE);
-                getContext().sendBroadcast(mIntent);
+            String className = getClassnameOfTopActivity();
+            if (VideoRecorder.class.getName().equals(className)) {
+                MessageUtils.setNotSupportAttributeError(response);
+            } else if (AudioRecorder.class.getName().equals(className)) {
+                Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
+                intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_PAUSE);
+                getContext().sendBroadcast(intent);
                 setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setIllegalDeviceStateError(response);
             }
 
             return true;
@@ -364,19 +453,36 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundDevice(response);
             return true;
         } else {
-
-            String mClassName = getClassnameOfTopActivity();
-            if (VideoRecorder.class.getName().equals(mClassName)) {
-                MessageUtils.setError(response, 201, "not support");
-            } else if (AudioRecorder.class.getName().equals(mClassName)) {
+            String className = getClassnameOfTopActivity();
+            if (VideoRecorder.class.getName().equals(className)) {
+                MessageUtils.setNotSupportAttributeError(response);
+            } else if (AudioRecorder.class.getName().equals(className)) {
                 Intent intent = new Intent(AudioConst.SEND_HOSTDP_TO_AUDIO);
                 intent.putExtra(AudioConst.EXTRA_NAME, AudioConst.EXTRA_NAME_AUDIO_RECORD_RESUME);
                 getContext().sendBroadcast(intent);
                 setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setIllegalDeviceStateError(response);
             }
         }
 
         return true;
+    }
+
+    /**
+     * Generate a file name for video.
+     * @return file name
+     */
+    private String generateVideoFileName() {
+        return "video" + mSimpleDateFormat.format(new Date()) + VideoConst.FORMAT_TYPE;
+    }
+
+    /**
+     * Generate a file name for audio.
+     * @return file name
+     */
+    private String generateAudioFileName() {
+        return "audio" + mSimpleDateFormat.format(new Date()) + AudioConst.FORMAT_TYPE;
     }
 
     /**
@@ -389,7 +495,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         String regex = HostNetworkServiceDiscoveryProfile.DEVICE_ID;
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(deviceId);
-
         return m.find();
     }
 
@@ -399,11 +504,9 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      * @return クラス名
      */
     private String getClassnameOfTopActivity() {
-
-        ActivityManager mActivityManager = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
-        String mClassName = mActivityManager.getRunningTasks(1).get(0).topActivity.getClassName();
-
-        return mClassName;
+        ActivityManager activitMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
+        String className = activitMgr.getRunningTasks(1).get(0).topActivity.getClassName();
+        return className;
     }
 
     /**

@@ -8,7 +8,6 @@
 package org.deviceconnect.android.deviceplugin.host.video;
 
 import java.io.File;
-import java.util.Date;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
@@ -27,11 +26,14 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
+import android.util.Log;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
+import android.widget.Button;
 
 /**
  * Video Recorder.
@@ -43,14 +45,8 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
     /** MediaRecorder. */
     private MediaRecorder mRecorder;
 
-    /** 録画中かどうか. */
-    private boolean isRecording;
-
     /** SurfaceHolder. */
     private SurfaceHolder mHolder;
-    
-    /** Format Type. */
-    private static final String FORMAT_TYPE = ".3gp";
 
     /** Camera. */
     private Camera mCamera;
@@ -65,32 +61,35 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
     private String mFileName;
 
     @Override
-    public void onCreate(final Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // タイトルを非表示
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-
-        // Layoutを設定
         setContentView(R.layout.video_main);
 
-        // Surface Viewを設定
-        SurfaceView mSurfaceView = (SurfaceView) findViewById(R.id.surface_view);
-        mHolder = mSurfaceView.getHolder();
+        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surface_view);
+        mHolder = surfaceView.getHolder();
         mHolder.addCallback(this);
 
-        // FileManager.
         mFileMgr = new FileManager(this);
+
+        Button stopBtn = (Button) findViewById(R.id.btn_stop);
+        stopBtn.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     @Override
-    public void onResume() {
+    protected void onResume() {
         super.onResume();
 
         // レシーバーを登録
-        IntentFilter mFilter = new IntentFilter();
-        mFilter.addAction(VideoConst.SEND_HOSTDP_TO_VIDEO);
-        registerReceiver(myReceiver, mFilter);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(VideoConst.SEND_HOSTDP_TO_VIDEO);
+        registerReceiver(myReceiver, filter);
 
         mCamera = getCameraInstance();
         mRecorder = new MediaRecorder();
@@ -102,36 +101,33 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
             }
         }
 
-        mRecorder.setCamera(mCamera);
-        File dir = mFileMgr.getBasePath();
-        Date mDate = new Date();
-        mFileName = "host" + mDate.getTime() + FORMAT_TYPE;
-        mFile = new File(dir, mFileName);
-
-        try {
-            mRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-            mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-
-            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-
-            mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
-            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-
-            mRecorder.setOutputFile(mFile.toString());
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
+        Intent intent = getIntent();
+        if (intent != null) {
+            mFileName = intent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
         }
-
-        isRecording = true;
+        if (mFileName != null) {
+            mRecorder.setCamera(mCamera);
+            mFile = new File(mFileMgr.getBasePath(), mFileName);
+            try {
+                mRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+                mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+                mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
+                mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+                mRecorder.setOutputFile(mFile.toString());
+            } catch (Exception e) {
+                if (BuildConfig.DEBUG) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            finish();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
-        isRecording = false;
 
         releaseMediaRecorder();
         releaseCamera();
@@ -143,17 +139,27 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         // レシーバーを削除
         unregisterReceiver(myReceiver);
 
-        // Content Providerに登録する.
-        MediaMetadataRetriever mMediaMeta = new MediaMetadataRetriever();
-        mMediaMeta.setDataSource(mFile.toString());
-        ContentResolver mContentResolver = this.getApplicationContext().getContentResolver();
-        ContentValues mValues = new ContentValues();
-        mValues.put(Video.Media.TITLE, mFileName);
-        mValues.put(Video.Media.DISPLAY_NAME, mFileName);
-        mValues.put(Video.Media.ARTIST, "DeviceConnect");
-        mValues.put(Video.Media.MIME_TYPE, FORMAT_TYPE);
-        mValues.put(Video.Media.DATA, mFile.toString());
-        mContentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, mValues);
+        if (checkVideoFile()) {
+            // Content Providerに登録する.
+            MediaMetadataRetriever mediaMeta = new MediaMetadataRetriever();
+            mediaMeta.setDataSource(mFile.toString());
+            ContentResolver resolver = getApplicationContext().getContentResolver();
+            ContentValues values = new ContentValues();
+            values.put(Video.Media.TITLE, mFileName);
+            values.put(Video.Media.DISPLAY_NAME, mFileName);
+            values.put(Video.Media.ARTIST, "DeviceConnect");
+            values.put(Video.Media.MIME_TYPE, VideoConst.FORMAT_TYPE);
+            values.put(Video.Media.DATA, mFile.toString());
+            resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
+        }
+    }
+
+    /**
+     * Check the existence of file.
+     * @return true is exist
+     */
+    private boolean checkVideoFile() {
+        return mFile != null && mFile.exists() && mFile.length() > 0;
     }
 
     /**
@@ -205,23 +211,10 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         }
     }
 
-    /**
-     * Surface Viewが生成された時に呼ばれる.
-     * 
-     * @param holder フォルダ
-     */
     @Override
     public void surfaceCreated(final SurfaceHolder holder) {
     }
 
-    /**
-     * Surface Viewに変化があった際に呼ばれる.
-     * 
-     * @param holder SurfaceHolder
-     * @param format フォーマット
-     * @param width 幅
-     * @param height 高さ
-     */
     @Override
     public void surfaceChanged(final SurfaceHolder holder, final int format, final int width, final int height) {
         mHolder = holder;
@@ -243,31 +236,10 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         }
     }
 
-    /**
-     * Surface Viewが破棄された際に呼ばれる.
-     * 
-     * @param holder フォルダ
-     */
     @Override
     public void surfaceDestroyed(final SurfaceHolder holder) {
     }
 
-    @Override
-    public boolean onTouchEvent(final MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            finish();
-        }
-        return true;
-    }
-
-    /**
-     * キーが押された時のイベント.
-     * 
-     * @param keyCode キーコード　
-     * @param event キーイベント
-     * 
-     * @return True
-     */
     @Override
     public boolean onKeyDown(final int keyCode, final KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_HOME) {

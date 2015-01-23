@@ -23,6 +23,7 @@ import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
+import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.android.manager.profile.DConnectNetworkServiceDiscoveryProfile;
@@ -145,6 +146,7 @@ public abstract class DConnectMessageService extends Service
 
         // プロファイルの追加
         addProfile(new AuthorizationProfile());
+        addProfile(new DConnectAvailabilityProfile());
         addProfile(new DConnectNetworkServiceDiscoveryProfile(mPluginMgr));
         addProfile(new DConnectFilesProfile(this));
         addProfile(new DConnectSystemProfile(this, mPluginMgr));

@@ -57,7 +57,14 @@
                 <action android:name="org.deviceconnect.action.DELETE" />
             </intent-filter>
         </service>
-
+        <!-- 再起動用のServcie. -->
+        <service
+            android:name="org.deviceconnect.android.message.DConnectLaunchService"
+            android:exported="true" >
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:value="enable" />
+        </service>
         
     </application>
 

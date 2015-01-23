@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Random;
 
 import org.deviceconnect.android.manager.DConnectService;
+import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
 import org.deviceconnect.android.observer.DConnectObservationService;
@@ -18,6 +20,9 @@ import org.deviceconnect.android.observer.receiver.ObserverReceiver;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -234,6 +239,8 @@ public class SettingsFragment extends PreferenceFragment
             TextDialogFragment fragment = new TextDialogFragment();
             fragment.setArguments(tosArgs);
             fragment.show(getFragmentManager(), null);
+        } else if (getString(R.string.key_settings_restart_device_plugin).equals(preference.getKey())) {
+            restartDevicePlugins();
         }
 
         return result;
@@ -286,5 +293,55 @@ public class SettingsFragment extends PreferenceFragment
      */
     private boolean isObservationServices() {
         return isServiceRunning(getActivity(), DConnectObservationService.class);
+    }
+
+    /**
+     * Start all device plugins.
+     */
+    private void restartDevicePlugins() {
+        final StartingDialogFragment dialog = new StartingDialogFragment();
+        dialog.show(getFragmentManager(), "dialog");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
+                mgr.createDevicePluginList();
+                List<DevicePlugin> plugins = mgr.getDevicePlugins();
+                for (DevicePlugin plugin : plugins) {
+                    if (plugin.getStartServiceClassName() != null) {
+                        restartDevicePlugin(plugin);
+                    }
+                }
+                dialog.dismiss();
+            }
+        }).start();
+        
+    }
+
+    /**
+     * Start a device plugin.
+     * @param plugin device plugin to be started
+     */
+    private void restartDevicePlugin(final DevicePlugin plugin) {
+        Intent service = new Intent();
+        service.setClassName(plugin.getPackageName(), plugin.getStartServiceClassName());
+        getActivity().startService(service);
+    }
+
+    /**
+     * Show a dialog of restart a device plugin.
+     */
+    private class StartingDialogFragment extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(final Bundle savedInstanceState) {
+            String title = getString(R.string.activity_settings_restart_device_plugin_title);
+            String msg = getString(R.string.activity_settings_restart_device_plugin_message);
+            ProgressDialog progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setTitle(title);
+            progressDialog.setMessage(msg);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            setCancelable(false);
+            return progressDialog;
+        }
     }
 }

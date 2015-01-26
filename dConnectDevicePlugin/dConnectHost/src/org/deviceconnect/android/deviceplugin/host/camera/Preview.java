@@ -34,7 +34,8 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
     public static final String LOG_TAG = "DeviceConnectCamera:Preview";
 
     /** Debug Tag. */
-    private static final String TAG = "PluginHost";
+    @SuppressWarnings("unused")
+	private static final String TAG = "PluginHost";
 
     /** プレビューを表示するSurfaceView. */
     private SurfaceView mSurfaceView;

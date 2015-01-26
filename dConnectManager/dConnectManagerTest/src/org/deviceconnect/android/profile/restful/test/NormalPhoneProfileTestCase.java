@@ -197,8 +197,10 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             JSONObject event = waitForEvent();
             JSONObject phoneStatus = event.getJSONObject(PhoneProfileConstants.PARAM_PHONE_STATUS);
-            Assert.assertEquals(TestPhoneProfileConstants.PHONE_NUMBER, phoneStatus.getString(PhoneProfileConstants.PARAM_PHONE_NUMBER));
-            Assert.assertEquals(PhoneProfileConstants.CallState.FINISHED.getValue(), phoneStatus.getInt(PhoneProfileConstants.PARAM_STATE));
+            Assert.assertEquals(TestPhoneProfileConstants.PHONE_NUMBER,
+                  phoneStatus.getString(PhoneProfileConstants.PARAM_PHONE_NUMBER));
+            Assert.assertEquals(PhoneProfileConstants.CallState.FINISHED.getValue(),
+                  phoneStatus.getInt(PhoneProfileConstants.PARAM_STATE));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

@@ -68,6 +68,9 @@ public class HueDeviceService extends DConnectMessageService {
         return new HueNetworkServceDiscoveryProfile();
     }
 
+    /**
+     * Hueのブリッジとの通信を管理するリスナー.
+     */
     private final PHSDKListener mPhListener = new PHSDKListener() {
 
         @Override

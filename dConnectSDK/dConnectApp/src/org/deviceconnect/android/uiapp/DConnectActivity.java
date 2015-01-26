@@ -89,7 +89,7 @@ public class DConnectActivity extends FragmentPagerActivity {
     /**
      * Local OAuthに使用するスコープ一覧.
      */
-    private String[] scopes = {
+    private String[] mScopes = {
         AuthorizationProfileConstants.PROFILE_NAME,
         BatteryProfileConstants.PROFILE_NAME,
         ConnectProfileConstants.PROFILE_NAME,
@@ -163,7 +163,7 @@ public class DConnectActivity extends FragmentPagerActivity {
         if (super.onOptionsItemSelected(item)) {
             result = true;
         } else {
-            switch(item.getItemId()) {
+            switch (item.getItemId()) {
             case R.id.action_refresh:
                 getSupportFragmentManager().popBackStack();
                 (new ServiceDiscoveryTask()).execute();
@@ -278,9 +278,9 @@ public class DConnectActivity extends FragmentPagerActivity {
         String clientId = getClientId();
         String clientSecret = getClientSecret();
         if (!isStringEmpty(clientId) && !isStringEmpty(clientSecret)) {
-            AuthProcesser.asyncRefreshToken(host, port, isSSL, clientId, clientSecret, appName, scopes, mAuthHandler);
+            AuthProcesser.asyncRefreshToken(host, port, isSSL, clientId, clientSecret, appName, mScopes, mAuthHandler);
         } else {
-            AuthProcesser.asyncAuthorize(host, port, isSSL, getPackageName(), appName, scopes, mAuthHandler);
+            AuthProcesser.asyncAuthorize(host, port, isSSL, getPackageName(), appName, mScopes, mAuthHandler);
         }
     }
 

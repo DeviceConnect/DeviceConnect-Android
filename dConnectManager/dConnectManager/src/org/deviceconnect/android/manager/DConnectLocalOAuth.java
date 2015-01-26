@@ -50,10 +50,10 @@ public class DConnectLocalOAuth {
     };
 
     /** ロガー. */
-    private final Logger sLogger = Logger.getLogger("dconnect.manager");
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** DBアクセスヘルパークラス. */
-    private LocalOAuthSQLiteOpenHelper dbHelper;
+    private LocalOAuthSQLiteOpenHelper mDBHelper;
 
     /**
      * コンテキスト.
@@ -66,7 +66,7 @@ public class DConnectLocalOAuth {
      */
     public DConnectLocalOAuth(final Context context) {
         mContext = context;
-        dbHelper = new LocalOAuthSQLiteOpenHelper(context, DATABASE_NAME);
+        mDBHelper = new LocalOAuthSQLiteOpenHelper(context, DATABASE_NAME);
     }
     
     /**
@@ -76,7 +76,7 @@ public class DConnectLocalOAuth {
      */
     public DConnectLocalOAuth(final Context context, final String filename) {
         mContext = context;
-        dbHelper = new LocalOAuthSQLiteOpenHelper(context, filename);
+        mDBHelper = new LocalOAuthSQLiteOpenHelper(context, filename);
     }
 
     /**
@@ -103,14 +103,14 @@ public class DConnectLocalOAuth {
      * @param clientSecret クライアントシークレット
      */
     public synchronized void setOAuthData(final String deviceId, final String clientId, final String clientSecret) {
-        sLogger.fine("setOAuthData[deviceId: " + deviceId + ", clinetId: " 
+        mLogger.fine("setOAuthData[deviceId: " + deviceId + ", clinetId: " 
                 + clientId + ", clientSecret: " + clientSecret + "]");
 
         ContentValues values = new ContentValues();
         values.put(OAuthDataColumns.DEVICE_ID, deviceId);
         values.put(OAuthDataColumns.CLIENT_ID, clientId);
         values.put(OAuthDataColumns.CLIENT_SECRET, clientSecret);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             db.insertOrThrow(OAUTH_DATA_TABLE_NAME, null, values);
         } finally {
@@ -128,7 +128,7 @@ public class DConnectLocalOAuth {
         String select = OAuthDataColumns.DEVICE_ID + "=?";
         String[] selectArgs = {deviceId};
         OAuthData client =  null;
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
         Cursor cs = db.query(OAUTH_DATA_TABLE_NAME, null, select, selectArgs, null, null, null);
         try {
             if (cs.moveToFirst()) {
@@ -164,11 +164,11 @@ public class DConnectLocalOAuth {
             throw new IllegalArgumentException("oauth is null.");
         }
 
-        sLogger.fine("deleteOAuthData[deviceId: " + oauth.getDeviceId() 
+        mLogger.fine("deleteOAuthData[deviceId: " + oauth.getDeviceId() 
                 + ", clientId: " + oauth.getClientId() + "]");
 
         boolean result = deleteAccessToken(oauth.getId());
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             String select = OAuthDataColumns._ID + "=" + oauth.getId();
             result = db.delete(OAUTH_DATA_TABLE_NAME, select, null) > 0;
@@ -202,7 +202,7 @@ public class DConnectLocalOAuth {
 
         String select = OAuthDataColumns.DEVICE_ID + " LIKE ?";
         String[] selectArgs = {"%" + pluginId + "%"};
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
         Cursor cs = db.query(OAUTH_DATA_TABLE_NAME, null, select, selectArgs, null, null, null);
         try {
             if (cs.moveToFirst()) {
@@ -228,9 +228,9 @@ public class DConnectLocalOAuth {
      * @return 削除に成功した場合はtrue、それ以外はfalse
      */
     public synchronized boolean deleteAccessToken(final int oauthId) {
-        sLogger.fine("deleteAccessToken[oauthId]: " + oauthId);
+        mLogger.fine("deleteAccessToken[oauthId]: " + oauthId);
 
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             String select = AccessTokenColumns.OAUTH_ID + "=" + oauthId + "";
             return db.delete(ACCESS_TOKEN_TABLE_NAME, select, null) > 0;
@@ -246,9 +246,9 @@ public class DConnectLocalOAuth {
      * @return 削除に成功した場合はtrue、それ以外はfalse
      */
     public synchronized boolean deleteAccessToken(final String token) {
-        sLogger.fine("deleteAccessToken[token]: " + token);
+        mLogger.fine("deleteAccessToken[token]: " + token);
 
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             String select = AccessTokenColumns.ACCESS_TOKEN + "=?";
             String[] selectArgs = {token};
@@ -267,7 +267,7 @@ public class DConnectLocalOAuth {
      */
     public synchronized String getAccessToken(final int oauthId) {
         String select = AccessTokenColumns.OAUTH_ID + "=" + oauthId;
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
         Cursor cs = db.query(ACCESS_TOKEN_TABLE_NAME, null, select, null, null, null, null);
         try {
             if (cs.moveToFirst()) {
@@ -292,13 +292,13 @@ public class DConnectLocalOAuth {
         values.put(AccessTokenColumns.OAUTH_ID, oauthId);
         values.put(AccessTokenColumns.ACCESS_TOKEN, accessToken);
 
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
         Cursor cs = db.query(ACCESS_TOKEN_TABLE_NAME, null, select, null, null, null, null);
         try {
             if (cs.moveToFirst()) {
-                dbHelper.getWritableDatabase().update(ACCESS_TOKEN_TABLE_NAME, values, select, null);
+                mDBHelper.getWritableDatabase().update(ACCESS_TOKEN_TABLE_NAME, values, select, null);
             } else {
-                dbHelper.getWritableDatabase().insertOrThrow(ACCESS_TOKEN_TABLE_NAME, null, values);
+                mDBHelper.getWritableDatabase().insertOrThrow(ACCESS_TOKEN_TABLE_NAME, null, values);
             }
         } finally {
             cs.close();
@@ -312,7 +312,7 @@ public class DConnectLocalOAuth {
      */
     public synchronized List<OAuthData> getOAuthDataList() {
         List<OAuthData> clients = new ArrayList<OAuthData>();
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
         Cursor cs = db.query(OAUTH_DATA_TABLE_NAME, null, null, null, null, null, null);
         try {
             if (cs.moveToFirst()) {

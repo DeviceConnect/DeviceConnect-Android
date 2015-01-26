@@ -50,7 +50,6 @@ public class TestFileProfile extends FileProfile {
     /**
      * コンストラクタ.
      * 
-     * @param context コンテキスト
      * @param fileMgr ファイルマネージャ
      */
     public TestFileProfile(final FileManager fileMgr) {
@@ -94,7 +93,7 @@ public class TestFileProfile extends FileProfile {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
-            String uri = getFileManager().getContentUri() + "/" + getFilenameFromPath(path);
+            String uri = getFileManager().getContentUri() + "/" + getFileNameFromPath(path);
             setURI(response, uri);
             setMIMEType(response, MIME_TYPE);
         }
@@ -134,7 +133,7 @@ public class TestFileProfile extends FileProfile {
             String u = null;
             try {
                 // MEMO: テスト簡素化のため、テストプラグイン内ではディレクトリツリーを持たせない.
-                String filename = getFilenameFromPath(path);
+                String filename = getFileNameFromPath(path);
                 u = getFileManager().saveFile(filename, data);
             } catch (IOException e) {
                 u = null;
@@ -149,7 +148,8 @@ public class TestFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onPostMkdir(Intent request, Intent response, String deviceId, String path) {
+    protected boolean onPostMkdir(final Intent request, final Intent response,
+                                        final String deviceId, final String path) {
         if (!checkDeviceId(deviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
@@ -161,7 +161,8 @@ public class TestFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onDeleteRmdir(Intent request, Intent response, String deviceId, String path, boolean force) {
+    protected boolean onDeleteRmdir(final Intent request, final Intent response,
+                                    final String deviceId, final String path, final boolean force) {
         if (!checkDeviceId(deviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
@@ -172,7 +173,12 @@ public class TestFileProfile extends FileProfile {
         return true;
     }
 
-    private String getFilenameFromPath(String path) {
+    /**
+     * FileパスからFile名を取得する.
+     * @param path Fileパス
+     * @return File名
+     */
+    private String getFileNameFromPath(final String path) {
         String[] components = path.split("/");
         if (components.length == 0) {
             return path;
@@ -190,7 +196,7 @@ public class TestFileProfile extends FileProfile {
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            getFileManager().removeFile(getFilenameFromPath(path));
+            getFileManager().removeFile(getFileNameFromPath(path));
             setResult(response, DConnectMessage.RESULT_OK);
         }
         

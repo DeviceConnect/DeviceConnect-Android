@@ -32,7 +32,7 @@ public class LocalOAuthRequest extends DConnectRequest {
     protected static final int MAX_RETRY_COUNT = 3;
 
     /** ロガー. */
-    private final Logger sLogger = Logger.getLogger("dconnect.manager");
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** 送信先のデバイスプラグイン. */
     protected DevicePlugin mDevicePlugin;
@@ -50,7 +50,7 @@ public class LocalOAuthRequest extends DConnectRequest {
     protected boolean mUseAccessToken;
 
     /** リトライ回数. */
-    protected int retryCount;
+    protected int mRetryCount;
 
     /**
      * 送信先のデバイスプラグインを設定する.
@@ -108,7 +108,7 @@ public class LocalOAuthRequest extends DConnectRequest {
         }
 
         // リトライ回数を定義
-        retryCount = 0;
+        mRetryCount = 0;
 
         // リクエストコードを作成する
         mRequestCode = UUID.randomUUID().hashCode();
@@ -133,7 +133,7 @@ public class LocalOAuthRequest extends DConnectRequest {
         // 命令を実行する前にレスポンスを初期化しておく
         mResponse = null;
 
-        sLogger.info("executeCreateClient: " + deviceId);
+        mLogger.info("executeCreateClient: " + deviceId);
 
         // 各デバイスに送信するリクエストを作成
         Intent request = createRequestMessage(mRequest, mDevicePlugin);
@@ -165,15 +165,15 @@ public class LocalOAuthRequest extends DConnectRequest {
                 } else {
                     // クライアントデータを
                     ClientData client = new ClientData();
-                    client.clientId = clientId;
-                    client.clientSecret = clientSecret;
+                    client.mClientId = clientId;
+                    client.mClientSecret = clientSecret;
                     return client;
                 }
             } else {
                 int errorCode = getErrorCode(mResponse);
                 if (errorCode == DConnectMessage.ErrorCode.NOT_SUPPORT_PROFILE.getCode()) {
                     // authorizationプロファイルに対応していないのでアクセストークンはいらない。
-                    sLogger.info("DevicePlugin not support Authorization Profile.");
+                    mLogger.info("DevicePlugin not support Authorization Profile.");
                     executeRequest(null);
                 } else {
                     sendResponse(mResponse);
@@ -203,7 +203,7 @@ public class LocalOAuthRequest extends DConnectRequest {
         // 命令を実行する前にレスポンスを初期化しておく
         mResponse = null;
 
-        sLogger.info("executeAccessToken: {deviceId: " + deviceId + ", clientId: " + clientId
+        mLogger.info("executeAccessToken: {deviceId: " + deviceId + ", clientId: " + clientId
                 + ", clientSecret: " + clientSecret + "}");
 
         // 各デバイスに送信するリクエストを作成
@@ -341,7 +341,7 @@ public class LocalOAuthRequest extends DConnectRequest {
                     try {
                         request.wait(mTimeout);
                     } catch (InterruptedException e) {
-                        sLogger.warning("timeout.");
+                        mLogger.warning("timeout.");
                     }
                 }
 
@@ -446,9 +446,9 @@ public class LocalOAuthRequest extends DConnectRequest {
      */
     protected class ClientData {
         /** クライアントID. */
-        String clientId;
+        String mClientId;
         /** クライアントシークレット. */
-        String clientSecret;
+        String mClientSecret;
     }
 
     /**
@@ -493,8 +493,8 @@ public class LocalOAuthRequest extends DConnectRequest {
                     onFinishAuth(null);
                     return;
                 } else {
-                    clientId = client.clientId;
-                    clientSecret = client.clientSecret;
+                    clientId = client.mClientId;
+                    clientSecret = client.mClientSecret;
                     // クライアントデータを保存
                     mLocalOAuth.setOAuthData(mDeviceId, clientId, clientSecret);
                     oauth = mLocalOAuth.getOAuthData(mDeviceId);

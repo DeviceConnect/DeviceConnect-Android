@@ -869,7 +869,8 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      * ・コールバック登録後にイベントを受信すること。
      * </pre>
      */
-    public void testOnDataAvailable01() {
+    @SuppressWarnings("deprecation")
+	public void testOnDataAvailable01() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
         request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
@@ -906,7 +907,8 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      * ・resultに0が返ってくること。
      * </pre>
      */
-    public void testOnDataAvailable02() {
+    @SuppressWarnings("deprecation")
+	public void testOnDataAvailable02() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
         request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);

@@ -77,7 +77,7 @@ public class ServiceListFragment extends ListFragment {
     private SmartDevice mDevice;
 
     /**
-     * d-Connectクライアント.
+     * Device Connectクライアント.
      */
     private DConnectClient mDConnectClient;
 

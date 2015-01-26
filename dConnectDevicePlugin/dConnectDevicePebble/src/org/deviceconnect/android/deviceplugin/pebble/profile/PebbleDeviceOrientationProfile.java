@@ -30,7 +30,7 @@ import com.getpebble.android.kit.util.PebbleDictionary;
  */
 public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
     /** milli G を m/s^2 の値にする係数. */
-    private static final double G_TO_MS2_COEFFICIENT =  9.81 / 1000.0 ;
+    private static final double G_TO_MS2_COEFFICIENT =  9.81 / 1000.0;
     /** sessionKeyが設定されていないときのエラーメッセージ. */
     private static final String ERROR_MESSAGE = "sessionKey must be specified.";
     /**

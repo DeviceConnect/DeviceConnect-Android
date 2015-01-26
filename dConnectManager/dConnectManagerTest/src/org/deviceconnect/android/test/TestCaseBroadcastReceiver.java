@@ -13,7 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 
 /**
- * d-Connect Managerからのレスポンスを待つレシーバー.
+ * Device Connect Managerからのレスポンスを待つレシーバー.
  * @author NTT DOCOMO, INC.
  */
 public class TestCaseBroadcastReceiver extends BroadcastReceiver {

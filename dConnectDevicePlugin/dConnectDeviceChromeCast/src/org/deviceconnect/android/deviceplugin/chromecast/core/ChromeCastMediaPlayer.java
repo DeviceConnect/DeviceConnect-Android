@@ -23,7 +23,7 @@ import android.content.Intent;
 import android.webkit.MimeTypeMap;
 
 /**
- * Chromecast MediaPlayer クラス
+ * Chromecast MediaPlayer クラス.
  * 
  * <p>
  * MediaPlayer機能を提供する
@@ -32,65 +32,62 @@ import android.webkit.MimeTypeMap;
  */
 public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
 
-    private ChromeCastApplication application;
+    /** Chromecast Application. */
+    private ChromeCastApplication mApplication;
+    /** RemoteMediaPlayer. */
     private RemoteMediaPlayer mRemoteMediaPlayer;
-    private Callbacks callbacks;
-    private boolean isLoadEnable = false;
+    /** Chromecastの再生状態を受け取るコールバック. */
+    private Callbacks mCallbacks;
+    /** Chromecastのファイルロード有効フラグ. */
+    private boolean mIsLoadEnable = false;
 
     /**
-     * コールバックのインターフェース
-     * 
-     * @param   なし
-     * @return  なし
+     * Chromecastの再生状態を通知するためのコールバックのインターフェース.
+     * @author NTT DOCOMO, INC.
      */
     public interface Callbacks {
         /**
-         * 再生状態を通知する
+         * 再生状態を通知する.
          * 
-         * @param   status  メディアのステータス
-         * @return  なし
+         * @param status メディアのステータス
          */
-        public void onChromeCastMediaPlayerStatusUpdate(MediaStatus status);
+        void onChromeCastMediaPlayerStatusUpdate(final MediaStatus status);
         /**
-         * 再生処理の結果を通知する
+         * 再生処理の結果を通知する.
          * 
-         * @param   response
-         * @param   result
-         * @param   message
-         * @return  なし
+         * @param   response レスポンス
+         * @param   result 再生処理結果
+         * @param   message 再生処理のステータス
          */
-        public void onChromeCastMediaPlayerResult(Intent response, MediaChannelResult result, String message);
+        void onChromeCastMediaPlayerResult(final Intent response,
+                final MediaChannelResult result, final String message);
     }
 
     /**
-     * コールバックを登録する
+     * コールバックを登録する.
      * 
-     * @param   callbacks   コールバック
-     * @return  なし
+     * @param callbacks コールバック
      */
-    public void setCallbacks(Callbacks callbacks) {
-        this.callbacks = callbacks;
+    public void setCallbacks(final Callbacks callbacks) {
+        this.mCallbacks = callbacks;
     }
 
     /**
-     * コンストラクタ
+     * コンストラクタ.
      * 
-     * @param   application ChromeCastApplication
-     * @return  なし
+     * @param application ChromeCastApplication
      */
-    public ChromeCastMediaPlayer(ChromeCastApplication application) {
-        this.application = application;
-        this.application.addCallbacks(this);
+    public ChromeCastMediaPlayer(final ChromeCastApplication application) {
+        this.mApplication = application;
+        this.mApplication.addCallbacks(this);
     }
 
     /**
-     * デバイスが有効か否かを返す
-     * 
-     * @param   なし
-     * @return  デバイスが有効か否か（有効: true, 無効: false）
+     * デバイスが有効か否かを返す.
+     * @return デバイスが有効か否か（有効: true, 無効: false）
      */
     public boolean isDeviceEnable() {
-        return (application.getGoogleApiClient() != null);
+        return (mApplication.getGoogleApiClient() != null);
     }
 
     @Override
@@ -100,23 +97,26 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
                 .setOnStatusUpdatedListener(new RemoteMediaPlayer.OnStatusUpdatedListener() {
                     @Override
                     public void onStatusUpdated() {
-                        if (mRemoteMediaPlayer.getMediaStatus() == null)
+                        if (mRemoteMediaPlayer.getMediaStatus() == null) {
                             return;
-                        callbacks.onChromeCastMediaPlayerStatusUpdate(mRemoteMediaPlayer.getMediaStatus());
+                        }
+                        mCallbacks.onChromeCastMediaPlayerStatusUpdate(mRemoteMediaPlayer.getMediaStatus());
                     }
                 });
 
         mRemoteMediaPlayer
                 .setOnMetadataUpdatedListener(new RemoteMediaPlayer.OnMetadataUpdatedListener() {
                     @Override
-                    public void onMetadataUpdated() {}
+                    public void onMetadataUpdated() {
+                        
+                    }
                 });
 
         try {
-            Cast.CastApi.setMessageReceivedCallbacks(application.getGoogleApiClient(),
+            Cast.CastApi.setMessageReceivedCallbacks(mApplication.getGoogleApiClient(),
                     mRemoteMediaPlayer.getNamespace(), mRemoteMediaPlayer);
         } catch (IOException e) {
-            if(BuildConfig.DEBUG){
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
@@ -126,10 +126,10 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
     public void onDetach() {
         if (mRemoteMediaPlayer != null) {
             try {
-                Cast.CastApi.removeMessageReceivedCallbacks(application.getGoogleApiClient(),
+                Cast.CastApi.removeMessageReceivedCallbacks(mApplication.getGoogleApiClient(),
                         mRemoteMediaPlayer.getNamespace());
             } catch (IOException e) {
-                if(BuildConfig.DEBUG){
+                if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
             }
@@ -138,21 +138,20 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
     }
 
     /**
-     * メディアをロードする
+     * メディアをロードする.
      * 
      * @param   response    レスポンス
      * @param   url         メディアのURL
      * @param   title       メディアのタイトル
-     * @return  なし
      */
-    public void load(final Intent response, String url, String title) {
+    public void load(final Intent response, final String url, final String title) {
         MediaInfo mediaInfo;
         
         MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
         mediaMetadata.putString(MediaMetadata.KEY_TITLE, title);
         String ext = MimeTypeMap.getFileExtensionFromUrl(url).toLowerCase(Locale.getDefault());
         String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
-        if(mimeType == null || (mimeType != null && mimeType.isEmpty())){
+        if (mimeType == null || (mimeType != null && mimeType.isEmpty())) {
             mimeType = "application/octet-stream";
         }
         mediaInfo = new MediaInfo.Builder(url).setContentType(mimeType)
@@ -161,166 +160,162 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
         
         try {
             mRemoteMediaPlayer
-                .load(application.getGoogleApiClient(), mediaInfo, false)
+                .load(mApplication.getGoogleApiClient(), mediaInfo, false)
                 .setResultCallback(
                         new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                             @Override
-                            public void onResult(MediaChannelResult result) {
-                                if(result.getStatus().isSuccess()){
-                                    isLoadEnable = true;
-                                }else{
-                                    isLoadEnable = false;
+                            public void onResult(final MediaChannelResult result) {
+                                if (result.getStatus().isSuccess()) {
+                                    mIsLoadEnable = true;
+                                } else {
+                                    mIsLoadEnable = false;
                                 }
-                                callbacks.onChromeCastMediaPlayerResult(response, result, "load");
+                                mCallbacks.onChromeCastMediaPlayerResult(response, result, "load");
                             }
                         });
 
         } catch (Exception e) {
-            callbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
-            if(BuildConfig.DEBUG){
+            mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
     }
 
     /**
-     * メディアをプレイする
+     * メディアをプレイする.
      * 
      * @param   response    レスポンス
-     * @return  なし
      */
     public void play(final Intent response) {
-        try{
+        try {
             MediaInfo mediaInfo = null;
-            if(isLoadEnable){
+            if (mIsLoadEnable) {
                 mediaInfo = mRemoteMediaPlayer.getMediaInfo();
             }
-            mRemoteMediaPlayer.load(application.getGoogleApiClient(), mediaInfo, true).setResultCallback(
+            mRemoteMediaPlayer.load(mApplication.getGoogleApiClient(), mediaInfo, true).setResultCallback(
                 new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                     @Override
-                    public void onResult(MediaChannelResult result) {
-                        callbacks.onChromeCastMediaPlayerResult(response, result, "load");
+                    public void onResult(final MediaChannelResult result) {
+                        mCallbacks.onChromeCastMediaPlayerResult(response, result, "load");
                     }
                 });
-        }catch(Exception e){
-            callbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
-            if(BuildConfig.DEBUG){
+        } catch (Exception e) {
+            mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
     }
 
     /**
-     * メディアをレジュームする
+     * メディアをレジュームする.
      * 
      * @param   response    レスポンス
-     * @return  なし
      */
     public void resume(final Intent response) {
         try {
-            mRemoteMediaPlayer.play(application.getGoogleApiClient()).setResultCallback(
+            mRemoteMediaPlayer.play(mApplication.getGoogleApiClient()).setResultCallback(
                     new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                         @Override
-                        public void onResult(MediaChannelResult result) {
-                            callbacks.onChromeCastMediaPlayerResult(response, result,
+                        public void onResult(final MediaChannelResult result) {
+                            mCallbacks.onChromeCastMediaPlayerResult(response, result,
                                     null);
                         }
                     });
         } catch (Exception e) {
-            if(BuildConfig.DEBUG){
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
     }
 
     /**
-     * メディアを停止する
+     * メディアを停止する.
      * 
      * @param   response    レスポンス
-     * @return  なし
      */
     public void stop(final Intent response) {
         try {
-            mRemoteMediaPlayer.stop(application.getGoogleApiClient()).setResultCallback(
+            mRemoteMediaPlayer.stop(mApplication.getGoogleApiClient()).setResultCallback(
                     new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                         @Override
-                        public void onResult(MediaChannelResult result) {
-                            callbacks.onChromeCastMediaPlayerResult(response, result,
+                        public void onResult(final MediaChannelResult result) {
+                            mCallbacks.onChromeCastMediaPlayerResult(response, result,
                                     null);
                         }
                     });
         } catch (Exception e) {
-            if(BuildConfig.DEBUG){
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
     }
 
     /**
-     * メディアを一時停止する
+     * メディアを一時停止する.
      * 
      * @param   response    レスポンス
-     * @return  なし
      */
     public void pause(final Intent response) {
         try {
-            mRemoteMediaPlayer.pause(application.getGoogleApiClient()).setResultCallback(
+            mRemoteMediaPlayer.pause(mApplication.getGoogleApiClient()).setResultCallback(
                     new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                         @Override
-                        public void onResult(MediaChannelResult result) {
-                            callbacks.onChromeCastMediaPlayerResult(response, result,
+                        public void onResult(final MediaChannelResult result) {
+                            mCallbacks.onChromeCastMediaPlayerResult(response, result,
                                     null);
                         }
                     });
         } catch (Exception e) {
-            if(BuildConfig.DEBUG){
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
     }
 
     /**
-     * メディアをミュートする
+     * メディアをミュートする.
      * 
      * @param   response    レスポンス
      * @param   mute        ミュートするか否か (true: ミュートON, false: ミュートOFF)
-     * @return  なし
      */
-    public void setMute(final Intent response, boolean mute) {
+    public void setMute(final Intent response, final boolean mute) {
         try {
             mRemoteMediaPlayer
-                .setStreamMute(application.getGoogleApiClient(), mute)
+                .setStreamMute(mApplication.getGoogleApiClient(), mute)
                 .setResultCallback(
                         new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                             @Override
-                            public void onResult(MediaChannelResult result) {
-                                callbacks.onChromeCastMediaPlayerResult(response, result,
+                            public void onResult(final MediaChannelResult result) {
+                                mCallbacks.onChromeCastMediaPlayerResult(response, result,
                                         null);
                             }
                         });
         } catch (Exception e) {
-            callbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
-            if(BuildConfig.DEBUG){
+            mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
     }
 
     /**
-     * メディアのミュートの状態を取得する
+     * メディアのミュートの状態を取得する.
      * 
      * @param   response    レスポンス
-     * @return  int         ミュート状態 (1:ミュートON, 0: ミュートOFF, -1: エラー)
+     * @return  ミュート状態 (1:ミュートON, 0: ミュートOFF, -1: エラー)
      */
     public int getMute(final Intent response) {
         try {
-            if(mRemoteMediaPlayer.getMediaStatus().isMute())
+            if (mRemoteMediaPlayer.getMediaStatus().isMute()) {
                 return 1;
-            else
+            } else {
                 return 0;
+            }
         } catch (Exception e) {
-            callbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
-            if(BuildConfig.DEBUG){
+            mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
@@ -328,44 +323,43 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
     }
 
     /**
-     * メディアのボリュームを設定する
+     * メディアのボリュームを設定する.
      * 
      * @param   response    レスポンス
      * @param   volume      ボリューム (0.0 <= volume <= 1.0)
-     * @return  なし
      */
-    public void setVolume(final Intent response, double volume) {
+    public void setVolume(final Intent response, final double volume) {
         try {
             mRemoteMediaPlayer
-                .setStreamVolume(application.getGoogleApiClient(), volume)
+                .setStreamVolume(mApplication.getGoogleApiClient(), volume)
                 .setResultCallback(
                         new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                             @Override
-                            public void onResult(MediaChannelResult result) {
-                                callbacks.onChromeCastMediaPlayerResult(response, result,
+                            public void onResult(final MediaChannelResult result) {
+                                mCallbacks.onChromeCastMediaPlayerResult(response, result,
                                         null);
                             }
                         });
         } catch (Exception e) {
-            callbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
-            if(BuildConfig.DEBUG){
+            mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
     }
 	
     /**
-     * メディアのボリュームを取得する
+     * メディアのボリュームを取得する.
      * 
      * @param   response    レスポンス
      * @return  volume      ボリューム (0 <= volume <= 1.0, -1: エラー)
      */
-    public double getVolume(final Intent response){
+    public double getVolume(final Intent response) {
         try {
             return mRemoteMediaPlayer.getMediaStatus().getStreamVolume();
         } catch (Exception e) {
-            callbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
-            if(BuildConfig.DEBUG){
+            mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
@@ -373,34 +367,33 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
     }
 
     /**
-     * メディアのシークを設定する
+     * メディアのシークを設定する.
      * 
      * @param   response    レスポンス
      * @param   pos         ポジション
-     * @return  なし
      */
-    public void setSeek(final Intent response, long pos) {
+    public void setSeek(final Intent response, final long pos) {
         try {
             mRemoteMediaPlayer
-                .seek(application.getGoogleApiClient(), pos)
+                .seek(mApplication.getGoogleApiClient(), pos)
                 .setResultCallback(
                         new ResultCallback<RemoteMediaPlayer.MediaChannelResult>() {
                             @Override
-                            public void onResult(MediaChannelResult result) {
-                                callbacks.onChromeCastMediaPlayerResult(response, result,
+                            public void onResult(final MediaChannelResult result) {
+                                mCallbacks.onChromeCastMediaPlayerResult(response, result,
                                         null);
                             }
                         });
         } catch (Exception e) {
-            callbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
-            if(BuildConfig.DEBUG){
+            mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
     }
 
     /**
-     * メディアのシークを取得する
+     * メディアのシークを取得する.
      * 
      * @param   response    レスポンス
      * @return  pos         ポジション (-1: エラー)
@@ -409,8 +402,8 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
         try {
             return mRemoteMediaPlayer.getApproximateStreamPosition();
         } catch (Exception e) {
-            callbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
-            if(BuildConfig.DEBUG){
+            mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
@@ -418,17 +411,16 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
     }
 
     /**
-     * メディアの状態を取得する
+     * メディアの状態を取得する.
      * 
-     * @param   なし
      * @return  status  メディアの状態
      */
     public MediaStatus getMediaStatus() {
         MediaStatus status = null;
         try {
             status = mRemoteMediaPlayer.getMediaStatus();
-        }catch(Exception e){
-            if(BuildConfig.DEBUG){
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }

@@ -37,7 +37,7 @@ import android.content.res.XmlResourceParser;
  */
 public class DevicePluginManager {
     /** ロガー. */
-    private final Logger sLogger = Logger.getLogger("dconnect.manager");
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
     /** デバイスプラグインに格納されるメタタグ名. */
     private static final String PLUGIN_META_DATA = "org.deviceconnect.android.deviceplugin";
     /** 再起動用のサービスを表すメタデータの値. */
@@ -152,13 +152,13 @@ public class DevicePluginManager {
                     if (hash == null) {
                         throw new RuntimeException("Can't generate md5.");
                     }
-                    sLogger.info("Added DevicePlugin: [" + hash + "]");
-                    sLogger.info("    PackageName: " + packageName);
-                    sLogger.info("    className: " + className);
+                    mLogger.info("Added DevicePlugin: [" + hash + "]");
+                    mLogger.info("    PackageName: " + packageName);
+                    mLogger.info("    className: " + className);
                     // MEMO 既に同じ名前のデバイスプラグインが存在した場合の処理
                     // 現在は警告を表示し、上書きする.
                     if (mPlugins.containsKey(hash)) {
-                        sLogger.warning("DevicePlugin[" + hash + "] already exists.");
+                        mLogger.warning("DevicePlugin[" + hash + "] already exists.");
                     }
 
                     DevicePlugin plugin = new DevicePlugin();
@@ -221,9 +221,9 @@ public class DevicePluginManager {
                     String packageName = receiverInfo.packageName;
                     String className = receiverInfo.name;
                     String hash = md5(packageName + className);
-                    sLogger.info("Removed DevicePlugin: [" + hash + "]");
-                    sLogger.info("    PackageName: " + packageName);
-                    sLogger.info("    className: " + className);
+                    mLogger.info("Removed DevicePlugin: [" + hash + "]");
+                    mLogger.info("    PackageName: " + packageName);
+                    mLogger.info("    className: " + className);
                     DevicePlugin plugin = mPlugins.remove(hash);
                     if (plugin != null && mEventListener != null) {
                         mEventListener.onDeviceLost(plugin);
@@ -289,13 +289,13 @@ public class DevicePluginManager {
     }
 
     /**
-     * デバイスIDにd-Connect Managerのドメイン名を追加する.
+     * デバイスIDにDevice Connect Managerのドメイン名を追加する.
      * 
      * デバイスIDがnullのときには、デバイスIDは無視します。
      * 
      * @param plugin デバイスプラグイン
      * @param deviceId デバイスID
-     * @return d-Connect Managerのドメインなどが追加されたデバイスID
+     * @return Device Connect Managerのドメインなどが追加されたデバイスID
      */
     public String appendDeviceId(final DevicePlugin plugin, final String deviceId) {
         if (deviceId == null) {
@@ -327,7 +327,7 @@ public class DevicePluginManager {
                         + receiver.flattenToString();
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
-            sLogger.info("sessionKey [dConnectManager->DevicePlugin]: " + sessionKey);
+            mLogger.info("sessionKey [dConnectManager->DevicePlugin]: " + sessionKey);
         }
     }
 
@@ -351,7 +351,7 @@ public class DevicePluginManager {
                         + receiver.flattenToString();
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
-            sLogger.info("sessionKey [dConnectManager->DevicePlugin]: " + sessionKey);
+            mLogger.info("sessionKey [dConnectManager->DevicePlugin]: " + sessionKey);
         }
     }
 
@@ -365,15 +365,15 @@ public class DevicePluginManager {
         // 各デバイスプラグインへ渡すデバイスIDを作成
         String id = DevicePluginManager.spliteDeviceId(plugins.get(0), deviceId);
         request.putExtra(IntentDConnectMessage.EXTRA_DEVICE_ID, id);
-        sLogger.info("deviceId [dConnectManager->DevicePlugin]: " + id);
+        mLogger.info("deviceId [dConnectManager->DevicePlugin]: " + id);
     }
 
     /**
-     * デバイスIDを分解して、d-Connect Managerのドメイン名を省いた本来のデバイスIDにする.
-     * d-Connect Managerのドメインを省いたときに、何もない場合には空文字を返します。
+     * デバイスIDを分解して、Device Connect Managerのドメイン名を省いた本来のデバイスIDにする.
+     * Device Connect Managerのドメインを省いたときに、何もない場合には空文字を返します。
      * @param plugin デバイスプラグイン
      * @param deviceId デバイスID
-     * @return d-Connect Managerのドメインが省かれたデバイスID
+     * @return Device Connect Managerのドメインが省かれたデバイスID
      */
     public static String spliteDeviceId(final DevicePlugin plugin, final String deviceId) {
         String p = plugin.getDeviceId();
@@ -458,9 +458,9 @@ public class DevicePluginManager {
             digest.update(s.getBytes("ASCII"));
             return hexToString(digest.digest());
         } catch (UnsupportedEncodingException e) {
-            sLogger.warning("Not support Charset.");
+            mLogger.warning("Not support Charset.");
         } catch (NoSuchAlgorithmException e) {
-            sLogger.warning("Not support MD5.");
+            mLogger.warning("Not support MD5.");
         }
         return null;
     }

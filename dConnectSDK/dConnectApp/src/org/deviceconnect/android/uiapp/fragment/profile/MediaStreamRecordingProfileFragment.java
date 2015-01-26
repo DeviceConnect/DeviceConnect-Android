@@ -177,7 +177,8 @@ public class MediaStreamRecordingProfileFragment extends SmartDeviceFragment {
      * 写真撮影タスク.
      */
     private class RegisterOnDataAvaiableTask extends AsyncTask<Void, Void, Void> {
-        @Override
+        @SuppressWarnings("deprecation")
+		@Override
         protected Void doInBackground(final Void... params) {
             URIBuilder builder = new URIBuilder();
             builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
@@ -198,7 +199,8 @@ public class MediaStreamRecordingProfileFragment extends SmartDeviceFragment {
      * 写真撮影タスク.
      */
     private class UnegisterOnDataAvaiableTask extends AsyncTask<Void, Void, Void> {
-        @Override
+        @SuppressWarnings("deprecation")
+		@Override
         protected Void doInBackground(final Void... params) {
             URIBuilder builder = new URIBuilder();
             builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);

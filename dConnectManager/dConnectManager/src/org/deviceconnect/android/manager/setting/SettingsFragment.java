@@ -54,13 +54,13 @@ public class SettingsFragment extends PreferenceFragment
     /** 10進数の定義. */
     private static final int DECIMAL = 10;
     /** SSL設定チェックボックス. */
-    private CheckBoxPreference checkBoxSslPreferences;
+    private CheckBoxPreference mCheckBoxSslPreferences;
     /** ポート設定テキストエディッタ. */
-    private EditTextPreference editPortPreferences;
+    private EditTextPreference mEditPortPreferences;
     /** LocalOAuth設定チェックボックス. */
-    private CheckBoxPreference checkBoxOauthPreferences;
+    private CheckBoxPreference mCheckBoxOauthPreferences;
     /** 外部IP設定チェックボックス. */
-    private CheckBoxPreference checkBoxExternalPreferences;
+    private CheckBoxPreference mCheckBoxExternalPreferences;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -106,9 +106,9 @@ public class SettingsFragment extends PreferenceFragment
         editKeywordPreferences.shouldCommit();
 
         // SSLのON/OFF
-        checkBoxSslPreferences = (CheckBoxPreference)
+        mCheckBoxSslPreferences = (CheckBoxPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_ssl));
-        checkBoxSslPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxSslPreferences.setOnPreferenceChangeListener(this);
 
         // ホスト名設定
         EditTextPreference editHostPreferences = (EditTextPreference)
@@ -117,26 +117,26 @@ public class SettingsFragment extends PreferenceFragment
         editHostPreferences.setSummary(editHostPreferences.getText());
 
         // ポート番号設定
-        editPortPreferences = (EditTextPreference)
+        mEditPortPreferences = (EditTextPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_port));
-        editPortPreferences.setOnPreferenceChangeListener(this);
-        editPortPreferences.setSummary(editPortPreferences.getText());
+        mEditPortPreferences.setOnPreferenceChangeListener(this);
+        mEditPortPreferences.setSummary(mEditPortPreferences.getText());
 
         // Local OAuthのON/OFF
-        checkBoxOauthPreferences = (CheckBoxPreference)
+        mCheckBoxOauthPreferences = (CheckBoxPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_local_oauth));
-        checkBoxOauthPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxOauthPreferences.setOnPreferenceChangeListener(this);
 
         // グローバル設定のON/OFF
-        checkBoxExternalPreferences = (CheckBoxPreference)
+        mCheckBoxExternalPreferences = (CheckBoxPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_allow_external_ip));
-        checkBoxExternalPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxExternalPreferences.setOnPreferenceChangeListener(this);
 
         editHostPreferences.setEnabled(false);
-        checkBoxSslPreferences.setEnabled(!isDConnectServiceRunning());
-        editPortPreferences.setEnabled(!isDConnectServiceRunning());
-        checkBoxOauthPreferences.setEnabled(!isDConnectServiceRunning());
-        checkBoxExternalPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxSslPreferences.setEnabled(!isDConnectServiceRunning());
+        mEditPortPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxOauthPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxExternalPreferences.setEnabled(!isDConnectServiceRunning());
     }
 
     @Override
@@ -158,10 +158,10 @@ public class SettingsFragment extends PreferenceFragment
         observerPreferences.setChecked(isObservationServices());
 
         // 各dConnectManagerの設定
-        checkBoxSslPreferences.setEnabled(!isDConnectServiceRunning());
-        editPortPreferences.setEnabled(!isDConnectServiceRunning());
-        checkBoxOauthPreferences.setEnabled(!isDConnectServiceRunning());
-        checkBoxExternalPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxSslPreferences.setEnabled(!isDConnectServiceRunning());
+        mEditPortPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxOauthPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxExternalPreferences.setEnabled(!isDConnectServiceRunning());
     }
 
     @Override
@@ -185,10 +185,10 @@ public class SettingsFragment extends PreferenceFragment
             if (getString(R.string.key_settings_dconn_server_on_off).equals(key)) {
                 SwitchPreference pref = ((SwitchPreference) preference);
                 boolean checked = pref.isChecked();
-                checkBoxSslPreferences.setEnabled(checked);
-                checkBoxOauthPreferences.setEnabled(checked);
-                checkBoxExternalPreferences.setEnabled(checked);
-                editPortPreferences.setEnabled(checked);
+                mCheckBoxSslPreferences.setEnabled(checked);
+                mCheckBoxOauthPreferences.setEnabled(checked);
+                mCheckBoxExternalPreferences.setEnabled(checked);
+                mEditPortPreferences.setEnabled(checked);
                 // dConnectManagerのON/OFF
                 Intent intent = new Intent(getActivity(), DConnectService.class);
                 if (!checked) {

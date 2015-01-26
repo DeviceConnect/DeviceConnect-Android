@@ -27,7 +27,7 @@ public class SonyCameraSettingActivity extends DConnectSettingPageFragmentActivi
     private static final int PAGE_COUNTER = 3;
 
     /** フラグメント一覧. */
-    private List<SonyCameraBaseFragment> fragments = new ArrayList<SonyCameraBaseFragment>();
+    private List<SonyCameraBaseFragment> mFragments = new ArrayList<SonyCameraBaseFragment>();
 
     @Override
     protected void onResume() {
@@ -74,13 +74,13 @@ public class SonyCameraSettingActivity extends DConnectSettingPageFragmentActivi
 
     @Override
     public Fragment createPage(final int position) {
-        if (fragments.size() == 0) {
-            fragments.add(new SonyCameraPreparationFragment());
-            fragments.add(new SonyCameraTurnOnFragment());
-            fragments.add(new SonyCameraConnectingFragment());
+        if (mFragments.size() == 0) {
+            mFragments.add(new SonyCameraPreparationFragment());
+            mFragments.add(new SonyCameraTurnOnFragment());
+            mFragments.add(new SonyCameraConnectingFragment());
         }
 
-        SonyCameraBaseFragment fragment = fragments.get(position);
+        SonyCameraBaseFragment fragment = mFragments.get(position);
         return fragment;
     }
 }

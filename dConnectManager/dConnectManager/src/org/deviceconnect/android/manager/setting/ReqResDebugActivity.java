@@ -86,7 +86,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 /**
- * d-Connect RESTfulAPIのリクエストとレスポンスを見るための画面を持つActivity.
+ * Device Connect RESTfulAPIのリクエストとレスポンスを見るための画面を持つActivity.
  * @author NTT DOCOMO, INC.
  */
 public class ReqResDebugActivity extends Activity implements

@@ -208,11 +208,6 @@ public class FileProfileFragment extends SmartDeviceFragment {
             @SuppressWarnings("unchecked")
             final Map<String, Object> item = (Map<String, Object>) getItem(position);
             if (item != null) {
-                Integer type = (Integer) item.get(FileProfileConstants.PARAM_FILE_TYPE);
-                if (type == null) {
-                } else if (type == FileProfileConstants.FileType.FILE.getValue()) {
-                } else {
-                }
                 TextView nameText = (TextView) view.findViewById(R.id.text1);
                 nameText.setText((String) item.get(FileProfileConstants.PARAM_FILE_NAME));
             }

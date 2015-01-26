@@ -5,7 +5,7 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect Android Intent APIのテストケース.
+ * Device Connect Android Intent APIのテストケース.
  * <p>
  * 本パッケージの各テストケースのリクエストに対するレスポンスは、下記のパッケージで定義する.
  * org.deviceconnect.android.test.plugin.profile

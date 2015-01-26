@@ -26,8 +26,9 @@ import com.sonyericsson.extras.liveware.extension.util.notification.Notification
 public class SWNotificationProfile extends NotificationProfile {
 
     @Override
-    protected boolean onPostNotify(Intent request, Intent response, String deviceId, NotificationType type,
-            final Direction dir, final String lang, final String body, final String tag, final byte[] iconData) {
+    protected boolean onPostNotify(final Intent request, final Intent response, final String deviceId, 
+            final NotificationType type, final Direction dir, final String lang,
+            final String body, final String tag, final byte[] iconData) {
 
         BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
         if (device == null) {

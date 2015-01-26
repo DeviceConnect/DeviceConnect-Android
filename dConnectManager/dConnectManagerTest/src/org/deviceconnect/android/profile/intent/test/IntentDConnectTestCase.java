@@ -38,7 +38,7 @@ import android.os.Parcelable;
  * @author NTT DOCOMO, INC.
  */
 public class IntentDConnectTestCase extends DConnectTestCase {
-    /** d-ConnectManagerのレシーバーへのCompomentName. */
+    /** Device ConnectManagerのレシーバーへのCompomentName. */
     public static final String DCCONNECT_MANAGER_RECEIVER
             = "org.deviceconnect.android.manager/.DConnectBroadcastReceiver";
 

@@ -8,7 +8,6 @@ package org.deviceconnect.android.profile;
 
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.FileDescriptorProfileConstants;
-import org.deviceconnect.profile.FileDescriptorProfileConstants.Flag;
 
 import android.content.Intent;
 import android.os.Bundle;

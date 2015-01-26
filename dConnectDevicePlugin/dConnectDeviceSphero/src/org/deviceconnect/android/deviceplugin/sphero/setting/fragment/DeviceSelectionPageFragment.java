@@ -7,13 +7,12 @@
 package org.deviceconnect.android.deviceplugin.sphero.setting.fragment;
 
 import java.util.List;
-
 import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
 import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity.DeviceControlListener;
 import org.deviceconnect.android.deviceplugin.sphero.setting.widget.DeviceListAdapter;
 import org.deviceconnect.android.deviceplugin.sphero.setting.widget.DeviceListAdapter.OnConnectButtonClickListener;
-
 import orbotix.sphero.Sphero;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -29,7 +28,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-
 import org.deviceconnect.android.deviceplugin.sphero.R;
 
 /**
@@ -58,9 +56,14 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
      * 検索ダイアログの表示状態.
      */
     private int mSearchingVisibility = -1;
-    
-    private boolean isThreadRunning;
-    private Handler threadHandler = new Handler();
+    /**
+     * Is Thread Running.
+     */
+    private boolean mIsThreadRunning;
+    /**
+     * Thread Handler.
+     */
+    private Handler mThreadHandler = new Handler();
 
     @Override
     public void onAttach(final Activity activity) {
@@ -71,7 +74,8 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         ((SettingActivity) activity).sendGetConnectedDevicesBroadcast();
     }
 
-    @Override
+    @SuppressLint("InflateParams")
+	@Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, 
             final Bundle savedInstanceState) {
 
@@ -109,22 +113,23 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     }
     
     @Override
-    public void onCreate(Bundle savedInstanceState){
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        isThreadRunning = true;
-        new Thread(new Runnable(){
+        mIsThreadRunning = true;
+        new Thread(new Runnable() {
             @Override
             public void run() {
                 BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-                if(mBluetoothAdapter == null){
+                if (mBluetoothAdapter == null) {
                     return;
                 }
                 int prevState = mBluetoothAdapter.getState();
-                while(isThreadRunning){
-                    if(prevState != mBluetoothAdapter.getState()){
-                        if((mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON) &&
-                           (prevState == BluetoothAdapter.STATE_TURNING_ON || prevState == BluetoothAdapter.STATE_OFF)){
-                            threadHandler.post(new Runnable(){
+                while (mIsThreadRunning) {
+                    if (prevState != mBluetoothAdapter.getState()) {
+                        if ((mBluetoothAdapter.getState() == BluetoothAdapter.STATE_ON)
+                          && (prevState == BluetoothAdapter.STATE_TURNING_ON
+                          || prevState == BluetoothAdapter.STATE_OFF)) {
+                            mThreadHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
                                     stopDiscovery();
@@ -169,13 +174,13 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         }
         
         boolean isExist = false;
-        for(int i=0; i<mAdapter.getCount(); i++){
+        for (int i = 0; i < mAdapter.getCount(); i++) {
             Sphero s = mAdapter.getItem(i);
-            if(s.getDevice().getAddress().equals(device.getDevice().getAddress())){
+            if (s.getDevice().getAddress().equals(device.getDevice().getAddress())) {
                 isExist = true;
             }
         }
-        if(!isExist){
+        if (!isExist) {
             mAdapter.add(device);
         }
     }
@@ -186,7 +191,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         stopDiscovery();
         startDiscovery();
         
-        if(mIndView != null && mIndView.isShowing()){
+        if (mIndView != null && mIndView.isShowing()) {
             mIndView.dismiss();
         }
     }
@@ -243,7 +248,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     @Override
     public void onDestroy() {
         super.onDestroy();
-        isThreadRunning = false;
+        mIsThreadRunning = false;
         stopDiscovery();
     }
 

@@ -29,7 +29,7 @@ public class DevicePlugin {
     /**
      * サポートしているプロファイルを格納する.
      */
-    private List<String> supports = new ArrayList<String>();
+    private List<String> mSupports = new ArrayList<String>();
 
     /**
      * デバイスプラグインのパッケージ名を取得する.
@@ -114,21 +114,21 @@ public class DevicePlugin {
      * @param profileName プロファイル名
      */
     public void addProfile(final String profileName) {
-        supports.add(profileName);
+        mSupports.add(profileName);
     }
     /**
      * サポートするプロファイルを設定する.
      * @param profiles プロファイル名一覧
      */
     public void setSupportProfiles(final List<String> profiles) {
-        supports = profiles;
+        mSupports = profiles;
     }
     /**
      * デバイスプラグインがサポートするプロファイルの一覧を取得する.
      * @return サポートするプロファイルの一覧
      */
     public List<String> getSupportProfiles() {
-        return supports;
+        return mSupports;
     }
     
     @Override

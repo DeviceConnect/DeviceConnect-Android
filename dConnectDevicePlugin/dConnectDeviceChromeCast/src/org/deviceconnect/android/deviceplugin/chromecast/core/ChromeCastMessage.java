@@ -19,7 +19,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 
 /**
- * Chromecast Message クラス
+ * Chromecast Message クラス.
  * 
  * <p>
  * メッセージ機能を提供する
@@ -28,97 +28,105 @@ import com.google.android.gms.common.api.Status;
  */
 public class ChromeCastMessage implements ChromeCastApplication.Callbacks {
 
+    /** Message Channel. */
     private MessageChannel mMessageChannel;
-    private ChromeCastApplication application;
-    private String urn = null;
-    private Callbacks callbacks;
+    /** Chromecast Application. */
+    private ChromeCastApplication mApplication;
+    /** メッセージの宛先. */
+    private String mUrn = null;
+    /** メッセージのコールバック. */
+    private Callbacks mCallbacks;
 
+    /**
+     * Chromecastでのメッセージの受信状況を通知する.
+     *
+     * @author NTT DOCOMO, INC.
+     *
+     */
     private class MessageChannel implements MessageReceivedCallback {
 
-        private String urn = null;
+        /**
+         * メッセージの宛先.
+         */
+        private String mUrn = null;
 
         /**
-         * コンストラクタ
+         * コンストラクタ.
          * 
-         * @param   urn         メッセージの宛先(名前空間)
-         * @return  なし
+         * @param urn メッセージの宛先(名前空間)
          */
-        public MessageChannel(String urn){
-            this.urn = urn;
+        public MessageChannel(final String urn) {
+            this.mUrn = urn;
         }
 
         /**
-         * メッセージの宛先(名前空間)を取得する
+         * メッセージの宛先(名前空間)を取得する.
          * 
-         * @param   なし
-         * @return  namespace   名前空間
+         * @return 名前空間
          */
         public String getNamespace() {
-            return urn;
+            return mUrn;
         }
 
         @Override
-        public void onMessageReceived(CastDevice castDevice, String namespace, String message) {
+        public void onMessageReceived(final CastDevice castDevice, final String namespace, final String message) {
         }
     }
 
     /**
-     * コールバックのインターフェース
+     * Chromecastでのメッセージ処理の結果を通知するコールバックのインターフェース.
      * 
-     * @param   なし
-     * @return  なし
+     * @author NTT DOCOMO, INC.
      */
     public interface Callbacks {
         /**
-         * メッセージ処理の結果を通知する
+         * メッセージ処理の結果を通知する.
          * 
-         * @param   response
-         * @return  なし
+         * @param response レスポンス
+         * @param result メッセージ処理結果
+         * @param message メッセージ処理のステータス
          */
-        public void onChromeCastMessageResult(Intent response, Status result, String message);
+        void onChromeCastMessageResult(final Intent response, final Status result, final String message);
     }
 
     /**
-     * コールバックを登録する
+     * コールバックを登録する.
      * 
      * @param   callbacks   コールバック
-     * @return  なし
      */
-    public void setCallbacks(Callbacks callbacks) {
-        this.callbacks = callbacks;
+    public void setCallbacks(final Callbacks callbacks) {
+        this.mCallbacks = callbacks;
     }
 
     /**
-     * コンストラクタ
+     * コンストラクタ.
      * 
      * @param   application     ChromeCastApplication
      * @param   urn             メッセージの宛先(名前空間)
-     * @return  なし
      */
-    public ChromeCastMessage(ChromeCastApplication application, String urn){
-        this.application = application;
-        this.application.addCallbacks(this);
-        this.urn = urn;
+    public ChromeCastMessage(final ChromeCastApplication application, final String urn) {
+        this.mApplication = application;
+        this.mApplication.addCallbacks(this);
+        this.mUrn = urn;
     }
 
     /**
-     * デバイスが有効か否かを返す
+     * デバイスが有効か否かを返す.
      * 
-     * @param   なし
      * @return  デバイスが有効か否か（有効: true, 無効: false）
      */
     public boolean isDeviceEnable() {
-        return (application.getGoogleApiClient() != null);
+        return (mApplication.getGoogleApiClient() != null);
     }
 
     @Override
     public void onAttach() {
-        mMessageChannel = new MessageChannel(this.urn);
+        mMessageChannel = new MessageChannel(this.mUrn);
         try {
-            Cast.CastApi.setMessageReceivedCallbacks(application.getGoogleApiClient(),
+            Cast.CastApi.setMessageReceivedCallbacks(mApplication.getGoogleApiClient(),
                     mMessageChannel.getNamespace(), mMessageChannel);
         } catch (IOException e) {
-            if(BuildConfig.DEBUG){
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
@@ -128,10 +136,10 @@ public class ChromeCastMessage implements ChromeCastApplication.Callbacks {
     public void onDetach() {
         if (mMessageChannel != null) {
             try {
-                Cast.CastApi.removeMessageReceivedCallbacks(application.getGoogleApiClient(),
+                Cast.CastApi.removeMessageReceivedCallbacks(mApplication.getGoogleApiClient(),
                         mMessageChannel.getNamespace());
             } catch (IOException e) {
-                if(BuildConfig.DEBUG){
+                if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
             }
@@ -140,26 +148,25 @@ public class ChromeCastMessage implements ChromeCastApplication.Callbacks {
     }
 	
     /**
-     * メッセージを送信する
+     * メッセージを送信する.
      * 
      * @param   response    レスポンス
      * @param   message     メッセージ
-     * @return  なし
      */
-    public void sendMessage(final Intent response, String message) {
-        if (application.getGoogleApiClient() != null && mMessageChannel != null) {
+    public void sendMessage(final Intent response, final String message) {
+        if (mApplication.getGoogleApiClient() != null && mMessageChannel != null) {
             try {
-                Cast.CastApi.sendMessage(application.getGoogleApiClient(),
+                Cast.CastApi.sendMessage(mApplication.getGoogleApiClient(),
                         mMessageChannel.getNamespace(), message)
                         .setResultCallback(new ResultCallback<Status>() {
                             @Override
-                            public void onResult(Status result) {
-                                callbacks.onChromeCastMessageResult(response, result, null);
+                            public void onResult(final Status result) {
+                                mCallbacks.onChromeCastMessageResult(response, result, null);
                             }
                         });
             } catch (Exception e) {
-                callbacks.onChromeCastMessageResult(response, null, e.getMessage());
-                if(BuildConfig.DEBUG){
+                mCallbacks.onChromeCastMessageResult(response, null, e.getMessage());
+                if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
             }

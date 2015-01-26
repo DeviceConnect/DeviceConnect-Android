@@ -42,7 +42,7 @@ public class SWCanvasProfile extends CanvasProfile {
     @Override
     protected boolean onPostDrawImage(final Intent request, final Intent response, final String deviceId, 
             final String mimeType, final byte[] data, final double x, final double y, final String mode) {
-    	BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
+        BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
         if (device == null) {
             MessageUtils.setNotFoundDeviceError(response, "No device is found: " + deviceId);
             return true;
@@ -79,8 +79,8 @@ public class SWCanvasProfile extends CanvasProfile {
         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, options);
 
         // 最終的にSWに表示するBitmapの作成(大きさはSWの画面サイズ)
-        final int width = size.width;
-        final int height = size.height;
+        final int width = size.getWidth();
+        final int height = size.getHeight();
         Bitmap viewBitmap = Bitmap.createBitmap(width, height, SWConstants.DEFAULT_BITMAP_CONFIG);
 
         if (mode == null || mode.equals("")) {
@@ -107,7 +107,7 @@ public class SWCanvasProfile extends CanvasProfile {
      * @param viewBitmap SWに表示するBitmap
      * @param bitmap 描画する画像のバイナリ
      */
-    private void drawImageForScalesMode(final Bitmap viewBitmap, Bitmap bitmap) {
+    private void drawImageForScalesMode(final Bitmap viewBitmap, final Bitmap bitmap) {
         
         // 描画開始地点
         float startGridX = 0;
@@ -153,11 +153,12 @@ public class SWCanvasProfile extends CanvasProfile {
      * @param x x座標
      * @param y y座標
      */
-    private void drawImageForNonScalesMode(final Bitmap viewBitmap, final Bitmap bitmap, final double x, final double y) {
+    private void drawImageForNonScalesMode(final Bitmap viewBitmap,
+                            final Bitmap bitmap, final double x, final double y) {
         
         // 描画開始地点
-        float startGridX = (float)x;
-        float startGridY = (float)y;
+        float startGridX = (float) x;
+        float startGridY = (float) y;
         
         //canvasに表示用Bitmapをセット
         Canvas canvas = new Canvas(viewBitmap);

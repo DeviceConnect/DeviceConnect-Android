@@ -40,7 +40,7 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * URLエンコード済みの予約文字がリクエストパラメータ値に含まれている場合も、正常にリクエストが処理されること。
+     * URLエンコード済みの予約文字がリクエストパラメータ値に含まれている場合も、正常にリクエストが処理されること.
      * <p>
      * URLの予約文字についてはRFC3986 Appendix Aを参照のこと。
      * </p>

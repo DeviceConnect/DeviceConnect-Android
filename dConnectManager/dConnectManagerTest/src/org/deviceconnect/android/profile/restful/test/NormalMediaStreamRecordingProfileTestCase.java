@@ -703,7 +703,8 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
     public void testOnDataAvailable01() {
         try {
             @SuppressWarnings("deprecation")
-			JSONObject event = registerEventCallback(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
+            JSONObject event = registerEventCallback(
+                     MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
             JSONObject media = event.getJSONObject(MediaStreamRecordingProfileConstants.PARAM_MEDIA);
             assertEquals(getFileURI(TestMediaStreamRecordingProfileConstants.URI), 
                     media.getString(MediaStreamRecordingProfileConstants.PARAM_URI));

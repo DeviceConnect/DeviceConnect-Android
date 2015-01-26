@@ -119,7 +119,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     private List<PluginInfo> mPlugins;
 
     /** ロガー. */
-    protected final Logger sLogger = Logger.getLogger("dconnect.manager");
+    protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** クライアントID. */
     protected String mClientId;
@@ -443,7 +443,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    sLogger.warning("Exception occured in close method.");
+                    mLogger.warning("Exception occured in close method.");
                 }
             }
         }

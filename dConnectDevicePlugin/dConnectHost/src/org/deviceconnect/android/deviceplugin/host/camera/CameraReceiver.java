@@ -16,7 +16,7 @@ import android.content.Context;
 import android.content.Intent;
 
 /**
- * d-Connect Camera からの通知を受信するBroadcastReceiver.
+ * Device Connect Camera からの通知を受信するBroadcastReceiver.
  * 
  * @author NTT DOCOMO, INC.
  */

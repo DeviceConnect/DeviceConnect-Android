@@ -14,7 +14,6 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.SystemProfileConstants.ConnectState;
 
 import android.app.Activity;
 import android.content.Intent;

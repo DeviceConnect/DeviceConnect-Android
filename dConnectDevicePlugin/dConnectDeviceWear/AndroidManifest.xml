@@ -57,7 +57,15 @@
             android:name="org.deviceconnect.android.deviceplugin.wear.WearDeviceService"
             android:exported="false" >
         </service>
-
+        <!-- 再起動用のServcie. -->
+        <service
+            android:name="org.deviceconnect.android.message.DConnectLaunchService"
+            android:exported="true" >
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:value="enable" />
+        </service>
+        
         <!-- LocalOAuth -->
         <activity
             android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"

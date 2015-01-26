@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect アプリケーションパッケージ.
+ * Device Connect アプリケーションパッケージ.
  */
 package org.deviceconnect.android.uiapp;

@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect Manager関連のReceiverクラス群.
+ * Device Connect Manager関連のReceiverクラス群.
  */
 package org.deviceconnect.android.manager.receiver;

@@ -33,12 +33,12 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     public static final String DEVICE_ID_SPECIAL_CHARACTERS = "!#$'()-~¥@[;+:*],._/=?&%^|`\"{}<>";
 
     /**
-     * テスト用デバイス名: {@value}
+     * テスト用デバイス名: {@value} .
      */
     public static final String DEVICE_NAME = "Test Success Device";
 
     /**
-     * テスト用デバイス名: {@value}
+     * テスト用デバイス名: {@value} .
      */
     public static final String DEVICE_NAME_SPECIAL_CHARACTERS = "Test Device ID Special Characters";
 
@@ -94,7 +94,8 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     }
 
     @Override
-    protected boolean onPutOnServiceChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response,
+                                            final String deviceId, final String sessionKey) {
         
         if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -123,7 +124,8 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     }
 
     @Override
-    protected boolean onDeleteOnServiceChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response,
+                                                final String deviceId, final String sessionKey) {
         if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {

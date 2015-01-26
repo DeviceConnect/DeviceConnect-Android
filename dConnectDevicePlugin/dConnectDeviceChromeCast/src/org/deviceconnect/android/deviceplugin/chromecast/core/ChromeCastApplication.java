@@ -20,7 +20,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 
 /**
- * Chromecast Application クラス
+ * Chromecast Application クラス.
  * <p>
  * アプリケーションIDに対応したReceiverアプリのコントロール
  * </p>
@@ -28,59 +28,57 @@ import com.google.android.gms.common.api.Status;
  */
 public class ChromeCastApplication implements
     GoogleApiClient.ConnectionCallbacks,
-    GoogleApiClient.OnConnectionFailedListener{
+    GoogleApiClient.OnConnectionFailedListener {
     
+    /** 出力するログのタグ名. */
     private static final String TAG = ChromeCastApplication.class.getSimpleName();
-
+    /** 選択したデバイスの情報. */
     private CastDevice mSelectedDevice;
+    /** GoogleAPIClient. */
     private GoogleApiClient mApiClient;
+    /** Castのリスナー. */
     private Cast.Listener mCastListener;
-    private Context context;
-    private String appId;
-    private ArrayList<Callbacks> callbacks;
-    private boolean isApplicationDisconnected = false;
+    /** コンテキスト. */
+    private Context mContext;
+    /** アプリID. */
+    private String mAppId;
+    /** ChromecastAttach/Detach用のコールバック群. */
+    private ArrayList<Callbacks> mCallbacks;
+    /** Application接続フラグ. */
+    private boolean mIsApplicationDisconnected = false;
 
     /**
-     * コールバックのインターフェース
-     * 
-     * @param   なし
-     * @return  なし
+     * ChromecastAttach/Detachイベントを通知するコールバックのインターフェース.
+     * @author NTT DOCOMO, INC.
      */
     public interface Callbacks {
         /**
-         * Chromecast Applicationにアタッチする
-         * 
-         * @param   なし
-         * @return  なし
+         * Chromecast Applicationにアタッチする.
          */
-        public void onAttach();
+        void onAttach();
 
         /**
-         * Chromecast Applicationにデタッチする
-         * 
-         * @param   なし
-         * @return  なし
+         * Chromecast Applicationにデタッチする.
          */
-        public void onDetach();
+        void onDetach();
     }
 
     /**
-     * コンストラクタ
+     * コンストラクタ.
      * 
-     * @param   context     コンテキスト
-     * @param   appId       ReceiverアプリのアプリケーションID
-     * @return  なし
+     * @param context  コンテキスト
+     * @param appId    ReceiverアプリのアプリケーションID
      */
-    public ChromeCastApplication(Context context, String appId) {
-        this.context = context;
-        this.appId = appId;
+    public ChromeCastApplication(final Context context, final String appId) {
+        this.mContext = context;
+        this.mAppId = appId;
         this.mSelectedDevice = null;
-        callbacks = new ArrayList<Callbacks>();
+        mCallbacks = new ArrayList<Callbacks>();
     }
     
     @Override
-    public void onConnected(Bundle connectionHint) {
-        if(BuildConfig.DEBUG){
+    public void onConnected(final Bundle connectionHint) {
+        if (BuildConfig.DEBUG) {
             Log.d(TAG, "onConnected");
         }
         if (mApiClient == null) {
@@ -94,22 +92,22 @@ public class ChromeCastApplication implements
                 launchApplication();
             }
         } catch (Exception e) {
-            if(BuildConfig.DEBUG){
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
     }
 
     @Override
-    public void onConnectionSuspended(int cause) {
-        if(BuildConfig.DEBUG){
+    public void onConnectionSuspended(final int cause) {
+        if (BuildConfig.DEBUG) {
             Log.d(TAG, "onConnectionSuspended$cause: " + cause);
         }
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        if(BuildConfig.DEBUG){
+    public void onConnectionFailed(final ConnectionResult result) {
+        if (BuildConfig.DEBUG) {
             Log.d(TAG, "onConnectionFailed$result: " + result.toString());
         }
         mApiClient = null;
@@ -117,73 +115,67 @@ public class ChromeCastApplication implements
     }
 
     /**
-     * GoogleApiClientを取得する
+     * GoogleApiClientを取得する.
      * 
-     * @param   なし
      * @return  GoogleApiClient
      */
-    public GoogleApiClient getGoogleApiClient(){
+    public GoogleApiClient getGoogleApiClient() {
         return mApiClient;
     }
 
     /**
-     * コールバックを登録する
+     * コールバックを登録する.
      * 
-     * @param   callbacks   コールバック
-     * @return  なし
+     * @param   callbacks 追加するコールバック
      */
-    public void addCallbacks(Callbacks callbacks) {
-        this.callbacks.add(callbacks);
+    public void addCallbacks(final Callbacks callbacks) {
+        this.mCallbacks.add(callbacks);
     }
 
     /**
-     * Chromecastデバイスをセットする
+     * Chromecastデバイスをセットする.
      * 
-     * @param   mSelectedDevice
-     * @return  なし
+     * @param selectedDevice 選択したChromecastのデバイス
      */
-    public void SetSelectedDevice(CastDevice mSelectedDevice) {
-        this.mSelectedDevice = mSelectedDevice;
+    public void setSelectedDevice(final CastDevice selectedDevice) {
+        this.mSelectedDevice = selectedDevice;
     }
     
     /**
-     * Chromecastデバイスを取得する
+     * Chromecastデバイスを取得する.
      * 
-     * @param   なし
-     * @return  CastDevice
+     * @return CastDevice
      */
-    public CastDevice GetSelectedDevice() {
+    public CastDevice getSelectedDevice() {
         return mSelectedDevice;
     }
     
     /**
-     * GooglePlayServiceに接続し、Receiverアプリケーションを起動する
+     * GooglePlayServiceに接続し、Receiverアプリケーションを起動する.
      * 
-     * @param   なし
-     * @return  なし
      */
     public void connect() {
         
         try {
-            if(mApiClient != null && isApplicationDisconnected){
-                isApplicationDisconnected = false;
+            if (mApiClient != null && mIsApplicationDisconnected) {
+                mIsApplicationDisconnected = false;
                 launchApplication();
             }
             
-            if(mApiClient == null){
-                isApplicationDisconnected = false;
+            if (mApiClient == null) {
+                mIsApplicationDisconnected = false;
                 
                 mCastListener = new Cast.Listener() {
                     @Override
-                    public void onApplicationDisconnected(int statusCode) {
-                        if(BuildConfig.DEBUG){
+                    public void onApplicationDisconnected(final int statusCode) {
+                        if (BuildConfig.DEBUG) {
                             Log.d(TAG, "onApplicationDisconnected$statusCode: " + statusCode);
                         }
-                        isApplicationDisconnected = true;
+                        mIsApplicationDisconnected = true;
                     }
                     @Override
                     public void onApplicationStatusChanged() {
-                        if(BuildConfig.DEBUG){
+                        if (BuildConfig.DEBUG) {
                             Log.d(TAG, "onApplicationStatusChanged");
                         }
                     }
@@ -191,7 +183,7 @@ public class ChromeCastApplication implements
                 
                 Cast.CastOptions.Builder apiOptionsBuilder = 
                         Cast.CastOptions.builder(mSelectedDevice, mCastListener);
-                mApiClient = new GoogleApiClient.Builder(this.context)
+                mApiClient = new GoogleApiClient.Builder(this.mContext)
                         .addApi(Cast.API, apiOptionsBuilder.build())
                         .addConnectionCallbacks(this)
                         .addOnConnectionFailedListener(this)
@@ -200,53 +192,48 @@ public class ChromeCastApplication implements
             }
             
         } catch (Exception e) {
-            if(BuildConfig.DEBUG){
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
     }
     
     /**
-     * Receiverアプリケーションを終了し、GooglePlayServiceから切断し、再接続する
+     * Receiverアプリケーションを終了し、GooglePlayServiceから切断し、再接続する.
      * 
-     * @param   なし
-     * @return  なし
      */
     public void reconnect() {
         stopApplication(true);
     }
     
     /**
-     * Receiverアプリケーションを終了し、GooglePlayServiceから切断する
+     * Receiverアプリケーションを終了し、GooglePlayServiceから切断する.
      * 
-     * @param   なし
-     * @return  なし
      */
     public void teardown() {
         stopApplication(false);
     }
     
     /**
-     * Receiverアプリケーションを起動する
+     * Receiverアプリケーションを起動する.
      * 
-     * @param   なし
-     * @return  なし
      */
-    private void launchApplication(){
-        if(mApiClient != null && mApiClient.isConnected()){
-            Cast.CastApi.launchApplication(mApiClient, appId, false).setResultCallback(new ResultCallback<Cast.ApplicationConnectionResult>() {
+    private void launchApplication() {
+        if (mApiClient != null && mApiClient.isConnected()) {
+            Cast.CastApi.launchApplication(mApiClient, mAppId, false)
+                .setResultCallback(new ResultCallback<Cast.ApplicationConnectionResult>() {
                 @Override
-                public void onResult(ApplicationConnectionResult result) {
+                public void onResult(final ApplicationConnectionResult result) {
                     Status status = result.getStatus();
                     if (status.isSuccess()) {
-                        if(BuildConfig.DEBUG){
+                        if (BuildConfig.DEBUG) {
                             Log.d(TAG, "launchApplication$onResult: Success");
                         }
-                        for (int i = 0; i < callbacks.size(); i++) {
-                            callbacks.get(i).onAttach();
+                        for (int i = 0; i < mCallbacks.size(); i++) {
+                            mCallbacks.get(i).onAttach();
                         }
                     } else {
-                        if(BuildConfig.DEBUG){
+                        if (BuildConfig.DEBUG) {
                             Log.d(TAG, "launchApplication$onResult: Fail");
                         }
                         teardown();
@@ -257,35 +244,34 @@ public class ChromeCastApplication implements
     }
     
     /**
-     * Receiverアプリケーションを停止する
+     * Receiverアプリケーションを停止する.
      * <p>
      * 停止後、再接続することもできる
      * </p>
-     * @param   isReconnect 再接続するか否か
-     * @return  なし
+     * @param isReconnect 再接続するか否か
      */
-    private void stopApplication(final boolean isReconnect){
+    private void stopApplication(final boolean isReconnect) {
         
-        if(mApiClient != null && mApiClient.isConnected()){
+        if (mApiClient != null && mApiClient.isConnected()) {
             Cast.CastApi.stopApplication(mApiClient).setResultCallback(new ResultCallback<Status>() {
                 @Override
-                public void onResult(Status result) {
-                    if(result.getStatus().isSuccess()){
-                        if(BuildConfig.DEBUG){
+                public void onResult(final Status result) {
+                    if (result.getStatus().isSuccess()) {
+                        if (BuildConfig.DEBUG) {
                             Log.d(TAG, "stopApplication$onResult: Success");
                         }
                         
-                        for(int i=0; i<callbacks.size(); i++){
-                            callbacks.get(i).onDetach();
+                        for (int i = 0; i < mCallbacks.size(); i++) {
+                            mCallbacks.get(i).onDetach();
                         }
                         mApiClient.disconnect();
                         mApiClient = null;
                         
-                        if(isReconnect){
+                        if (isReconnect) {
                             connect();
                         }
-                    }else{
-                        if(BuildConfig.DEBUG){
+                    } else {
+                        if (BuildConfig.DEBUG) {
                             Log.d(TAG, "stopApplication$onResult: Fail");
                         }
                     }

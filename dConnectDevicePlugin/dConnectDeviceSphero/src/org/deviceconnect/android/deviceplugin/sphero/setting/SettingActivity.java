@@ -32,7 +32,7 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity
  * @author NTT DOCOMO, INC.
  */
 public class SettingActivity extends DConnectSettingPageFragmentActivity {
-
+    /** Action NameSpace. */
     private static final String ACTION_NAMESPACE = SettingActivity.class.getPackage().getName() + ".action";
 
     /** 
@@ -258,7 +258,7 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
         void onDeviceLost(Sphero device);
         
         /**
-         * すべてのデバイスの消失を通知します。
+         * すべてのデバイスの消失を通知します.
          */
         void onDeviceLostAll();
         

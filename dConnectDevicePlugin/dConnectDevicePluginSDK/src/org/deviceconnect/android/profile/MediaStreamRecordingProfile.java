@@ -133,7 +133,8 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
         return result;
     }
 
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     protected boolean onPutRequest(final Intent request, final Intent response) {
         String attribute = getAttribute(request);
         boolean result = true;
@@ -176,7 +177,8 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
         return result;
     }
 
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     protected boolean onDeleteRequest(final Intent request, final Intent response) {
         String attribute = getAttribute(request);
         boolean result = true;

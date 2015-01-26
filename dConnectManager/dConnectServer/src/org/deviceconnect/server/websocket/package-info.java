@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect 仮想サーバーWebSocketパッケージ.
+ * Device Connect 仮想サーバーWebSocketパッケージ.
  */
 package org.deviceconnect.server.websocket;

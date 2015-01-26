@@ -229,7 +229,7 @@ public class SpheroLightProfile extends DConnectProfile {
     private int[] parseColor(final String color) {
 
         if (color == null || color.length() == 0) {
-            return new int[] { 255, 255, 255 };
+            return new int[] {255, 255, 255};
         }
 
         int[] c = new int[3];
@@ -291,7 +291,7 @@ public class SpheroLightProfile extends DConnectProfile {
         } else {
             try {
                 long time = Long.parseLong(pattern);
-                result = new long[] { time };
+                result = new long[] {time};
             } catch (NumberFormatException e) {
                 mLogger.warning("Exception in the VibrationProfile#parsePattern() method. " + e.toString());
             }

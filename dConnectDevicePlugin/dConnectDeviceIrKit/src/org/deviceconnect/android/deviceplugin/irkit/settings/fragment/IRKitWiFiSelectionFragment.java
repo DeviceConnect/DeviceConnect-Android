@@ -12,7 +12,7 @@ import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.GetClientKeyCal
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.GetNewDeviceCallback;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,7 +36,14 @@ public class IRKitWiFiSelectionFragment extends IRKitBaseFragment {
      * ステート定数.
      */
     private enum State {
-        IDLING, GOT_DEVICE, WAITING_IRKIT_SSID, CHECKING_IRKIT,
+        /** Idling. */
+        IDLING,
+        /** Got Device. */
+        GOT_DEVICE,
+        /** Waiting IRKit SSID. */
+        WAITING_IRKIT_SSID,
+        /** Checking IRKit. */
+        CHECKING_IRKIT,
     }
 
     /**
@@ -49,6 +56,7 @@ public class IRKitWiFiSelectionFragment extends IRKitBaseFragment {
      */
     private State mState;
 
+    @SuppressLint("InflateParams")
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, 
             final Bundle savedInstanceState) {

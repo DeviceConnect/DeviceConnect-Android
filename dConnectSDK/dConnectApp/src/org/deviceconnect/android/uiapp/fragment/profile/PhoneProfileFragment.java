@@ -110,6 +110,10 @@ public class PhoneProfileFragment extends SmartDeviceFragment {
         return view;
     }
     
+    /**
+     * Call Phone.
+     * @param number phone number
+     */
     private void callPhone(final String number) {
         (new AsyncTask<Void, Void, DConnectMessage>() {
             public DConnectMessage doInBackground(final Void ...args) {

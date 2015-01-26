@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
@@ -109,9 +108,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
 
     /** DeviceID. */
     private String mDeviceId;
-
-    /** ServiceのList. */
-    private List<Bundle> services;
 
     /** バッテリー関連の処理と値処理. */
     private HostBatteryManager mHostBatteryManager;
@@ -1379,8 +1375,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         new Thread(new Runnable() {
             public void run() {
 
-                services = new ArrayList<Bundle>();
-
                 android.net.wifi.WifiManager wifi =
                         (android.net.wifi.WifiManager) getSystemService(android.content.Context.WIFI_SERVICE);
                 WifiManager.MulticastLock lock = wifi.createMulticastLock(HOST_MULTICAST);
@@ -1401,8 +1395,6 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         new Thread(new Runnable() {
             public void run() {
 
-                services = new ArrayList<Bundle>();
-
                 android.net.wifi.WifiManager wifi = (android.net.wifi.WifiManager)
                             getSystemService(android.content.Context.WIFI_SERVICE);
                 WifiManager.MulticastLock lock = wifi.createMulticastLock(HOST_MULTICAST);
@@ -1418,6 +1410,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * 
      * @return 端末のIPアドレス
      */
+    @SuppressWarnings("unused")
     private String getLocalIpAddress() {
         try {
             for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
@@ -1522,7 +1515,8 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * @param mFile 判定したいURI
      * @return Videoならtrue, audioならfalse
      */
-    private boolean checkVideo(final File mFile) {
+    @SuppressWarnings("unused")
+	private boolean checkVideo(final File mFile) {
         int height = 0;
         try {
             mMediaPlayer = new MediaPlayer();

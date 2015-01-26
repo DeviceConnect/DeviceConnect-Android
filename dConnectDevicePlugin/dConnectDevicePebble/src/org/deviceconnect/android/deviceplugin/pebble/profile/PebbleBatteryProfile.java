@@ -55,6 +55,8 @@ public class PebbleBatteryProfile extends BatteryProfile {
                 case PebbleManager.BATTERY_ATTRIBUTE_ON_CHARGING_CHANGE:
                     sendOnChargingChange(dic);
                     break;
+                default:
+                    break;
                 }
             }
         });
@@ -257,7 +259,8 @@ public class PebbleBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onDeleteOnBatteryChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onDeleteOnBatteryChange(final Intent request, final Intent response,
+                          final String deviceId, final String sessionKey) {
         if (deviceId == null) {
             MessageUtils.setEmptyDeviceIdError(response);
             return true;
@@ -382,7 +385,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
      * Pebble 側のアプリケーションが存在しない場合のエラーメッセージ.
      * @param response レスポンス.
      */
-    private void errorPebbleSideApplicationNotFound( final Intent response) {
+    private void errorPebbleSideApplicationNotFound(final Intent response) {
         MessageUtils.setTimeoutError(response, "Pebble side application is NOT FOUND!");
     }
 }

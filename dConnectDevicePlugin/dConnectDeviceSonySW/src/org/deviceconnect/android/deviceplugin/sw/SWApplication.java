@@ -10,10 +10,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-import android.app.Application;
-
-import org.deviceconnect.android.deviceplugin.sw.BuildConfig;
 import org.deviceconnect.android.logger.AndroidHandler;
+
+import android.app.Application;
 
 /**
  * SonyWatchDevicePlugin_LoggerLevelSetting.

@@ -63,7 +63,7 @@ public class TestSystemProfile extends SystemProfile {
     }
 
     @Override
-    protected boolean onGetDevice(Intent request, Intent response, String deviceId) {
+    protected boolean onGetDevice(final Intent request, final Intent response, final String deviceId) {
         
         if (deviceId == null) {
             createEmptydeviceId(response);
@@ -85,7 +85,7 @@ public class TestSystemProfile extends SystemProfile {
     }
 
     @Override
-    protected boolean onPutWakeup(Intent request, Intent response, String pluginId) {
+    protected boolean onPutWakeup(final Intent request, final Intent response, final String pluginId) {
         // /system/device/wakeupはテスト用デバイスプラグインでは疎通確認だけを行う.
         // 正常に設定画面が開かれることの確認は、実際のデバイスプラグインのテストで行う.
         setResult(response, DConnectMessage.RESULT_OK);
@@ -93,7 +93,7 @@ public class TestSystemProfile extends SystemProfile {
     }
 
     @Override
-    protected boolean onDeleteEvents(Intent request, Intent response, String sessionKey) {
+    protected boolean onDeleteEvents(final Intent request, final Intent response, final String sessionKey) {
         boolean removed = EventManager.INSTANCE.removeEvents(sessionKey);
         if (removed) {
             setResult(response, DConnectMessage.RESULT_OK);

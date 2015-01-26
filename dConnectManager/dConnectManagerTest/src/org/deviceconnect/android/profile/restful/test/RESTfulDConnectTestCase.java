@@ -355,7 +355,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      * @param time イベントメッセージを待つ時間
      * @return 送られてきたイベントを返却する。
      */
-    protected final JSONObject waitForEvent(long time) {
+    protected final JSONObject waitForEvent(final long time) {
         StringBuilder sb = new StringBuilder();
         sb.append("ws://localhost:4035/websocket");
 

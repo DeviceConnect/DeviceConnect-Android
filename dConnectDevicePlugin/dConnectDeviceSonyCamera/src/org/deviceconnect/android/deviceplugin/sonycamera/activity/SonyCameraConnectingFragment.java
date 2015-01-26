@@ -54,9 +54,9 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
     private TextView mDeviceIdView;
 
     /** Wifi管理クラス. */
-    private WifiManager wifiMgr;
+    private WifiManager mWifiMgr;
     /** 設定を保持するクラス. */
-    private UserSettings settings;
+    private UserSettings mSettings;
 
     /** Wifiの状態通知を受け取るReceiver. */
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -74,7 +74,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
                     int type = ni.getType();
                     if (state == NetworkInfo.State.CONNECTED 
                             && type == ConnectivityManager.TYPE_WIFI) {
-                        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+                        WifiInfo wifiInfo = mWifiMgr.getConnectionInfo();
                         if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
                             mDeviceIdView.setText(R.string.sonycamera_connect);
                         }
@@ -89,8 +89,8 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
             final ViewGroup container, final Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_connecting_camera, container, false);
 
-        settings = new UserSettings(getActivity());
-        wifiMgr = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
+        mSettings = new UserSettings(getActivity());
+        mWifiMgr = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
 
         mDeviceIdView = (TextView) view.findViewById(R.id.camera_id);
 
@@ -98,7 +98,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
         searchBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(final View v) {
-                if (DConnectUtil.checkSSID(wifiMgr.getConnectionInfo().getSSID())) {
+                if (DConnectUtil.checkSSID(mWifiMgr.getConnectionInfo().getSSID())) {
                     mDeviceIdView.setText(R.string.sonycamera_already_connect);
                 } else {
                     connectSonyCamera();
@@ -181,10 +181,10 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
      * SonyCameraデバイスに接続を行います.
      */
     private void connectSonyCamera() {
-        if (!wifiMgr.isWifiEnabled()) {
+        if (!mWifiMgr.isWifiEnabled()) {
             confirmConnectWifi();
         } else {
-            WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+            WifiInfo wifiInfo = mWifiMgr.getConnectionInfo();
             mDeviceIdView.setText(R.string.sonycamera_connecting);
             if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
                 searchSonyCamera();
@@ -199,8 +199,8 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
      */
     private void searchSonyCameraWifi() {
         List<ScanResult> scanList = new ArrayList<ScanResult>();
-        wifiMgr.startScan();
-        List<ScanResult> results = wifiMgr.getScanResults();
+        mWifiMgr.startScan();
+        List<ScanResult> results = mWifiMgr.getScanResults();
         for (ScanResult result : results) {
             if (DConnectUtil.checkSSID(result.SSID)) {
                 scanList.add(result);
@@ -340,7 +340,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
         String capabilities = result.capabilities;
         String ssid = "\"" + result.SSID + "\"";
         if (capabilities.contains("WPA")) {
-            String password = settings.getSSIDPassword(ssid);
+            String password = mSettings.getSSIDPassword(ssid);
             showPasswordDialog(password, new PasswordListener() {
                 @Override
                 public void onIntputPassword(final String password) {
@@ -367,7 +367,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
                 }
             });
         } else if (capabilities.contains("WEP")) {
-            String password = settings.getSSIDPassword(ssid);
+            String password = mSettings.getSSIDPassword(ssid);
             showPasswordDialog(password, new PasswordListener() {
                 @Override
                 public void onIntputPassword(final String password) {
@@ -400,14 +400,14 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
      */
     private boolean connectWifi(final int networkId, final String targetSSID) {
         String ssid = targetSSID.replace("\"", "");
-        wifiMgr.startScan();
-        for (ScanResult result : wifiMgr.getScanResults()) {
+        mWifiMgr.startScan();
+        for (ScanResult result : mWifiMgr.getScanResults()) {
             if (result.SSID.replace("\"", "").equals(ssid)) {
-                WifiInfo info = wifiMgr.getConnectionInfo();
+                WifiInfo info = mWifiMgr.getConnectionInfo();
                 if (info != null) {
-                    wifiMgr.disableNetwork(info.getNetworkId());
+                    mWifiMgr.disableNetwork(info.getNetworkId());
                 }
-                return wifiMgr.enableNetwork(networkId, true);
+                return mWifiMgr.enableNetwork(networkId, true);
             }
         }
         return false;
@@ -420,10 +420,10 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
      * @param password パスワード
      */
     private void testConnectWifi(final WifiConfiguration wifiConfig, final String password) {
-        final int networkId = wifiMgr.addNetwork(wifiConfig);
+        final int networkId = mWifiMgr.addNetwork(wifiConfig);
         if (networkId != -1) {
-            wifiMgr.saveConfiguration();
-            wifiMgr.updateNetwork(wifiConfig);
+            mWifiMgr.saveConfiguration();
+            mWifiMgr.updateNetwork(wifiConfig);
 
             new Thread(new Runnable() {
                 @Override
@@ -438,7 +438,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
                         connectSonyCamera();
                     } else {
                         if (password != null) {
-                            settings.setSSIDPassword(wifiConfig.SSID, password);
+                            mSettings.setSSIDPassword(wifiConfig.SSID, password);
                         }
                     }
                 }
@@ -452,7 +452,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
      * Wifiの機能を有効にする.
      */
     private void turnOnWifi() {
-        wifiMgr.setWifiEnabled(true);
+        mWifiMgr.setWifiEnabled(true);
     }
 
     /**

@@ -66,7 +66,7 @@ public class SWExtensionRegistrationInformation extends RegistrationInformation 
     /**
      * extensionKey.
      */
-    private String extensionKey;
+    private String mExtensionKey;
 
     /**
      * Creates a Sensor registration object.
@@ -189,17 +189,17 @@ public class SWExtensionRegistrationInformation extends RegistrationInformation 
      */
     @Override
     public synchronized String getExtensionKey() {
-        if (TextUtils.isEmpty(extensionKey)) {
+        if (TextUtils.isEmpty(mExtensionKey)) {
             // Retrieve key from preferences
             SharedPreferences pref = mContext.getSharedPreferences(SWConstants.EXTENSION_KEY_PREF,
                     Context.MODE_PRIVATE);
-            extensionKey = pref.getString(SWConstants.EXTENSION_KEY_PREF, null);
-            if (TextUtils.isEmpty(extensionKey)) {
+            mExtensionKey = pref.getString(SWConstants.EXTENSION_KEY_PREF, null);
+            if (TextUtils.isEmpty(mExtensionKey)) {
                 // Generate a random key if not found
-                extensionKey = UUID.randomUUID().toString();
-                pref.edit().putString(SWConstants.EXTENSION_KEY_PREF, extensionKey).commit();
+                mExtensionKey = UUID.randomUUID().toString();
+                pref.edit().putString(SWConstants.EXTENSION_KEY_PREF, mExtensionKey).commit();
             }
         }
-        return extensionKey;
+        return mExtensionKey;
     }
 }

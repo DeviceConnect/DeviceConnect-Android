@@ -44,10 +44,10 @@ public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity 
     /**
      * ホストアプリケーションタイトルテキスト.
      */
-    private static TextView hostApplicationTitleText;
+    private static TextView sHostApplicationTitleText;
 
     /** フラグメント一覧. */
-    private List<Fragment> fragments = new ArrayList<Fragment>();
+    private List<Fragment> mFragments = new ArrayList<Fragment>();
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -73,7 +73,7 @@ public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity 
 
     @Override
     public Fragment createPage(final int position) {
-        if (fragments.size() == 0) {
+        if (mFragments.size() == 0) {
             BaseFragment f1 = new AppInstrallationFragment();
             f1.setTargetModel(mTargetModel);
             f1.setActivity(this);
@@ -86,12 +86,12 @@ public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity 
             BaseFragment f4 = new BluetoothSettingFinishFragment();
             f4.setTargetModel(mTargetModel);
             f4.setActivity(this);
-            fragments.add(f1);
-            fragments.add(f2);
-            fragments.add(f3);
-            fragments.add(f4);
+            mFragments.add(f1);
+            mFragments.add(f2);
+            mFragments.add(f3);
+            mFragments.add(f4);
         }
-        return fragments.get(position);
+        return mFragments.get(position);
     }
     /**
      * チュートリアルページの取得.
@@ -101,6 +101,10 @@ public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity 
         getViewPager().setCurrentItem(position, true);
     }
 
+    /**
+     * Base Fragment.
+     *
+     */
     public static class BaseFragment extends Fragment {
         
         /** ロガー. */
@@ -152,7 +156,7 @@ public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity 
             }
             View root = inflater.inflate(layoutId, container, false);
             
-            hostApplicationTitleText = (TextView) 
+            sHostApplicationTitleText = (TextView) 
                     root.findViewById(R.id.dconnect_settings_step_1_HostApplication_title);
             
             ImageButton installSmartconnectButton = (ImageButton) 
@@ -190,10 +194,10 @@ public class SWSettingStepsActivity extends DConnectSettingPageFragmentActivity 
             });
             switch (mTargetModel) {
             case SWConstants.SW_MODEL_SW1:
-                hostApplicationTitleText.setText(SWConstants.APP_NAME_SMART_WATCH + "：");
+                sHostApplicationTitleText.setText(SWConstants.APP_NAME_SMART_WATCH + "：");
                 break;
             case SWConstants.SW_MODEL_SW2:
-                hostApplicationTitleText.setText(SWConstants.APP_NAME_SMART_WATCH_2 + "：");
+                sHostApplicationTitleText.setText(SWConstants.APP_NAME_SMART_WATCH_2 + "：");
                 break;
             default:
                 // エラー出力

@@ -113,7 +113,8 @@ public class PebbleNetworkServceDiscoveryProfile extends NetworkServiceDiscovery
     }
 
     @Override
-    protected boolean onPutOnServiceChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response,
+                 final String deviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.addEvent(request);
         switch (error) {
         case NONE:
@@ -130,7 +131,8 @@ public class PebbleNetworkServceDiscoveryProfile extends NetworkServiceDiscovery
     }
 
     @Override
-    protected boolean onDeleteOnServiceChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response,
+                       final String deviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         switch (error) {
         case NONE:

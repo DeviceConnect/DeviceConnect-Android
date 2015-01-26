@@ -35,6 +35,7 @@ import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.getpebble.android.kit.BuildConfig;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
@@ -476,7 +477,9 @@ public final class PebbleManager {
                             mLockObj.wait(TIMEOUT);
                         }
                     } catch (InterruptedException e) {
-                        // do nothing.
+                        if (BuildConfig.DEBUG) {
+                            e.printStackTrace();
+                        }
                     }
                     // Pebbleへの送信結果
                     result = mResponseDataMap.remove(requestCode);
@@ -530,6 +533,9 @@ public final class PebbleManager {
                     try {
                         Thread.sleep(sleepMilliSec);
                     } catch (InterruptedException e) {
+                        if (BuildConfig.DEBUG) {
+                           e.printStackTrace();
+                        }
                     }
                 }
                 if (listener != null) {
@@ -547,7 +553,9 @@ public final class PebbleManager {
                         mBinaryLockObj.wait(TIMEOUT);
                     }
                 } catch (InterruptedException e) {
-                    // do nothing.
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
                 }
                 return (mBinarySendState == BinarySendState.STATE_ACK);
             }
@@ -574,7 +582,9 @@ public final class PebbleManager {
                         try {
                             Thread.sleep(sleepMilliSec);
                         } catch (InterruptedException e) {
-                            // do nothing.
+                            if (BuildConfig.DEBUG) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -603,6 +613,9 @@ public final class PebbleManager {
                         try {
                             Thread.sleep(sleepMilliSec);
                         } catch (InterruptedException e) {
+                            if (BuildConfig.DEBUG) {
+                               e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -727,6 +740,8 @@ public final class PebbleManager {
             return convertBatteryAttribute(attribute);
         case PROFILE_DEVICE_ORIENTATION:
             return convertDeviceOrientationAttribute(attribute);
+        default:
+            break;
         }
         return -1;
     }
@@ -839,7 +854,7 @@ public final class PebbleManager {
      * @param y 画像配置座標(y)
      * @return 変換後のデータ
      */
-    public static byte[] convertImage(byte[] data, final String mode, final double x, final double y) {
+    public static byte[] convertImage(final byte[] data, final String mode, final double x, final double y) {
         final int width = 144;
         final int height = 120;
         return convertImage(data, width, height, mode, x, y);
@@ -858,7 +873,8 @@ public final class PebbleManager {
      * @param y 画像配置座標(y)
      * @return 変換後のデータ
      */
-    public static byte[] convertImage(byte[] data, final int width, final int height, final String mode, final double x, final double y) {
+    public static byte[] convertImage(final byte[] data, final int width, final int height,
+                                  final String mode, final double x, final double y) {
         Bitmap b = BitmapFactory.decodeByteArray(data, 0, data.length);
         Bitmap b2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         

@@ -22,16 +22,16 @@ public class UserSettings {
     private static final String KEY_SSID = "ssid";
 
     /** SharedPreferencesのインスタンス. */
-    private SharedPreferences pref;
+    private SharedPreferences mPref;
     /** SharedPreferences.Editorのインスタンス. */
-    private SharedPreferences.Editor editor;
+    private SharedPreferences.Editor mEditor;
 
     /**
      * コンストラクタ.
      * @param context このクラスが属するコンテキスト
      */
     public UserSettings(final Context context) {
-        pref = context.getSharedPreferences(PREF_NAME, Activity.MODE_PRIVATE);
+        mPref = context.getSharedPreferences(PREF_NAME, Activity.MODE_PRIVATE);
     }
 
     /**
@@ -40,7 +40,7 @@ public class UserSettings {
      * @return SSID
      */
     public String getSSID() {
-        return pref.getString(KEY_SSID, null);
+        return mPref.getString(KEY_SSID, null);
     }
 
     /**
@@ -49,9 +49,9 @@ public class UserSettings {
      * @param ssid 登録するSSID
      */
     public void setSSID(final String ssid) {
-        editor = pref.edit();
-        editor.putString(KEY_SSID, ssid);
-        editor.commit();
+        mEditor = mPref.edit();
+        mEditor.putString(KEY_SSID, ssid);
+        mEditor.commit();
     }
     /**
      * SSIDのパスワードを設定する.
@@ -59,9 +59,9 @@ public class UserSettings {
      * @param password パスワード
      */
     public void setSSIDPassword(final String ssid, final String password) {
-        editor = pref.edit();
-        editor.putString(ssid, password);
-        editor.commit();
+        mEditor = mPref.edit();
+        mEditor.putString(ssid, password);
+        mEditor.commit();
     }
     /**
      * SSIDのパスワードを取得する.
@@ -69,6 +69,6 @@ public class UserSettings {
      * @return パスワード
      */
     public String getSSIDPassword(final String ssid) {
-        return pref.getString(ssid, null);
+        return mPref.getString(ssid, null);
     }
 }

@@ -223,7 +223,7 @@ public abstract class AbstractHttpConnection
     }
 
     @Override
-    protected void assertOpen() throws IllegalStateException {
+    protected void assertOpen() {
         if (!isOpen()) {
             throw new IllegalStateException("connection is closed");
         }

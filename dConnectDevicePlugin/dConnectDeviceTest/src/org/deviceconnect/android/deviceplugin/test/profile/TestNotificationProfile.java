@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.test.profile;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.NotificationProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.NotificationProfileConstants.NotificationType;
 
 import android.content.Intent;
 
@@ -22,7 +21,7 @@ public class TestNotificationProfile extends NotificationProfile {
     /**
      * テスト用のnotification id.
      */
-    public static final String[] NOTIFICATION_ID = { "1", "2", "3", "4", "5", };
+    public static final String[] NOTIFICATION_ID = {"1", "2", "3", "4", "5", };
 
     /**
      * デバイスIDをチェックする.

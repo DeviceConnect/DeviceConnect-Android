@@ -12,10 +12,10 @@ package org.deviceconnect.server;
  * @author NTT DOCOMO, INC.
  */
 public enum DConnectServerError {
-	/** 起動失敗エラー. */
-	LAUNCH_FAILED,
-	/** 終了失敗エラー */
-	SHUTDOWN_FAILED,
-	/** イベント送信失敗エラー */
-	SEND_EVENT_FAILED,
+    /** 起動失敗エラー. */
+    LAUNCH_FAILED,
+    /** 終了失敗エラー. */
+    SHUTDOWN_FAILED,
+    /** イベント送信失敗エラー. */
+    SEND_EVENT_FAILED,
 }

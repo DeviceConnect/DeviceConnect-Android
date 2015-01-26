@@ -702,7 +702,8 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      */
     public void testOnDataAvailable01() {
         try {
-            JSONObject event = registerEventCallback(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
+            @SuppressWarnings("deprecation")
+			JSONObject event = registerEventCallback(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
             JSONObject media = event.getJSONObject(MediaStreamRecordingProfileConstants.PARAM_MEDIA);
             assertEquals(getFileURI(TestMediaStreamRecordingProfileConstants.URI), 
                     media.getString(MediaStreamRecordingProfileConstants.PARAM_URI));
@@ -725,7 +726,8 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * ・resultに0が返ってくること。
      * </pre>
      */
-    public void testOnDataAvailable02() {
+    @SuppressWarnings("deprecation")
+	public void testOnDataAvailable02() {
         unregisterEventCallback(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
     }
 

@@ -12,12 +12,17 @@ package org.deviceconnect.android.localoauth.temp;
  */
 public class AuthenticationException extends Exception {
 
-	/**
-	 * getExplanation.
-	 * @return Explanation.
-	 */
+    /**
+     * Serial Version UID
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * getExplanation.
+     * @return Explanation.
+     */
     public String getExplanation() {
-		return "Explanation - dummy";
-	}
+        return "Explanation - dummy";
+    }
 
 }

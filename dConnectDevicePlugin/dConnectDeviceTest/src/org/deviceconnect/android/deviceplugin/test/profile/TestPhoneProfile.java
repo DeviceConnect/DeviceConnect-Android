@@ -9,8 +9,6 @@ package org.deviceconnect.android.deviceplugin.test.profile;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.PhoneProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.PhoneProfileConstants.CallState;
-import org.deviceconnect.profile.PhoneProfileConstants.PhoneMode;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -83,7 +81,8 @@ public class TestPhoneProfile extends PhoneProfile {
     }
 
     @Override
-    protected boolean onPutSet(final Intent request, final Intent response, final String deviceId, final PhoneMode mode) {
+    protected boolean onPutSet(final Intent request, final Intent response,
+                                    final String deviceId, final PhoneMode mode) {
 
         if (deviceId == null) {
             createNotFoundDevice(response);

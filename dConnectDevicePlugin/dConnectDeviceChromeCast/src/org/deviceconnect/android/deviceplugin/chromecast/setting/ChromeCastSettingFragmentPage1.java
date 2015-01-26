@@ -15,7 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 /**
- * チュートリアル画面
+ * チュートリアル画面.
  * <p>
  * 画面を作成する
  * </p>

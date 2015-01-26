@@ -8,8 +8,6 @@ package org.deviceconnect.android.profile;
 
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.PhoneProfileConstants;
-import org.deviceconnect.profile.PhoneProfileConstants.CallState;
-import org.deviceconnect.profile.PhoneProfileConstants.PhoneMode;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,7 +20,7 @@ import android.os.Bundle;
  * 通話操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br/>
  * </p>
  * 
- * <h1>各API提供メソッド</h1>
+ * <h1>各API提供メソッド</h1s>
  * <p>
  * Phone Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
  * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>

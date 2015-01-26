@@ -5,6 +5,6 @@ Released under the MIT license
 http://opensource.org/licenses/mit-license.php
 */
 /**
- * Device Connect Hue Device Pluginのログ出力用クラス.
+ * Device Connect の独自プロファイル.
  */
-package org.deviceconnect.android.deviceplugin.util;
+package org.deviceconnect.android.profile;

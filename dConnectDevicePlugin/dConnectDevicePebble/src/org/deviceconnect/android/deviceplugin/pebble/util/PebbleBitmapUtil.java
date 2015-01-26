@@ -11,17 +11,12 @@ import java.util.Random;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 
 /**
  * 画像を変換するためのユーティリティクラス.
  * @author NTT DOCOMO, INC.
  */
 public final class PebbleBitmapUtil {
-    /**
-     * Paint.
-     */
-    private static final Paint MY_PAINT = new Paint();
 
     /**
      * コンストラクタ. ユーティリティクラスなので、private.

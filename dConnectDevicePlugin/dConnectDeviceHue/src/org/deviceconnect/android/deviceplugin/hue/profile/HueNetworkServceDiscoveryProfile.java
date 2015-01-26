@@ -21,7 +21,7 @@ import com.philips.lighting.hue.sdk.PHAccessPoint;
 import com.philips.lighting.hue.sdk.PHHueSDK;
 
 /**
- * スマートデバイス検索機能を提供するAPI.>
+ * スマートデバイス検索機能を提供するAPI.
  * @author NTT DOCOMO, INC.
  */
 public class HueNetworkServceDiscoveryProfile extends NetworkServiceDiscoveryProfile {

@@ -11,12 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
-import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo.DeviceCollisionListener;
-import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo.DeviceSensorListener;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroLightProfile;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroProfile;
-
 import orbotix.macro.BackLED;
 import orbotix.macro.Delay;
 import orbotix.macro.MacroObject;
@@ -33,15 +27,20 @@ import orbotix.robot.sensor.QuaternionSensor;
 import orbotix.sphero.ConnectionListener;
 import orbotix.sphero.DiscoveryListener;
 import orbotix.sphero.Sphero;
+
+import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
+import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo.DeviceCollisionListener;
+import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo.DeviceSensorListener;
+import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroLightProfile;
+import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroProfile;
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.profile.DeviceOrientationProfile;
+
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-
-import org.deviceconnect.android.deviceplugin.sphero.BuildConfig;
-import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.profile.DeviceOrientationProfile;
 
 /**
  * Spheroの操作機能を提供するクラス.
@@ -240,8 +239,8 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
         DeviceInfo removed = mDevices.remove(id);
         if (removed != null) {
             final Sphero sphero = removed.getDevice();
-            for(int i=0; i<DISCONNECTION_RETRY_NUM; i++){
-                if(!sphero.isConnected()){
+            for (int i = 0; i < DISCONNECTION_RETRY_NUM; i++) {
+                if (!sphero.isConnected()) {
                     break;
                 }
                 sphero.disconnect();
@@ -280,7 +279,7 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
             }
         }
         
-        if(connected != null){
+        if (connected != null) {
             synchronized (mConnLock) {
                 mRobotProvider.connect(connected);
                 try {
@@ -580,8 +579,8 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
             if (BuildConfig.DEBUG) {
                 Log.d("", "onDisconnected!");
             }
-            if(mDiscoveryListener != null){
-                mDiscoveryListener.onDeviceLost((Sphero)robot);
+            if (mDiscoveryListener != null) {
+                mDiscoveryListener.onDeviceLost((Sphero) robot);
             }
         }
     }
@@ -606,7 +605,7 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
         void onDeviceLost(Sphero sphero);
         
         /**
-         * すべてのデバイスの消失を通知します。
+         * すべてのデバイスの消失を通知します.
          */
         void onDeviceLostAll();
     }

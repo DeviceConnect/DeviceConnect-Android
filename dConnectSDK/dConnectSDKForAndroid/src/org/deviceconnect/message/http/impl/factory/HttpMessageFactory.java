@@ -31,7 +31,7 @@ public class HttpMessageFactory implements MessageFactory<HttpMessage> {
     /**
      * メッセージファクトリー.
      */
-    private static HttpMessageFactory mHttpMessageFactory = new HttpMessageFactory();
+    private static HttpMessageFactory sHttpMessageFactory = new HttpMessageFactory();
 
     /**
      * ロガー.
@@ -55,7 +55,7 @@ public class HttpMessageFactory implements MessageFactory<HttpMessage> {
      * @return メッセージファクトリー
      */
     public static HttpMessageFactory getMessageFactory() {
-        return mHttpMessageFactory;
+        return sHttpMessageFactory;
     }
 
     @Override

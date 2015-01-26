@@ -12,8 +12,6 @@ import java.util.List;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.MediaStreamRecordingProfileConstants.RecorderState;
-import org.deviceconnect.profile.MediaStreamRecordingProfileConstants.RecordingState;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -309,6 +307,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         return true;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected boolean onPutOnDataAvailable(final Intent request, final Intent response, final String deviceId, 
             final String sessionKey) {

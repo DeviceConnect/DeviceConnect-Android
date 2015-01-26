@@ -656,8 +656,6 @@ public final class PebbleManager {
      * PebbleDictionaryの作成に失敗した場合はnullを返却する。
      * </p>
      * 
-     * TODO 実装が中途半端なので、実用に耐えられない。
-     * 
      * @param request リクエスト
      * @return PebbleDictionaryのインスタンス
      */

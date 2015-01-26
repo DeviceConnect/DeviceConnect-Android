@@ -72,12 +72,12 @@ public final class KeyStoreManager {
     /**
      * Alias for the remote controller (local) identity in the {@link KeyStore}.
      */
-    private static final String LOCAL_IDENTITY_ALIAS = "d-connect-remote";
+    private static final String LOCAL_IDENTITY_ALIAS = "Device Connect-remote";
 
     /**
      * Alias pattern for Device Connect server identities in the {@link KeyStore}.
      */
-    private static final String REMOTE_IDENTITY_ALIAS_PATTERN = "d-connect-server-%X";
+    private static final String REMOTE_IDENTITY_ALIAS_PATTERN = "Device Connect-server-%X";
 
     /** Context. */
     private Context mContext;
@@ -245,12 +245,12 @@ public final class KeyStoreManager {
      * Returns the name that should be used in a new certificate.
      * <p>
      * The format is:
-     * "CN=d-connect-server/PRODUCT/DEVICE/MODEL/unique identifier"
+     * "CN=Device Connect-server/PRODUCT/DEVICE/MODEL/unique identifier"
      * @param id ID
      * @return Certificate Name
      */
     private static String getCertificateName(final String id) {
-        return "CN=d-connect-server/" + Build.PRODUCT + "/" + Build.DEVICE + "/" + Build.MODEL + "/" + id;
+        return "CN=Device Connect-server/" + Build.PRODUCT + "/" + Build.DEVICE + "/" + Build.MODEL + "/" + id;
     }
 
     /**

@@ -623,7 +623,7 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
         if (events.size() != 0) {
             Acceleration accData = data.getAccelerometerData().getFilteredAcceleration();
             Bundle accelerationIncludingGravity = new Bundle();
-            // Spheroでは単位がG(1G=9.81m/s^2)で正規化しているので、d-connectの単位(m/s^2)に変換する。
+            // Spheroでは単位がG(1G=9.81m/s^2)で正規化しているので、Device Connectの単位(m/s^2)に変換する。
             DeviceOrientationProfile.setX(accelerationIncludingGravity, accData.x * G);
             DeviceOrientationProfile.setY(accelerationIncludingGravity, accData.y * G);
             DeviceOrientationProfile.setZ(accelerationIncludingGravity, accData.z * G);

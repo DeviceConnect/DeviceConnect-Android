@@ -105,7 +105,7 @@ public class DConnectServerEventListenerImpl implements
     }
 
     /**
-     * d-Connect Managerからレスポンスを受け取る.
+     * Device Connect Managerからレスポンスを受け取る.
      * 
      * @param intent レスポンス
      */

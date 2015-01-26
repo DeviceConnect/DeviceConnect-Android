@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect Logger.
+ * Device Connect Logger.
  */
 package org.deviceconnect.server.nanohttpd.logger;

@@ -289,13 +289,13 @@ public class DevicePluginManager {
     }
 
     /**
-     * デバイスIDにd-Connect Managerのドメイン名を追加する.
+     * デバイスIDにDevice Connect Managerのドメイン名を追加する.
      * 
      * デバイスIDがnullのときには、デバイスIDは無視します。
      * 
      * @param plugin デバイスプラグイン
      * @param deviceId デバイスID
-     * @return d-Connect Managerのドメインなどが追加されたデバイスID
+     * @return Device Connect Managerのドメインなどが追加されたデバイスID
      */
     public String appendDeviceId(final DevicePlugin plugin, final String deviceId) {
         if (deviceId == null) {
@@ -369,11 +369,11 @@ public class DevicePluginManager {
     }
 
     /**
-     * デバイスIDを分解して、d-Connect Managerのドメイン名を省いた本来のデバイスIDにする.
-     * d-Connect Managerのドメインを省いたときに、何もない場合には空文字を返します。
+     * デバイスIDを分解して、Device Connect Managerのドメイン名を省いた本来のデバイスIDにする.
+     * Device Connect Managerのドメインを省いたときに、何もない場合には空文字を返します。
      * @param plugin デバイスプラグイン
      * @param deviceId デバイスID
-     * @return d-Connect Managerのドメインが省かれたデバイスID
+     * @return Device Connect Managerのドメインが省かれたデバイスID
      */
     public static String spliteDeviceId(final DevicePlugin plugin, final String deviceId) {
         String p = plugin.getDeviceId();

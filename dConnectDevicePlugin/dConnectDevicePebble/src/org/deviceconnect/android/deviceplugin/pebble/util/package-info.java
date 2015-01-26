@@ -6,6 +6,6 @@
  */
 /**
  * Pebbleとの通信のためのユーティリティ.
- * @@author NTT DOCOMO, INC.
+ * @author NTT DOCOMO, INC.
  */
 package org.deviceconnect.android.deviceplugin.pebble.util;

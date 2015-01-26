@@ -5,7 +5,7 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect RESTful APIのテストケース.
+ * Device Connect RESTful APIのテストケース.
  * <p>
  * 正常系および異常系テストを提供する.
  * </p>

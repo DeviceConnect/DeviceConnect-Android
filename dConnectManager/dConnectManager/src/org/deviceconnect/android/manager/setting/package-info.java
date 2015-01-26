@@ -5,7 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * Lighttpd デバッグ用.
- * d-Connect Manager?を作るためのデバッグ用
+ * Device Connect Managerを作るためのデバッグ用
  */
 package org.deviceconnect.android.manager.setting;

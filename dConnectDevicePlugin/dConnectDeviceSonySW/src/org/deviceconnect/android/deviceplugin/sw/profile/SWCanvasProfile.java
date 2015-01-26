@@ -79,8 +79,8 @@ public class SWCanvasProfile extends CanvasProfile {
         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, options);
 
         // 最終的にSWに表示するBitmapの作成(大きさはSWの画面サイズ)
-        final int width = size.mWidth;
-        final int height = size.mHeight;
+        final int width = size.getWidth();
+        final int height = size.getHeight();
         Bitmap viewBitmap = Bitmap.createBitmap(width, height, SWConstants.DEFAULT_BITMAP_CONFIG);
 
         if (mode == null || mode.equals("")) {

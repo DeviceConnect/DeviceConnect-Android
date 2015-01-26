@@ -13,14 +13,34 @@ class DisplaySize {
     /**
      * SW's Display Width.
      */
-    public final int mWidth;
+    private final int mWidth;
     /**
      * SW's Display Height.
      */
-    public final int mHeight;
+    private final int mHeight;
 
-    public DisplaySize(int w, int h) {
+    /**
+     * Constructor.
+     * @param w Width
+     * @param h height
+     */
+    public DisplaySize(final int w, final int h) {
         mWidth = w;
         mHeight = h;
+    }
+    /**
+     * Get Width.
+     * @return width
+     */
+    public int getWidth() {
+        return mWidth;
+    }
+
+    /**
+     * Get Height.
+     * @return height
+     */
+    public int getHeight() {
+        return mHeight;
     }
 }

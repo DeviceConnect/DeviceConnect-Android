@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.deviceconnect.android.profile.util.CanvasProfileUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
@@ -839,7 +840,7 @@ public final class PebbleManager {
      * @param mode 画像描画モード
      * @param x 画像配置座標(x)
      * @param y 画像配置座標(y)
-     * @return 変換後のデータ
+     * @return 変換後のデータ / 描画モードが不正だった場合はnull
      */
     public static byte[] convertImage(byte[] data, final String mode, final double x, final double y) {
         final int width = 144;
@@ -858,27 +859,37 @@ public final class PebbleManager {
      * @param mode 画像描画モード
      * @param x 画像配置座標(x)
      * @param y 画像配置座標(y)
-     * @return 変換後のデータ
+     * @return 変換後のデータ / 描画モードが不正だった場合はnull
      */
     public static byte[] convertImage(byte[] data, final int width, final int height, final String mode, final double x, final double y) {
         Bitmap b = BitmapFactory.decodeByteArray(data, 0, data.length);
         Bitmap b2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         
+        boolean isDraw = false;
         if (mode == null || mode.equals("")) {
             // 等倍描画モード 
-        	PebbleBitmapUtil.drawImageForNonScalesMode(b2, b, x, y);
+        	CanvasProfileUtils.drawImageForNonScalesMode(b2, b, x, y);
+        	isDraw = true;
         } else if (mode.equals(Mode.SCALES.getValue())) {
             // スケールモード 
-        	PebbleBitmapUtil.drawImageForScalesMode(b2, b);
+        	CanvasProfileUtils.drawImageForScalesMode(b2, b);
+        	isDraw = true;
         } else if (mode.equals(Mode.FILLS.getValue())) {
             // フィルモード 
-        	PebbleBitmapUtil.drawImageForFillsMode(b2, b);
+        	CanvasProfileUtils.drawImageForFillsMode(b2, b);
+        	isDraw = true;
+        } else {
+        	isDraw = false;
         }
         
-        byte[] buf = PebbleBitmapUtil.convertImageThresholding(b2);
-        b.recycle();
-        b2.recycle();
-        return buf;
+        if (isDraw) {
+        	byte[] buf = PebbleBitmapUtil.convertImageThresholding(b2);
+            b.recycle();
+            b2.recycle();
+            return buf;
+        } else {
+        	return null;
+        }
     }
 
     /**

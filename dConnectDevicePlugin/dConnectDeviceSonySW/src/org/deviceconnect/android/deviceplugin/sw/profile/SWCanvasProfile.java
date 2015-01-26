@@ -12,6 +12,7 @@ import org.deviceconnect.android.deviceplugin.sw.R;
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
+import org.deviceconnect.android.profile.util.CanvasProfileUtils;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.bluetooth.BluetoothDevice;
@@ -53,7 +54,12 @@ public class SWCanvasProfile extends CanvasProfile {
         }
         DisplaySize size = determineDisplaySize(getContext(), SWUtil.toHostAppPackageName(device.getName()));
 
-        showDisplay(data, x, y, mode, size, deviceId, response);
+        boolean result = showDisplay(data, x, y, mode, size, deviceId, response);
+        if (!result) {
+        	/* unknown mode-value. */
+        	MessageUtils.setInvalidRequestParameterError(response);
+        	return true;
+        }
 
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
@@ -69,8 +75,9 @@ public class SWCanvasProfile extends CanvasProfile {
      * @param size 画面サイズ
      * @param deviceId デバイスID
      * @param response レスポンス
+     * @return true: success / false: error(unknown mode-value)
      */
-    private void showDisplay(final byte[] data, final double x, final double y,
+    private boolean showDisplay(final byte[] data, final double x, final double y,
             final String mode, final DisplaySize size, final String deviceId,
             final Intent response) {
 
@@ -83,112 +90,36 @@ public class SWCanvasProfile extends CanvasProfile {
         final int height = size.height;
         Bitmap viewBitmap = Bitmap.createBitmap(width, height, SWConstants.DEFAULT_BITMAP_CONFIG);
 
+        boolean isDraw = false;
         if (mode == null || mode.equals("")) {
             // 等倍描画モード 
-            drawImageForNonScalesMode(viewBitmap, bitmap, x, y);
+        	CanvasProfileUtils.drawImageForNonScalesMode(viewBitmap, bitmap, x, y);
+        	isDraw = true;
         } else if (mode.equals(Mode.SCALES.getValue())) {
             // スケールモード 
-            drawImageForScalesMode(viewBitmap, bitmap);
+        	CanvasProfileUtils.drawImageForScalesMode(viewBitmap, bitmap);
+        	isDraw = true;
         } else if (mode.equals(Mode.FILLS.getValue())) {
             // フィルモード 
-        	drawImageForFillsMode(viewBitmap, bitmap);
-        }
-        
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(SWConstants.OUTPUTSTREAM_SIZE);
-        viewBitmap.compress(CompressFormat.JPEG, SWConstants.BITMAP_DECODE_QUALITY, outputStream);
-        
-        Intent intent = new Intent(Control.Intents.CONTROL_DISPLAY_DATA_INTENT);
-        intent.putExtra(Control.Intents.EXTRA_DATA, outputStream.toByteArray());
-        sendToHostApp(intent, deviceId);
-    }
-    
-    /**
-     * スケールモードで画像をviewBitmapに描画する.
-     * @param viewBitmap SWに表示するBitmap
-     * @param bitmap 描画する画像のバイナリ
-     */
-    private void drawImageForScalesMode(final Bitmap viewBitmap, Bitmap bitmap) {
-        
-        // 描画開始地点
-        float startGridX = 0;
-        float startGridY = 0;
-        
-        // 画像サイズ取得
-        float getSizeW = bitmap.getWidth();
-        float getSizeH = bitmap.getHeight();
-
-        // 拡大率:縦横で長い方が画面ピッタリになるように
-        float scale;
-        final int width = viewBitmap.getWidth();
-        final int height = viewBitmap.getHeight();
-        if (getSizeW > getSizeH) {
-            scale = width / getSizeW;
+        	CanvasProfileUtils.drawImageForFillsMode(viewBitmap, bitmap);
+        	isDraw = true;
         } else {
-            scale = height / getSizeH;
+        	isDraw = false;
         }
-        // 目標の大きさ
-        int targetW = (int) Math.ceil(scale * getSizeW);
-        int targetH = (int) Math.ceil(scale * getSizeH);
         
-        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, targetW, targetH, false);
-        
-        // 画像描写開始位置の修正
-        if (getSizeW > getSizeH) {
-            startGridY = (height / 2 - targetH / 2);
+        if (isDraw) {
+	        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(SWConstants.OUTPUTSTREAM_SIZE);
+	        viewBitmap.compress(CompressFormat.JPEG, SWConstants.BITMAP_DECODE_QUALITY, outputStream);
+	        
+	        Intent intent = new Intent(Control.Intents.CONTROL_DISPLAY_DATA_INTENT);
+	        intent.putExtra(Control.Intents.EXTRA_DATA, outputStream.toByteArray());
+	        sendToHostApp(intent, deviceId);
+	        return true;
         } else {
-            startGridX = (width / 2 - targetW / 2);
-        }
-        
-        //canvasに表示用Bitmapをセット
-        Canvas canvas = new Canvas(viewBitmap);
-        
-        //リサイズした画像をセンタリングしてcanvasにセット
-        canvas.drawBitmap(resizedBitmap, startGridX, startGridY, null);
-    }
-    
-    /**
-     * 等倍描画モードで画像をviewBitmapに描画する.
-     * @param viewBitmap SWに表示するBitmap
-     * @param bitmap 描画する画像のバイナリ
-     * @param x x座標
-     * @param y y座標
-     */
-    private void drawImageForNonScalesMode(final Bitmap viewBitmap, final Bitmap bitmap, final double x, final double y) {
-        
-        // 描画開始地点
-        float startGridX = (float)x;
-        float startGridY = (float)y;
-        
-        //canvasに表示用Bitmapをセット
-        Canvas canvas = new Canvas(viewBitmap);
-        
-        //リサイズした画像をセンタリングしてcanvasにセット
-        canvas.drawBitmap(bitmap, startGridX, startGridY, null);
-    }
-    
-    /**
-     * フィルモードで画像をviewBitmapに描画する.
-     * @param viewBitmap SWに表示するBitmap
-     * @param bitmap 描画する画像のバイナリ
-     */
-    private void drawImageForFillsMode(final Bitmap viewBitmap, final Bitmap bitmap) {
-        
-        // 画像サイズ取得
-        float getSizeW = bitmap.getWidth();
-        float getSizeH = bitmap.getHeight();
-        
-        //canvasに表示用Bitmapをセット
-        Canvas canvas = new Canvas(viewBitmap);
-        
-        // タイル状に敷き詰めて描画する
-        final int width = viewBitmap.getWidth();
-        final int height = viewBitmap.getHeight();
-        for (int drawY = 0; drawY <= height; drawY += getSizeH) {
-            for (int drawX = 0; drawX <= width; drawX += getSizeW) {
-                canvas.drawBitmap(bitmap, drawX, drawY, null);
-            }
+        	return false;
         }
     }
+    
 
     /**
      * 指定されたホストアプリケーションに対応するSWの画面サイズを返す.

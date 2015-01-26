@@ -57,7 +57,7 @@ public class DConnectServerEventListenerImpl implements
     private final Map<Integer, Intent> mRequestMap = new ConcurrentHashMap<Integer, Intent>();
 
     /** ロガー. */
-    private final Logger sLogger = Logger.getLogger("dconnect.manager");
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** JSONレスポンス用のCotnentType. */
     private static final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
@@ -121,14 +121,14 @@ public class DConnectServerEventListenerImpl implements
 
     @Override
     public void onError(final DConnectServerError error) {
-        sLogger.severe(error.toString());
+        mLogger.severe(error.toString());
         // HTTPサーバが起動できなかったので、終了する
         ((Service) mContext).stopSelf();
     }
 
     @Override
     public void onServerLaunched() {
-        sLogger.info("HttpServer was started.");
+        mLogger.info("HttpServer was started.");
     }
 
     @Override
@@ -147,7 +147,7 @@ public class DConnectServerEventListenerImpl implements
         String attribute = null;
 
         long start = System.currentTimeMillis();
-        sLogger.info("@@@ Request URI: " + method + " " + uri);
+        mLogger.info("@@@ Request URI: " + method + " " + uri);
 
         if (segments.size() == SEGMENT_PROFILE) {
             api = segments.get(0);
@@ -230,7 +230,7 @@ public class DConnectServerEventListenerImpl implements
             setErrorResponse(response);
         }
 
-        sLogger.info("@@@ Request URI END(" + (System.currentTimeMillis() - start) + "): "
+        mLogger.info("@@@ Request URI END(" + (System.currentTimeMillis() - start) + "): "
                 + request.getMethod() + " " + request.getUri());
         return true;
     }
@@ -249,7 +249,7 @@ public class DConnectServerEventListenerImpl implements
                 try {
                     mLockObj.wait(POLLING_WAIT_TIME);
                 } catch (InterruptedException e) {
-                    sLogger.warning("Exception ouccered in wait.");
+                    mLogger.warning("Exception ouccered in wait.");
                 }
             }
         }
@@ -374,7 +374,7 @@ public class DConnectServerEventListenerImpl implements
                     }
                 }
             } catch (Exception e) {
-                sLogger.warning("Exception in parseBody");
+                mLogger.warning("Exception in parseBody");
             }
         }
     }
@@ -412,26 +412,26 @@ public class DConnectServerEventListenerImpl implements
                 /** ファイルを格納するためのパートを表す. */
                 private static final int STATE_FILE = 1;
                 /** 処理名を格納する変数. */
-                private String name;
+                private String mName;
                 /** 処理の状態を格納する変数. */
-                private int state;
+                private int mState;
                 @Override
                 public void body(final BodyDescriptor bd, final InputStream in) 
                         throws MimeException, IOException {
-                    if (name != null) {
-                        if (state == STATE_VALUE) {
-                            intent.putExtra(name, new String(loadBytes(in)));
-                        } else if (state == STATE_FILE) {
+                    if (mName != null) {
+                        if (mState == STATE_VALUE) {
+                            intent.putExtra(mName, new String(loadBytes(in)));
+                        } else if (mState == STATE_FILE) {
                             data.write(loadBytes(in));
                         } else {
-                            sLogger.warning("Unknown state. state=" + state);
+                            mLogger.warning("Unknown state. state=" + mState);
                         }
                     }
                 }
                 @Override
                 public void startHeader() throws MimeException {
-                    name = null;
-                    state = STATE_VALUE;
+                    mName = null;
+                    mState = STATE_VALUE;
                 }
                 @Override
                 public void field(final Field field) throws MimeException {
@@ -446,12 +446,12 @@ public class DConnectServerEventListenerImpl implements
                             // (HTMLフォームに関するW3Cのドキュメント)を参照。
                             if (params.length == 2) {
                                 if (params[0].trim().equals("name")) {
-                                    name = params[1].trim();
-                                    name = name.replaceAll("\"", "");
+                                    mName = params[1].trim();
+                                    mName = mName.replaceAll("\"", "");
                                 } else if (params[0].trim().equals("filename")) {
                                     filename[0] = params[1].trim();
                                     filename[0] = filename[0].replaceAll("\"", "");
-                                    state = STATE_FILE;
+                                    mState = STATE_FILE;
                                 }
                             }
                         }
@@ -466,15 +466,15 @@ public class DConnectServerEventListenerImpl implements
                 intent.putExtra(FileProfileConstants.PARAM_URI, tmpUri);
             }
         } catch (final MimeException e) {
-            sLogger.warning("Exception in parseMultipart." + e.getMessage());
+            mLogger.warning("Exception in parseMultipart." + e.getMessage());
         } catch (IOException e) {
-            sLogger.warning("Exception in parseMultipart." + e.getMessage());
+            mLogger.warning("Exception in parseMultipart." + e.getMessage());
         } finally {
             if (is != null) {
                 try {
                     is.close();
                 } catch (IOException e) {
-                    sLogger.warning("Exception in parseMultipart." + e.getMessage());
+                    mLogger.warning("Exception in parseMultipart." + e.getMessage());
                 }
             }
         }

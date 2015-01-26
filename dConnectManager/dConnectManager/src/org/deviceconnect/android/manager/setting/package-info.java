@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * Device Connect Managerを作るためのデバッグ用
+ * Device Connect Managerのデバッグ用.
  */
 package org.deviceconnect.android.manager.setting;

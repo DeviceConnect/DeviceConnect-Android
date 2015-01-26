@@ -69,7 +69,7 @@ public abstract class DConnectMessageService extends Service
     private static final int ERROR_CODE = Integer.MIN_VALUE;
 
     /** ロガー. */
-    protected final Logger sLogger = Logger.getLogger("dconnect.manager");
+    protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** dConnect Managerのドメイン名. */
     private String mDConnectDomain = LOCALHOST_DCONNECT;
@@ -108,12 +108,12 @@ public abstract class DConnectMessageService extends Service
             AndroidHandler handler = new AndroidHandler("dconnect.manager");
             handler.setFormatter(new SimpleFormatter());
             handler.setLevel(Level.ALL);
-            sLogger.addHandler(handler);
-            sLogger.setLevel(Level.ALL);
+            mLogger.addHandler(handler);
+            mLogger.setLevel(Level.ALL);
         } else {
-            sLogger.setLevel(Level.OFF);
+            mLogger.setLevel(Level.OFF);
         }
-        sLogger.entering(this.getClass().getName(), "onCreate");
+        mLogger.entering(this.getClass().getName(), "onCreate");
 
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new DBCacheController(this));
@@ -122,11 +122,11 @@ public abstract class DConnectMessageService extends Service
         mSettings = DConnectSettings.getInstance();
         mSettings.load(this);
 
-        sLogger.info("Settings");
-        sLogger.info("    SSL: " + mSettings.isSSL());
-        sLogger.info("    Host: " + mSettings.getHost());
-        sLogger.info("    Port: " + mSettings.getPort());
-        sLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
+        mLogger.info("Settings");
+        mLogger.info("    SSL: " + mSettings.isSSL());
+        mLogger.info("    Host: " + mSettings.getHost());
+        mLogger.info("    Port: " + mSettings.getPort());
+        mLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
 
         // ファイル管理クラス
         mFileMgr = new FileManager(this);
@@ -155,33 +155,33 @@ public abstract class DConnectMessageService extends Service
         // dConnect Managerで処理せず、登録されたデバイスプラグインに処理させるプロファイル
         setDeliveryProfile(new DConnectDeliveryProfile(mPluginMgr, mLocalOAuth));
 
-        sLogger.exiting(this.getClass().getName(), "onCreate");
+        mLogger.exiting(this.getClass().getName(), "onCreate");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        sLogger.entering(this.getClass().getName(), "onDestroy");
+        mLogger.entering(this.getClass().getName(), "onDestroy");
         // リクエストを削除
         mRequestManager.shutdown();
         // Local OAuthの後始末
         LocalOAuth2Main.destroy();
-        sLogger.exiting(this.getClass().getName(), "onDestroy");
+        mLogger.exiting(this.getClass().getName(), "onDestroy");
     }
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         super.onStartCommand(intent, flags, startId);
         if (intent == null) {
-            sLogger.warning("intent is null.");
-            sLogger.exiting(this.getClass().getName(), "onStartCommand");
+            mLogger.warning("intent is null.");
+            mLogger.exiting(this.getClass().getName(), "onStartCommand");
             return START_STICKY;
         }
 
         String action = intent.getAction();
         if (action == null) {
-            sLogger.warning("action is null.");
-            sLogger.exiting(this.getClass().getName(), "onStartCommand");
+            mLogger.warning("action is null.");
+            mLogger.exiting(this.getClass().getName(), "onStartCommand");
             return START_STICKY;
         }
 
@@ -209,7 +209,7 @@ public abstract class DConnectMessageService extends Service
         int requestCode = request.getIntExtra(
                 IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
         if (requestCode == ERROR_CODE) {
-            sLogger.warning("Illegal requestCode in onRequestReceive. requestCode=" + requestCode);
+            mLogger.warning("Illegal requestCode in onRequestReceive. requestCode=" + requestCode);
             return;
         }
 
@@ -268,7 +268,7 @@ public abstract class DConnectMessageService extends Service
         int requestCode = response.getIntExtra(
                 IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
         if (requestCode == ERROR_CODE) {
-            sLogger.warning("Illegal requestCode in onResponseReceive. requestCode=" + requestCode);
+            mLogger.warning("Illegal requestCode in onResponseReceive. requestCode=" + requestCode);
             return;
         }
 
@@ -287,7 +287,7 @@ public abstract class DConnectMessageService extends Service
         String inter = event.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
         String attribute = event.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
 
-        sLogger.fine("onEventReceive: [sessionKey: " + sessionKey + " deviceId: " + deviceId
+        mLogger.fine("onEventReceive: [sessionKey: " + sessionKey + " deviceId: " + deviceId
                 + " profile: " + profile + " inter: " + inter + " attribute: " + attribute + "]");
 
         if (sessionKey != null) {
@@ -303,7 +303,7 @@ public abstract class DConnectMessageService extends Service
             String key = convertSessionKey2Key(sessionKey);
             DevicePlugin plugin = mPluginMgr.getDevicePlugin(pluginId);
             if (plugin == null) {
-                sLogger.warning("plugin is null.");
+                mLogger.warning("plugin is null.");
                 return;
             }
             String did = mPluginMgr.appendDeviceId(plugin, deviceId);
@@ -340,7 +340,7 @@ public abstract class DConnectMessageService extends Service
                 sendEvent(receiver, event);
             }
         } else {
-            sLogger.warning("onEventReceive: sessionKey is null.");
+            mLogger.warning("onEventReceive: sessionKey is null.");
         }
     }
 
@@ -550,7 +550,7 @@ public abstract class DConnectMessageService extends Service
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(IntentDConnectMessage.EXTRA_PRODUCT, getString(R.string.app_name));
         intent.putExtra(IntentDConnectMessage.EXTRA_VERSION, DConnectUtil.getVersionName(this));
-        // TODO: ここにHMACを付加する処理。サーバのなりすまし対策にて対応。
+        // TODO ここにHMACを付加する処理。サーバのなりすまし対策にて対応。
         intent.setComponent(cn);
         return intent;
     }
@@ -570,7 +570,7 @@ public abstract class DConnectMessageService extends Service
      * @param event 送信するイベントメッセージ
      */
     public void sendEvent(final String receiver, final Intent event) {
-        sLogger.fine("★ sendEvent: " + receiver + " intent: " + event.getExtras());
+        mLogger.fine("★ sendEvent: " + receiver + " intent: " + event.getExtras());
         Intent targetIntent = new Intent(event);
         targetIntent.setComponent(ComponentName.unflattenFromString(receiver));
         sendBroadcast(targetIntent);

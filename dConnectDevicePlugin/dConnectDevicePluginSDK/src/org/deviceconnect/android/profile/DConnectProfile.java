@@ -379,7 +379,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
             return (Boolean) o;
         }
 
-        return Boolean.FALSE;
+        return null;
     }
 
     /**
@@ -393,7 +393,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     public static Boolean parseBoolean(final Intent intent, final String key) {
         Bundle b = intent.getExtras();
         if (b == null) {
-            return Boolean.FALSE;
+            return null;
         }
         return parseBoolean(b.get(key));
     }

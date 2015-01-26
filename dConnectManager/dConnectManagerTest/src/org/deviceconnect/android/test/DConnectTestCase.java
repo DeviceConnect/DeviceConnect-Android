@@ -39,13 +39,19 @@ import android.test.InstrumentationTestCase;
 
 
 /**
- * dConnectのTestCaseのスーパークラス.
+ * DeviceConnectのTestCaseのスーパークラス.
  * @author NTT DOCOMO, INC.
  */
 public abstract class DConnectTestCase extends InstrumentationTestCase {
 
-    /** d-ConnectManagerへのURI. */
+    /** DeviceConnectManagerへのURI. */
     protected static final String DCONNECT_MANAGER_URI = "http://localhost:4035/gotapi";
+
+    /** DeviceConnectManagerのアプリケーション名. */
+    protected static final String DCONNECT_MANAGER_APP_NAME = "Device Connect Manager";
+
+    /** DeviceConnectManagerのバージョン名. */
+    protected static final String DCONNECT_MANAGER_VERSION_NAME = "1.0";
 
     /**
      * プロファイル一覧.

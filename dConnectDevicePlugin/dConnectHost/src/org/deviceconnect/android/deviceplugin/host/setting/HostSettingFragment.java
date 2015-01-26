@@ -29,7 +29,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,21 +39,17 @@ import android.widget.Toast;
  * @author NTT DOCOMO, INC.
  */
 public class HostSettingFragment extends Fragment {
-
-    /** Debug Tag. */
-    private static final String TAG = "PluginHost";
-
     /** HostのIPを表示するためのTextView. */
     private TextView mDeviceHostIpTextView;
 
     /** context. */
-    Activity mActivity;
+    private Activity mActivity;
 
     /** PluginID. */
-    String mPluginId;
+    private String mPluginId;
 
     /** 検索中のダイアログ. */
-    private static ProgressDialog mDialog;
+    private ProgressDialog mDialog;
 
     /** Handler Action. */
     private static final int HANDLER_ACTION_DISMISS = 1;
@@ -92,17 +87,6 @@ public class HostSettingFragment extends Fragment {
         }
 
         return mView;
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
     }
 
     /**
@@ -208,7 +192,6 @@ public class HostSettingFragment extends Fragment {
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            Log.i(TAG, "onServiceConnected");
             mService = IHostDeviceService.Stub.asInterface(service);
             try {
                 mService.registerCallback(mCallback);
@@ -221,9 +204,9 @@ public class HostSettingFragment extends Fragment {
 
         @Override
         public void onServiceDisconnected(final ComponentName name) {
-            mService = null;
             try {
                 mService.unregisterCallback(mCallback);
+                mService = null;
             } catch (RemoteException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();

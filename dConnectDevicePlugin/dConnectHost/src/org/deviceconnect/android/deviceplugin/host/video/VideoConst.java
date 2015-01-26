@@ -55,6 +55,9 @@ public final class VideoConst {
     /** 録画撮影再開. */
     public static final String EXTRA_VALUE_VIDEO_RECORD_RESUME = "resume";
 
+    /** ファイル名. */
+    public static final String EXTRA_FILE_NAME = "filename";
+
     /** Video起動のAction名. */
     public static final String SEND_HOSTDP_TO_VIDEOPLAYER =
             "org.deviceconnect.android.intent.action.SEND_HOSTDP_TO_VIDEOPLAYER";
@@ -69,7 +72,7 @@ public final class VideoConst {
     /** 再生停止. */
     public static final String EXTRA_VALUE_VIDEO_PLAYER_STOP = "stop";
 
-    /** 再生時停止. */
+    /** 再生一時停止. */
     public static final String EXTRA_VALUE_VIDEO_PLAYER_PAUSE = "pause";
 
     /** 再生再開. */
@@ -78,10 +81,19 @@ public final class VideoConst {
     /** 再生場所指定. */
     public static final String EXTRA_VALUE_VIDEO_PLAYER_SEEK = "seek";
 
+    /** 現在再生場所取得. */
+    public static final String EXTRA_VALUE_VIDEO_PLAYER_GET_POS = "getpos";
+
+    /** 現在再生場所. */
+    public static final String EXTRA_VALUE_VIDEO_PLAYER_PLAY_POS = "playpos";
+
     /** 撮影するサイズ(横). */
     public static final int VIDEO_WIDTH = 320;
 
     /** 撮影するサイズ(縦). */
     public static final int VIDEO_HEIGHT = 240;
+
+    /** Format Type. */
+    public static final String FORMAT_TYPE = ".3gp";
 
 }

@@ -32,6 +32,7 @@ import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.request.DiscoveryDeviceRequest;
 import org.deviceconnect.android.manager.request.RegisterNetworkServiceDiscovery;
+import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
@@ -349,6 +350,10 @@ public abstract class DConnectMessageService extends Service
      * @param response レスポンス
      */
     private void executeRequest(final Intent request, final Intent response) {
+        // リクエストにDeviceConnectManagerの情報を付加する
+        request.putExtra(DConnectMessage.EXTRA_PRODUCT, getString(R.string.app_name));
+        request.putExtra(DConnectMessage.EXTRA_VERSION, DConnectUtil.getVersionName(this));
+
         boolean send = false;
         String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         DConnectProfile profile = getProfile(profileName);
@@ -543,6 +548,9 @@ public abstract class DConnectMessageService extends Service
 
         Intent intent = new Intent(response);
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
+        intent.putExtra(IntentDConnectMessage.EXTRA_PRODUCT, getString(R.string.app_name));
+        intent.putExtra(IntentDConnectMessage.EXTRA_VERSION, DConnectUtil.getVersionName(this));
+        // TODO: ここにHMACを付加する処理。サーバのなりすまし対策にて対応。
         intent.setComponent(cn);
         return intent;
     }

@@ -17,16 +17,16 @@ import android.os.BatteryManager;
 public class HostBatteryManager {
 
     /** バッテリーの状態. */
-    private static int statusBattery;
+    private int statusBattery;
 
     /** プラグの状態. */
-    private static int statusPlugged;
+    private int statusPlugged;
 
     /** バッテリーのレベル. */
-    private static int valueLevel;
+    private int valueLevel;
 
     /** バッテリーのスケール. */
-    private static int valueScale;
+    private int valueScale;
 
     /** バッテリーの状態 不明. */
     public static final int BATTERY_STATUS_UNKNOWN = 1;
@@ -104,11 +104,6 @@ public class HostBatteryManager {
      * 
      * @param intent Batteryの変化で取得できたIntent
      */
-    /**
-     * バッテリーのIntentを設定.
-     * 
-     * @param intent Batteryの変化で取得できたIntent
-     */
     public void setBatteryRequest(final Intent intent) {
         String mAction = intent.getAction();
 
@@ -163,7 +158,7 @@ public class HostBatteryManager {
      * @return statusBattery バッテリーの状態
      */
     public int getBatteryStatus() {
-        return HostBatteryManager.statusBattery;
+        return statusBattery;
     }
 
     /**
@@ -172,7 +167,7 @@ public class HostBatteryManager {
      * @return statusPlugged プラグの状態
      */
     public int getStatusPlugged() {
-        return HostBatteryManager.statusPlugged;
+        return statusPlugged;
     }
 
     /**
@@ -181,7 +176,7 @@ public class HostBatteryManager {
      * @return valueLevel バッテリーレベル
      */
     public int getBatteryLevel() {
-        return HostBatteryManager.valueLevel;
+        return valueLevel;
     }
 
     /**
@@ -190,6 +185,6 @@ public class HostBatteryManager {
      * @return batteryStatus バッテリーの状態
      */
     public int getBatteryScale() {
-        return HostBatteryManager.valueScale;
+        return valueScale;
     }
 }

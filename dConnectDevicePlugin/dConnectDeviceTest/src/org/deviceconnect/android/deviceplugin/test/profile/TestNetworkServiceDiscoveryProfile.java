@@ -40,7 +40,7 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     /**
      * テスト用デバイス名: {@value} .
      */
-    public static final String DEVICE_NAME_SPECIAL_CHARACTERS = "Test Device ID Special Characters";
+    public static final String DEVICE_NAME_SPECIAL_CHARACTERS = "Test Service ID Special Characters";
 
     /**
      * テスト用デバイスタイプ.

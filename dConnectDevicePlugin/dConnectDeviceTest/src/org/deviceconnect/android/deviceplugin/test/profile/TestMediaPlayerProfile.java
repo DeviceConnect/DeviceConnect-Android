@@ -36,7 +36,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
      * @param response レスポンスを格納するIntent
      */
     private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response, "Device ID is empty.");
+        MessageUtils.setEmptyServiceIdError(response, "Service ID is empty.");
     }
 
     /**

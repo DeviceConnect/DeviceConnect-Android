@@ -50,8 +50,8 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
     /** インターバル. */
     private static final int INTERVAL = 1000;
 
-    /** デバイスIDを表示するためのView. */
-    private TextView mDeviceIdView;
+    /** サービスIDを表示するためのView. */
+    private TextView mServiceIdView;
 
     /** Wifi管理クラス. */
     private WifiManager mWifiMgr;
@@ -76,7 +76,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
                             && type == ConnectivityManager.TYPE_WIFI) {
                         WifiInfo wifiInfo = mWifiMgr.getConnectionInfo();
                         if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
-                            mDeviceIdView.setText(R.string.sonycamera_connect);
+                            mServiceIdView.setText(R.string.sonycamera_connect);
                         }
                     }
                 }
@@ -92,14 +92,14 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
         mSettings = new UserSettings(getActivity());
         mWifiMgr = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
 
-        mDeviceIdView = (TextView) view.findViewById(R.id.camera_id);
+        mServiceIdView = (TextView) view.findViewById(R.id.camera_id);
 
         final Button searchBtn = (Button) view.findViewById(R.id.search_and_connect_button);
         searchBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(final View v) {
                 if (DConnectUtil.checkSSID(mWifiMgr.getConnectionInfo().getSSID())) {
-                    mDeviceIdView.setText(R.string.sonycamera_already_connect);
+                    mServiceIdView.setText(R.string.sonycamera_already_connect);
                 } else {
                     connectSonyCamera();
                 }
@@ -160,16 +160,16 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
                             String name = (String) service.get(NetworkServiceDiscoveryProfile.PARAM_NAME);
                             if (name != null && name.equals("Sony Camera")) {
                                 String id = (String) service.get(NetworkServiceDiscoveryProfile.PARAM_ID);
-                                if (mDeviceIdView != null) {
-                                    mDeviceIdView.setText(R.string.sonycamera_connect);
-                                    setDeviceId(id);
+                                if (mServiceIdView != null) {
+                                    mServiceIdView.setText(R.string.sonycamera_connect);
+                                    setServiceId(id);
                                 }
                             }
                         }
                     }
                 } else {
                     mLogger.warning("error: result=" + result);
-                    mDeviceIdView.setText(R.string.sonycamera_not_found);
+                    mServiceIdView.setText(R.string.sonycamera_not_found);
                 }
             }
         });
@@ -185,7 +185,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
             confirmConnectWifi();
         } else {
             WifiInfo wifiInfo = mWifiMgr.getConnectionInfo();
-            mDeviceIdView.setText(R.string.sonycamera_connecting);
+            mServiceIdView.setText(R.string.sonycamera_connecting);
             if (DConnectUtil.checkSSID(wifiInfo.getSSID())) {
                 searchSonyCamera();
             } else {
@@ -246,7 +246,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
         builder.setNegativeButton(R.string.sonycamera_cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, final int whichButton) {
-                mDeviceIdView.setText(R.string.sonycamera_no_device);
+                mServiceIdView.setText(R.string.sonycamera_no_device);
             }
         });
         builder.setCancelable(true);
@@ -293,7 +293,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
         });
         builder.setCancelable(true);
         builder.show();
-        mDeviceIdView.setText(R.string.sonycamera_no_device);
+        mServiceIdView.setText(R.string.sonycamera_no_device);
     }
 
     /**
@@ -363,7 +363,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
 
                 @Override
                 public void onCancel() {
-                    mDeviceIdView.setText(R.string.sonycamera_no_device);
+                    mServiceIdView.setText(R.string.sonycamera_no_device);
                 }
             });
         } else if (capabilities.contains("WEP")) {
@@ -381,7 +381,7 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
 
                 @Override
                 public void onCancel() {
-                    mDeviceIdView.setText(R.string.sonycamera_no_device);
+                    mServiceIdView.setText(R.string.sonycamera_no_device);
                 }
             });
         } else {

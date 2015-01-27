@@ -41,10 +41,10 @@ public class CameraProfile extends DConnectProfile {
         boolean result = false;
 
         if (attribute.equals(ATTRIBUTE_ZOOM)) {
-            String deviceId = getDeviceID(request);
+            String serviceId = getDeviceID(request);
             String direction = getDirection(request);
             String movement = getMovement(request);
-            result = onPutActZoom(request, response, deviceId, direction, movement);
+            result = onPutActZoom(request, response, serviceId, direction, movement);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -57,8 +57,8 @@ public class CameraProfile extends DConnectProfile {
         boolean result = false;
 
         if (attribute.equals(ATTRIBUTE_ZOOM)) {
-            String deviceId = getDeviceID(request);
-            result = onGetZoomDiameter(request, response, deviceId);
+            String serviceId = getDeviceID(request);
+            result = onGetZoomDiameter(request, response, serviceId);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -70,10 +70,10 @@ public class CameraProfile extends DConnectProfile {
      * ズーム倍率取得メソッド.
      * @param request request
      * @param response response
-     * @param deviceId deviceId
+     * @param serviceId serviceId
      * @return result
      */
-    protected boolean onGetZoomDiameter(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetZoomDiameter(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return false;
     }
@@ -108,11 +108,11 @@ public class CameraProfile extends DConnectProfile {
      * @param response レスポンス
      * @param direction :"in", "out"
      * @param movement :"start", "stop", "1shot"
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return SonyCameraDeviceService#onPutActZoom
      * @throws IOException
      */
-    protected boolean onPutActZoom(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutActZoom(final Intent request, final Intent response, final String serviceId,
             final String direction, final String movement) {
         setUnsupportedError(response);
         return false;

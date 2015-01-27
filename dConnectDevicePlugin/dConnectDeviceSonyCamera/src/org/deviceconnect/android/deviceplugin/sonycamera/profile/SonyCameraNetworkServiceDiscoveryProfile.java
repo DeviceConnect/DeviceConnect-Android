@@ -30,7 +30,7 @@ public class SonyCameraNetworkServiceDiscoveryProfile extends NetworkServiceDisc
     }
 
     @Override
-    protected boolean onPutOnServiceChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         EventError error = EventManager.INSTANCE.addEvent(request);
         switch (error) {
@@ -53,7 +53,7 @@ public class SonyCameraNetworkServiceDiscoveryProfile extends NetworkServiceDisc
     }
 
     @Override
-    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         switch (error) {

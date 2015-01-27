@@ -31,7 +31,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostFileDescriptorPro
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRecordingProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostNetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostPhoneProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostProximityProfile;
@@ -49,7 +49,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.android.profile.FileDescriptorProfile;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
@@ -331,8 +331,8 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new HostNetworkServiceDiscoveryProfile();
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new HostServiceDiscoveryProfile();
     }
 
     /**

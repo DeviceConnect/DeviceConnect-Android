@@ -1,5 +1,5 @@
 /*
- DConnectNetworkServiceDiscoveryProfile.java
+ DConnectServiceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -13,16 +13,16 @@ import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.request.NetworkServiceDiscoveryRequest;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import android.content.Intent;
 
 /**
- * Network Service Discovery プロファイル.
+ * Service Discovery プロファイル.
  * @author NTT DOCOMO, INC.
  */
-public class DConnectNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
+public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     /**
      * タイムアウト時間を定義. (8秒)
@@ -36,12 +36,12 @@ public class DConnectNetworkServiceDiscoveryProfile extends NetworkServiceDiscov
      * コンストラクタ.
      * @param mgr デバイスプラグイン管理クラス
      */
-    public DConnectNetworkServiceDiscoveryProfile(final DevicePluginManager mgr) {
+    public DConnectServiceDiscoveryProfile(final DevicePluginManager mgr) {
         mDevicePluginManager = mgr;
     }
 
     @Override
-    protected boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    protected boolean onGetServices(final Intent request, final Intent response) {
         NetworkServiceDiscoveryRequest req = new NetworkServiceDiscoveryRequest();
         req.setContext(getContext());
         req.setRequest(request);

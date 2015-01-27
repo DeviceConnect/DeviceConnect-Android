@@ -36,7 +36,7 @@ import org.deviceconnect.android.cipher.signature.AuthSignature;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
@@ -47,7 +47,7 @@ import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
@@ -163,7 +163,7 @@ public class ReqResDebugActivity extends Activity implements
         FileProfileConstants.PROFILE_NAME,
         MediaPlayerProfileConstants.PROFILE_NAME,
         MediaStreamRecordingProfileConstants.PROFILE_NAME,
-        NetworkServiceDiscoveryProfileConstants.PROFILE_NAME,
+        ServiceDiscoveryProfileConstants.PROFILE_NAME,
         NotificationProfileConstants.PROFILE_NAME,
         PhoneProfileConstants.PROFILE_NAME,
         ProximityProfileConstants.PROFILE_NAME,
@@ -702,8 +702,8 @@ public class ReqResDebugActivity extends Activity implements
         }
 
         URIBuilder builder = createURIBuilder();
-        builder.setProfile(NetworkServiceDiscoveryProfile.PROFILE_NAME);
-        builder.setAttribute(NetworkServiceDiscoveryProfile.ATTRIBUTE_GET_NETWORK_SERVICES);
+        builder.setProfile(ServiceDiscoveryProfile.PROFILE_NAME);
+        builder.setAttribute(ServiceDiscoveryProfile.ATTRIBUTE_GET_NETWORK_SERVICES);
         if (mSettings.isUseALocalOAuth()) {
             String accessToken = mPref.getString(KEY_ACCESS_TOKEN, null);
             builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);
@@ -928,7 +928,7 @@ public class ReqResDebugActivity extends Activity implements
         try {
             JSONObject root = new JSONObject(res);
             JSONArray services = root.getJSONArray(
-                    NetworkServiceDiscoveryProfile.PARAM_SERVICES);
+                    ServiceDiscoveryProfile.PARAM_SERVICES);
             if (services == null) {
                 return;
             }
@@ -936,7 +936,7 @@ public class ReqResDebugActivity extends Activity implements
             data[0] = " "; // 最初は、空文字にしておく
             for (int i = 1; i < services.length() + 1; i++) {
                 data[i] = services.getJSONObject(i - 1)
-                        .getString(NetworkServiceDiscoveryProfile.PARAM_ID);
+                        .getString(ServiceDiscoveryProfile.PARAM_ID);
             }
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                     android.R.layout.simple_spinner_dropdown_item, data);

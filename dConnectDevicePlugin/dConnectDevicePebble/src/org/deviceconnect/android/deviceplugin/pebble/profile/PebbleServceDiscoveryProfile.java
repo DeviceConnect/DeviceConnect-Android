@@ -1,5 +1,5 @@
 /*
- PebbleNetworkServceDiscoveryProfile.java
+ PebbleServceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -17,7 +17,7 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.bluetooth.BluetoothAdapter;
@@ -31,7 +31,7 @@ import com.getpebble.android.kit.PebbleKit;
  * Pebble用 Network Service Discoveryプロファイル.
  * @author NTT DOCOMO, INC.
  */
-public class PebbleNetworkServceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
+public class PebbleServceDiscoveryProfile extends ServiceDiscoveryProfile {
     /**
      * サービスIDのプレフィックス.
      */
@@ -45,7 +45,7 @@ public class PebbleNetworkServceDiscoveryProfile extends NetworkServiceDiscovery
      * コンストラクタ.
      * @param service サービス
      */
-    public PebbleNetworkServceDiscoveryProfile(final PebbleDeviceService service) {
+    public PebbleServceDiscoveryProfile(final PebbleDeviceService service) {
         service.getPebbleManager().addConnectStatusListener(new OnConnectionStatusListener() {
             @Override
             public void onConnect() {
@@ -58,7 +58,7 @@ public class PebbleNetworkServceDiscoveryProfile extends NetworkServiceDiscovery
                         PROFILE_NAME, null, ATTRIBUTE_ON_SERVICE_CHANGE);
                 for (Event evt : evts) {
                     Intent intent = EventManager.createEventMessage(evt);
-                    intent.putExtra(NetworkServiceDiscoveryProfile.PARAM_NETWORK_SERVICE, service);
+                    intent.putExtra(ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE, service);
                     ((PebbleDeviceService) getContext()).sendEvent(intent, evt.getAccessToken());
                 }
             }
@@ -73,14 +73,14 @@ public class PebbleNetworkServceDiscoveryProfile extends NetworkServiceDiscovery
                         PROFILE_NAME, null, ATTRIBUTE_ON_SERVICE_CHANGE);
                 for (Event evt : evts) {
                     Intent intent = EventManager.createEventMessage(evt);
-                    intent.putExtra(NetworkServiceDiscoveryProfile.PARAM_NETWORK_SERVICE, service);
+                    intent.putExtra(ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE, service);
                     ((PebbleDeviceService) getContext()).sendEvent(intent, evt.getAccessToken());
                 }
             }
         });
     }
     @Override
-    public boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    public boolean onGetServices(final Intent request, final Intent response) {
         boolean connected = PebbleKit.isWatchConnected(getContext());
         boolean supported = PebbleKit.areAppMessagesSupported(getContext());
         if (connected && supported) {

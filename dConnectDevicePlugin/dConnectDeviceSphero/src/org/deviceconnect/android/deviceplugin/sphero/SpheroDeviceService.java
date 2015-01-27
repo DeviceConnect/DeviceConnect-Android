@@ -16,14 +16,14 @@ import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroDriveControllerProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroLightProfile;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroNetworkServceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroServceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroSystemProfile;
 import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 import android.content.BroadcastReceiver;
@@ -173,8 +173,8 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new SpheroNetworkServceDiscoveryProfile();
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new SpheroServceDiscoveryProfile();
     }
 
     @Override

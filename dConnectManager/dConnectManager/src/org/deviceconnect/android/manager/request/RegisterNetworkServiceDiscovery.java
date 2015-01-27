@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import android.content.Intent;
 
@@ -73,9 +73,9 @@ public class RegisterNetworkServiceDiscovery extends DConnectRequest {
         // リクエストを作成
         mRequest = new Intent(IntentDConnectMessage.ACTION_PUT);
         mRequest.putExtra(DConnectMessage.EXTRA_PROFILE,
-                NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
+                ServiceDiscoveryProfileConstants.PROFILE_NAME);
         mRequest.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
+                ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
         mRequest.putExtra(DConnectMessage.EXTRA_SESSION_KEY, mSessionKey);
 
         Intent request = createRequestMessage(mRequest, mDevicePlugin);

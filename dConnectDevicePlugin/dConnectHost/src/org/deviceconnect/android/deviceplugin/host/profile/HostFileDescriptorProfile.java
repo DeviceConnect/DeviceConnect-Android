@@ -165,7 +165,7 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
      * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
     private boolean checkServiceId(final String serviceId) {
-        return HostNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
+        return HostServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**

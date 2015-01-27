@@ -20,7 +20,7 @@ final class PebbleUtil {
      * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
     public static boolean checkServiceId(final String serviceId) {
-        String regex = PebbleNetworkServceDiscoveryProfile.SERVICE_ID;
+        String regex = PebbleServceDiscoveryProfile.SERVICE_ID;
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(serviceId);
         return m.find();

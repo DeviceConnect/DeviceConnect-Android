@@ -1,5 +1,5 @@
 /*
- TestNetworkServiceDiscoveryProfile.java
+ TestServiceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -10,17 +10,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.content.Intent;
 import android.os.Bundle;
 
 /**
- * JUnit用テストデバイスプラグイン、NetworkServiceDiscoveryプロファイル.
+ * JUnit用テストデバイスプラグイン、ServiceDiscoveryプロファイル.
  * @author NTT DOCOMO, INC.
  */
-public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
+public class TestServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     /**
      * テスト用サービスID.
@@ -66,7 +66,7 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     }
 
     @Override
-    protected boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    protected boolean onGetServices(final Intent request, final Intent response) {
         List<Bundle> services = new ArrayList<Bundle>();
 
         // 典型的なサービス

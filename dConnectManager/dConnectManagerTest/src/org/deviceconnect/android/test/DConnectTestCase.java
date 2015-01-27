@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.deviceconnect.android.cipher.signature.AuthSignature;
-import org.deviceconnect.android.test.plugin.profile.TestNetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.ConnectProfileConstants;
@@ -24,10 +24,10 @@ import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
@@ -67,7 +67,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
             FileProfileConstants.PROFILE_NAME,
             MediaStreamRecordingProfileConstants.PROFILE_NAME,
             MediaPlayerProfileConstants.PROFILE_NAME,
-            NetworkServiceDiscoveryProfileConstants.PROFILE_NAME,
+            ServiceDiscoveryProfileConstants.PROFILE_NAME,
             NotificationProfileConstants.PROFILE_NAME,
             PhoneProfileConstants.PROFILE_NAME,
             ProximityProfileConstants.PROFILE_NAME,
@@ -362,7 +362,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
      * @return サービスID
      */
     protected String getServiceId() {
-        return getServiceIdByName(TestNetworkServiceDiscoveryProfileConstants.DEVICE_NAME);
+        return getServiceIdByName(TestServiceDiscoveryProfileConstants.DEVICE_NAME);
     }
 
     /**

@@ -12,7 +12,7 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import android.content.Intent;
@@ -61,13 +61,13 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
         if (result == IntentDConnectMessage.RESULT_OK) {
             // 送られてきたサービスIDにデバイスプラグインのIDを付加して保存
             Parcelable[] services = response.getParcelableArrayExtra(
-                    NetworkServiceDiscoveryProfile.PARAM_SERVICES);
+                    ServiceDiscoveryProfile.PARAM_SERVICES);
             if (services != null) {
                 DevicePlugin plugin = mRequestCodeArray.get(requestCode);
                 for (Parcelable p : services) {
                     Bundle b = (Bundle) p;
-                    String id = b.getString(NetworkServiceDiscoveryProfile.PARAM_ID);
-                    b.putString(NetworkServiceDiscoveryProfile.PARAM_ID, 
+                    String id = b.getString(ServiceDiscoveryProfile.PARAM_ID);
+                    b.putString(ServiceDiscoveryProfile.PARAM_ID, 
                             mPluginMgr.appendServiceId(plugin, id));
                     mServices.add(b);
                 }
@@ -134,7 +134,7 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
         mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
         mResponse.putExtra(IntentDConnectMessage.EXTRA_RESULT,
                 IntentDConnectMessage.RESULT_OK);
-        mResponse.putExtra(NetworkServiceDiscoveryProfile.PARAM_SERVICES,
+        mResponse.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES,
                 mServices.toArray(new Bundle[mServices.size()]));
 
         // レスポンスを返却する

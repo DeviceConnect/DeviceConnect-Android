@@ -26,7 +26,7 @@ import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
-import org.deviceconnect.android.manager.profile.DConnectNetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.manager.profile.DConnectServiceDiscoveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
@@ -36,11 +36,11 @@ import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -148,7 +148,7 @@ public abstract class DConnectMessageService extends Service
         // プロファイルの追加
         addProfile(new AuthorizationProfile());
         addProfile(new DConnectAvailabilityProfile());
-        addProfile(new DConnectNetworkServiceDiscoveryProfile(mPluginMgr));
+        addProfile(new DConnectServiceDiscoveryProfile(mPluginMgr));
         addProfile(new DConnectFilesProfile(this));
         addProfile(new DConnectSystemProfile(this, mPluginMgr));
 
@@ -311,13 +311,13 @@ public abstract class DConnectMessageService extends Service
 
             // Local OAuthの仕様で、デバイスを発見するごとにclientIdを作成して、
             // アクセストークンを取得する作業を行う。
-            if (NetworkServiceDiscoveryProfileConstants.PROFILE_NAME.equals(profile) 
-                || NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
+            if (ServiceDiscoveryProfileConstants.PROFILE_NAME.equals(profile) 
+                || ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
 
                 // network service discoveryの場合には、networkServiceのオブジェクトの中にデータが含まれる
                 Bundle service = (Bundle) event.getParcelableExtra(
-                        NetworkServiceDiscoveryProfile.PARAM_NETWORK_SERVICE);
-                String id = service.getString(NetworkServiceDiscoveryProfile.PARAM_ID);
+                        ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE);
+                String id = service.getString(ServiceDiscoveryProfile.PARAM_ID);
                 did = mPluginMgr.appendServiceId(plugin, id);
 
                 // サービスIDを変更
@@ -518,9 +518,9 @@ public abstract class DConnectMessageService extends Service
         Intent intent = new Intent(IntentDConnectMessage.ACTION_GET);
         intent.setComponent(plugin.getComponentName());
         intent.putExtra(DConnectMessage.EXTRA_PROFILE,
-                NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
+                ServiceDiscoveryProfileConstants.PROFILE_NAME);
         intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
+                ServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
         intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
 
         DiscoveryDeviceRequest request = new DiscoveryDeviceRequest();

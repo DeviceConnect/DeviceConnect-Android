@@ -15,7 +15,7 @@ import org.deviceconnect.android.deviceplugin.sonycamera.R;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectMessageHandler;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.UserSettings;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.app.AlertDialog;
@@ -150,16 +150,16 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
 
                 int result = message.getInt(DConnectMessage.EXTRA_RESULT);
                 if (result == DConnectMessage.RESULT_OK) {
-                    List<Object> services = message.getList(NetworkServiceDiscoveryProfile.PARAM_SERVICES);
+                    List<Object> services = message.getList(ServiceDiscoveryProfile.PARAM_SERVICES);
                     if (services.size() == 0) {
                         searchSonyCamera();
                     } else {
                         dismissProgressDialog();
                         for (int i = 0; i < services.size(); i++) {
                             HashMap<?, ?> service = (HashMap<?, ?>) services.get(i);
-                            String name = (String) service.get(NetworkServiceDiscoveryProfile.PARAM_NAME);
+                            String name = (String) service.get(ServiceDiscoveryProfile.PARAM_NAME);
                             if (name != null && name.equals("Sony Camera")) {
-                                String id = (String) service.get(NetworkServiceDiscoveryProfile.PARAM_ID);
+                                String id = (String) service.get(ServiceDiscoveryProfile.PARAM_ID);
                                 if (mServiceIdView != null) {
                                     mServiceIdView.setText(R.string.sonycamera_connect);
                                     setServiceId(id);

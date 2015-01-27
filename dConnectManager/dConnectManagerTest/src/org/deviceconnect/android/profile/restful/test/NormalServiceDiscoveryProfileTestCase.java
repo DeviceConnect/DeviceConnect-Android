@@ -1,5 +1,5 @@
 /*
- NormalNetworkServiceDiscoveryProfileTestCase.java
+ NormalServiceDiscoveryProfileTestCase.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -8,8 +8,8 @@ package org.deviceconnect.android.profile.restful.test;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.android.test.plugin.profile.TestNetworkServiceDiscoveryProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,14 +20,14 @@ import org.json.JSONObject;
  * Network Service Discoveryプロファイルの正常系テスト.
  * @author NTT DOCOMO, INC.
  */
-public class NormalNetworkServiceDiscoveryProfileTestCase extends
+public class NormalServiceDiscoveryProfileTestCase extends
         RESTfulDConnectTestCase {
 
     /**
      * コンストラクタ.
      * @param string テストタグ
      */
-    public NormalNetworkServiceDiscoveryProfileTestCase(final String string) {
+    public NormalServiceDiscoveryProfileTestCase(final String string) {
         super(string);
     }
 
@@ -41,7 +41,7 @@ public class NormalNetworkServiceDiscoveryProfileTestCase extends
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /network_service_discovery/getnetworkservices
+     * Path: /servicediscovery
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -52,17 +52,16 @@ public class NormalNetworkServiceDiscoveryProfileTestCase extends
      */
     public void testGetNetworkServices() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
+        builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
             assertResultOK(response);
             JSONArray services = response.getJSONArray(
-                    NetworkServiceDiscoveryProfileConstants.PARAM_SERVICES);
+                    ServiceDiscoveryProfileConstants.PARAM_SERVICES);
             assertTrue(services.length() > 0);
             JSONObject service = getServiceByName(services,
-                    TestNetworkServiceDiscoveryProfileConstants.DEVICE_NAME);
+                    TestServiceDiscoveryProfileConstants.DEVICE_NAME);
             assertNotNull(service);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
@@ -80,7 +79,7 @@ public class NormalNetworkServiceDiscoveryProfileTestCase extends
     private JSONObject getServiceByName(final JSONArray services, final String name) throws JSONException {
         for (int i = 0; i < services.length(); i++) {
             JSONObject service = services.getJSONObject(i);
-            if (name.equals(service.getString(NetworkServiceDiscoveryProfileConstants.PARAM_NAME))) {
+            if (name.equals(service.getString(ServiceDiscoveryProfileConstants.PARAM_NAME))) {
                 return service;
             }
         }

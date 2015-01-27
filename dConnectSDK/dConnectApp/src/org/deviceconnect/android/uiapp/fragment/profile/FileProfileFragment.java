@@ -127,12 +127,12 @@ public class FileProfileFragment extends SmartDeviceFragment {
          * @throws IOException I/Oエラーが発生した場合
          */
         private DConnectMessage getFileList(final String path) throws IOException {
-            String deviceId = getSmartDevice().getId();
+            String serviceId = getSmartDevice().getId();
 
             URIBuilder builder = new URIBuilder();
             builder.setProfile(FileProfileConstants.PROFILE_NAME);
             builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-            builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+            builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
             builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
             if (path != null) {
                 builder.addParameter(FileProfileConstants.PARAM_PATH, path);

@@ -150,12 +150,12 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
          * @throws IOException I/Oエラーが発生した場合
          */
         private DConnectMessage getMediaList() throws IOException {
-            String deviceId = getSmartDevice().getId();
+            String serviceId = getSmartDevice().getId();
 
             URIBuilder builder = new URIBuilder();
             builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
             builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
-            builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+            builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
             builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
             DConnectMessage message = null;
@@ -243,12 +243,12 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
         mExecService.execute(new Runnable() {
             @Override
             public void run() {
-                String deviceId = getSmartDevice().getId();
+                String serviceId = getSmartDevice().getId();
 
                 URIBuilder builder = new URIBuilder();
                 builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
                 builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PLAY);
-                builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+                builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
                 builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                 try {
@@ -275,12 +275,12 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
         mExecService.execute(new Runnable() {
             @Override
             public void run() {
-                String deviceId = getSmartDevice().getId();
+                String serviceId = getSmartDevice().getId();
 
                 URIBuilder builder = new URIBuilder();
                 builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
                 builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PAUSE);
-                builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+                builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
                 builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                 try {
@@ -311,13 +311,13 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
                     return;
                 }
 
-                String deviceId = getSmartDevice().getId();
+                String serviceId = getSmartDevice().getId();
                 String mediaId = (String) mCurrent.get(MediaPlayerProfileConstants.PARAM_MEDIA_ID);
                 
                 URIBuilder builder = new URIBuilder();
                 builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
                 builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
-                builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+                builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
                 builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
                 builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, mediaId);
 

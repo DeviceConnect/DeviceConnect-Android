@@ -6,17 +6,16 @@
  */
 package org.deviceconnect.android.deviceplugin.sw;
 
-import org.deviceconnect.android.deviceplugin.sw.profile.SWDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWCanvasProfile;
-import org.deviceconnect.android.deviceplugin.sw.profile.SWNetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.sw.profile.SWDeviceOrientationProfile;
+import org.deviceconnect.android.deviceplugin.sw.profile.SWServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWNotificationProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWSystemProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWVibrationProfile;
-
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -42,7 +41,7 @@ public class SWService extends DConnectMessageService {
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new SWNetworkServiceDiscoveryProfile();
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new SWServiceDiscoveryProfile();
     }
 }

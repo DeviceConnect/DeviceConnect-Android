@@ -134,15 +134,15 @@ public class MediaStreamRecordingProfileFragment extends SmartDeviceFragment {
         private Bitmap takePhoto() throws IOException {
             mLogger.entering(this.getClass().getName(), "takePhoto");
 
-            String deviceId = getSmartDevice().getId();
+            String serviceId = getSmartDevice().getId();
             String uri = null;
-            mLogger.fine("deviceid=" + deviceId);
+            mLogger.fine("serviceId=" + serviceId);
 
             // make device take photo request
             URIBuilder uriBuilder = new URIBuilder();
             uriBuilder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
             uriBuilder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
-            uriBuilder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+            uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
             uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
             DConnectMessage message;
@@ -183,7 +183,7 @@ public class MediaStreamRecordingProfileFragment extends SmartDeviceFragment {
             URIBuilder builder = new URIBuilder();
             builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
             builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
-            builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+            builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
             builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
             builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
             try {
@@ -205,7 +205,7 @@ public class MediaStreamRecordingProfileFragment extends SmartDeviceFragment {
             URIBuilder builder = new URIBuilder();
             builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
             builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
-            builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+            builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
             builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
             builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
             try {

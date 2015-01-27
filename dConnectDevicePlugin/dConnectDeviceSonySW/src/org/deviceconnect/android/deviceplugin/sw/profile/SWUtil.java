@@ -10,8 +10,8 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants.NetworkType;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -67,10 +67,10 @@ public final class SWUtil {
         String address = boundedDevice.getAddress();
         String serviceId = address.replace(":", "").toLowerCase(Locale.ENGLISH);
         Bundle result = new Bundle();
-        result.putString(NetworkServiceDiscoveryProfile.PARAM_ID, serviceId);
-        result.putString(NetworkServiceDiscoveryProfile.PARAM_NAME, boundedDevice.getName());
-        result.putString(NetworkServiceDiscoveryProfile.PARAM_TYPE, NetworkType.BLUETOOTH.getValue());
-        result.putBoolean(NetworkServiceDiscoveryProfile.PARAM_ONLINE, true);
+        result.putString(ServiceDiscoveryProfile.PARAM_ID, serviceId);
+        result.putString(ServiceDiscoveryProfile.PARAM_NAME, boundedDevice.getName());
+        result.putString(ServiceDiscoveryProfile.PARAM_TYPE, NetworkType.BLUETOOTH.getValue());
+        result.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
 
         return result;
     }

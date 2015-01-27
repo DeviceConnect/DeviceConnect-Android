@@ -79,7 +79,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
      * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
     private boolean checkserviceId(final String serviceId) {
-        return TestNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
+        return TestServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**

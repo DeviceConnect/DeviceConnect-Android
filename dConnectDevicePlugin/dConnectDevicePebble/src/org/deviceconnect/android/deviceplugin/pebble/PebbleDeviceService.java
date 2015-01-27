@@ -11,7 +11,7 @@ import java.util.Set;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleBatteryProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleCanvasProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleNetworkServceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleServceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleNotificationProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSettingProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSystemProfile;
@@ -24,7 +24,7 @@ import android.bluetooth.BluetoothDevice;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -69,8 +69,8 @@ public class PebbleDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new PebbleNetworkServceDiscoveryProfile(this);
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new PebbleServceDiscoveryProfile(this);
     }
 
     /**
@@ -104,7 +104,7 @@ public class PebbleDeviceService extends DConnectMessageService {
                 // URIに使えるように、Macアドレスの":"を取り除いて小文字に変換する 
                 String serviceId = deviceAddress.replace(":", "").toLowerCase();
                 if (deviceName.indexOf("Pebble") != -1) {
-                    return PebbleNetworkServceDiscoveryProfile.SERVICE_ID + serviceId;
+                    return PebbleServceDiscoveryProfile.SERVICE_ID + serviceId;
                 }
             }
         }

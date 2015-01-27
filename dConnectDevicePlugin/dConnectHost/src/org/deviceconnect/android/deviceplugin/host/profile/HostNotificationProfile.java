@@ -438,7 +438,7 @@ public class HostNotificationProfile extends NotificationProfile {
      * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
     private boolean checkServiceId(final String serviceId) {
-        String regex = HostNetworkServiceDiscoveryProfile.SERVICE_ID;
+        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
         Pattern mPattern = Pattern.compile(regex);
         Matcher match = mPattern.matcher(serviceId);
 

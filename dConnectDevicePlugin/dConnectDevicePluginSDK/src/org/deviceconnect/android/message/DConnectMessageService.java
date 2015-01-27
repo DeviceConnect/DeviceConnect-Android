@@ -18,12 +18,12 @@ import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
 import android.app.Service;
@@ -48,7 +48,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
     private static final String[] IGNORE_PROFILES = {
         AuthorizationProfileConstants.PROFILE_NAME,
         SystemProfileConstants.PROFILE_NAME,
-        NetworkServiceDiscoveryProfileConstants.PROFILE_NAME
+        ServiceDiscoveryProfileConstants.PROFILE_NAME
     };
 
     /**
@@ -77,14 +77,14 @@ public abstract class DConnectMessageService extends Service implements DConnect
     protected abstract SystemProfile getSystemProfile();
 
     /**
-     * NetworkServiceDiscoveryProfileを取得する.
-     * NetworkServiceDiscoveryProfileは必須実装となるため
-     * 本メソッドでNetworkServiceDiscoveryProfileのインスタンスを渡すこと。
-     * このメソッドで返却したNetworkServiceDiscoveryProfileは自動で登録される。
+     * ServiceDiscoveryProfileを取得する.
+     * ServiceDiscoveryProfileは必須実装となるため
+     * 本メソッドでServiceDiscoveryProfileのインスタンスを渡すこと。
+     * このメソッドで返却したServiceDiscoveryProfileは自動で登録される。
      * 
-     * @return NetworkServiceDiscoveryProfileのインスタンス
+     * @return ServiceDiscoveryProfileのインスタンス
      */
-    protected abstract NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile();
+    protected abstract ServiceDiscoveryProfile getServiceDiscoveryProfile();
 
     @Override
     public void onCreate() {
@@ -97,7 +97,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         addProfile(new AuthorizationProfile());
         // 必須プロファイルの追加
         addProfile(getSystemProfile());
-        addProfile(getNetworkServiceDiscoveryProfile());
+        addProfile(getServiceDiscoveryProfile());
     }
 
     @Override

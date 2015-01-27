@@ -15,7 +15,7 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServ
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastMediaPlayerProfile;
-import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastNetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastNotificationProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastSystemProfile;
 import org.deviceconnect.android.event.Event;
@@ -24,7 +24,7 @@ import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -95,7 +95,7 @@ public class ChromeCastService extends DConnectMessageService implements
         mMessage.setCallbacks(this);
 
         EventManager.INSTANCE.setController(new DBCacheController(this));
-        addProfile(new ChromeCastNetworkServiceDiscoveryProfile());
+        addProfile(new ChromeCastServiceDiscoveryProfile());
         addProfile(new ChromeCastNotificationProfile());
         mMediaPlayerProfile = new ChromeCastMediaPlayerProfile();
         addProfile(mMediaPlayerProfile);
@@ -113,8 +113,8 @@ public class ChromeCastService extends DConnectMessageService implements
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new ChromeCastNetworkServiceDiscoveryProfile();
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new ChromeCastServiceDiscoveryProfile();
     }
 
     @Override

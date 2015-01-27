@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.AvailabilityProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
 import android.content.ContentValues;
@@ -45,7 +45,7 @@ public class DConnectLocalOAuth {
         AuthorizationProfileConstants.PROFILE_NAME,
         AvailabilityProfileConstants.PROFILE_NAME,
         SystemProfileConstants.PROFILE_NAME,
-        NetworkServiceDiscoveryProfileConstants.PROFILE_NAME,
+        ServiceDiscoveryProfileConstants.PROFILE_NAME,
         DConnectFilesProfile.PROFILE_NAME,
     };
 

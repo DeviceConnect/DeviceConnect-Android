@@ -1,5 +1,5 @@
 /*
- WearNetworkServiceDiscoveryProfile.java
+ WearServiceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.content.Intent;
@@ -32,7 +32,7 @@ import com.google.android.gms.wearable.Wearable;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class WearNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryProfile implements ConnectionCallbacks,
+public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile implements ConnectionCallbacks,
         OnConnectionFailedListener {
 
     /** Google Play Service. */
@@ -69,7 +69,7 @@ public class WearNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     public static Intent mResponse;
 
     @Override
-    protected boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    protected boolean onGetServices(final Intent request, final Intent response) {
         mGoogleApiClient = new GoogleApiClient.Builder(getContext()).addApi(Wearable.API)
                 .addConnectionCallbacks(this).addOnConnectionFailedListener(this).build();
         mGoogleApiClient.connect();

@@ -43,7 +43,7 @@ import android.content.Context;
  *              ComponentName.unflattenFromString("org.deviceconnect.manager/.DConnectBroadcastReceiver"), 
  *              getPackageName(), 
  *              "Auth Example App", 
- *              new String[] {"battery", "system", "network_service_discovery"}, 
+ *              new String[] {"battery", "system", "servicediscovery"}, 
  *              new AuthorizationHandler() {
  *          
  *          public void onAuthorized(String clientId, String clientSecret, String accessToken) {

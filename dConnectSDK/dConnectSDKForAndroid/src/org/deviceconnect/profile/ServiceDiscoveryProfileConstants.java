@@ -1,5 +1,5 @@
 /*
- NetworkServiceDiscoveryProfileConstants.java
+ ServiceDiscoveryProfileConstants.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -7,21 +7,16 @@
 package org.deviceconnect.profile;
 
 /**
- * Network Service Discovery Profile API 定数群.<br/>
- * Network Service Discovery Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
+ * Service Discovery Profile API 定数群.<br/>
+ * Service Discovery Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * @author NTT DOCOMO, INC.
  */
-public interface NetworkServiceDiscoveryProfileConstants extends DConnectProfileConstants {
+public interface ServiceDiscoveryProfileConstants extends DConnectProfileConstants {
 
     /**
      * プロファイル名: {@value} .
      */
-    String PROFILE_NAME = "network_service_discovery";
-
-    /**
-     * 属性: {@value} .
-     */
-    String ATTRIBUTE_GET_NETWORK_SERVICES = "getnetworkservices";
+    String PROFILE_NAME = "servicediscovery";
 
     /**
      * 属性: {@value} .
@@ -32,11 +27,6 @@ public interface NetworkServiceDiscoveryProfileConstants extends DConnectProfile
      * パス: {@value}.
      */
     String PATH_PROFILE = PATH_ROOT + SEPARATOR + PROFILE_NAME;
-
-    /**
-     * パス: {@value} .
-     */
-    String PATH_GET_NETWORK_SERVICES = PATH_PROFILE + SEPARATOR + ATTRIBUTE_GET_NETWORK_SERVICES;
 
     /**
      * パス: {@value} .

@@ -1,5 +1,5 @@
 /*
- FailNetworkServiceDiscoveryProfileTestCase.java
+ FailServiceDiscoveryProfileTestCase.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -11,10 +11,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.android.test.plugin.profile.TestNetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.profile.DConnectProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,23 +25,23 @@ import org.json.JSONObject;
  * Network Service Discovery プロファイルの異常系テスト.
  * @author NTT DOCOMO, INC.
  */
-public class FailNetworkServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase {
+public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase {
     /**
      * コンストラクタ.
      * 
      * @param string テストタグ
      */
-    public FailNetworkServiceDiscoveryProfileTestCase(final String string) {
+    public FailServiceDiscoveryProfileTestCase(final String string) {
         super(string);
     }
 
     /**
-     * POSTメソッドでgetnetworkservicesでデバイスの探索を行う.
+     * POSTメソッドでサービスの探索を行う.
      * 
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /network_service_discovery/getnetworkservices
+     * Path: /servicediscovery
      * </pre>
      * 
      * <pre>
@@ -51,8 +51,7 @@ public class FailNetworkServiceDiscoveryProfileTestCase extends RESTfulDConnectT
      */
     public void testGetNetworkServices001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
+        builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
@@ -63,12 +62,12 @@ public class FailNetworkServiceDiscoveryProfileTestCase extends RESTfulDConnectT
     }
 
     /**
-     * PUTメソッドでgetnetworkservicesでデバイスの探索を行う.
+     * PUTメソッドでサービスの探索を行う.
      * 
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /network_service_discovery/getnetworkservices
+     * Path: /servicediscovery
      * </pre>
      * 
      * <pre>
@@ -78,8 +77,7 @@ public class FailNetworkServiceDiscoveryProfileTestCase extends RESTfulDConnectT
      */
     public void testGetNetworkServices002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
+        builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
@@ -90,12 +88,12 @@ public class FailNetworkServiceDiscoveryProfileTestCase extends RESTfulDConnectT
     }
 
     /**
-     * DELETEメソッドでgetnetworkservicesでデバイスの探索を行う.
+     * DELETEメソッドでサービスの探索を行う.
      * 
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /network_service_discovery/getnetworkservices
+     * Path: /servicediscovery
      * </pre>
      * 
      * <pre>
@@ -105,8 +103,7 @@ public class FailNetworkServiceDiscoveryProfileTestCase extends RESTfulDConnectT
      */
     public void testGetNetworkServices003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
+        builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
@@ -117,12 +114,12 @@ public class FailNetworkServiceDiscoveryProfileTestCase extends RESTfulDConnectT
     }
 
     /**
-     * deviceidを指定してgetnetworkservicesでデバイスの探索を行う.
+     * deviceidを指定してサービスの探索を行う.
      * 
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /network_service_discovery/getnetworkservices?deviceid=xxxx
+     * Path: /servicediscovery?deviceid=xxxx
      * </pre>
      * 
      * <pre>
@@ -134,26 +131,25 @@ public class FailNetworkServiceDiscoveryProfileTestCase extends RESTfulDConnectT
      */
     public void testGetNetworkServices004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
-        builder.setAttribute(NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
+        builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultOK(root);
-            JSONArray services = root.getJSONArray(NetworkServiceDiscoveryProfileConstants.PARAM_SERVICES);
+            JSONArray services = root.getJSONArray(ServiceDiscoveryProfileConstants.PARAM_SERVICES);
             assertNotNull("services is null.", root);
             assertTrue("services not found.", services.length() > 0);
             boolean isFoundName = false;
             for (int i = 0; i < services.length(); i++) {
                 JSONObject service = services.getJSONObject(i);
-                String name = service.getString(NetworkServiceDiscoveryProfileConstants.PARAM_NAME);
-                String id = service.getString(NetworkServiceDiscoveryProfileConstants.PARAM_ID);
-                String type = service.getString(NetworkServiceDiscoveryProfileConstants.PARAM_TYPE);
+                String name = service.getString(ServiceDiscoveryProfileConstants.PARAM_NAME);
+                String id = service.getString(ServiceDiscoveryProfileConstants.PARAM_ID);
+                String type = service.getString(ServiceDiscoveryProfileConstants.PARAM_TYPE);
                 assertNotNull("service.name is null", name);
                 assertNotNull("service.id is null", id);
                 assertNotNull("service.type is null", type);
-                if (name.equals(TestNetworkServiceDiscoveryProfileConstants.DEVICE_NAME)) {
+                if (name.equals(TestServiceDiscoveryProfileConstants.DEVICE_NAME)) {
                     isFoundName = true;
                 }
             }

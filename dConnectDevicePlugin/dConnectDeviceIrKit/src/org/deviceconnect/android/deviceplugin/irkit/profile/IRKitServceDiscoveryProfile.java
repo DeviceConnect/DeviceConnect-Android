@@ -1,5 +1,5 @@
 /*
- IRKitNetworkServceDiscoveryProfile.java
+ IRKitServceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -10,7 +10,7 @@ import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.content.Intent;
@@ -19,10 +19,10 @@ import android.content.Intent;
  * Network service discovery profile.
  * @author NTT DOCOMO, INC.
  */
-public class IRKitNetworkServceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
+public class IRKitServceDiscoveryProfile extends ServiceDiscoveryProfile {
     
     @Override
-    public boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    public boolean onGetServices(final Intent request, final Intent response) {
         IRKitDeviceService service = (IRKitDeviceService) getContext();
         service.prepareGetNetworkServicesResponse(response);
         return true;

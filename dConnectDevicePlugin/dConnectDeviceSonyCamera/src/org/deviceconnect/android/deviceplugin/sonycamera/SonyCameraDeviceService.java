@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraMediaStreamRecordingProfile;
-import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraNetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraSystemProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraZoomProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
@@ -33,14 +33,14 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants.NetworkType;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -264,12 +264,12 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             mLogger.fine("device found: " + checkDevice());
 
             Bundle service = new Bundle();
-            service.putString(NetworkServiceDiscoveryProfile.PARAM_ID, SERVICE_ID);
-            service.putString(NetworkServiceDiscoveryProfile.PARAM_NAME, DEVICE_NAME);
-            service.putString(NetworkServiceDiscoveryProfile.PARAM_TYPE,
-                    NetworkServiceDiscoveryProfile.NetworkType.WIFI.getValue());
-            service.putBoolean(NetworkServiceDiscoveryProfile.PARAM_ONLINE, true);
-            service.putString(NetworkServiceDiscoveryProfile.PARAM_CONFIG, wifiInfo.getSSID());
+            service.putString(ServiceDiscoveryProfile.PARAM_ID, SERVICE_ID);
+            service.putString(ServiceDiscoveryProfile.PARAM_NAME, DEVICE_NAME);
+            service.putString(ServiceDiscoveryProfile.PARAM_TYPE,
+                    ServiceDiscoveryProfile.NetworkType.WIFI.getValue());
+            service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+            service.putString(ServiceDiscoveryProfile.PARAM_CONFIG, wifiInfo.getSSID());
             services.add(service);
 
             // SonyCameraを見つけたので、SSIDを保存しておく
@@ -277,7 +277,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         }
 
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        response.putExtra(NetworkServiceDiscoveryProfile.PARAM_SERVICES, services.toArray(new Bundle[services.size()]));
+        response.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES, services.toArray(new Bundle[services.size()]));
 
         mLogger.exiting(this.getClass().getName(), "createSearchResponse");
         return true;
@@ -861,26 +861,26 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         createEventObserver();
 
         List<Event> evts = EventManager.INSTANCE.getEventList(SERVICE_ID,
-                NetworkServiceDiscoveryProfileConstants.PROFILE_NAME, null,
-                NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
+                ServiceDiscoveryProfileConstants.PROFILE_NAME, null,
+                ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
 
         for (Event evt : evts) {
             Bundle camera = new Bundle();
-            camera.putString(NetworkServiceDiscoveryProfile.PARAM_NAME, DEVICE_NAME);
-            camera.putString(NetworkServiceDiscoveryProfile.PARAM_TYPE, NetworkType.WIFI.getValue());
-            camera.putBoolean(NetworkServiceDiscoveryProfile.PARAM_STATE, true);
-            camera.putBoolean(NetworkServiceDiscoveryProfile.PARAM_ONLINE, true);
-            camera.putString(NetworkServiceDiscoveryProfile.PARAM_CONFIG, "");
+            camera.putString(ServiceDiscoveryProfile.PARAM_NAME, DEVICE_NAME);
+            camera.putString(ServiceDiscoveryProfile.PARAM_TYPE, NetworkType.WIFI.getValue());
+            camera.putBoolean(ServiceDiscoveryProfile.PARAM_STATE, true);
+            camera.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+            camera.putString(ServiceDiscoveryProfile.PARAM_CONFIG, "");
 
             Intent intent = new Intent(IntentDConnectMessage.ACTION_EVENT);
             intent.setComponent(ComponentName.unflattenFromString(evt.getReceiverName()));
             intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, SERVICE_ID);
             intent.putExtra(DConnectMessage.EXTRA_PROFILE,
-                    NetworkServiceDiscoveryProfile.PROFILE_NAME);
+                    ServiceDiscoveryProfile.PROFILE_NAME);
             intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                    NetworkServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
+                    ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
             intent.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
-            intent.putExtra(NetworkServiceDiscoveryProfile.PARAM_NETWORK_SERVICE, camera);
+            intent.putExtra(ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE, camera);
 
             sendEvent(intent, evt.getAccessToken());
         }
@@ -1160,8 +1160,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new SonyCameraNetworkServiceDiscoveryProfile();
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new SonyCameraServiceDiscoveryProfile();
     }
 
     /**

@@ -32,7 +32,7 @@ import org.deviceconnect.android.test.DConnectTestCase;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.java_websocket.client.WebSocketClient;
@@ -134,16 +134,16 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     protected List<DeviceInfo> searchDevices() {
         List<DeviceInfo> services = new ArrayList<DeviceInfo>();
         HttpGet request = new HttpGet(DCONNECT_MANAGER_URI
-                + "/network_service_discovery/getnetworkservices");
+                + "/" + ServiceDiscoveryProfileConstants.PROFILE_NAME);
         try {
             JSONObject root = sendRequest(request);
             assertResultOK(root);
 
-            JSONArray servicesJson = root.getJSONArray(NetworkServiceDiscoveryProfileConstants.PARAM_SERVICES);
+            JSONArray servicesJson = root.getJSONArray(ServiceDiscoveryProfileConstants.PARAM_SERVICES);
             for (int i = 0; i < servicesJson.length(); i++) {
                 JSONObject serviceJson = servicesJson.getJSONObject(i);
-                String serviceId = serviceJson.getString(NetworkServiceDiscoveryProfileConstants.PARAM_ID);
-                String deviceName = serviceJson.getString(NetworkServiceDiscoveryProfileConstants.PARAM_NAME);
+                String serviceId = serviceJson.getString(ServiceDiscoveryProfileConstants.PARAM_ID);
+                String deviceName = serviceJson.getString(ServiceDiscoveryProfileConstants.PARAM_NAME);
                 services.add(new DeviceInfo(serviceId, deviceName));
             }
         } catch (JSONException e) {

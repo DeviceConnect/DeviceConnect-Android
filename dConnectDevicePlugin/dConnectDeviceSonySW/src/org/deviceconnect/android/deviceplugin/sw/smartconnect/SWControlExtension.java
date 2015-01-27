@@ -49,7 +49,7 @@ import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
 import android.bluetooth.BluetoothAdapter;
@@ -145,7 +145,7 @@ class SWControlExtension extends ControlExtension {
      * LocalOAuthで無視するプロファイル群.
      */
     private static final String[] IGNORE_PROFILES = {AuthorizationProfileConstants.PROFILE_NAME,
-            SystemProfileConstants.PROFILE_NAME, NetworkServiceDiscoveryProfileConstants.PROFILE_NAME };
+            SystemProfileConstants.PROFILE_NAME, ServiceDiscoveryProfileConstants.PROFILE_NAME };
 
     /**
      * Creates a control extension.

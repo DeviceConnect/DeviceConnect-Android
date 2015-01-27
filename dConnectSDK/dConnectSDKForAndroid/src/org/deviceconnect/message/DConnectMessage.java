@@ -51,9 +51,9 @@ public interface DConnectMessage extends Map<String, Object> {
     String EXTRA_REQUEST_CODE = "requestCode";
 
     /**
-     * エクストラ:deviceId.
+     * エクストラ:serviceId.
      */
-    String EXTRA_DEVICE_ID = "deviceId";
+    String EXTRA_SERVICE_ID = "serviceId";
 
     /**
      * エクストラ:receiver.
@@ -224,9 +224,9 @@ public interface DConnectMessage extends Map<String, Object> {
          */
         NOT_SUPPORT_ATTRIBUTE(4, "Non-supported attribute was used."),
         /**
-         * deviceidが設定されていない.
+         * serviceIdが設定されていない.
          */
-        EMPTY_DEVICE_ID(5, "Device ID is required."),
+        EMPTY_SERVICE_ID(5, "Service ID is required."),
         /**
          * デバイスが発見できなかった.
          */

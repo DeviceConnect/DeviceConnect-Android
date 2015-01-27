@@ -29,7 +29,7 @@ import org.deviceconnect.message.DConnectMessage;
  * .setPort(4035)
  * .setProfile(BatteryProfileConstants.PROFILE_NAME)
  * .setAttribute(BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE)
- * .addParameter(DConnectMessage.EXTRA_DEVICE_ID, "deviceId")
+ * .addParameter(DConnectMessage.EXTRA_SERVICE_ID, "serviceId")
  * .addParameter(DConnectMessage.EXTRA_SESSION_KEY, "sessionKey")
  * .addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, "accessToken");
  * 

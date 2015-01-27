@@ -118,18 +118,18 @@ public class IRKitWiFiSelectionFragment extends IRKitBaseFragment {
         IRKitManager.INSTANCE.createNewDevice(clientKey, new GetNewDeviceCallback() {
 
             @Override
-            public void onGetDevice(final String deviceId, final String deviceKey) {
+            public void onGetDevice(final String serviceId, final String deviceKey) {
                 
                 Activity a = getActivity();
                 if (a == null || !(a instanceof IRKitSettingActivity)) {
                     return;
                 }
                 
-                final boolean success = (deviceId != null && deviceKey != null); 
+                final boolean success = (serviceId != null && deviceKey != null); 
                 
                 if (success) {
                     IRKitSettingActivity sa = (IRKitSettingActivity) a;
-                    sa.setDeviceId(deviceId);
+                    sa.setServiceId(serviceId);
                     sa.setDeviceKey(deviceKey);
                     synchronized (IRKitWiFiSelectionFragment.this) {
                         mState = State.GOT_DEVICE;

@@ -95,13 +95,13 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
     }
 
     /**
-     * デバイスIDからIRKitのデバイスを取得する.
+     * サービスIDからIRKitのデバイスを取得する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return デバイス
      */
-    public IRKitDevice getDevice(final String deviceId) {
-        return mDevices.get(deviceId);
+    public IRKitDevice getDevice(final String serviceId) {
+        return mDevices.get(serviceId);
     }
 
     /**

@@ -131,7 +131,7 @@ public class IRKitEndingFragment extends IRKitBaseFragment implements OnClickLis
             }
 
             showProgress();
-            IRKitManager.INSTANCE.checkIfIRKitIsConnectedToInternet(a.getClientKey(), a.getDeviceId(),
+            IRKitManager.INSTANCE.checkIfIRKitIsConnectedToInternet(a.getClientKey(), a.getServiceId(),
                     new IRKitConnectionCheckingCallback() {
 
                         @Override

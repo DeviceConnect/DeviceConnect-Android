@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Random;
 
 import org.deviceconnect.android.manager.DConnectService;
+import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
 import org.deviceconnect.android.observer.DConnectObservationService;
@@ -18,6 +20,9 @@ import org.deviceconnect.android.observer.receiver.ObserverReceiver;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -49,13 +54,13 @@ public class SettingsFragment extends PreferenceFragment
     /** 10進数の定義. */
     private static final int DECIMAL = 10;
     /** SSL設定チェックボックス. */
-    private CheckBoxPreference checkBoxSslPreferences;
+    private CheckBoxPreference mCheckBoxSslPreferences;
     /** ポート設定テキストエディッタ. */
-    private EditTextPreference editPortPreferences;
+    private EditTextPreference mEditPortPreferences;
     /** LocalOAuth設定チェックボックス. */
-    private CheckBoxPreference checkBoxOauthPreferences;
+    private CheckBoxPreference mCheckBoxOauthPreferences;
     /** 外部IP設定チェックボックス. */
-    private CheckBoxPreference checkBoxExternalPreferences;
+    private CheckBoxPreference mCheckBoxExternalPreferences;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -101,9 +106,9 @@ public class SettingsFragment extends PreferenceFragment
         editKeywordPreferences.shouldCommit();
 
         // SSLのON/OFF
-        checkBoxSslPreferences = (CheckBoxPreference)
+        mCheckBoxSslPreferences = (CheckBoxPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_ssl));
-        checkBoxSslPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxSslPreferences.setOnPreferenceChangeListener(this);
 
         // ホスト名設定
         EditTextPreference editHostPreferences = (EditTextPreference)
@@ -112,26 +117,26 @@ public class SettingsFragment extends PreferenceFragment
         editHostPreferences.setSummary(editHostPreferences.getText());
 
         // ポート番号設定
-        editPortPreferences = (EditTextPreference)
+        mEditPortPreferences = (EditTextPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_port));
-        editPortPreferences.setOnPreferenceChangeListener(this);
-        editPortPreferences.setSummary(editPortPreferences.getText());
+        mEditPortPreferences.setOnPreferenceChangeListener(this);
+        mEditPortPreferences.setSummary(mEditPortPreferences.getText());
 
         // Local OAuthのON/OFF
-        checkBoxOauthPreferences = (CheckBoxPreference)
+        mCheckBoxOauthPreferences = (CheckBoxPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_local_oauth));
-        checkBoxOauthPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxOauthPreferences.setOnPreferenceChangeListener(this);
 
         // グローバル設定のON/OFF
-        checkBoxExternalPreferences = (CheckBoxPreference)
+        mCheckBoxExternalPreferences = (CheckBoxPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_allow_external_ip));
-        checkBoxExternalPreferences.setOnPreferenceChangeListener(this);
+        mCheckBoxExternalPreferences.setOnPreferenceChangeListener(this);
 
         editHostPreferences.setEnabled(false);
-        checkBoxSslPreferences.setEnabled(!isDConnectServiceRunning());
-        editPortPreferences.setEnabled(!isDConnectServiceRunning());
-        checkBoxOauthPreferences.setEnabled(!isDConnectServiceRunning());
-        checkBoxExternalPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxSslPreferences.setEnabled(!isDConnectServiceRunning());
+        mEditPortPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxOauthPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxExternalPreferences.setEnabled(!isDConnectServiceRunning());
     }
 
     @Override
@@ -153,10 +158,10 @@ public class SettingsFragment extends PreferenceFragment
         observerPreferences.setChecked(isObservationServices());
 
         // 各dConnectManagerの設定
-        checkBoxSslPreferences.setEnabled(!isDConnectServiceRunning());
-        editPortPreferences.setEnabled(!isDConnectServiceRunning());
-        checkBoxOauthPreferences.setEnabled(!isDConnectServiceRunning());
-        checkBoxExternalPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxSslPreferences.setEnabled(!isDConnectServiceRunning());
+        mEditPortPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxOauthPreferences.setEnabled(!isDConnectServiceRunning());
+        mCheckBoxExternalPreferences.setEnabled(!isDConnectServiceRunning());
     }
 
     @Override
@@ -180,10 +185,10 @@ public class SettingsFragment extends PreferenceFragment
             if (getString(R.string.key_settings_dconn_server_on_off).equals(key)) {
                 SwitchPreference pref = ((SwitchPreference) preference);
                 boolean checked = pref.isChecked();
-                checkBoxSslPreferences.setEnabled(checked);
-                checkBoxOauthPreferences.setEnabled(checked);
-                checkBoxExternalPreferences.setEnabled(checked);
-                editPortPreferences.setEnabled(checked);
+                mCheckBoxSslPreferences.setEnabled(checked);
+                mCheckBoxOauthPreferences.setEnabled(checked);
+                mCheckBoxExternalPreferences.setEnabled(checked);
+                mEditPortPreferences.setEnabled(checked);
                 // dConnectManagerのON/OFF
                 Intent intent = new Intent(getActivity(), DConnectService.class);
                 if (!checked) {
@@ -234,6 +239,8 @@ public class SettingsFragment extends PreferenceFragment
             TextDialogFragment fragment = new TextDialogFragment();
             fragment.setArguments(tosArgs);
             fragment.show(getFragmentManager(), null);
+        } else if (getString(R.string.key_settings_restart_device_plugin).equals(preference.getKey())) {
+            restartDevicePlugins();
         }
 
         return result;
@@ -286,5 +293,55 @@ public class SettingsFragment extends PreferenceFragment
      */
     private boolean isObservationServices() {
         return isServiceRunning(getActivity(), DConnectObservationService.class);
+    }
+
+    /**
+     * Start all device plugins.
+     */
+    private void restartDevicePlugins() {
+        final StartingDialogFragment dialog = new StartingDialogFragment();
+        dialog.show(getFragmentManager(), "dialog");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
+                mgr.createDevicePluginList();
+                List<DevicePlugin> plugins = mgr.getDevicePlugins();
+                for (DevicePlugin plugin : plugins) {
+                    if (plugin.getStartServiceClassName() != null) {
+                        restartDevicePlugin(plugin);
+                    }
+                }
+                dialog.dismiss();
+            }
+        }).start();
+        
+    }
+
+    /**
+     * Start a device plugin.
+     * @param plugin device plugin to be started
+     */
+    private void restartDevicePlugin(final DevicePlugin plugin) {
+        Intent service = new Intent();
+        service.setClassName(plugin.getPackageName(), plugin.getStartServiceClassName());
+        getActivity().startService(service);
+    }
+
+    /**
+     * Show a dialog of restart a device plugin.
+     */
+    private class StartingDialogFragment extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(final Bundle savedInstanceState) {
+            String title = getString(R.string.activity_settings_restart_device_plugin_title);
+            String msg = getString(R.string.activity_settings_restart_device_plugin_message);
+            ProgressDialog progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setTitle(title);
+            progressDialog.setMessage(msg);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            setCancelable(false);
+            return progressDialog;
+        }
     }
 }

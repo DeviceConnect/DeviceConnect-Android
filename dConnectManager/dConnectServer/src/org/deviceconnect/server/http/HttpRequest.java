@@ -15,104 +15,100 @@ import java.util.Map;
  */
 public final class HttpRequest {
 
-	/** HTTPメソッド GET. */
-	public static final String HTTP_METHOD_GET = "GET";
+    /** HTTPメソッド GET. */
+    public static final String HTTP_METHOD_GET = "GET";
 
-	/** HTTPメソッド POST. */
-	public static final String HTTP_METHOD_POST = "POST";
+    /** HTTPメソッド POST. */
+    public static final String HTTP_METHOD_POST = "POST";
 
-	/** HTTPメソッド PUT. */
-	public static final String HTTP_METHOD_PUT = "PUT";
+    /** HTTPメソッド PUT. */
+    public static final String HTTP_METHOD_PUT = "PUT";
 
-	/** HTTPメソッド DELETE. */
-	public static final String HTTP_METHOD_DELETE = "DELETE";
+    /** HTTPメソッド DELETE. */
+    public static final String HTTP_METHOD_DELETE = "DELETE";
 
-	/** HTTPメソッド. */
-	private String method;
+    /** HTTPメソッド. */
+    private String mMethod;
 
-	/** リクエストURI. */
-	private String uri;
+    /** リクエストURI. */
+    private String mUri;
 
-	/** ヘッダー群. */
-	private Map<String, String> headers;
+    /** ヘッダー群. */
+    private Map<String, String> mHeaders;
 
-	/** HTTPリクエストのBodyデータ. */
-	private byte[] body;
+    /** HTTPリクエストのBodyデータ. */
+    private byte[] mBody;
 
-	/**
-	 * HTTPメソッドを取得する.
-	 * 
-	 * @return HTTPメソッド名
-	 */
-	public String getMethod() {
-		return method;
-	}
+    /**
+     * HTTPメソッドを取得する.
+     * 
+     * @return HTTPメソッド名
+     */
+    public String getMethod() {
+        return mMethod;
+    }
 
-	/**
-	 * HTTPメソッド名を設定する
-	 * 
-	 * @param method
-	 *            HTTPメソッド名
-	 */
-	public void setMethod(String method) {
-		this.method = method;
-	}
+    /**
+     * HTTPメソッド名を設定する.
+     * 
+     * @param method HTTPメソッド名
+     */
+    public void setMethod(final String method) {
+        this.mMethod = method;
+    }
 
-	/**
-	 * リクエストURIを取得する
-	 * 
-	 * @return uri リクエストURI
-	 */
-	public String getUri() {
-		return uri;
-	}
+    /**
+     * リクエストURIを取得する.
+     * 
+     * @return uri リクエストURI
+     */
+    public String getUri() {
+        return mUri;
+    }
 
-	/**
-	 * リクエストURIを設定する
-	 * 
-	 * @param uri
-	 *            設定するURI
-	 */
-	public void setUri(String uri) {
-		this.uri = uri;
-	}
+    /**
+     * リクエストURIを設定する.
+     * 
+     * @param uri 設定するURI
+     */
+    public void setUri(final String uri) {
+        this.mUri = uri;
+    }
 
-	/**
-	 * ヘッダーを取得する.
-	 * 
-	 * @return ヘッダー
-	 */
-	public Map<String, String> getHeaders() {
-		return headers;
-	}
+    /**
+     * ヘッダーを取得する.
+     * 
+     * @return ヘッダー
+     */
+    public Map<String, String> getHeaders() {
+        return mHeaders;
+    }
 
-	/**
-	 * ヘッダーを設定する.
-	 * 
-	 * @param headers
-	 *            設定するヘッダーのデータ
-	 */
-	public void setHeaders(Map<String, String> headers) {
-		this.headers = headers;
-	}
+    /**
+     * ヘッダーを設定する.
+     * 
+     * @param headers 設定するヘッダーのデータ
+     */
+    public void setHeaders(final Map<String, String> headers) {
+        this.mHeaders = headers;
+    }
 
-	/**
-	 * HTTPリクエストのBodyデータを取得する.
-	 * 
-	 * @return HTTPリクエストのBodyデータ
-	 */
-	public byte[] getBody() {
-		return body;
-	}
+    /**
+     * HTTPリクエストのBodyデータを取得する.
+     * 
+     * @return HTTPリクエストのBodyデータ
+     */
+    public byte[] getBody() {
+        return mBody;
+    }
 
-	/**
-	 * HTTPリクエストのBodyデータを設定する.
-	 * 
-	 * @param body
-	 *            HTTPリクエストのBodyデータ
-	 */
-	public void setBody(byte[] body) {
-		this.body = body;
-	}
+    /**
+     * HTTPリクエストのBodyデータを設定する.
+     * 
+     * @param body HTTPリクエストのBodyデータ
+     */
+    public void setBody(final byte[] body) {
+        this.mBody = body;
+    }
 
 }

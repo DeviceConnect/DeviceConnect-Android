@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect クライアントフラグメントパッケージ.
+ * Device Connect クライアントフラグメントパッケージ.
  */
 package org.deviceconnect.android.uiapp.fragment;

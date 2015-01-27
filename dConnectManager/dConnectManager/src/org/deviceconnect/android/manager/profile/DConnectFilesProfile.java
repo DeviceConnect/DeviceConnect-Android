@@ -32,7 +32,7 @@ import android.content.res.AssetManager;
  */
 public class DConnectFilesProfile extends DConnectProfile {
     /** ロガー. */
-    private final Logger sLogger = Logger.getLogger("dconnect.manager");
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** プロファイル名. */
     public static final String PROFILE_NAME = "files";
@@ -130,13 +130,13 @@ public class DConnectFilesProfile extends DConnectProfile {
                 }
             }
         } catch (IOException e) {
-            sLogger.warning("Exception in DConnectFilesProfile.");
+            mLogger.warning("Exception in DConnectFilesProfile.");
         } finally {
             if (br != null) {
                 try {
                     br.close();
                 } catch (IOException e) {
-                    sLogger.warning("Exception in DConnectFilesProfile.");
+                    mLogger.warning("Exception in DConnectFilesProfile.");
                 }
             }
         }

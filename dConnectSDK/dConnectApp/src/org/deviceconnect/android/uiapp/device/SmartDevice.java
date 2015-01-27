@@ -13,7 +13,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * d-Connect スマートデバイス.
+ * Device Connect スマートデバイス.
  */
 public class SmartDevice implements Parcelable {
 

@@ -15,273 +15,249 @@ import java.util.ArrayList;
  */
 public final class DConnectServerConfig {
 
-	// サーバーの設定値は起動後などに変更されるのを防ぐためBuilderでパラメータを設定させ
-	// setterは本体には置かない。
+    // サーバーの設定値は起動後などに変更されるのを防ぐためBuilderでパラメータを設定させ
+    // setterは本体には置かない。
 
-	/** 最大コネクション数. */
-	private int maxConnectionSize;
+    /** 最大コネクション数. */
+    private int mMaxConnectionSize;
 
-	/** WebSocket最大コネクション数. */
-	private int maxWebSocketConnectionSize;
+    /** WebSocket最大コネクション数. */
+    private int mMaxWebSocketConnectionSize;
 
-	/** ドキュメントルートのパス. */
-	private String documentRootPath;
+    /** ドキュメントルートのパス. */
+    private String mDocumentRootPath;
 
-	/** SSLを使うかのフラグ. */
-	private boolean isSsl;
+    /** SSLを使うかのフラグ. */
+    private boolean mIsSsl;
 
-	/** サーバーのポート番号. */
-	private int port;
+    /** サーバーのポート番号. */
+    private int mPort;
 
-	/** サーバーのホスト名. */
-	private String host;
+    /** サーバーのホスト名. */
+    private String mHost;
 
-	/** IPのホワイトリスト. */
-	private ArrayList<String> ipWhiteList;
+    /** IPのホワイトリスト. */
+    private ArrayList<String> mIpWhiteList;
 
-	/**
-	 * 最大コネクション数を取得する.
-	 * 
-	 * @return 最大コネクション数
-	 */
-	public int getMaxConnectionSize() {
-		return maxConnectionSize;
-	}
+    /**
+     * 最大コネクション数を取得する.
+     * 
+     * @return 最大コネクション数
+     */
+    public int getMaxConnectionSize() {
+        return mMaxConnectionSize;
+    }
 
-	/**
-	 * WebSocketの最大コネクション数を取得する.
-	 * 
-	 * @return WebSocketの最大コネクション数。
-	 */
-	public int getMaxWebSocketConnectionSize() {
-		return maxWebSocketConnectionSize;
-	}
+    /**
+     * WebSocketの最大コネクション数を取得する.
+     * 
+     * @return WebSocketの最大コネクション数。
+     */
+    public int getMaxWebSocketConnectionSize() {
+        return mMaxWebSocketConnectionSize;
+    }
 
-	/**
-	 * ドキュメントルートのパスを取得する.
-	 * 
-	 * @return ドキュメントルートのパス
-	 */
-	public String getDocumentRootPath() {
-		return documentRootPath;
-	}
+    /**
+     * ドキュメントルートのパスを取得する.
+     * 
+     * @return ドキュメントルートのパス
+     */
+    public String getDocumentRootPath() {
+        return mDocumentRootPath;
+    }
 
-	/**
-	 * ポート番号を取得する.
-	 * 
-	 * @return ポート番号
-	 */
-	public int getPort() {
-		return port;
-	}
+    /**
+     * ポート番号を取得する.
+     * 
+     * @return ポート番号
+     */
+    public int getPort() {
+        return mPort;
+    }
 
-	/**
-	 * ホスト名を取得する.
-	 * 
-	 * @return ホスト名
-	 */
-	public String getHost() {
-		return host;
-	}
+    /**
+     * ホスト名を取得する.
+     * 
+     * @return ホスト名
+     */
+    public String getHost() {
+        return mHost;
+    }
 
-	/**
-	 * SSL通信を行うかをチェックする.
-	 * 
-	 * @return SSL通信をする場合true、しない場合はfalseを返す。
-	 */
-	public boolean isSsl() {
-		return isSsl;
-	}
+    /**
+     * SSL通信を行うかをチェックする.
+     * 
+     * @return SSL通信をする場合true、しない場合はfalseを返す。
+     */
+    public boolean isSsl() {
+        return mIsSsl;
+    }
 
-	/**
-	 * IPのホワイトリストを取得する.
-	 * 
-	 * @return IPのホワイトリスト。
-	 */
-	public ArrayList<String> getIPWhiteList() {
-		return ipWhiteList;
-	}
+    /**
+     * IPのホワイトリストを取得する.
+     * 
+     * @return IPのホワイトリスト。
+     */
+    public ArrayList<String> getIPWhiteList() {
+        return mIpWhiteList;
+    }
 
-	/**
-	 * コンストラクタ.
-	 * 
-	 * @param builder
-	 *            ビルダー。
-	 */
-	private DConnectServerConfig(Builder builder) {
-		// Builderを用いるためprivateに設定。
-		this.documentRootPath = builder.documentRootPath;
-		this.maxConnectionSize = builder.maxConnectionSize;
-		this.maxWebSocketConnectionSize = builder.maxWebSocketConnectionSize;
-		this.isSsl = builder.isSsl;
-		this.port = builder.port;
-		this.host = builder.host;
-		this.ipWhiteList = builder.ipWhiteList;
-	}
+    /**
+     * コンストラクタ.
+     * 
+     * @param builder ビルダー。
+     */
+    private DConnectServerConfig(final Builder builder) {
+        // Builderを用いるためprivateに設定。
+        this.mDocumentRootPath = builder.mDocumentRootPath;
+        this.mMaxConnectionSize = builder.mMaxConnectionSize;
+        this.mMaxWebSocketConnectionSize = builder.mMaxWebSocketConnectionSize;
+        this.mIsSsl = builder.mIsSsl;
+        this.mPort = builder.mPort;
+        this.mHost = builder.mHost;
+        this.mIpWhiteList = builder.mIpWhiteList;
+    }
 
-	/**
-	 * DConnectServerConfigのビルダークラス.
-	 * 
-	 * @author NTT DOCOMO, INC.
-	 * 
-	 */
-	public static final class Builder {
+    /**
+     * DConnectServerConfigのビルダークラス.
+     * 
+     * @author NTT DOCOMO, INC.
+     * 
+     */
+    public static final class Builder {
 
-		/** 最大コネクション数 */
-		private int maxConnectionSize = 64;
+        /** 最大コネクション数. */
+        private int mMaxConnectionSize = 64;
 
-		/** WebSocket最大コネクション数 */
-		private int maxWebSocketConnectionSize = 32;
+        /** WebSocket最大コネクション数. */
+        private int mMaxWebSocketConnectionSize = 32;
 
-		/** ドキュメントルートのパス */
-		private String documentRootPath;
+        /** ドキュメントルートのパス. */
+        private String mDocumentRootPath;
 
-		/** SSLを使うかのフラグ. */
-		private boolean isSsl;
+        /** SSLを使うかのフラグ. */
+        private boolean mIsSsl;
 
-		/** サーバーのポート番号. */
-		private int port = -1;
+        /** サーバーのポート番号. */
+        private int mPort = -1;
 
-		/** サーバーのホスト名. */
-		private String host;
+        /** サーバーのホスト名. */
+        private String mHost;
 
-		/** IPのホワイトリスト. */
-		private ArrayList<String> ipWhiteList;
+        /** IPのホワイトリスト. */
+        private ArrayList<String> mIpWhiteList;
 
-		/**
-		 * DConnectServerConfigのインスタンスを設定された設定値で生成する。
-		 * 
-		 * @return DConnectServerConfigのインスタンス。
-		 * @throws IllegalStateException
-		 *             ドキュメントルートがnullの場合、またはportが0未満の場合スローされる。
-		 */
-		public DConnectServerConfig build() {
+        /**
+         * DConnectServerConfigのインスタンスを設定された設定値で生成する.
+         * 
+         * @return DConnectServerConfigのインスタンス。
+         */
+        public DConnectServerConfig build() {
 
-			if (documentRootPath == null) {
-				throw new IllegalStateException(
-						"Document root must be not null.");
-			} else if (port < 0) {
-				throw new IllegalStateException("Port must be larger than 0.");
-			}
+            if (mDocumentRootPath == null) {
+                throw new IllegalStateException("Document root must be not null.");
+            } else if (mPort < 0) {
+                throw new IllegalStateException("Port must be larger than 0.");
+            }
 
-			return new DConnectServerConfig(this);
-		}
+            return new DConnectServerConfig(this);
+        }
 
-		/**
-		 * 最大コネクション数を設定する.
-		 * 
-		 * @param maxConnectionSize
-		 *            最大コネクション数。1以上を指定すること。
-		 * 
-		 * @return ビルダー。
-		 * 
-		 * @throws IllegalArgumentException
-		 *             コネクション数が0以下の場合スローされる。
-		 */
-		public Builder maxConnectionSize(int maxConnectionSize) {
+        /**
+         * 最大コネクション数を設定する.
+         * 
+         * @param maxConnectionSize 最大コネクション数。1以上を指定すること。
+         * 
+         * @return ビルダー。
+         */
+        public Builder maxConnectionSize(final int maxConnectionSize) {
 
-			if (maxConnectionSize <= 0) {
-				throw new IllegalArgumentException(
-						"MaxConnectionSize must be larger than 0.");
-			}
+            if (maxConnectionSize <= 0) {
+                throw new IllegalArgumentException("MaxConnectionSize must be larger than 0.");
+            }
 
-			this.maxConnectionSize = maxConnectionSize;
-			return this;
-		}
+            this.mMaxConnectionSize = maxConnectionSize;
+            return this;
+        }
 
-		/**
-		 * WebSocketの最大コネクション数を設定する.
-		 * 
-		 * @param maxWebSocketConnectionSize
-		 *            WebSocketの最大コネクション数。1以上に設定すること。
-		 * 
-		 * @return ビルダー。
-		 * @throws IllegalArgumentException
-		 *             コネクション数が0以下の場合スローされる。
-		 */
-		public Builder maxWebSocketConnectionSize(int maxWebSocketConnectionSize) {
+        /**
+         * WebSocketの最大コネクション数を設定する.
+         * 
+         * @param maxWebSocketConnectionSize WebSocketの最大コネクション数。1以上に設定すること。
+         * 
+         * @return ビルダー
+         */
+        public Builder maxWebSocketConnectionSize(final int maxWebSocketConnectionSize) {
 
-			if (maxWebSocketConnectionSize <= 0) {
-				throw new IllegalArgumentException(
-						"MaxWebSocketConnectionSize must be larger than 0.");
-			}
+            if (maxWebSocketConnectionSize <= 0) {
+                throw new IllegalArgumentException("MaxWebSocketConnectionSize must be larger than 0.");
+            }
 
-			this.maxWebSocketConnectionSize = maxWebSocketConnectionSize;
-			return this;
-		}
+            this.mMaxWebSocketConnectionSize = maxWebSocketConnectionSize;
+            return this;
+        }
 
-		/**
-		 * SSLの利用設定を行う.
-		 * 
-		 * @param isSsl
-		 *            trueの場合SSL通信を行う。falseの場合はSSL通信を行わない。
-		 * @return ビルダー。
-		 */
-		public Builder isSsl(boolean isSsl) {
-			this.isSsl = isSsl;
-			return this;
-		}
+        /**
+         * SSLの利用設定を行う.
+         * 
+         * @param isSsl trueの場合SSL通信を行う。falseの場合はSSL通信を行わない。
+         * @return ビルダー。
+         */
+        public Builder isSsl(final boolean isSsl) {
+            this.mIsSsl = isSsl;
+            return this;
+        }
 
-		/**
-		 * ポートを設定する.
-		 * 
-		 * @param port
-		 *            サーバーのポート番号。
-		 * @return ビルダー。
-		 * @throws IllegalArgumentException
-		 *             ポート番号が0未満の場合スローされる。
-		 */
-		public Builder port(int port) {
-			if (port < 0) {
-				throw new IllegalArgumentException(
-						"Port must be larger than 0.");
-			}
-			this.port = port;
-			return this;
-		}
+        /**
+         * ポートを設定する.
+         * 
+         * @param port サーバーのポート番号。
+         * @return ビルダー
+         */
+        public Builder port(final int port) {
+            if (port < 0) {
+                throw new IllegalArgumentException("Port must be larger than 0.");
+            }
+            this.mPort = port;
+            return this;
+        }
 
-		/**
-		 * ホスト名を設定する.
-		 * 
-		 * @param host
-		 *            ホスト名。
-		 * @return ビルダー。
-		 */
-		public Builder host(String host) {
-			this.host = host;
-			return this;
-		}
+        /**
+         * ホスト名を設定する.
+         * 
+         * @param host ホスト名。
+         * @return ビルダー。
+         */
+        public Builder host(final String host) {
+            this.mHost = host;
+            return this;
+        }
 
-		/**
-		 * ドキュメントルートのパスを設定する.
-		 * 
-		 * @param documentRootPath
-		 *            ドキュメントルートのパス。
-		 * @return ビルダー。
-		 * @throws IllegalArgumentException
-		 *             documentRootPathがnullの場合スローされる。
-		 */
-		public Builder documentRootPath(String documentRootPath) {
+        /**
+         * ドキュメントルートのパスを設定する.
+         * 
+         * @param documentRootPath ドキュメントルートのパス。
+         * @return ビルダー。
+         */
+        public Builder documentRootPath(final String documentRootPath) {
 
-			if (documentRootPath == null) {
-				throw new IllegalArgumentException(
-						"Document root must be not null.");
-			}
+            if (documentRootPath == null) {
+                throw new IllegalArgumentException("Document root must be not null.");
+            }
 
-			this.documentRootPath = documentRootPath;
-			return this;
-		}
+            this.mDocumentRootPath = documentRootPath;
+            return this;
+        }
 
-		/**
-		 * IPのホワイトリストを設定する.
-		 * 
-		 * @param ipWhiteList
-		 *            IPのホワイトリスト。
-		 * @return ビルダー。
-		 */
-		public Builder ipWhiteList(ArrayList<String> ipWhiteList) {
-			this.ipWhiteList = ipWhiteList;
-			return this;
-		}
-	}
+        /**
+         * IPのホワイトリストを設定する.
+         * 
+         * @param ipWhiteList IPのホワイトリスト。
+         * @return ビルダー。
+         */
+        public Builder ipWhiteList(final ArrayList<String> ipWhiteList) {
+            this.mIpWhiteList = ipWhiteList;
+            return this;
+        }
+    }
 }

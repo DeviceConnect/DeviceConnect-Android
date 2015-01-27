@@ -81,7 +81,6 @@ public class TestDeviceOrientationProfile extends DeviceOrientationProfile {
             setAccelerationIncludingGravity(orientation, a2);
             setRotationRate(orientation, r);
             setInterval(orientation, 0);
-            
             setOrientation(intent, orientation);
             Util.sendBroadcast(getContext(), intent);
         }

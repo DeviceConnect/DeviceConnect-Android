@@ -23,6 +23,11 @@ public final class Util {
     private static final long DEFAULT_DELAY = 1000;
 
     /**
+     * ユーティリティクラスのため、インスタンスを生成させない.
+     */
+    private Util() {
+    }
+    /**
      * 指定したミリ秒後に別スレッドでインテントをブロードキャストする.
      * @param context コンテキスト
      * @param intent インテント
@@ -51,11 +56,5 @@ public final class Util {
      */
     public static void sendBroadcast(final Context context, final Intent intent) {
         sendBroadcast(context, intent, DEFAULT_DELAY);
-    }
-
-    /**
-     * ユーティリティクラスのため、インスタンスを生成させない.
-     */
-    private Util() {
     }
 }

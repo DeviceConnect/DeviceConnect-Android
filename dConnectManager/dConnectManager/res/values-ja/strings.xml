@@ -32,7 +32,6 @@
     <string name="activity_settings_about">About</string>
     <string name="activity_settings_general">General</string>
     <string name="activity_settings_not_logged_in">Not logged in yet</string>
-    <string name="activity_settings_docomo_account">docomo ID</string>
 
     <!-- ================= SharedPreferences ================= -->
 

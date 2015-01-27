@@ -58,24 +58,24 @@ public class SWVibrationProfile extends VibrationProfile {
      * 
      * @param response レスポンス
      * @param deviceId デバイスID
-     * @param pattern 振動パターン
+     * @param origPattern 振動パターン
      */
     private void runThread(final Intent response, final String deviceId, final long[] origPattern) {
         Thread thread = new Thread() {
             public void run() {
                 long[] pattern;
-                if (origPattern.length %2 != 0) {
+                if (origPattern.length % 2 != 0) {
                     pattern = new long[origPattern.length + 1];
                     for (int i = 0; i < origPattern.length; i++) {
                         pattern[i] = origPattern[i];
                     }
-                    pattern[pattern.length -1] = 0;
+                    pattern[pattern.length - 1] = 0;
                 } else {
                     pattern = origPattern;
                 }
 
                 long prevInterval = 0;
-                for (int cnt = 0; cnt < pattern.length; cnt+=2) {
+                for (int cnt = 0; cnt < pattern.length; cnt += 2) {
                     try {
                         if (prevInterval > 0) {
                             Thread.sleep(prevInterval);

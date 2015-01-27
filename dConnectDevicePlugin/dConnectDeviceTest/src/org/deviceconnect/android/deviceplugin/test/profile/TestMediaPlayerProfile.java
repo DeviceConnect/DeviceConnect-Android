@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.test.profile;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.MediaPlayerProfileConstants.PlayStatus;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -66,7 +65,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutStop(Intent request, Intent response, String deviceId) {
+    protected boolean onPutStop(final Intent request, final Intent response, final String deviceId) {
         if (deviceId == null) {
             createEmptyDeviceId(response);
         } else if (!checkDeviceId(deviceId)) {
@@ -78,7 +77,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutPause(Intent request, Intent response, String deviceId) {
+    protected boolean onPutPause(final Intent request, final Intent response, final String deviceId) {
         if (deviceId == null) {
             createEmptyDeviceId(response);
         } else if (!checkDeviceId(deviceId)) {
@@ -90,7 +89,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutResume(Intent request, Intent response, String deviceId) {
+    protected boolean onPutResume(final Intent request, final Intent response, final String deviceId) {
         if (deviceId == null) {
             createEmptyDeviceId(response);
         } else if (!checkDeviceId(deviceId)) {
@@ -102,7 +101,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetPlayStatus(Intent request, Intent response, String deviceId) {
+    protected boolean onGetPlayStatus(final Intent request, final Intent response, final String deviceId) {
         
         if (deviceId == null) {
             createEmptyDeviceId(response);
@@ -117,7 +116,8 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutMedia(Intent request, Intent response, String deviceId, String mediaId) {
+    protected boolean onPutMedia(final Intent request, final Intent response,
+                                    final String deviceId, final String mediaId) {
         
         if (deviceId == null) {
             createEmptyDeviceId(response);
@@ -132,7 +132,8 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetMedia(Intent request, Intent response, String deviceId, String mediaId) {
+    protected boolean onGetMedia(final Intent request, final Intent response,
+                                        final String deviceId, final String mediaId) {
         
         if (deviceId == null) {
             createEmptyDeviceId(response);
@@ -160,8 +161,9 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetMediaList(Intent request, Intent response, String deviceId, String query, String mimeType,
-            String[] orders, Integer offset, Integer limit) {
+    protected boolean onGetMediaList(final Intent request, final Intent response,
+            final String deviceId, final String query, final String mimeType,
+            final String[] orders, final Integer offset, final Integer limit) {
         
         if (deviceId == null) {
             createEmptyDeviceId(response);
@@ -191,7 +193,8 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutVolume(Intent request, Intent response, String deviceId, Double volume) {
+    protected boolean onPutVolume(final Intent request, final Intent response,
+                                    final String deviceId, final Double volume) {
         
         if (deviceId == null) {
             createEmptyDeviceId(response);
@@ -208,7 +211,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetVolume(Intent request, Intent response, String deviceId) {
+    protected boolean onGetVolume(final Intent request, final Intent response, final String deviceId) {
         
         if (deviceId == null) {
             createEmptyDeviceId(response);
@@ -216,14 +219,15 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
-            setVolume(response, 0.5);    
+            setVolume(response, 0.5);
         }
         
         return true;
     }
 
     @Override
-    protected boolean onPutSeek(Intent request, Intent response, String deviceId, Integer pos) {
+    protected boolean onPutSeek(final Intent request, final Intent response,
+                                            final String deviceId, final Integer pos) {
         
         if (deviceId == null) {
             createEmptyDeviceId(response);
@@ -242,7 +246,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetSeek(Intent request, Intent response, String deviceId) {
+    protected boolean onGetSeek(final Intent request, final Intent response, final String deviceId) {
         
         if (deviceId == null) {
             createEmptyDeviceId(response);
@@ -257,7 +261,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutMute(Intent request, Intent response, String deviceId) {
+    protected boolean onPutMute(final Intent request, final Intent response, final String deviceId) {
         
         if (deviceId == null) {
             createEmptyDeviceId(response);
@@ -271,7 +275,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onDeleteMute(Intent request, Intent response, String deviceId) {
+    protected boolean onDeleteMute(final Intent request, final Intent response, final String deviceId) {
         if (deviceId == null) {
             createEmptyDeviceId(response);
         } else if (!checkDeviceId(deviceId)) {
@@ -283,7 +287,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetMute(Intent request, Intent response, String deviceId) {
+    protected boolean onGetMute(final Intent request, final Intent response, final String deviceId) {
         
         if (deviceId == null) {
             createEmptyDeviceId(response);
@@ -298,7 +302,8 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutOnStatusChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onPutOnStatusChange(final Intent request, final Intent response,
+                                                    final String deviceId, final String sessionKey) {
 
         if (deviceId == null) {
             createEmptyDeviceId(response);
@@ -329,7 +334,8 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onDeleteOnStatusChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onDeleteOnStatusChange(final Intent request, final Intent response,
+                                                final String deviceId, final String sessionKey) {
         if (deviceId == null) {
             createEmptyDeviceId(response);
         } else if (!checkDeviceId(deviceId)) {

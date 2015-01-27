@@ -7,7 +7,7 @@
 package org.deviceconnect.android.deviceplugin.pebble.util;
 
 /**
- * バイナリデータを扱うクラス
+ * バイナリデータを扱うクラス.
  * @author NTT DOCOMO, INC.
  */
 public final class BinaryTools {

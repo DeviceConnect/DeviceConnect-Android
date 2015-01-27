@@ -22,7 +22,7 @@ import android.content.Intent;
  */
 public class RegisterNetworkServiceDiscovery extends DConnectRequest {
     /** ロガー. */
-    private final Logger sLogger = Logger.getLogger("dconnect.manager");
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** 送信先のデバイスプラグイン. */
     private DevicePlugin mDevicePlugin;
@@ -99,7 +99,7 @@ public class RegisterNetworkServiceDiscovery extends DConnectRequest {
             if (result == DConnectMessage.RESULT_ERROR) {
                 int errorCode = getErrorCode(mResponse);
                 String errorMsg = getErrorMessage(mResponse);
-                sLogger.severe("Failed to register onservicechange event." 
+                mLogger.severe("Failed to register onservicechange event." 
                         + "errorCode=" + errorCode + " errorMessage=" + errorMsg);
             }
         } else {

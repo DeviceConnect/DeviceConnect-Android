@@ -6,6 +6,6 @@
  */
 
 /**
- * Chromecast package
+ * Device Connect Chromecast DevicePlugin の基本クラスを提供する.
  */
 package org.deviceconnect.android.deviceplugin.chromecast;

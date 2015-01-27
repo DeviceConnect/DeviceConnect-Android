@@ -11,7 +11,7 @@ import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.IRKitConnection
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.IRKitConnectionCheckingCallback;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -31,7 +31,14 @@ public class IRKitEndingFragment extends IRKitBaseFragment implements OnClickLis
      * ステート定数.
      */
     private enum State {
-        IDLING, CONNECTING_TO_IRKIT, WAITING_FOR_LAN, CONNECTED,
+        /** IDLING. */
+        IDLING,
+        /** Connecting to IRKit. */
+        CONNECTING_TO_IRKIT,
+        /** Waiting For LAN. */
+        WAITING_FOR_LAN,
+        /** Connected. */
+        CONNECTED,
     }
 
     /**
@@ -39,6 +46,7 @@ public class IRKitEndingFragment extends IRKitBaseFragment implements OnClickLis
      */
     private State mState;
 
+    @SuppressLint("InflateParams")
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, 
             final Bundle savedInstanceState) {

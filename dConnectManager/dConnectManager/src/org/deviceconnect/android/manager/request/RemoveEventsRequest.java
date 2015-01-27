@@ -28,7 +28,7 @@ public class RemoveEventsRequest extends DConnectRequest {
     private SparseArray<DevicePlugin> mRequestCodeArray = new SparseArray<DevicePlugin>();
 
     /** ロガー. */
-    private final Logger sLogger = Logger.getLogger("dconnect.manager");
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** ロックオブジェクト. */
     private final Object mLockObj = new Object();
@@ -39,7 +39,7 @@ public class RemoveEventsRequest extends DConnectRequest {
         int requestCode = response.getIntExtra(
                 IntentDConnectMessage.EXTRA_REQUEST_CODE, -1);
         if (requestCode == -1) {
-            sLogger.warning("Illegal requestCode. requestCode=" + requestCode);
+            mLogger.warning("Illegal requestCode. requestCode=" + requestCode);
             return;
         }
 
@@ -89,7 +89,7 @@ public class RemoveEventsRequest extends DConnectRequest {
                     mLockObj.wait(mTimeout);
                 } catch (InterruptedException e) {
                     // do nothing.
-                    sLogger.warning("Exception ouccered in wait.");
+                    mLogger.warning("Exception ouccered in wait.");
                 }
             }
             // タイムアウトチェック

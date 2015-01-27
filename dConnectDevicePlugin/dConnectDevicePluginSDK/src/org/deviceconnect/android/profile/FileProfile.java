@@ -12,7 +12,6 @@ import java.util.List;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.profile.FileProfileConstants;
-import org.deviceconnect.profile.FileProfileConstants.FileType;
 
 import android.content.Intent;
 import android.os.Bundle;

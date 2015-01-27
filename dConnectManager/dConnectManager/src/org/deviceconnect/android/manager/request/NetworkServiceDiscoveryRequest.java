@@ -41,7 +41,7 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
     private final List<Bundle> mServices = new ArrayList<Bundle>();
 
     /** ロガー. */
-    private final Logger sLogger = Logger.getLogger("dconnect.manager");
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** ロックオブジェクト. */
     private final Object mLockObj = new Object();
@@ -52,7 +52,7 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
         int requestCode = response.getIntExtra(
                 IntentDConnectMessage.EXTRA_REQUEST_CODE, -1);
         if (requestCode == -1) {
-            sLogger.warning("Illegal requestCode. requestCode=" + requestCode);
+            mLogger.warning("Illegal requestCode. requestCode=" + requestCode);
             return;
         }
 
@@ -71,6 +71,7 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
                             mPluginMgr.appendDeviceId(plugin, id));
                     mServices.add(b);
                 }
+                mRequestCodeArray.remove(requestCode);
             }
         }
 
@@ -119,11 +120,12 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
                     mLockObj.wait(mTimeout);
                 } catch (InterruptedException e) {
                     // do nothing.
-                    sLogger.warning("Exception ouccered in wait.");
+                    mLogger.warning("Exception ouccered in wait.");
                 }
             }
             // タイムアウトチェック
             if (System.currentTimeMillis() - start > mTimeout) {
+                restartDevicePlugins();
                 break;
             }
         }
@@ -137,5 +139,20 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
 
         // レスポンスを返却する
         sendResponse(mResponse);
+    }
+    
+    /**
+     * Restart all device plugins that response did not come back.
+     */
+    private void restartDevicePlugins() {
+        for (int i = 0; i < mRequestCodeArray.size(); i++) {
+            DevicePlugin plugin = mRequestCodeArray.valueAt(i);
+            if (plugin.getStartServiceClassName() != null) {
+                Intent service = new Intent();
+                service.setClassName(plugin.getPackageName(), 
+                        plugin.getStartServiceClassName());
+                getContext().startService(service);
+            }
+        }
     }
 }

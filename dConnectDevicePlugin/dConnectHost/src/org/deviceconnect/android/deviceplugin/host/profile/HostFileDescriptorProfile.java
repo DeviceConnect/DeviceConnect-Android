@@ -87,7 +87,12 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
         } else if (!checkDeviceId(deviceId)) {
             createNotFoundDevice(response);
         } else if (path == null || data == null || (position != null && position < 0)) {
-            MessageUtils.setInvalidRequestParameterError(response, "path=" + path + " , data=" + data + ", position="
+            String d = "";
+            if (data != null) {
+                d = new String(data, 0, data.length);
+            }
+            MessageUtils.setInvalidRequestParameterError(response, "path=" + path + " , data="
+                   + d + ", position="
                     + position);
         } else {
             ((HostDeviceService) getContext()).writeDataToFile(response, deviceId, path, data, position);

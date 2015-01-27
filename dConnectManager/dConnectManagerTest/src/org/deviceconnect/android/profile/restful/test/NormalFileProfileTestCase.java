@@ -17,6 +17,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.mime.MultipartEntity;
+import org.deviceconnect.android.test.BuildConfig;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
@@ -188,6 +189,9 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
                 try {
                     in.close();
                 } catch (IOException e) {
+                    if (BuildConfig.DEBUG) {
+                       e.printStackTrace();
+                    }
                 }
             }
         }

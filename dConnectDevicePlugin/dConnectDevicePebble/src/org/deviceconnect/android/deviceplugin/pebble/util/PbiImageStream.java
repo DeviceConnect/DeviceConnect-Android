@@ -7,7 +7,7 @@
 package org.deviceconnect.android.deviceplugin.pebble.util;
 
 /**
- * Pebble 用 pbi 画像のファイルイメージ作成
+ * Pebble 用 pbi 画像のファイルイメージ作成.
  * 
  * @author NTT DOCOMO, INC.
  * @see ~/pebble-dev/PebbleSDK-2.3/Pebble/tools/bitmapgen.py を参照のこと

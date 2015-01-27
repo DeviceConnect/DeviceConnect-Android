@@ -37,12 +37,12 @@ public class DConnectService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
 
-        sLogger.entering(this.getClass().getName(), "onCreate");
+        mLogger.entering(this.getClass().getName(), "onCreate");
 
         // HTTPサーバ起動
         startHttpServer();
 
-        sLogger.exiting(this.getClass().getName(), "onCreate");
+        mLogger.exiting(this.getClass().getName(), "onCreate");
     }
 
     @Override
@@ -67,12 +67,12 @@ public class DConnectService extends DConnectMessageService {
         if (receiver == null || receiver.length() <= 0) {
             String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
             try {
-                sLogger.fine("■ sendEvent: " + key + " extra: " + event.getExtras());
+                mLogger.fine("■ sendEvent: " + key + " extra: " + event.getExtras());
                 JSONObject root = new JSONObject();
                 DConnectUtil.convertBundleToJSON(root, event.getExtras());
                 mWebServer.sendEvent(key, root.toString());
             } catch (Exception e) {
-                sLogger.warning("Exception in sendEvent: " + e.toString());
+                mLogger.warning("Exception in sendEvent: " + e.toString());
             }
         } else {
             super.sendEvent(receiver, event);
@@ -96,10 +96,10 @@ public class DConnectService extends DConnectMessageService {
             builder.ipWhiteList(list);
         }
 
-        sLogger.fine("Host: " + mSettings.getHost());
-        sLogger.fine("Port: " + mSettings.getPort());
-        sLogger.fine("SSL: " + mSettings.isSSL());
-        sLogger.fine("External IP: " + mSettings.allowExternalIP());
+        mLogger.fine("Host: " + mSettings.getHost());
+        mLogger.fine("Port: " + mSettings.getPort());
+        mLogger.fine("SSL: " + mSettings.isSSL());
+        mLogger.fine("External IP: " + mSettings.allowExternalIP());
 
         if (mWebServer == null) {
             mWebServer = new DConnectServerNanoHttpd(builder.build(), this);

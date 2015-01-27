@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.test.profile;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SettingsProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.SettingsProfileConstants.VolumeKind;
 
 import android.content.Intent;
 
@@ -148,7 +147,8 @@ public class TestSettingsProfile extends SettingsProfile {
     }
 
     @Override
-    protected boolean onPutDisplayLight(final Intent request, final Intent response, final String deviceId, final Double level) {
+    protected boolean onPutDisplayLight(final Intent request, final Intent response,
+                                            final String deviceId, final Double level) {
         
         if (deviceId == null) {
             createEmptydeviceId(response);
@@ -163,7 +163,8 @@ public class TestSettingsProfile extends SettingsProfile {
     }
 
     @Override
-    protected boolean onPutDisplaySleep(final Intent request, final Intent response, final String deviceId, final Integer time) {
+    protected boolean onPutDisplaySleep(final Intent request, final Intent response,
+                                                final String deviceId, final Integer time) {
         
         if (deviceId == null) {
             createEmptydeviceId(response);

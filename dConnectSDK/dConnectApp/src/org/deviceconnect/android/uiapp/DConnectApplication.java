@@ -22,7 +22,7 @@ public class DConnectApplication extends Application {
     /**
      * ロガー.
      */
-    private Logger logger = Logger.getLogger("deviceconnect");
+    private Logger mLogger = Logger.getLogger("deviceconnect");
 
     @Override
     public void onCreate() {
@@ -32,10 +32,10 @@ public class DConnectApplication extends Application {
             AndroidHandler handler = new AndroidHandler("deviceconnect.uiapp");
             handler.setFormatter(new SimpleFormatter());
             handler.setLevel(Level.INFO);
-            logger.addHandler(handler);
-            logger.setLevel(Level.INFO);
+            mLogger.addHandler(handler);
+            mLogger.setLevel(Level.INFO);
         } else {
-            logger.setLevel(Level.OFF);
+            mLogger.setLevel(Level.OFF);
         }
     }
 }

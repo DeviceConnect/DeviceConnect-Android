@@ -16,29 +16,27 @@ import org.deviceconnect.server.http.HttpResponse;
  */
 public interface DConnectServerEventListener {
 
-	/**
-	 * Httpリクエストの受信時に呼び出されます. <br/>
-	 * d-Connectのリクエストとして正しくないなどの理由でリクエストの受理を破棄する
-	 * 場合は、戻り値としてfalseを返すことでサーバーに通常のHTTPリクエストとして処理させます。
-	 * 
-	 * @param req
-	 *            Httpリクエスト
-	 * @param res
-	 *            Httpレスポンス
-	 * @return リクエストを受理する場合はtrue、リクエストを無視する場合はfalseを返す
-	 */
-	boolean onReceivedHttpRequest(HttpRequest req, HttpResponse res);
-	
-	/**
-	 * サーバーでエラーが発生した場合に呼び出されます.
-	 * 
-	 * @param errorCode エラー種類
-	 */
-	void onError(DConnectServerError errorCode);
-	
-	/**
-	 * サーバーが起動した時に呼び出されます.
-	 */
-	void onServerLaunched();
-	
+    /**
+     * Httpリクエストの受信時に呼び出されます. <br/>
+     * Device Connect のリクエストとして正しくないなどの理由でリクエストの受理を破棄する
+     * 場合は、戻り値としてfalseを返すことでサーバーに通常のHTTPリクエストとして処理させます。
+     * 
+     * @param req Httpリクエスト
+     * @param res Httpレスポンス
+     * @return リクエストを受理する場合はtrue、リクエストを無視する場合はfalseを返す
+     */
+    boolean onReceivedHttpRequest(HttpRequest req, HttpResponse res);
+
+    /**
+     * サーバーでエラーが発生した場合に呼び出されます.
+     * 
+     * @param errorCode エラー種類
+     */
+    void onError(DConnectServerError errorCode);
+
+    /**
+     * サーバーが起動した時に呼び出されます.
+     */
+    void onServerLaunched();
+
 }

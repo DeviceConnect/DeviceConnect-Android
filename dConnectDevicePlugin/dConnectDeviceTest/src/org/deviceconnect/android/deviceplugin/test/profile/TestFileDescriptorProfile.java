@@ -8,10 +8,10 @@ package org.deviceconnect.android.deviceplugin.test.profile;
 
 import java.io.ByteArrayOutputStream;
 
+import org.deviceconnect.android.deviceplugin.test.R;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.FileDescriptorProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.FileDescriptorProfileConstants.Flag;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -19,8 +19,6 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Base64;
-
-import org.deviceconnect.android.deviceplugin.test.R;
 
 /**
  * JUnit用テストデバイスプラグイン、FileDescriptorプロファイル.
@@ -162,7 +160,8 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
         } else if (!checkDeviceId(deviceId)) {
             createNotFoundDevice(response);
         } else if (path == null || data == null || (position != null && position < 0)) {
-            MessageUtils.setInvalidRequestParameterError(response, "path=" + path + " , data=" + data + ", position=" + position);
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "path=" + path + " , data=" + data + ", position=" + position);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }

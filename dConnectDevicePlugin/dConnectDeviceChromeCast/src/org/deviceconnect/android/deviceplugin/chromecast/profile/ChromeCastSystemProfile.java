@@ -66,26 +66,26 @@ public class ChromeCastSystemProfile extends SystemProfile {
     }
 
     @Override
-    protected boolean onGetDevice(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetDevice(final Intent request, final Intent response, final String serviceId) {
         // Select Route, launch
         ChromeCastDiscovery discovery = ((ChromeCastService) getContext()).getChromeCastDiscovery();
         ChromeCastApplication application = ((ChromeCastService) getContext()).getChromeCastApplication();
         if (discovery.getSelectedDevice() != null) {
-            if (discovery.getSelectedDevice().getFriendlyName().equals(deviceId)) {
+            if (discovery.getSelectedDevice().getFriendlyName().equals(serviceId)) {
                 application.connect();
             } else {
-                discovery.setRouteName(deviceId);
+                discovery.setRouteName(serviceId);
             }
         } else {
-            discovery.setRouteName(deviceId);
+            discovery.setRouteName(serviceId);
         }
 
         // connect
         Bundle connect = new Bundle();
-        setWifiState(connect, getWifiState(deviceId));
-        setBluetoothState(connect, getBluetoothState(deviceId));
-        setNFCState(connect, getNFCState(deviceId));
-        setBLEState(connect, getBLEState(deviceId));
+        setWifiState(connect, getWifiState(serviceId));
+        setBluetoothState(connect, getBluetoothState(serviceId));
+        setNFCState(connect, getNFCState(serviceId));
+        setBLEState(connect, getBLEState(serviceId));
         setConnect(response, connect);
 
         // version

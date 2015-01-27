@@ -64,8 +64,8 @@ public class ChromeCastService extends DConnectMessageService implements
     private ChromeCastHttpServer mServer;
     /** ChromecastMediaPlayerProfile. */
     private ChromeCastMediaPlayerProfile mMediaPlayerProfile;
-    /** StatusChange時のDeviceId. */
-    private String mDeviceIdOnStatusChange = null;
+    /** StatusChange時のServiceId. */
+    private String mServiceIdOnStatusChange = null;
     /** StatusChange時のSessionKey. */
     private String mSessionKeyOnStatusChange = null;
     /** MediaPlayerのステータスアップデートフラグ. */
@@ -126,7 +126,7 @@ public class ChromeCastService extends DConnectMessageService implements
     public void onCastDeviceSelected(final CastDevice selectedDevice) {
         CastDevice currentDevice = mApplication.getSelectedDevice();
         if (currentDevice != null) {
-            if (!currentDevice.getDeviceId().equals(selectedDevice.getDeviceId())) {
+            if (!currentDevice.getServiceId().equals(selectedDevice.getServiceId())) {
                 mApplication.setSelectedDevice(selectedDevice);
                 mApplication.reconnect();
             } else {
@@ -183,11 +183,11 @@ public class ChromeCastService extends DConnectMessageService implements
      * StatusChange通知を有効にする.
      * 
      * @param response レスポンス
-     * @param deviceId デバイスを識別するID
+     * @param serviceId デバイスを識別するID
      * @param sessionKey イベントを識別するKey
      */
-    public void registerOnStatusChange(final Intent response, final String deviceId, final String sessionKey) {
-        mDeviceIdOnStatusChange = deviceId;
+    public void registerOnStatusChange(final Intent response, final String serviceId, final String sessionKey) {
+        mServiceIdOnStatusChange = serviceId;
         mSessionKeyOnStatusChange = sessionKey;
         mEnableCastMediaPlayerStatusUpdate = true;
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
@@ -201,7 +201,7 @@ public class ChromeCastService extends DConnectMessageService implements
      * @param response レスポンス
      */
     public void unregisterOnStatusChange(final Intent response) {
-        mDeviceIdOnStatusChange = null;
+        mServiceIdOnStatusChange = null;
         mSessionKeyOnStatusChange = null;
         mEnableCastMediaPlayerStatusUpdate = false;
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
@@ -215,7 +215,7 @@ public class ChromeCastService extends DConnectMessageService implements
         String playStatusString = mMediaPlayerProfile.getPlayStatus(status.getPlayerState());
 
         if (mEnableCastMediaPlayerStatusUpdate) {
-            List<Event> events = EventManager.INSTANCE.getEventList(mDeviceIdOnStatusChange, 
+            List<Event> events = EventManager.INSTANCE.getEventList(mServiceIdOnStatusChange, 
                     MediaPlayerProfile.PROFILE_NAME, null,
                     MediaPlayerProfile.ATTRIBUTE_ON_STATUS_CHANGE);
 

@@ -56,7 +56,7 @@ public class ChromeCastNetworkServiceDiscoveryProfile extends NetworkServiceDisc
 
     @Override
     protected boolean onPutOnServiceChange(final Intent request, final Intent response, 
-                                            final String deviceId, final String sessionKey) {
+                                            final String serviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.addEvent(request);
         switch (error) {
         case NONE:
@@ -74,7 +74,7 @@ public class ChromeCastNetworkServiceDiscoveryProfile extends NetworkServiceDisc
 
     @Override
     protected boolean onDeleteOnServiceChange(final Intent request, final Intent response,
-                                                final String deviceId, final String sessionKey) {
+                                                final String serviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         switch (error) {
         case NONE:

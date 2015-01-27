@@ -154,7 +154,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onPutPlay(final Intent request, final Intent response,
-            final String deviceId) {
+            final String serviceId) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -179,7 +179,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onPutResume(final Intent request, final Intent response,
-            final String deviceId) {
+            final String serviceId) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -201,7 +201,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onPutStop(final Intent request, final Intent response,
-            final String deviceId) {
+            final String serviceId) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -225,7 +225,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onPutPause(final Intent request, final Intent response,
-            final String deviceId) {
+            final String serviceId) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -251,12 +251,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      * 
      * @param   request     リクエスト
      * @param   response    レスポンス
-     * @param   deviceId    デバイスID
+     * @param   serviceId    サービスID
      * @param   mute        ミュートするか否か（true: ミュートON, false: ミュートOFF）
      * @return  result      結果を返す（true: 成功, false: 失敗）
      */
     private boolean setMute(final Intent request, final Intent response,
-            final String deviceId, final boolean mute) {
+            final String serviceId, final boolean mute) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app))	{
             return true;
@@ -277,19 +277,19 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     }
     @Override
     protected boolean onPutMute(final Intent request, final Intent response,
-            final String deviceId) {
-        return setMute(request, response, deviceId, true);
+            final String serviceId) {
+        return setMute(request, response, serviceId, true);
     }
 
     @Override
     protected boolean onDeleteMute(final Intent request, final Intent response,
-            final String deviceId) {
-        return setMute(request, response, deviceId, false);
+            final String serviceId) {
+        return setMute(request, response, serviceId, false);
     }
 
     @Override
     protected boolean onGetMute(final Intent request, final Intent response,
-            final String deviceId) {
+            final String serviceId) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -314,7 +314,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onPutVolume(final Intent request, final Intent response,
-            final String deviceId, final Double volume) {
+            final String serviceId, final Double volume) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -344,7 +344,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onGetVolume(final Intent request, final Intent response,
-            final String deviceId) {
+            final String serviceId) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -365,7 +365,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onPutSeek(final Intent request, final Intent response,
-            final String deviceId, final Integer pos) {
+            final String serviceId, final Integer pos) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -402,7 +402,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onGetSeek(final Intent request, final Intent response,
-            final String deviceId) {
+            final String serviceId) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -423,7 +423,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onGetPlayStatus(final Intent request,
-            final Intent response, final String deviceId) {
+            final Intent response, final String serviceId) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -441,7 +441,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onGetMedia(final Intent request, final Intent response,
-            final String deviceId, final String mediaId) {
+            final String serviceId, final String mediaId) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -547,7 +547,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onPutMedia(final Intent request, final Intent response,
-            final String deviceId, final String mediaId) {
+            final String serviceId, final String mediaId) {
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -793,7 +793,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onGetMediaList(final Intent request, final Intent response,
-            final String deviceId, final String query, final String mimeType,
+            final String serviceId, final String query, final String mimeType,
             final String[] orders, final Integer offset, final Integer limit) {
         List<Bundle> list = new ArrayList<Bundle>();
 
@@ -823,12 +823,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onPutOnStatusChange(final Intent request,
-            final Intent response, final String deviceId,
+            final Intent response, final String serviceId,
             final String sessionKey) {
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             ((ChromeCastService) getContext()).registerOnStatusChange(response,
-                    deviceId, sessionKey);
+                    serviceId, sessionKey);
             return false;
         } else {
             MessageUtils.setError(response, ERROR_VALUE_IS_NULL,
@@ -839,7 +839,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     @Override
     protected boolean onDeleteOnStatusChange(final Intent request,
-            final Intent response, final String deviceId,
+            final Intent response, final String serviceId,
             final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {

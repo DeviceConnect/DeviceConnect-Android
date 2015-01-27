@@ -48,7 +48,7 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      */
     public void testBattery() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         Intent response = sendRequest(request);
@@ -84,7 +84,7 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      */
     public void testBatteryCharging() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_CHARGING);
@@ -112,7 +112,7 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      */
     public void testBatteryChargingTime() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_CHARGING_TIME);
@@ -140,7 +140,7 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      */
     public void testBatteryDischargingTime() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_DISCHARGING_TIME);
@@ -168,7 +168,7 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      */
     public void testBatteryLevel() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_LEVEL);
@@ -196,7 +196,7 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      */
     public void testBatteryOnChargingChange01() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_ON_CHARGING_CHANGE);
@@ -228,7 +228,7 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      */
     public void testBatteryOnChargingChange02() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_ON_CHARGING_CHANGE);
@@ -253,7 +253,7 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      */
     public void testBatteryOnBatteryChange01() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE);
@@ -290,7 +290,7 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
      */
     public void testBatteryOnBatteryChange02() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, BatteryProfileConstants.ATTRIBUTE_ON_BATTERY_CHANGE);

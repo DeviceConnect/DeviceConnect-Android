@@ -45,19 +45,19 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /battery?deviceId&accessToken=xxxx
+     * Path: /battery?serviceId&accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testEmptyDeviceIdWithoutEqual() {
+    public void testEmptyServiceIdWithoutEqual() {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + BatteryProfileConstants.PROFILE_NAME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID);
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -70,28 +70,28 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * デバイスIDとして特殊文字を含む文字列を指定するテスト.
+     * サービスIDとして特殊文字を含む文字列を指定するテスト.
      * <p>
      * ただし、/ = ? & % ^ | ` " { } < >を除く.
      * </p>
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /battery?deviceId=&accessToken=xxxx
+     * Path: /battery?serviceId=&accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
-     * @throws UnsupportedEncodingException デバイスIDのURLエンコーディングに失敗した場合
+     * @throws UnsupportedEncodingException サービスIDのURLエンコーディングに失敗した場合
      */
-    public void testInvalidDeviceIdNoExist() throws UnsupportedEncodingException {
-        final String deviceId = URLEncoder.encode("!#$'()-~¥@[;+:*],._", "UTF-8");
+    public void testInvalidServiceIdNoExist() throws UnsupportedEncodingException {
+        final String serviceId = URLEncoder.encode("!#$'()-~¥@[;+:*],._", "UTF-8");
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + BatteryProfileConstants.PROFILE_NAME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + deviceId);
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + serviceId);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -111,7 +111,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /battery?deviceId=&accessToken=xxxx
+     * Path: /battery?serviceId=&accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -124,7 +124,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + BatteryProfileConstants.PROFILE_NAME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + accessToken);
         try {
@@ -154,7 +154,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + BatteryProfileConstants.PROFILE_NAME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + illegalAccessToken);
         try {
@@ -184,7 +184,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/abc");
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -214,7 +214,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/def");
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -242,7 +242,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("///?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         HttpUriRequest request = new HttpGet(builder.toString());
@@ -266,7 +266,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("//battery/charging?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -294,7 +294,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/battery//charging?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -322,7 +322,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/battery//charging?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {

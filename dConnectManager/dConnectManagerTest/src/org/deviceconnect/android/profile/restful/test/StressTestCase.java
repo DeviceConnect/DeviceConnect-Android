@@ -108,7 +108,7 @@ public class StressTestCase extends RESTfulDConnectTestCase {
     public void testStressTestDevicePluginProfile() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile("unique");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         HttpUriRequest request = new HttpGet(builder.toString());
         try {
@@ -146,7 +146,7 @@ public class StressTestCase extends RESTfulDConnectTestCase {
                     URIBuilder builder = TestURIBuilder.createURIBuilder();
                     builder.setProfile("unique");
                     builder.setAttribute("heavy");
-                    builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+                    builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
                     builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
                     builder.addParameter("key", Integer.toString(pos));
                     final HttpUriRequest request = new HttpGet(builder.toString());
@@ -205,7 +205,7 @@ public class StressTestCase extends RESTfulDConnectTestCase {
                     URIBuilder builder = TestURIBuilder.createURIBuilder();
                     builder.setProfile("unique");
                     builder.setAttribute("event");
-                    builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+                    builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
                     builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
                     builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
                     builder.addParameter("key", Integer.toString(pos));
@@ -249,7 +249,7 @@ public class StressTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(FileProfileConstants.PARAM_PATH, "/test/test.png");
 

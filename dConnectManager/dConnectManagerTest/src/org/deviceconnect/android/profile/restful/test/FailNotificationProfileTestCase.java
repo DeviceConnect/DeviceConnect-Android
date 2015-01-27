@@ -36,7 +36,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを指定せずに通知を送信するテストを行う.
+     * serviceIdを指定せずに通知を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -47,7 +47,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostNotifyNoDeviceId() {
+    public void testPostNotifyNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
@@ -56,29 +56,29 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で通知を送信するテストを行う.
+     * serviceIdが空状態で通知を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/notify?deviceId=&type=0
+     * Path: /notification/notify?serviceId=&type=0
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostNotifyEmptyDeviceId() {
+    public void testPostNotifyEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -91,22 +91,22 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdで通知を送信するテストを行う.
+     * 存在しないserviceIdで通知を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/notify?deviceId=123456789&type=0
+     * Path: /notification/notify?serviceId=123456789&type=0
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostNotifyInvalidDeviceId() {
+    public void testPostNotifyInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -123,7 +123,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/notify?deviceId=xxxx&type=0&abc=abc
+     * Path: /notification/notify?serviceId=xxxx&type=0&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -136,7 +136,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -150,11 +150,11 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定して通知を送信するテストを行う.
+     * serviceIdを2重に指定して通知を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/notify?deviceId=123456789&deviceId=xxx&type=0
+     * Path: /notification/notify?serviceId=123456789&serviceId=xxx&type=0
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -162,12 +162,12 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostNotifyDuplicatedDeviceId() {
+    public void testPostNotifyDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -184,7 +184,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /notification/notify?deviceId=xxxx&type=0
+     * Path: /notification/notify?serviceId=xxxx&type=0
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -195,7 +195,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -212,7 +212,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/notify?deviceId=xxxx
+     * Path: /notification/notify?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -223,7 +223,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -236,7 +236,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを指定せずに通知を削除するテストを行う.
+     * serviceIdを指定せずに通知を削除するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -247,7 +247,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteNotifyNoDeviceId() {
+    public void testDeleteNotifyNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
@@ -256,29 +256,29 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で通知を削除するテストを行う.
+     * serviceIdが空状態で通知を削除するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/notify?deviceId=&notificationId=xxxx
+     * Path: /notification/notify?serviceId=&notificationId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteNotifyEmptyDeviceId() {
+    public void testDeleteNotifyEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -291,22 +291,22 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdで通知を削除するテストを行う.
+     * 存在しないserviceIdで通知を削除するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/notify?deviceId=123456789&notificationId=xxxx
+     * Path: /notification/notify?serviceId=123456789&notificationId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteNotifyInvalidDeviceId() {
+    public void testDeleteNotifyInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -323,7 +323,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/notify?deviceId=xxxx&notificationId=xxxx&abc=abc
+     * Path: /notification/notify?serviceId=xxxx&notificationId=xxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -335,7 +335,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(NotificationProfileConstants.PARAM_NOTIFICATION_ID, "0");
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -349,11 +349,11 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定して通知を削除するテストを行う.
+     * serviceIdを2重に指定して通知を削除するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/notify?deviceId=123456789&deviceId=xxxx&notificationId=xxxx
+     * Path: /notification/notify?serviceId=123456789&serviceId=xxxx&notificationId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -361,12 +361,12 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteNotifyDuplicatedDeviceId() {
+    public void testDeleteNotifyDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(NotificationProfileConstants.PARAM_TYPE, "0");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -379,7 +379,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonclick属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonclick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -390,7 +390,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnClickChangeNoDeviceId() {
+    public void testPutOnClickChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
@@ -400,29 +400,29 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonclick属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonclick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclick?deviceId=&sessionKey=xxxx
+     * Path: /notification/onclick?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnClickChangeEmptyDeviceId() {
+    public void testPutOnClickChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -436,22 +436,22 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonclick属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonclick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclick?deviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onclick?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnClickChangeInvalidDeviceId() {
+    public void testPutOnClickChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -465,11 +465,11 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonclick属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonclick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclick?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onclick?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -477,12 +477,12 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnClickChangeDuplicatedDeviceId() {
+    public void testPutOnClickChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -496,7 +496,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonclick属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonclick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -507,7 +507,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnClickChangeNoDeviceId() {
+    public void testDeleteOnClickChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
@@ -517,29 +517,29 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonclick属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonclick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclick?deviceId=&sessionKey=xxxx
+     * Path: /notification/onclick?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnClickChangeEmptyDeviceId() {
+    public void testDeleteOnClickChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -553,22 +553,22 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonclick属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonclick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclick?deviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onclick?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnClickChangeInvalidDeviceId() {
+    public void testDeleteOnClickChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -582,11 +582,11 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonclick属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonclick属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclick?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onclick?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -594,12 +594,12 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnClickChangeDuplicatedDeviceId() {
+    public void testDeleteOnClickChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -617,7 +617,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /notification/onclick?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onclick?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -628,7 +628,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -646,7 +646,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/onclick?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onclick?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -657,7 +657,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -671,7 +671,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonshow属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonshow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -682,7 +682,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnShowChangeNoDeviceId() {
+    public void testPutOnShowChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
@@ -692,29 +692,29 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonshow属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonshow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onshow?deviceId=&sessionKey=xxxx
+     * Path: /notification/onshow?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnShowChangeEmptyDeviceId() {
+    public void testPutOnShowChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -728,22 +728,22 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonshow属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonshow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onshow?deviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onshow?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnShowChangeInvalidDeviceId() {
+    public void testPutOnShowChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -757,11 +757,11 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonshow属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonshow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onshow?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onshow?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -769,12 +769,12 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnShowChangeDuplicatedDeviceId() {
+    public void testPutOnShowChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -788,7 +788,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonshow属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonshow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -799,7 +799,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnShowChangeNoDeviceId() {
+    public void testDeleteOnShowChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
@@ -809,29 +809,29 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonshow属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonshow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onshow?deviceId=&sessionKey=xxxx
+     * Path: /notification/onshow?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnShowChangeEmptyDeviceId() {
+    public void testDeleteOnShowChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -845,22 +845,22 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonshow属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonshow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onshow?deviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onshow?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnShowChangeInvalidDeviceId() {
+    public void testDeleteOnShowChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -874,11 +874,11 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonshow属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonshow属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onshow?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onshow?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -886,12 +886,12 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnShowChangeDuplicatedDeviceId() {
+    public void testDeleteOnShowChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -909,7 +909,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /notification/onshow?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onshow?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -920,7 +920,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -938,7 +938,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/onshow?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onshow?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -949,7 +949,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -963,7 +963,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonclose属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonclose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -974,7 +974,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnCloseChangeNoDeviceId() {
+    public void testPutOnCloseChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
@@ -984,29 +984,29 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonclose属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonclose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclose?deviceId=&sessionKey=xxxx
+     * Path: /notification/onclose?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnCloseChangeEmptyDeviceId() {
+    public void testPutOnCloseChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1020,22 +1020,22 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonclose属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonclose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclose?deviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onclose?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnCloseChangeInvalidDeviceId() {
+    public void testPutOnCloseChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1049,11 +1049,11 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonclose属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonclose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclose?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onclose?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1061,12 +1061,12 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnCloseChangeDuplicatedDeviceId() {
+    public void testPutOnCloseChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1080,7 +1080,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonclose属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonclose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -1091,7 +1091,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnCloseChangeNoDeviceId() {
+    public void testDeleteOnCloseChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
@@ -1101,29 +1101,29 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonclose属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonclose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclose?deviceId=&sessionKey=xxxx
+     * Path: /notification/onclose?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnCloseChangeEmptyDeviceId() {
+    public void testDeleteOnCloseChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1137,22 +1137,22 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonclose属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonclose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclose?deviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onclose?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnCloseChangeInvalidDeviceId() {
+    public void testDeleteOnCloseChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1166,11 +1166,11 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonclose属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonclose属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclose?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onclose?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1178,12 +1178,12 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnCloseChangeDuplicatedDeviceId() {
+    public void testDeleteOnCloseChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1201,7 +1201,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /notification/onclose?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onclose?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1212,7 +1212,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1230,7 +1230,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/onclose?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onclose?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1241,7 +1241,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1255,7 +1255,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonerror属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonerror属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -1266,7 +1266,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnErrorChangeNoDeviceId() {
+    public void testPutOnErrorChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
@@ -1276,29 +1276,29 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonerror属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonerror属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onerror?deviceId=&sessionKey=xxxx
+     * Path: /notification/onerror?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnErrorChangeEmptyDeviceId() {
+    public void testPutOnErrorChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1312,22 +1312,22 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonerror属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonerror属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onerror?deviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onerror?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnErrorChangeInvalidDeviceId() {
+    public void testPutOnErrorChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1341,11 +1341,11 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonerror属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonerror属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onerror?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onerror?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1353,12 +1353,12 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnErrorChangeDuplicatedDeviceId() {
+    public void testPutOnErrorChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1372,7 +1372,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonerror属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonerror属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -1383,7 +1383,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnErrorChangeNoDeviceId() {
+    public void testDeleteOnErrorChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
@@ -1393,29 +1393,29 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonerror属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonerror属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onerror?deviceId=&sessionKey=xxxx
+     * Path: /notification/onerror?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnErrorChangeEmptyDeviceId() {
+    public void testDeleteOnErrorChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1429,22 +1429,22 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonerror属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonerror属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onerror?deviceId=123456789&sessionKey=xxxx
+     * Path: /notification/onerror?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnErrorChangeInvalidDeviceId() {
+    public void testDeleteOnErrorChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1458,11 +1458,11 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonerror属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonerror属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onerror?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /notification/onerror?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1470,12 +1470,12 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnErrorChangeDuplicatedDeviceId() {
+    public void testDeleteOnErrorChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1493,7 +1493,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /notification/onerror?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onerror?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1504,7 +1504,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1522,7 +1522,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /notification/onerror?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onerror?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1533,7 +1533,7 @@ public class FailNotificationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());

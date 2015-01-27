@@ -35,7 +35,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でondeviceproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -46,7 +46,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnDeviceProximityChangeNoDeviceId() {
+    public void testPutOnDeviceProximityChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
@@ -55,29 +55,29 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdが空状態でondeviceproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/ondeviceproximity?deviceId=&sessionKey=xxxx
+     * Path: /proximity/ondeviceproximity?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnDeviceProximityChangeEmptyDeviceId() {
+    public void testPutOnDeviceProximityChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -90,22 +90,22 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでondeviceproximity属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでondeviceproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/ondeviceproximity?deviceId=123456789&sessionKey=xxxx
+     * Path: /proximity/ondeviceproximity?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnDeviceProximityChangeInvalidDeviceId() {
+    public void testPutOnDeviceProximityChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -118,11 +118,11 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してondeviceproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/ondeviceproximity?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /proximity/ondeviceproximity?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -130,12 +130,12 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnDeviceProximityChangeDuplicatedDeviceId() {
+    public void testPutOnDeviceProximityChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -148,7 +148,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でondeviceproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -159,7 +159,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnDeviceProximityChangeNoDeviceId() {
+    public void testDeleteOnDeviceProximityChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
@@ -168,29 +168,29 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdが空状態でondeviceproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/ondeviceproximity?deviceId=&sessionKey=xxxx
+     * Path: /proximity/ondeviceproximity?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnDeviceProximityChangeEmptyDeviceId() {
+    public void testDeleteOnDeviceProximityChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -203,22 +203,22 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでondeviceproximity属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでondeviceproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/ondeviceproximity?deviceId=123456789&sessionKey=xxxx
+     * Path: /proximity/ondeviceproximity?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnDeviceProximityChangeInvalidDeviceId() {
+    public void testDeleteOnDeviceProximityChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -231,11 +231,11 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してondeviceproximity属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してondeviceproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/ondeviceproximity?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /proximity/ondeviceproximity?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -243,12 +243,12 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnDeviceProximityChangeDuplicatedDeviceId() {
+    public void testDeleteOnDeviceProximityChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -265,7 +265,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /proximity/ondeviceproximity?deviceId=xxxx&sessionKey=xxxx
+     * Path: /proximity/ondeviceproximity?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -276,7 +276,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -293,7 +293,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /proximity/ondeviceproximity?deviceId=xxxx&sessionKey=xxxx
+     * Path: /proximity/ondeviceproximity?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -304,7 +304,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -317,7 +317,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonuserproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -328,7 +328,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnUserProximityChangeNoDeviceId() {
+    public void testPutOnUserProximityChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
@@ -337,29 +337,29 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonuserproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/onuserproximity?deviceId=&sessionKey=xxxx
+     * Path: /proximity/onuserproximity?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnUserProximityChangeEmptyDeviceId() {
+    public void testPutOnUserProximityChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -372,22 +372,22 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonuserproximity属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonuserproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/onuserproximity?deviceId=123456789&sessionKey=xxxx
+     * Path: /proximity/onuserproximity?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnUserProximityChangeInvalidDeviceId() {
+    public void testPutOnUserProximityChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -400,11 +400,11 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonuserproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /proximity/onuserproximity?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /proximity/onuserproximity?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -412,12 +412,12 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnUserProximityChangeDuplicatedDeviceId() {
+    public void testPutOnUserProximityChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -430,7 +430,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonuserproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -441,7 +441,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnUserProximityChangeNoDeviceId() {
+    public void testDeleteOnUserProximityChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
@@ -450,29 +450,29 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonuserproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/onuserproximity?deviceId=&sessionKey=xxxx
+     * Path: /proximity/onuserproximity?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnUserProximityChangeEmptyDeviceId() {
+    public void testDeleteOnUserProximityChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -485,22 +485,22 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonuserproximity属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonuserproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/onuserproximity?deviceId=123456789&sessionKey=xxxx
+     * Path: /proximity/onuserproximity?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnUserProximityChangeInvalidDeviceId() {
+    public void testDeleteOnUserProximityChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -513,11 +513,11 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonuserproximity属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonuserproximity属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /proximity/onuserproximity?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /proximity/onuserproximity?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -525,12 +525,12 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnUserProximityChangeDuplicatedDeviceId() {
+    public void testDeleteOnUserProximityChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -547,7 +547,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /proximity/onuserproximity?deviceId=xxxx&sessionKey=xxxx
+     * Path: /proximity/onuserproximity?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -558,7 +558,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -575,7 +575,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /proximity/onuserproximity?deviceId=xxxx&sessionKey=xxxx
+     * Path: /proximity/onuserproximity?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -586,7 +586,7 @@ public class FailProximityProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
         builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {

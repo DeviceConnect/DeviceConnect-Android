@@ -50,7 +50,7 @@ public class NormalNetworkServiceDiscoveryProfileTestCase extends IntentDConnect
      */
     public void testGetNetworkServices() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(IntentDConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(IntentDConnectMessage.EXTRA_PROFILE, NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
         request.putExtra(IntentDConnectMessage.EXTRA_ATTRIBUTE,
                 NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);

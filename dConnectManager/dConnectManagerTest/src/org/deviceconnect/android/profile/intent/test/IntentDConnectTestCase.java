@@ -143,9 +143,9 @@ public class IntentDConnectTestCase extends DConnectTestCase {
                 NetworkServiceDiscoveryProfileConstants.PARAM_SERVICES);
         for (int i = 0; i < servicesExtra.length; i++) {
             Bundle obj = (Bundle) servicesExtra[i];
-            String deviceId = obj.getString(NetworkServiceDiscoveryProfileConstants.PARAM_ID);
+            String serviceId = obj.getString(NetworkServiceDiscoveryProfileConstants.PARAM_ID);
             String deviceName = obj.getString(NetworkServiceDiscoveryProfileConstants.PARAM_NAME);
-            services.add(new DeviceInfo(deviceId, deviceName));
+            services.add(new DeviceInfo(serviceId, deviceName));
         }
         return services;
     }

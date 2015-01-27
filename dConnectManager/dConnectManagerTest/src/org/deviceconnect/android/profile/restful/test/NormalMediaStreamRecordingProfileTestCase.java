@@ -60,7 +60,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -93,7 +93,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -128,7 +128,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(MediaStreamRecordingProfileConstants.PARAM_TARGET + "="
                 + TestMediaStreamRecordingProfileConstants.ID);
@@ -166,7 +166,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -201,7 +201,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(MediaStreamRecordingProfileConstants.PARAM_TARGET + "="
                 + TestMediaStreamRecordingProfileConstants.ID);
@@ -239,7 +239,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(MediaStreamRecordingProfileConstants.PARAM_TIME_SLICE + "=3600");
         builder.append("&");
@@ -276,7 +276,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(MediaStreamRecordingProfileConstants.PARAM_TARGET + "="
                 + TestMediaStreamRecordingProfileConstants.ID);
@@ -315,7 +315,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -347,7 +347,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -379,7 +379,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -411,7 +411,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_MUTETRACK);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -441,7 +441,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_UNMUTETRACK);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -475,7 +475,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -524,7 +524,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(MediaStreamRecordingProfileConstants.PARAM_TARGET + "="
                 + TestMediaStreamRecordingProfileConstants.ID);
@@ -572,7 +572,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(MediaStreamRecordingProfileConstants.PARAM_TARGET + "="
                 + TestMediaStreamRecordingProfileConstants.ID);
@@ -744,7 +744,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + attribute);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -767,7 +767,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.append("/" + attribute);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");

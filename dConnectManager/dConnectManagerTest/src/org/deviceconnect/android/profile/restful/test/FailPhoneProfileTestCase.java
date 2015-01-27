@@ -41,7 +41,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
 
 
     /**
-     * deviceIdを指定せずに通話発信要求を送信するテストを行う.
+     * serviceIdを指定せずに通話発信要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -52,7 +52,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostCallNoDeviceId() {
+    public void testPostCallNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
@@ -61,30 +61,30 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で通話発信要求を送信するテストを行う.
+     * serviceIdが空状態で通話発信要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /phone/call?deviceId=&phoneNumber=xxxx
+     * Path: /phone/call?serviceId=&phoneNumber=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostCallEmptyDeviceId() {
+    public void testPostCallEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(PhoneProfileConstants.PARAM_PHONE_NUMBER, PHONE_NUMBER);
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -96,23 +96,23 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * 存在しないdeviceIdで通話発信要求を送信するテストを行う.
+     * 存在しないserviceIdで通話発信要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /phone/call?deviceId=123456789&phoneNumber=xxxx
+     * Path: /phone/call?serviceId=123456789&phoneNumber=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostCallInvalidDeviceId() {
+    public void testPostCallInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(PhoneProfileConstants.PARAM_PHONE_NUMBER, PHONE_NUMBER);
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -124,11 +124,11 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * deviceIdを2重に指定して通話発信要求を送信するテストを行う.
+     * serviceIdを2重に指定して通話発信要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /phone/call?deviceId=123456789&deviceId=xxx&phoneNumber=xxxx
+     * Path: /phone/call?serviceId=123456789&serviceId=xxx&phoneNumber=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -136,13 +136,13 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostCallDuplicatedDeviceId() {
+    public void testPostCallDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(PhoneProfileConstants.PARAM_PHONE_NUMBER, PHONE_NUMBER);
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -158,7 +158,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /phone/call?deviceId=xxxx
+     * Path: /phone/call?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -170,7 +170,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
@@ -185,7 +185,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /phone/call?deviceId=xxxx&phoneNumber=xxxx
+     * Path: /phone/call?serviceId=xxxx&phoneNumber=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -197,7 +197,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(PhoneProfileConstants.PARAM_PHONE_NUMBER, PHONE_NUMBER);
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -213,7 +213,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /phone/call?deviceId=xxxx
+     * Path: /phone/call?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -225,7 +225,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(PhoneProfileConstants.PARAM_PHONE_NUMBER, PHONE_NUMBER);
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -241,7 +241,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /phone/call?deviceId=xxxx
+     * Path: /phone/call?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -253,7 +253,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(PhoneProfileConstants.PARAM_PHONE_NUMBER, PHONE_NUMBER);
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -265,7 +265,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
     
     /**
-     * deviceIdを指定せずに電話設定要求を送信するテストを行う.
+     * serviceIdを指定せずに電話設定要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -276,7 +276,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutSetNoDeviceId() {
+    public void testPutSetNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
@@ -285,30 +285,30 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で電話設定要求を送信するテストを行う.
+     * serviceIdが空状態で電話設定要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /phone/call?deviceId=&phoneNumber=xxxx
+     * Path: /phone/call?serviceId=&phoneNumber=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutSetEmptyDeviceId() {
+    public void testPutSetEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(PhoneProfileConstants.PARAM_MODE, String.valueOf(MODE));
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -320,23 +320,23 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * 存在しないdeviceIdで電話設定要求を送信するテストを行う.
+     * 存在しないserviceIdで電話設定要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /phone/call?deviceId=123456789&phoneNumber=xxxx
+     * Path: /phone/call?serviceId=123456789&phoneNumber=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutSetInvalidDeviceId() {
+    public void testPutSetInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(PhoneProfileConstants.PARAM_MODE, String.valueOf(MODE));
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -348,11 +348,11 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * deviceIdを2重に指定して電話設定要求を送信するテストを行う.
+     * serviceIdを2重に指定して電話設定要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /phone/call?deviceId=123456789&deviceId=xxx&phoneNumber=xxxx
+     * Path: /phone/call?serviceId=123456789&serviceId=xxx&phoneNumber=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -360,13 +360,13 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutSetDuplicatedDeviceId() {
+    public void testPutSetDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(PhoneProfileConstants.PARAM_MODE, String.valueOf(MODE));
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -382,7 +382,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /phone/set?deviceId=xxxx
+     * Path: /phone/set?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -394,7 +394,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_SET);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
@@ -409,7 +409,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /phone/call?deviceId=xxxx&phoneNumber=xxxx
+     * Path: /phone/call?serviceId=xxxx&phoneNumber=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -421,7 +421,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(PhoneProfileConstants.PARAM_MODE, String.valueOf(MODE));
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -437,7 +437,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /phone/call?deviceId=xxxx
+     * Path: /phone/call?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -449,7 +449,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_SET);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(PhoneProfileConstants.PARAM_MODE, String.valueOf(MODE));
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -465,7 +465,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /phone/call?deviceId=xxxx
+     * Path: /phone/call?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -477,7 +477,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(PhoneProfileConstants.PARAM_MODE, String.valueOf(MODE));
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -489,7 +489,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
     
     /**
-     * deviceIdが無い状態でonconnect属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonconnect属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -500,7 +500,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnConnectNoDeviceId() {
+    public void testPutOnConnectNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
@@ -509,29 +509,29 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonconnect属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonconnect属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /phone/onconnect?deviceId=&sessionKey=xxxx
+     * Path: /phone/onconnect?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnConnectEmptyDeviceId() {
+    public void testPutOnConnectEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -544,22 +544,22 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * 存在しないdeviceIdでonconnect属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonconnect属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /phone/onconnect?deviceId=123456789&sessionKey=xxxx
+     * Path: /phone/onconnect?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnConnectInvalidDeviceId() {
+    public void testPutOnConnectInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -572,11 +572,11 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * deviceIdを2重に指定してonconnect属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonconnect属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /phone/onconnect?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /phone/onconnect?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -584,12 +584,12 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnConnectDuplicatedDeviceId() {
+    public void testPutOnConnectDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -602,7 +602,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * deviceIdが無い状態でonconnect属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonconnect属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -613,7 +613,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnConnectNoDeviceId() {
+    public void testDeleteOnConnectNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
@@ -622,29 +622,29 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonconnect属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonconnect属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /phone/onconnect?deviceId=&sessionKey=xxxx
+     * Path: /phone/onconnect?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnConnectEmptyDeviceId() {
+    public void testDeleteOnConnectEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -657,22 +657,22 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * 存在しないdeviceIdでonconnect属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonconnect属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /phone/onconnect?deviceId=123456789&sessionKey=xxxx
+     * Path: /phone/onconnect?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnConnectInvalidDeviceId() {
+    public void testDeleteOnConnectInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -685,11 +685,11 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * deviceIdを2重に指定してonconnect属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonconnect属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /phone/onconnect?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /phone/onconnect?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -697,12 +697,12 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnConnectDuplicatedDeviceId() {
+    public void testDeleteOnConnectDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -719,7 +719,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /phone/onconnect?deviceId=xxxx&sessionKey=xxxx
+     * Path: /phone/onconnect?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -730,7 +730,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -747,7 +747,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /phone/onconnect?deviceId=xxxx&sessionKey=xxxx
+     * Path: /phone/onconnect?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -758,7 +758,7 @@ public class FailPhoneProfileTestCase extends RESTfulDConnectTestCase
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
         builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {

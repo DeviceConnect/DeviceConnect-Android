@@ -358,23 +358,23 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
 
 
     /**
-     * デバイスIDを取得する.
-     * @return デバイスID
+     * サービスIDを取得する.
+     * @return サービスID
      */
-    protected String getDeviceId() {
-        return getDeviceIdByName(TestNetworkServiceDiscoveryProfileConstants.DEVICE_NAME);
+    protected String getServiceId() {
+        return getServiceIdByName(TestNetworkServiceDiscoveryProfileConstants.DEVICE_NAME);
     }
 
     /**
      * 指定したデバイス名をもつデバイスのIDを取得する.
      * @param deviceName デバイス名
-     * @return デバイスID
+     * @return サービスID
      */
-    protected String getDeviceIdByName(final String deviceName) {
+    protected String getServiceIdByName(final String deviceName) {
         for (int i = 0; i < mDevices.size(); i++) {
             DeviceInfo obj = mDevices.get(i);
             if (deviceName.equals(obj.getDeviceName())) {
-                return obj.getDeviceId();
+                return obj.getServiceId();
             }
         }
         return null;
@@ -455,9 +455,9 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     protected static class DeviceInfo {
 
         /**
-         * デバイスID.
+         * サービスID.
          */
-        private final String mDeviceId;
+        private final String mServiceId;
 
         /**
          * デバイス名.
@@ -466,21 +466,21 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
 
         /**
          * コンストラクタ.
-         * @param deviceId デバイスID
+         * @param serviceId サービスID
          * @param deviceName デバイス名
          */
-        public DeviceInfo(final String deviceId, final String deviceName) {
-            this.mDeviceId = deviceId;
+        public DeviceInfo(final String serviceId, final String deviceName) {
+            this.mServiceId = serviceId;
             this.mDeviceName = deviceName;
         }
 
         /**
-         * デバイスIDを取得する.
+         * サービスIDを取得する.
          * 
-         * @return デバイスID
+         * @return サービスID
          */
-        public String getDeviceId() {
-            return mDeviceId;
+        public String getServiceId() {
+            return mServiceId;
         }
 
         /**

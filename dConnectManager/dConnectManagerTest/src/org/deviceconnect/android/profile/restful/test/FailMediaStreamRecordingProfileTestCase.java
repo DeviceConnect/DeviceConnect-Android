@@ -36,7 +36,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -47,7 +47,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetMediaRecorderNoDeviceId() {
+    public void testGetMediaRecorderNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
@@ -55,29 +55,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/mediarecorder?deviceId=
+     * Path: /mediastream_recording/mediarecorder?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetMediaRecorderEmptyDeviceId() {
+    public void testGetMediaRecorderEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -89,22 +89,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/mediarecorder?deviceId=123456789
+     * Path: /mediastream_recording/mediarecorder?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetMediaRecorderInvalidDeviceId() {
+    public void testGetMediaRecorderInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -116,11 +116,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/mediarecorder?deviceId=123456789&deviceId=xxx&mediaId=xxxx
+     * Path: /mediastream_recording/mediarecorder?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -128,12 +128,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetMediaRecorderDuplicatedDeviceId() {
+    public void testGetMediaRecorderDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -149,7 +149,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/mediarecorder?deviceId=xxxx
+     * Path: /mediastream_recording/mediarecorder?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -160,7 +160,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -176,7 +176,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/mediarecorder?deviceId=xxxx
+     * Path: /mediastream_recording/mediarecorder?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -187,7 +187,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -203,7 +203,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/mediarecorder?deviceId=xxxx
+     * Path: /mediastream_recording/mediarecorder?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -214,7 +214,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -226,7 +226,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -237,7 +237,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostTakePhotoNoDeviceId() {
+    public void testPostTakePhotoNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
@@ -245,29 +245,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/takephoto?deviceId=
+     * Path: /mediastream_recording/takephoto?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostTakePhotoEmptyDeviceId() {
+    public void testPostTakePhotoEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -279,22 +279,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/takephoto?deviceId=123456789
+     * Path: /mediastream_recording/takephoto?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostTakePhotoInvalidDeviceId() {
+    public void testPostTakePhotoInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -306,11 +306,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/takephoto?deviceId=123456789&deviceId=xxx&mediaId=xxxx
+     * Path: /mediastream_recording/takephoto?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -318,12 +318,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostTakePhotoDuplicatedDeviceId() {
+    public void testPostTakePhotoDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -339,7 +339,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/takephoto?deviceId=xxxx
+     * Path: /mediastream_recording/takephoto?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -350,7 +350,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -366,7 +366,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/takephoto?deviceId=xxxx
+     * Path: /mediastream_recording/takephoto?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -377,7 +377,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -393,7 +393,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/takephoto?deviceId=xxxx
+     * Path: /mediastream_recording/takephoto?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -404,7 +404,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -416,7 +416,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -427,7 +427,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostRecordNoDeviceId() {
+    public void testPostRecordNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
@@ -435,29 +435,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?deviceId=
+     * Path: /mediastream_recording/record?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostRecordEmptyDeviceId() {
+    public void testPostRecordEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -469,22 +469,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?deviceId=123456789
+     * Path: /mediastream_recording/record?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostRecordInvalidDeviceId() {
+    public void testPostRecordInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -496,11 +496,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?deviceId=123456789&deviceId=xxx&mediaId=xxxx
+     * Path: /mediastream_recording/record?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -508,12 +508,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostRecordDuplicatedDeviceId() {
+    public void testPostRecordDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -529,7 +529,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/record?deviceId=xxxx
+     * Path: /mediastream_recording/record?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -540,7 +540,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -556,7 +556,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/record?deviceId=xxxx
+     * Path: /mediastream_recording/record?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -567,7 +567,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -583,7 +583,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/record?deviceId=xxxx
+     * Path: /mediastream_recording/record?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -594,7 +594,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -606,7 +606,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -617,7 +617,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutPauseNoDeviceId() {
+    public void testPutPauseNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
@@ -625,29 +625,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/pause?deviceId=
+     * Path: /mediastream_recording/pause?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutPauseEmptyDeviceId() {
+    public void testPutPauseEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -659,22 +659,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/pause?deviceId=123456789
+     * Path: /mediastream_recording/pause?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutPauseInvalidDeviceId() {
+    public void testPutPauseInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -686,11 +686,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/pause?deviceId=123456789&deviceId=xxx&mediaId=xxxx
+     * Path: /mediastream_recording/pause?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -698,12 +698,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutPauseDuplicatedDeviceId() {
+    public void testPutPauseDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -719,7 +719,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/pause?deviceId=xxxx
+     * Path: /mediastream_recording/pause?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -730,7 +730,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -746,7 +746,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/pause?deviceId=xxxx
+     * Path: /mediastream_recording/pause?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -757,7 +757,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -773,7 +773,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/pause?deviceId=xxxx
+     * Path: /mediastream_recording/pause?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -784,7 +784,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -796,7 +796,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -807,7 +807,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutResumeNoDeviceId() {
+    public void testPutResumeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
@@ -815,29 +815,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/resume?deviceId=
+     * Path: /mediastream_recording/resume?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutResumeEmptyDeviceId() {
+    public void testPutResumeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -849,22 +849,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/resume?deviceId=123456789
+     * Path: /mediastream_recording/resume?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutResumeInvalidDeviceId() {
+    public void testPutResumeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -876,11 +876,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/resume?deviceId=123456789&deviceId=xxx&mediaId=xxxx
+     * Path: /mediastream_recording/resume?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -888,12 +888,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutResumeDuplicatedDeviceId() {
+    public void testPutResumeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -909,7 +909,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/resume?deviceId=xxxx
+     * Path: /mediastream_recording/resume?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -920,7 +920,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -936,7 +936,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/resume?deviceId=xxxx
+     * Path: /mediastream_recording/resume?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -947,7 +947,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -963,7 +963,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/resume?deviceId=xxxx
+     * Path: /mediastream_recording/resume?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -974,7 +974,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -986,7 +986,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -997,7 +997,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutStopNoDeviceId() {
+    public void testPutStopNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
@@ -1005,29 +1005,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/stop?deviceId=
+     * Path: /mediastream_recording/stop?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutStopEmptyDeviceId() {
+    public void testPutStopEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -1039,22 +1039,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/stop?deviceId=123456789
+     * Path: /mediastream_recording/stop?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutStopInvalidDeviceId() {
+    public void testPutStopInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -1066,11 +1066,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/stop?deviceId=123456789&deviceId=xxx&mediaId=xxxx
+     * Path: /mediastream_recording/stop?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1078,12 +1078,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutStopDuplicatedDeviceId() {
+    public void testPutStopDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -1099,7 +1099,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/stop?deviceId=xxxx
+     * Path: /mediastream_recording/stop?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1110,7 +1110,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -1126,7 +1126,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/stop?deviceId=xxxx
+     * Path: /mediastream_recording/stop?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1137,7 +1137,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -1153,7 +1153,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/stop?deviceId=xxxx
+     * Path: /mediastream_recording/stop?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1164,7 +1164,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -1176,7 +1176,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを指定せずに再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -1187,7 +1187,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetOptionsNoDeviceId() {
+    public void testGetOptionsNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
@@ -1195,29 +1195,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
+     * serviceIdが空状態で再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/options?deviceId=
+     * Path: /mediastream_recording/options?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetOptionsEmptyDeviceId() {
+    public void testGetOptionsEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -1229,22 +1229,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdで再生コンテンツの変更要求を送信するテスト.
+     * 存在しないserviceIdで再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/options?deviceId=123456789
+     * Path: /mediastream_recording/options?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetOptionsInvalidDeviceId() {
+    public void testGetOptionsInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -1256,11 +1256,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
+     * serviceIdを2重に指定して再生コンテンツの変更要求を送信するテスト.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/options?deviceId=123456789&deviceId=xxx&mediaId=xxxx
+     * Path: /mediastream_recording/options?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1268,12 +1268,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetOptionsDuplicatedDeviceId() {
+    public void testGetOptionsDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -1289,7 +1289,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/options?deviceId=xxxx
+     * Path: /mediastream_recording/options?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1300,7 +1300,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -1316,7 +1316,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/options?deviceId=xxxx
+     * Path: /mediastream_recording/options?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1327,7 +1327,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -1339,7 +1339,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdが無い状態でonphoto属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonphoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -1350,7 +1350,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnPhotoNoDeviceId() {
+    public void testPutOnPhotoNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
@@ -1359,29 +1359,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonphoto属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonphoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onphoto?deviceId=&sessionKey=xxxx
+     * Path: /mediastream_recording/onphoto?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnPhotoEmptyDeviceId() {
+    public void testPutOnPhotoEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1394,22 +1394,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdでonphoto属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonphoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onphoto?deviceId=123456789&sessionKey=xxxx
+     * Path: /mediastream_recording/onphoto?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnPhotoInvalidDeviceId() {
+    public void testPutOnPhotoInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1422,11 +1422,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定してonphoto属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonphoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onphoto?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /mediastream_recording/onphoto?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1434,12 +1434,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnPhotoDuplicatedDeviceId() {
+    public void testPutOnPhotoDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1452,7 +1452,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdが無い状態でonphoto属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonphoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -1463,7 +1463,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnPhotoNoDeviceId() {
+    public void testDeleteOnPhotoNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
@@ -1472,29 +1472,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonphoto属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonphoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onphoto?deviceId=&sessionKey=xxxx
+     * Path: /mediastream_recording/onphoto?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnPhotoEmptyDeviceId() {
+    public void testDeleteOnPhotoEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1507,22 +1507,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdでonphoto属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonphoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onphoto?deviceId=123456789&sessionKey=xxxx
+     * Path: /mediastream_recording/onphoto?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnPhotoInvalidDeviceId() {
+    public void testDeleteOnPhotoInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1535,11 +1535,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定してonphoto属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonphoto属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onphoto?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /mediastream_recording/onphoto?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1547,12 +1547,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnPhotoDuplicatedDeviceId() {
+    public void testDeleteOnPhotoDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1569,7 +1569,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/onphoto?deviceId=xxxx&sessionKey=xxxx
+     * Path: /mediastream_recording/onphoto?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1580,7 +1580,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1597,7 +1597,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/onphoto?deviceId=xxxx&sessionKey=xxxx
+     * Path: /mediastream_recording/onphoto?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1608,7 +1608,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1621,7 +1621,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdが無い状態でonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonrecordingchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -1632,7 +1632,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnRecordingChangeNoDeviceId() {
+    public void testPutOnRecordingChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
@@ -1641,29 +1641,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonrecordingchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onrecordingchange?deviceId=&sessionKey=xxxx
+     * Path: /mediastream_recording/onrecordingchange?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnRecordingChangeEmptyDeviceId() {
+    public void testPutOnRecordingChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1676,22 +1676,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdでonrecordingchange属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonrecordingchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onrecordingchange?deviceId=123456789&sessionKey=xxxx
+     * Path: /mediastream_recording/onrecordingchange?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnRecordingChangeInvalidDeviceId() {
+    public void testPutOnRecordingChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1704,11 +1704,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定してonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonrecordingchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onrecordingchange?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /mediastream_recording/onrecordingchange?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1716,12 +1716,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnRecordingChangeDuplicatedDeviceId() {
+    public void testPutOnRecordingChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1734,7 +1734,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdが無い状態でonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonrecordingchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -1745,7 +1745,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnRecordingChangeNoDeviceId() {
+    public void testDeleteOnRecordingChangeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
@@ -1754,29 +1754,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonrecordingchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onrecordingchange?deviceId=&sessionKey=xxxx
+     * Path: /mediastream_recording/onrecordingchange?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnRecordingChangeEmptyDeviceId() {
+    public void testDeleteOnRecordingChangeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1789,22 +1789,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdでonrecordingchange属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonrecordingchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onrecordingchange?deviceId=123456789&sessionKey=xxxx
+     * Path: /mediastream_recording/onrecordingchange?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnRecordingChangeInvalidDeviceId() {
+    public void testDeleteOnRecordingChangeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1817,11 +1817,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定してonrecordingchange属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonrecordingchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onrecordingchange?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /mediastream_recording/onrecordingchange?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1829,12 +1829,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnRecordingChangeDuplicatedDeviceId() {
+    public void testDeleteOnRecordingChangeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1851,7 +1851,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/onrecordingchange?deviceId=xxxx&sessionKey=xxxx
+     * Path: /mediastream_recording/onrecordingchange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1862,7 +1862,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1879,7 +1879,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/onrecordingchange?deviceId=xxxx&sessionKey=xxxx
+     * Path: /mediastream_recording/onrecordingchange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1890,7 +1890,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1903,7 +1903,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdが無い状態でondataavailable属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でondataavailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -1914,7 +1914,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnDataAvailableNoDeviceId() {
+    public void testPutOnDataAvailableNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
@@ -1923,29 +1923,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でondataavailable属性のコールバック解除テストを行う.
+     * serviceIdが空状態でondataavailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/ondataavailable?deviceId=&sessionKey=xxxx
+     * Path: /mediastream_recording/ondataavailable?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnDataAvailableEmptyDeviceId() {
+    public void testPutOnDataAvailableEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1958,22 +1958,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdでondataavailable属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでondataavailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/ondataavailable?deviceId=123456789&sessionKey=xxxx
+     * Path: /mediastream_recording/ondataavailable?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnDataAvailableInvalidDeviceId() {
+    public void testPutOnDataAvailableInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1986,11 +1986,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定してondataavailable属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してondataavailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/ondataavailable?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /mediastream_recording/ondataavailable?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1998,12 +1998,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutOnDataAvailableDuplicatedDeviceId() {
+    public void testPutOnDataAvailableDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2016,7 +2016,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdが無い状態でondataavailable属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でondataavailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -2027,7 +2027,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnDataAvailableNoDeviceId() {
+    public void testDeleteOnDataAvailableNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
@@ -2036,29 +2036,29 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でondataavailable属性のコールバック解除テストを行う.
+     * serviceIdが空状態でondataavailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/ondataavailable?deviceId=&sessionKey=xxxx
+     * Path: /mediastream_recording/ondataavailable?serviceId=&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnDataAvailableEmptyDeviceId() {
+    public void testDeleteOnDataAvailableEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2071,22 +2071,22 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * 存在しないdeviceIdでondataavailable属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでondataavailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/ondataavailable?deviceId=123456789&sessionKey=xxxx
+     * Path: /mediastream_recording/ondataavailable?serviceId=123456789&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnDataAvailableInvalidDeviceId() {
+    public void testDeleteOnDataAvailableInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2099,11 +2099,11 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
     }
 
     /**
-     * deviceIdを2重に指定してondataavailable属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してondataavailable属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/ondataavailable?deviceId=123456789&deviceId=xxx&sessionKey=xxxx
+     * Path: /mediastream_recording/ondataavailable?serviceId=123456789&serviceId=xxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2111,12 +2111,12 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteOnDataAvailableDuplicatedDeviceId() {
+    public void testDeleteOnDataAvailableDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2133,7 +2133,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/ondataavailable?deviceId=xxxx&sessionKey=xxxx
+     * Path: /mediastream_recording/ondataavailable?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2144,7 +2144,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2161,7 +2161,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/ondataavailable?deviceId=xxxx&sessionKey=xxxx
+     * Path: /mediastream_recording/ondataavailable?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2172,7 +2172,7 @@ public class FailMediaStreamRecordingProfileTestCase extends RESTfulDConnectTest
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(MediaStreamRecordingProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {

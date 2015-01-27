@@ -142,9 +142,9 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
             JSONArray servicesJson = root.getJSONArray(NetworkServiceDiscoveryProfileConstants.PARAM_SERVICES);
             for (int i = 0; i < servicesJson.length(); i++) {
                 JSONObject serviceJson = servicesJson.getJSONObject(i);
-                String deviceId = serviceJson.getString(NetworkServiceDiscoveryProfileConstants.PARAM_ID);
+                String serviceId = serviceJson.getString(NetworkServiceDiscoveryProfileConstants.PARAM_ID);
                 String deviceName = serviceJson.getString(NetworkServiceDiscoveryProfileConstants.PARAM_NAME);
-                services.add(new DeviceInfo(deviceId, deviceName));
+                services.add(new DeviceInfo(serviceId, deviceName));
             }
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());

@@ -35,7 +35,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でWiFi機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdが無い状態でWiFi機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -54,18 +54,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でWiFi機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdが空状態でWiFi機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/wifi?deviceId=
+     * Path: /connect/wifi?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -76,7 +76,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -88,11 +88,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでWiFi機能有効状態(ON/OFF)取得テストを行う.
+     * 存在しないserviceIdでWiFi機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/wifi?deviceId=123456789
+     * Path: /connect/wifi?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -103,7 +103,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -119,7 +119,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/wifi?deviceId=xxxxx&abc=abc
+     * Path: /connect/wifi?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -132,7 +132,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -146,11 +146,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してWiFi機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdを2重に指定してWiFi機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/wifi?deviceId=123456789&deviceId=xxx
+     * Path: /connect/wifi?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -162,8 +162,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -175,7 +175,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でWiFi機能有効化テストを行う.
+     * serviceIdが無い状態でWiFi機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -194,18 +194,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でWiFi機能有効化テストを行う.
+     * serviceIdが空状態でWiFi機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/wifi?deviceId=
+     * Path: /connect/wifi?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -216,7 +216,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -228,11 +228,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでWiFi機能有効化テストを行う.
+     * 存在しないserviceIdでWiFi機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/wifi?deviceId=123456789
+     * Path: /connect/wifi?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -243,7 +243,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -259,7 +259,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/wifi?deviceId=xxxxx&abc=abc
+     * Path: /connect/wifi?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -271,7 +271,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -284,11 +284,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してWiFi機能有効化テストを行う.
+     * serviceIdを2重に指定してWiFi機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/wifi?deviceId=123456789&deviceId=xxx
+     * Path: /connect/wifi?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -300,8 +300,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -313,7 +313,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でWiFi機能無効化テストを行う.
+     * serviceIdが無い状態でWiFi機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -332,18 +332,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でWiFi機能無効化テストを行う.
+     * serviceIdが空状態でWiFi機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/wifi?deviceId=
+     * Path: /connect/wifi?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -354,7 +354,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -366,11 +366,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでWiFi機能無効化テストを行う.
+     * 存在しないserviceIdでWiFi機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/wifi?deviceId=123456789
+     * Path: /connect/wifi?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -381,7 +381,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -397,7 +397,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/wifi?deviceId=xxxxx&abc=abc
+     * Path: /connect/wifi?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -409,7 +409,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -422,11 +422,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してWiFi機能無効化テストを行う.
+     * serviceIdを2重に指定してWiFi機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/wifi?deviceId=123456789&deviceId=xxxx
+     * Path: /connect/wifi?serviceId=123456789&serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -438,8 +438,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -455,7 +455,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/wifi?deviceId=xxxx
+     * Path: /connect/wifi?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -466,7 +466,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_WIFI);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -478,7 +478,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonwifichange属性のコールバック登録テストを行う.
+     * serviceIdが無い状態でonwifichange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -498,18 +498,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonwifichange属性のコールバック登録テストを行う.
+     * serviceIdが空状態でonwifichange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onwifichange?deviceId=
+     * Path: /connect/onwifichange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -520,7 +520,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -533,11 +533,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonwifichange属性のコールバック登録テストを行う.
+     * 存在しないserviceIdでonwifichange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onwifichange?deviceId=123456789
+     * Path: /connect/onwifichange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -548,7 +548,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -565,7 +565,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onwifichange?deviceId=xxxxx&abc=abc
+     * Path: /connect/onwifichange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -577,7 +577,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -591,11 +591,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonwifichange属性のコールバック登録テストを行う.
+     * serviceIdを2重に指定してonwifichange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onwifichange?deviceId=123456789&deviceId=xxx
+     * Path: /connect/onwifichange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -607,8 +607,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -621,7 +621,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonwifichange属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonwifichange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -641,18 +641,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonwifichange属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonwifichange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onwifichange?deviceId=
+     * Path: /connect/onwifichange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -663,7 +663,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -676,11 +676,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonwifichange属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonwifichange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onwifichange?deviceId=123456789
+     * Path: /connect/onwifichange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -691,7 +691,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -708,7 +708,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onwifichange?deviceId=xxxxx&abc=abc
+     * Path: /connect/onwifichange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -720,7 +720,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -734,11 +734,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonwifichange属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonwifichange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onwifichange?deviceId=123456789&deviceId=xxx
+     * Path: /connect/onwifichange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -750,8 +750,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -768,7 +768,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/onwifichange?deviceId=xxxx&sessionKey=xxxx
+     * Path: /connect/onwifichange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -779,7 +779,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -796,7 +796,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/onwifichange?deviceId=xxxx&sessionKey=xxxx
+     * Path: /connect/onwifichange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -807,7 +807,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -820,7 +820,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でBluetooth機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdが無い状態でBluetooth機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -839,18 +839,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でBluetooth機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdが空状態でBluetooth機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/bluetooth?deviceId=
+     * Path: /connect/bluetooth?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -861,7 +861,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -873,11 +873,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでBluetooth機能有効状態(ON/OFF)取得テストを行う.
+     * 存在しないserviceIdでBluetooth機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/bluetooth?deviceId=123456789
+     * Path: /connect/bluetooth?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -888,7 +888,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -904,7 +904,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/bluetooth?deviceId=xxxxx&abc=abc
+     * Path: /connect/bluetooth?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -917,7 +917,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -931,11 +931,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してBluetooth機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdを2重に指定してBluetooth機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/bluetooth?deviceId=123456789&deviceId=xxx
+     * Path: /connect/bluetooth?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -947,8 +947,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -960,7 +960,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でBluetooth機能有効化テストを行う.
+     * serviceIdが無い状態でBluetooth機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -979,18 +979,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でBluetooth機能有効化テストを行う.
+     * serviceIdが空状態でBluetooth機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth?deviceId=
+     * Path: /connect/bluetooth?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1001,7 +1001,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -1013,11 +1013,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでBluetooth機能有効化テストを行う.
+     * 存在しないserviceIdでBluetooth機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth?deviceId=123456789
+     * Path: /connect/bluetooth?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1028,7 +1028,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -1044,7 +1044,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth?deviceId=xxxxx&abc=abc
+     * Path: /connect/bluetooth?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1056,7 +1056,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1069,11 +1069,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してBluetooth機能有効化テストを行う.
+     * serviceIdを2重に指定してBluetooth機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth?deviceId=123456789&deviceId=xxx
+     * Path: /connect/bluetooth?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1085,8 +1085,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -1098,7 +1098,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でBluetooth機能無効化テストを行う.
+     * serviceIdが無い状態でBluetooth機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -1117,18 +1117,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でBluetooth機能無効化テストを行う.
+     * serviceIdが空状態でBluetooth機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth?deviceId=
+     * Path: /connect/bluetooth?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1139,7 +1139,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -1151,11 +1151,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでBluetooth機能無効化テストを行う.
+     * 存在しないserviceIdでBluetooth機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth?deviceId=123456789
+     * Path: /connect/bluetooth?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1166,7 +1166,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -1182,7 +1182,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth?deviceId=xxxxx&abc=abc
+     * Path: /connect/bluetooth?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1194,7 +1194,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1207,11 +1207,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してBluetooth機能無効化テストを行う.
+     * serviceIdを2重に指定してBluetooth機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth?deviceId=123456789&deviceId=xxx
+     * Path: /connect/bluetooth?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1223,8 +1223,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -1240,7 +1240,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/bluetooth?deviceId=xxxx
+     * Path: /connect/bluetooth?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1251,7 +1251,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -1263,7 +1263,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でBluetooth機能有効化テストを行う.
+     * serviceIdが無い状態でBluetooth機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -1283,18 +1283,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でBluetooth機能有効化テストを行う.
+     * serviceIdが空状態でBluetooth機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth/discoverable?deviceId=
+     * Path: /connect/bluetooth/discoverable?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1306,7 +1306,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -1318,11 +1318,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでBluetooth機能有効化テストを行う.
+     * 存在しないserviceIdでBluetooth機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth/discoverable?deviceId=123456789
+     * Path: /connect/bluetooth/discoverable?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1334,7 +1334,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -1350,7 +1350,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth/discoverable?deviceId=xxxxx&abc=abc
+     * Path: /connect/bluetooth/discoverable?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1363,7 +1363,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1376,11 +1376,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してBluetooth機能有効化テストを行う.
+     * serviceIdを2重に指定してBluetooth機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/bluetooth/discoverable?deviceId=123456789&deviceId=xxx
+     * Path: /connect/bluetooth/discoverable?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1393,8 +1393,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -1406,7 +1406,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でBluetooth機能無効化テストを行う.
+     * serviceIdが無い状態でBluetooth機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -1426,18 +1426,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でBluetooth機能無効化テストを行う.
+     * serviceIdが空状態でBluetooth機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth/discoverable?deviceId=
+     * Path: /connect/bluetooth/discoverable?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1449,7 +1449,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -1461,11 +1461,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでBluetooth機能無効化テストを行う.
+     * 存在しないserviceIdでBluetooth機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth/discoverable?deviceId=123456789
+     * Path: /connect/bluetooth/discoverable?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1477,7 +1477,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -1493,7 +1493,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth/discoverable?deviceId=xxxxx&abc=abc
+     * Path: /connect/bluetooth/discoverable?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1506,7 +1506,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1519,11 +1519,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してBluetooth機能無効化テストを行う.
+     * serviceIdを2重に指定してBluetooth機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/bluetooth/discoverable?deviceId=123456789&deviceId=xxx
+     * Path: /connect/bluetooth/discoverable?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1536,8 +1536,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -1549,7 +1549,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonbluetoothchange属性のコールバック登録テストを行う.
+     * serviceIdが無い状態でonbluetoothchange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -1569,18 +1569,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonbluetoothchange属性のコールバック登録テストを行う.
+     * serviceIdが空状態でonbluetoothchange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onbluetoothchange?deviceId=
+     * Path: /connect/onbluetoothchange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1591,7 +1591,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1604,11 +1604,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonbluetoothchange属性のコールバック登録テストを行う.
+     * 存在しないserviceIdでonbluetoothchange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onbluetoothchange?deviceId=123456789
+     * Path: /connect/onbluetoothchange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1619,7 +1619,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1636,7 +1636,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onbluetoothchange?deviceId=xxxxx&abc=abc
+     * Path: /connect/onbluetoothchange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1648,7 +1648,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1662,11 +1662,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonbluetoothchange属性のコールバック登録テストを行う.
+     * serviceIdを2重に指定してonbluetoothchange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onbluetoothchange?deviceId=123456789&deviceId=xxx
+     * Path: /connect/onbluetoothchange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1678,8 +1678,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1692,7 +1692,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonbluetoothchange属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonbluetoothchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -1712,18 +1712,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonbluetoothchange属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonbluetoothchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onbluetoothchange?deviceId=
+     * Path: /connect/onbluetoothchange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1734,7 +1734,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1747,11 +1747,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonbluetoothchange属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonbluetoothchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onbluetoothchange?deviceId=123456789
+     * Path: /connect/onbluetoothchange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1762,7 +1762,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1779,7 +1779,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onbluetoothchange?deviceId=xxxxx&abc=abc
+     * Path: /connect/onbluetoothchange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1791,7 +1791,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1805,11 +1805,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonbluetoothchange属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonbluetoothchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onbluetoothchange?deviceId=123456789&deviceId=xxx
+     * Path: /connect/onbluetoothchange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1821,8 +1821,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1839,7 +1839,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/onbluetoothchange?deviceId=xxxx&sessionKey=xxxx
+     * Path: /connect/onbluetoothchange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1850,7 +1850,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1867,7 +1867,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/onbluetoothchange?deviceId=xxxx&sessionKey=xxxx
+     * Path: /connect/onbluetoothchange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1878,7 +1878,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -1891,7 +1891,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でNFC機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdが無い状態でNFC機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -1910,18 +1910,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でNFC機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdが空状態でNFC機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/nfc?deviceId=
+     * Path: /connect/nfc?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1932,7 +1932,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -1944,11 +1944,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでNFC機能有効状態(ON/OFF)取得テストを行う.
+     * 存在しないserviceIdでNFC機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/nfc?deviceId=123456789
+     * Path: /connect/nfc?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1959,7 +1959,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -1975,7 +1975,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/nfc?deviceId=xxxxx&abc=abc
+     * Path: /connect/nfc?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1988,7 +1988,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2002,11 +2002,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してNFC機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdを2重に指定してNFC機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/nfc?deviceId=123456789&deviceId=xxx
+     * Path: /connect/nfc?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2018,8 +2018,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -2031,7 +2031,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でNFC機能有効化テストを行う.
+     * serviceIdが無い状態でNFC機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -2050,18 +2050,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でNFC機能有効化テストを行う.
+     * serviceIdが空状態でNFC機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/nfc?deviceId=
+     * Path: /connect/nfc?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2072,7 +2072,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -2084,11 +2084,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでNFC機能有効化テストを行う.
+     * 存在しないserviceIdでNFC機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/nfc?deviceId=123456789
+     * Path: /connect/nfc?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2099,7 +2099,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -2115,7 +2115,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/nfc?deviceId=xxxxx&abc=abc
+     * Path: /connect/nfc?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2127,7 +2127,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2140,11 +2140,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してNFC機能有効化テストを行う.
+     * serviceIdを2重に指定してNFC機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/nfc?deviceId=123456789&deviceId=xxx
+     * Path: /connect/nfc?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2156,8 +2156,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -2169,7 +2169,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でNFC機能無効化テストを行う.
+     * serviceIdが無い状態でNFC機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -2188,18 +2188,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でNFC機能無効化テストを行う.
+     * serviceIdが空状態でNFC機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/nfc?deviceId=
+     * Path: /connect/nfc?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2210,7 +2210,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -2222,11 +2222,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでNFC機能無効化テストを行う.
+     * 存在しないserviceIdでNFC機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/nfc?deviceId=123456789
+     * Path: /connect/nfc?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2237,7 +2237,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -2253,7 +2253,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/nfc?deviceId=xxxxx&abc=abc
+     * Path: /connect/nfc?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2265,7 +2265,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2278,11 +2278,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してNFC機能無効化テストを行う.
+     * serviceIdを2重に指定してNFC機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/nfc?deviceId=123456789&deviceId=xxx
+     * Path: /connect/nfc?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2294,8 +2294,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -2311,7 +2311,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/nfc?deviceId=xxxx
+     * Path: /connect/nfc?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2322,7 +2322,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_NFC);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -2334,7 +2334,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonnfcchange属性のコールバック登録テストを行う.
+     * serviceIdが無い状態でonnfcchange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -2354,18 +2354,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonnfcchange属性のコールバック登録テストを行う.
+     * serviceIdが空状態でonnfcchange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onnfcchange?deviceId=
+     * Path: /connect/onnfcchange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2376,7 +2376,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2389,11 +2389,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonnfcchange属性のコールバック登録テストを行う.
+     * 存在しないserviceIdでonnfcchange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onnfcchange?deviceId=123456789
+     * Path: /connect/onnfcchange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2404,7 +2404,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2421,7 +2421,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onnfcchange?deviceId=xxxxx&abc=abc
+     * Path: /connect/onnfcchange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2433,7 +2433,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2447,11 +2447,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonnfcchange属性のコールバック登録テストを行う.
+     * serviceIdを2重に指定してonnfcchange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onnfcchange?deviceId=123456789&deviceId=xxx
+     * Path: /connect/onnfcchange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2463,8 +2463,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2477,7 +2477,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonnfcchange属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonnfcchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -2497,18 +2497,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonnfcchange属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonnfcchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onnfcchange?deviceId=
+     * Path: /connect/onnfcchange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2519,7 +2519,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2532,11 +2532,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonnfcchange属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonnfcchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onnfcchange?deviceId=123456789
+     * Path: /connect/onnfcchange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2547,7 +2547,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2564,7 +2564,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onnfcchange?deviceId=xxxxx&abc=abc
+     * Path: /connect/onnfcchange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2576,7 +2576,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -2590,11 +2590,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonnfcchange属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonnfcchange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onnfcchange?deviceId=123456789&deviceId=xxx
+     * Path: /connect/onnfcchange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2606,8 +2606,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2624,7 +2624,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/onnfcchange?deviceId=xxxx&sessionKey=xxxx
+     * Path: /connect/onnfcchange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2635,7 +2635,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2652,7 +2652,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/onnfcchange?deviceId=xxxx&sessionKey=xxxx
+     * Path: /connect/onnfcchange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2663,7 +2663,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2676,7 +2676,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でBLE機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdが無い状態でBLE機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -2695,18 +2695,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でBLE機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdが空状態でBLE機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/ble?deviceId=
+     * Path: /connect/ble?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2717,7 +2717,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -2729,11 +2729,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでBLE機能有効状態(ON/OFF)取得テストを行う.
+     * 存在しないserviceIdでBLE機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/ble?deviceId=123456789
+     * Path: /connect/ble?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2744,7 +2744,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -2760,7 +2760,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/ble?deviceId=xxxxx&abc=abc
+     * Path: /connect/ble?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2773,7 +2773,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2787,11 +2787,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してBLE機能有効状態(ON/OFF)取得テストを行う.
+     * serviceIdを2重に指定してBLE機能有効状態(ON/OFF)取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/ble?deviceId=123456789&deviceId=xxx
+     * Path: /connect/ble?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2803,8 +2803,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -2816,7 +2816,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でBLE機能有効化テストを行う.
+     * serviceIdが無い状態でBLE機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -2835,18 +2835,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でBLE機能有効化テストを行う.
+     * serviceIdが空状態でBLE機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/ble?deviceId=
+     * Path: /connect/ble?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2857,7 +2857,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -2869,11 +2869,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでBLE機能有効化テストを行う.
+     * 存在しないserviceIdでBLE機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/ble?deviceId=123456789
+     * Path: /connect/ble?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2884,7 +2884,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -2900,7 +2900,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/ble?deviceId=xxxxx&abc=abc
+     * Path: /connect/ble?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2912,7 +2912,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -2925,11 +2925,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してBLE機能有効化テストを行う.
+     * serviceIdを2重に指定してBLE機能有効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/ble?deviceId=123456789&deviceId=xxx
+     * Path: /connect/ble?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2941,8 +2941,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -2954,7 +2954,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でBLE機能無効化テストを行う.
+     * serviceIdが無い状態でBLE機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -2973,18 +2973,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でBLE機能無効化テストを行う.
+     * serviceIdが空状態でBLE機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/ble?deviceId=
+     * Path: /connect/ble?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -2995,7 +2995,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -3007,11 +3007,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでBLE機能無効化テストを行う.
+     * 存在しないserviceIdでBLE機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/ble?deviceId=123456789
+     * Path: /connect/ble?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3022,7 +3022,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -3038,7 +3038,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/ble?deviceId=xxxxx&abc=abc
+     * Path: /connect/ble?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3050,7 +3050,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3063,11 +3063,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してBLE機能無効化テストを行う.
+     * serviceIdを2重に指定してBLE機能無効化テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/ble?deviceId=123456789&deviceId=xxx
+     * Path: /connect/ble?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3079,8 +3079,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -3096,7 +3096,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/ble?deviceId=xxxx
+     * Path: /connect/ble?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3107,7 +3107,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_BLE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -3119,7 +3119,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonblechange属性のコールバック登録テストを行う.
+     * serviceIdが無い状態でonblechange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -3139,18 +3139,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonblechange属性のコールバック登録テストを行う.
+     * serviceIdが空状態でonblechange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onblechange?deviceId=
+     * Path: /connect/onblechange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3161,7 +3161,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3174,11 +3174,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonblechange属性のコールバック登録テストを行う.
+     * 存在しないserviceIdでonblechange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onblechange?deviceId=123456789
+     * Path: /connect/onblechange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3189,7 +3189,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3206,7 +3206,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onblechange?deviceId=xxxxx&abc=abc
+     * Path: /connect/onblechange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3218,7 +3218,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -3232,11 +3232,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonblechange属性のコールバック登録テストを行う.
+     * serviceIdを2重に指定してonblechange属性のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /connect/onblechange?deviceId=123456789&deviceId=xxx
+     * Path: /connect/onblechange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3248,8 +3248,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3262,7 +3262,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でonblechange属性のコールバック解除テストを行う.
+     * serviceIdが無い状態でonblechange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -3282,18 +3282,18 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でonblechange属性のコールバック解除テストを行う.
+     * serviceIdが空状態でonblechange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onblechange?deviceId=
+     * Path: /connect/onblechange?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3304,7 +3304,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3317,11 +3317,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * 存在しないdeviceIdでonblechange属性のコールバック解除テストを行う.
+     * 存在しないserviceIdでonblechange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onblechange?deviceId=123456789
+     * Path: /connect/onblechange?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3332,7 +3332,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3349,7 +3349,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onblechange?deviceId=xxxxx&abc=abc
+     * Path: /connect/onblechange?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3361,7 +3361,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -3375,11 +3375,11 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してonblechange属性のコールバック解除テストを行う.
+     * serviceIdを2重に指定してonblechange属性のコールバック解除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /connect/onblechange?deviceId=123456789&deviceId=xxx
+     * Path: /connect/onblechange?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3391,8 +3391,8 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3409,7 +3409,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /connect/onblechange?deviceId=xxxx&sessionKey=xxxx
+     * Path: /connect/onblechange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3420,7 +3420,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -3437,7 +3437,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /connect/onblechange?deviceId=xxxx&sessionKey=xxxx
+     * Path: /connect/onblechange?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -3448,7 +3448,7 @@ public class FailConnectProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ConnectProfileConstants.PROFILE_NAME);
         builder.setAttribute(ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {

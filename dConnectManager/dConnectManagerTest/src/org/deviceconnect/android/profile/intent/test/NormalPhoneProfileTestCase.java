@@ -47,7 +47,7 @@ public class NormalPhoneProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostCall() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, PhoneProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, PhoneProfileConstants.ATTRIBUTE_CALL);
         request.putExtra(PhoneProfileConstants.PARAM_PHONE_NUMBER, TestPhoneProfileConstants.PHONE_NUMBER);
@@ -74,7 +74,7 @@ public class NormalPhoneProfileTestCase extends IntentDConnectTestCase {
     public void testPutSet001() {
         final int mode = 0;
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, PhoneProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, PhoneProfileConstants.ATTRIBUTE_SET);
         request.putExtra(PhoneProfileConstants.PARAM_MODE, mode);
@@ -101,7 +101,7 @@ public class NormalPhoneProfileTestCase extends IntentDConnectTestCase {
     public void testPutSet002() {
         final int mode = 1;
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, PhoneProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, PhoneProfileConstants.ATTRIBUTE_SET);
         request.putExtra(PhoneProfileConstants.PARAM_MODE, mode);
@@ -128,7 +128,7 @@ public class NormalPhoneProfileTestCase extends IntentDConnectTestCase {
     public void testPutSet003() {
         final int mode = 2;
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, PhoneProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, PhoneProfileConstants.ATTRIBUTE_SET);
         request.putExtra(PhoneProfileConstants.PARAM_MODE, mode);
@@ -154,7 +154,7 @@ public class NormalPhoneProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutOnConnect() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, PhoneProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
@@ -188,7 +188,7 @@ public class NormalPhoneProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteOnConnect() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, PhoneProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);

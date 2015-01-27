@@ -15,7 +15,7 @@ public interface TestNetworkServiceDiscoveryProfileConstants {
     /**
      * テスト用デバイスプラグインID.
      */
-    String DEVICE_ID = "test_device_id";
+    String SERVICE_ID = "test_service_id";
 
     /**
      * テスト用デバイス名.

@@ -136,7 +136,7 @@ public class FailNetworkServiceDiscoveryProfileTestCase extends RESTfulDConnectT
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
         builder.setAttribute(NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);

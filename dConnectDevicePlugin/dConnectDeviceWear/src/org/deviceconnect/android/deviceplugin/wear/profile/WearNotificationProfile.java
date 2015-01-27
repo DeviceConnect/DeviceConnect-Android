@@ -36,12 +36,12 @@ import android.support.v4.app.NotificationManagerCompat;
 public class WearNotificationProfile extends NotificationProfile {
 
     @Override
-    protected boolean onPostNotify(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPostNotify(final Intent request, final Intent response, final String serviceId,
             final NotificationType type, final Direction dir, final String lang, final String body, final String tag,
             final byte[] iconData) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
         } else if (type == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -56,7 +56,7 @@ public class WearNotificationProfile extends NotificationProfile {
             Intent mIntent = new Intent(getContext(),
                     org.deviceconnect.android.deviceplugin.wear.WearDeviceService.class);
             mIntent.setAction(WearConst.DEVICE_TO_WEAR_NOTIFICATION_OPEN);
-            mIntent.putExtra(WearConst.PARAM_DEVICEID, deviceId);
+            mIntent.putExtra(WearConst.PARAM_DEVICEID, serviceId);
             mIntent.putExtra(WearConst.PARAM_NOTIFICATIONID, myNotificationId);
             PendingIntent pendingIntent = PendingIntent.getService(getContext(), 0, mIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
@@ -97,7 +97,7 @@ public class WearNotificationProfile extends NotificationProfile {
             response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
             setResult(response, IntentDConnectMessage.RESULT_OK);
             
-            List<Event> events = EventManager.INSTANCE.getEventList(deviceId, WearNotificationProfile.PROFILE_NAME,
+            List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
                     null, WearNotificationProfile.ATTRIBUTE_ON_SHOW);
 
             for (int i = 0; i < events.size(); i++) {
@@ -111,11 +111,11 @@ public class WearNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onDeleteNotify(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteNotify(final Intent request, final Intent response, final String serviceId,
             final String notificationId) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
         } else if (notificationId == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -125,7 +125,7 @@ public class WearNotificationProfile extends NotificationProfile {
             mNotificationManager.cancel(Integer.parseInt(notificationId));
             setResult(response, IntentDConnectMessage.RESULT_OK);
 
-            List<Event> events = EventManager.INSTANCE.getEventList(deviceId, WearNotificationProfile.PROFILE_NAME,
+            List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
                     null, WearNotificationProfile.ATTRIBUTE_ON_CLOSE);
 
             for (int i = 0; i < events.size(); i++) {
@@ -139,11 +139,11 @@ public class WearNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onPutOnClick(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnClick(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -164,11 +164,11 @@ public class WearNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onPutOnClose(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnClose(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -190,11 +190,11 @@ public class WearNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onPutOnShow(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnShow(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -212,11 +212,11 @@ public class WearNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onDeleteOnClick(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnClick(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -233,11 +233,11 @@ public class WearNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onDeleteOnClose(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnClose(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -254,11 +254,11 @@ public class WearNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onDeleteOnShow(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnShow(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);

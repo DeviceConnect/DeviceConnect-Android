@@ -39,9 +39,9 @@ public class WearNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     private GoogleApiClient mGoogleApiClient;
 
     /**
-     * デバイスID.
+     * サービスID.
      */
-    public static final String DEVICE_ID = "Wear";
+    public static final String SERVICE_ID = "Wear";
 
     /**
      * デバイス名: {@value}
@@ -80,7 +80,7 @@ public class WearNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     }
 
     @Override
-    protected boolean onPutOnServiceChange(final Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onPutOnServiceChange(final Intent request, Intent response, String serviceId, String sessionKey) {
 
         if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -90,12 +90,12 @@ public class WearNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setDeviceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_SERVICE_CHANGE);
 
             Bundle service = new Bundle();
-            setId(service, DEVICE_ID);
+            setId(service, SERVICE_ID);
             setName(service, DEVICE_NAME);
             setType(service, DEVICE_TYPE);
             setOnline(service, DEVICE_ONLINE);
@@ -108,7 +108,7 @@ public class WearNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     }
 
     @Override
-    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -133,7 +133,7 @@ public class WearNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
                     String[] mNodeArray = node.split("-");
 
                     Bundle service = new Bundle();
-                    setId(service, DEVICE_ID + "(" + mNodeArray[0] + ")");
+                    setId(service, SERVICE_ID + "(" + mNodeArray[0] + ")");
                     setName(service, DEVICE_NAME + "(" + mNodeArray[0] + ")");
                     setType(service, DEVICE_TYPE);
                     setOnline(service, DEVICE_ONLINE);

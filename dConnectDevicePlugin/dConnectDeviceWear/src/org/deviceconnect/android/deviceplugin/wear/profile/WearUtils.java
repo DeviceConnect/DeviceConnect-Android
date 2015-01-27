@@ -21,15 +21,15 @@ public final class WearUtils {
     private WearUtils() {
     }
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    public static boolean checkDeviceId(final String deviceId) {
-        String regex = WearNetworkServiceDiscoveryProfile.DEVICE_ID;
+    public static boolean checkServiceId(final String serviceId) {
+        String regex = WearNetworkServiceDiscoveryProfile.SERVICE_ID;
         Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(deviceId);
+        Matcher match = mPattern.matcher(serviceId);
         return match.find();
     }
 }

@@ -53,10 +53,10 @@ public class WearDeviceService extends DConnectMessageService {
             
             String action = intent.getAction();
             if (action.equals(WearConst.DEVICE_TO_WEAR_NOTIFICATION_OPEN)) {
-                String deviceId = intent.getStringExtra(WearConst.PARAM_DEVICEID);
+                String serviceId = intent.getStringExtra(WearConst.PARAM_DEVICEID);
                 int notificationId = intent.getIntExtra(WearConst.PARAM_NOTIFICATIONID, -1);
 
-                List<Event> events = EventManager.INSTANCE.getEventList(deviceId, WearNotificationProfile.PROFILE_NAME,
+                List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
                         null, WearNotificationProfile.ATTRIBUTE_ON_CLICK);
 
                 for (int i = 0; i < events.size(); i++) {

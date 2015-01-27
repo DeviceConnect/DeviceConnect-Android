@@ -48,7 +48,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     private static final String TAG = "WEAR";
 
     /** StaticなDevice名. */
-    private static String mDeviceId;
+    private static String mServiceId;
 
     /** Status. */
     private static int statusEvent;
@@ -63,17 +63,17 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     private static String mId = "";
 
     @Override
-    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            mDeviceId = deviceId;
-            mId = getNodeId(deviceId);
+            mServiceId = serviceId;
+            mId = getNodeId(serviceId);
             statusEvent = EVENT_REGISTER;
 
             // イベントの登録
@@ -101,16 +101,16 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     }
 
     @Override
-    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            mId = getNodeId(deviceId);
+            mId = getNodeId(serviceId);
             statusEvent = EVENT_UNREGISTER;
             mGoogleApiClient = new GoogleApiClient.Builder(this.getContext()).addApi(Wearable.API)
                     .addConnectionCallbacks(this).addOnConnectionFailedListener(this).build();
@@ -299,7 +299,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
         orientation.putLong(DeviceOrientationProfile.PARAM_INTERVAL, 0);
         setInterval(orientation, Integer.parseInt(mDataArray[6]));
 
-        List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId, DeviceOrientationProfile.PROFILE_NAME, null,
+        List<Event> events = EventManager.INSTANCE.getEventList(mServiceId, DeviceOrientationProfile.PROFILE_NAME, null,
                 DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
 
         for (int i = 0; i < events.size(); i++) {
@@ -314,13 +314,13 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     /**
      * DeviceIDがらnodeを取得.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return nodeId 内部管理用NodeID
      */
-    private String getNodeId(final String deviceId) {
+    private String getNodeId(final String serviceId) {
 
-        String[] mDeviceIdArray = deviceId.split("\\(", 0);
-        String id = mDeviceIdArray[1].replace(")", "");
+        String[] mServiceIdArray = serviceId.split("\\(", 0);
+        String id = mServiceIdArray[1].replace(")", "");
 
         return id;
     }

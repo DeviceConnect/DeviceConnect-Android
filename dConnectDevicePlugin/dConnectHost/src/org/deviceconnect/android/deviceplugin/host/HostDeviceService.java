@@ -26,6 +26,7 @@ import org.apache.http.conn.util.InetAddressUtils;
 import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServer;
 import org.deviceconnect.android.deviceplugin.host.manager.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostCanvasProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostConnectProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileDescriptorProfile;
@@ -155,6 +156,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         addProfile(new HostFileDescriptorProfile());
         addProfile(new HostVibrationProfile());
         addProfile(new HostProximityProfile());
+        addProfile(new HostCanvasProfile());
 
         // バッテリー関連の処理と値の保持
         mHostBatteryManager = new HostBatteryManager();

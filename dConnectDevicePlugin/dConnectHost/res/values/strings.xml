@@ -29,5 +29,7 @@
     <string name="stop_btn">Stop</string>
     
     <string name="touch_activity">Touch Activity</string>
+    
+    <string name="canvas_profile_view_close_guidance">tap this screen to close.</string>
 
 </resources>

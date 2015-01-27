@@ -93,5 +93,12 @@
         <name lang="en">Proximity</name>
         <description lang="en">Accesses media player feature. </description>
     </profile>
-
+    
+     <profile name="canvas" expireperiod="86400000">
+        <name lang="ja">キャンバス</name>
+        <description lang="ja">図形を描画する。</description>
+        <name lang="en">Canvas</name>
+        <description lang="en">Draw Shapes. </description>
+    </profile>
+     
 </deviceplugin-provider>

@@ -158,6 +158,12 @@
             android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
             android:exported="false" >
         </service>
+        
+        <!-- Canvas Profile -->
+        <activity android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
+            android:launchMode="singleTop" >
+            
+        </activity>
     </application>
 
 </manifest>

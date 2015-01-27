@@ -33,9 +33,9 @@ import com.getpebble.android.kit.PebbleKit;
  */
 public class PebbleNetworkServceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
     /**
-     * デバイスIDのプレフィックス.
+     * サービスIDのプレフィックス.
      */
-    public static final String DEVICE_ID = "Pebble";
+    public static final String SERVICE_ID = "Pebble";
     /**
      * デバイス名を定義.
      */
@@ -92,11 +92,11 @@ public class PebbleNetworkServceDiscoveryProfile extends NetworkServiceDiscovery
                     String deviceName = device.getName();
                     String deviceAddress = device.getAddress();
                     // URIに使えるように、Macアドレスの":"を取り除いて小文字に変換する 
-                    String deviceid = deviceAddress.replace(":", "")
+                    String serviceId = deviceAddress.replace(":", "")
                             .toLowerCase(Locale.getDefault());
                     if (deviceName.indexOf("Pebble") != -1) {
                         Bundle service = new Bundle();
-                        setId(service, DEVICE_ID + deviceid);
+                        setId(service, SERVICE_ID + serviceId);
                         setName(service, deviceName);
                         setType(service, NetworkType.BLUETOOTH);
                         setOnline(service, true);
@@ -114,7 +114,7 @@ public class PebbleNetworkServceDiscoveryProfile extends NetworkServiceDiscovery
 
     @Override
     protected boolean onPutOnServiceChange(final Intent request, final Intent response,
-                 final String deviceId, final String sessionKey) {
+                 final String serviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.addEvent(request);
         switch (error) {
         case NONE:
@@ -132,7 +132,7 @@ public class PebbleNetworkServceDiscoveryProfile extends NetworkServiceDiscovery
 
     @Override
     protected boolean onDeleteOnServiceChange(final Intent request, final Intent response,
-                       final String deviceId, final String sessionKey) {
+                       final String serviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         switch (error) {
         case NONE:

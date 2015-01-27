@@ -14,15 +14,15 @@ final class PebbleUtil {
     private PebbleUtil() {
     }
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    public static boolean checkDeviceId(final String deviceId) {
-        String regex = PebbleNetworkServceDiscoveryProfile.DEVICE_ID;
+    public static boolean checkServiceId(final String serviceId) {
+        String regex = PebbleNetworkServceDiscoveryProfile.SERVICE_ID;
         Pattern p = Pattern.compile(regex);
-        Matcher m = p.matcher(deviceId);
+        Matcher m = p.matcher(serviceId);
         return m.find();
     }
 }

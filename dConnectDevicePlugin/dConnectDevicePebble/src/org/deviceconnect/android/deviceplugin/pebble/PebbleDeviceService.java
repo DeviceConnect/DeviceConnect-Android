@@ -83,7 +83,7 @@ public class PebbleDeviceService extends DConnectMessageService {
     }
     
     /**
-     * 現在接続されているPebbleのデバイスIDを取得する.
+     * 現在接続されているPebbleのサービスIDを取得する.
      * <p>
      * 発見されない場合にはnullを返却する。
      * </p>
@@ -92,9 +92,9 @@ public class PebbleDeviceService extends DConnectMessageService {
      * PebbleKitでは、命令を識別して出す機能はない。<br/>
      * 基本は1対1で考える。<br/>
      * </p>
-     * @return デバイスID
+     * @return サービスID
      */
-    public String getDeviceId() {
+    public String getServiceId() {
         BluetoothAdapter defaultAdapter = BluetoothAdapter.getDefaultAdapter();
         Set<BluetoothDevice> bondedDevices = defaultAdapter.getBondedDevices();
         if (bondedDevices.size() > 0) {
@@ -102,9 +102,9 @@ public class PebbleDeviceService extends DConnectMessageService {
                 String deviceName = device.getName();
                 String deviceAddress = device.getAddress();
                 // URIに使えるように、Macアドレスの":"を取り除いて小文字に変換する 
-                String deviceid = deviceAddress.replace(":", "").toLowerCase();
+                String serviceId = deviceAddress.replace(":", "").toLowerCase();
                 if (deviceName.indexOf("Pebble") != -1) {
-                    return PebbleNetworkServceDiscoveryProfile.DEVICE_ID + deviceid;
+                    return PebbleNetworkServceDiscoveryProfile.SERVICE_ID + serviceId;
                 }
             }
         }

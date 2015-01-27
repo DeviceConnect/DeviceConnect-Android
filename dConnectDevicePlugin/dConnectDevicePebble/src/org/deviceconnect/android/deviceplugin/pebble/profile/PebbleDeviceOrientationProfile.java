@@ -58,7 +58,7 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
                 setInterval(orientation, interval.longValue());
 
                 // 登録されたイベントリスナー一覧を取得
-                List<Event> evts = EventManager.INSTANCE.getEventList(service.getDeviceId(),
+                List<Event> evts = EventManager.INSTANCE.getEventList(service.getServiceId(),
                         PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_ORIENTATION);
                 for (Event evt : evts) {
                     // 各イベントリスナーに通知
@@ -72,11 +72,11 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
 
     @Override
     protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response
-            , final String deviceId, final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+            , final String serviceId, final String sessionKey) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
             return true;
         } else if (sessionKey == null) {
@@ -116,11 +116,11 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
 
     @Override
     protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response
-            , final String deviceId, final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+            , final String serviceId, final String sessionKey) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
             return true;
         } else if (sessionKey == null) {

@@ -30,7 +30,7 @@ public class PebbleCanvasProfile extends CanvasProfile {
 
     @Override
     protected boolean onPostDrawImage(final Intent request, final Intent response,
-            final String deviceId, final String mimeType, final byte[] data, final double x, final double y,
+            final String serviceId, final String mimeType, final byte[] data, final double x, final double y,
             final String mode) {
 
         if (data == null) {
@@ -38,12 +38,12 @@ public class PebbleCanvasProfile extends CanvasProfile {
             return true;
         }
 
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
 
-        if (!PebbleUtil.checkDeviceId(deviceId)) {
+        if (!PebbleUtil.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundDeviceError(response);
             return true;
         }

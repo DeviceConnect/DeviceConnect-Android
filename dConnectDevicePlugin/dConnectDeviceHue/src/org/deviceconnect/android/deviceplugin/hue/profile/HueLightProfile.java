@@ -46,10 +46,10 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
-        PHBridge bridge = findBridge(deviceId);
+        String serviceId = getDeviceID(request);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         List<Bundle> lightsParam = new ArrayList<Bundle>();
@@ -69,7 +69,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLight(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getDeviceID(request);
         String lightId = getLightID(request);
 
         // 必須パラメータの存在チェック
@@ -78,14 +78,14 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         PHLight light = bridge.getResourceCache().getLights().get(lightId);
         if (light == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
@@ -122,7 +122,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onDeleteLight(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getDeviceID(request);
         String lightId = getLightID(request);
 
         // 必須パラメータの存在チェック
@@ -131,14 +131,14 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         PHLight light = bridge.getResourceCache().getLights().get(lightId);
         if (light == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
         PHLightState lightState = new PHLightState();
@@ -163,7 +163,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLight(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getDeviceID(request);
         String lightId = getLightID(request);
         String name = getName(request);
 
@@ -177,14 +177,14 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         PHLight light = getLight(bridge, lightId);
         if (light == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
@@ -209,10 +209,10 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onGetLightGroup(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
-        PHBridge bridge = findBridge(deviceId);
+        String serviceId = getDeviceID(request);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         List<Bundle> groupsParam = new ArrayList<Bundle>();
@@ -247,7 +247,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLightGroup(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getDeviceID(request);
         String groupId = getGroupId(request);
 
         // 必須パラメータの存在チェック
@@ -256,9 +256,9 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
@@ -308,7 +308,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onDeleteLightGroup(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getDeviceID(request);
         String groupId = getGroupId(request);
 
         // 必須パラメータの存在チェック
@@ -317,9 +317,9 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
@@ -357,7 +357,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLightGroup(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getDeviceID(request);
         String groupId = getGroupId(request);
         
         // 必須パラメータの存在チェック
@@ -366,9 +366,9 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
         
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         String name = getName(request);
@@ -402,7 +402,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLightGroupCreate(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getDeviceID(request);
         String groupName = getGroupName(request);
         String lightIds = getLightIds(request);
         
@@ -424,9 +424,9 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
@@ -454,7 +454,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onDeleteLightGroupClear(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getDeviceID(request);
         String groupId = getGroupId(request);
 
         // 必須パラメータの存在チェック
@@ -463,9 +463,9 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
@@ -488,15 +488,15 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Hueのブリッジを検索する.
-     * @param deviceId Device ID
+     * @param serviceId Service ID
      * @return Hueのブリッジを管理するオブジェクト
      */
-    private PHBridge findBridge(final String deviceId) {
+    private PHBridge findBridge(final String serviceId) {
         PHBridge bridge = PHHueSDK.getInstance().getSelectedBridge();
         if (bridge != null) {
             PHBridgeResourcesCache cache = bridge.getResourceCache();
             String ipAddress = cache.getBridgeConfiguration().getIpAddress();
-            if (deviceId.equals(ipAddress)) {
+            if (serviceId.equals(ipAddress)) {
                 return bridge;
             }
         }

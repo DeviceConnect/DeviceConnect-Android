@@ -82,12 +82,12 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, 
-            final String deviceId, final String sessionKey) {
+            final String serviceId, final String sessionKey) {
         setUnsupportedError(response);
         return true;
     }
@@ -104,12 +104,12 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response,
-            final String deviceId, final String sessionKey) {
+            final String serviceId, final String sessionKey) {
         setUnsupportedError(response);
         return true;
     }

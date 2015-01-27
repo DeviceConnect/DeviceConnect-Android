@@ -74,8 +74,8 @@ public class NotificationProfile extends DConnectProfile implements Notification
             String lang = getLang(request);
             String body = getBody(request);
             String tag = getTag(request);
-            String deviceId = getDeviceID(request);
-            result = onPostNotify(request, response, deviceId, type, dir, lang, body, tag, iconData);
+            String serviceId = getDeviceID(request);
+            result = onPostNotify(request, response, serviceId, type, dir, lang, body, tag, iconData);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -92,17 +92,17 @@ public class NotificationProfile extends DConnectProfile implements Notification
             MessageUtils.setUnknownAttributeError(response);
         } else {
             
-            String deviceId = getDeviceID(request);
+            String serviceId = getDeviceID(request);
             String sessionKey = getSessionKey(request);
             
             if (attribute.equals(ATTRIBUTE_ON_CLICK)) {
-                result = onPutOnClick(request, response, deviceId, sessionKey);
+                result = onPutOnClick(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_SHOW)) {
-                result = onPutOnShow(request, response, deviceId, sessionKey);
+                result = onPutOnShow(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_CLOSE)) {
-                result = onPutOnClose(request, response, deviceId, sessionKey);
+                result = onPutOnClose(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_ERROR)) {
-                result = onPutOnError(request, response, deviceId, sessionKey);
+                result = onPutOnError(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -120,17 +120,17 @@ public class NotificationProfile extends DConnectProfile implements Notification
             MessageUtils.setUnknownAttributeError(response);
         } else {
             
-            String deviceId = getDeviceID(request);
+            String serviceId = getDeviceID(request);
             String sessionKey = getSessionKey(request);
             
             if (attribute.equals(ATTRIBUTE_ON_CLICK)) {
-                result = onDeleteOnClick(request, response, deviceId, sessionKey);
+                result = onDeleteOnClick(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_SHOW)) {
-                result = onDeleteOnShow(request, response, deviceId, sessionKey);
+                result = onDeleteOnShow(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_CLOSE)) {
-                result = onDeleteOnClose(request, response, deviceId, sessionKey);
+                result = onDeleteOnClose(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_ERROR)) {
-                result = onDeleteOnError(request, response, deviceId, sessionKey);
+                result = onDeleteOnError(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_NOTIFY)) {
                 result = onDeleteNotify(request, response, getDeviceID(request), getNotificationId(request));
             } else {
@@ -153,11 +153,11 @@ public class NotificationProfile extends DConnectProfile implements Notification
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnClick(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutOnClick(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -171,11 +171,11 @@ public class NotificationProfile extends DConnectProfile implements Notification
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnShow(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutOnShow(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -189,11 +189,11 @@ public class NotificationProfile extends DConnectProfile implements Notification
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnClose(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutOnClose(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -207,11 +207,11 @@ public class NotificationProfile extends DConnectProfile implements Notification
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnError(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutOnError(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -229,7 +229,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param type 通知タイプ
      * @param dir メッセージの文字の向き。省略された場合null。
      * @param lang メッセージの言語。省略された場合null。
@@ -238,7 +238,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
      * @param iconData アイコン画像のバイナリ。省略された場合null。
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostNotify(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPostNotify(final Intent request, final Intent response, final String serviceId, 
             final NotificationType type, final Direction dir, final String lang, final String body, 
             final String tag, final byte[] iconData) {
         setUnsupportedError(response);
@@ -257,11 +257,11 @@ public class NotificationProfile extends DConnectProfile implements Notification
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param notificationId 通知ID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteNotify(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteNotify(final Intent request, final Intent response, final String serviceId, 
             final String notificationId) {
         setUnsupportedError(response);
         return true;
@@ -275,11 +275,11 @@ public class NotificationProfile extends DConnectProfile implements Notification
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnClick(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteOnClick(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -293,11 +293,11 @@ public class NotificationProfile extends DConnectProfile implements Notification
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnShow(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteOnShow(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -311,11 +311,11 @@ public class NotificationProfile extends DConnectProfile implements Notification
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnClose(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnClose(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -329,11 +329,11 @@ public class NotificationProfile extends DConnectProfile implements Notification
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnError(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteOnError(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         setUnsupportedError(response);
         return true;

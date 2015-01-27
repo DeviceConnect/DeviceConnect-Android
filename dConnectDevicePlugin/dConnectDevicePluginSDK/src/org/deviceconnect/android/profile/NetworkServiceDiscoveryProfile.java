@@ -72,9 +72,9 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
         boolean result = true;
 
         if (ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
-            String deviceId = getDeviceID(request);
+            String serviceId = getDeviceID(request);
             String sessionKey = getSessionKey(request);
-            result = onPutOnServiceChange(request, response, deviceId, sessionKey);
+            result = onPutOnServiceChange(request, response, serviceId, sessionKey);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -89,9 +89,9 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
         boolean result = true;
 
         if (ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
-            String deviceId = getDeviceID(request);
+            String serviceId = getDeviceID(request);
             String sessionKey = getSessionKey(request);
-            result = onDeleteOnServiceChange(request, response, deviceId, sessionKey);
+            result = onDeleteOnServiceChange(request, response, serviceId, sessionKey);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -130,11 +130,11 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnServiceChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -152,11 +152,11 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -197,10 +197,10 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
     }
 
     /**
-     * デバイスIDを設定する.
+     * サービスIDを設定する.
      * 
      * @param service デバイスパラメータ
-     * @param id デバイスID
+     * @param id サービスID
      */
     public static void setId(final Bundle service, final String id) {
         service.putString(PARAM_ID, id);

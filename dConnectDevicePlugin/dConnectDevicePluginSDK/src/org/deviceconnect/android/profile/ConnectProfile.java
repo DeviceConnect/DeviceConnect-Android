@@ -96,15 +96,15 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
         if (attribute == null) {
             setUnsupportedError(response);
         } else {
-            String deviceId = getDeviceID(request);
+            String serviceId = getDeviceID(request);
             if (attribute.equals(ATTRIBUTE_WIFI)) {
-                result = onGetWifi(request, response, deviceId);
+                result = onGetWifi(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_BLUETOOTH)) {
-                result = onGetBluetooth(request, response, deviceId);
+                result = onGetBluetooth(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_NFC)) {
-                result = onGetNFC(request, response, deviceId);
+                result = onGetNFC(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_BLE)) {
-                result = onGetBLE(request, response, deviceId);
+                result = onGetBLE(request, response, serviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -124,24 +124,24 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
             if (attribute == null) {
                 MessageUtils.setUnknownAttributeError(response);
             } else {
-                String deviceId = getDeviceID(request);
+                String serviceId = getDeviceID(request);
                 String sessionKey = getSessionKey(request);
                 if (attribute.equals(ATTRIBUTE_WIFI)) {
-                    result = onPutWifi(request, response, deviceId);
+                    result = onPutWifi(request, response, serviceId);
                 } else if (attribute.equals(ATTRIBUTE_ON_WIFI_CHANGE)) {
-                    result = onPutOnWifiChange(request, response, deviceId, sessionKey);
+                    result = onPutOnWifiChange(request, response, serviceId, sessionKey);
                 } else if (attribute.equals(ATTRIBUTE_BLUETOOTH)) {
-                    result = onPutBluetooth(request, response, deviceId);
+                    result = onPutBluetooth(request, response, serviceId);
                 } else if (attribute.equals(ATTRIBUTE_ON_BLUETOOTH_CHANGE)) {
-                    result = onPutOnBluetoothChange(request, response, deviceId, sessionKey);
+                    result = onPutOnBluetoothChange(request, response, serviceId, sessionKey);
                 } else if (attribute.equals(ATTRIBUTE_NFC)) {
-                    result = onPutNFC(request, response, deviceId);
+                    result = onPutNFC(request, response, serviceId);
                 } else if (attribute.equals(ATTRIBUTE_ON_NFC_CHANGE)) {
-                    result = onPutOnNFCChange(request, response, deviceId, sessionKey);
+                    result = onPutOnNFCChange(request, response, serviceId, sessionKey);
                 } else if (attribute.equals(ATTRIBUTE_BLE)) {
-                    result = onPutBLE(request, response, deviceId);
+                    result = onPutBLE(request, response, serviceId);
                 } else if (attribute.equals(ATTRIBUTE_ON_BLE_CHANGE)) {
-                    result = onPutOnBLEChange(request, response, deviceId, sessionKey);
+                    result = onPutOnBLEChange(request, response, serviceId, sessionKey);
                 } else {
                     MessageUtils.setUnknownAttributeError(response);
                 }
@@ -167,25 +167,25 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
                 MessageUtils.setUnknownAttributeError(response);
             } else {
 
-                String deviceId = getDeviceID(request);
+                String serviceId = getDeviceID(request);
                 String sessionKey = getSessionKey(request);
 
                 if (attribute.equals(ATTRIBUTE_WIFI)) {
-                    result = onDeleteWifi(request, response, deviceId);
+                    result = onDeleteWifi(request, response, serviceId);
                 } else if (attribute.equals(ATTRIBUTE_ON_WIFI_CHANGE)) {
-                    result = onDeleteOnWifiChange(request, response, deviceId, sessionKey);
+                    result = onDeleteOnWifiChange(request, response, serviceId, sessionKey);
                 } else if (attribute.equals(ATTRIBUTE_BLUETOOTH)) {
-                    result = onDeleteBluetooth(request, response, deviceId);
+                    result = onDeleteBluetooth(request, response, serviceId);
                 } else if (attribute.equals(ATTRIBUTE_ON_BLUETOOTH_CHANGE)) {
-                    result = onDeleteOnBluetoothChange(request, response, deviceId, sessionKey);
+                    result = onDeleteOnBluetoothChange(request, response, serviceId, sessionKey);
                 } else if (attribute.equals(ATTRIBUTE_NFC)) {
-                    result = onDeleteNFC(request, response, deviceId);
+                    result = onDeleteNFC(request, response, serviceId);
                 } else if (attribute.equals(ATTRIBUTE_ON_NFC_CHANGE)) {
-                    result = onDeleteOnNFCChange(request, response, deviceId, sessionKey);
+                    result = onDeleteOnNFCChange(request, response, serviceId, sessionKey);
                 } else if (attribute.equals(ATTRIBUTE_BLE)) {
-                    result = onDeleteBLE(request, response, deviceId);
+                    result = onDeleteBLE(request, response, serviceId);
                 } else if (attribute.equals(ATTRIBUTE_ON_BLE_CHANGE)) {
-                    result = onDeleteOnBLEChange(request, response, deviceId, sessionKey);
+                    result = onDeleteOnBLEChange(request, response, serviceId, sessionKey);
                 } else {
                     MessageUtils.setUnknownAttributeError(response);
                 }
@@ -211,10 +211,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetWifi(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetWifi(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -227,10 +227,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetBluetooth(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetBluetooth(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -243,10 +243,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetNFC(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetNFC(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -259,10 +259,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetBLE(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetBLE(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -279,10 +279,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutWifi(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onPutWifi(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -295,11 +295,11 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnWifiChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnWifiChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -313,10 +313,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutBluetooth(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onPutBluetooth(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -329,11 +329,11 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnBluetoothChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnBluetoothChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -347,10 +347,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutBluetoothDiscoverable(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onPutBluetoothDiscoverable(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -363,10 +363,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutNFC(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onPutNFC(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -379,11 +379,11 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnNFCChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnNFCChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -397,10 +397,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutBLE(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onPutBLE(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -413,11 +413,11 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnBLEChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnBLEChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -435,10 +435,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteWifi(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onDeleteWifi(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -451,11 +451,11 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnWifiChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnWifiChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -469,10 +469,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteBluetooth(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onDeleteBluetooth(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -485,11 +485,11 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnBluetoothChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnBluetoothChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -503,11 +503,11 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onDeleteBluetoothDiscoverable(final Intent request, final Intent response, 
-            final String deviceId) {
+            final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -520,10 +520,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteNFC(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onDeleteNFC(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -536,11 +536,11 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnNFCChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnNFCChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -554,10 +554,10 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteBLE(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onDeleteBLE(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -570,11 +570,11 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnBLEChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnBLEChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;

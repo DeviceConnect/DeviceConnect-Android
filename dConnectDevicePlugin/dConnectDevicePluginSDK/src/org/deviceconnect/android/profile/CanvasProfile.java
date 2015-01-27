@@ -50,14 +50,14 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
         boolean result = true;
 
         if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
-            String deviceId = getDeviceID(request);
+            String serviceId = getDeviceID(request);
             String mimeType = getMIMEType(request);
             String uri = request.getStringExtra(CanvasProfile.PARAM_URI);
             byte[] data = getContentData(uri);
             double x = getX(request);
             double y = getY(request);
             String mode = getMode(request);
-            result = onPostDrawImage(request, response, deviceId, mimeType, data, x, y, mode);
+            result = onPostDrawImage(request, response, serviceId, mimeType, data, x, y, mode);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -72,7 +72,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param mimeType dataのマイムタイプ。省略された場合はnullが渡される。
      * @param data 画像ファイルのバイナリ。
      * @param x X座標
@@ -80,7 +80,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
      * @param mode 画像描画モード
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostDrawImage(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId, 
             final String mimeType, final byte[] data, final double x, final double y, final String mode) {
         setUnsupportedError(response);
         return true;

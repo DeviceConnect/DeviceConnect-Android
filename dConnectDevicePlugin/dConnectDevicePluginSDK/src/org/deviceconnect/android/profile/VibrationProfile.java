@@ -94,11 +94,11 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param pattern バイブレーションの鳴動パターン配列。省略された場合は最大値を、不正なフォーマットでリクエストを受けた場合はnullが渡される。
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutVibrate(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutVibrate(final Intent request, final Intent response, final String serviceId, 
             final long[] pattern) {
         setUnsupportedError(response);
         return true;
@@ -115,10 +115,10 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }

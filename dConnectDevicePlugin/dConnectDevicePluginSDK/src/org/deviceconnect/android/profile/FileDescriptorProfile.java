@@ -62,16 +62,16 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
+            String serviceId = getDeviceID(request);
             if (attribute.equals(ATTRIBUTE_OPEN)) {
                 String path = getPath(request);
                 Flag flag = getFlag(request);
-                result = onGetOpen(request, response, deviceId, path, flag);
+                result = onGetOpen(request, response, serviceId, path, flag);
             } else if (attribute.equals(ATTRIBUTE_READ)) {
                 String path = getPath(request);
                 Long length = getLength(request);
                 Long position = getPosition(request);
-                result = onGetRead(request, response, deviceId, path, length, position);
+                result = onGetRead(request, response, serviceId, path, length, position);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -89,17 +89,17 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
+            String serviceId = getDeviceID(request);
             if (attribute.equals(ATTRIBUTE_CLOSE)) {
                 String path = getPath(request);
-                result = onPutClose(request, response, deviceId, path);
+                result = onPutClose(request, response, serviceId, path);
             } else if (attribute.equals(ATTRIBUTE_WRITE)) {
                 String path = getPath(request);
                 byte[] data = getContentData(getUri(request));
                 Long position = getPosition(request);
-                result = onPutWrite(request, response, deviceId, path, data, position);
+                result = onPutWrite(request, response, serviceId, path, data, position);
             } else if (attribute.equals(ATTRIBUTE_ON_WATCH_FILE)) {
-                result = onPutOnWatchFile(request, response, deviceId, getSessionKey(request));
+                result = onPutOnWatchFile(request, response, serviceId, getSessionKey(request));
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -134,12 +134,12 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path ファイルパス
      * @param flag ファイルオープンモード
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetOpen(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onGetOpen(final Intent request, final Intent response, final String serviceId, 
             final String path, final Flag flag) {
         setUnsupportedError(response);
         return true;
@@ -152,13 +152,13 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path ファイルパス
      * @param length ファイルの読み込みサイズ
      * @param position 読み込み開始位置。省略された場合はnullが入る。
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetRead(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onGetRead(final Intent request, final Intent response, final String serviceId, 
             final String path, final Long length, final Long position) {
         setUnsupportedError(response);
         return true;
@@ -175,11 +175,11 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path ファイルパス
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutClose(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutClose(final Intent request, final Intent response, final String serviceId, 
             final String path) {
         setUnsupportedError(response);
         return true;
@@ -193,13 +193,13 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path ファイルパス
      * @param data 書き込むデータのバイナリ。リクエストパラメータのuriから取り出したデータ。
      * @param position ファイルの書き込み開始位置。省略された場合-1が入る。
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutWrite(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutWrite(final Intent request, final Intent response, final String serviceId,
             final String path, final byte[] data, final Long position) {
         setUnsupportedError(response);
         return true;
@@ -213,11 +213,11 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnWatchFile(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutOnWatchFile(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -235,11 +235,11 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnWatchFile(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteOnWatchFile(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         setUnsupportedError(response);
         return true;

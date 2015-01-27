@@ -73,10 +73,10 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
         String attribute = getAttribute(request);
         boolean result = true;
 
-        String deviceId = getDeviceID(request);
+        String serviceId = getDeviceID(request);
         if (ATTRIBUTE_RECEIVE.equals(attribute)) {
             String path = getPath(request);
-            result = onGetReceive(request, response, deviceId, path);
+            result = onGetReceive(request, response, serviceId, path);
         } else if (ATTRIBUTE_LIST.equals(attribute)) {
             
             String path = getPath(request);
@@ -84,7 +84,7 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
             String order = getOrder(request);
             Integer offset = getOffset(request);
             Integer limit = getLimit(request);
-            result = onGetList(request, response, deviceId, path, mimeType, order, offset, limit);
+            result = onGetList(request, response, serviceId, path, mimeType, order, offset, limit);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -103,15 +103,15 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
             if (data == null) {
                 MessageUtils.setInvalidRequestParameterError(response);
             } else {
-                String deviceId = getDeviceID(request);
+                String serviceId = getDeviceID(request);
                 String path = getPath(request);
                 String mimeType = getMIMEType(request);
-                result = onPostSend(request, response, deviceId, path, mimeType, data);
+                result = onPostSend(request, response, serviceId, path, mimeType, data);
             }
         } else if (ATTRIBUTE_MKDIR.equals(attribute)) {
             String path = getPath(request);
-            String deviceId = getDeviceID(request);
-            result = onPostMkdir(request, response, deviceId, path);
+            String serviceId = getDeviceID(request);
+            result = onPostMkdir(request, response, serviceId, path);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -125,14 +125,14 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
         boolean result = true;
 
         if (ATTRIBUTE_REMOVE.equals(attribute)) {
-            String deviceId = getDeviceID(request);
+            String serviceId = getDeviceID(request);
             String path = getPath(request);
-            result = onDeleteRemove(request, response, deviceId, path);
+            result = onDeleteRemove(request, response, serviceId, path);
         } else if (ATTRIBUTE_RMDIR.equals(attribute)) {
             String path = getPath(request);
-            String deviceId = getDeviceID(request);
+            String serviceId = getDeviceID(request);
             boolean force = getForce(request);
-            result = onDeleteRmdir(request, response, deviceId, path, force);
+            result = onDeleteRmdir(request, response, serviceId, path, force);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -148,11 +148,11 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path パス
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetReceive(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onGetReceive(final Intent request, final Intent response, final String serviceId, 
             final String path) {
         setUnsupportedError(response);
         return true;
@@ -166,7 +166,7 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path ファイルのパス。省略された場合null。
      * @param mimeType ファイルのMIMEタイプ。省略された場合null。
      * @param order 並び順。省略された場合null。
@@ -174,7 +174,7 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
      * @param limit 最大取得数。省略された場合はnull。
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetList(final Intent request, final Intent response, final String deviceId, final String path,
+    protected boolean onGetList(final Intent request, final Intent response, final String serviceId, final String path,
             final String mimeType, final String order, final Integer offset, final Integer limit) {
         setUnsupportedError(response);
         return true;
@@ -188,11 +188,11 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path ファイルパス。ファイル名を保存する。
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostMkdir(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPostMkdir(final Intent request, final Intent response, final String serviceId, 
             final String path) {
         setUnsupportedError(response);
         return true;
@@ -206,13 +206,13 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path ファイルパス。ファイル名を保存する。
      * @param mimeType ファイルのマイムタイプ。省略された場合はnullが渡される。
      * @param data uriパラメータから取得できるファイルのデータ。uriパラメータが省略された場合はnullが渡される。
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostSend(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPostSend(final Intent request, final Intent response, final String serviceId, 
             final String path, final String mimeType, final byte[] data) {
         setUnsupportedError(response);
         return true;
@@ -226,11 +226,11 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path ファイルパス
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteRemove(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteRemove(final Intent request, final Intent response, final String serviceId, 
             final String path) {
         setUnsupportedError(response);
         return true;
@@ -244,12 +244,12 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path ファイルパス
      * @param force 強制削除フラグ
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteRmdir(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteRmdir(final Intent request, final Intent response, final String serviceId, 
             final String path, final boolean force) {
         setUnsupportedError(response);
         return true;

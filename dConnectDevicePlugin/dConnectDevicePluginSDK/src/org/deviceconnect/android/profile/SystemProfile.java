@@ -114,44 +114,44 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
     /**
      * WiFiの接続状態を取得する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return WiFiの接続状態
      * @see ConnectState
      */
-    protected ConnectState getWifiState(final String deviceId) {
+    protected ConnectState getWifiState(final String serviceId) {
         return ConnectState.NONE;
     }
 
     /**
      * Bluetoothの接続状態を取得する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return Bluetoothの接続状態
      * @see ConnectState
      */
-    protected ConnectState getBluetoothState(final String deviceId) {
+    protected ConnectState getBluetoothState(final String serviceId) {
         return ConnectState.NONE;
     }
 
     /**
      * NFCの接続状態を取得する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return NFCの接続状態
      * @see ConnectState
      */
-    protected ConnectState getNFCState(final String deviceId) {
+    protected ConnectState getNFCState(final String serviceId) {
         return ConnectState.NONE;
     }
 
     /**
      * BLEの接続状態を取得する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return BLEの接続状態
      * @see ConnectState
      */
-    protected ConnectState getBLEState(final String deviceId) {
+    protected ConnectState getBLEState(final String serviceId) {
         return ConnectState.NONE;
     }
 
@@ -159,12 +159,12 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
     protected boolean onGetRequest(final Intent request, final Intent response) {
         String attribute = getAttribute(request);
         boolean result = true;
-        String deviceId = getDeviceID(request);
+        String serviceId = getDeviceID(request);
 
         if (attribute == null) {
-            result = onGetSystem(request, response, deviceId);
+            result = onGetSystem(request, response, serviceId);
         } else if (attribute.equals(ATTRIBUTE_DEVICE)) {
-            result = onGetDevice(request, response, deviceId);
+            result = onGetDevice(request, response, serviceId);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -219,10 +219,10 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetSystem(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetSystem(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -236,17 +236,17 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetDevice(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetDevice(final Intent request, final Intent response, final String serviceId) {
 
         // connect
         Bundle connect = new Bundle();
-        setWifiState(connect, getWifiState(deviceId));
-        setBluetoothState(connect, getBluetoothState(deviceId));
-        setNFCState(connect, getNFCState(deviceId));
-        setBLEState(connect, getBLEState(deviceId));
+        setWifiState(connect, getWifiState(serviceId));
+        setBluetoothState(connect, getBluetoothState(serviceId));
+        setNFCState(connect, getNFCState(serviceId));
+        setBLEState(connect, getBLEState(serviceId));
         setConnect(response, connect);
 
         // version
@@ -325,7 +325,7 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param pluginId デバイスID
+     * @param pluginId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onDeleteWakeup(final Intent request, final Intent response, final String pluginId) {

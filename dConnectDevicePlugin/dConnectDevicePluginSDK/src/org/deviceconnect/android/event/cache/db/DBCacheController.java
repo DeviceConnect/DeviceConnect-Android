@@ -102,7 +102,7 @@ public final class DBCacheController extends BaseCacheController {
             if (aId < 0) {
                 break;
             }
-            long dId = DeviceDao.insert(db, event.getDeviceId());
+            long dId = DeviceDao.insert(db, event.getServiceId());
             if (dId < 0) {
                 break;
             }
@@ -178,7 +178,7 @@ public final class DBCacheController extends BaseCacheController {
     }
     
     @Override
-    public synchronized Event getEvent(final String deviceId, final String profile, final String inter, 
+    public synchronized Event getEvent(final String serviceId, final String profile, final String inter, 
             final String attribute, final String sessionKey, final String receiver) {
         
         Event result = null;
@@ -191,7 +191,7 @@ public final class DBCacheController extends BaseCacheController {
             }
             
             Event search = new Event();
-            search.setDeviceId(deviceId);
+            search.setServiceId(serviceId);
             search.setProfile(profile);
             search.setInterface(inter);
             search.setAttribute(attribute);
@@ -230,7 +230,7 @@ public final class DBCacheController extends BaseCacheController {
     }
 
     @Override
-    public synchronized List<Event> getEvents(final String deviceId, final String profile, 
+    public synchronized List<Event> getEvents(final String serviceId, final String profile, 
             final String inter, final String attribute) {
         
         List<Event> result = new ArrayList<Event>();
@@ -242,7 +242,7 @@ public final class DBCacheController extends BaseCacheController {
             }
             
             Event search = new Event();
-            search.setDeviceId(deviceId);
+            search.setServiceId(serviceId);
             search.setProfile(profile);
             search.setInterface(inter);
             search.setAttribute(attribute);
@@ -255,14 +255,14 @@ public final class DBCacheController extends BaseCacheController {
                 break;
             }
             
-            Client[] clients = ClientDao.getByAPIAndDeviceId(db, search);
+            Client[] clients = ClientDao.getByAPIAndServiceId(db, search);
             if (clients == null) {
                 break;
             }
             
             for (Client client : clients) {
                 Event event = new Event();
-                event.setDeviceId(deviceId);
+                event.setServiceId(serviceId);
                 event.setProfile(profile);
                 event.setInterface(inter);
                 event.setAttribute(attribute);

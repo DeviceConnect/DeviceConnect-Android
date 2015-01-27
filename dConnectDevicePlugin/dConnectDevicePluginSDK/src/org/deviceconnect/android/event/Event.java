@@ -38,9 +38,9 @@ public class Event implements Serializable {
     private String mAttribute;
     
     /**
-     * デバイスID.
+     * サービスID.
      */
-    private String mDeviceId;
+    private String mServiceId;
     
     /**
      * アクセストークン.
@@ -104,21 +104,21 @@ public class Event implements Serializable {
     }
 
     /**
-     * デバイスIDを取得する.
+     * サービスIDを取得する.
      * 
-     * @return デバイスID
+     * @return サービスID
      */
-    public String getDeviceId() {
-        return mDeviceId;
+    public String getServiceId() {
+        return mServiceId;
     }
 
     /**
-     * デバイスIDを設定する.
+     * サービスIDを設定する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void setDeviceId(final String deviceId) {
-        this.mDeviceId = deviceId;
+    public void setServiceId(final String serviceId) {
+        this.mServiceId = serviceId;
     }
 
     /**
@@ -239,8 +239,8 @@ public class Event implements Serializable {
         to.append(mInterface);
         to.append(", attribute = ");
         to.append(mAttribute);
-        to.append(", deviceId = ");
-        to.append(mDeviceId);
+        to.append(", serviceId = ");
+        to.append(mServiceId);
         to.append(", sessionKey = ");
         to.append(mSessionKey);
         to.append(", receiverName = ");

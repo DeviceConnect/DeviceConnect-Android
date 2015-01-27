@@ -399,24 +399,24 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     }
 
     /**
-     * リクエストからデバイスIDを取得する.
+     * リクエストからサービスIDを取得する.
      * 
      * @param request リクエストパラメータ
-     * @return デバイスID。無い場合はnullを返す。
+     * @return サービスID。無い場合はnullを返す。
      */
     public static String getDeviceID(final Intent request) {
-        String deviceid = request.getStringExtra(PARAM_DEVICE_ID);
-        return deviceid;
+        String serviceId = request.getStringExtra(PARAM_SERVICE_ID);
+        return serviceId;
     }
 
     /**
-     * メッセージにデバイスIDを設定する.
+     * メッセージにサービスIDを設定する.
      * 
      * @param message メッセージパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public static void setDeviceID(final Intent message, final String deviceId) {
-        message.putExtra(PARAM_DEVICE_ID, deviceId);
+    public static void setDeviceID(final Intent message, final String serviceId) {
+        message.putExtra(PARAM_SERVICE_ID, serviceId);
     }
 
     /**

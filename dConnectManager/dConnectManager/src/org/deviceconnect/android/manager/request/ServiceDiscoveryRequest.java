@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import android.content.Intent;
@@ -21,7 +22,7 @@ import android.os.Parcelable;
 import android.util.SparseArray;
 
 /**
- * Network Service Discovery用のリクエストクラス.
+ * Service Discovery用のリクエストクラス.
  * <p>
  * 他のリクエストと異なる点として、複数のレスポンスを受け取る事が挙げられる.
  * 結果として、レスポンスタイムアウトの判断基準が普通のリクエストではレスポンスを1つ受け取ったかどうか
@@ -30,7 +31,13 @@ import android.util.SparseArray;
  * </p>
  * @author NTT DOCOMO, INC.
  */
-public class NetworkServiceDiscoveryRequest extends DConnectRequest {
+public class ServiceDiscoveryRequest extends DConnectRequest {
+    /** プラグイン側のService Discoveryのプロファイル名: {@value} */
+    private static final String PROFILE_NETWORK_SERVICE_DISCOVERY = "networkServiceDiscovery";
+
+    /** プラグイン側のService Discoveryのプロファイル名: {@value} */
+    private static final String ATTRIBUTE_GET_NETWORK_SERVICES = "getNetworkServices";
+
     /** レスポンスが返ってきた個数. */
     private int mResponseCount;
 
@@ -101,6 +108,11 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
 
         // 送信用のIntentを作成
         Intent request = createRequestMessage(mRequest, null);
+
+        // プラグイン側のI/Fに変換
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, PROFILE_NETWORK_SERVICE_DISCOVERY);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_GET_NETWORK_SERVICES);
+
         for (int i = 0; i < plugins.size(); i++) {
             DevicePlugin plugin = plugins.get(i);
 

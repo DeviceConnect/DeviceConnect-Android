@@ -51,6 +51,12 @@ public abstract class DConnectMessageService extends Service implements DConnect
         ServiceDiscoveryProfileConstants.PROFILE_NAME
     };
 
+    /** プラグイン側のService Discoveryのプロファイル名: {@value} */
+    private static final String PROFILE_NETWORK_SERVICE_DISCOVERY = "networkServiceDiscovery";
+
+    /** プラグイン側のService Discoveryのプロファイル名: {@value} */
+    private static final String ATTRIBUTE_GET_NETWORK_SERVICES = "getNetworkServices";
+
     /**
      * ロガー.
      */
@@ -161,6 +167,16 @@ public abstract class DConnectMessageService extends Service implements DConnect
             MessageUtils.setNotSupportProfileError(response);
             sendResponse(response);
             return;
+        }
+
+        // Service Discovery APIのパスを変換
+        if (PROFILE_NETWORK_SERVICE_DISCOVERY.equals(profileName)) {
+            profileName = ServiceDiscoveryProfileConstants.PROFILE_NAME;
+            String attributeName = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
+            if (ATTRIBUTE_GET_NETWORK_SERVICES.equals(attributeName)) {
+                request.putExtra(DConnectMessage.EXTRA_PROFILE, profileName);
+                request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, (String) null);
+            }
         }
 
         // プロファイルを取得する

@@ -11,7 +11,7 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePluginManager;
-import org.deviceconnect.android.manager.request.NetworkServiceDiscoveryRequest;
+import org.deviceconnect.android.manager.request.ServiceDiscoveryRequest;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -42,7 +42,7 @@ public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
-        NetworkServiceDiscoveryRequest req = new NetworkServiceDiscoveryRequest();
+        ServiceDiscoveryRequest req = new ServiceDiscoveryRequest();
         req.setContext(getContext());
         req.setRequest(request);
         req.setTimeout(TIMEOUT);

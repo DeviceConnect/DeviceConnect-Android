@@ -96,10 +96,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+    protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             String className = getClassnameOfTopActivity();
@@ -153,7 +153,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onPutOnPhoto(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
@@ -165,7 +165,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
@@ -177,15 +177,15 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onPostTakePhoto(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPostTakePhoto(final Intent request, final Intent response, final String serviceId,
             final String target) {
         // カメラアプリにシャッター通知
         final String requestid = "" + UUID.randomUUID().hashCode();
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        } else if (!checkDeviceId(deviceId)) {
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
             return true;
         } else {
@@ -245,7 +245,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     setUri(response, pictureUri);
                     getContext().sendBroadcast(response);
 
-                    List<Event> events = EventManager.INSTANCE.getEventList(deviceId,
+                    List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                             PROFILE_NAME, null, ATTRIBUTE_ON_PHOTO);
                     for (int i = 0; i < events.size(); i++) {
                         Intent intent = EventManager.createEventMessage(events.get(i));
@@ -265,11 +265,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onPutPreview(Intent request, Intent response, String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
+    protected boolean onPutPreview(Intent request, Intent response, String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        } else if (!checkDeviceId(deviceId)) {
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
             return true;
         } else {
@@ -302,11 +302,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onDeletePreview(Intent request, Intent response, String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
+    protected boolean onDeletePreview(Intent request, Intent response, String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        } else if (!checkDeviceId(deviceId)) {
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
             return true;
         } else {
@@ -324,13 +324,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onPostRecord(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPostRecord(final Intent request, final Intent response, final String serviceId,
             final String target, final Long timeslice) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        } else if (!checkDeviceId(deviceId)) {
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
             return true;
         } else {
@@ -384,12 +384,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onPutStop(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutStop(final Intent request, final Intent response, final String serviceId,
                                 final String target) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        } else if (!checkDeviceId(deviceId)) {
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
             return true;
         } else {
@@ -415,13 +415,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onPutPause(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutPause(final Intent request, final Intent response, final String serviceId,
                             final String target) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        } else if (!checkDeviceId(deviceId)) {
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
             return true;
         } else {
@@ -443,13 +443,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onPutResume(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutResume(final Intent request, final Intent response, final String serviceId,
             final String target) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        } else if (!checkDeviceId(deviceId)) {
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
             return true;
         } else {
@@ -486,15 +486,15 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        String regex = HostNetworkServiceDiscoveryProfile.DEVICE_ID;
+    private boolean checkServiceId(final String serviceId) {
+        String regex = HostNetworkServiceDiscoveryProfile.SERVICE_ID;
         Pattern p = Pattern.compile(regex);
-        Matcher m = p.matcher(deviceId);
+        Matcher m = p.matcher(serviceId);
         return m.find();
     }
 
@@ -519,21 +519,21 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkdeviceId(final String deviceId) {
-        return HostNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkserviceId(final String serviceId) {
+        return HostNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 }

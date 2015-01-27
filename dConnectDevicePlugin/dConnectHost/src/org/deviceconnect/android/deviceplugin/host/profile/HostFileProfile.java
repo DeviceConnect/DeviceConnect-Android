@@ -65,11 +65,11 @@ public class HostFileProfile extends FileProfile {
 
     @Override
     protected boolean onGetReceive(final Intent request, final Intent response,
-                        final String deviceId, final String path) {
+                        final String serviceId, final String path) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -102,7 +102,7 @@ public class HostFileProfile extends FileProfile {
      * 
      * @param request リクエスト
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path リストを表示するパス
      * @param mimeType MIME-TYPE
      * @param order 並び順
@@ -111,13 +111,13 @@ public class HostFileProfile extends FileProfile {
      * @return 非同期処理を行っているため,falseとしておきスレッドで明示的にsendBroadcastで返却
      */
     @Override
-    protected boolean onGetList(final Intent request, final Intent response, final String deviceId, final String path,
+    protected boolean onGetList(final Intent request, final Intent response, final String serviceId, final String path,
             final String mimeType, final String order, final Integer offset, final Integer limit) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        } else if (!checkDeviceId(deviceId)) {
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
             return true;
         } else {
@@ -346,12 +346,12 @@ public class HostFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onPostSend(final Intent request, final Intent response, final String deviceId, final String path,
+    protected boolean onPostSend(final Intent request, final Intent response, final String serviceId, final String path,
             final String mimeType, final byte[] data) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -440,12 +440,12 @@ public class HostFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onDeleteRemove(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteRemove(final Intent request, final Intent response, final String serviceId,
             final String path) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -464,12 +464,12 @@ public class HostFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onPostMkdir(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPostMkdir(final Intent request, final Intent response, final String serviceId,
             final String path) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -495,12 +495,12 @@ public class HostFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onDeleteRmdir(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteRmdir(final Intent request, final Intent response, final String serviceId,
             final String path, final boolean force) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -559,26 +559,26 @@ public class HostFileProfile extends FileProfile {
     }
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        String regex = HostNetworkServiceDiscoveryProfile.DEVICE_ID;
+    private boolean checkServiceId(final String serviceId) {
+        String regex = HostNetworkServiceDiscoveryProfile.SERVICE_ID;
         Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(deviceId);
+        Matcher match = mPattern.matcher(serviceId);
 
         return match.find();
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**

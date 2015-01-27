@@ -25,7 +25,7 @@ public class HostNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     /**
      * デバイスプラグインID.
      */
-    public static final String DEVICE_ID = "Host";
+    public static final String SERVICE_ID = "Host";
 
     /**
      * デバイス名.
@@ -53,7 +53,7 @@ public class HostNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
         List<Bundle> services = new ArrayList<Bundle>();
 
         Bundle service = new Bundle();
-        setId(service, DEVICE_ID);
+        setId(service, SERVICE_ID);
         setName(service, DEVICE_NAME);
         setType(service, DEVICE_TYPE);
         setOnline(service, DEVICE_ONLINE);

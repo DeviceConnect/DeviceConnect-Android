@@ -64,13 +64,13 @@ public class HostNotificationProfile extends NotificationProfile {
      * POSTメッセージ受信時の処理.
      */
     @Override
-    public boolean onPostNotify(final Intent request, final Intent response, final String deviceId,
+    public boolean onPostNotify(final Intent request, final Intent response, final String serviceId,
             final NotificationType type, final Direction dir, final String lang, final String body, final String tag,
             final byte[] iconData) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
 
@@ -127,7 +127,7 @@ public class HostNotificationProfile extends NotificationProfile {
                         // Build intent for notification content
                         Intent notifyIntent = new Intent(ACTON_NOTIFICATION);
                         notifyIntent.putExtra("notificationId", notifyId);
-                        notifyIntent.putExtra("deviceId", deviceId);
+                        notifyIntent.putExtra("serviceId", serviceId);
 
                         PendingIntent mPendingIntent = PendingIntent.getBroadcast(this.getContext(),
                                 notifyId,
@@ -154,7 +154,7 @@ public class HostNotificationProfile extends NotificationProfile {
                     }
 
                     List<Event> events = EventManager.INSTANCE.getEventList(
-                            deviceId,
+                            serviceId,
                             HostNotificationProfile.PROFILE_NAME,
                             null,
                             HostNotificationProfile.ATTRIBUTE_ON_SHOW);
@@ -184,15 +184,15 @@ public class HostNotificationProfile extends NotificationProfile {
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param notificationId 通知ID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteNotify(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteNotify(final Intent request, final Intent response, final String serviceId,
             final String notificationId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
 
@@ -203,7 +203,7 @@ public class HostNotificationProfile extends NotificationProfile {
             setResult(response, IntentDConnectMessage.RESULT_OK);
 
             List<Event> events = EventManager.INSTANCE.getEventList(
-                    deviceId,
+                    serviceId,
                     HostNotificationProfile.PROFILE_NAME,
                     null,
                     HostNotificationProfile.ATTRIBUTE_ON_CLOSE);
@@ -221,10 +221,10 @@ public class HostNotificationProfile extends NotificationProfile {
 
     @Override
     protected boolean onPutOnClick(final Intent request, final Intent response,
-            final String deviceId, final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+            final String serviceId, final String sessionKey) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -251,10 +251,10 @@ public class HostNotificationProfile extends NotificationProfile {
 
     @Override
     protected boolean onPutOnClose(final Intent request, final Intent response,
-            final String deviceId, final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+            final String serviceId, final String sessionKey) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -276,10 +276,10 @@ public class HostNotificationProfile extends NotificationProfile {
 
     @Override
     protected boolean onPutOnShow(final Intent request, final Intent response,
-            final String deviceId, final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+            final String serviceId, final String sessionKey) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -298,11 +298,11 @@ public class HostNotificationProfile extends NotificationProfile {
 
     @Override
     protected boolean onDeleteOnClick(final Intent request,
-            final Intent response, final String deviceId,
+            final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -334,11 +334,11 @@ public class HostNotificationProfile extends NotificationProfile {
 
     @Override
     protected boolean onDeleteOnClose(final Intent request,
-            final Intent response, final String deviceId,
+            final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -370,11 +370,11 @@ public class HostNotificationProfile extends NotificationProfile {
 
     @Override
     protected boolean onDeleteOnShow(final Intent request,
-            final Intent response, final String deviceId,
+            final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -405,12 +405,12 @@ public class HostNotificationProfile extends NotificationProfile {
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**
@@ -432,15 +432,15 @@ public class HostNotificationProfile extends NotificationProfile {
     }
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        String regex = HostNetworkServiceDiscoveryProfile.DEVICE_ID;
+    private boolean checkServiceId(final String serviceId) {
+        String regex = HostNetworkServiceDiscoveryProfile.SERVICE_ID;
         Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(deviceId);
+        Matcher match = mPattern.matcher(serviceId);
 
         return match.find();
     }
@@ -456,10 +456,10 @@ public class HostNotificationProfile extends NotificationProfile {
             synchronized (this) {
 
                 int notificationId = intent.getIntExtra("notificationId", -1);
-                String mDeviceId = intent.getStringExtra("deviceId");
+                String mServiceId = intent.getStringExtra("serviceId");
 
                 List<Event> events = EventManager.INSTANCE.getEventList(
-                        mDeviceId,
+                        mServiceId,
                         HostNotificationProfile.PROFILE_NAME,
                         null,
                         HostNotificationProfile.ATTRIBUTE_ON_CLICK);

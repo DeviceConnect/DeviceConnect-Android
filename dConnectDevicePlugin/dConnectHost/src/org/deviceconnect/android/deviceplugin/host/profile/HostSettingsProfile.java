@@ -37,11 +37,11 @@ public class HostSettingsProfile extends SettingsProfile {
     private static final int ERROR_VALUE_IS_NULL = 100;
 
     @Override
-    protected boolean onGetSoundVolume(final Intent request, final Intent response, final String deviceId,
+    protected boolean onGetSoundVolume(final Intent request, final Intent response, final String serviceId,
             final VolumeKind kind) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
 
@@ -117,10 +117,10 @@ public class HostSettingsProfile extends SettingsProfile {
     }
 
     @Override
-    protected boolean onGetDate(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onGetDate(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
 
@@ -135,10 +135,10 @@ public class HostSettingsProfile extends SettingsProfile {
     }
 
     @Override
-    protected boolean onGetDisplayLight(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onGetDisplayLight(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
 
@@ -155,11 +155,11 @@ public class HostSettingsProfile extends SettingsProfile {
     }
 
     @Override
-    protected boolean onGetDisplaySleep(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetDisplaySleep(final Intent request, final Intent response, final String serviceId) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             int timeout = Settings.System.getInt(this.getContext().getContentResolver(),
@@ -171,11 +171,11 @@ public class HostSettingsProfile extends SettingsProfile {
     }
 
     @Override
-    protected boolean onPutSoundVolume(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutSoundVolume(final Intent request, final Intent response, final String serviceId,
             final VolumeKind kind, final Double level) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             if (level == -1.0) {
@@ -211,10 +211,10 @@ public class HostSettingsProfile extends SettingsProfile {
     }
 
     @Override
-    protected boolean onPutDate(final Intent request, final Intent response, final String deviceId, final String date) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onPutDate(final Intent request, final Intent response, final String serviceId, final String date) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             if (date != null) {
@@ -231,10 +231,10 @@ public class HostSettingsProfile extends SettingsProfile {
 
     @Override
     protected boolean onPutDisplayLight(final Intent request, final Intent response,
-            final String deviceId, final Double level) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+            final String serviceId, final Double level) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             if (level == -1.0) {
@@ -253,10 +253,10 @@ public class HostSettingsProfile extends SettingsProfile {
 
     @Override
     protected boolean onPutDisplaySleep(final Intent request, final Intent response,
-            final String deviceId, final Integer time) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+            final String serviceId, final Integer time) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             if (time == -1.0) {
@@ -270,26 +270,26 @@ public class HostSettingsProfile extends SettingsProfile {
     }
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        String regex = HostNetworkServiceDiscoveryProfile.DEVICE_ID;
+    private boolean checkServiceId(final String serviceId) {
+        String regex = HostNetworkServiceDiscoveryProfile.SERVICE_ID;
         Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(deviceId);
+        Matcher match = mPattern.matcher(serviceId);
 
         return match.find();
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**

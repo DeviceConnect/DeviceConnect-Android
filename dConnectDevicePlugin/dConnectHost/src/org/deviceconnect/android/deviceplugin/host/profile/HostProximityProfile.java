@@ -31,9 +31,9 @@ import android.os.Bundle;
 public class HostProximityProfile extends ProximityProfile implements SensorEventListener {
 
     /**
-     * デバイスID.
+     * サービスID.
      */
-    private static String mDeviceId = "";
+    private static String mServiceId = "";
 
     /**
      * Sensor Manager.
@@ -41,22 +41,22 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
     private SensorManager mSensorManagerProximity;
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkdeviceId(final String deviceId) {
-        return HostNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkserviceId(final String serviceId) {
+        return HostNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptydeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyserviceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**
@@ -78,11 +78,11 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
     }
 
     @Override
-    protected boolean onPutOnUserProximity(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnUserProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -93,7 +93,7 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
-                mDeviceId = deviceId;
+                mServiceId = serviceId;
                 this.getContext();
                 mSensorManagerProximity = (SensorManager) this.getContext().getSystemService(Context.SENSOR_SERVICE);
                 List<Sensor> sensors = mSensorManagerProximity.getSensorList(Sensor.TYPE_PROXIMITY);
@@ -118,11 +118,11 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
     }
 
     @Override
-    protected boolean onDeleteOnUserProximity(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnUserProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -146,7 +146,7 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
     public void onSensorChanged(final SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() == Sensor.TYPE_PROXIMITY) {
 
-            List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId,
+            List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
                     ProximityProfile.PROFILE_NAME,
                     null,
                     ProximityProfile.ATTRIBUTE_ON_USER_PROXIMITY);

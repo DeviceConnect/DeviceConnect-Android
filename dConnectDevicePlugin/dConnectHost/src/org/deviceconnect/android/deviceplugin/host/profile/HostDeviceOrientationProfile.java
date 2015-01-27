@@ -28,12 +28,12 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
     private static final int ERROR_VALUE_IS_NULL = 100;
 
     @Override
-    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -43,7 +43,7 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).registerDeviceOrientationEvent(response, deviceId, sessionKey);
+                ((HostDeviceService) getContext()).registerDeviceOrientationEvent(response, serviceId, sessionKey);
                 return false;
             } else {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
@@ -56,12 +56,12 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
     }
 
     @Override
-    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -84,27 +84,27 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
     }
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        String regex = HostNetworkServiceDiscoveryProfile.DEVICE_ID;
+    private boolean checkServiceId(final String serviceId) {
+        String regex = HostNetworkServiceDiscoveryProfile.SERVICE_ID;
         Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(deviceId);
+        Matcher match = mPattern.matcher(serviceId);
 
         return match.find();
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
+    private void createEmptyServiceId(final Intent response) {
 
-        MessageUtils.setEmptyDeviceIdError(response);
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**

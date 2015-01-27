@@ -102,8 +102,8 @@ public class SpheroLightProfile extends DConnectProfile {
         if (attribute != null && attribute.length() != 0) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
-            DeviceInfo info = SpheroManager.INSTANCE.getDevice(deviceId);
+            String serviceId = getDeviceID(request);
+            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
             if (info == null) {
                 MessageUtils.setNotFoundDeviceError(response);
             } else {
@@ -135,8 +135,8 @@ public class SpheroLightProfile extends DConnectProfile {
         if (attribute != null && attribute.length() != 0) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
-            DeviceInfo info = SpheroManager.INSTANCE.getDevice(deviceId);
+            String serviceId = getDeviceID(request);
+            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
             if (info == null) {
                 MessageUtils.setNotFoundDeviceError(response);
             } else {
@@ -195,8 +195,8 @@ public class SpheroLightProfile extends DConnectProfile {
         if (attribute != null && attribute.length() != 0) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
-            DeviceInfo info = SpheroManager.INSTANCE.getDevice(deviceId);
+            String serviceId = getDeviceID(request);
+            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
             if (info == null) {
                 MessageUtils.setNotFoundDeviceError(response);
             } else {

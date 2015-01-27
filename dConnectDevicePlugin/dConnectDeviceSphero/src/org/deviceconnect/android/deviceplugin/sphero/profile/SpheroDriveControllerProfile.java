@@ -64,8 +64,8 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
         
         String attribute = getAttribute(request);
         if (ATTRIBUTE_ROTATE.equals(attribute)) {
-            String deviceId = getDeviceID(request);
-            DeviceInfo info = SpheroManager.INSTANCE.getDevice(deviceId);
+            String serviceId = getDeviceID(request);
+            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
 
             if (info != null) {
                 Integer angle = parseInteger(request, PARAM_ANGLE);
@@ -92,8 +92,8 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
 
         String attribute = getAttribute(request);
         if (ATTRIBUTE_STOP.equals(attribute)) {
-            String deviceId = getDeviceID(request);
-            DeviceInfo info = SpheroManager.INSTANCE.getDevice(deviceId);
+            String serviceId = getDeviceID(request);
+            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
 
             if (info != null) {
                 synchronized (info) {
@@ -115,8 +115,8 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
 
         String attribute = getAttribute(request);
         if (ATTRIBUTE_MOVE.equals(attribute)) {
-            String deviceId = getDeviceID(request);
-            DeviceInfo info = SpheroManager.INSTANCE.getDevice(deviceId);
+            String serviceId = getDeviceID(request);
+            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
 
             if (info != null) {
                 final Integer angle = parseInteger(request, PARAM_ANGLE);

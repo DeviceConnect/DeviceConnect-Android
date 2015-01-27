@@ -198,28 +198,28 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
     }
 
     /**
-     * 指定されたデバイスIDを持つデバイスを取得する.
+     * 指定されたサービスIDを持つデバイスを取得する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return デバイス。無い場合はnullを返す。
      */
-    public DeviceInfo getDevice(final String deviceId) {
-        return mDevices.get(deviceId);
+    public DeviceInfo getDevice(final String serviceId) {
+        return mDevices.get(serviceId);
     }
     
     /**
      * 未接続の端末一覧から一致するものを取得する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return デバイス。無い場合はnull。
      */
-    public synchronized Sphero getNotConnectedDevice(final String deviceId) {
+    public synchronized Sphero getNotConnectedDevice(final String serviceId) {
         if (mFoundDevices == null) {
             return null;
         }
         
         for (Sphero s : mFoundDevices) {
-            if (s.getUniqueId().equals(deviceId)) {
+            if (s.getUniqueId().equals(serviceId)) {
                 return s;
             }
         }

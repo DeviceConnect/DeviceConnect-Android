@@ -703,7 +703,6 @@ public class ReqResDebugActivity extends Activity implements
 
         URIBuilder builder = createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfile.PROFILE_NAME);
-        builder.setAttribute(ServiceDiscoveryProfile.ATTRIBUTE_GET_NETWORK_SERVICES);
         if (mSettings.isUseALocalOAuth()) {
             String accessToken = mPref.getString(KEY_ACCESS_TOKEN, null);
             builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, accessToken);

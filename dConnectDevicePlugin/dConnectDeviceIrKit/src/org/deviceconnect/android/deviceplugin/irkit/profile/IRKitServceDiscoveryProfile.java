@@ -24,7 +24,7 @@ public class IRKitServceDiscoveryProfile extends ServiceDiscoveryProfile {
     @Override
     public boolean onGetServices(final Intent request, final Intent response) {
         IRKitDeviceService service = (IRKitDeviceService) getContext();
-        service.prepareGetNetworkServicesResponse(response);
+        service.prepareServiceDiscoveryResponse(response);
         return true;
     }
 

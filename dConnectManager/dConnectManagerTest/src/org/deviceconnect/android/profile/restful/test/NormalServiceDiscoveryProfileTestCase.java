@@ -50,7 +50,7 @@ public class NormalServiceDiscoveryProfileTestCase extends
      * ・servicesの中に「Test Success Device」のnameを持ったサービスが存在すること。
      * </pre>
      */
-    public void testGetNetworkServices() {
+    public void testGetServices() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         try {

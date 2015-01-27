@@ -132,8 +132,6 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         Intent intent = new Intent(IntentDConnectMessage.ACTION_GET);
         intent.putExtra(DConnectMessage.EXTRA_PROFILE,
                 ServiceDiscoveryProfileConstants.PROFILE_NAME);
-        intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, 
-                ServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
 
         Intent response = sendRequest(intent);
         assertResultOK(response);

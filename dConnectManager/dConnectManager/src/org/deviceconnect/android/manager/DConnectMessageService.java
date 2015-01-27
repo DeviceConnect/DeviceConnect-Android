@@ -519,8 +519,6 @@ public abstract class DConnectMessageService extends Service
         intent.setComponent(plugin.getComponentName());
         intent.putExtra(DConnectMessage.EXTRA_PROFILE,
                 ServiceDiscoveryProfileConstants.PROFILE_NAME);
-        intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                ServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
         intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
 
         DiscoveryDeviceRequest request = new DiscoveryDeviceRequest();

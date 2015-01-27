@@ -94,7 +94,7 @@ public class RegisterNetworkServiceDiscovery extends DConnectRequest {
         if (mResponse != null) {
             // リカバリ不可能なのでログだけ出して終了
             // ここで、登録できなかった場合には、デバイス発見イベントは使用することができない。
-            // ただし、getnetworkservicesは使用できるので問題はないと考える。
+            // ただし、Service Discoveryは使用できるので問題はないと考える。
             int result = getResult(mResponse);
             if (result == DConnectMessage.RESULT_ERROR) {
                 int errorCode = getErrorCode(mResponse);

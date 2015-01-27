@@ -49,7 +49,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetNetworkServices001() {
+    public void testGetServices001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         try {
@@ -75,7 +75,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetNetworkServices002() {
+    public void testGetServices002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         try {
@@ -101,7 +101,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetNetworkServices003() {
+    public void testGetServices003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         try {
@@ -129,7 +129,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
      * ・servicesの中に「Test Success Device」のnameを持ったサービスが存在すること。
      * </pre>
      */
-    public void testGetNetworkServices004() {
+    public void testGetServices004() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());

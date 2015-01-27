@@ -47,7 +47,7 @@ public class NormalServiceDiscoveryProfileTestCase extends IntentDConnectTestCas
      * ・servicesの中に「Test Success Device」のnameを持ったサービスが存在すること。
      * </pre>
      */
-    public void testGetNetworkServices() {
+    public void testGetServices() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(IntentDConnectMessage.EXTRA_PROFILE, ServiceDiscoveryProfileConstants.PROFILE_NAME);

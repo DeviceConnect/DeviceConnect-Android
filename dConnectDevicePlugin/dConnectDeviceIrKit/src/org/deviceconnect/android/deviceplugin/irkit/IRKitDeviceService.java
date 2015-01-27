@@ -105,11 +105,11 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
     }
 
     /**
-     * getnetworkservicesのリクエストを用意する.
+     * Service Discoveryのリクエストを用意する.
      * 
      * @param response レスポンスオブジェクト
      */
-    public void prepareGetNetworkServicesResponse(final Intent response) {
+    public void prepareServiceDiscoveryResponse(final Intent response) {
 
         synchronized (mDevices) {
 
@@ -119,7 +119,7 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
                 Bundle service = createService(device, true);
                 services[index++] = service;
                 if (BuildConfig.DEBUG) {
-                    Log.d("IRKit", "prepareGetNetworkServicesResponse service=" + service);
+                    Log.d("IRKit", "prepareServiceDiscoveryResponse service=" + service);
                 }
             }
 

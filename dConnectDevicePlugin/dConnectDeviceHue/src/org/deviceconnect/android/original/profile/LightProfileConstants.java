@@ -5,7 +5,7 @@ Released under the MIT license
 http://opensource.org/licenses/mit-license.php
 */
 
-package org.deviceconnect.android.profile;
+package org.deviceconnect.android.original.profile;
 
 import org.deviceconnect.profile.DConnectProfileConstants;
 

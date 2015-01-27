@@ -89,7 +89,7 @@ public class TestProximityProfile extends ProximityProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_DEVICE_PROXIMITY);
             Bundle proximity = new Bundle();
@@ -133,7 +133,7 @@ public class TestProximityProfile extends ProximityProfile {
             
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_USER_PROXIMITY);
             Bundle proximity = new Bundle();

@@ -48,7 +48,7 @@ public class DConnectDeliveryProfile extends DConnectProfile {
 
     @Override
     public boolean onRequest(final Intent request, final Intent response) {
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
 
         // TODO wakeup以外にも例外的な動きをするProfileがある場合には再検討すること。
         // System Profileのwakeupは例外的にpluginIdで宛先を決める

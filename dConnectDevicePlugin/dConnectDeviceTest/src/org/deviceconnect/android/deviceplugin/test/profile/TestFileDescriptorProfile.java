@@ -184,7 +184,7 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
 
             Intent intent = MessageUtils.createEventIntent();
             setSessionKey(intent, sessionKey);
-            setDeviceID(intent, serviceId);
+            setServiceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_WATCH_FILE);
             

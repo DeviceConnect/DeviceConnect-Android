@@ -54,7 +54,7 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
             MessageUtils.setUnknownAttributeError(response);
         } else {
             
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             
             if (attribute.equals(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
@@ -77,7 +77,7 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
             MessageUtils.setUnknownAttributeError(response);
         } else {
             
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             
             if (attribute.equals(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {

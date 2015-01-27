@@ -62,7 +62,7 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_OPEN)) {
                 String path = getPath(request);
                 Flag flag = getFlag(request);
@@ -89,7 +89,7 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_CLOSE)) {
                 String path = getPath(request);
                 result = onPutClose(request, response, serviceId, path);
@@ -115,7 +115,7 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
         String attribute = getAttribute(request);
 
         if (ATTRIBUTE_ON_WATCH_FILE.equals(attribute)) {
-            result = onDeleteOnWatchFile(request, response, getDeviceID(request), getSessionKey(request));
+            result = onDeleteOnWatchFile(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }

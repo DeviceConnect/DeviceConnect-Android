@@ -95,7 +95,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
         if (attribute == null) {
             setUnsupportedError(response);
         } else {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_MEDIARECORDER)) {
                 result = onGetMediaRecorder(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_OPTIONS)) {
@@ -118,7 +118,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             setUnsupportedError(response);
         } else {
             String target = getTarget(request);
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
 
             if (attribute.equals(ATTRIBUTE_TAKE_PHOTO)) {
                 result = onPostTakePhoto(request, response, serviceId, target);
@@ -142,7 +142,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String target = getTarget(request);
             String sessionKey = getSessionKey(request);
 
@@ -187,7 +187,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             MessageUtils.setUnknownAttributeError(response);
         } else {
 
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
 
             if (attribute.equals(ATTRIBUTE_ON_PHOTO)) {

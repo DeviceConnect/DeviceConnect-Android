@@ -129,7 +129,7 @@ public class TestConnectProfile extends ConnectProfile {
 
             Intent intent = MessageUtils.createEventIntent();
             setSessionKey(intent, sessionKey);
-            setDeviceID(intent, serviceId);
+            setServiceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_WIFI_CHANGE);
             
@@ -170,7 +170,7 @@ public class TestConnectProfile extends ConnectProfile {
 
             Intent intent = MessageUtils.createEventIntent();
             setSessionKey(intent, sessionKey);
-            setDeviceID(intent, serviceId);
+            setServiceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_BLUETOOTH_CHANGE);
             
@@ -222,7 +222,7 @@ public class TestConnectProfile extends ConnectProfile {
 
             Intent intent = MessageUtils.createEventIntent();
             setSessionKey(intent, sessionKey);
-            setDeviceID(intent, serviceId);
+            setServiceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_NFC_CHANGE);
             
@@ -261,7 +261,7 @@ public class TestConnectProfile extends ConnectProfile {
 
             Intent intent = MessageUtils.createEventIntent();
             setSessionKey(intent, sessionKey);
-            setDeviceID(intent, serviceId);
+            setServiceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_BLE_CHANGE);
             

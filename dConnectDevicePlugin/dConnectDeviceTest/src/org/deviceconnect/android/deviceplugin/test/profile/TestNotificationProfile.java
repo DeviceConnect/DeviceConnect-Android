@@ -125,7 +125,7 @@ public class TestNotificationProfile extends NotificationProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_CLICK);
             setNotificationId(message, NOTIFICATION_ID[0]);
@@ -148,7 +148,7 @@ public class TestNotificationProfile extends NotificationProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_CLOSE);
             setNotificationId(message, NOTIFICATION_ID[0]);
@@ -171,7 +171,7 @@ public class TestNotificationProfile extends NotificationProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_ERROR);
             setNotificationId(message, NOTIFICATION_ID[0]);
@@ -194,7 +194,7 @@ public class TestNotificationProfile extends NotificationProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_SHOW);
             setNotificationId(message, NOTIFICATION_ID[0]);

@@ -404,7 +404,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * @param request リクエストパラメータ
      * @return サービスID。無い場合はnullを返す。
      */
-    public static String getDeviceID(final Intent request) {
+    public static String getServiceID(final Intent request) {
         String serviceId = request.getStringExtra(PARAM_SERVICE_ID);
         return serviceId;
     }
@@ -415,7 +415,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * @param message メッセージパラメータ
      * @param serviceId サービスID
      */
-    public static void setDeviceID(final Intent message, final String serviceId) {
+    public static void setServiceID(final Intent message, final String serviceId) {
         message.putExtra(PARAM_SERVICE_ID, serviceId);
     }
 

@@ -312,7 +312,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     }
 
     /**
-     * DeviceIDがらnodeを取得.
+     * ServiceIDがらnodeを取得.
      * 
      * @param serviceId サービスID
      * @return nodeId 内部管理用NodeID

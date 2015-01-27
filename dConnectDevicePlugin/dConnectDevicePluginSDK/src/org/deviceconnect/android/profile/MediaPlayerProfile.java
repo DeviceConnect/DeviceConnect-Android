@@ -45,7 +45,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_MEDIA)) {
                 String mediaId = getMediaId(request);
                 result = onGetMedia(request, response, serviceId, mediaId);
@@ -81,7 +81,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_MEDIA)) {
                 String mediaId = getMediaId(request);
                 result = onPutMedia(request, response, serviceId, mediaId);
@@ -119,7 +119,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_MUTE)) {
                 result = onDeleteMute(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_ON_STATUS_CHANGE)) {

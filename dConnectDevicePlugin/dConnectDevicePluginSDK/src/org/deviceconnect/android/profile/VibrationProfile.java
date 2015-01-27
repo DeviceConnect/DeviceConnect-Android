@@ -61,7 +61,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
         boolean result = true;
 
         if (ATTRIBUTE_VIBRATE.equals(attribute)) {
-            result = onPutVibrate(request, response, getDeviceID(request), parsePattern(getPattern(request)));
+            result = onPutVibrate(request, response, getServiceID(request), parsePattern(getPattern(request)));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -75,7 +75,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
         boolean result = true;
 
         if (ATTRIBUTE_VIBRATE.equals(attribute)) {
-            result = onDeleteVibrate(request, response, getDeviceID(request));
+            result = onDeleteVibrate(request, response, getServiceID(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }

@@ -268,7 +268,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_PHOTO);
             Bundle photo = new Bundle();
@@ -294,7 +294,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_RECORDING_CHANGE);
             Bundle media = new Bundle();
@@ -322,7 +322,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_DATA_AVAILABLE);
             Bundle media = new Bundle();

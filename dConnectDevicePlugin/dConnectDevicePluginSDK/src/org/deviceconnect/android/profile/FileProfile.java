@@ -73,7 +73,7 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
         String attribute = getAttribute(request);
         boolean result = true;
 
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         if (ATTRIBUTE_RECEIVE.equals(attribute)) {
             String path = getPath(request);
             result = onGetReceive(request, response, serviceId, path);
@@ -103,14 +103,14 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
             if (data == null) {
                 MessageUtils.setInvalidRequestParameterError(response);
             } else {
-                String serviceId = getDeviceID(request);
+                String serviceId = getServiceID(request);
                 String path = getPath(request);
                 String mimeType = getMIMEType(request);
                 result = onPostSend(request, response, serviceId, path, mimeType, data);
             }
         } else if (ATTRIBUTE_MKDIR.equals(attribute)) {
             String path = getPath(request);
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             result = onPostMkdir(request, response, serviceId, path);
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -125,12 +125,12 @@ public abstract class FileProfile extends DConnectProfile implements FileProfile
         boolean result = true;
 
         if (ATTRIBUTE_REMOVE.equals(attribute)) {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String path = getPath(request);
             result = onDeleteRemove(request, response, serviceId, path);
         } else if (ATTRIBUTE_RMDIR.equals(attribute)) {
             String path = getPath(request);
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             boolean force = getForce(request);
             result = onDeleteRmdir(request, response, serviceId, path, force);
         } else {

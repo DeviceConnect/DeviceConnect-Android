@@ -99,7 +99,7 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
     }
 
     /**
-     * DeviceIDがらnodeを取得.
+     * ServiceIDがらnodeを取得.
      * 
      * @param serviceId サービスID
      * @return nodeId

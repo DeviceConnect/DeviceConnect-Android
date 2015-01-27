@@ -41,7 +41,7 @@ public class CameraProfile extends DConnectProfile {
         boolean result = false;
 
         if (attribute.equals(ATTRIBUTE_ZOOM)) {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String direction = getDirection(request);
             String movement = getMovement(request);
             result = onPutActZoom(request, response, serviceId, direction, movement);
@@ -57,7 +57,7 @@ public class CameraProfile extends DConnectProfile {
         boolean result = false;
 
         if (attribute.equals(ATTRIBUTE_ZOOM)) {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             result = onGetZoomDiameter(request, response, serviceId);
         } else {
             MessageUtils.setUnknownAttributeError(response);

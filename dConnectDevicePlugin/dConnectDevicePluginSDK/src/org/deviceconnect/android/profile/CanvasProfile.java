@@ -50,7 +50,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
         boolean result = true;
 
         if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String mimeType = getMIMEType(request);
             String uri = request.getStringExtra(CanvasProfile.PARAM_URI);
             byte[] data = getContentData(uri);

@@ -96,7 +96,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
         if (attribute == null) {
             setUnsupportedError(response);
         } else {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_WIFI)) {
                 result = onGetWifi(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_BLUETOOTH)) {
@@ -124,7 +124,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
             if (attribute == null) {
                 MessageUtils.setUnknownAttributeError(response);
             } else {
-                String serviceId = getDeviceID(request);
+                String serviceId = getServiceID(request);
                 String sessionKey = getSessionKey(request);
                 if (attribute.equals(ATTRIBUTE_WIFI)) {
                     result = onPutWifi(request, response, serviceId);
@@ -147,7 +147,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
                 }
             }
         } else if (inter.equals(INTERFACE_BLUETOOTH) && attribute.equals(ATTRIBUTE_DISCOVERABLE)) {
-            result = onPutBluetoothDiscoverable(request, response, getDeviceID(request));
+            result = onPutBluetoothDiscoverable(request, response, getServiceID(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -167,7 +167,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
                 MessageUtils.setUnknownAttributeError(response);
             } else {
 
-                String serviceId = getDeviceID(request);
+                String serviceId = getServiceID(request);
                 String sessionKey = getSessionKey(request);
 
                 if (attribute.equals(ATTRIBUTE_WIFI)) {
@@ -191,7 +191,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
                 }
             }
         } else if (inter.equals(INTERFACE_BLUETOOTH) && attribute.equals(ATTRIBUTE_DISCOVERABLE)) {
-            result = onDeleteBluetoothDiscoverable(request, response, getDeviceID(request));
+            result = onDeleteBluetoothDiscoverable(request, response, getServiceID(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }

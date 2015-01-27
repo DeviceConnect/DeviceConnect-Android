@@ -73,7 +73,7 @@ public abstract class ServiceDiscoveryProfile extends DConnectProfile implements
         boolean result = true;
 
         if (ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             result = onPutOnServiceChange(request, response, serviceId, sessionKey);
         } else {
@@ -90,7 +90,7 @@ public abstract class ServiceDiscoveryProfile extends DConnectProfile implements
         boolean result = true;
 
         if (ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             result = onDeleteOnServiceChange(request, response, serviceId, sessionKey);
         } else {

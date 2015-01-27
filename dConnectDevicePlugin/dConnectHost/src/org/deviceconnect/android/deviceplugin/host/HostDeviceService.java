@@ -106,7 +106,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     /** SensorManager. */
     private SensorManager mSensorManagerProximity;
 
-    /** DeviceID. */
+    /** ServiceID. */
     private String mServiceId;
 
     /** バッテリー関連の処理と値処理. */
@@ -336,7 +336,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     }
 
     /**
-     * DeviceIDを設定.
+     * ServiceIDを設定.
      * 
      * @param serviceId サービスID
      */

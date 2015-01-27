@@ -84,7 +84,7 @@ public class TestUniqueProfile extends DConnectProfile {
         final String path = createPath(request);
         final String action = request.getAction();
         final String key = request.getStringExtra(PARAM_KEY);
-        final String serviceId = getDeviceID(request);
+        final String serviceId = getServiceID(request);
         if (inter == null && ATTRIBUTE_EVENT.equals(attribute)) {
             if (IntentDConnectMessage.ACTION_PUT.equals(action)) {
                 new Thread(new Runnable() {

@@ -356,7 +356,7 @@ public class FailFileDescriptorProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutCloseNoDeviceID() {
+    public void testPutCloseNoServiceID() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileDescriptorProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileDescriptorProfileConstants.ATTRIBUTE_CLOSE);
@@ -886,7 +886,7 @@ public class FailFileDescriptorProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutWriteNoDeviceID() {
+    public void testPutWriteNoServiceID() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileDescriptorProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileDescriptorProfileConstants.ATTRIBUTE_WRITE);

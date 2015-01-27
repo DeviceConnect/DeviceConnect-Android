@@ -65,7 +65,7 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
             MessageUtils.setUnknownAttributeError(response);
         } else {
 
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
 
             if (inter == null) {
                 if (attribute.equals(ATTRIBUTE_DATE)) {
@@ -99,7 +99,7 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
             MessageUtils.setUnknownAttributeError(response);
         } else {
 
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
 
             if (inter == null) {
                 if (attribute.equals(ATTRIBUTE_DATE)) {

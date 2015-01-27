@@ -200,7 +200,7 @@ public class SpheroProfile extends DConnectProfile {
             return true;
         }
 
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
         if (device == null) {
             MessageUtils.setNotFoundDeviceError(response);
@@ -273,7 +273,7 @@ public class SpheroProfile extends DConnectProfile {
             break;
         }
 
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
 
         if (removedEvent) {

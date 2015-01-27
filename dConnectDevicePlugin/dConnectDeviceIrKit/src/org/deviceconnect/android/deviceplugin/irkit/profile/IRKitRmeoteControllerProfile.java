@@ -50,7 +50,7 @@ public class IRKitRmeoteControllerProfile extends DConnectProfile {
         if (attribute != null && attribute.length() != 0) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             final IRKitDeviceService service = (IRKitDeviceService) getContext();
             IRKitDevice device = service.getDevice(serviceId);
             
@@ -88,7 +88,7 @@ public class IRKitRmeoteControllerProfile extends DConnectProfile {
                 Log.d(TAG, "onPostRequest setUnknownAttributeError error");
             }
         } else {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String message = request.getStringExtra(PARAM_MESSAGE);
             final IRKitDeviceService service = (IRKitDeviceService) getContext();
             IRKitDevice device = service.getDevice(serviceId);

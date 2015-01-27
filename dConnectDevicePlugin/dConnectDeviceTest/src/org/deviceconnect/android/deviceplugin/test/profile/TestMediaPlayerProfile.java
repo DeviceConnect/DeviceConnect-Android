@@ -317,7 +317,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
             // テスト用イベントメッセージを1秒後にブロードキャスト
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_STATUS_CHANGE);
             Bundle mediaPlayer = new Bundle();

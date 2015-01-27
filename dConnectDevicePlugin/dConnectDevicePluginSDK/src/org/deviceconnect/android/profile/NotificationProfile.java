@@ -74,7 +74,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
             String lang = getLang(request);
             String body = getBody(request);
             String tag = getTag(request);
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             result = onPostNotify(request, response, serviceId, type, dir, lang, body, tag, iconData);
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -92,7 +92,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
             MessageUtils.setUnknownAttributeError(response);
         } else {
             
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             
             if (attribute.equals(ATTRIBUTE_ON_CLICK)) {
@@ -120,7 +120,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
             MessageUtils.setUnknownAttributeError(response);
         } else {
             
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             
             if (attribute.equals(ATTRIBUTE_ON_CLICK)) {
@@ -132,7 +132,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
             } else if (attribute.equals(ATTRIBUTE_ON_ERROR)) {
                 result = onDeleteOnError(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_NOTIFY)) {
-                result = onDeleteNotify(request, response, getDeviceID(request), getNotificationId(request));
+                result = onDeleteNotify(request, response, getServiceID(request), getNotificationId(request));
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }

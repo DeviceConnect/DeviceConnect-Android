@@ -64,7 +64,7 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
         String attribute = getAttribute(request);
         boolean result = true;
 
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         if (attribute == null) {
             result = onGetAll(request, response, serviceId);
         } else if (attribute.equals(ATTRIBUTE_CHARGING)) {
@@ -92,7 +92,7 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
             MessageUtils.setUnknownAttributeError(response);
         } else {
 
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
 
             if (attribute.equals(ATTRIBUTE_ON_CHARGING_CHANGE)) {
@@ -115,7 +115,7 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String serviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
 
             if (attribute.equals(ATTRIBUTE_ON_CHARGING_CHANGE)) {

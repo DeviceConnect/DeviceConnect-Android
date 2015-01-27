@@ -84,7 +84,7 @@ public final class MessageUtils {
      * @param request リクエストパラメータ
      * @return サービスID
      */
-    public static String getDeviceID(final Intent request) {
+    public static String getServiceID(final Intent request) {
         String serviceId = request.getExtras().getString(DConnectMessage.EXTRA_SERVICE_ID);
         return serviceId;
     }

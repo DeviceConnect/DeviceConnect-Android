@@ -149,7 +149,7 @@ public class TestBatteryProfile extends BatteryProfile {
             
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_CHARGING_CHANGE);
             Bundle charging = new Bundle();
@@ -189,7 +189,7 @@ public class TestBatteryProfile extends BatteryProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_BATTERY_CHANGE);
             Bundle battery = new Bundle();

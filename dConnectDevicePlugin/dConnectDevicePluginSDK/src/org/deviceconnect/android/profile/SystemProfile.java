@@ -159,7 +159,7 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
     protected boolean onGetRequest(final Intent request, final Intent response) {
         String attribute = getAttribute(request);
         boolean result = true;
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
 
         if (attribute == null) {
             result = onGetSystem(request, response, serviceId);

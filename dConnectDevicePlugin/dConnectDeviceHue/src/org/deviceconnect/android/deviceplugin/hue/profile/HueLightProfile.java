@@ -46,7 +46,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response) {
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
             MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
@@ -69,7 +69,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLight(final Intent request, final Intent response) {
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String lightId = getLightID(request);
 
         // 必須パラメータの存在チェック
@@ -122,7 +122,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onDeleteLight(final Intent request, final Intent response) {
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String lightId = getLightID(request);
 
         // 必須パラメータの存在チェック
@@ -163,7 +163,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLight(final Intent request, final Intent response) {
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String lightId = getLightID(request);
         String name = getName(request);
 
@@ -209,7 +209,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onGetLightGroup(final Intent request, final Intent response) {
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
             MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
@@ -247,7 +247,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLightGroup(final Intent request, final Intent response) {
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String groupId = getGroupId(request);
 
         // 必須パラメータの存在チェック
@@ -308,7 +308,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onDeleteLightGroup(final Intent request, final Intent response) {
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String groupId = getGroupId(request);
 
         // 必須パラメータの存在チェック
@@ -357,7 +357,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLightGroup(final Intent request, final Intent response) {
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String groupId = getGroupId(request);
         
         // 必須パラメータの存在チェック
@@ -402,7 +402,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLightGroupCreate(final Intent request, final Intent response) {
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String groupName = getGroupName(request);
         String lightIds = getLightIds(request);
         
@@ -454,7 +454,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onDeleteLightGroupClear(final Intent request, final Intent response) {
-        String serviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String groupId = getGroupId(request);
 
         // 必須パラメータの存在チェック

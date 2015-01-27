@@ -112,7 +112,7 @@ public class TestPhoneProfile extends PhoneProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, serviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_CONNECT);
             Bundle phoneStatus = new Bundle();

@@ -45,17 +45,17 @@ public class HostCanvasProfile extends CanvasProfile {
             return true;
         }
         
-        /* convert mode (if null, invalid mode value)  */
+        // convert mode (if null, invalid mode value)
         CanvasDrawImageObject.Mode mode_ = CanvasDrawImageObject.convertMode(mode);
         if (mode_ == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }
         
-        /* storing parameter to class object. */
+        // storing parameter to class object.
         CanvasDrawImageObject parameter = new CanvasDrawImageObject(data, mode_, x, y);
         
-        /* start CanvasProfileActivity */
+        // start CanvasProfileActivity.
         Context context = getContext();
         Intent intent = new Intent();
         intent.setClass(context, CanvasProfileActivity.class);
@@ -63,7 +63,7 @@ public class HostCanvasProfile extends CanvasProfile {
         parameter.setValueToIntent(intent);
         context.startActivity(intent);
         
-        /* return result. */
+        // return result.
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }

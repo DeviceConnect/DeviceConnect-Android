@@ -24,7 +24,7 @@ public class CanvasDrawUtils {
         
         String dataKind = intent.getStringExtra(CanvasDrawObjectInterface.EXTRA_DATAKIND);
         
-        /* CanvasDrawImageObject? */
+        // CanvasDrawImageObject?
         if (dataKind.equals(CanvasDrawImageObject.DATAKIND)) {
             CanvasDrawImageObject parameter = new CanvasDrawImageObject();
             parameter.getValueFromIntent(intent);

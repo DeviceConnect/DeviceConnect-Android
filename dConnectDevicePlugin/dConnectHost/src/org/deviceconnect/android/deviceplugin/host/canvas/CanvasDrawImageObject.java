@@ -107,17 +107,17 @@ public class CanvasDrawImageObject implements CanvasDrawObjectInterface {
             return;
         }
         
-        /* draw data is nothing. */
+        // draw data is nothing.
         if (data == null) {
             return;
         }
         
-        /* data convert to bitmap. */
+        // data convert to bitmap.
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inMutable = true;
         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, options);
         
-        /* draw image. */
+        // draw image.
         if (mode == Mode.NONSCALE_MODE) {
             CanvasProfileUtils.drawImageForNonScalesMode(viewBitmap, bitmap, x, y);
         } else if (mode == Mode.SCALE_MODE) {

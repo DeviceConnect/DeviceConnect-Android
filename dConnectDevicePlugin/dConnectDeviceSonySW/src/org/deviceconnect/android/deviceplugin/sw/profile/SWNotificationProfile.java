@@ -26,13 +26,13 @@ import com.sonyericsson.extras.liveware.extension.util.notification.Notification
 public class SWNotificationProfile extends NotificationProfile {
 
     @Override
-    protected boolean onPostNotify(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPostNotify(final Intent request, final Intent response, final String serviceId, 
             final NotificationType type, final Direction dir, final String lang,
             final String body, final String tag, final byte[] iconData) {
 
-        BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + serviceId);
             return true;
         }
         if (NotificationType.UNKNOWN.equals(type) || type == null) {
@@ -63,10 +63,10 @@ public class SWNotificationProfile extends NotificationProfile {
 
     @Override
     protected boolean onDeleteNotify(final Intent request, final Intent response,
-            final String deviceId, final String notificationId) {
-        BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
+            final String serviceId, final String notificationId) {
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + deviceId);
+            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + serviceId);
             return true;
         }
         if (notificationId == null) {

@@ -29,7 +29,7 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
 //    /**
 //     * テスト用デバイス名: {@value}.
 //     */
-//    private static final String DEVICE_NAME_SPECIAL_CHARACTERS = "Test Device ID Special Characters";
+//    private static final String DEVICE_NAME_SPECIAL_CHARACTERS = "Test Service ID Special Characters";
 
     /**
      * コンストラクタ.

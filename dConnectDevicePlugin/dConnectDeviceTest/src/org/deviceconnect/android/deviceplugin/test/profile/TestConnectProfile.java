@@ -21,22 +21,22 @@ import android.os.Bundle;
 public class TestConnectProfile extends ConnectProfile {
     
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkServiceId(final String serviceId) {
+        return TestNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response, "Device ID is empty.");
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response, "Device ID is empty.");
     }
 
     /**
@@ -49,11 +49,11 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onGetWifi(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetWifi(final Intent request, final Intent response, final String serviceId) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -64,10 +64,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onGetBluetooth(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onGetBluetooth(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -77,10 +77,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onGetNFC(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onGetNFC(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -90,10 +90,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onGetBLE(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onGetBLE(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -103,10 +103,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onPutWifi(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onPutWifi(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -115,12 +115,12 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onPutOnWifiChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnWifiChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -129,7 +129,7 @@ public class TestConnectProfile extends ConnectProfile {
 
             Intent intent = MessageUtils.createEventIntent();
             setSessionKey(intent, sessionKey);
-            setDeviceID(intent, deviceId);
+            setDeviceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_WIFI_CHANGE);
             
@@ -144,10 +144,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onPutBluetooth(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onPutBluetooth(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -156,12 +156,12 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onPutOnBluetoothChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnBluetoothChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -170,7 +170,7 @@ public class TestConnectProfile extends ConnectProfile {
 
             Intent intent = MessageUtils.createEventIntent();
             setSessionKey(intent, sessionKey);
-            setDeviceID(intent, deviceId);
+            setDeviceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_BLUETOOTH_CHANGE);
             
@@ -185,10 +185,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onPutBluetoothDiscoverable(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onPutBluetoothDiscoverable(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -197,10 +197,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onPutNFC(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onPutNFC(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -209,11 +209,11 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onPutOnNFCChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnNFCChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -222,7 +222,7 @@ public class TestConnectProfile extends ConnectProfile {
 
             Intent intent = MessageUtils.createEventIntent();
             setSessionKey(intent, sessionKey);
-            setDeviceID(intent, deviceId);
+            setDeviceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_NFC_CHANGE);
             
@@ -236,10 +236,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onPutBLE(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onPutBLE(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -248,11 +248,11 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onPutOnBLEChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnBLEChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -261,7 +261,7 @@ public class TestConnectProfile extends ConnectProfile {
 
             Intent intent = MessageUtils.createEventIntent();
             setSessionKey(intent, sessionKey);
-            setDeviceID(intent, deviceId);
+            setDeviceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_BLE_CHANGE);
             
@@ -275,10 +275,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onDeleteWifi(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onDeleteWifi(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -287,12 +287,12 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onDeleteOnWifiChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnWifiChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -303,10 +303,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onDeleteBluetooth(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onDeleteBluetooth(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -315,11 +315,11 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onDeleteOnBluetoothChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnBluetoothChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -331,10 +331,10 @@ public class TestConnectProfile extends ConnectProfile {
 
     @Override
     protected boolean onDeleteBluetoothDiscoverable(final Intent request, final Intent response,
-            final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+            final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -343,10 +343,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onDeleteNFC(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onDeleteNFC(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -355,11 +355,11 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onDeleteOnNFCChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnNFCChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -370,10 +370,10 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onDeleteBLE(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onDeleteBLE(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -382,11 +382,11 @@ public class TestConnectProfile extends ConnectProfile {
     }
 
     @Override
-    protected boolean onDeleteOnBLEChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnBLEChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);

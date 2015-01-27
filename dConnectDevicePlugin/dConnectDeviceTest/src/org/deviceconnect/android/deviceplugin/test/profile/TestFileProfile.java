@@ -57,22 +57,22 @@ public class TestFileProfile extends FileProfile {
     }
     
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkServiceId(final String serviceId) {
+        return TestNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response, "Device ID is empty.");
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response, "Device ID is empty.");
     }
 
     /**
@@ -85,9 +85,9 @@ public class TestFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onGetReceive(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onGetReceive(final Intent request, final Intent response, final String serviceId, 
             final String path) {
-        if (!checkDeviceId(deviceId)) {
+        if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -101,9 +101,9 @@ public class TestFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onGetList(final Intent request, final Intent response, final String deviceId, final String path,
+    protected boolean onGetList(final Intent request, final Intent response, final String serviceId, final String path,
             final String mimeType, final String order, final Integer offset, final Integer limit) {
-        if (!checkDeviceId(deviceId)) {
+        if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -123,9 +123,9 @@ public class TestFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onPostSend(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPostSend(final Intent request, final Intent response, final String serviceId, 
             final String path, final String mimeType, final byte[] data) {
-        if (!checkDeviceId(deviceId)) {
+        if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -149,8 +149,8 @@ public class TestFileProfile extends FileProfile {
 
     @Override
     protected boolean onPostMkdir(final Intent request, final Intent response,
-                                        final String deviceId, final String path) {
-        if (!checkDeviceId(deviceId)) {
+                                        final String serviceId, final String path) {
+        if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -162,8 +162,8 @@ public class TestFileProfile extends FileProfile {
 
     @Override
     protected boolean onDeleteRmdir(final Intent request, final Intent response,
-                                    final String deviceId, final String path, final boolean force) {
-        if (!checkDeviceId(deviceId)) {
+                                    final String serviceId, final String path, final boolean force) {
+        if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -187,11 +187,11 @@ public class TestFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onDeleteRemove(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteRemove(final Intent request, final Intent response, final String serviceId, 
             final String path) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);

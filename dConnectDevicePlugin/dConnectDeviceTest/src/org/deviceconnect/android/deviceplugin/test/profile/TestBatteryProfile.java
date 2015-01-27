@@ -40,22 +40,22 @@ public class TestBatteryProfile extends BatteryProfile {
     public static final boolean CHARGING = false;
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkServiceId(final String serviceId) {
+        return TestNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response, "Device ID is empty.");
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response, "Device ID is empty.");
     }
 
     /**
@@ -68,10 +68,10 @@ public class TestBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onGetAll(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -84,10 +84,10 @@ public class TestBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onGetCharging(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onGetCharging(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -97,10 +97,10 @@ public class TestBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onGetDischargingTime(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onGetDischargingTime(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -110,11 +110,10 @@ public class TestBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onGetChargingTime(final Intent request, final Intent response, final String deviceId) {
-        String deviceid = getDeviceID(request);
-        if (deviceid == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceid)) {
+    protected boolean onGetChargingTime(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -124,11 +123,10 @@ public class TestBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onGetLevel(final Intent request, final Intent response, final String deviceId) {
-        String deviceid = getDeviceID(request);
-        if (deviceid == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceid)) {
+    protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -138,11 +136,11 @@ public class TestBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onPutOnChargingChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnChargingChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -151,7 +149,7 @@ public class TestBatteryProfile extends BatteryProfile {
             
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setDeviceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_CHARGING_CHANGE);
             Bundle charging = new Bundle();
@@ -163,11 +161,11 @@ public class TestBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onDeleteOnChargingChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnChargingChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -178,11 +176,11 @@ public class TestBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onPutOnBatteryChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnBatteryChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -191,7 +189,7 @@ public class TestBatteryProfile extends BatteryProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setDeviceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_BATTERY_CHANGE);
             Bundle battery = new Bundle();
@@ -206,10 +204,10 @@ public class TestBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onDeleteOnBatteryChange(final Intent request, final Intent response,
-            final String deviceId, final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+            final String serviceId, final String sessionKey) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);

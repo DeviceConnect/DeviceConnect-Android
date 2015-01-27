@@ -21,19 +21,19 @@ import android.os.Bundle;
 public class TestDeviceOrientationProfile extends DeviceOrientationProfile {
 
     /**
-     * デバイスIDをチェックする.
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * サービスIDをチェックする.
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkServiceId(final String serviceId) {
+        return TestNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
+    private void createEmptyServiceId(final Intent response) {
         setResult(response, DConnectMessage.RESULT_ERROR);
     }
 
@@ -46,11 +46,11 @@ public class TestDeviceOrientationProfile extends DeviceOrientationProfile {
     }
 
     @Override
-    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -59,7 +59,7 @@ public class TestDeviceOrientationProfile extends DeviceOrientationProfile {
 
             Intent intent = MessageUtils.createEventIntent();
             setSessionKey(intent, sessionKey);
-            setDeviceID(intent, deviceId);
+            setDeviceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_DEVICE_ORIENTATION);
             
@@ -88,11 +88,11 @@ public class TestDeviceOrientationProfile extends DeviceOrientationProfile {
     }
 
     @Override
-    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);

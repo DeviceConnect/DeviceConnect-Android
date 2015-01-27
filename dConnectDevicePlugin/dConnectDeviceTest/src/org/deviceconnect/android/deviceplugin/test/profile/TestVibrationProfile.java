@@ -19,18 +19,18 @@ public class TestVibrationProfile extends VibrationProfile {
 
     /**
      * デバイスをチェックする.
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkServiceId(final String serviceId) {
+        return TestNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
+    private void createEmptyServiceId(final Intent response) {
         setResult(response, DConnectMessage.RESULT_ERROR);
     }
 
@@ -43,11 +43,11 @@ public class TestVibrationProfile extends VibrationProfile {
     }
 
     @Override
-    protected boolean onPutVibrate(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutVibrate(final Intent request, final Intent response, final String serviceId, 
             final long[] pattern) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -56,10 +56,10 @@ public class TestVibrationProfile extends VibrationProfile {
     }
 
     @Override
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);

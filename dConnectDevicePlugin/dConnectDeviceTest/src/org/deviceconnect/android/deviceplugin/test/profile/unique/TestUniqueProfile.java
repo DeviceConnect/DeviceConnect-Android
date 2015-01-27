@@ -84,7 +84,7 @@ public class TestUniqueProfile extends DConnectProfile {
         final String path = createPath(request);
         final String action = request.getAction();
         final String key = request.getStringExtra(PARAM_KEY);
-        final String deviceId = getDeviceID(request);
+        final String serviceId = getDeviceID(request);
         if (inter == null && ATTRIBUTE_EVENT.equals(attribute)) {
             if (IntentDConnectMessage.ACTION_PUT.equals(action)) {
                 new Thread(new Runnable() {
@@ -95,7 +95,7 @@ public class TestUniqueProfile extends DConnectProfile {
                             setResult(response, DConnectMessage.RESULT_OK);
                             
                             // 定期的イベントの開始
-                            startEvent(deviceId);
+                            startEvent(serviceId);
                         } else {
                             MessageUtils.setUnknownError(response, "event error: " + error.name());
                         }
@@ -158,13 +158,13 @@ public class TestUniqueProfile extends DConnectProfile {
         }
     }
 
-    private synchronized void startEvent(final String deviceId) {
+    private synchronized void startEvent(final String serviceId) {
         if (eventTimer == null) {
             eventTimer = new Timer(true);
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
-                    List<Event> events = EventManager.INSTANCE.getEventList(deviceId, getProfileName(), null, ATTRIBUTE_EVENT);
+                    List<Event> events = EventManager.INSTANCE.getEventList(serviceId, getProfileName(), null, ATTRIBUTE_EVENT);
                     for (Event event : events) {
                         Intent eventMsg = EventManager.createEventMessage(event);
                         eventMsg.putExtra(PARAM_TIME, System.currentTimeMillis());

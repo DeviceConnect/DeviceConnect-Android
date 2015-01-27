@@ -24,22 +24,22 @@ public class TestNotificationProfile extends NotificationProfile {
     public static final String[] NOTIFICATION_ID = {"1", "2", "3", "4", "5", };
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkdeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkserviceId(final String serviceId) {
+        return TestNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptydeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyserviceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**
@@ -61,13 +61,13 @@ public class TestNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onPostNotify(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPostNotify(final Intent request, final Intent response, final String serviceId,
             final NotificationType type, final Direction dir, final String lang, final String body, final String tag,
             final byte[] iconData) {
-        if (deviceId == null) {
+        if (serviceId == null) {
             createNotFoundDevice(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createEmptydeviceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createEmptyserviceId(response);
         } else if (type == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -97,12 +97,12 @@ public class TestNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onDeleteNotify(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteNotify(final Intent request, final Intent response, final String serviceId,
             final String notificationId) {
-        if (deviceId == null) {
+        if (serviceId == null) {
             createNotFoundDevice(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createEmptydeviceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createEmptyserviceId(response);
         } else if (notificationId == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -112,11 +112,11 @@ public class TestNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onPutOnClick(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnClick(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -125,7 +125,7 @@ public class TestNotificationProfile extends NotificationProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setDeviceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_CLICK);
             setNotificationId(message, NOTIFICATION_ID[0]);
@@ -135,11 +135,11 @@ public class TestNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onPutOnClose(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnClose(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -148,7 +148,7 @@ public class TestNotificationProfile extends NotificationProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setDeviceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_CLOSE);
             setNotificationId(message, NOTIFICATION_ID[0]);
@@ -158,11 +158,11 @@ public class TestNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onPutOnError(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnError(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -171,7 +171,7 @@ public class TestNotificationProfile extends NotificationProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setDeviceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_ERROR);
             setNotificationId(message, NOTIFICATION_ID[0]);
@@ -181,11 +181,11 @@ public class TestNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onPutOnShow(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnShow(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -194,7 +194,7 @@ public class TestNotificationProfile extends NotificationProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setDeviceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_SHOW);
             setNotificationId(message, NOTIFICATION_ID[0]);
@@ -204,11 +204,11 @@ public class TestNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onDeleteOnClick(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnClick(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -219,11 +219,11 @@ public class TestNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onDeleteOnClose(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnClose(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -234,11 +234,11 @@ public class TestNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onDeleteOnError(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnError(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -249,11 +249,11 @@ public class TestNotificationProfile extends NotificationProfile {
     }
 
     @Override
-    protected boolean onDeleteOnShow(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnShow(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);

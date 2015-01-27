@@ -23,14 +23,14 @@ import android.os.Bundle;
 public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
 
     /**
-     * テスト用デバイスID.
+     * テスト用サービスID.
      */
-    public static final String DEVICE_ID = "test_device_id";
+    public static final String SERVICE_ID = "test_service_id";
 
     /**
-     * 特殊文字を含むテスト用デバイスID.
+     * 特殊文字を含むテスト用サービスID.
      */
-    public static final String DEVICE_ID_SPECIAL_CHARACTERS = "!#$'()-~¥@[;+:*],._/=?&%^|`\"{}<>";
+    public static final String SERVICE_ID_SPECIAL_CHARACTERS = "!#$'()-~¥@[;+:*],._/=?&%^|`\"{}<>";
 
     /**
      * テスト用デバイス名: {@value} .
@@ -71,16 +71,16 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
 
         // 典型的なサービス
         Bundle service = new Bundle();
-        setId(service, DEVICE_ID);
+        setId(service, SERVICE_ID);
         setName(service, DEVICE_NAME);
         setType(service, DEVICE_TYPE);
         setOnline(service, DEVICE_ONLINE);
         setConfig(service, DEVICE_CONFIG);
         services.add(service);
 
-        // デバイスIDが特殊なサービス
+        // サービスIDが特殊なサービス
         service = new Bundle();
-        setId(service, DEVICE_ID_SPECIAL_CHARACTERS);
+        setId(service, SERVICE_ID_SPECIAL_CHARACTERS);
         setName(service, DEVICE_NAME_SPECIAL_CHARACTERS);
         setType(service, DEVICE_TYPE);
         setOnline(service, DEVICE_ONLINE);
@@ -95,7 +95,7 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
 
     @Override
     protected boolean onPutOnServiceChange(final Intent request, final Intent response,
-                                            final String deviceId, final String sessionKey) {
+                                            final String serviceId, final String sessionKey) {
         
         if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -104,12 +104,12 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setDeviceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_SERVICE_CHANGE);
             
             Bundle service = new Bundle();
-            setId(service, DEVICE_ID);
+            setId(service, SERVICE_ID);
             setName(service, DEVICE_NAME);
             setType(service, DEVICE_TYPE);
             setOnline(service, DEVICE_ONLINE);
@@ -125,7 +125,7 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
 
     @Override
     protected boolean onDeleteOnServiceChange(final Intent request, final Intent response,
-                                                final String deviceId, final String sessionKey) {
+                                                final String serviceId, final String sessionKey) {
         if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {

@@ -62,22 +62,22 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
     private static final int COMPRESSION_QUALITY = 100;
     
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkServiceId(final String serviceId) {
+        return TestNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response, "Device ID is empty.");
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response, "Device ID is empty.");
     }
 
     /**
@@ -90,12 +90,12 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
     }
 
     @Override
-    protected boolean onGetOpen(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onGetOpen(final Intent request, final Intent response, final String serviceId, 
             final String path, final Flag flag) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null || flag == Flag.UNKNOWN) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -107,12 +107,12 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
     }
 
     @Override
-    protected boolean onGetRead(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onGetRead(final Intent request, final Intent response, final String serviceId, 
             final String path, final Long length, final Long position) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null || length == null || length < 0 || (position != null && position < 0)) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -135,12 +135,12 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
     }
 
     @Override
-    protected boolean onPutClose(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutClose(final Intent request, final Intent response, final String serviceId, 
             final String path) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -152,12 +152,12 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
     }
 
     @Override
-    protected boolean onPutWrite(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutWrite(final Intent request, final Intent response, final String serviceId,
             final String path, final byte[] data, final Long position) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (path == null || data == null || (position != null && position < 0)) {
             MessageUtils.setInvalidRequestParameterError(response,
@@ -170,12 +170,12 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
     }
 
     @Override
-    protected boolean onPutOnWatchFile(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutOnWatchFile(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -184,7 +184,7 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
 
             Intent intent = MessageUtils.createEventIntent();
             setSessionKey(intent, sessionKey);
-            setDeviceID(intent, deviceId);
+            setDeviceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_WATCH_FILE);
             
@@ -202,11 +202,11 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
     }
 
     @Override
-    protected boolean onDeleteOnWatchFile(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteOnWatchFile(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
             createNotFoundDevice(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);

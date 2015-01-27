@@ -28,21 +28,21 @@ public class TestSystemProfile extends SystemProfile {
     public static final String VERSION = "1.0";
     
     /**
-     * デバイスIDをチェックする.
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * サービスIDをチェックする.
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkdeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkserviceId(final String serviceId) {
+        return TestNetworkServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptydeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyserviceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**
@@ -63,11 +63,11 @@ public class TestSystemProfile extends SystemProfile {
     }
 
     @Override
-    protected boolean onGetDevice(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetDevice(final Intent request, final Intent response, final String serviceId) {
         
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
             createNotFoundDevice(response);
         } else {
             setVersion(response, VERSION);

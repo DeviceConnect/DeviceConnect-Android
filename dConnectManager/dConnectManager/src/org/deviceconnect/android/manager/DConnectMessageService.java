@@ -59,7 +59,7 @@ public abstract class DConnectMessageService extends Service
     /** ローカルのドメイン名. */
     private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
 
-    /** デバイスIDやセッションキーを分割するセパレータ. */
+    /** サービスIDやセッションキーを分割するセパレータ. */
     public static final String SEPARATOR = ".";
 
     /** セッションキーとreceiverを分けるセパレータ. */
@@ -282,12 +282,12 @@ public abstract class DConnectMessageService extends Service
      */
     public void onEventReceive(final Intent event) {
         String sessionKey = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
-        String deviceId = event.getStringExtra(DConnectMessage.EXTRA_DEVICE_ID);
+        String serviceId = event.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String profile = event.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         String inter = event.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
         String attribute = event.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
 
-        mLogger.fine("onEventReceive: [sessionKey: " + sessionKey + " deviceId: " + deviceId
+        mLogger.fine("onEventReceive: [sessionKey: " + sessionKey + " serviceId: " + serviceId
                 + " profile: " + profile + " inter: " + inter + " attribute: " + attribute + "]");
 
         if (sessionKey != null) {
@@ -306,7 +306,7 @@ public abstract class DConnectMessageService extends Service
                 mLogger.warning("plugin is null.");
                 return;
             }
-            String did = mPluginMgr.appendDeviceId(plugin, deviceId);
+            String did = mPluginMgr.appendServiceId(plugin, serviceId);
             event.putExtra(DConnectMessage.EXTRA_SESSION_KEY, key);
 
             // Local OAuthの仕様で、デバイスを発見するごとにclientIdを作成して、
@@ -318,10 +318,10 @@ public abstract class DConnectMessageService extends Service
                 Bundle service = (Bundle) event.getParcelableExtra(
                         NetworkServiceDiscoveryProfile.PARAM_NETWORK_SERVICE);
                 String id = service.getString(NetworkServiceDiscoveryProfile.PARAM_ID);
-                did = mPluginMgr.appendDeviceId(plugin, id);
+                did = mPluginMgr.appendServiceId(plugin, id);
 
-                // デバイスIDを変更
-                replaceDeviceId(event, plugin);
+                // サービスIDを変更
+                replaceServiceId(event, plugin);
 
                 OAuthData oauth = mLocalOAuth.getOAuthData(did);
                 if (oauth == null && plugin != null) {
@@ -336,7 +336,7 @@ public abstract class DConnectMessageService extends Service
                     }
                 }
             } else {
-                replaceDeviceId(event, plugin);
+                replaceServiceId(event, plugin);
                 sendEvent(receiver, event);
             }
         } else {
@@ -455,7 +455,7 @@ public abstract class DConnectMessageService extends Service
     public void onDeviceFound(final DevicePlugin plugin) {
         RegisterNetworkServiceDiscovery req = new RegisterNetworkServiceDiscovery();
         req.setContext(this);
-        req.setSessionKey(plugin.getDeviceId());
+        req.setSessionKey(plugin.getServiceId());
         req.setDestination(plugin);
         req.setDevicePluginManager(mPluginMgr);
         addRequest(req);
@@ -463,7 +463,7 @@ public abstract class DConnectMessageService extends Service
 
     @Override
     public void onDeviceLost(final DevicePlugin plugin) {
-        mLocalOAuth.deleteOAuthDatas(plugin.getDeviceId());
+        mLocalOAuth.deleteOAuthDatas(plugin.getServiceId());
     }
 
     /**
@@ -492,36 +492,36 @@ public abstract class DConnectMessageService extends Service
     }
 
     /**
-     * イベント用メッセージのデバイスIDを置換する.
+     * イベント用メッセージのサービスIDを置換する.
      * <br>
      * 
-     * デバイスプラグインから送られてくるデバイスIDは、デバイスプラグインの中でIDになっている。
-     * dConnect ManagerでデバイスプラグインのIDをデバイスIDに付加することでDNSっぽい動きを実現する。
+     * デバイスプラグインから送られてくるサービスIDは、デバイスプラグインの中でIDになっている。
+     * dConnect ManagerでデバイスプラグインのIDをサービスIDに付加することでDNSっぽい動きを実現する。
      * 
      * @param event イベントメッセージ用Intent
      * @param plugin 送信元のデバイスプラグイン
      */
-    private void replaceDeviceId(final Intent event, final DevicePlugin plugin) {
-        String deviceId = event
-                .getStringExtra(IntentDConnectMessage.EXTRA_DEVICE_ID);
-        event.putExtra(IntentDConnectMessage.EXTRA_DEVICE_ID,
-                mPluginMgr.appendDeviceId(plugin, deviceId));
+    private void replaceServiceId(final Intent event, final DevicePlugin plugin) {
+        String serviceId = event
+                .getStringExtra(IntentDConnectMessage.EXTRA_SERVICE_ID);
+        event.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID,
+                mPluginMgr.appendServiceId(plugin, serviceId));
     }
 
     /**
      * デバイスプラグインのクライアントを作成する.
      * @param plugin クライアントを作成するデバイスプラグイン
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param event 送信するイベント
      */
-    private void createClientOfDevicePlugin(final DevicePlugin plugin, final String deviceId, final Intent event) {
+    private void createClientOfDevicePlugin(final DevicePlugin plugin, final String serviceId, final Intent event) {
         Intent intent = new Intent(IntentDConnectMessage.ACTION_GET);
         intent.setComponent(plugin.getComponentName());
         intent.putExtra(DConnectMessage.EXTRA_PROFILE,
                 NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
         intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
                 NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
-        intent.putExtra(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+        intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
 
         DiscoveryDeviceRequest request = new DiscoveryDeviceRequest();
         request.setContext(this);

@@ -112,7 +112,7 @@ public class ReqResDebugActivity extends Activity implements
      */
     private Spinner mAttrib;
     /**
-     * deviceIdを持つSpineer.
+     * serviceIdを持つSpineer.
      */
     private Spinner mDI;
 
@@ -456,14 +456,14 @@ public class ReqResDebugActivity extends Activity implements
      * @return query一覧
      */
     private List<NameValuePair> createQuery() {
-        String deviceId = mDI.getSelectedItem().toString();
+        String serviceId = mDI.getSelectedItem().toString();
         String path = mTextPath.getText().toString();
 
         List<NameValuePair> params = new ArrayList<NameValuePair>();
 
-        // deviceidが指定されている場合は追加
-        if (!isEmpty(deviceId)) {
-            params.add(new BasicNameValuePair(DConnectMessage.EXTRA_DEVICE_ID, deviceId));
+        // serviceIdが指定されている場合は追加
+        if (!isEmpty(serviceId)) {
+            params.add(new BasicNameValuePair(DConnectMessage.EXTRA_SERVICE_ID, serviceId));
         }
 
         // アクセストークンを設定
@@ -686,7 +686,7 @@ public class ReqResDebugActivity extends Activity implements
 
     /**
      * Network Service Discoveryを実行する.
-     * 実行した結果は、解析してデバイスID一覧をリストに追加する。
+     * 実行した結果は、解析してサービスID一覧をリストに追加する。
      */
     private void executeNetworkServiceDiscovery() {
         if (mSettings.isUseALocalOAuth()) {

@@ -59,7 +59,7 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
         // エラーが返ってきた場合には、サービスには登録しない。
         int result = response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1);
         if (result == IntentDConnectMessage.RESULT_OK) {
-            // 送られてきたデバイスIDにデバイスプラグインのIDを付加して保存
+            // 送られてきたサービスIDにデバイスプラグインのIDを付加して保存
             Parcelable[] services = response.getParcelableArrayExtra(
                     NetworkServiceDiscoveryProfile.PARAM_SERVICES);
             if (services != null) {
@@ -68,7 +68,7 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
                     Bundle b = (Bundle) p;
                     String id = b.getString(NetworkServiceDiscoveryProfile.PARAM_ID);
                     b.putString(NetworkServiceDiscoveryProfile.PARAM_ID, 
-                            mPluginMgr.appendDeviceId(plugin, id));
+                            mPluginMgr.appendServiceId(plugin, id));
                     mServices.add(b);
                 }
                 mRequestCodeArray.remove(requestCode);

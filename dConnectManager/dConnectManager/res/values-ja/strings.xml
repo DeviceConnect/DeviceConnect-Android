@@ -73,7 +73,7 @@
     <string name="profile">Profile:</string>
     <string name="interfaces">Interfaces:</string>
     <string name="attribute">Attribute:</string>
-    <string name="deviceid">Device ID:</string>
+    <string name="serviceid">Device ID:</string>
     <string name="send_request">Send</string>
     <string name="select_or_url">Parameter or URL</string>
     <string name="url_hint1">param1=xxx&amp;param2=yyy</string>

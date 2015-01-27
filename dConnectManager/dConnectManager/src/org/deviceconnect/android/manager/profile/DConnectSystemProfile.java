@@ -151,9 +151,9 @@ public class DConnectSystemProfile extends SystemProfile {
         List<DevicePlugin> p = mPluginMgr.getDevicePlugins();
         for (int i = 0; i < p.size(); i++) {
             DevicePlugin plugin = p.get(i);
-            String deviceId = mPluginMgr.appendDeviceId(plugin, null);
+            String serviceId = mPluginMgr.appendServiceId(plugin, null);
             Bundle b = new Bundle();
-            b.putString(PARAM_ID, deviceId);
+            b.putString(PARAM_ID, serviceId);
             b.putString(PARAM_NAME, plugin.getDeviceName());
             plugins.add(b);
         }

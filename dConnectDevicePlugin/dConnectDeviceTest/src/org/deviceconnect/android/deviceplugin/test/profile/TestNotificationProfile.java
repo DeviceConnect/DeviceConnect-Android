@@ -56,8 +56,8 @@ public class TestNotificationProfile extends NotificationProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class TestNotificationProfile extends NotificationProfile {
             final NotificationType type, final Direction dir, final String lang, final String body, final String tag,
             final byte[] iconData) {
         if (serviceId == null) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (!checkserviceId(serviceId)) {
             createEmptyserviceId(response);
         } else if (type == null) {
@@ -100,7 +100,7 @@ public class TestNotificationProfile extends NotificationProfile {
     protected boolean onDeleteNotify(final Intent request, final Intent response, final String serviceId,
             final String notificationId) {
         if (serviceId == null) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (!checkserviceId(serviceId)) {
             createEmptyserviceId(response);
         } else if (notificationId == null) {
@@ -117,7 +117,7 @@ public class TestNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -140,7 +140,7 @@ public class TestNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -163,7 +163,7 @@ public class TestNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -186,7 +186,7 @@ public class TestNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -209,7 +209,7 @@ public class TestNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -224,7 +224,7 @@ public class TestNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -239,7 +239,7 @@ public class TestNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -254,7 +254,7 @@ public class TestNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {

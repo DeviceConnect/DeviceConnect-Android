@@ -77,7 +77,7 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
@@ -121,7 +121,7 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);

@@ -68,7 +68,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
@@ -108,7 +108,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
@@ -145,7 +145,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
@@ -183,7 +183,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
            return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
@@ -224,7 +224,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
@@ -265,7 +265,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
@@ -301,7 +301,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);

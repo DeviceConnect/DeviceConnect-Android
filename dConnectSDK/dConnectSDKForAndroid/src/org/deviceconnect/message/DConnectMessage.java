@@ -228,9 +228,9 @@ public interface DConnectMessage extends Map<String, Object> {
          */
         EMPTY_SERVICE_ID(5, "Service ID is required."),
         /**
-         * デバイスが発見できなかった.
+         * サービスが発見できなかった.
          */
-        NOT_FOUND_DEVICE(6, "Device was not found."),
+        NOT_FOUND_SERVICE(6, "Service was not found."),
         /**
          * タイムアウトが発生した.
          */

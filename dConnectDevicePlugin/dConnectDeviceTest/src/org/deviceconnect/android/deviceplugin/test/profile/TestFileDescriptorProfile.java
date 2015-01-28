@@ -85,8 +85,8 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response, "Device is not found.");
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response, "Service is not found.");
     }
 
     @Override
@@ -96,7 +96,7 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null || flag == Flag.UNKNOWN) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -113,7 +113,7 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null || length == null || length < 0 || (position != null && position < 0)) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -141,7 +141,7 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -158,7 +158,7 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null || data == null || (position != null && position < 0)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "path=" + path + " , data=" + data + ", position=" + position);
@@ -176,7 +176,7 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -207,7 +207,7 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {

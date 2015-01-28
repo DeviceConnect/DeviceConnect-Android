@@ -81,7 +81,7 @@ public class DConnectDeliveryProfile extends DConnectProfile {
                 req.setDestination(plugins.get(0));
                 ((DConnectMessageService) getContext()).addRequest(req);
             } else {
-                sendNotFoundDevice(request, response);
+                sendNotFoundService(request, response);
             }
         }
 
@@ -103,8 +103,8 @@ public class DConnectDeliveryProfile extends DConnectProfile {
      * @param request 送信元のリクエスト
      * @param response レスポンス
      */
-    private void sendNotFoundDevice(final Intent request, final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void sendNotFoundService(final Intent request, final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
         sendResponse(request, response);
     }
 

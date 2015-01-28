@@ -55,7 +55,7 @@ public class IRKitRmeoteControllerProfile extends DConnectProfile {
             IRKitDevice device = service.getDevice(serviceId);
             
             if (device == null) {
-                MessageUtils.setNotFoundDeviceError(response);
+                MessageUtils.setNotFoundServiceError(response);
             } else {
                 send = false;
                 IRKitManager.INSTANCE.fetchMessage(device.getIp(), new GetMessageCallback() {
@@ -98,9 +98,9 @@ public class IRKitRmeoteControllerProfile extends DConnectProfile {
             }
             
             if (device == null) {
-                MessageUtils.setNotFoundDeviceError(response);
+                MessageUtils.setNotFoundServiceError(response);
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "onPostRequest setNotFoundDeviceError");
+                    Log.d(TAG, "onPostRequest setNotFoundServiceError");
                 }
             } else if (message == null) {
                 MessageUtils.setInvalidRequestParameterError(response);

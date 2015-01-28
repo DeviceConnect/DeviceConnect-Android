@@ -44,7 +44,7 @@ public class SWCanvasProfile extends CanvasProfile {
             final String mimeType, final byte[] data, final double x, final double y, final String mode) {
         BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
         if (data == null || serviceId == null) {

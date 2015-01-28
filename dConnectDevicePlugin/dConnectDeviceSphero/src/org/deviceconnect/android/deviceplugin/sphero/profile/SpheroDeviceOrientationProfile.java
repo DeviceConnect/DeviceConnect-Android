@@ -29,7 +29,7 @@ public class SpheroDeviceOrientationProfile extends DeviceOrientationProfile {
         
         DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         }
 

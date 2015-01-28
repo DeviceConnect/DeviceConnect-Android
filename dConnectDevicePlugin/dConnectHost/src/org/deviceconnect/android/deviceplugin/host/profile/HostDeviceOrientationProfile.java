@@ -34,7 +34,7 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -62,7 +62,7 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -122,8 +122,8 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
+    private void createNotFoundService(final Intent response) {
 
-        MessageUtils.setNotFoundDeviceError(response);
+        MessageUtils.setNotFoundServiceError(response);
     }
 }

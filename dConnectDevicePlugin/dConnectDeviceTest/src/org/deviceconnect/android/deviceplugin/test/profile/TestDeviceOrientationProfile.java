@@ -41,7 +41,7 @@ public class TestDeviceOrientationProfile extends DeviceOrientationProfile {
      * デバイスが発見できなかった場合のエラーを作成する.
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
+    private void createNotFoundService(final Intent response) {
         setResult(response, DConnectMessage.RESULT_ERROR);
     }
 
@@ -51,7 +51,7 @@ public class TestDeviceOrientationProfile extends DeviceOrientationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -93,7 +93,7 @@ public class TestDeviceOrientationProfile extends DeviceOrientationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {

@@ -71,7 +71,7 @@ public class HostNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
 
             if (NotificationProfile.ATTRIBUTE_NOTIFY.equals(getAttribute(request))) {
@@ -193,7 +193,7 @@ public class HostNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
 
             NotificationManager mNotificationManager =
@@ -225,7 +225,7 @@ public class HostNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -255,7 +255,7 @@ public class HostNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -280,7 +280,7 @@ public class HostNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -303,7 +303,7 @@ public class HostNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -339,7 +339,7 @@ public class HostNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -375,7 +375,7 @@ public class HostNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -427,8 +427,8 @@ public class HostNotificationProfile extends NotificationProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 
     /**

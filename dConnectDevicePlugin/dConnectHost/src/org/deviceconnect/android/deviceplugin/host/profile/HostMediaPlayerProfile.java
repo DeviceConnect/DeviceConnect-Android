@@ -57,7 +57,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             ((HostDeviceService) getContext()).playMedia();
             setResult(response, DConnectMessage.RESULT_OK);
@@ -70,7 +70,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             ((HostDeviceService) getContext()).stopMedia();
             setResult(response, DConnectMessage.RESULT_OK);
@@ -83,7 +83,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             ((HostDeviceService) getContext()).pauseMedia();
             setResult(response, DConnectMessage.RESULT_OK);
@@ -96,7 +96,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             ((HostDeviceService) getContext()).resumeMedia();
             setResult(response, DConnectMessage.RESULT_OK);
@@ -111,7 +111,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             createEmptyServiceId(response);
             return true;
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
             return true;
         } else {
             ((HostDeviceService) getContext()).getPlayStatus(response);
@@ -126,7 +126,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (TextUtils.isEmpty(mediaId)) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -152,7 +152,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (TextUtils.isEmpty(mediaId)) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -293,7 +293,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             if (BuildConfig.DEBUG) {
                 Log.i(TAG, "onGetMediaList");
@@ -489,7 +489,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (volume == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else if (0.0 > volume || volume > 1.0) {
@@ -512,7 +512,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
 
@@ -533,7 +533,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (pos == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
@@ -551,7 +551,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             int pos = ((HostDeviceService) getContext()).getMediaPos();
             if (pos < 0) {
@@ -573,7 +573,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
             manager.setStreamMute(AudioManager.STREAM_MUSIC, true);
@@ -589,7 +589,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
             manager.setStreamMute(AudioManager.STREAM_MUSIC, false);
@@ -605,7 +605,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setMute(response, mIsMute);
             setResult(response, DConnectMessage.RESULT_OK);
@@ -620,7 +620,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
             createEmptyServiceId(response);
             return true;
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -647,7 +647,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
             createEmptyServiceId(response);
             return true;
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -726,7 +726,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
+    private void createNotFoundService(final Intent response) {
         setResult(response, DConnectMessage.RESULT_ERROR);
     }
 

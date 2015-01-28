@@ -105,7 +105,7 @@ public class SpheroLightProfile extends DConnectProfile {
             String serviceId = getServiceID(request);
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
             if (info == null) {
-                MessageUtils.setNotFoundDeviceError(response);
+                MessageUtils.setNotFoundServiceError(response);
             } else {
                 Bundle[] lights = new Bundle[2];
                 synchronized (info) {
@@ -138,7 +138,7 @@ public class SpheroLightProfile extends DConnectProfile {
             String serviceId = getServiceID(request);
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
             if (info == null) {
-                MessageUtils.setNotFoundDeviceError(response);
+                MessageUtils.setNotFoundServiceError(response);
             } else {
                 synchronized (info) {
                     String lightId = request.getStringExtra(PARAM_LIGHT_ID);
@@ -198,7 +198,7 @@ public class SpheroLightProfile extends DConnectProfile {
             String serviceId = getServiceID(request);
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
             if (info == null) {
-                MessageUtils.setNotFoundDeviceError(response);
+                MessageUtils.setNotFoundServiceError(response);
             } else {
                 synchronized (info) {
                     String lightId = request.getStringExtra(PARAM_LIGHT_ID);

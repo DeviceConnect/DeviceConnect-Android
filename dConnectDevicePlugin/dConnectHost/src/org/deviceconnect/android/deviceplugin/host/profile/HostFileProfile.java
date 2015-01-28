@@ -70,7 +70,7 @@ public class HostFileProfile extends FileProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -118,7 +118,7 @@ public class HostFileProfile extends FileProfile {
             createEmptyServiceId(response);
             return true;
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
             return true;
         } else {
             new Thread(new Runnable() {
@@ -352,7 +352,7 @@ public class HostFileProfile extends FileProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else if (data == null) {
@@ -446,7 +446,7 @@ public class HostFileProfile extends FileProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -470,7 +470,7 @@ public class HostFileProfile extends FileProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -501,7 +501,7 @@ public class HostFileProfile extends FileProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -586,8 +586,8 @@ public class HostFileProfile extends FileProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 
     /**

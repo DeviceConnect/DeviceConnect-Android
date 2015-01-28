@@ -29,7 +29,7 @@ public class PebbleSettingProfile extends SettingsProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             // Pebbleに送信

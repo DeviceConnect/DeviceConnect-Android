@@ -44,8 +44,8 @@ public class TestConnectProfile extends ConnectProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response, "Device is not found.");
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response, "Device is not found.");
     }
 
     @Override
@@ -54,7 +54,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setEnable(response, true);
@@ -68,7 +68,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setEnable(response, true);
@@ -81,7 +81,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setEnable(response, true);
@@ -94,7 +94,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setEnable(response, true);
@@ -107,7 +107,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -121,7 +121,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -148,7 +148,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -162,7 +162,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -189,7 +189,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -201,7 +201,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -214,7 +214,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -240,7 +240,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -253,7 +253,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -279,7 +279,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -293,7 +293,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -307,7 +307,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -320,7 +320,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -335,7 +335,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -347,7 +347,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -360,7 +360,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -374,7 +374,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -387,7 +387,7 @@ public class TestConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {

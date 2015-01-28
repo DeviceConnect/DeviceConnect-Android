@@ -38,7 +38,7 @@ public class TestVibrationProfile extends VibrationProfile {
      * デバイスが発見できなかった場合のエラーを作成する.
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
+    private void createNotFoundService(final Intent response) {
         setResult(response, DConnectMessage.RESULT_ERROR);
     }
 
@@ -48,7 +48,7 @@ public class TestVibrationProfile extends VibrationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -60,7 +60,7 @@ public class TestVibrationProfile extends VibrationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }

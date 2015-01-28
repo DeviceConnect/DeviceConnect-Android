@@ -39,7 +39,7 @@ public class SWVibrationProfile extends VibrationProfile {
             final long[] pattern) {
         BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
         if (pattern == null) {
@@ -99,7 +99,7 @@ public class SWVibrationProfile extends VibrationProfile {
     protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
         BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
         boolean smartWatch2Supported = DeviceInfoHelper.isSmartWatch2ApiAndScreenDetected(getContext(),

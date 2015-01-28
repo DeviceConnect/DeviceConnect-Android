@@ -50,8 +50,8 @@ public class TestSystemProfile extends SystemProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 
     /**
@@ -68,7 +68,7 @@ public class TestSystemProfile extends SystemProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setVersion(response, VERSION);
             setSupports(response, new String[]{});

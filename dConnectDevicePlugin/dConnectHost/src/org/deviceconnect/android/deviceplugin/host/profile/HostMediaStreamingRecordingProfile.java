@@ -100,7 +100,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             String className = getClassnameOfTopActivity();
             List<Bundle> recorders = new LinkedList<Bundle>();
@@ -186,7 +186,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createEmptyServiceId(response);
             return true;
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
             return true;
         } else {
 
@@ -270,7 +270,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createEmptyServiceId(response);
             return true;
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
             return true;
         } else {
             String uri = ((HostDeviceService) getContext()).startWebServer();
@@ -307,7 +307,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createEmptyServiceId(response);
             return true;
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
             return true;
         } else {
             ((HostDeviceService) getContext()).stopWebServer();
@@ -331,7 +331,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createEmptyServiceId(response);
             return true;
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
             return true;
         } else {
 
@@ -390,7 +390,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createEmptyServiceId(response);
             return true;
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
             return true;
         } else {
 
@@ -422,7 +422,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createEmptyServiceId(response);
             return true;
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
             return true;
         } else {
 
@@ -450,7 +450,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createEmptyServiceId(response);
             return true;
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
             return true;
         } else {
             String className = getClassnameOfTopActivity();
@@ -514,8 +514,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response, "Device is not found.");
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response, "Service is not found.");
     }
 
     /**

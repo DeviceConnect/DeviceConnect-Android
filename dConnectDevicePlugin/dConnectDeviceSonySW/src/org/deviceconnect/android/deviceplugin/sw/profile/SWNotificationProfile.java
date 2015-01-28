@@ -32,7 +32,7 @@ public class SWNotificationProfile extends NotificationProfile {
 
         BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
         if (NotificationType.UNKNOWN.equals(type) || type == null) {
@@ -66,7 +66,7 @@ public class SWNotificationProfile extends NotificationProfile {
             final String serviceId, final String notificationId) {
         BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
         if (notificationId == null) {

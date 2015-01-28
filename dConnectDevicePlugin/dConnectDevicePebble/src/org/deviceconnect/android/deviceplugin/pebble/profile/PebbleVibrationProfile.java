@@ -29,7 +29,7 @@ public class PebbleVibrationProfile extends VibrationProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             // リクエスト作成
@@ -67,7 +67,7 @@ public class PebbleVibrationProfile extends VibrationProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             PebbleDictionary dic = new PebbleDictionary();

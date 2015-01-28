@@ -42,7 +42,7 @@ public class WearNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
         } else if (type == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -116,7 +116,7 @@ public class WearNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
         } else if (notificationId == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -144,7 +144,7 @@ public class WearNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -169,7 +169,7 @@ public class WearNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -195,7 +195,7 @@ public class WearNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -217,7 +217,7 @@ public class WearNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -238,7 +238,7 @@ public class WearNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -259,7 +259,7 @@ public class WearNotificationProfile extends NotificationProfile {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {

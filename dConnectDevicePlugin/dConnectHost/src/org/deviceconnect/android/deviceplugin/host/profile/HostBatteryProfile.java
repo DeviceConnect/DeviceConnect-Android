@@ -36,7 +36,7 @@ public class HostBatteryProfile extends BatteryProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             int mLevel = ((HostDeviceService) getContext()).getBatteryLevel();
             int mScale = ((HostDeviceService) getContext()).getBatteryScale();
@@ -58,7 +58,7 @@ public class HostBatteryProfile extends BatteryProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             int mStatus = ((HostDeviceService) getContext()).getBatteryStatus();
             setResult(response, IntentDConnectMessage.RESULT_OK);
@@ -73,7 +73,7 @@ public class HostBatteryProfile extends BatteryProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             int mLevel = ((HostDeviceService) getContext()).getBatteryLevel();
             int mScale = ((HostDeviceService) getContext()).getBatteryScale();
@@ -98,7 +98,7 @@ public class HostBatteryProfile extends BatteryProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -121,7 +121,7 @@ public class HostBatteryProfile extends BatteryProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -144,7 +144,7 @@ public class HostBatteryProfile extends BatteryProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -168,7 +168,7 @@ public class HostBatteryProfile extends BatteryProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -230,7 +230,7 @@ public class HostBatteryProfile extends BatteryProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 }

@@ -80,15 +80,15 @@ public class TestFileProfile extends FileProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response, "Device is not found.");
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response, "Service is not found.");
     }
 
     @Override
     protected boolean onGetReceive(final Intent request, final Intent response, final String serviceId, 
             final String path) {
         if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -104,7 +104,7 @@ public class TestFileProfile extends FileProfile {
     protected boolean onGetList(final Intent request, final Intent response, final String serviceId, final String path,
             final String mimeType, final String order, final Integer offset, final Integer limit) {
         if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             List<Bundle> files = new ArrayList<Bundle>();
@@ -126,7 +126,7 @@ public class TestFileProfile extends FileProfile {
     protected boolean onPostSend(final Intent request, final Intent response, final String serviceId, 
             final String path, final String mimeType, final byte[] data) {
         if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -151,7 +151,7 @@ public class TestFileProfile extends FileProfile {
     protected boolean onPostMkdir(final Intent request, final Intent response,
                                         final String serviceId, final String path) {
         if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -164,7 +164,7 @@ public class TestFileProfile extends FileProfile {
     protected boolean onDeleteRmdir(final Intent request, final Intent response,
                                     final String serviceId, final String path, final boolean force) {
         if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -192,7 +192,7 @@ public class TestFileProfile extends FileProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {

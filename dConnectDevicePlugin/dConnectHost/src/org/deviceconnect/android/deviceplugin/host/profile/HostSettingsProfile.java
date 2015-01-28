@@ -42,7 +42,7 @@ public class HostSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
 
             this.getContext();
@@ -121,7 +121,7 @@ public class HostSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
 
             // 現在の時刻を取得
@@ -139,7 +139,7 @@ public class HostSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
 
             // 自動調整ボタンが有効な場合 0が変える
@@ -160,7 +160,7 @@ public class HostSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             int timeout = Settings.System.getInt(this.getContext().getContentResolver(),
                     Settings.System.SCREEN_OFF_TIMEOUT, 0);
@@ -176,7 +176,7 @@ public class HostSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             if (level == -1.0) {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "level must be more than 0");
@@ -215,7 +215,7 @@ public class HostSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             if (date != null) {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "not support");
@@ -235,7 +235,7 @@ public class HostSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             if (level == -1.0) {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "level must be more than 0");
@@ -257,7 +257,7 @@ public class HostSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             if (time == -1.0) {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "time must be more than 0");
@@ -297,7 +297,7 @@ public class HostSettingsProfile extends SettingsProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 }

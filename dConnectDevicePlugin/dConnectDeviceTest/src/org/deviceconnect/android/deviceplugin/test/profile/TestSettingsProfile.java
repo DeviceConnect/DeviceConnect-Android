@@ -50,8 +50,8 @@ public class TestSettingsProfile extends SettingsProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class TestSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (kind == null || kind == VolumeKind.UNKNOWN) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -78,7 +78,7 @@ public class TestSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setDate(response, DATE);
@@ -92,7 +92,7 @@ public class TestSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setLightLevel(response, LEVEL);
@@ -106,7 +106,7 @@ public class TestSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setTime(response, 1);
@@ -121,7 +121,7 @@ public class TestSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (kind == null || kind == VolumeKind.UNKNOWN
                 || level == null || level < MIN_LEVEL || level > MAX_LEVEL) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -136,7 +136,7 @@ public class TestSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (date == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -153,7 +153,7 @@ public class TestSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (level == null || level < MIN_LEVEL || level > MAX_LEVEL) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -169,7 +169,7 @@ public class TestSettingsProfile extends SettingsProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (time == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {

@@ -44,7 +44,7 @@ public class PebbleCanvasProfile extends CanvasProfile {
         }
 
         if (!PebbleUtil.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         }
 

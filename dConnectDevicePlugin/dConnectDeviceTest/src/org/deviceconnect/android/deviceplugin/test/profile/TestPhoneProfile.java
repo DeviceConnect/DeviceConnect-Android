@@ -59,8 +59,8 @@ public class TestPhoneProfile extends PhoneProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class TestPhoneProfile extends PhoneProfile {
             final String phoneNumber) {
 
         if (serviceId == null) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (!checkserviceId(serviceId)) {
             createEmptyserviceId(response);
         } else if (TextUtils.isEmpty(phoneNumber)) {
@@ -85,7 +85,7 @@ public class TestPhoneProfile extends PhoneProfile {
                                     final String serviceId, final PhoneMode mode) {
 
         if (serviceId == null) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (!checkserviceId(serviceId)) {
             createEmptyserviceId(response);
         } else if (mode == null || mode == PhoneMode.UNKNOWN) {
@@ -104,7 +104,7 @@ public class TestPhoneProfile extends PhoneProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -131,7 +131,7 @@ public class TestPhoneProfile extends PhoneProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {

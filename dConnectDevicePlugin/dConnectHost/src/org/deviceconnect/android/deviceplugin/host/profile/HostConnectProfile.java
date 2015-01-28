@@ -59,7 +59,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             getEnabledOfWiFi(request, response);
             setResult(response, IntentDConnectMessage.RESULT_OK);
@@ -74,7 +74,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             getEnabledBluetooth(request, response);
             setResult(response, IntentDConnectMessage.RESULT_OK);
@@ -89,7 +89,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             getEnabledOfBluetoothLowEnery(request, response);
             setResult(response, IntentDConnectMessage.RESULT_OK);
@@ -104,7 +104,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             NfcAdapter adapter = NfcAdapter.getDefaultAdapter(this.getContext());
             if (adapter != null) {
@@ -129,7 +129,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setEnabledOfWiFi(request, response, true);
             setResult(response, IntentDConnectMessage.RESULT_OK);
@@ -143,7 +143,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setEnabledBluetooth(request, response, true);
             setResult(response, IntentDConnectMessage.RESULT_OK);
@@ -157,7 +157,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
 
             setEnabledBluetooth(request, response, true);
@@ -172,7 +172,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setEnabledOfWiFi(request, response, false);
@@ -186,7 +186,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setEnabledBluetooth(request, response, false);
@@ -200,7 +200,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setEnabledBluetooth(request, response, false);
@@ -214,7 +214,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setEnabledNfc(request, response, false);
@@ -229,7 +229,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -258,7 +258,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -284,7 +284,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -309,7 +309,7 @@ public class HostConnectProfile extends ConnectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -462,8 +462,8 @@ public class HostConnectProfile extends ConnectProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 
 }

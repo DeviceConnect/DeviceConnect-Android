@@ -71,8 +71,8 @@ public class TestProximityProfile extends ProximityProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 
     @Override
@@ -81,7 +81,7 @@ public class TestProximityProfile extends ProximityProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -110,7 +110,7 @@ public class TestProximityProfile extends ProximityProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -125,7 +125,7 @@ public class TestProximityProfile extends ProximityProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -150,7 +150,7 @@ public class TestProximityProfile extends ProximityProfile {
         if (serviceId == null) {
             createEmptyserviceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {

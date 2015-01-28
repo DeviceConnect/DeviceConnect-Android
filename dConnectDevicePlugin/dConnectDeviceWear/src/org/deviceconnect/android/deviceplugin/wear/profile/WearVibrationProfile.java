@@ -57,7 +57,7 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
         } else {
             mId = getNodeId(serviceId);
             mVibrateStatus = STATUS_VIBRATE_START;
@@ -80,7 +80,7 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
         } else {
             mId = getNodeId(serviceId);
             mVibrateStatus = STATUS_VIBRATE_STOP;

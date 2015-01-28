@@ -107,7 +107,7 @@ public class PebbleServceDiscoveryProfile extends ServiceDiscoveryProfile {
             setServices(response, services);
             setResult(response, DConnectMessage.RESULT_OK);
         } else {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
         }
         return true;
     }

@@ -254,22 +254,22 @@ public final class MessageUtils {
     }
 
     /**
-     * レスポンスのエラーコードに デバイス発見失敗 を設定する.
+     * レスポンスのエラーコードに サービス発見失敗 を設定する.
      * 
      * @param response レスポンスパラメータ
      */
-    public static void setNotFoundDeviceError(final Intent response) {
-        setError(response, ErrorCode.NOT_FOUND_DEVICE);
+    public static void setNotFoundServiceError(final Intent response) {
+        setError(response, ErrorCode.NOT_FOUND_SERVICE);
     }
 
     /**
-     * レスポンスのエラーコードに デバイス発見失敗 を設定し、指定されたエラーメッセージを設定する.
+     * レスポンスのエラーコードに サービス発見失敗 を設定し、指定されたエラーメッセージを設定する.
      * 
      * @param response レスポンスパラメータ
      * @param message エラーメッセージ
      */
-    public static void setNotFoundDeviceError(final Intent response, final String message) {
-        setError(response, ErrorCode.NOT_FOUND_DEVICE, message);
+    public static void setNotFoundServiceError(final Intent response, final String message) {
+        setError(response, ErrorCode.NOT_FOUND_SERVICE, message);
     }
 
     /**

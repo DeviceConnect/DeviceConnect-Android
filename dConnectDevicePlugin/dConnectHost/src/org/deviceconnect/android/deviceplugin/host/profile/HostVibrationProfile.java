@@ -38,7 +38,7 @@ public class HostVibrationProfile extends VibrationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (pattern == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
@@ -103,7 +103,7 @@ public class HostVibrationProfile extends VibrationProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
 
             // Vibration Stop API
@@ -157,7 +157,7 @@ public class HostVibrationProfile extends VibrationProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 }

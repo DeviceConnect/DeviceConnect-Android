@@ -49,7 +49,7 @@ public class HueLightProfile extends LightProfile {
         String serviceId = getServiceID(request);
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         List<Bundle> lightsParam = new ArrayList<Bundle>();
@@ -80,12 +80,12 @@ public class HueLightProfile extends LightProfile {
 
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         PHLight light = bridge.getResourceCache().getLights().get(lightId);
         if (light == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
@@ -133,12 +133,12 @@ public class HueLightProfile extends LightProfile {
 
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         PHLight light = bridge.getResourceCache().getLights().get(lightId);
         if (light == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
         PHLightState lightState = new PHLightState();
@@ -179,12 +179,12 @@ public class HueLightProfile extends LightProfile {
 
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         PHLight light = getLight(bridge, lightId);
         if (light == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
@@ -212,7 +212,7 @@ public class HueLightProfile extends LightProfile {
         String serviceId = getServiceID(request);
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         List<Bundle> groupsParam = new ArrayList<Bundle>();
@@ -258,7 +258,7 @@ public class HueLightProfile extends LightProfile {
 
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
@@ -319,7 +319,7 @@ public class HueLightProfile extends LightProfile {
 
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
@@ -368,7 +368,7 @@ public class HueLightProfile extends LightProfile {
         
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         String name = getName(request);
@@ -426,7 +426,7 @@ public class HueLightProfile extends LightProfile {
 
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
@@ -465,7 +465,7 @@ public class HueLightProfile extends LightProfile {
 
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 

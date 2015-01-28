@@ -78,7 +78,7 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
             } else {
-                MessageUtils.setNotFoundDeviceError(response);
+                MessageUtils.setNotFoundServiceError(response);
             }
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -101,7 +101,7 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setNotFoundDeviceError(response);
+                MessageUtils.setNotFoundServiceError(response);
             }
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -134,7 +134,7 @@ public class SpheroDriveControllerProfile extends DConnectProfile {
                     setResult(response, DConnectMessage.RESULT_OK);
                 }
             } else {
-                MessageUtils.setNotFoundDeviceError(response);
+                MessageUtils.setNotFoundServiceError(response);
             }
         } else {
             MessageUtils.setUnknownAttributeError(response);

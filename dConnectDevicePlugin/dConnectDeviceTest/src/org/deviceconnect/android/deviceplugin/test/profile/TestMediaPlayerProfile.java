@@ -44,8 +44,8 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response, "Device is not found.");
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response, "Service is not found.");
     }
     
     
@@ -56,7 +56,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -69,7 +69,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -81,7 +81,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -93,7 +93,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -106,7 +106,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setStatus(response, PlayStatus.PLAY);
@@ -122,7 +122,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (TextUtils.isEmpty(mediaId)) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -138,7 +138,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (TextUtils.isEmpty(mediaId)) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -168,7 +168,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setCount(response, 1);
@@ -199,7 +199,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (volume == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else if (0.0 > volume || volume > 1.0) {
@@ -216,7 +216,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setVolume(response, 0.5);
@@ -232,7 +232,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (pos == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else if (0 > pos) {
@@ -251,7 +251,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setPos(response, 0);
@@ -266,7 +266,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -279,7 +279,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -292,7 +292,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setMute(response, true);
@@ -308,7 +308,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -339,7 +339,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {

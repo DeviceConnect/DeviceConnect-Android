@@ -102,8 +102,8 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
      * デバイスが発見できなかった場合のエラーを作成する.
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response, "Device is not found.");
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response, "Service is not found.");
     }
 
     @Override
@@ -111,7 +111,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             List<Bundle> recorders = new LinkedList<Bundle>();
@@ -135,7 +135,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setUri(response, URI);
@@ -149,7 +149,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setUri(response, URI);
@@ -163,7 +163,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -176,7 +176,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -189,7 +189,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -202,7 +202,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -215,7 +215,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -228,7 +228,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setImageWidth(response, 0, 0);
@@ -244,7 +244,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (TextUtils.isEmpty(target) || imageWidth == null 
                 || imageHeight == null || TextUtils.isEmpty(mimeType)) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -260,7 +260,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -286,7 +286,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -314,7 +314,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -340,7 +340,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -355,7 +355,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -370,7 +370,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkserviceId(serviceId)) {
-            createNotFoundDevice(response);
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {

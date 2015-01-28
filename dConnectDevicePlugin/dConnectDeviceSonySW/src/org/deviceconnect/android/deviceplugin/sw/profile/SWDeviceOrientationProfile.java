@@ -26,7 +26,7 @@ public class SWDeviceOrientationProfile extends DeviceOrientationProfile {
             final String sessionKey) {
         BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
         EventError error = EventManager.INSTANCE.addEvent(request);
@@ -45,7 +45,7 @@ public class SWDeviceOrientationProfile extends DeviceOrientationProfile {
             final String sessionKey) {
         BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + serviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
         EventError error = EventManager.INSTANCE.removeEvent(request);

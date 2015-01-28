@@ -105,6 +105,7 @@ public class SWVibrationProfile extends VibrationProfile {
         boolean smartWatch2Supported = DeviceInfoHelper.isSmartWatch2ApiAndScreenDetected(getContext(),
                 SWUtil.toHostAppPackageName(device.getName()));
         if (smartWatch2Supported) {
+            /* SW2 is not support CONTROL_STOP_VIBRATE_INTENT. */
             MessageUtils.setNotSupportActionError(response);
         } else {
             Intent intent = new Intent(Control.Intents.CONTROL_STOP_VIBRATE_INTENT);

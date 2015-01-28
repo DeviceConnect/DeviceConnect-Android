@@ -126,7 +126,7 @@ public class ChromeCastService extends DConnectMessageService implements
     public void onCastDeviceSelected(final CastDevice selectedDevice) {
         CastDevice currentDevice = mApplication.getSelectedDevice();
         if (currentDevice != null) {
-            if (!currentDevice.getServiceId().equals(selectedDevice.getServiceId())) {
+            if (!currentDevice.getDeviceId().equals(selectedDevice.getDeviceId())) {
                 mApplication.setSelectedDevice(selectedDevice);
                 mApplication.reconnect();
             } else {

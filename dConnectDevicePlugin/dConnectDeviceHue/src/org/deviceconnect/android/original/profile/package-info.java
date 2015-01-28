@@ -7,4 +7,4 @@ http://opensource.org/licenses/mit-license.php
 /**
  * Device Connect の独自プロファイル.
  */
-package org.deviceconnect.android.profile;
+package org.deviceconnect.android.original.profile;

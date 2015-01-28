@@ -45,7 +45,7 @@ public class TestConnectProfile extends ConnectProfile {
      * @param response レスポンスを格納するIntent
      */
     private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response, "Device is not found.");
+        MessageUtils.setNotFoundServiceError(response, "Service is not found.");
     }
 
     @Override

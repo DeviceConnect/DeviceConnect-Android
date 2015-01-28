@@ -255,13 +255,21 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
 
     /**
      * HTTPリクエストを送信する.
-     * @param request HTTPリクエスト
+     * @param originalRequest HTTPリクエスト
      * @param requiredAuth 指定したリクエストを送信する前に認証を行うかどうか
      * @param count 送信回数
      * @return レスポンス
      */
-    protected final JSONObject sendRequest(final HttpUriRequest request, final boolean requiredAuth, final int count)  {
+    protected final JSONObject sendRequest(final HttpUriRequest originalRequest, final boolean requiredAuth, final int count)  {
         try {
+            HttpUriRequest request = originalRequest;
+            if (requiredAuth) {
+                URI uri = request.getURI();
+                URIBuilder builder = new URIBuilder(uri);
+                builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+                request = recreateRequest(request, builder);
+            }
+
             JSONObject response = sendRequestInternal(request, requiredAuth);
             int result = response.getInt(DConnectMessage.EXTRA_RESULT);
             if (result == DConnectMessage.RESULT_ERROR && count <= RETRY_COUNT) {
@@ -278,23 +286,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
                     URIBuilder builder = new URIBuilder(uri);
                     builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
-                    final HttpUriRequest newRequest;
-                    if (request instanceof HttpGet) {
-                        newRequest = new HttpGet(builder.toString());
-                    } else if (request instanceof HttpPost) {
-                        HttpPost newPostRequest = new HttpPost(builder.toString());
-                        newPostRequest.setEntity(((HttpPost) request).getEntity());
-                        newRequest = newPostRequest;
-                    } else if (request instanceof HttpPut) {
-                        HttpPut newPostRequest = new HttpPut(builder.toString());
-                        newPostRequest.setEntity(((HttpPost) request).getEntity());
-                        newRequest = newPostRequest;
-                    } else if (request instanceof HttpDelete) {
-                        newRequest = new HttpDelete(builder.toString());
-                    } else {
-                        fail("Invalid method is specified: " + request.getMethod());
-                        return null;
-                    }
+                    final HttpUriRequest newRequest = recreateRequest(request, builder);
                     return sendRequest(newRequest, requiredAuth, count + 1);
                 }
             }
@@ -528,6 +520,25 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
         @Override
         public void writeTo(final OutputStream out) throws IOException {
             out.write(mBuffer);
+        }
+    }
+
+    private HttpUriRequest recreateRequest(final HttpUriRequest request, final URIBuilder builder) {
+        if (request instanceof HttpGet) {
+            return new HttpGet(builder.toString());
+        } else if (request instanceof HttpPost) {
+            HttpPost newPostRequest = new HttpPost(builder.toString());
+            newPostRequest.setEntity(((HttpPost) request).getEntity());
+            return newPostRequest;
+        } else if (request instanceof HttpPut) {
+            HttpPut newPutRequest = new HttpPut(builder.toString());
+            newPutRequest.setEntity(((HttpPut) request).getEntity());
+            return newPutRequest;
+        } else if (request instanceof HttpDelete) {
+            return new HttpDelete(builder.toString());
+        } else {
+            fail("Invalid method is specified: " + request.getMethod());
+            return null;
         }
     }
 }

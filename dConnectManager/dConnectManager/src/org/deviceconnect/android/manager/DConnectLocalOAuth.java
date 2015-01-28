@@ -45,7 +45,6 @@ public class DConnectLocalOAuth {
         AuthorizationProfileConstants.PROFILE_NAME,
         AvailabilityProfileConstants.PROFILE_NAME,
         SystemProfileConstants.PROFILE_NAME,
-        ServiceDiscoveryProfileConstants.PROFILE_NAME,
         DConnectFilesProfile.PROFILE_NAME,
     };
 

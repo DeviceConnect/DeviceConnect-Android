@@ -91,9 +91,10 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + BatteryProfileConstants.PROFILE_NAME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + serviceId);
-        builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
+        builder.append("&");
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + serviceId);
+
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);

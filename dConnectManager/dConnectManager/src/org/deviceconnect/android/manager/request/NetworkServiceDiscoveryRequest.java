@@ -71,6 +71,7 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
                             mPluginMgr.appendDeviceId(plugin, id));
                     mServices.add(b);
                 }
+                mRequestCodeArray.remove(requestCode);
             }
         }
 
@@ -124,6 +125,7 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
             }
             // タイムアウトチェック
             if (System.currentTimeMillis() - start > mTimeout) {
+                restartDevicePlugins();
                 break;
             }
         }
@@ -137,5 +139,20 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
 
         // レスポンスを返却する
         sendResponse(mResponse);
+    }
+    
+    /**
+     * Restart all device plugins that response did not come back.
+     */
+    private void restartDevicePlugins() {
+        for (int i = 0; i < mRequestCodeArray.size(); i++) {
+            DevicePlugin plugin = mRequestCodeArray.valueAt(i);
+            if (plugin.getStartServiceClassName() != null) {
+                Intent service = new Intent();
+                service.setClassName(plugin.getPackageName(), 
+                        plugin.getStartServiceClassName());
+                getContext().startService(service);
+            }
+        }
     }
 }

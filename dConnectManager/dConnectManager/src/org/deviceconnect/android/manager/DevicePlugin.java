@@ -24,6 +24,8 @@ public class DevicePlugin {
     private String mDeviceId;
     /** デバイスプラグイン名. */
     private String mDeviceName;
+    /** Class name of service for restart. */
+    private String mStartServiceClassName;
     /**
      * サポートしているプロファイルを格納する.
      */
@@ -91,6 +93,21 @@ public class DevicePlugin {
      */
     public ComponentName getComponentName() {
         return new ComponentName(mPackageName, mClassName);
+    }
+    
+    /**
+     * Get a class name of service for restart.
+     * @return class name or null if there are no service for restart
+     */
+    public String getStartServiceClassName() {
+        return mStartServiceClassName;
+    }
+    /**
+     * Set a class name of service for restart.
+     * @param className class name
+     */
+    public void setStartServiceClassName(final String className) {
+        this.mStartServiceClassName = className;
     }
     /**
      * サポートするプロファイルを追加する.

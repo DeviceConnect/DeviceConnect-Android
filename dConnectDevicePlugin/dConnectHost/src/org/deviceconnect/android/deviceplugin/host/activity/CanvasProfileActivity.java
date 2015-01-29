@@ -16,6 +16,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 
 /**
  * Canvas Profile Activity.
@@ -24,6 +25,7 @@ import android.view.View.OnClickListener;
  */
 public class CanvasProfileActivity extends Activity {
     
+    private Button closeButton = null;
     private CanvasProfileView canvasView = null;
     
     private CanvasDrawObjectInterface canvasDraw = null;
@@ -33,9 +35,10 @@ public class CanvasProfileActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_canvas_profile);
         
+        closeButton = (Button) findViewById(R.id.buttonClose);
         canvasView = (CanvasProfileView)findViewById(R.id.canvasProfileView);
         
-        canvasView.setOnClickListener(new OnClickListener() {
+        closeButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();

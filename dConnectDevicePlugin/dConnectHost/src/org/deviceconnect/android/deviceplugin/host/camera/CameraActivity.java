@@ -130,6 +130,8 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
                 String name = intent.getStringExtra(CameraConst.EXTRA_NAME);
                 if (CameraConst.EXTRA_NAME_SHUTTER.equals(name)) {
                     mFinishFlag = true;
+                    takeBtn.setVisibility(View.GONE);
+                    stopBtn.setVisibility(View.GONE);
                 }
             }
         }
@@ -183,6 +185,8 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
         // important to release it when the activity is paused.
         if (mCamera != null) {
             mPreview.setCamera(null);
+            mCamera.stopPreview(); 
+            mCamera.setPreviewCallback(null);
             mCamera.release();
             mCamera = null;
         }
@@ -221,8 +225,9 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
             // OK, we have multiple cameras.
             // Release this camera -> cameraCurrentlyLocked
             if (mCamera != null) {
-                mCamera.stopPreview();
                 mPreview.setCamera(null);
+                mCamera.stopPreview();
+                mCamera.setPreviewCallback(null);
                 mCamera.release();
                 mCamera = null;
             }

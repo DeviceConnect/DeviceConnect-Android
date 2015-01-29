@@ -13,8 +13,11 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+
 
 /**
  * Canvas Profile.
@@ -23,6 +26,11 @@ import android.content.Intent;
  */
 public class HostCanvasProfile extends CanvasProfile {
 
+    /**
+     * draw object for send to activity.
+     */
+    private CanvasDrawImageObject sendDrawObject = null;
+    
     /**
      * constructor.
      */
@@ -34,7 +42,7 @@ public class HostCanvasProfile extends CanvasProfile {
     protected boolean onPostDrawImage(Intent request, Intent response,
             String deviceId, String mimeType, byte[] data, double x, double y,
             String mode) {
-
+        
         if (data == null) {
             MessageUtils.setInvalidRequestParameterError(response, "data is not specied to update a file.");
             return true;
@@ -45,22 +53,41 @@ public class HostCanvasProfile extends CanvasProfile {
             return true;
         }
         
-        // convert mode (if null, invalid mode value)
+        // convert mode (if null, invalid value)
         CanvasDrawImageObject.Mode mode_ = CanvasDrawImageObject.convertMode(mode);
         if (mode_ == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }
         
-        // storing parameter to class object.
-        CanvasDrawImageObject parameter = new CanvasDrawImageObject(data, mode_, x, y);
+        // initialize ready receive draw request receiver.
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                
+                if (intent.getAction().equals(CanvasProfileActivity.ACTION_READY_RECEIVE_DRAW_REQUEST)) {
+                    
+                    // send draw request broadcast to CanvasProfileActivity.
+                    Intent broadcastIntent = new Intent();
+                    sendDrawObject.setValueToIntent(broadcastIntent);
+                    broadcastIntent.setAction(CanvasProfileActivity.ACTION_DRAW_TO_CANVAS);
+                    getContext().sendBroadcast(broadcastIntent);
+                }
+            }
+        };
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(CanvasProfileActivity.ACTION_READY_RECEIVE_DRAW_REQUEST);
+        getContext().registerReceiver(receiver, intentFilter);
         
-        // start CanvasProfileActivity.
+        // storing parameter to draw object.
+        sendDrawObject = new CanvasDrawImageObject(data, mode_, x, y);
+        
+        // start CanvasProfileActivity
         Context context = getContext();
         Intent intent = new Intent();
         intent.setClass(context, CanvasProfileActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        parameter.setValueToIntent(intent);
+        sendDrawObject.setValueToIntent(intent);
         context.startActivity(intent);
         
         // return result.

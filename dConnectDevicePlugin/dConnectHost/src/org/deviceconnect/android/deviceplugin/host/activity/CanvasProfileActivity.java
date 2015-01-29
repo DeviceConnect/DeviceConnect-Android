@@ -12,7 +12,10 @@ import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawObjectInterf
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -24,6 +27,9 @@ import android.widget.Button;
  * @author NTT DOCOMO, INC.
  */
 public class CanvasProfileActivity extends Activity {
+    
+    public static final String ACTION_READY_RECEIVE_DRAW_REQUEST = "ACTION_READY_RECEIVE_DRAW_REQUEST";
+    public static final String ACTION_DRAW_TO_CANVAS = "ACTION_DRAW_TO_CANVAS";
     
     private Button closeButton = null;
     private CanvasProfileView canvasView = null;
@@ -45,11 +51,32 @@ public class CanvasProfileActivity extends Activity {
             }
         });
         
-        Intent intent = getIntent();
-        canvasDraw = CanvasDrawUtils.getCanvasDrawObjectFromIntent(intent);
-        if (canvasDraw != null) {
-            canvasView.setDrawObject(canvasDraw);
-        }
+        // Initialize draw request receiver.
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+             @Override
+            public void onReceive(Context context, Intent intent) {
+                
+                if (intent.getAction().equals(ACTION_DRAW_TO_CANVAS)) {
+                    canvasDraw = CanvasDrawUtils.getCanvasDrawObjectFromIntent(intent);
+                    if (canvasDraw != null) {
+                        canvasView.setDrawObject(canvasDraw, true);
+                    }
+                }
+            }
+        };
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ACTION_DRAW_TO_CANVAS);
+        registerReceiver(receiver, intentFilter);
+    }
+    
+    @Override
+    protected void onStart() {
+        super.onStart();
+        
+        // send ready receiver broadcast to HostCanvasProfile.
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction(CanvasProfileActivity.ACTION_READY_RECEIVE_DRAW_REQUEST);
+        sendBroadcast(broadcastIntent);
     }
     
 }

@@ -12,7 +12,9 @@ import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawObjectInterf
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -24,8 +26,10 @@ import android.view.View;
 public class CanvasProfileView extends View {
 
     private Paint paint = null;
+    private Paint paintForCanvasClear = null;
     private Bitmap bitmap = null;
-
+    private boolean isClearCanvas = true;
+    
     /**
      * canvas draw object.
      */
@@ -45,10 +49,11 @@ public class CanvasProfileView extends View {
     /**
      * set draw object.
      * @param canvasDrawObject draw object.
+     * @param isClearCanvas 
      */
-    public void setDrawObject(CanvasDrawObjectInterface canvasDrawObject) {
+    public void setDrawObject(CanvasDrawObjectInterface canvasDrawObject, boolean isClearCanvas) {
         this.canvasDrawObject = canvasDrawObject;
-        redraw();
+        redraw(isClearCanvas);
     }
     
     /**
@@ -63,15 +68,25 @@ public class CanvasProfileView extends View {
         paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setStrokeWidth(12);
+        
+        paintForCanvasClear = new Paint();
+        paintForCanvasClear.setStyle(Style.FILL);
+        paintForCanvasClear.setColor(Color.WHITE);
     }
     
     /**
      * redraw.
+     * @param isClearCanvas 
      */
-    private void redraw() {
+    private void redraw(boolean isClearCanvas) {
+        this.isClearCanvas = isClearCanvas;
         
         if (bitmap == null) {
             return;
+        }
+        
+        if (isClearCanvas) {
+            clearCanvas(bitmap);
         }
         
         if (canvasDrawObject != null) {
@@ -86,7 +101,7 @@ public class CanvasProfileView extends View {
         super.onSizeChanged(w, h, oldw, oldh);
         
         bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        redraw();
+        redraw(isClearCanvas);
     }
     
     @Override
@@ -94,4 +109,13 @@ public class CanvasProfileView extends View {
         canvas.drawBitmap(bitmap, 0, 0, paint);
     }
     
+    /**
+     * Clear canvas.
+     * @param bitmap bitmap
+     */
+    private void clearCanvas(Bitmap bitmap) {
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paintForCanvasClear);
+    }
+
 }

@@ -89,6 +89,9 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     /** 停止中. */
     private static final String SONY_CAMERA_STATUS_IDLE = "IDLE";
 
+    /** Defines a period 50 millisecond between server shutdown. */
+    private static final int PERIOD_WAIT_TIME = 50;
+
     /** ロガー. */
     private Logger mLogger = Logger.getLogger("sonycamera.dplugin");
 
@@ -978,8 +981,35 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             MediaStreamRecordingProfile.setUri(response, mServer.getUrl());
             return true;
+        } else {
+            if (mServer != null) {
+                mExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        // このスレッドが動く前にサーバの起動が行われた場合にはすぐにレスポンスを返却する
+                        if (mWhileFetching && mServer != null) {
+                            MediaStreamRecordingProfile.setResult(response,
+                                    DConnectMessage.RESULT_OK);
+                            MediaStreamRecordingProfile.setUri(response,
+                                    mServer.getUrl());
+                            sendErrorResponse(request, response);
+                            return;
+                        }
+                        // 前回起動時のサーバが停止していないので、ここで待つ
+                        while (!mWhileFetching && mServer != null) {
+                            try {
+                                Thread.sleep(PERIOD_WAIT_TIME);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }
+                        startPreview(request, response);
+                    }
+                });
+            } else {
+                startPreview(request, response);
+            }
         }
-        startPreview(request, response);
         return false;
     }
 

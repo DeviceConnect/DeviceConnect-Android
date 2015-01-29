@@ -45,9 +45,6 @@ public class HostSettingFragment extends Fragment {
     /** context. */
     private Activity mActivity;
 
-    /** PluginID. */
-    private String mPluginId;
-
     /** 検索中のダイアログ. */
     private ProgressDialog mDialog;
 
@@ -55,7 +52,7 @@ public class HostSettingFragment extends Fragment {
     private static final int HANDLER_ACTION_DISMISS = 1;
 
     /** プロセス間通信でつなぐService. */
-    private static IHostDeviceService mService;
+    private static IHostDeviceService sService;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -80,7 +77,7 @@ public class HostSettingFragment extends Fragment {
             int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
             final String formatedIpAddress = String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
                     (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
-
+            
             // Host IP表示用
             mDeviceHostIpTextView = (TextView) mView.findViewById(R.id.host_ipaddress);
             mDeviceHostIpTextView.setText("Your IP:" + formatedIpAddress);
@@ -96,7 +93,7 @@ public class HostSettingFragment extends Fragment {
 
         showProgressDialog();
         try {
-            mService.searchHost();
+            sService.searchHost();
         } catch (RemoteException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -116,7 +113,7 @@ public class HostSettingFragment extends Fragment {
 
         showProgressDialog();
         try {
-            mService.invokeHost();
+            sService.invokeHost();
         } catch (RemoteException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -192,9 +189,9 @@ public class HostSettingFragment extends Fragment {
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mService = IHostDeviceService.Stub.asInterface(service);
+            sService = IHostDeviceService.Stub.asInterface(service);
             try {
-                mService.registerCallback(mCallback);
+                sService.registerCallback(mCallback);
             } catch (RemoteException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
@@ -205,8 +202,8 @@ public class HostSettingFragment extends Fragment {
         @Override
         public void onServiceDisconnected(final ComponentName name) {
             try {
-                mService.unregisterCallback(mCallback);
-                mService = null;
+                sService.unregisterCallback(mCallback);
+                sService = null;
             } catch (RemoteException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();

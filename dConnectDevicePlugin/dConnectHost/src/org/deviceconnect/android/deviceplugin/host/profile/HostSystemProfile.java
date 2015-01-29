@@ -37,7 +37,7 @@ public class HostSystemProfile extends SystemProfile {
      * 設定画面を設定.
      * 
      * @param request リクエスト
-     * @param bundle　バンドル
+     * @param bundle バンドル
      * 
      * @return 設定アクティビティ
      */

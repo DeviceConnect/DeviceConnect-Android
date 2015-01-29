@@ -33,7 +33,7 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
     /**
      * デバイスID.
      */
-    private static String mDeviceId = "";
+    private static String sDeviceId = "";
 
     /**
      * Sensor Manager.
@@ -93,7 +93,7 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
-                mDeviceId = deviceId;
+                sDeviceId = deviceId;
                 this.getContext();
                 mSensorManagerProximity = (SensorManager) this.getContext().getSystemService(Context.SENSOR_SERVICE);
                 List<Sensor> sensors = mSensorManagerProximity.getSensorList(Sensor.TYPE_PROXIMITY);
@@ -146,7 +146,7 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
     public void onSensorChanged(final SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() == Sensor.TYPE_PROXIMITY) {
 
-            List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId,
+            List<Event> events = EventManager.INSTANCE.getEventList(sDeviceId,
                     ProximityProfile.PROFILE_NAME,
                     null,
                     ProximityProfile.ATTRIBUTE_ON_USER_PROXIMITY);

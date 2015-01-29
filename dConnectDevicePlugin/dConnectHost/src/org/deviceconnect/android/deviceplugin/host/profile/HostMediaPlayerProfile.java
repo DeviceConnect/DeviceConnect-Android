@@ -50,7 +50,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     private static final int UNIT_SEC = 1000;
 
     /** Mute Status. */
-    private static Boolean mIsMute = false;
+    private static Boolean sIsMute = false;
 
     @Override
     protected boolean onPutPlay(final Intent request, final Intent response, final String deviceId) {
@@ -288,8 +288,9 @@ private String getDisplayNameFromUri(final Uri mUri) {
 }
 
     @Override
-    protected boolean onGetMediaList(Intent request, Intent response, final String deviceId, final String query,
-            final String mimeType, final String[] orders, final Integer offset, final Integer limit) {
+    protected boolean onGetMediaList(final Intent request, final Intent response, final String deviceId,
+            final String query, final String mimeType, final String[] orders, final Integer offset,
+            final Integer limit) {
         if (deviceId == null) {
             createEmptyDeviceId(response);
         } else if (!checkDeviceId(deviceId)) {
@@ -577,7 +578,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
             manager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-            mIsMute = true;
+            sIsMute = true;
             setResult(response, DConnectMessage.RESULT_OK);
             ((HostDeviceService) getContext()).sendOnStatusChangeEvent("mute");
         }
@@ -593,7 +594,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
             manager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-            mIsMute = false;
+            sIsMute = false;
             setResult(response, DConnectMessage.RESULT_OK);
             ((HostDeviceService) getContext()).sendOnStatusChangeEvent("unmute");
         }
@@ -607,7 +608,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         } else if (!checkDeviceId(deviceId)) {
             createNotFoundDevice(response);
         } else {
-            setMute(response, mIsMute);
+            setMute(response, sIsMute);
             setResult(response, DConnectMessage.RESULT_OK);
         }
         return true;

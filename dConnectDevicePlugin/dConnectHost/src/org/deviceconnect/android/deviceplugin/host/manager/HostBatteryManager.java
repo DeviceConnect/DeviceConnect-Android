@@ -17,16 +17,16 @@ import android.os.BatteryManager;
 public class HostBatteryManager {
 
     /** バッテリーの状態. */
-    private int statusBattery;
+    private int mStatusBattery;
 
     /** プラグの状態. */
-    private int statusPlugged;
+    private int mStatusPlugged;
 
     /** バッテリーのレベル. */
-    private int valueLevel;
+    private int mValueLevel;
 
     /** バッテリーのスケール. */
-    private int valueScale;
+    private int mValueScale;
 
     /** バッテリーの状態 不明. */
     public static final int BATTERY_STATUS_UNKNOWN = 1;
@@ -63,22 +63,22 @@ public class HostBatteryManager {
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
         switch (status) {
         case BatteryManager.BATTERY_STATUS_UNKNOWN:
-            statusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
+            mStatusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
             break;
         case BatteryManager.BATTERY_STATUS_CHARGING:
-            statusBattery = HostBatteryManager.BATTERY_STATUS_CHARGING;
+            mStatusBattery = HostBatteryManager.BATTERY_STATUS_CHARGING;
             break;
         case BatteryManager.BATTERY_STATUS_DISCHARGING:
-            statusBattery = HostBatteryManager.BATTERY_STATUS_DISCHARGING;
+            mStatusBattery = HostBatteryManager.BATTERY_STATUS_DISCHARGING;
             break;
         case BatteryManager.BATTERY_STATUS_NOT_CHARGING:
-            statusBattery = HostBatteryManager.BATTERY_STATUS_NOT_CHARGING;
+            mStatusBattery = HostBatteryManager.BATTERY_STATUS_NOT_CHARGING;
             break;
         case BatteryManager.BATTERY_STATUS_FULL:
-            statusBattery = HostBatteryManager.BATTERY_STATUS_FULL;
+            mStatusBattery = HostBatteryManager.BATTERY_STATUS_FULL;
             break;
         default:
-            statusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
+            mStatusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
             break;
         }
 
@@ -86,17 +86,17 @@ public class HostBatteryManager {
         int plugged = batteryStatus.getIntExtra("plugged", 0);
         switch (plugged) {
         case BatteryManager.BATTERY_PLUGGED_AC:
-            statusPlugged = BATTERY_PLUGGED_AC;
+            mStatusPlugged = BATTERY_PLUGGED_AC;
             break;
         case BatteryManager.BATTERY_PLUGGED_USB:
-            statusPlugged = BATTERY_PLUGGED_USB;
+            mStatusPlugged = BATTERY_PLUGGED_USB;
             break;
         default:
             break;
         }
 
-        valueLevel = batteryStatus.getIntExtra("level", 0);
-        valueScale = batteryStatus.getIntExtra("scale", 0);
+        mValueLevel = batteryStatus.getIntExtra("level", 0);
+        mValueScale = batteryStatus.getIntExtra("scale", 0);
     }
 
     /**
@@ -113,27 +113,27 @@ public class HostBatteryManager {
             int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
             switch (status) {
             case BatteryManager.BATTERY_STATUS_UNKNOWN:
-                statusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
+                mStatusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
                 break;
             case BatteryManager.BATTERY_STATUS_CHARGING:
-                statusBattery = HostBatteryManager.BATTERY_STATUS_CHARGING;
+                mStatusBattery = HostBatteryManager.BATTERY_STATUS_CHARGING;
                 break;
             case BatteryManager.BATTERY_STATUS_DISCHARGING:
-                statusBattery = HostBatteryManager.BATTERY_STATUS_DISCHARGING;
+                mStatusBattery = HostBatteryManager.BATTERY_STATUS_DISCHARGING;
                 break;
             case BatteryManager.BATTERY_STATUS_NOT_CHARGING:
-                statusBattery = HostBatteryManager.BATTERY_STATUS_NOT_CHARGING;
+                mStatusBattery = HostBatteryManager.BATTERY_STATUS_NOT_CHARGING;
                 break;
             case BatteryManager.BATTERY_STATUS_FULL:
-                statusBattery = HostBatteryManager.BATTERY_STATUS_FULL;
+                mStatusBattery = HostBatteryManager.BATTERY_STATUS_FULL;
                 break;
             default:
-                statusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
+                mStatusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
                 break;
             }
 
-            valueLevel = intent.getIntExtra("level", 0);
-            valueScale = intent.getIntExtra("scale", 0);
+            mValueLevel = intent.getIntExtra("level", 0);
+            mValueScale = intent.getIntExtra("scale", 0);
 
         } else if (Intent.ACTION_POWER_CONNECTED.equals(mAction) || Intent.ACTION_POWER_DISCONNECTED.equals(mAction)) {
 
@@ -141,10 +141,10 @@ public class HostBatteryManager {
             int plugged = intent.getIntExtra("plugged", 0);
             switch (plugged) {
             case BatteryManager.BATTERY_PLUGGED_AC:
-                statusPlugged = BATTERY_PLUGGED_AC;
+                mStatusPlugged = BATTERY_PLUGGED_AC;
                 break;
             case BatteryManager.BATTERY_PLUGGED_USB:
-                statusPlugged = BATTERY_PLUGGED_USB;
+                mStatusPlugged = BATTERY_PLUGGED_USB;
                 break;
             default:
                 break;
@@ -158,7 +158,7 @@ public class HostBatteryManager {
      * @return statusBattery バッテリーの状態
      */
     public int getBatteryStatus() {
-        return statusBattery;
+        return mStatusBattery;
     }
 
     /**
@@ -167,7 +167,7 @@ public class HostBatteryManager {
      * @return statusPlugged プラグの状態
      */
     public int getStatusPlugged() {
-        return statusPlugged;
+        return mStatusPlugged;
     }
 
     /**
@@ -176,7 +176,7 @@ public class HostBatteryManager {
      * @return valueLevel バッテリーレベル
      */
     public int getBatteryLevel() {
-        return valueLevel;
+        return mValueLevel;
     }
 
     /**
@@ -185,6 +185,6 @@ public class HostBatteryManager {
      * @return batteryStatus バッテリーの状態
      */
     public int getBatteryScale() {
-        return valueScale;
+        return mValueScale;
     }
 }

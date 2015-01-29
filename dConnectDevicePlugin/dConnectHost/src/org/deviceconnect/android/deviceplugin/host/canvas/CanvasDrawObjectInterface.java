@@ -19,7 +19,7 @@ public interface CanvasDrawObjectInterface {
     /**
      * Intent Extra key. identifying value of data stored in the intent .
      */
-    final String EXTRA_DATAKIND = "datakind";
+    String EXTRA_DATAKIND = "datakind";
     
     /**
      * get data from intent.
@@ -35,7 +35,7 @@ public interface CanvasDrawObjectInterface {
     
     /**
      * draw shape to bitmap.
-     * @param viewBitmap
+     * @param viewBitmap view vitmap
      */
     void draw(Bitmap viewBitmap);
 }

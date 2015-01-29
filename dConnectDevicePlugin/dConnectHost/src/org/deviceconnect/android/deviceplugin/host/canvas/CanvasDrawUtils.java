@@ -13,14 +13,21 @@ import android.content.Intent;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class CanvasDrawUtils {
+public final class CanvasDrawUtils {
 
+    /**
+     * Constructor.
+     */
+    private CanvasDrawUtils() {
+        
+    }
+    
     /**
      * get canvas draw object from intent.
      * @param intent intent
      * @return canvas draw object. if null, there is no draw objects that datakind matches.
      */
-    public static CanvasDrawObjectInterface getCanvasDrawObjectFromIntent(Intent intent) {
+    public static CanvasDrawObjectInterface getCanvasDrawObjectFromIntent(final Intent intent) {
         
         String dataKind = intent.getStringExtra(CanvasDrawObjectInterface.EXTRA_DATAKIND);
         

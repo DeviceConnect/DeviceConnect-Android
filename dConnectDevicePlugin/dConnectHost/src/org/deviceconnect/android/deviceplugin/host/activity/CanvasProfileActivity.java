@@ -28,38 +28,56 @@ import android.widget.Button;
  */
 public class CanvasProfileActivity extends Activity {
     
+    /**
+     * Intent ACTION (ready receive draw request).
+     */
     public static final String ACTION_READY_RECEIVE_DRAW_REQUEST = "ACTION_READY_RECEIVE_DRAW_REQUEST";
+    
+    /**
+     * Intent ACTION (draw to canvas).
+     */
     public static final String ACTION_DRAW_TO_CANVAS = "ACTION_DRAW_TO_CANVAS";
     
-    private Button closeButton = null;
-    private CanvasProfileView canvasView = null;
+    /**
+     * Close button object.
+     */
+    private Button mCloseButton;
     
-    private CanvasDrawObjectInterface canvasDraw = null;
+    /**
+     * Canvas view object.
+     */
+    private CanvasProfileView mCanvasView;
+    
+    /**
+     * Canvas draw object.
+     */
+    private CanvasDrawObjectInterface mCanvasDraw;
+    
     
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_canvas_profile);
         
-        closeButton = (Button) findViewById(R.id.buttonClose);
-        canvasView = (CanvasProfileView)findViewById(R.id.canvasProfileView);
+        mCloseButton = (Button) findViewById(R.id.buttonClose);
+        mCanvasView = (CanvasProfileView) findViewById(R.id.canvasProfileView);
         
-        closeButton.setOnClickListener(new OnClickListener() {
+        mCloseButton.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 finish();
             }
         });
         
         // Initialize draw request receiver.
         BroadcastReceiver receiver = new BroadcastReceiver() {
-             @Override
-            public void onReceive(Context context, Intent intent) {
+            @Override
+            public void onReceive(final Context context, final Intent intent) {
                 
                 if (intent.getAction().equals(ACTION_DRAW_TO_CANVAS)) {
-                    canvasDraw = CanvasDrawUtils.getCanvasDrawObjectFromIntent(intent);
-                    if (canvasDraw != null) {
-                        canvasView.setDrawObject(canvasDraw, true);
+                    mCanvasDraw = CanvasDrawUtils.getCanvasDrawObjectFromIntent(intent);
+                    if (mCanvasDraw != null) {
+                        mCanvasView.setDrawObject(mCanvasDraw, true);
                     }
                 }
             }

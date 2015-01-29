@@ -21,37 +21,86 @@ import android.graphics.BitmapFactory;
  */
 public class CanvasDrawImageObject implements CanvasDrawObjectInterface {
     
-    // TODO: CanvasProfileConstants.Mode に置き換える
+    /**
+     * Mode.
+     */
     public enum Mode {
+        
+        /**
+         * non-scale mode.
+         */
         NONSCALE_MODE,
+        /**
+         * scale mode.
+         */
         SCALE_MODE,
+        /**
+         * fill mode.
+         */
         FILL_MODE,
     };
     
+    /**
+     * datakind.
+     */
     public static final String DATAKIND = "drawImage";
     
+    /**
+     * intent extra key(data).
+     */
     private static final String EXTRA_DATA = "data";
+    /**
+     * intent extra key(mode).
+     */
     private static final String EXTRA_MODE = "mode";
+    /**
+     * intent extra key(x).
+     */
     private static final String EXTRA_X = "x";
+    /**
+     * intent extra key(y).
+     */
     private static final String EXTRA_Y = "y";
     
-    public byte[] data;
-    public Mode mode;
-    public double x;
-    public double y;
+    /**
+     * data.
+     */
+    private byte[] mData;
+    /**
+     * mode.
+     */
+    private Mode mMode;
+    /**
+     * x.
+     */
+    private double mX;
+    /**
+     * y.
+     */
+    private double mY;
     
+    /**
+     * Constructor.
+     */
     public CanvasDrawImageObject() {
-        this.data = null;
-        this.mode = null;
-        this.x = 0.0;
-        this.y = 0.0;
+        this.mData = null;
+        this.mMode = null;
+        this.mX = 0.0;
+        this.mY = 0.0;
     }
-    
+
+    /**
+     * Constructor.
+     * @param data data
+     * @param mode mode
+     * @param x x
+     * @param y y
+     */
     public CanvasDrawImageObject(final byte[] data, final Mode mode, final double x, final double y) {
-        this.data = data;
-        this.mode = mode;
-        this.x = x;
-        this.y = y;
+        this.mData = data;
+        this.mMode = mode;
+        this.mX = x;
+        this.mY = y;
     }
     
     @Override
@@ -62,15 +111,15 @@ public class CanvasDrawImageObject implements CanvasDrawObjectInterface {
             throw new IllegalStateException("datakind is not match.");
         }
 
-        this.data = intent.getByteArrayExtra(EXTRA_DATA);
+        this.mData = intent.getByteArrayExtra(EXTRA_DATA);
         int modeOrdinal = intent.getIntExtra(EXTRA_MODE, Mode.NONSCALE_MODE.ordinal());
         if (0 <= modeOrdinal && modeOrdinal < Mode.values().length) {
-            this.mode = Mode.values()[modeOrdinal];
+            this.mMode = Mode.values()[modeOrdinal];
         } else {
-            this.mode = Mode.values()[0];
+            this.mMode = Mode.values()[0];
         }
-        this.x = intent.getDoubleExtra(EXTRA_X, 0.0);
-        this.y = intent.getDoubleExtra(EXTRA_Y, 0.0);
+        this.mX = intent.getDoubleExtra(EXTRA_X, 0.0);
+        this.mY = intent.getDoubleExtra(EXTRA_Y, 0.0);
     }
     
     @Override
@@ -78,10 +127,10 @@ public class CanvasDrawImageObject implements CanvasDrawObjectInterface {
         
         intent.putExtra(EXTRA_DATAKIND, DATAKIND);
         
-        intent.putExtra(EXTRA_DATA, this.data);
-        intent.putExtra(EXTRA_MODE, this.mode.ordinal());
-        intent.putExtra(EXTRA_X, this.x);
-        intent.putExtra(EXTRA_Y, this.y);
+        intent.putExtra(EXTRA_DATA, this.mData);
+        intent.putExtra(EXTRA_MODE, this.mMode.ordinal());
+        intent.putExtra(EXTRA_X, this.mX);
+        intent.putExtra(EXTRA_Y, this.mY);
     }
 
     /**
@@ -101,31 +150,32 @@ public class CanvasDrawImageObject implements CanvasDrawObjectInterface {
     }
 
     @Override
-    public void draw(Bitmap viewBitmap) {
+    public void draw(final Bitmap viewBitmap) {
         
         if (viewBitmap == null) {
             return;
         }
         
         // draw data is nothing.
-        if (data == null) {
+        if (mData == null) {
             return;
         }
         
         // data convert to bitmap.
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inMutable = true;
-        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, options);
+        Bitmap bitmap = BitmapFactory.decodeByteArray(mData, 0, mData.length, options);
         
         // draw image.
-        if (mode == Mode.NONSCALE_MODE) {
-            CanvasProfileUtils.drawImageForNonScalesMode(viewBitmap, bitmap, x, y);
-        } else if (mode == Mode.SCALE_MODE) {
+        if (mMode == Mode.NONSCALE_MODE) {
+            CanvasProfileUtils.drawImageForNonScalesMode(viewBitmap, bitmap, mX, mY);
+        } else if (mMode == Mode.SCALE_MODE) {
             CanvasProfileUtils.drawImageForScalesMode(viewBitmap, bitmap);
-        } else if (mode == Mode.FILL_MODE) {
+        } else if (mMode == Mode.FILL_MODE) {
             CanvasProfileUtils.drawImageForFillsMode(viewBitmap, bitmap);
         } else {
             // checking the mode value in HostCanvasProfile.java, here should you do not pass.
+            return;
         }
     }
 }

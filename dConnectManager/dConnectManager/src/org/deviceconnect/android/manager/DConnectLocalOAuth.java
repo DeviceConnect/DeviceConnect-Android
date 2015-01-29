@@ -14,7 +14,6 @@ import java.util.logging.Logger;
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.AvailabilityProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
 import android.content.ContentValues;

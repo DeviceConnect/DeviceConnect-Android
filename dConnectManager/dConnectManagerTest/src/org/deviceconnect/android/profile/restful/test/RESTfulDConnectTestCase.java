@@ -260,7 +260,8 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      * @param count 送信回数
      * @return レスポンス
      */
-    protected final JSONObject sendRequest(final HttpUriRequest originalRequest, final boolean requiredAuth, final int count)  {
+    protected final JSONObject sendRequest(final HttpUriRequest originalRequest, final boolean requiredAuth,
+            final int count)  {
         try {
             HttpUriRequest request = originalRequest;
             if (requiredAuth) {
@@ -523,6 +524,12 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
         }
     }
 
+    /**
+     * HTTPリクエストを作り直す.
+     * @param request 元のHTTPリクエスト
+     * @param builder 新たなURI
+     * @return 作り直したHTTPリクエスト
+     */
     private HttpUriRequest recreateRequest(final HttpUriRequest request, final URIBuilder builder) {
         if (request instanceof HttpGet) {
             return new HttpGet(builder.toString());

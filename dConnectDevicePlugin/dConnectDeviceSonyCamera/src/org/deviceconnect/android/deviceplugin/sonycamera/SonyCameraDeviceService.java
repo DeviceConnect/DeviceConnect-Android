@@ -670,7 +670,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * @param mediaId メディアID
      * @return 即座に返答する場合はtrue、それ以外はfalse
      */
-    public boolean onPutStop(final Intent request, final Intent response, final String serviceId, final String mediaId) {
+    public boolean onPutStop(final Intent request, final Intent response, final String serviceId,
+            final String mediaId) {
 
         if (serviceId == null || !serviceId.equals(SERVICE_ID)) {
             MessageUtils.setEmptyServiceIdError(response);

@@ -32,10 +32,10 @@ import android.util.SparseArray;
  * @author NTT DOCOMO, INC.
  */
 public class ServiceDiscoveryRequest extends DConnectRequest {
-    /** プラグイン側のService Discoveryのプロファイル名: {@value} */
+    /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
     private static final String PROFILE_NETWORK_SERVICE_DISCOVERY = "networkServiceDiscovery";
 
-    /** プラグイン側のService Discoveryのプロファイル名: {@value} */
+    /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
     private static final String ATTRIBUTE_GET_NETWORK_SERVICES = "getNetworkServices";
 
     /** レスポンスが返ってきた個数. */

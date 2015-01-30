@@ -12,6 +12,7 @@ import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleBatteryProfil
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleCanvasProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleServceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleNotificationProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSettingProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSystemProfile;
@@ -54,6 +55,7 @@ public class PebbleDeviceService extends DConnectMessageService {
         addProfile(new PebbleBatteryProfile(this));
         addProfile(new PebbleSettingProfile());
         addProfile(new PebbleCanvasProfile());
+        addProfile(new PebbleKeyEventProfile(this));
     }
 
     @Override

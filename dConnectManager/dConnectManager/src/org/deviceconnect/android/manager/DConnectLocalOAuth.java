@@ -31,7 +31,7 @@ public class DConnectLocalOAuth {
     /** DBのファイル名を定義. */
     private static final String DATABASE_NAME = "local_oauth_deviceplugin.db";
     /** DBのバージョンを定義. */
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     /** OAuthデータ用のテーブル名を定義. */
     private static final String OAUTH_DATA_TABLE_NAME = "oauth_data_tbl";
     /** アクセストークン用のテーブル名を定義. */
@@ -425,8 +425,7 @@ public class DConnectLocalOAuth {
 
         @Override
         public void onCreate(final SQLiteDatabase db) {
-            createOAuthDataTable(db);
-            createAccessTokenTable(db);
+            createAllTables(db);
         }
 
         @Override
@@ -434,7 +433,16 @@ public class DConnectLocalOAuth {
             // 既にテーブルが存在する場合には、削除して、再度テーブルを作成する
             db.execSQL("DROP TABLE IF EXISTS " + OAUTH_DATA_TABLE_NAME);
             db.execSQL("DROP TABLE IF EXISTS " + ACCESS_TOKEN_TABLE_NAME);
-            onCreate(db);
+            createAllTables(db);
+        }
+
+        /**
+         * 必要なテーブルをすべて作成する.
+         * @param db データベース
+         */
+        private void createAllTables(final SQLiteDatabase db) {
+            createOAuthDataTable(db);
+            createAccessTokenTable(db);
         }
 
         /**

@@ -171,12 +171,9 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
      * @return X座標。無い場合は0.0を返す。
      */
     public static double getX(final Intent request) {
-        String strX = request.getStringExtra(PARAM_X);
-        double x = 0.0f;
-        try {
-            x = Double.parseDouble(strX);
-        } catch (NumberFormatException e) {
-            x = 0.0f;
+        Double x = parseDouble(request, PARAM_X);
+        if (x == null) {
+        	x = 0.0;
         }
         return x;
     }
@@ -188,12 +185,9 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
      * @return Y座標。無い場合は0.0を返す。
      */
     public static double getY(final Intent request) {
-        String strY = request.getStringExtra(PARAM_Y);
-        double y = 0.0f;
-        try {
-            y = Double.parseDouble(strY);
-        } catch (NumberFormatException e) {
-            y = 0.0f;
+        Double y = parseDouble(request, PARAM_Y);
+        if (y == null) {
+        	y = 0.0;
         }
         return y;
     }

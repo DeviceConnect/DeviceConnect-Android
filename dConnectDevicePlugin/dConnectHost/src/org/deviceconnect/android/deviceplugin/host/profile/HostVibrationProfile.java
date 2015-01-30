@@ -29,7 +29,7 @@ public class HostVibrationProfile extends VibrationProfile {
     /**
      * 振動をキャンセルする事を示すフラグ.
      */
-    private boolean isCancelled = false;
+    private boolean mIsCancelled = false;
 
     @Override
     protected boolean onPutVibrate(final Intent request, final Intent response, final String serviceId,
@@ -65,7 +65,7 @@ public class HostVibrationProfile extends VibrationProfile {
                 public void run() {
                     boolean vibrateMode = true;
                     for (Long dur : pattern) {
-                        if (isCancelled) {
+                        if (mIsCancelled) {
                             break;
                         }
 
@@ -89,7 +89,7 @@ public class HostVibrationProfile extends VibrationProfile {
             });
 
             // 振動パターン再生セッションを終えたので、キャンセルフラグを初期化。
-            isCancelled = false;
+            mIsCancelled = false;
 
             setResult(response, IntentDConnectMessage.RESULT_OK);
 
@@ -119,7 +119,7 @@ public class HostVibrationProfile extends VibrationProfile {
                 // cancel()は現在されているの振調パターンの1節しかキャンセルしないので、
                 // それ以降の振動パターンの節の再生を防ぐ為に、キャンセルされたことを示す
                 // フラグをたてる。
-                isCancelled = true;
+                mIsCancelled = true;
 
                 setResult(response, IntentDConnectMessage.RESULT_OK);
             } else {

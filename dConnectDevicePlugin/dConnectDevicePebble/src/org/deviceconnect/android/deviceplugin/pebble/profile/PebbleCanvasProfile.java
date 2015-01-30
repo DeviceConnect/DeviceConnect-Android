@@ -50,6 +50,12 @@ public class PebbleCanvasProfile extends CanvasProfile {
 
         PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
         byte[] buf = PebbleManager.convertImage(data, mode, x, y);
+        if (buf == null) {
+        	/* unknown mode-value. */
+        	MessageUtils.setInvalidRequestParameterError(response);
+        	return true;
+        }
+        
         mgr.sendDataToPebble(buf, new OnSendDataListener() {
             @Override
             public void onSend(final boolean successed) {

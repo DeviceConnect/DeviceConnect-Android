@@ -328,7 +328,9 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
                         if (mFinishFlag) {
                             checkCloseApplication();
                         } else {
-                            mCamera.startPreview();
+                            if (mCamera != null) {
+                                mCamera.startPreview();
+                            }
                             // 撮影完了したので、ボタンを有効にする
                             if (mStopBtn != null && mTakeBtn != null) {
                                 mStopBtn.setEnabled(true);
@@ -394,9 +396,9 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
      * サービスをバインドする.
      */
     private void bindService() {
-        Intent mIntent = new Intent(this, HostDeviceService.class);
-        mIntent.setAction("camera");
-        bindService(mIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        Intent intent = new Intent(this, HostDeviceService.class);
+        intent.setAction("camera");
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     /**
@@ -422,12 +424,12 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
 
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
-        mCamera.setPreviewCallback(null);
+        camera.setPreviewCallback(null);
 
         if (mService != null) {
-            int format = mCamera.getParameters().getPreviewFormat();
-            int width = mCamera.getParameters().getPreviewSize().width;
-            int height = mCamera.getParameters().getPreviewSize().height;
+            int format = camera.getParameters().getPreviewFormat();
+            int width = camera.getParameters().getPreviewSize().width;
+            int height = camera.getParameters().getPreviewSize().height;
     
             YuvImage yuvimage = new YuvImage(data, format, width, height, null);
             Rect rect = new Rect(0, 0, width, height);
@@ -443,6 +445,6 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
             }
         }
 
-        mCamera.setPreviewCallback(this);
+        camera.setPreviewCallback(this);
     }
 }

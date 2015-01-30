@@ -247,8 +247,10 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
      * @param requestid リクエストID(Broadcastで指示された場合は設定する。アプリ内ならの指示ならnullを設定する)
      */
     public void takePicture(Camera.PictureCallback callback) {
-        mCamera.takePicture(mShutterCallback, null, callback);
-        Toast.makeText(getContext(), R.string.shutter, Toast.LENGTH_SHORT).show();
+        if (mCamera != null) {
+            mCamera.takePicture(mShutterCallback, null, callback);
+            Toast.makeText(getContext(), R.string.shutter, Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**

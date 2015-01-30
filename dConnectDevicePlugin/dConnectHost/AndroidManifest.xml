@@ -162,7 +162,11 @@
         <!-- Canvas Profile -->
         <activity android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
             android:launchMode="singleTop" >
-            
+        </activity>
+        
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.TouchActivity"
+            android:label="@string/app_name" >
         </activity>
     </application>
 

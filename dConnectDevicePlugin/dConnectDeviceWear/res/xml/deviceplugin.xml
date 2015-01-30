@@ -35,4 +35,11 @@
         <description lang="en">Accesses device orientation. </description>
     </profile>
 
+    <profile name="keyevent" expireperiod="86400000">
+        <name lang="ja">キーイベント </name>
+        <description lang="ja">キーイベント状態を取得する </description>
+        <name lang="en">KeyEvent </name>
+        <description lang="en">Key Event. </description>
+    </profile>
+
 </deviceplugin-provider>

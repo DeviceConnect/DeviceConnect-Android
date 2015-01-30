@@ -360,15 +360,7 @@ public final class DBCacheController extends BaseCacheController {
 
         @Override
         public void onCreate(final SQLiteDatabase db) {
-            // 外部キーの設定は設けていないので、リレーションは手動でしっかり管理すること。
-            // DBが作れないと使えないので、例外は処理しない
-            db.execSQL(ProfileSchema.CREATE);
-            db.execSQL(InterfaceSchema.CREATE);
-            db.execSQL(AttributeSchema.CREATE);
-            db.execSQL(ClientSchema.CREATE);
-            db.execSQL(DeviceSchema.CREATE);
-            db.execSQL(EventDeviceSchema.CREATE);
-            db.execSQL(EventSessionSchema.CREATE);
+            createAllTables(db);
         }
 
         @Override
@@ -381,9 +373,25 @@ public final class DBCacheController extends BaseCacheController {
             db.execSQL(DeviceSchema.DROP);
             db.execSQL(EventDeviceSchema.DROP);
             db.execSQL(EventSessionSchema.DROP);
-            onCreate(db);
+
+            createAllTables(db);
         }
         
+        /**
+         * 必要なテーブルをすべて作成する.
+         * @param db データベース
+         */
+        private void createAllTables(final SQLiteDatabase db) {
+            // 外部キーの設定は設けていないので、リレーションは手動でしっかり管理すること。
+            // DBが作れないと使えないので、例外は処理しない
+            db.execSQL(ProfileSchema.CREATE);
+            db.execSQL(InterfaceSchema.CREATE);
+            db.execSQL(AttributeSchema.CREATE);
+            db.execSQL(ClientSchema.CREATE);
+            db.execSQL(DeviceSchema.CREATE);
+            db.execSQL(EventDeviceSchema.CREATE);
+            db.execSQL(EventSessionSchema.CREATE);
+        }
     }
 
 }

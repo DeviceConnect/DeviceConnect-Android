@@ -113,10 +113,7 @@ public class LocalOAuthOpenHelper extends SQLiteOpenHelper {
      */
     @Override
     public void onCreate(final SQLiteDatabase db) {
-        db.execSQL(CREATE_CLIENTS_TABLE);
-        db.execSQL(CREATE_PROFILES_TABLE);
-        db.execSQL(CREATE_SCOPES_TABLE);
-        db.execSQL(CREATE_TOKENS_TABLE);
+        createAllTables(db);
     }
 
     /**
@@ -133,7 +130,17 @@ public class LocalOAuthOpenHelper extends SQLiteOpenHelper {
         db.execSQL(DROP_SCOPES_TABLE);
         db.execSQL(DROP_TOKENS_TABLE);
 
-        onCreate(db);
+        createAllTables(db);
     }
 
+    /**
+     * 必要なテーブルをすべて作成する.
+     * @param db データベース
+     */
+    private void createAllTables(final SQLiteDatabase db) {
+        db.execSQL(CREATE_CLIENTS_TABLE);
+        db.execSQL(CREATE_PROFILES_TABLE);
+        db.execSQL(CREATE_SCOPES_TABLE);
+        db.execSQL(CREATE_TOKENS_TABLE);
+    }
 }

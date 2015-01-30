@@ -425,24 +425,24 @@ public class DConnectLocalOAuth {
 
         @Override
         public void onCreate(final SQLiteDatabase db) {
-            createOAuthDataTable(db);
-            createAccessTokenTable(db);
+            createAllTables(db);
         }
 
         @Override
         public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
             // 既にテーブルが存在する場合には、削除して、再度テーブルを作成する
-            initialize(db);
+            db.execSQL("DROP TABLE IF EXISTS " + OAUTH_DATA_TABLE_NAME);
+            db.execSQL("DROP TABLE IF EXISTS " + ACCESS_TOKEN_TABLE_NAME);
+            createAllTables(db);
         }
 
         /**
-         * データベースをすべて削除し、作成し直す.
-         * @param db DBアクセス用クラス
+         * 必要なテーブルをすべて作成する.
+         * @param db データベース
          */
-        private void initialize(final SQLiteDatabase db) {
-            db.execSQL("DROP TABLE IF EXISTS " + OAUTH_DATA_TABLE_NAME);
-            db.execSQL("DROP TABLE IF EXISTS " + ACCESS_TOKEN_TABLE_NAME);
-            onCreate(db);
+        private void createAllTables(final SQLiteDatabase db) {
+            createOAuthDataTable(db);
+            createAccessTokenTable(db);
         }
 
         /**

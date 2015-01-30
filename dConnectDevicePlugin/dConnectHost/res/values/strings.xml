@@ -31,5 +31,6 @@
     <string name="touch_activity">Touch Activity</string>
     
     <string name="canvas_profile_view_close_guidance">tap to close.</string>
+    <string name="keyevent_activity">Key Event Activity</string>
 
 </resources>

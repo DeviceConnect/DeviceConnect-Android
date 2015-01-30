@@ -93,6 +93,16 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
      */
     private boolean mFinishFlag;
 
+    /**
+     * カメラアプリ停止ボタン.
+     */
+    private Button mStopBtn;
+
+    /**
+     * シャッターボタン.
+     */
+    private ImageButton mTakeBtn;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,16 +117,16 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
 
         mPreview = (Preview) findViewById(R.id.preview);
 
-        Button stopBtn = (Button) findViewById(R.id.btn_stop);
-        stopBtn.setOnClickListener(new OnClickListener() {
+        mStopBtn = (Button) findViewById(R.id.btn_stop);
+        mStopBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 checkCloseApplication();
             }
         });
 
-        ImageButton takeBtn = (ImageButton) findViewById(R.id.btn_take_photo);
-        takeBtn.setOnClickListener(new OnClickListener() {
+        mTakeBtn = (ImageButton) findViewById(R.id.btn_take_photo);
+        mTakeBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 takePictureRunnable(null);
@@ -130,8 +140,8 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
                 String name = intent.getStringExtra(CameraConst.EXTRA_NAME);
                 if (CameraConst.EXTRA_NAME_SHUTTER.equals(name)) {
                     mFinishFlag = true;
-                    takeBtn.setVisibility(View.GONE);
-                    stopBtn.setVisibility(View.GONE);
+                    mTakeBtn.setVisibility(View.GONE);
+                    mStopBtn.setVisibility(View.GONE);
                 }
             }
         }
@@ -285,9 +295,9 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
     /**
      * 写真撮影用Runnable実行する.
      * 
-     * @param requestid リクエストID
+     * @param requestId リクエストID
      */
-    private void takePictureRunnable(final String requestid) {
+    private void takePictureRunnable(final String requestId) {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -305,12 +315,12 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
                         }
 
                         // リクエストIDが登録されていたら、撮影完了後にホストデバイスプラグインへ撮影完了通知を送信する
-                        if (requestid != null) {
+                        if (requestId != null) {
                             Context context = CameraActivity.this;
                             Intent intent = new Intent(CameraConst.SEND_CAMERA_TO_HOSTDP);
                             intent.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
                             intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
-                            intent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
+                            intent.putExtra(CameraConst.EXTRA_REQUESTID, requestId);
                             intent.putExtra(CameraConst.EXTRA_PICTURE_URI, pictureUri);
                             context.sendBroadcast(intent);
                         }
@@ -319,11 +329,22 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
                             checkCloseApplication();
                         } else {
                             mCamera.startPreview();
+                            // 撮影完了したので、ボタンを有効にする
+                            if (mStopBtn != null && mTakeBtn != null) {
+                                mStopBtn.setEnabled(true);
+                                mTakeBtn.setEnabled(true);
+                            }
                         }
                     }
                 });
             }
         }, 2000);
+
+        // 撮影中は、ボタンを無効にする
+        if (mStopBtn != null && mTakeBtn != null) {
+            mStopBtn.setEnabled(false);
+            mTakeBtn.setEnabled(false);
+        }
     }
 
     /**

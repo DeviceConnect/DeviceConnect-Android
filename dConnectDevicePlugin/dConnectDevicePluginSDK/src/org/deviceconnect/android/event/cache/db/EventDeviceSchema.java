@@ -41,4 +41,8 @@ interface EventDeviceSchema extends BaseSchema {
             + D_ID + " INTEGER NOT NULL, "
             + CREATE_DATE + " INTEGER NOT NULL, "
             + UPDATE_DATE + " INTEGER NOT NULL, UNIQUE(" + A_ID + ", " + D_ID + "));";
+    /** 
+     * テーブルdrop文.
+     */
+    String DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 }

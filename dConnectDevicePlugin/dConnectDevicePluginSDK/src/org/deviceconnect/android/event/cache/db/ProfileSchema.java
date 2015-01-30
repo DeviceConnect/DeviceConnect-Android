@@ -35,4 +35,8 @@ interface ProfileSchema extends BaseSchema {
             + CREATE_DATE + " INTEGER NOT NULL, "
             + UPDATE_DATE + " INTEGER NOT NULL, UNIQUE(" + NAME + "));";
     
+    /** 
+     * テーブルdrop文.
+     */
+    String DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 }

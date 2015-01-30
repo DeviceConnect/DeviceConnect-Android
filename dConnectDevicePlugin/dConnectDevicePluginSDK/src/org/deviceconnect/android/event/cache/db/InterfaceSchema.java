@@ -39,4 +39,9 @@ interface InterfaceSchema extends BaseSchema {
             + NAME + " TEXT DEFAULT '', "
             + CREATE_DATE + " INTEGER NOT NULL, "
             + UPDATE_DATE + " INTEGER NOT NULL, UNIQUE(" + P_ID + "," + NAME + "));";
+
+    /** 
+     * テーブルdrop文.
+     */
+    String DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 }

@@ -110,7 +110,9 @@
                 <action android:name="com.sonyericsson.extras.aef.control.KEY_EVENT" />
                 <action android:name="com.sonyericsson.extras.aef.control.TOUCH_EVENT" />
                 <action android:name="com.sonyericsson.extras.aef.control.SWIPE_EVENT" />
-            </intent-filter>
+                <action android:name="com.sonyericsson.extras.aef.control.OBJECT_CLICK_EVENT" />
+                <action android:name="com.sonyericsson.extras.aef.control.MENU_ITEM_SELECTED" />
+                </intent-filter>
         </receiver>
     </application>
 

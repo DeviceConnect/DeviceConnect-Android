@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/smart_watch_2_control_width"
+    android:layout_height="@dimen/smart_watch_2_control_height"
+    android:background="@android:color/black"
+    android:orientation="vertical"
+    android:weightSum="2"
+    tools:ignore="ContentDescription,PxUsage" >
+
+    <TextView
+        android:id="@+id/btn_keyevent_1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="6px"
+        android:layout_weight="1"
+        android:background="@android:color/white"
+        android:clickable="true"
+        android:gravity="center"
+        android:text="@string/keyevent_cancel"
+        android:textColor="@android:color/black"
+        android:textSize="@dimen/smart_watch_2_text_size_large" />
+
+    <TextView
+        android:id="@+id/btn_keyevent_2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="6px"
+        android:layout_weight="1"
+        android:background="@android:color/white"
+        android:clickable="true"
+        android:gravity="center"
+        android:text="@string/keyevent_ok"
+        android:textColor="@android:color/black"
+        android:textSize="@dimen/smart_watch_2_text_size_large" />
+
+</LinearLayout>

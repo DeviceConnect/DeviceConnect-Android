@@ -13,32 +13,34 @@ package org.deviceconnect.android.deviceplugin.wear.profile;
  */
 public final class WearConst {
 
-    /** Vibrarionを起動. */
+    /** Vibration start. */
     public static final String DEVICE_TO_WEAR_VIBRATION_RUN = "org.deviceconnect.wear.vibration.run";
 
-    /** Vibrationを停止. */
+    /** Vibration stop. */
     public static final String DEVICE_TO_WEAR_VIBRATION_DEL = "org.deviceconnect.wear.vibration.del";
 
-    /** Actionが開かれたら. */
+    /** When Action is opened. */
     public static final String DEVICE_TO_WEAR_NOTIFICATION_OPEN = "org.deviceconnect.wear.notification.open";
 
-    /** DeviceOrientationが開かれたら. */
-    public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER = "org.deviceconnect.wear.deivceorienatation.regist";
+    /** When DeviceOrientation register is opened. */
+    public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER
+            = "org.deviceconnect.wear.deivceorienatation.regist";
 
-    /** DeviceOrientationが開かれたら. */
-    public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER = "org.deviceconnect.wear.deivceorienatation.unregist";
+    /** When DeviceOrientation unregister is opened. */
+    public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER
+            = "org.deviceconnect.wear.deivceorienatation.unregist";
 
-    /** WearからAndroid. */
-    public static final String WERA_TO_DEVICE_DEIVCEORIENTATION_DATA = "org.deviceconnect.wear.deivceorienatation.data";
+    /** Wear to Android. */
+    public static final String WEAR_TO_DEVICE_DEIVCEORIENTATION_DATA = "org.deviceconnect.wear.deivceorienatation.data";
 
     /** ServiceId. */
     public static final String PARAM_DEVICEID = "serviceId";
 
     /** NotificationId. */
-    public static final String PARAM_NOTIFICATIONID = "norificationId";
+    public static final String PARAM_NOTIFICATIONID = "notificationId";
 
     /**
-     * コンストラクタ.
+     * Constructor.
      */
     private WearConst() {
     }

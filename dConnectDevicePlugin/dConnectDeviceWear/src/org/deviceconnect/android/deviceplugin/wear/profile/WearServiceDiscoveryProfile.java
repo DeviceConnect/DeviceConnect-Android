@@ -28,59 +28,62 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
 /**
- * NetworkServiceDiscoveryプロファイル.
+ * ServiceDiscoveryProfile.
  * 
  * @author NTT DOCOMO, INC.
  */
 public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile implements ConnectionCallbacks,
         OnConnectionFailedListener {
 
-    /** Google Play Service. */
+    /**
+     * Google Play Service.
+     */
     private GoogleApiClient mGoogleApiClient;
 
     /**
-     * サービスID.
+     * Service ID.
      */
     public static final String SERVICE_ID = "Wear";
 
     /**
-     * デバイス名: {@value}
+     * Device Name: {@value} .
      */
     public static final String DEVICE_NAME = "Android Wear";
 
     /**
-     * テスト用デバイスタイプ.
+     * Device type for test.
      */
     public static final String DEVICE_TYPE = "BLE";
 
     /**
-     * テスト用オンライン状態.
+     * Online state for test.
      */
     public static final boolean DEVICE_ONLINE = true;
 
     /**
-     * テスト用コンフィグ.
+     * Configure for test.
      */
     public static final String DEVICE_CONFIG = "myConfig";
 
     /**
-     * StaticなResponse Intent.
+     * Static Response Intent.
      */
-    public static Intent mResponse;
+    private static Intent sResponse;
 
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
-        mGoogleApiClient = new GoogleApiClient.Builder(getContext()).addApi(Wearable.API)
-                .addConnectionCallbacks(this).addOnConnectionFailedListener(this).build();
+        mGoogleApiClient = new GoogleApiClient.Builder(getContext()).addApi(Wearable.API).addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this).build();
         mGoogleApiClient.connect();
 
-        mResponse = response;
+        sResponse = response;
 
         return false;
     }
 
     @Override
-    protected boolean onPutOnServiceChange(final Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response, final String serviceId,
+            final String sessionKey) {
 
         if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -127,9 +130,9 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
 
                 Collection<String> mNodes = getNodes();
 
-                // Wearのバイス数分だけ、検索結果に反映
+                // Wear number of devices, reflected in the search results.
                 for (String node : mNodes) {
-                    // nodeの最初をUniqueKeyで利用
+                    // Take the first node in UniqueKey.
                     String[] mNodeArray = node.split("-");
 
                     Bundle service = new Bundle();
@@ -141,9 +144,9 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
                     services.add(service);
                 }
 
-                setResult(mResponse, DConnectMessage.RESULT_OK);
-                setServices(mResponse, services);
-                getContext().sendBroadcast(mResponse);
+                setResult(sResponse, DConnectMessage.RESULT_OK);
+                setServices(sResponse, services);
+                getContext().sendBroadcast(sResponse);
 
                 return null;
             }
@@ -151,9 +154,9 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
     }
 
     /**
-     * Wear nodeを取得.
+     * Get Wear node.
      * 
-     * @return WearNode
+     * @return WearNode Wear node.
      */
     private Collection<String> getNodes() {
 
@@ -169,13 +172,13 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
 
     @Override
     public void onConnectionSuspended(final int cause) {
-        setResult(mResponse, DConnectMessage.RESULT_ERROR);
-        getContext().sendBroadcast(mResponse);
+        setResult(sResponse, DConnectMessage.RESULT_ERROR);
+        getContext().sendBroadcast(sResponse);
     }
 
     @Override
     public void onConnectionFailed(final ConnectionResult result) {
-        setResult(mResponse, DConnectMessage.RESULT_ERROR);
-        getContext().sendBroadcast(mResponse);
+        setResult(sResponse, DConnectMessage.RESULT_ERROR);
+        getContext().sendBroadcast(sResponse);
     }
 }

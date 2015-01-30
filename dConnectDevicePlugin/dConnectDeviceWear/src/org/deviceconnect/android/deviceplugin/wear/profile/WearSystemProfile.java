@@ -15,15 +15,15 @@ import android.content.Intent;
 import android.os.Bundle;
 
 /**
- * Systemプロファイル.
+ * System Profile.
  * 
  * @author NTT DOCOMO, INC.
  */
 public class WearSystemProfile extends SystemProfile {
     /**
-     * コンストラクタ.
+     * Constructor.
      * 
-     * @param plugin プラグイン
+     * @param plugin Plugin.
      */
     public WearSystemProfile(final DConnectProfileProvider plugin) {
         super(plugin);

@@ -16,15 +16,15 @@ import java.util.regex.Pattern;
  */
 public final class WearUtils {
     /**
-     * コンストラクタ.
+     * Constructor.
      */
     private WearUtils() {
     }
     /**
-     * サービスIDをチェックする.
+     * Check serviceId.
      * 
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId Service ID.
+     * @return If <code>serviceId</code> is equal to test for the service ID is true, if it is not false.
      */
     public static boolean checkServiceId(final String serviceId) {
         String regex = WearServiceDiscoveryProfile.SERVICE_ID;

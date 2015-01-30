@@ -36,19 +36,19 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
     /** Google Play Service. */
     private GoogleApiClient mGoogleApiClient;
 
-    /** 内部ID. */
+    /** Internal ID. */
     private String mId = "";
 
     /** Status. */
     private int mVibrateStatus;
 
-    /** バイブレーションSTART. */
+    /** Vibration START. */
     private static final int STATUS_VIBRATE_START = 1;
 
-    /** バイブレーションSTOP. */
+    /** Vibration STOP. */
     private static final int STATUS_VIBRATE_STOP = 2;
 
-    /** VibrationのPattern. */
+    /** Vibration Pattern. */
     private long[] mPattern;
 
     @Override
@@ -99,10 +99,10 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
     }
 
     /**
-     * ServiceIDがらnodeを取得.
+     * Get node form Service ID.
      * 
-     * @param serviceId サービスID
-     * @return nodeId
+     * @param serviceId Service ID.
+     * @return nodeId Internal management Node ID.
      */
     private String getNodeId(final String serviceId) {
         String[] mServiceIdArray = serviceId.split("\\(", 0);
@@ -111,9 +111,9 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
     }
 
     /**
-     * Wear nodeを取得.
+     * Get Wear node.
      * 
-     * @return WearNode
+     * @return WearNode Wear node.
      */
     private Collection<String> getNodes() {
         HashSet<String> results = new HashSet<String>();
@@ -125,11 +125,11 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
     }
 
     /**
-     * Wearにメッセージを送信.
+     * Send message to Wear.
      * 
-     * @param id 内部ID
-     * @param action アクション名
-     * @param message 送信する文字列
+     * @param id Internal ID.
+     * @param action Action Name.
+     * @param message Send strings.
      */
     private void sendMessageToStartActivity(final String id, final String action, final String message) {
         Collection<String> nodes = getNodes();
@@ -151,7 +151,7 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(final Void... params) {
-                    // パターンを文字列に変換
+                    // Convert pattern in string.
                     String mPatternStr = "";
                     for (int i = 0; i < mPattern.length; i++) {
                         if (i == 0) {
@@ -165,7 +165,7 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
                 }
             }.execute();
         } else if (mVibrateStatus == STATUS_VIBRATE_STOP) {
-            // メッセージの送信
+            // Send message.
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(final Void... params) {

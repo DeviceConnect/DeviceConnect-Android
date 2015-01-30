@@ -1,5 +1,5 @@
 /*
- WearServiceProvider.java
+ WearDeviceService.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -25,9 +25,8 @@ import org.deviceconnect.android.profile.SystemProfile;
 import android.content.Intent;
 
 /**
- * Service.
+ * WearDeviceService.
  * 
- * @param <T> DeviceTestService
  * @author NTT DOCOMO, INC.
  */
 public class WearDeviceService extends DConnectMessageService {
@@ -50,14 +49,14 @@ public class WearDeviceService extends DConnectMessageService {
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         if (intent != null) {
-            
+
             String action = intent.getAction();
             if (action.equals(WearConst.DEVICE_TO_WEAR_NOTIFICATION_OPEN)) {
                 String serviceId = intent.getStringExtra(WearConst.PARAM_DEVICEID);
                 int notificationId = intent.getIntExtra(WearConst.PARAM_NOTIFICATIONID, -1);
 
-                List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
-                        null, WearNotificationProfile.ATTRIBUTE_ON_CLICK);
+                List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                        WearNotificationProfile.PROFILE_NAME, null, WearNotificationProfile.ATTRIBUTE_ON_CLICK);
 
                 for (int i = 0; i < events.size(); i++) {
                     Event event = events.get(i);

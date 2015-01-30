@@ -180,13 +180,13 @@ final class ClientDao implements ClientSchema {
     }
 
     /**
-     * 指定されたAPIのパスとデバイスIDに紐づく送り先のデータを取得する.
+     * 指定されたAPIのパスとサービスIDに紐づく送り先のデータを取得する.
      * 
      * @param db データベース操作オブジェクト
      * @param event イベントデータ
      * @return 見つかった場合は各行のデータ、その他はnullを返す。
      */
-    static Client[] getByAPIAndDeviceId(final SQLiteDatabase db, final Event event) {
+    static Client[] getByAPIAndServiceId(final SQLiteDatabase db, final Event event) {
 
         Client[] result = null;
         StringBuilder sb = new StringBuilder();
@@ -258,12 +258,12 @@ final class ClientDao implements ClientSchema {
         sb.append(prepared);
         sb.append(and);
         sb.append("d.");
-        sb.append(DeviceSchema.DEVICE_ID);
+        sb.append(DeviceSchema.SERVICE_ID);
         sb.append(prepared);
 
         String inter = (event.getInterface() == null) ? "" : event.getInterface();
-        String deviceId = (event.getDeviceId() == null) ? "" : event.getDeviceId();
-        String[] params = {event.getProfile(), inter, event.getAttribute(), deviceId};
+        String serviceId = (event.getServiceId() == null) ? "" : event.getServiceId();
+        String[] params = {event.getProfile(), inter, event.getAttribute(), serviceId};
         Cursor c = db.rawQuery(sb.toString(), params);
 
         if (c.moveToFirst()) {

@@ -47,7 +47,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetVolume001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
@@ -77,7 +77,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetVolume002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
@@ -107,7 +107,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetVolume003() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
@@ -137,7 +137,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetVolume004() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
@@ -167,7 +167,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetVolume005() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
@@ -197,7 +197,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutVolume001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
@@ -226,7 +226,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutVolume002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
@@ -255,7 +255,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutVolume003() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
@@ -284,7 +284,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutVolume004() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
@@ -313,7 +313,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutVolume005() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_SOUND);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_VOLUME);
@@ -341,7 +341,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetDate() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_DATE);
         Intent response = sendRequest(request);
@@ -368,7 +368,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutDate() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_DATE);
         request.putExtra(SettingsProfileConstants.PARAM_DATE, TestSettingsProfileConstants.DATE);
@@ -395,7 +395,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetLight001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
@@ -425,7 +425,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetLight002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
@@ -455,7 +455,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetLight003() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
@@ -485,7 +485,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutLight001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
@@ -513,7 +513,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutLight002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
@@ -541,7 +541,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutLight003() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_LIGHT);
@@ -570,7 +570,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetSleep() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_SLEEP);
@@ -599,7 +599,7 @@ public class NormalSettingsProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutSleep() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SettingsProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SettingsProfileConstants.INTERFACE_DISPLAY);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SettingsProfileConstants.ATTRIBUTE_SLEEP);

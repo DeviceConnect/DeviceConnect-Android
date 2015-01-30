@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.wear.profile.WearNetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.wear.profile.WearServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearNotificationProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearSystemProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearVibrationProfile;
@@ -19,7 +19,7 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 import android.content.Intent;
@@ -53,10 +53,10 @@ public class WearDeviceService extends DConnectMessageService {
             
             String action = intent.getAction();
             if (action.equals(WearConst.DEVICE_TO_WEAR_NOTIFICATION_OPEN)) {
-                String deviceId = intent.getStringExtra(WearConst.PARAM_DEVICEID);
+                String serviceId = intent.getStringExtra(WearConst.PARAM_DEVICEID);
                 int notificationId = intent.getIntExtra(WearConst.PARAM_NOTIFICATIONID, -1);
 
-                List<Event> events = EventManager.INSTANCE.getEventList(deviceId, WearNotificationProfile.PROFILE_NAME,
+                List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
                         null, WearNotificationProfile.ATTRIBUTE_ON_CLICK);
 
                 for (int i = 0; i < events.size(); i++) {
@@ -81,7 +81,7 @@ public class WearDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new WearNetworkServiceDiscoveryProfile();
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new WearServiceDiscoveryProfile();
     }
 }

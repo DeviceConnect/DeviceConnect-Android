@@ -40,7 +40,7 @@ public abstract class DcLogger {
     /**
      * 　改行後のスペース.
      */
-    protected final String spPad = "           ";
+    protected final String mSpacePad = "           ";
 
     /**
      * 関数開始時ログ出力 関数の最初に記述すること.
@@ -179,7 +179,8 @@ public abstract class DcLogger {
             eString = e.toString();
         }
 
-        String msg = sourceClassName + ".\n" + spPad + sourceMethod + "\n" + spPad + eString + "\n" + spPad + memo
+        String msg = sourceClassName + ".\n" + mSpacePad + sourceMethod
+                + "\n" + mSpacePad + eString + "\n" + mSpacePad + memo
                 + "\n";
 
         mLogger.warning(msg);
@@ -260,9 +261,6 @@ public abstract class DcLogger {
      * @param handler ハンドラ
      */
     public void addHandler(final AndroidHandler handler) {
-
-        // Log.dなどで別途出力しているので不要 従来コード互換性のためにメソッドを用意している
-        // mLogger.addHandler(handler);
 
     }
 

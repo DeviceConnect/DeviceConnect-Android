@@ -15,6 +15,7 @@ import org.deviceconnect.android.deviceplugin.host.IHostDeviceCallback;
 import org.deviceconnect.android.deviceplugin.host.IHostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.R;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
@@ -23,10 +24,8 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.Message;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -48,13 +47,11 @@ public class HostSettingFragment extends Fragment {
     /** 検索中のダイアログ. */
     private ProgressDialog mDialog;
 
-    /** Handler Action. */
-    private static final int HANDLER_ACTION_DISMISS = 1;
-
     /** プロセス間通信でつなぐService. */
     private static IHostDeviceService sService;
 
-    @Override
+    @SuppressLint("DefaultLocale")
+	@Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
             final Bundle savedInstanceState) {
 
@@ -99,11 +96,6 @@ public class HostSettingFragment extends Fragment {
                 e.printStackTrace();
             }
         }
-        // Handlerに通知する
-        MyHandler handler = new MyHandler();
-        Message mMsg = new Message();
-        mMsg.what = HANDLER_ACTION_DISMISS;
-        handler.sendMessageDelayed(mMsg, 8000);
     }
 
     /**
@@ -165,22 +157,6 @@ public class HostSettingFragment extends Fragment {
         }
     }
 
-    /**
-     * Handlerクラスを継承して拡張.
-     */
-    class MyHandler extends Handler {
-
-        @Override
-        public void handleMessage(final Message msg) {
-
-            if (msg.what == HANDLER_ACTION_DISMISS) {
-                dismissProgressDialog();
-
-                Toast.makeText(mActivity, "Hostが発見できません。(エラー:タイムアウト, 原因:同じネットワーク内にHostsが存在しません。)", Toast.LENGTH_SHORT)
-                        .show();
-            }
-        }
-    }
 
     /**
      * プロセス間通信用のサービス.

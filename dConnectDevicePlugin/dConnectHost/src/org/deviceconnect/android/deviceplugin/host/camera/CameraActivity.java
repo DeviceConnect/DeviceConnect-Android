@@ -44,7 +44,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 
 /**
- * d-Connect連携カメラアプリ.
+ * Device Connect連携カメラアプリ.
  * 
  * @author NTT DOCOMO, INC.
  */

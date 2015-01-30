@@ -102,10 +102,10 @@ public class SpheroLightProfile extends DConnectProfile {
         if (attribute != null && attribute.length() != 0) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
-            DeviceInfo info = SpheroManager.INSTANCE.getDevice(deviceId);
+            String serviceId = getServiceID(request);
+            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
             if (info == null) {
-                MessageUtils.setNotFoundDeviceError(response);
+                MessageUtils.setNotFoundServiceError(response);
             } else {
                 Bundle[] lights = new Bundle[2];
                 synchronized (info) {
@@ -135,10 +135,10 @@ public class SpheroLightProfile extends DConnectProfile {
         if (attribute != null && attribute.length() != 0) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
-            DeviceInfo info = SpheroManager.INSTANCE.getDevice(deviceId);
+            String serviceId = getServiceID(request);
+            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
             if (info == null) {
-                MessageUtils.setNotFoundDeviceError(response);
+                MessageUtils.setNotFoundServiceError(response);
             } else {
                 synchronized (info) {
                     String lightId = request.getStringExtra(PARAM_LIGHT_ID);
@@ -195,10 +195,10 @@ public class SpheroLightProfile extends DConnectProfile {
         if (attribute != null && attribute.length() != 0) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
-            DeviceInfo info = SpheroManager.INSTANCE.getDevice(deviceId);
+            String serviceId = getServiceID(request);
+            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
             if (info == null) {
-                MessageUtils.setNotFoundDeviceError(response);
+                MessageUtils.setNotFoundServiceError(response);
             } else {
                 synchronized (info) {
                     String lightId = request.getStringExtra(PARAM_LIGHT_ID);
@@ -229,7 +229,7 @@ public class SpheroLightProfile extends DConnectProfile {
     private int[] parseColor(final String color) {
 
         if (color == null || color.length() == 0) {
-            return new int[] { 255, 255, 255 };
+            return new int[] {255, 255, 255};
         }
 
         int[] c = new int[3];
@@ -291,7 +291,7 @@ public class SpheroLightProfile extends DConnectProfile {
         } else {
             try {
                 long time = Long.parseLong(pattern);
-                result = new long[] { time };
+                result = new long[] {time};
             } catch (NumberFormatException e) {
                 mLogger.warning("Exception in the VibrationProfile#parsePattern() method. " + e.toString());
             }

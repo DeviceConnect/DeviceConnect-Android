@@ -61,7 +61,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
         boolean result = true;
 
         if (ATTRIBUTE_VIBRATE.equals(attribute)) {
-            result = onPutVibrate(request, response, getDeviceID(request), parsePattern(getPattern(request)));
+            result = onPutVibrate(request, response, getServiceID(request), parsePattern(getPattern(request)));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -75,7 +75,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
         boolean result = true;
 
         if (ATTRIBUTE_VIBRATE.equals(attribute)) {
-            result = onDeleteVibrate(request, response, getDeviceID(request));
+            result = onDeleteVibrate(request, response, getServiceID(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -94,11 +94,11 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param pattern バイブレーションの鳴動パターン配列。省略された場合は最大値を、不正なフォーマットでリクエストを受けた場合はnullが渡される。
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutVibrate(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutVibrate(final Intent request, final Intent response, final String serviceId, 
             final long[] pattern) {
         setUnsupportedError(response);
         return true;
@@ -115,10 +115,10 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }

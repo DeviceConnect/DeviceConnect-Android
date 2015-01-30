@@ -49,7 +49,7 @@ public class HostCanvasProfile extends CanvasProfile {
         }
 
         if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
         

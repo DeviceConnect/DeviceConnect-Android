@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connectの監視に関するFragmentクラスを提供します.
+ * Device Connectの監視に関するFragmentクラスを提供します.
  */
 package org.deviceconnect.android.observer.fragment;

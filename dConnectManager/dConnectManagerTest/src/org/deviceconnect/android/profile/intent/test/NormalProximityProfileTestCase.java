@@ -48,7 +48,7 @@ public class NormalProximityProfileTestCase extends IntentDConnectTestCase {
      */
     public void testOnDeviceProximity01() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ProximityProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
@@ -85,7 +85,7 @@ public class NormalProximityProfileTestCase extends IntentDConnectTestCase {
      */
     public void testOnDeviceProximity02() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ProximityProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
@@ -111,7 +111,7 @@ public class NormalProximityProfileTestCase extends IntentDConnectTestCase {
      */
     public void testOnUserProximity01() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ProximityProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
@@ -142,7 +142,7 @@ public class NormalProximityProfileTestCase extends IntentDConnectTestCase {
      */
     public void testOnUserProximity02() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ProximityProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ProximityProfileConstants.ATTRIBUTE_ON_USER_PROXIMITY);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);

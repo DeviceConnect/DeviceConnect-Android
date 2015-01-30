@@ -37,7 +37,7 @@ public final class DConnectSettings {
     private int mObservationInterval;
 
     /** このクラスの唯一のインスタンス. */
-    private static DConnectSettings mInstance;
+    private static DConnectSettings sInstance;
 
     /**
      * コンストラクタ.
@@ -51,10 +51,10 @@ public final class DConnectSettings {
      * @return {@link DConnectSettings}
      */
     public static synchronized DConnectSettings getInstance() {
-        if (mInstance == null) {
-            mInstance = new DConnectSettings();
+        if (sInstance == null) {
+            sInstance = new DConnectSettings();
         }
-        return mInstance;
+        return sInstance;
     }
 
     /**

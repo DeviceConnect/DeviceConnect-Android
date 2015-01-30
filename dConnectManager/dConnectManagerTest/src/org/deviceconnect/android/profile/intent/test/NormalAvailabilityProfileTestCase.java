@@ -25,6 +25,16 @@ public class NormalAvailabilityProfileTestCase extends IntentDConnectTestCase {
         super(string);
     }
 
+    @Override
+    protected boolean isLocalOAuth() {
+        return false;
+    }
+
+    @Override
+    protected boolean isSearchDevices() {
+        return false;
+    }
+
     /**
      * サーバ起動確認テストを行う.
      * <pre>

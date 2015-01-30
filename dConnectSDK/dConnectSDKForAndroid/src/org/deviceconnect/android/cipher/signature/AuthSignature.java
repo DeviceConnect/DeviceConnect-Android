@@ -17,7 +17,7 @@ import java.util.Map;
  * <pre>
  * (例)
  * String signature = AuthSignature.generateSignature("clientId", "grantType", 
- *                          "deviceId", new String[] {"scope1", "scope2"}, clientSecret);
+ *                          "serviceId", new String[] {"scope1", "scope2"}, clientSecret);
  * </pre>
  * @author NTT DOCOMO, INC.
  */
@@ -115,21 +115,21 @@ public final class AuthSignature {
      * 
      * @param clientId クライアントID
      * @param grantType グラントタイプ
-     * @param deviceId デバイスID(UIアプリのときはnullまたは""を指定する)
+     * @param serviceId サービスID(UIアプリのときはnullまたは""を指定する)
      * @param scopes スコープ
      * @param clientSecret クライアントシークレット
      * @return Signature
      */
     public static String generateSignature(final String clientId,
-            final String grantType, final String deviceId, final String[] scopes, final String clientSecret) {
+            final String grantType, final String serviceId, final String[] scopes, final String clientSecret) {
 
         AuthSignature authSignature = new AuthSignature(AuthSignature.SignatureKind.SHA512);
         
         authSignature.empty();
         authSignature.put("clientId", clientId);
         authSignature.put("grantType", grantType);
-        if (deviceId != null && deviceId.length() > 0) {
-            authSignature.put("deviceId", deviceId);
+        if (serviceId != null && serviceId.length() > 0) {
+            authSignature.put("serviceId", serviceId);
         }
         
         String strScopes = "";

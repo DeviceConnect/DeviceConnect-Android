@@ -347,7 +347,7 @@ public final class DBCacheController extends BaseCacheController {
         /** 
          * バージョン番号.
          */
-        private static final int DB_VERSION = 1;
+        private static final int DB_VERSION = 2;
         
         /**
          * DBオープンヘルパーを生成する.
@@ -373,7 +373,15 @@ public final class DBCacheController extends BaseCacheController {
 
         @Override
         public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
-            // バージョン1なので特に処理無し。バージョンの変更がある場合は要対応。
+            // バージョンが上がった場合はDBを初期化する。
+            db.execSQL(ProfileSchema.DROP);
+            db.execSQL(InterfaceSchema.DROP);
+            db.execSQL(AttributeSchema.DROP);
+            db.execSQL(ClientSchema.DROP);
+            db.execSQL(DeviceSchema.DROP);
+            db.execSQL(EventDeviceSchema.DROP);
+            db.execSQL(EventSessionSchema.DROP);
+            onCreate(db);
         }
         
     }

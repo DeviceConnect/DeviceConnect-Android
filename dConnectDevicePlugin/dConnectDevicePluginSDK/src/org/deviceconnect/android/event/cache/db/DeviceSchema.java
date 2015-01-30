@@ -33,4 +33,8 @@ interface DeviceSchema extends BaseSchema {
             + SERVICE_ID + " TEXT NOT NULL, "
             + CREATE_DATE + " INTEGER NOT NULL, "
             + UPDATE_DATE + " INTEGER NOT NULL, UNIQUE(" + SERVICE_ID + "));";
+    /** 
+     * テーブルdrop文.
+     */
+    String DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 }

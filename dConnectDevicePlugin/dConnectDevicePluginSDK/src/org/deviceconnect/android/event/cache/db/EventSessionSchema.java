@@ -43,4 +43,8 @@ interface EventSessionSchema extends BaseSchema {
             + UPDATE_DATE + " INTEGER NOT NULL, UNIQUE(" 
             + ED_ID + ", " + C_ID + "));";
     
+    /** 
+     * テーブルdrop文.
+     */
+    String DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 }

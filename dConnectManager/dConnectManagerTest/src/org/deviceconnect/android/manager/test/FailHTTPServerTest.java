@@ -25,9 +25,9 @@ import org.deviceconnect.utils.URIBuilder;
 public class FailHTTPServerTest extends RESTfulDConnectTestCase {
 
     /**
-     * {@link #testHTTPHeaderOver8KB()}のデバイスID.
+     * {@link #testHTTPHeaderOver8KB()}のサービスID.
      */
-    private static final int VERY_LONG_DEVICE_ID_LENGTH = 10000;
+    private static final int VERY_LONG_SERVICE_ID_LENGTH = 10000;
 
     /**
      * コンストラクタ.
@@ -61,7 +61,7 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /battery?deviceId=xxxx&accessToken=xxxx
+     * Path: /battery?serviceId=xxxx&accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -69,10 +69,10 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testHTTPHeaderOver8KB() {
-        // HTTPヘッダのサイズを8KBにするために、10000文字のデバイスIDを設定する
-        StringBuilder deviceId = new StringBuilder();
-        for (int i = 0; i < VERY_LONG_DEVICE_ID_LENGTH; i++) {
-            deviceId.append("0");
+        // HTTPヘッダのサイズを8KBにするために、10000文字のサービスIDを設定する
+        StringBuilder serviceId = new StringBuilder();
+        for (int i = 0; i < VERY_LONG_SERVICE_ID_LENGTH; i++) {
+            serviceId.append("0");
         }
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
@@ -80,7 +80,7 @@ public class FailHTTPServerTest extends RESTfulDConnectTestCase {
         builder.append("?");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + deviceId.toString());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + serviceId.toString());
         HttpUriRequest request = new HttpGet(builder.toString());
         HttpResponse response = requestHttpResponse(request);
         assertEquals(HttpStatus.SC_REQUEST_TOO_LONG, response.getStatusLine().getStatusCode());

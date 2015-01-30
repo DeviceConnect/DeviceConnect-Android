@@ -55,7 +55,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testGetMediaRecorder() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_MEDIARECORDER);
         Intent response = sendRequest(request);
@@ -97,7 +97,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testTakePhoto001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
         Intent response = sendRequest(request);
@@ -127,7 +127,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testTakePhoto002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_TAKE_PHOTO);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_TARGET,
@@ -158,7 +158,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testRecord001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         Intent response = sendRequest(request);
@@ -188,7 +188,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testRecord002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_TARGET,
@@ -220,7 +220,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testRecord003() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_TIME_SLICE, TIME_SLICE);
@@ -252,7 +252,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testRecord004() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_RECORD);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_TARGET,
@@ -284,7 +284,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testPause001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PATH,
@@ -314,7 +314,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testPause002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PATH,
@@ -345,7 +345,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testResume001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PATH,
@@ -375,7 +375,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testResume002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_RESUME);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PATH,
@@ -406,7 +406,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testStop001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PATH,
@@ -436,7 +436,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testStop002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_STOP);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PATH,
@@ -467,7 +467,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testMuteTrack001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_MUTETRACK);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PATH,
@@ -497,7 +497,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testMuteTrack002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_MUTETRACK);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PATH,
@@ -529,7 +529,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testUnmuteTrack001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_UNMUTETRACK);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PATH,
@@ -559,7 +559,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testUnmuteTrack002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_UNMUTETRACK);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PATH,
@@ -593,7 +593,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testGetOptions001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         Intent response = sendRequest(request);
@@ -630,7 +630,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testGetOptions002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_TARGET,
@@ -667,7 +667,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testPutOptions001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_TARGET,
@@ -703,7 +703,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testPutOptions002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_TARGET,
@@ -739,7 +739,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testOnPhoto01() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
@@ -775,7 +775,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testOnPhoto02() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
@@ -804,7 +804,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testOnRecordingChange01() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
                 MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
@@ -841,7 +841,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      */
     public void testOnRecordingChange02() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
                 MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
@@ -872,7 +872,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
     @SuppressWarnings("deprecation")
 	public void testOnDataAvailable01() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
                 MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
@@ -910,7 +910,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
     @SuppressWarnings("deprecation")
 	public void testOnDataAvailable02() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
                 MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);

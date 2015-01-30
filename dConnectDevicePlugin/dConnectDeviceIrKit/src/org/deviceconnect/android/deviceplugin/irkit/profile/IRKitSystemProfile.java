@@ -40,10 +40,10 @@ public class IRKitSystemProfile extends SystemProfile {
     }
 
     @Override
-    protected ConnectState getWifiState(final String deviceId) {
+    protected ConnectState getWifiState(final String serviceId) {
         
         IRKitDeviceService service = (IRKitDeviceService) getContext();
-        IRKitDevice device = service.getDevice(deviceId);
+        IRKitDevice device = service.getDevice(serviceId);
         
         if (device != null) {
             return ConnectState.ON;

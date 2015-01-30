@@ -52,7 +52,7 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + VibrationProfileConstants.PROFILE_NAME);
         builder.append("/" + VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&" + AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
@@ -92,7 +92,7 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + VibrationProfileConstants.PROFILE_NAME);
         builder.append("/" + VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(VibrationProfileConstants.PARAM_PATTERN + "=500,500,500");
         builder.append("&");
@@ -124,7 +124,7 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + VibrationProfileConstants.PROFILE_NAME);
         builder.append("/" + VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {

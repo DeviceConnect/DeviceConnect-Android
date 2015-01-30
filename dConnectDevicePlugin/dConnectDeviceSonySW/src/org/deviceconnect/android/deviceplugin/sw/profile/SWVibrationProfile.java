@@ -35,18 +35,18 @@ public class SWVibrationProfile extends VibrationProfile {
     }
 
     @Override
-    protected boolean onPutVibrate(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutVibrate(final Intent request, final Intent response, final String serviceId,
             final long[] pattern) {
-        BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
         if (pattern == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }
-        runThread(response, deviceId, pattern);
+        runThread(response, serviceId, pattern);
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }
@@ -57,10 +57,10 @@ public class SWVibrationProfile extends VibrationProfile {
      * 100msec振動、10msec止まる、50msec振動
      * 
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param origPattern 振動パターン
      */
-    private void runThread(final Intent response, final String deviceId, final long[] origPattern) {
+    private void runThread(final Intent response, final String serviceId, final long[] origPattern) {
         Thread thread = new Thread() {
             public void run() {
                 long[] pattern;
@@ -88,7 +88,7 @@ public class SWVibrationProfile extends VibrationProfile {
                     long on = (pattern[cnt] > 0) ? pattern[cnt] : 0;
                     long off = (pattern[cnt + 1] > 0) ? pattern[cnt + 1] : 0;
                     prevInterval = on + off;
-                    intentPut((int) on, (int) off, 1, deviceId, response);
+                    intentPut((int) on, (int) off, 1, serviceId, response);
                 }
             }
         };
@@ -96,19 +96,20 @@ public class SWVibrationProfile extends VibrationProfile {
     }
 
     @Override
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String deviceId) {
-        BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
+    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
         boolean smartWatch2Supported = DeviceInfoHelper.isSmartWatch2ApiAndScreenDetected(getContext(),
                 SWUtil.toHostAppPackageName(device.getName()));
         if (smartWatch2Supported) {
+            /* SW2 is not support CONTROL_STOP_VIBRATE_INTENT. */
             MessageUtils.setNotSupportActionError(response);
         } else {
             Intent intent = new Intent(Control.Intents.CONTROL_STOP_VIBRATE_INTENT);
-            sendToHostApp(intent, deviceId);
+            sendToHostApp(intent, serviceId);
             setResult(response, DConnectMessage.RESULT_OK);
         }
         return true;
@@ -120,10 +121,10 @@ public class SWVibrationProfile extends VibrationProfile {
      * @param onDuration 振動時間
      * @param offDuration 振動しない時間
      * @param repeats 繰り返し回数
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param response レスポンス
      */
-    protected void intentPut(final int onDuration, final int offDuration, final int repeats, final String deviceId,
+    protected void intentPut(final int onDuration, final int offDuration, final int repeats, final String serviceId,
             final Intent response) {
         if (onDuration <= 0) {
             return;
@@ -139,16 +140,16 @@ public class SWVibrationProfile extends VibrationProfile {
         intent.putExtra(Control.Intents.EXTRA_ON_DURATION, onDURATION);
         intent.putExtra(Control.Intents.EXTRA_OFF_DURATION, offDuration);
         intent.putExtra(Control.Intents.EXTRA_REPEATS, repeats);
-        sendToHostApp(intent, deviceId);
+        sendToHostApp(intent, serviceId);
     }
 
     /**
      * 
      * @param intent インテント
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    protected void sendToHostApp(final Intent intent, final String deviceId) {
-        BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
+    protected void sendToHostApp(final Intent intent, final String serviceId) {
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         String deviceName = device.getName();
         intent.putExtra(Control.Intents.EXTRA_AEA_PACKAGE_NAME, getContext().getPackageName());
         intent.setPackage(SWUtil.toHostAppPackageName(deviceName));

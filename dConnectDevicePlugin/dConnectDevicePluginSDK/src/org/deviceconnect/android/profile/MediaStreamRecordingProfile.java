@@ -95,12 +95,12 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
         if (attribute == null) {
             setUnsupportedError(response);
         } else {
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_MEDIARECORDER)) {
-                result = onGetMediaRecorder(request, response, deviceId);
+                result = onGetMediaRecorder(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_OPTIONS)) {
                 String target = getTarget(request);
-                result = onGetOptions(request, response, deviceId, target);
+                result = onGetOptions(request, response, serviceId, target);
             } else {
                 setUnsupportedError(response);
             }
@@ -118,13 +118,13 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             setUnsupportedError(response);
         } else {
             String target = getTarget(request);
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
 
             if (attribute.equals(ATTRIBUTE_TAKE_PHOTO)) {
-                result = onPostTakePhoto(request, response, deviceId, target);
+                result = onPostTakePhoto(request, response, serviceId, target);
             } else if (attribute.equals(ATTRIBUTE_RECORD)) {
                 Long timeslice = getTimeSlice(request);
-                result = onPostRecord(request, response, deviceId, target, timeslice);
+                result = onPostRecord(request, response, serviceId, target, timeslice);
             } else {
                 setUnsupportedError(response);
             }
@@ -142,33 +142,33 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String target = getTarget(request);
             String sessionKey = getSessionKey(request);
 
             if (attribute.equals(ATTRIBUTE_PAUSE)) {
-                result = onPutPause(request, response, deviceId, target);
+                result = onPutPause(request, response, serviceId, target);
             } else if (attribute.equals(ATTRIBUTE_RESUME)) {
-                result = onPutResume(request, response, deviceId, target);
+                result = onPutResume(request, response, serviceId, target);
             } else if (attribute.equals(ATTRIBUTE_STOP)) {
-                result = onPutStop(request, response, deviceId, target);
+                result = onPutStop(request, response, serviceId, target);
             } else if (attribute.equals(ATTRIBUTE_MUTETRACK)) {
-                result = onPutMuteTrack(request, response, deviceId, target);
+                result = onPutMuteTrack(request, response, serviceId, target);
             } else if (attribute.equals(ATTRIBUTE_UNMUTETRACK)) {
-                result = onPutUnmuteTrack(request, response, deviceId, target);
+                result = onPutUnmuteTrack(request, response, serviceId, target);
             } else if (attribute.equals(ATTRIBUTE_OPTIONS)) {
                 Integer imageWidth = getImageWidth(request);
                 Integer imageHeight = getImageHeight(request);
                 String mimeType = getMIMEType(request);
-                result = onPutOptions(request, response, deviceId, target, imageWidth, imageHeight, mimeType);
+                result = onPutOptions(request, response, serviceId, target, imageWidth, imageHeight, mimeType);
             } else if (attribute.equals(ATTRIBUTE_ON_PHOTO)) {
-                result = onPutOnPhoto(request, response, deviceId, sessionKey);
+                result = onPutOnPhoto(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_RECORDING_CHANGE)) {
-                result = onPutOnRecordingChange(request, response, deviceId, sessionKey);
+                result = onPutOnRecordingChange(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_DATA_AVAILABLE)) {
-                result = onPutOnDataAvailable(request, response, deviceId, sessionKey);
+                result = onPutOnDataAvailable(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_PREVIEW)) {
-                result = onPutPreview(request, response, deviceId);
+                result = onPutPreview(request, response, serviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -187,17 +187,17 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             MessageUtils.setUnknownAttributeError(response);
         } else {
 
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
 
             if (attribute.equals(ATTRIBUTE_ON_PHOTO)) {
-                result = onDeleteOnPhoto(request, response, deviceId, sessionKey);
+                result = onDeleteOnPhoto(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_RECORDING_CHANGE)) {
-                result = onDeleteOnRecordingChange(request, response, deviceId, sessionKey);
+                result = onDeleteOnRecordingChange(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_DATA_AVAILABLE)) {
-                result = onDeleteOnDataAvailable(request, response, deviceId, sessionKey);
+                result = onDeleteOnDataAvailable(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_PREVIEW)) {
-                result = onDeletePreview(request, response, deviceId);
+                result = onDeletePreview(request, response, serviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -217,10 +217,10 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -233,11 +233,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param target カメラを識別するID。省略された場合はnull。
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetOptions(final Intent request, final Intent response, final String deviceId,
+    protected boolean onGetOptions(final Intent request, final Intent response, final String serviceId,
             final String target) {
         setUnsupportedError(response);
         return true;
@@ -254,11 +254,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param target 撮影するカメラを識別するID。省略された場合はnull。
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostTakePhoto(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPostTakePhoto(final Intent request, final Intent response, final String serviceId,
             final String target) {
         setUnsupportedError(response);
         return true;
@@ -271,12 +271,12 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param target カメラを識別するID
      * @param timeslice タイムスライス
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostRecord(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPostRecord(final Intent request, final Intent response, final String serviceId,
             final String target, final Long timeslice) {
         setUnsupportedError(response);
         return true;
@@ -294,11 +294,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param target 一時停止するカメラを識別するID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutPause(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutPause(final Intent request, final Intent response, final String serviceId,
             final String target) {
         setUnsupportedError(response);
         return true;
@@ -311,11 +311,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param target 一時停止するカメラを識別するID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutResume(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutResume(final Intent request, final Intent response, final String serviceId,
             final String target) {
         setUnsupportedError(response);
         return true;
@@ -328,11 +328,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param target 一時停止するカメラを識別するID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutStop(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutStop(final Intent request, final Intent response, final String serviceId, 
             final String target) {
         setUnsupportedError(response);
         return true;
@@ -346,11 +346,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param target 一時停止するカメラを識別するID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutMuteTrack(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutMuteTrack(final Intent request, final Intent response, final String serviceId,
             final String target) {
         setUnsupportedError(response);
         return true;
@@ -364,11 +364,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param target 一時停止するカメラを識別するID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutUnmuteTrack(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutUnmuteTrack(final Intent request, final Intent response, final String serviceId,
             final String target) {
         setUnsupportedError(response);
         return true;
@@ -381,14 +381,14 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param target カメラの識別ID
      * @param imageWidth 画像の横幅
      * @param imageHeight 画像の縦幅
      * @param mimeType MIMEタイプ
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOptions(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOptions(final Intent request, final Intent response, final String serviceId,
             final String target, final Integer imageWidth, final Integer imageHeight, final String mimeType) {
         setUnsupportedError(response);
         return true;
@@ -402,11 +402,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnPhoto(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -420,11 +420,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnRecordingChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnRecordingChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -440,11 +440,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnDataAvailable(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnDataAvailable(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -459,10 +459,10 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * </p>
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutPreview(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -479,11 +479,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -497,11 +497,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnRecordingChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnRecordingChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -517,11 +517,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnDataAvailable(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnDataAvailable(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -536,10 +536,10 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * </p>
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeletePreview(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }

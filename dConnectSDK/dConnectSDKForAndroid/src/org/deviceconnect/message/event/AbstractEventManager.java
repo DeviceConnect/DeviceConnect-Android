@@ -111,14 +111,14 @@ public abstract class AbstractEventManager {
      * @throws JSONException JSONの解析に失敗した場合スローされる
      */
     protected void sendEvent(final JSONObject message) throws JSONException {
-        String deviceId = message.getString(DConnectMessage.EXTRA_DEVICE_ID);
+        String serviceId = message.getString(DConnectMessage.EXTRA_SERVICE_ID);
         String profile = message.getString(DConnectMessage.EXTRA_PROFILE);
         String inter = null;
         if (message.has(DConnectMessage.EXTRA_INTERFACE)) {
             inter = message.getString(DConnectMessage.EXTRA_INTERFACE);
         }
         String attribute = message.getString(DConnectMessage.EXTRA_ATTRIBUTE);
-        String key = getKey(profile, inter, attribute, deviceId);
+        String key = getKey(profile, inter, attribute, serviceId);
         EventHandler handler = null;
         synchronized (this) {
             handler = mHandlers.get(key);
@@ -228,28 +228,28 @@ public abstract class AbstractEventManager {
     }
     
     /**
-     * パラメータからdeviceIdを取り出す.
+     * パラメータからserviceIdを取り出す.
      * 
      * @param params パラメータ
-     * @return デバイスID
+     * @return サービスID
      */
-    private String getDeviceId(final List<NameValuePair> params) {
+    private String getServiceId(final List<NameValuePair> params) {
         
-        String deviceId = null;
+        String serviceId = null;
         if (params == null || params.size() == 0) {
             throw new IllegalArgumentException("No parameters. You need to set some parameters to register event.");
         } else {
             for (NameValuePair pair : params) {
-                if (pair.getName().equals(DConnectMessage.EXTRA_DEVICE_ID)) {
-                    deviceId = pair.getValue();
+                if (pair.getName().equals(DConnectMessage.EXTRA_SERVICE_ID)) {
+                    serviceId = pair.getValue();
                     break;
                 }
             }
-            if (deviceId == null) {
-                throw new IllegalArgumentException("No deviceId. Set it.");
+            if (serviceId == null) {
+                throw new IllegalArgumentException("No serviceId. Set it.");
             }
         }
-        return deviceId;
+        return serviceId;
     }
     
     /**
@@ -259,8 +259,8 @@ public abstract class AbstractEventManager {
      * @return キー
      */
     private String getKey(final URIBuilder builder) {
-        String deviceId = getDeviceId(builder.getQueryParams());
-        return getKey(builder.getProfile(), builder.getInterface(), builder.getAttribute(), deviceId);
+        String serviceId = getServiceId(builder.getQueryParams());
+        return getKey(builder.getProfile(), builder.getInterface(), builder.getAttribute(), serviceId);
     }
     
     /**
@@ -269,13 +269,13 @@ public abstract class AbstractEventManager {
      * @param profile プロファイル名
      * @param inter インターフェース名
      * @param attribute アトリビュート名
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return キー
      */
     private String getKey(final String profile, final String inter, final String attribute, 
-            final String deviceId) {
+            final String serviceId) {
         String tmpInter = inter != null ? inter : "";
-        return deviceId + "/" + profile + "/" + tmpInter + "/" + attribute;
+        return serviceId + "/" + profile + "/" + tmpInter + "/" + attribute;
     }
 
     /**

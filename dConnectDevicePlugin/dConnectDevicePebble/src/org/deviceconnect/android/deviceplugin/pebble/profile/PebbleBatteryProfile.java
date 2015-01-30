@@ -63,12 +63,12 @@ public class PebbleBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onGetAll(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+    protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
@@ -103,12 +103,12 @@ public class PebbleBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onGetLevel(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+    protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
@@ -140,12 +140,12 @@ public class PebbleBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onGetCharging(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+    protected boolean onGetCharging(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
@@ -178,12 +178,12 @@ public class PebbleBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onPutOnBatteryChange(final Intent request, final Intent response, 
-            final String deviceId, final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+            final String serviceId, final String sessionKey) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
            return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
@@ -219,12 +219,12 @@ public class PebbleBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onPutOnChargingChange(final Intent request, final Intent response, 
-            final String deviceId, final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+            final String serviceId, final String sessionKey) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
@@ -260,12 +260,12 @@ public class PebbleBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onDeleteOnBatteryChange(final Intent request, final Intent response,
-                          final String deviceId, final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+                          final String serviceId, final String sessionKey) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
@@ -296,12 +296,12 @@ public class PebbleBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onDeleteOnChargingChange(final Intent request, final Intent response, 
-            final String deviceId, final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+            final String serviceId, final String sessionKey) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, ERROR_MESSAGE);
@@ -346,7 +346,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
         Bundle battery = new Bundle();
         setLevel(battery, level.intValue() / TO_PERCENT);
 
-        List<Event> evts = EventManager.INSTANCE.getEventList(service.getDeviceId(),
+        List<Event> evts = EventManager.INSTANCE.getEventList(service.getServiceId(),
                 PROFILE_NAME, null, ATTRIBUTE_ON_BATTERY_CHANGE);
         for (Event evt : evts) {
             Intent intent = EventManager.createEventMessage(evt);
@@ -373,7 +373,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
         Bundle battery = new Bundle();
         setCharging(battery, isCharging);
 
-        List<Event> evts = EventManager.INSTANCE.getEventList(service.getDeviceId(),
+        List<Event> evts = EventManager.INSTANCE.getEventList(service.getServiceId(),
                 PROFILE_NAME, null, ATTRIBUTE_ON_CHARGING_CHANGE);
         for (Event evt : evts) {
             Intent intent = EventManager.createEventMessage(evt);

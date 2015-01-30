@@ -12,7 +12,8 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import android.content.Intent;
@@ -21,7 +22,7 @@ import android.os.Parcelable;
 import android.util.SparseArray;
 
 /**
- * Network Service Discovery用のリクエストクラス.
+ * Service Discovery用のリクエストクラス.
  * <p>
  * 他のリクエストと異なる点として、複数のレスポンスを受け取る事が挙げられる.
  * 結果として、レスポンスタイムアウトの判断基準が普通のリクエストではレスポンスを1つ受け取ったかどうか
@@ -30,7 +31,13 @@ import android.util.SparseArray;
  * </p>
  * @author NTT DOCOMO, INC.
  */
-public class NetworkServiceDiscoveryRequest extends DConnectRequest {
+public class ServiceDiscoveryRequest extends DConnectRequest {
+    /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
+    private static final String PROFILE_NETWORK_SERVICE_DISCOVERY = "networkServiceDiscovery";
+
+    /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
+    private static final String ATTRIBUTE_GET_NETWORK_SERVICES = "getNetworkServices";
+
     /** レスポンスが返ってきた個数. */
     private int mResponseCount;
 
@@ -59,16 +66,16 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
         // エラーが返ってきた場合には、サービスには登録しない。
         int result = response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1);
         if (result == IntentDConnectMessage.RESULT_OK) {
-            // 送られてきたデバイスIDにデバイスプラグインのIDを付加して保存
+            // 送られてきたサービスIDにデバイスプラグインのIDを付加して保存
             Parcelable[] services = response.getParcelableArrayExtra(
-                    NetworkServiceDiscoveryProfile.PARAM_SERVICES);
+                    ServiceDiscoveryProfile.PARAM_SERVICES);
             if (services != null) {
                 DevicePlugin plugin = mRequestCodeArray.get(requestCode);
                 for (Parcelable p : services) {
                     Bundle b = (Bundle) p;
-                    String id = b.getString(NetworkServiceDiscoveryProfile.PARAM_ID);
-                    b.putString(NetworkServiceDiscoveryProfile.PARAM_ID, 
-                            mPluginMgr.appendDeviceId(plugin, id));
+                    String id = b.getString(ServiceDiscoveryProfile.PARAM_ID);
+                    b.putString(ServiceDiscoveryProfile.PARAM_ID, 
+                            mPluginMgr.appendServiceId(plugin, id));
                     mServices.add(b);
                 }
                 mRequestCodeArray.remove(requestCode);
@@ -101,6 +108,11 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
 
         // 送信用のIntentを作成
         Intent request = createRequestMessage(mRequest, null);
+
+        // プラグイン側のI/Fに変換
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, PROFILE_NETWORK_SERVICE_DISCOVERY);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_GET_NETWORK_SERVICES);
+
         for (int i = 0; i < plugins.size(); i++) {
             DevicePlugin plugin = plugins.get(i);
 
@@ -134,7 +146,7 @@ public class NetworkServiceDiscoveryRequest extends DConnectRequest {
         mResponse = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
         mResponse.putExtra(IntentDConnectMessage.EXTRA_RESULT,
                 IntentDConnectMessage.RESULT_OK);
-        mResponse.putExtra(NetworkServiceDiscoveryProfile.PARAM_SERVICES,
+        mResponse.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES,
                 mServices.toArray(new Bundle[mServices.size()]));
 
         // レスポンスを返却する

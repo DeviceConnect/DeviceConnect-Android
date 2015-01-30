@@ -130,12 +130,12 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
      */
     private void createClient(final Intent request, final Intent response) {
         String packageName = request.getStringExtra(AuthorizationProfile.PARAM_PACKAGE);
-        String deviceId = request.getStringExtra(DConnectProfile.PARAM_DEVICE_ID);
+        String serviceId = request.getStringExtra(DConnectProfile.PARAM_SERVICE_ID);
         if (packageName == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
             // Local OAuthでクライアント作成
-            PackageInfoOAuth packageInfo = new PackageInfoOAuth(packageName, deviceId);
+            PackageInfoOAuth packageInfo = new PackageInfoOAuth(packageName, serviceId);
             try {
                 ClientData client = LocalOAuth2Main.createClient(packageInfo);
                 if (client != null) {
@@ -164,7 +164,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
      */
     private void getAccessToken(final Intent request, final Intent response) 
             throws AuthorizatonException, UnsupportedEncodingException {
-        String deviceId = request.getStringExtra(DConnectMessage.EXTRA_DEVICE_ID);
+        String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String clientId = request.getStringExtra(AuthorizationProfile.PARAM_CLIENT_ID);
         String grantType = request.getStringExtra(AuthorizationProfile.PARAM_GRANT_TYPE);
         String[] scopes = parseScopes(request.getStringExtra(AuthorizationProfile.PARAM_SCOPE));
@@ -175,9 +175,9 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         }
 
         // シグネイチャの確認
-        if (LocalOAuth2Main.checkSignature(signature, clientId, grantType, deviceId, scopes)) {
+        if (LocalOAuth2Main.checkSignature(signature, clientId, grantType, serviceId, scopes)) {
             // TODO _typeからアプリorデバイスプラグインかを判別できる？
-            ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(getContext()).deviceId(deviceId)
+            ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(getContext()).serviceId(serviceId)
                     .clientId(clientId).grantType(grantType).scopes(scopes).applicationName(applicationName)
                     .isForDevicePlugin(true) 
                     .build();

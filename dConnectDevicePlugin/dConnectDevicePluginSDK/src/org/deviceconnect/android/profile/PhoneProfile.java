@@ -50,7 +50,7 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
         boolean result = true;
 
         if (ATTRIBUTE_CALL.equals(attribute)) {
-            result = onPostCall(request, response, getDeviceID(request), getPhoneNumber(request));
+            result = onPostCall(request, response, getServiceID(request), getPhoneNumber(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -66,11 +66,11 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_SET)) {
-                result = onPutSet(request, response, deviceId, getMode(request));
+                result = onPutSet(request, response, serviceId, getMode(request));
             } else if (attribute.equals(ATTRIBUTE_ON_CONNECT)) {
-                result = onPutOnConnect(request, response, deviceId, getSessionKey(request));
+                result = onPutOnConnect(request, response, serviceId, getSessionKey(request));
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -88,7 +88,7 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
             MessageUtils.setUnknownAttributeError(response);
         } else {
             if (attribute.equals(ATTRIBUTE_ON_CONNECT)) {
-                result = onDeleteOnConnect(request, response, getDeviceID(request), getSessionKey(request));
+                result = onDeleteOnConnect(request, response, getServiceID(request), getSessionKey(request));
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -108,11 +108,11 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param phoneNumber 発信先の電話番号
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostCall(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPostCall(final Intent request, final Intent response, final String serviceId, 
             final String phoneNumber) {
         setUnsupportedError(response);
         return true;
@@ -130,11 +130,11 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param mode 電話のモード
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutSet(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutSet(final Intent request, final Intent response, final String serviceId,
             final PhoneMode mode) {
         setUnsupportedError(response);
         return true;
@@ -148,11 +148,11 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnConnect(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnConnect(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -170,11 +170,11 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnConnect(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteOnConnect(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         setUnsupportedError(response);
         return true;

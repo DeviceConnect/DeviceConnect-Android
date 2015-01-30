@@ -10,8 +10,8 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants.NetworkType;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -33,10 +33,10 @@ public final class SWUtil {
     /**
      * ペアリング済みのBluetoothデバイス一覧上で指定されたデバイスを検索する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return BluetoothDevice 指定されたデバイスがペアリング中であれば対応する{@link BluetoothDevice}、そうでない場合はnull
      */
-    public static BluetoothDevice findSmartWatch(final String deviceId) {
+    public static BluetoothDevice findSmartWatch(final String serviceId) {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         if (adapter == null) {
             return null;
@@ -46,8 +46,8 @@ public final class SWUtil {
             for (BluetoothDevice device : bondedDevices) {
                 String deviceName = device.getName();
                 if (deviceName.startsWith(SWConstants.DEVICE_NAME_PREFIX)) {
-                    String otherDeviceId = device.getAddress().replace(":", "").toLowerCase(Locale.ENGLISH);
-                    if (otherDeviceId.equals(deviceId)) {
+                    String otherServiceId = device.getAddress().replace(":", "").toLowerCase(Locale.ENGLISH);
+                    if (otherServiceId.equals(serviceId)) {
                         return device;
                     }
                 }
@@ -65,12 +65,12 @@ public final class SWUtil {
     public static Bundle toBundle(final BluetoothDevice boundedDevice) {
 
         String address = boundedDevice.getAddress();
-        String deviceId = address.replace(":", "").toLowerCase(Locale.ENGLISH);
+        String serviceId = address.replace(":", "").toLowerCase(Locale.ENGLISH);
         Bundle result = new Bundle();
-        result.putString(NetworkServiceDiscoveryProfile.PARAM_ID, deviceId);
-        result.putString(NetworkServiceDiscoveryProfile.PARAM_NAME, boundedDevice.getName());
-        result.putString(NetworkServiceDiscoveryProfile.PARAM_TYPE, NetworkType.BLUETOOTH.getValue());
-        result.putBoolean(NetworkServiceDiscoveryProfile.PARAM_ONLINE, true);
+        result.putString(ServiceDiscoveryProfile.PARAM_ID, serviceId);
+        result.putString(ServiceDiscoveryProfile.PARAM_NAME, boundedDevice.getName());
+        result.putString(ServiceDiscoveryProfile.PARAM_TYPE, NetworkType.BLUETOOTH.getValue());
+        result.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
 
         return result;
     }

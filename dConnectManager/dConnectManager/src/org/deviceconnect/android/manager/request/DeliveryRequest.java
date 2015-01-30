@@ -61,9 +61,9 @@ public class DeliveryRequest extends LocalOAuthRequest {
                     // クライアントIDが発見できなかった場合は、dConnectManagerとデバイスプラグインで
                     // 一致していないので、dConnectManagerのローカルに保存しているclientIdを削除
                     // してから、再度デバイスプラグインにクライアントIDの作成を要求を行う.
-                    String deviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_DEVICE_ID);
-                    if (deviceId != null) {
-                        mLocalOAuth.deleteOAuthData(deviceId);
+                    String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
+                    if (serviceId != null) {
+                        mLocalOAuth.deleteOAuthData(serviceId);
                     }
                     executeRequest();
                 } else if (mRetryCount < MAX_RETRY_COUNT 

@@ -64,17 +64,17 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
         String attribute = getAttribute(request);
         boolean result = true;
 
-        String deviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         if (attribute == null) {
-            result = onGetAll(request, response, deviceId);
+            result = onGetAll(request, response, serviceId);
         } else if (attribute.equals(ATTRIBUTE_CHARGING)) {
-            result = onGetCharging(request, response, deviceId);
+            result = onGetCharging(request, response, serviceId);
         } else if (attribute.equals(ATTRIBUTE_CHARGING_TIME)) {
-            result = onGetChargingTime(request, response, deviceId);
+            result = onGetChargingTime(request, response, serviceId);
         } else if (attribute.equals(ATTRIBUTE_DISCHARGING_TIME)) {
-            result = onGetDischargingTime(request, response, deviceId);
+            result = onGetDischargingTime(request, response, serviceId);
         } else if (attribute.equals(ATTRIBUTE_LEVEL)) {
-            result = onGetLevel(request, response, deviceId);
+            result = onGetLevel(request, response, serviceId);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -92,13 +92,13 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
             MessageUtils.setUnknownAttributeError(response);
         } else {
 
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
 
             if (attribute.equals(ATTRIBUTE_ON_CHARGING_CHANGE)) {
-                result = onPutOnChargingChange(request, response, deviceId, sessionKey);
+                result = onPutOnChargingChange(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_BATTERY_CHANGE)) {
-                result = onPutOnBatteryChange(request, response, deviceId, sessionKey);
+                result = onPutOnBatteryChange(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -115,13 +115,13 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
 
             if (attribute.equals(ATTRIBUTE_ON_CHARGING_CHANGE)) {
-                result = onDeleteOnChargingChange(request, response, deviceId, sessionKey);
+                result = onDeleteOnChargingChange(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_BATTERY_CHANGE)) {
-                result = onDeleteOnBatteryChange(request, response, deviceId, sessionKey);
+                result = onDeleteOnBatteryChange(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -141,10 +141,10 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetAll(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -157,10 +157,10 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetCharging(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetCharging(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -173,10 +173,10 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetDischargingTime(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetDischargingTime(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -189,10 +189,10 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetChargingTime(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetChargingTime(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -205,10 +205,10 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetLevel(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -225,11 +225,11 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnChargingChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnChargingChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -243,11 +243,11 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnChargingChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnChargingChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -265,11 +265,11 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnBatteryChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnBatteryChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -283,11 +283,11 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnBatteryChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnBatteryChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;

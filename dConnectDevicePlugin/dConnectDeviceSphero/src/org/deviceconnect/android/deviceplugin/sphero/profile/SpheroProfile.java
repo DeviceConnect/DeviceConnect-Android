@@ -200,10 +200,10 @@ public class SpheroProfile extends DConnectProfile {
             return true;
         }
 
-        String deviceId = getDeviceID(request);
-        DeviceInfo device = SpheroManager.INSTANCE.getDevice(deviceId);
+        String serviceId = getServiceID(request);
+        DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         }
 
@@ -273,8 +273,8 @@ public class SpheroProfile extends DConnectProfile {
             break;
         }
 
-        String deviceId = getDeviceID(request);
-        DeviceInfo device = SpheroManager.INSTANCE.getDevice(deviceId);
+        String serviceId = getServiceID(request);
+        DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
 
         if (removedEvent) {
             switch (type) {
@@ -286,7 +286,7 @@ public class SpheroProfile extends DConnectProfile {
                 break;
             case TYPE_COL:
                 List<Event> events = EventManager.INSTANCE.getEventList(
-                        deviceId, PROFILE_NAME, 
+                        serviceId, PROFILE_NAME, 
                         INTER_COLLISION, ATTR_ON_COLLISION);
                 
                 if (device != null && events.size() == 0) {

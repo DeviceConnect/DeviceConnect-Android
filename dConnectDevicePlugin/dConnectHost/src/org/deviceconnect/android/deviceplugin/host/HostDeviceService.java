@@ -31,7 +31,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostFileDescriptorPro
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRecordingProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostNetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostPhoneProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostProximityProfile;
@@ -49,7 +49,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.android.profile.FileDescriptorProfile;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
@@ -106,8 +106,8 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     /** SensorManager. */
     private SensorManager mSensorManagerProximity;
 
-    /** DeviceID. */
-    private String mDeviceId;
+    /** ServiceID. */
+    private String mServiceId;
 
     /** バッテリー関連の処理と値処理. */
     private HostBatteryManager mHostBatteryManager;
@@ -175,7 +175,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         String action = intent.getAction();
         if (action.equals("android.intent.action.NEW_OUTGOING_CALL")) {
             // Phone
-            List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId,
+            List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
                     HostPhoneProfile.PROFILE_NAME,
                     null,
                     HostPhoneProfile.ATTRIBUTE_ON_CONNECT);
@@ -194,7 +194,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
                 || WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
             // Wifi
-            List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId,
+            List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
                     HostConnectProfile.PROFILE_NAME,
                     null,
                     HostConnectProfile.ATTRIBUTE_ON_WIFI_CHANGE);
@@ -211,7 +211,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             }
             return START_STICKY;
         } else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-            List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId,
+            List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
                     HostConnectProfile.PROFILE_NAME,
                     null,
                     HostConnectProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
@@ -278,7 +278,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                     || Intent.ACTION_BATTERY_OKAY.equals(action)) {
                 // バッテリーが変化した時
                 mHostBatteryManager.setBatteryRequest(intent);
-                List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId, HostBatteryProfile.PROFILE_NAME,
+                List<Event> events = EventManager.INSTANCE.getEventList(mServiceId, HostBatteryProfile.PROFILE_NAME,
                         null, HostBatteryProfile.ATTRIBUTE_ON_BATTERY_CHANGE);
 
                 for (int i = 0; i < events.size(); i++) {
@@ -305,7 +305,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             if (Intent.ACTION_POWER_CONNECTED.equals(action) || Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
                 // バッテリーが充電された時
                 mHostBatteryManager.setBatteryRequest(intent);
-                List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId, HostBatteryProfile.PROFILE_NAME,
+                List<Event> events = EventManager.INSTANCE.getEventList(mServiceId, HostBatteryProfile.PROFILE_NAME,
                         null, HostBatteryProfile.ATTRIBUTE_ON_CHARGING_CHANGE);
 
                 for (int i = 0; i < events.size(); i++) {
@@ -331,17 +331,17 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new HostNetworkServiceDiscoveryProfile();
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new HostServiceDiscoveryProfile();
     }
 
     /**
-     * DeviceIDを設定.
+     * ServiceIDを設定.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void setDeviceId(final String deviceId) {
-        mDeviceId = deviceId;
+    public void setServiceId(final String serviceId) {
+        mServiceId = serviceId;
     }
 
     /**
@@ -406,12 +406,12 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * イベントの登録.
      * 
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      */
-    public void registerDeviceOrientationEvent(final Intent response, final String deviceId, final String sessionKey) {
+    public void registerDeviceOrientationEvent(final Intent response, final String serviceId, final String sessionKey) {
 
-        mDeviceId = deviceId;
+        mServiceId = serviceId;
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         List<Sensor> sensors = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
 
@@ -438,12 +438,12 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * イベントの登録.
      * 
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      */
-    public void registerPromityEvent(final Intent response, final String deviceId, final String sessionKey) {
+    public void registerPromityEvent(final Intent response, final String serviceId, final String sessionKey) {
 
-        mDeviceId = deviceId;
+        mServiceId = serviceId;
         mSensorManagerProximity = (SensorManager) getSystemService(SENSOR_SERVICE);
         List<Sensor> sensors = mSensorManagerProximity.getSensorList(Sensor.TYPE_PROXIMITY);
 
@@ -512,7 +512,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             orientation.putLong(DeviceOrientationProfile.PARAM_INTERVAL, 0);
             DeviceOrientationProfile.setInterval(orientation, interval);
 
-            List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId, DeviceOrientationProfile.PROFILE_NAME,
+            List<Event> events = EventManager.INSTANCE.getEventList(mServiceId, DeviceOrientationProfile.PROFILE_NAME,
                     null, DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
 
             for (int i = 0; i < events.size(); i++) {
@@ -564,8 +564,8 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     /** FileDescriptorの開いているファイルのPath. */
     private String mFileDescriptorPath = "";
 
-    /** FileDescripor管理用DeviceId. */
-    private String mFileDescriptorDeviceId = "";
+    /** FileDescripor管理用ServiceId. */
+    private String mFileDescriptorServiceId = "";
 
     /** File mode. */
     private Flag mFlag = null;
@@ -586,11 +586,11 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * ファイルを開く.
      * 
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path パス
      * @param flag ファイルが開かれているかどうかのフラグ
      */
-    public void openFile(final Intent response, final String deviceId, final String path, final Flag flag) {
+    public void openFile(final Intent response, final String serviceId, final String path, final Flag flag) {
 
         if (!mFileOpenFlag || checkUpdate()) {
             try {
@@ -649,12 +649,12 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * ファイルに書き込みする.
      * 
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path パス
      * @param data データ
      * @param position 書き込みポイント
      */
-    public void writeDataToFile(final Intent response, final String deviceId, final String path, final byte[] data,
+    public void writeDataToFile(final Intent response, final String serviceId, final String path, final byte[] data,
             final Long position) {
         int pos = 0;
         if (position != null) {
@@ -700,12 +700,12 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * ファイルを読む.
      * 
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path パス
      * @param position 書き込みポジション
      * @param length 長さ
      */
-    public void readFile(final Intent response, final String deviceId, final String path, final long position,
+    public void readFile(final Intent response, final String serviceId, final String path, final long position,
             final long length) {
         if (position < 0) {
             MessageUtils.setInvalidRequestParameterError(response, "invalid position");
@@ -753,10 +753,10 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * Fileを閉じる.
      * 
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param path パス
      */
-    public void closeFile(final Intent response, final String deviceId, final String path) {
+    public void closeFile(final Intent response, final String serviceId, final String path) {
 
         // fileNameが一致した場合のみ閉じる
         if (mFileOpenFlag && mFileName.equals(path)) {
@@ -785,11 +785,11 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     /**
      * OnWatchFileEventの登録.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void registerFileDescriptorOnWatchfileEvent(final String deviceId) {
+    public void registerFileDescriptorOnWatchfileEvent(final String serviceId) {
         onWatchfileEventFlag = true;
-        mFileDescriptorDeviceId = deviceId;
+        mFileDescriptorServiceId = serviceId;
     }
 
     /**
@@ -805,7 +805,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     public void sendFileDescriptorOnWatchfileEvent() {
         if (onWatchfileEventFlag) {
             List<Event> events = EventManager.INSTANCE.getEventList(
-                    mFileDescriptorDeviceId,
+                    mFileDescriptorServiceId,
                     HostFileDescriptorProfile.PROFILE_NAME,
                     null,
                     HostFileDescriptorProfile.ATTRIBUTE_ON_WATCH_FILE);
@@ -967,10 +967,10 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * onStatusChange Eventの登録.
      * 
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void registerOnStatusChange(final Intent response, final String deviceId) {
-        mDeviceId = deviceId;
+    public void registerOnStatusChange(final Intent response, final String serviceId) {
+        mServiceId = serviceId;
         onStatusChangeEventFlag = true;
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Register OnStatusChange event");
@@ -997,7 +997,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     public void sendOnStatusChangeEvent(final String status) {
 
         if (onStatusChangeEventFlag) {
-            List<Event> events = EventManager.INSTANCE.getEventList(mDeviceId,
+            List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
                     MediaPlayerProfile.PROFILE_NAME,
                     null,
                     MediaPlayerProfile.ATTRIBUTE_ON_STATUS_CHANGE);
@@ -1487,10 +1487,10 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * onClickの登録.
      * 
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      */
-    public void registerOnConnect(final Intent response, final String deviceId, final String sessionKey) {
+    public void registerOnConnect(final Intent response, final String serviceId, final String sessionKey) {
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Register onClick event");
         sendBroadcast(response);
@@ -1500,10 +1500,10 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
      * onClickの削除.
      * 
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      */
-    public void unregisterOnConnect(final Intent response, final String deviceId, final String sessionKey) {
+    public void unregisterOnConnect(final Intent response, final String serviceId, final String sessionKey) {
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Unregister onClick event");
         sendBroadcast(response);

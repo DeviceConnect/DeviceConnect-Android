@@ -60,7 +60,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -88,7 +88,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_MIME_TYPE, "text/plain");
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -118,7 +118,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
@@ -154,7 +154,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(FileProfileConstants.PARAM_PATH, "/test/test.png");
         builder.addParameter(FileProfileConstants.PARAM_FILE_TYPE,
@@ -213,7 +213,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -242,7 +242,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -257,7 +257,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -286,7 +286,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -301,7 +301,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(FileProfileConstants.PARAM_FORCE, "true");
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());

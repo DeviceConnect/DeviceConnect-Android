@@ -162,24 +162,24 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
     /**
      * 接続のブロードキャストを投げる.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void sendConnectBroadcast(final String deviceId) {
+    public void sendConnectBroadcast(final String serviceId) {
         Intent i = new Intent(this, SpheroDeviceService.class);
         i.setAction(SpheroDeviceService.ACTION_CONNECT);
-        i.putExtra(SpheroDeviceService.EXTRA_ID, deviceId);
+        i.putExtra(SpheroDeviceService.EXTRA_ID, serviceId);
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
     
     /**
      * 接続解除のブロードキャストを投げる.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void sendDisonnectBroadcast(final String deviceId) {
+    public void sendDisonnectBroadcast(final String serviceId) {
         Intent i = new Intent(this, SpheroDeviceService.class);
         i.setAction(SpheroDeviceService.ACTION_DISCONNECT);
-        i.putExtra(SpheroDeviceService.EXTRA_ID, deviceId);
+        i.putExtra(SpheroDeviceService.EXTRA_ID, serviceId);
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
     

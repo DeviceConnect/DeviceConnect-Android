@@ -21,8 +21,8 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity
  * @author NTT DOCOMO, INC.
  */
 public class SonyCameraSettingActivity extends DConnectSettingPageFragmentActivity {
-    /** QX10のデバイスID. */
-    private String mDeviceId;
+    /** QX10のサービスID. */
+    private String mServiceId;
     /** 全Fragmentページ数. */
     private static final int PAGE_COUNTER = 3;
 
@@ -50,21 +50,21 @@ public class SonyCameraSettingActivity extends DConnectSettingPageFragmentActivi
     }
 
     /**
-     * デバイスIDを取得する.
+     * サービスIDを取得する.
      * 
-     * @return デバイスID
+     * @return サービスID
      */
-    public String getDeviceId() {
-        return mDeviceId;
+    public String getServiceId() {
+        return mServiceId;
     }
 
     /**
-     * デバイスIDを設定する.
+     * サービスIDを設定する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void setDeviceId(final String deviceId) {
-        mDeviceId = deviceId;
+    public void setServiceId(final String serviceId) {
+        mServiceId = serviceId;
     }
 
     @Override

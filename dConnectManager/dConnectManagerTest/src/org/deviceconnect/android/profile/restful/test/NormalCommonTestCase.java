@@ -47,7 +47,7 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /battery?deviceId&accessToken=xxxx
+     * Path: /battery?serviceId&accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -65,7 +65,7 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
         builder.append("?key1=" + URLEncoder.encode(value, "UTF-8"));
         builder.append("&key2=" + URLEncoder.encode(value, "UTF-8"));
         builder.append("&");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         builder.append("&key3=" + URLEncoder.encode(value, "UTF-8"));
@@ -89,7 +89,7 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /battery?deviceId&accessToken=xxxx
+     * Path: /battery?serviceId&accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -104,13 +104,13 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/unique/test/ping");
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=unknown");
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=unknown");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpPost request = new HttpPost(builder.toString());
             List<NameValuePair> params = new ArrayList<NameValuePair>();
-            params.add(new BasicNameValuePair(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId()));
+            params.add(new BasicNameValuePair(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId()));
             params.add(new BasicNameValuePair(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken()));
             request.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
             JSONObject root = sendRequest(request);
@@ -125,7 +125,7 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /battery?deviceId&accessToken=xxxx
+     * Path: /battery?serviceId&accessToken=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -140,13 +140,13 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/unique/test/ping");
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=unknown");
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=unknown");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
             HttpPut request = new HttpPut(builder.toString());
             List<NameValuePair> params = new ArrayList<NameValuePair>();
-            params.add(new BasicNameValuePair(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId()));
+            params.add(new BasicNameValuePair(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId()));
             params.add(new BasicNameValuePair(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken()));
             request.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
             JSONObject root = sendRequest(request);

@@ -32,15 +32,15 @@ public class HostPhoneProfile extends PhoneProfile {
     private static final int ERROR_VALUE_IS_NULL = 100;
 
     @Override
-    protected boolean onPostCall(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPostCall(final Intent request, final Intent response, final String serviceId,
             final String phoneNumber) {
 
         mLogger.entering(this.getClass().getName(), "onPostReceive", new Object[] { request, response });
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             if (phoneNumber != null) {
                 try {
@@ -65,12 +65,12 @@ public class HostPhoneProfile extends PhoneProfile {
     }
 
     @Override
-    protected boolean onPutSet(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutSet(final Intent request, final Intent response, final String serviceId,
             final PhoneMode mode) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             this.getContext();
             // AudioManager
@@ -97,13 +97,13 @@ public class HostPhoneProfile extends PhoneProfile {
     }
 
     @Override
-    protected boolean onPutOnConnect(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnConnect(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -111,7 +111,7 @@ public class HostPhoneProfile extends PhoneProfile {
 
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
-            ((HostDeviceService) getContext()).setDeviceId(deviceId);
+            ((HostDeviceService) getContext()).setServiceId(serviceId);
 
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -126,12 +126,12 @@ public class HostPhoneProfile extends PhoneProfile {
     }
 
     @Override
-    protected boolean onDeleteOnConnect(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnConnect(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -149,26 +149,26 @@ public class HostPhoneProfile extends PhoneProfile {
     }
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        String regex = HostNetworkServiceDiscoveryProfile.DEVICE_ID;
+    private boolean checkServiceId(final String serviceId) {
+        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
         Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(deviceId);
+        Matcher match = mPattern.matcher(serviceId);
 
         return match.find();
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**
@@ -176,8 +176,8 @@ public class HostPhoneProfile extends PhoneProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 
     /**

@@ -79,14 +79,14 @@ public final class MessageUtils {
     }
 
     /**
-     * リクエストからデバイスIDを取得する.
+     * リクエストからサービスIDを取得する.
      * 
      * @param request リクエストパラメータ
-     * @return デバイスID
+     * @return サービスID
      */
-    public static String getDeviceID(final Intent request) {
-        String deviceid = request.getExtras().getString(DConnectMessage.EXTRA_DEVICE_ID);
-        return deviceid;
+    public static String getServiceID(final Intent request) {
+        String serviceId = request.getExtras().getString(DConnectMessage.EXTRA_SERVICE_ID);
+        return serviceId;
     }
 
     /**
@@ -235,41 +235,41 @@ public final class MessageUtils {
     }
 
     /**
-     * レスポンスのエラーコードに デバイスIDが設定されていない を設定する.
+     * レスポンスのエラーコードに サービスIDが設定されていない を設定する.
      * 
      * @param response レスポンスパラメータ
      */
-    public static void setEmptyDeviceIdError(final Intent response) {
-        setError(response, ErrorCode.EMPTY_DEVICE_ID);
+    public static void setEmptyServiceIdError(final Intent response) {
+        setError(response, ErrorCode.EMPTY_SERVICE_ID);
     }
 
     /**
-     * レスポンスのエラーコードに デバイスIDが設定されていない を設定し、指定されたエラーメッセージを設定する.
+     * レスポンスのエラーコードに サービスIDが設定されていない を設定し、指定されたエラーメッセージを設定する.
      * 
      * @param response レスポンスパラメータ
      * @param message エラーメッセージ
      */
-    public static void setEmptyDeviceIdError(final Intent response, final String message) {
-        setError(response, ErrorCode.EMPTY_DEVICE_ID, message);
+    public static void setEmptyServiceIdError(final Intent response, final String message) {
+        setError(response, ErrorCode.EMPTY_SERVICE_ID, message);
     }
 
     /**
-     * レスポンスのエラーコードに デバイス発見失敗 を設定する.
+     * レスポンスのエラーコードに サービス発見失敗 を設定する.
      * 
      * @param response レスポンスパラメータ
      */
-    public static void setNotFoundDeviceError(final Intent response) {
-        setError(response, ErrorCode.NOT_FOUND_DEVICE);
+    public static void setNotFoundServiceError(final Intent response) {
+        setError(response, ErrorCode.NOT_FOUND_SERVICE);
     }
 
     /**
-     * レスポンスのエラーコードに デバイス発見失敗 を設定し、指定されたエラーメッセージを設定する.
+     * レスポンスのエラーコードに サービス発見失敗 を設定し、指定されたエラーメッセージを設定する.
      * 
      * @param response レスポンスパラメータ
      * @param message エラーメッセージ
      */
-    public static void setNotFoundDeviceError(final Intent response, final String message) {
-        setError(response, ErrorCode.NOT_FOUND_DEVICE, message);
+    public static void setNotFoundServiceError(final Intent response, final String message) {
+        setError(response, ErrorCode.NOT_FOUND_SERVICE, message);
     }
 
     /**

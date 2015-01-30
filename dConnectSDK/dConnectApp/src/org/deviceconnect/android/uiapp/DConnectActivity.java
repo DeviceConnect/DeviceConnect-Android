@@ -35,7 +35,7 @@ import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
@@ -98,7 +98,7 @@ public class DConnectActivity extends FragmentPagerActivity {
         FileProfileConstants.PROFILE_NAME,
         MediaPlayerProfileConstants.PROFILE_NAME,
         MediaStreamRecordingProfileConstants.PROFILE_NAME,
-        NetworkServiceDiscoveryProfileConstants.PROFILE_NAME,
+        ServiceDiscoveryProfileConstants.PROFILE_NAME,
         NotificationProfileConstants.PROFILE_NAME,
         PhoneProfileConstants.PROFILE_NAME,
         ProximityProfileConstants.PROFILE_NAME,
@@ -405,8 +405,7 @@ public class DConnectActivity extends FragmentPagerActivity {
 
             try {
                 URIBuilder builder = new URIBuilder();
-                builder.setProfile(NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
-                builder.setAttribute(NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
+                builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
 
                 SharedPreferences prefs = PreferenceManager
                         .getDefaultSharedPreferences(getApplicationContext());
@@ -453,14 +452,14 @@ public class DConnectActivity extends FragmentPagerActivity {
             }
 
             List<Object> services = message.getList(
-                    NetworkServiceDiscoveryProfileConstants.PARAM_SERVICES);
+                    ServiceDiscoveryProfileConstants.PARAM_SERVICES);
             if (services != null) {
                 for (Object object: services) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> service = (Map<String, Object>) object;
                     SmartDevice device = new SmartDevice(
-                        service.get(NetworkServiceDiscoveryProfileConstants.PARAM_ID).toString(),
-                        service.get(NetworkServiceDiscoveryProfileConstants.PARAM_NAME).toString());
+                        service.get(ServiceDiscoveryProfileConstants.PARAM_ID).toString(),
+                        service.get(ServiceDiscoveryProfileConstants.PARAM_NAME).toString());
                     devices.add(device);
                 }
             }

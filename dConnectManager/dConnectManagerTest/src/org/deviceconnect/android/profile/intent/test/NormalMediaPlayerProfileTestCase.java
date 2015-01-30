@@ -39,7 +39,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=media
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     mediaId=xxxx
      * </pre>
      * <pre>
@@ -49,7 +49,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutMedia() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         request.putExtra(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
@@ -66,7 +66,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=media
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     mediaId=xxxx
      * </pre>
      * <pre>
@@ -76,7 +76,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetMedia() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         request.putExtra(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
@@ -93,7 +93,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=media_list
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -102,7 +102,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetMediaList() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
 
@@ -118,7 +118,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=play_status
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -127,7 +127,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetPlayStatus() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_PLAY_STATUS);
 
@@ -143,7 +143,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=play
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     pos=xxxx
      * </pre>
      * <pre>
@@ -153,7 +153,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutPlay() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_PLAY);
 
@@ -169,7 +169,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=stop
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     pos=xxxx
      * </pre>
      * <pre>
@@ -179,7 +179,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutStop() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_STOP);
 
@@ -195,7 +195,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=pause
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     pos=xxxx
      * </pre>
      * <pre>
@@ -205,7 +205,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutPause() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_PAUSE);
 
@@ -221,7 +221,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=resume
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     pos=xxxx
      * </pre>
      * <pre>
@@ -231,7 +231,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutResume() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_RESUME);
 
@@ -247,7 +247,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=seek
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     pos=xxxx
      * </pre>
      * <pre>
@@ -257,7 +257,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutSeek() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         request.putExtra(MediaPlayerProfileConstants.PARAM_POS, String.valueOf(0));
@@ -274,7 +274,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=seek
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -283,7 +283,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetSeek() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
 
@@ -299,7 +299,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=volume
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     volume=xxxx
      * </pre>
      * <pre>
@@ -309,7 +309,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutVolume() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         request.putExtra(MediaPlayerProfileConstants.PARAM_VOLUME, TEST_VOLUME);
@@ -326,7 +326,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=volume
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -335,7 +335,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetVolume() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
 
@@ -351,7 +351,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=mute
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -360,7 +360,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutMute() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_MUTE);
 
@@ -376,7 +376,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=mute
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -385,7 +385,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testDeleteMute() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_MUTE);
 
@@ -401,7 +401,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=mute
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -410,7 +410,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetMute() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_MUTE);
 
@@ -426,7 +426,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=onstatuschange
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -435,7 +435,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testPutOnStatusChangePlay() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_ON_STATUS_CHANGE);
@@ -454,7 +454,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      * Extra: 
      *     profile=media_player
      *     attribute=onstatuschange
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -463,7 +463,7 @@ public class NormalMediaPlayerProfileTestCase extends IntentDConnectTestCase
      */
     public void testDeletePlayStatusChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaPlayerProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaPlayerProfileConstants.ATTRIBUTE_ON_STATUS_CHANGE);

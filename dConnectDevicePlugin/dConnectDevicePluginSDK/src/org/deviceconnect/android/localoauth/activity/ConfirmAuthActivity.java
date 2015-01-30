@@ -26,7 +26,7 @@ import android.view.Window;
  * - EXTRA_MESSAGEID :
  * 許可／拒否のステータスを、BindされたServiceにMessage通知する際に使用するメッセージIDを設定する。<br>
  * Messageのarg1にスレッドIDを、arg2に承認ステータス(1なら許可/0なら拒否)を返す。<br>
- * - EXTRA_DEVICEID : デバイスID(デバイスプラグインの場合のみ設定する)<br>
+ * - EXTRA_DEVICEID : サービスID(デバイスプラグインの場合のみ設定する)<br>
  * - EXTRA_IS_FOR_DEVICEPLUGIN : デバイスプラグインの認証確認画面の場合はtrueを、アプリの場合はfalseを設定する。<br>
  * - EXTRA_SERVICE_PACKAGE_NAME : Messageを受信するServiceのパッケージ名.<br>
  * </p>
@@ -49,8 +49,8 @@ public class ConfirmAuthActivity extends Activity {
     /** EXTRA: デバイスプラグイン用の発行？(true: デバイスプラグイン用 / false: アプリ用). */
     public static final String EXTRA_IS_FOR_DEVICEPLUGIN = "isForDeviceplugin";
 
-    /** EXTRA: デバイスID(デバイスプラグインの場合のみ設定する). */
-    public static final String EXTRA_DEVICEID = "deviceId";
+    /** EXTRA: サービスID(デバイスプラグインの場合のみ設定する). */
+    public static final String EXTRA_DEVICEID = "serviceId";
 
     /** 承認を表す定数. */
     public static final int APPROVAL = 1;

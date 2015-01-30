@@ -200,7 +200,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             if (CameraActivity.class.getName().equals(className)) {
                 // カメラアプリがすでに前にある
                 Intent intent = new Intent();
-                intent.setClass(getContext(), CameraActivity.class);
                 intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
                 intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
                 intent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);

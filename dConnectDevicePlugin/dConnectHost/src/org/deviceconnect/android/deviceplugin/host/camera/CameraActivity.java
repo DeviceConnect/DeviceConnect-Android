@@ -60,13 +60,13 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
     private Camera mCamera;
 
     /** カメラの個数. */
-    private int numberOfCameras;
+    private int mNumberOfCameras;
 
     /** カメラの固定. */
-    private int cameraCurrentlyLocked;
+    private int mCameraCurrentlyLocked;
 
     /** デフォルトのカメラID. */
-    private int defaultCameraId;
+    private int mDefaultCameraId;
 
     /** プロセス間通信でつなぐService. */
     private IHostMediaStreamRecordingService mService;
@@ -93,6 +93,16 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
      */
     private boolean mFinishFlag;
 
+    /**
+     * カメラアプリ停止ボタン.
+     */
+    private Button mStopBtn;
+
+    /**
+     * シャッターボタン.
+     */
+    private ImageButton mTakeBtn;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,18 +117,18 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
 
         mPreview = (Preview) findViewById(R.id.preview);
 
-        Button stopBtn = (Button) findViewById(R.id.btn_stop);
-        stopBtn.setOnClickListener(new OnClickListener() {
+        mStopBtn = (Button) findViewById(R.id.btn_stop);
+        mStopBtn.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 checkCloseApplication();
             }
         });
 
-        ImageButton takeBtn = (ImageButton) findViewById(R.id.btn_take_photo);
-        takeBtn.setOnClickListener(new OnClickListener() {
+        mTakeBtn = (ImageButton) findViewById(R.id.btn_take_photo);
+        mTakeBtn.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 takePictureRunnable(null);
             }
         });
@@ -130,18 +140,20 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
                 String name = intent.getStringExtra(CameraConst.EXTRA_NAME);
                 if (CameraConst.EXTRA_NAME_SHUTTER.equals(name)) {
                     mFinishFlag = true;
+                    mTakeBtn.setVisibility(View.GONE);
+                    mStopBtn.setVisibility(View.GONE);
                 }
             }
         }
         // Find the total number of cameras available
-        numberOfCameras = Camera.getNumberOfCameras();
+        mNumberOfCameras = Camera.getNumberOfCameras();
 
         // Find the ID of the default camera
         CameraInfo cameraInfo = new CameraInfo();
-        for (int i = 0; i < numberOfCameras; i++) {
+        for (int i = 0; i < mNumberOfCameras; i++) {
             Camera.getCameraInfo(i, cameraInfo);
             if (cameraInfo.facing == CameraInfo.CAMERA_FACING_BACK) {
-                defaultCameraId = i;
+                mDefaultCameraId = i;
             }
         }
 
@@ -154,7 +166,7 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
 
         // Open the default i.e. the first rear facing camera.
         mCamera = Camera.open();
-        cameraCurrentlyLocked = defaultCameraId;
+        mCameraCurrentlyLocked = mDefaultCameraId;
         mPreview.setCamera(mCamera);
         mCamera.setPreviewCallback(this);
 
@@ -183,6 +195,8 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
         // important to release it when the activity is paused.
         if (mCamera != null) {
             mPreview.setCamera(null);
+            mCamera.stopPreview(); 
+            mCamera.setPreviewCallback(null);
             mCamera.release();
             mCamera = null;
         }
@@ -210,7 +224,7 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
         switch (item.getItemId()) {
         case R.id.switch_cam:
             // check for availability of multiple cameras
-            if (numberOfCameras == 1) {
+            if (mNumberOfCameras == 1) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage(this.getString(R.string.camera_alert)).setNeutralButton("Close", null);
                 AlertDialog alert = builder.create();
@@ -221,16 +235,17 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
             // OK, we have multiple cameras.
             // Release this camera -> cameraCurrentlyLocked
             if (mCamera != null) {
-                mCamera.stopPreview();
                 mPreview.setCamera(null);
+                mCamera.stopPreview();
+                mCamera.setPreviewCallback(null);
                 mCamera.release();
                 mCamera = null;
             }
 
             // Acquire the next camera and request Preview to reconfigure
             // parameters.
-            mCamera = Camera.open((cameraCurrentlyLocked + 1) % numberOfCameras);
-            cameraCurrentlyLocked = (cameraCurrentlyLocked + 1) % numberOfCameras;
+            mCamera = Camera.open((mCameraCurrentlyLocked + 1) % mNumberOfCameras);
+            mCameraCurrentlyLocked = (mCameraCurrentlyLocked + 1) % mNumberOfCameras;
             mPreview.switchCamera(mCamera);
             // Start the preview
             mCamera.startPreview();
@@ -280,15 +295,15 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
     /**
      * 写真撮影用Runnable実行する.
      * 
-     * @param requestid リクエストID
+     * @param requestId リクエストID
      */
-    private void takePictureRunnable(final String requestid) {
+    private void takePictureRunnable(final String requestId) {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 mPreview.takePicture(new Camera.PictureCallback() {
                     @Override
-                    public void onPictureTaken(byte[] data, Camera camera) {
+                    public void onPictureTaken(final byte[] data, final Camera camera) {
                         String fileName = createNewFileName();
                         String pictureUri = null;
                         try {
@@ -300,12 +315,12 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
                         }
 
                         // リクエストIDが登録されていたら、撮影完了後にホストデバイスプラグインへ撮影完了通知を送信する
-                        if (requestid != null) {
+                        if (requestId != null) {
                             Context context = CameraActivity.this;
                             Intent intent = new Intent(CameraConst.SEND_CAMERA_TO_HOSTDP);
                             intent.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
                             intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
-                            intent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
+                            intent.putExtra(CameraConst.EXTRA_REQUESTID, requestId);
                             intent.putExtra(CameraConst.EXTRA_PICTURE_URI, pictureUri);
                             context.sendBroadcast(intent);
                         }
@@ -313,12 +328,25 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
                         if (mFinishFlag) {
                             checkCloseApplication();
                         } else {
-                            mCamera.startPreview();
+                            if (mCamera != null) {
+                                mCamera.startPreview();
+                            }
+                            // 撮影完了したので、ボタンを有効にする
+                            if (mStopBtn != null && mTakeBtn != null) {
+                                mStopBtn.setEnabled(true);
+                                mTakeBtn.setEnabled(true);
+                            }
                         }
                     }
                 });
             }
         }, 2000);
+
+        // 撮影中は、ボタンを無効にする
+        if (mStopBtn != null && mTakeBtn != null) {
+            mStopBtn.setEnabled(false);
+            mTakeBtn.setEnabled(false);
+        }
     }
 
     /**
@@ -368,9 +396,9 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
      * サービスをバインドする.
      */
     private void bindService() {
-        Intent mIntent = new Intent(this, HostDeviceService.class);
-        mIntent.setAction("camera");
-        bindService(mIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        Intent intent = new Intent(this, HostDeviceService.class);
+        intent.setAction("camera");
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     /**
@@ -396,12 +424,12 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
 
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
-        mCamera.setPreviewCallback(null);
+        camera.setPreviewCallback(null);
 
         if (mService != null) {
-            int format = mCamera.getParameters().getPreviewFormat();
-            int width = mCamera.getParameters().getPreviewSize().width;
-            int height = mCamera.getParameters().getPreviewSize().height;
+            int format = camera.getParameters().getPreviewFormat();
+            int width = camera.getParameters().getPreviewSize().width;
+            int height = camera.getParameters().getPreviewSize().height;
     
             YuvImage yuvimage = new YuvImage(data, format, width, height, null);
             Rect rect = new Rect(0, 0, width, height);
@@ -417,6 +445,6 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
             }
         }
 
-        mCamera.setPreviewCallback(this);
+        camera.setPreviewCallback(this);
     }
 }

@@ -50,7 +50,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     private static final int UNIT_SEC = 1000;
 
     /** Mute Status. */
-    private static Boolean mIsMute = false;
+    private static Boolean sIsMute = false;
 
     @Override
     protected boolean onPutPlay(final Intent request, final Intent response, final String serviceId) {
@@ -288,7 +288,8 @@ private String getDisplayNameFromUri(final Uri mUri) {
 }
 
     @Override
-    protected boolean onGetMediaList(Intent request, Intent response, final String serviceId, final String query,
+    protected boolean onGetMediaList(final Intent request, final Intent response,
+            final String serviceId, final String query,
             final String mimeType, final String[] orders, final Integer offset, final Integer limit) {
         if (serviceId == null) {
             createEmptyServiceId(response);
@@ -577,7 +578,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
             manager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-            mIsMute = true;
+            sIsMute = true;
             setResult(response, DConnectMessage.RESULT_OK);
             ((HostDeviceService) getContext()).sendOnStatusChangeEvent("mute");
         }
@@ -593,7 +594,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
             manager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-            mIsMute = false;
+            sIsMute = false;
             setResult(response, DConnectMessage.RESULT_OK);
             ((HostDeviceService) getContext()).sendOnStatusChangeEvent("unmute");
         }
@@ -607,7 +608,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
-            setMute(response, mIsMute);
+            setMute(response, sIsMute);
             setResult(response, DConnectMessage.RESULT_OK);
         }
         return true;

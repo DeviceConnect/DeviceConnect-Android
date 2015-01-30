@@ -60,13 +60,13 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
     private Camera mCamera;
 
     /** カメラの個数. */
-    private int numberOfCameras;
+    private int mNumberOfCameras;
 
     /** カメラの固定. */
-    private int cameraCurrentlyLocked;
+    private int mCameraCurrentlyLocked;
 
     /** デフォルトのカメラID. */
-    private int defaultCameraId;
+    private int mDefaultCameraId;
 
     /** プロセス間通信でつなぐService. */
     private IHostMediaStreamRecordingService mService;
@@ -120,7 +120,7 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
         mStopBtn = (Button) findViewById(R.id.btn_stop);
         mStopBtn.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 checkCloseApplication();
             }
         });
@@ -128,7 +128,7 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
         mTakeBtn = (ImageButton) findViewById(R.id.btn_take_photo);
         mTakeBtn.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 takePictureRunnable(null);
             }
         });
@@ -146,14 +146,14 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
             }
         }
         // Find the total number of cameras available
-        numberOfCameras = Camera.getNumberOfCameras();
+        mNumberOfCameras = Camera.getNumberOfCameras();
 
         // Find the ID of the default camera
         CameraInfo cameraInfo = new CameraInfo();
-        for (int i = 0; i < numberOfCameras; i++) {
+        for (int i = 0; i < mNumberOfCameras; i++) {
             Camera.getCameraInfo(i, cameraInfo);
             if (cameraInfo.facing == CameraInfo.CAMERA_FACING_BACK) {
-                defaultCameraId = i;
+                mDefaultCameraId = i;
             }
         }
 
@@ -166,7 +166,7 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
 
         // Open the default i.e. the first rear facing camera.
         mCamera = Camera.open();
-        cameraCurrentlyLocked = defaultCameraId;
+        mCameraCurrentlyLocked = mDefaultCameraId;
         mPreview.setCamera(mCamera);
         mCamera.setPreviewCallback(this);
 
@@ -224,7 +224,7 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
         switch (item.getItemId()) {
         case R.id.switch_cam:
             // check for availability of multiple cameras
-            if (numberOfCameras == 1) {
+            if (mNumberOfCameras == 1) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage(this.getString(R.string.camera_alert)).setNeutralButton("Close", null);
                 AlertDialog alert = builder.create();
@@ -244,8 +244,8 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
 
             // Acquire the next camera and request Preview to reconfigure
             // parameters.
-            mCamera = Camera.open((cameraCurrentlyLocked + 1) % numberOfCameras);
-            cameraCurrentlyLocked = (cameraCurrentlyLocked + 1) % numberOfCameras;
+            mCamera = Camera.open((mCameraCurrentlyLocked + 1) % mNumberOfCameras);
+            mCameraCurrentlyLocked = (mCameraCurrentlyLocked + 1) % mNumberOfCameras;
             mPreview.switchCamera(mCamera);
             // Start the preview
             mCamera.startPreview();
@@ -303,7 +303,7 @@ public class CameraActivity extends Activity implements Camera.PreviewCallback {
             public void run() {
                 mPreview.takePicture(new Camera.PictureCallback() {
                     @Override
-                    public void onPictureTaken(byte[] data, Camera camera) {
+                    public void onPictureTaken(final byte[] data, final Camera camera) {
                         String fileName = createNewFileName();
                         String pictureUri = null;
                         try {

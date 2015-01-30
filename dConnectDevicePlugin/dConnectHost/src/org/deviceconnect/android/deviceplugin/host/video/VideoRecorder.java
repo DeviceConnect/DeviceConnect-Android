@@ -75,7 +75,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         Button stopBtn = (Button) findViewById(R.id.btn_stop);
         stopBtn.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 finish();
             }
         });
@@ -88,7 +88,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         // レシーバーを登録
         IntentFilter filter = new IntentFilter();
         filter.addAction(VideoConst.SEND_HOSTDP_TO_VIDEO);
-        registerReceiver(myReceiver, filter);
+        registerReceiver(mMyReceiver, filter);
 
         mCamera = getCameraInstance();
         mRecorder = new MediaRecorder();
@@ -136,7 +136,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         }
 
         // レシーバーを削除
-        unregisterReceiver(myReceiver);
+        unregisterReceiver(mMyReceiver);
 
         if (checkVideoFile()) {
             // Content Providerに登録する.
@@ -196,6 +196,9 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         return c;
     }
 
+    /**
+     * Release camera.
+     */
     private synchronized void releaseCamera() {
         if (mCamera != null) {
             try {
@@ -252,7 +255,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
     /**
      * 受信用のReceiver.
      */
-    private BroadcastReceiver myReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver mMyReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             if (intent.getAction().equals(VideoConst.SEND_HOSTDP_TO_VIDEO)) {

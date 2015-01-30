@@ -84,7 +84,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      * - Key: カメラリクエストID - Val: カメラ応答Broadcast 未受信ならnull /
      * 受信済なら画像URI(画像ID)
      */
-    private static Map<String, String> mRequestMap = new ConcurrentHashMap<String, String>();
+    private static Map<String, String> sRequestMap = new ConcurrentHashMap<String, String>();
 
     /**
      * リクエストマップを取得する.
@@ -92,7 +92,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      * @return リクエストマップ
      */
     public static Map<String, String> getRequestMap() {
-        return mRequestMap;
+        return sRequestMap;
     }
 
     @Override
@@ -200,7 +200,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             if (CameraActivity.class.getName().equals(className)) {
                 // カメラアプリがすでに前にある
                 Intent intent = new Intent();
-                intent.setClass(getContext(), CameraActivity.class);
                 intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
                 intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
                 intent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
@@ -219,21 +218,21 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    final long POLLING_WAIT_TIMEOUT = 10000;
-                    final long POLLING_WAIT_TIME = 500;
+                    final long pollingWaitTimeout = 10000;
+                    final long pollingWaitTime = 500;
                     long now = System.currentTimeMillis();
                     try {
                         do {
-                            Thread.sleep(POLLING_WAIT_TIME);
-                        } while (mRequestMap.get(requestid) == null
-                                && System.currentTimeMillis() - now < POLLING_WAIT_TIMEOUT);
+                            Thread.sleep(pollingWaitTime);
+                        } while (sRequestMap.get(requestid) == null
+                                && System.currentTimeMillis() - now < pollingWaitTimeout);
                     } catch (InterruptedException e) {
                         if (BuildConfig.DEBUG) {
                             e.printStackTrace();
                         }
                     }
 
-                    String pictureUri = mRequestMap.remove(requestid);
+                    String pictureUri = sRequestMap.remove(requestid);
                     if (pictureUri == null) {
                         setResult(response, DConnectMessage.RESULT_ERROR);
                         getContext().sendBroadcast(response);
@@ -265,7 +264,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onPutPreview(Intent request, Intent response, String serviceId) {
+    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId) {
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
@@ -302,7 +301,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onDeletePreview(Intent request, Intent response, String serviceId) {
+    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId) {
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;

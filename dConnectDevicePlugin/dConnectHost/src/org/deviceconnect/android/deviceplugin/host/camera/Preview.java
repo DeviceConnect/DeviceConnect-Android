@@ -33,10 +33,6 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
     /** デバック用タグ. */
     public static final String LOG_TAG = "DeviceConnectCamera:Preview";
 
-    /** Debug Tag. */
-    @SuppressWarnings("unused")
-	private static final String TAG = "PluginHost";
-
     /** プレビューを表示するSurfaceView. */
     private SurfaceView mSurfaceView;
     /** SurfaceViewを一時的に保持するホルダー. */
@@ -72,7 +68,12 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         mHolder.addCallback(this);
     }
 
-    public Preview(Context context, AttributeSet attrs) {
+    /**
+     * Preview.
+     * @param context context
+     * @param attrs attributes
+     */
+    public Preview(final Context context, final AttributeSet attrs) {
         super(context, attrs);
 
         mSurfaceView = new SurfaceView(context);
@@ -205,7 +206,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
      * @return 最適なプレビューサイズ
      */
     private Size getOptimalPreviewSize(final List<Size> sizes, final int w, final int h) {
-        final double ASPECT_TOLERANCE = 0.1;
+        final double aspectTolerance = 0.1;
         double targetRatio = (double) w / h;
         if (sizes == null) {
             return null;
@@ -219,7 +220,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         // Try to find an size match aspect ratio and size
         for (Size size : sizes) {
             double ratio = (double) size.width / size.height;
-            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) {
+            if (Math.abs(ratio - targetRatio) > aspectTolerance) {
                 continue;
             }
             if (Math.abs(size.height - targetHeight) < minDiff) {
@@ -244,9 +245,9 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
     /**
      * 写真撮影を開始する.
      * 
-     * @param requestid リクエストID(Broadcastで指示された場合は設定する。アプリ内ならの指示ならnullを設定する)
+     * @param callback callback.
      */
-    public void takePicture(Camera.PictureCallback callback) {
+    public void takePicture(final Camera.PictureCallback callback) {
         if (mCamera != null) {
             mCamera.takePicture(mShutterCallback, null, callback);
             Toast.makeText(getContext(), R.string.shutter, Toast.LENGTH_SHORT).show();

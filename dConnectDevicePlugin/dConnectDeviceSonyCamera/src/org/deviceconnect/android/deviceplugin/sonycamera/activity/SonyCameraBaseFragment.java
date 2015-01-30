@@ -21,21 +21,21 @@ public class SonyCameraBaseFragment extends Fragment {
     private ProgressDialog mDialog;
 
     /**
-     * デバイスIDを設定する.
+     * サービスIDを設定する.
      * 
      * @param id デバイスプラグインID
      */
-    public void setDeviceId(final String id) {
-        ((SonyCameraSettingActivity) getActivity()).setDeviceId(id);
+    public void setServiceId(final String id) {
+        ((SonyCameraSettingActivity) getActivity()).setServiceId(id);
     }
 
     /**
-     * デバイスIDを取得する.
+     * サービスIDを取得する.
      * 
-     * @return デバイスID
+     * @return サービスID
      */
-    public String getDeviceId() {
-        return ((SonyCameraSettingActivity) getActivity()).getDeviceId();
+    public String getServiceId() {
+        return ((SonyCameraSettingActivity) getActivity()).getServiceId();
     }
 
     /**

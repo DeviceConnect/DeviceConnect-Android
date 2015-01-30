@@ -1,5 +1,5 @@
 /*
- NetworkServiceDiscoveryProfile.java
+ ServiceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -9,14 +9,14 @@ package org.deviceconnect.android.profile;
 import java.util.List;
 
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants.NetworkType;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
 import android.content.Intent;
 import android.os.Bundle;
 
 /**
- * Network Service Discovery プロファイル.
+ * Service Discovery プロファイル.
  * 
  * <p>
  * スマートデバイス検索機能を提供するAPI.<br/>
@@ -27,13 +27,13 @@ import android.os.Bundle;
  * 
  * <h1>各API提供メソッド</h1>
  * <p>
- * Network Service Discovery Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
+ * Service Discovery Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
  * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>
  * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
  * </p>
  * <ul>
- * <li>Network Service Discovery API [GET] :
- * {@link NetworkServiceDiscoveryProfile#onGetGetNetworkServices(Intent, Intent)}
+ * <li>Service Discovery API [GET] :
+ * {@link ServiceDiscoveryProfile#onGetServices(Intent, Intent)}
  * </li>
  * </ul>
  * 
@@ -43,8 +43,8 @@ import android.os.Bundle;
  *      String)
  * @author NTT DOCOMO, INC.
  */
-public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile implements
-        NetworkServiceDiscoveryProfileConstants {
+public abstract class ServiceDiscoveryProfile extends DConnectProfile implements
+        ServiceDiscoveryProfileConstants {
 
     @Override
     public final String getProfileName() {
@@ -53,11 +53,12 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
 
     @Override
     protected boolean onGetRequest(final Intent request, final Intent response) {
+        String inter = getInterface(request);
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (ATTRIBUTE_GET_NETWORK_SERVICES.equals(attribute)) {
-            result = onGetGetNetworkServices(request, response);
+        if (inter == null && attribute == null) {
+            result = onGetServices(request, response);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -72,9 +73,9 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
         boolean result = true;
 
         if (ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
-            result = onPutOnServiceChange(request, response, deviceId, sessionKey);
+            result = onPutOnServiceChange(request, response, serviceId, sessionKey);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -89,9 +90,9 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
         boolean result = true;
 
         if (ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
-            result = onDeleteOnServiceChange(request, response, deviceId, sessionKey);
+            result = onDeleteOnServiceChange(request, response, serviceId, sessionKey);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -113,7 +114,7 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
      * @param response レスポンスパラメータ
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    protected boolean onGetServices(final Intent request, final Intent response) {
         setUnsupportedError(response);
         return true;
     }
@@ -130,11 +131,11 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnServiceChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -152,11 +153,11 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -197,10 +198,10 @@ public abstract class NetworkServiceDiscoveryProfile extends DConnectProfile imp
     }
 
     /**
-     * デバイスIDを設定する.
+     * サービスIDを設定する.
      * 
      * @param service デバイスパラメータ
-     * @param id デバイスID
+     * @param id サービスID
      */
     public static void setId(final Bundle service, final String id) {
         service.putString(PARAM_ID, id);

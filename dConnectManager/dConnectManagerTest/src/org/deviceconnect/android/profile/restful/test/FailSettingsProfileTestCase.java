@@ -38,7 +38,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * deviceIdを指定せずに音量取得要求を送信するテストを行う.
+     * serviceIdを指定せずに音量取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -49,7 +49,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetSoundVolumeNoDeviceId() {
+    public void testGetSoundVolumeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_SOUND);
@@ -59,76 +59,76 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で音量取得要求を送信するテストを行う.
+     * serviceIdが空状態で音量取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/sound/volume?deviceId=&kind=xxxx
+     * Path: /settings/sound/volume?serviceId=&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetSoundVolumeEmptyDeviceId() {
+    public void testGetSoundVolumeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_SOUND);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(SettingsProfileConstants.PARAM_KIND, String.valueOf(VOLUME_KIND));
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdで音量取得要求を送信するテストを行う.
+     * 存在しないserviceIdで音量取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/sound/volume?deviceId=123456789&kind=xxxx
+     * Path: /settings/sound/volume?serviceId=123456789&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetSoundVolumeInvalidDeviceId() {
+    public void testGetSoundVolumeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_SOUND);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(SettingsProfileConstants.PARAM_KIND, String.valueOf(VOLUME_KIND));
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを2重に指定して音量取得要求を送信するテストを行う.
+     * serviceIdを2重に指定して音量取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/sound/volume?deviceId=123456789&deviceId=xxx&kind=xxxx
+     * Path: /settings/sound/volume?serviceId=123456789&serviceId=xxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -136,26 +136,26 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetSoundVolumeDuplicatedDeviceId() {
+    public void testGetSoundVolumeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_SOUND);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(SettingsProfileConstants.PARAM_KIND, String.valueOf(VOLUME_KIND));
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを指定せずに音量取得要求を送信するテストを行う.
+     * serviceIdを指定せずに音量取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -166,7 +166,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutSoundVolumeNoDeviceId() {
+    public void testPutSoundVolumeNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_SOUND);
@@ -177,25 +177,25 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で音量取得要求を送信するテストを行う.
+     * serviceIdが空状態で音量取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/sound/volume?deviceId=&kind=xxxx
+     * Path: /settings/sound/volume?serviceId=&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutSoundVolumeEmptyDeviceId() {
+    public void testPutSoundVolumeEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_SOUND);
@@ -203,29 +203,29 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(SettingsProfileConstants.PARAM_KIND, String.valueOf(VOLUME_KIND));
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdで音量取得要求を送信するテストを行う.
+     * 存在しないserviceIdで音量取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/sound/volume?deviceId=123456789&kind=xxxx
+     * Path: /settings/sound/volume?serviceId=123456789&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutSoundVolumeInvalidDeviceId() {
+    public void testPutSoundVolumeInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_SOUND);
@@ -233,22 +233,22 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(SettingsProfileConstants.PARAM_KIND, String.valueOf(VOLUME_KIND));
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを2重に指定して音量取得要求を送信するテストを行う.
+     * serviceIdを2重に指定して音量取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/sound/volume?deviceId=123456789&deviceId=xxx&kind=xxxx
+     * Path: /settings/sound/volume?serviceId=123456789&serviceId=xxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -256,7 +256,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutSoundVolumeDuplicatedDeviceId() {
+    public void testPutSoundVolumeDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_SOUND);
@@ -264,12 +264,12 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(SettingsProfileConstants.PARAM_KIND, String.valueOf(VOLUME_KIND));
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -280,7 +280,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /settings/sound/volume?deviceId=xxxx&kind=xxxx
+     * Path: /settings/sound/volume?serviceId=xxxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -295,7 +295,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(SettingsProfileConstants.PARAM_KIND, String.valueOf(VOLUME_KIND));
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
@@ -310,7 +310,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /settings/sound/volume?deviceId=xxxx&kind=xxxx
+     * Path: /settings/sound/volume?serviceId=xxxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -325,7 +325,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(SettingsProfileConstants.PARAM_KIND, String.valueOf(VOLUME_KIND));
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
@@ -336,7 +336,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * deviceIdを指定せずに日時取得要求を送信するテストを行う.
+     * serviceIdを指定せずに日時取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -347,7 +347,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDateNoDeviceId() {
+    public void testGetDateNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
@@ -355,72 +355,72 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で日時取得要求を送信するテストを行う.
+     * serviceIdが空状態で日時取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/date?deviceId=&kind=xxxx
+     * Path: /settings/date?serviceId=&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDateEmptyDeviceId() {
+    public void testGetDateEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdで日時取得要求を送信するテストを行う.
+     * 存在しないserviceIdで日時取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/date?deviceId=123456789&kind=xxxx
+     * Path: /settings/date?serviceId=123456789&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDateInvalidDeviceId() {
+    public void testGetDateInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを2重に指定して日時取得要求を送信するテストを行う.
+     * serviceIdを2重に指定して日時取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/date?deviceId=123456789&deviceId=xxx&kind=xxxx
+     * Path: /settings/date?serviceId=123456789&serviceId=xxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -428,24 +428,24 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDateDuplicatedDeviceId() {
+    public void testGetDateDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを指定せずに日時取得要求を送信するテストを行う.
+     * serviceIdを指定せずに日時取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -456,7 +456,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDateNoDeviceId() {
+    public void testPutDateNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
@@ -465,74 +465,74 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態で日時取得要求を送信するテストを行う.
+     * serviceIdが空状態で日時取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/date?deviceId=&kind=xxxx
+     * Path: /settings/date?serviceId=&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDateEmptyDeviceId() {
+    public void testPutDateEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(SettingsProfileConstants.PARAM_DATE, DATE);
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdで日時取得要求を送信するテストを行う.
+     * 存在しないserviceIdで日時取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/date?deviceId=123456789&kind=xxxx
+     * Path: /settings/date?serviceId=123456789&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDateInvalidDeviceId() {
+    public void testPutDateInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(SettingsProfileConstants.PARAM_DATE, DATE);
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを2重に指定して日時取得要求を送信するテストを行う.
+     * serviceIdを2重に指定して日時取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/date?deviceId=123456789&deviceId=xxx&kind=xxxx
+     * Path: /settings/date?serviceId=123456789&serviceId=xxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -540,18 +540,18 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDateDuplicatedDeviceId() {
+    public void testPutDateDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_DATE, DATE);
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -562,7 +562,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /settings/date?deviceId=xxxx&kind=xxxx
+     * Path: /settings/date?serviceId=xxxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -574,7 +574,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_DATE, DATE);
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -590,7 +590,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /settings/date?deviceId=xxxx&kind=xxxx
+     * Path: /settings/date?serviceId=xxxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -602,7 +602,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_DATE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_DATE, DATE);
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -614,7 +614,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * deviceIdを指定せずにバックライト明度取得要求を送信するテストを行う.
+     * serviceIdを指定せずにバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -625,7 +625,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDisplayLightNoDeviceId() {
+    public void testGetDisplayLightNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
@@ -634,74 +634,74 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でバックライト明度取得要求を送信するテストを行う.
+     * serviceIdが空状態でバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/display/light?deviceId=&kind=xxxx
+     * Path: /settings/display/light?serviceId=&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDisplayLightEmptyDeviceId() {
+    public void testGetDisplayLightEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_LIGHT);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでバックライト明度取得要求を送信するテストを行う.
+     * 存在しないserviceIdでバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/display/light?deviceId=123456789&kind=xxxx
+     * Path: /settings/display/light?serviceId=123456789&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDisplayLightInvalidDeviceId() {
+    public void testGetDisplayLightInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_LIGHT);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
+     * serviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/display/light?deviceId=123456789&deviceId=xxx&kind=xxxx
+     * Path: /settings/display/light?serviceId=123456789&serviceId=xxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -709,25 +709,25 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDisplayLightDuplicatedDeviceId() {
+    public void testGetDisplayLightDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_LIGHT);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを指定せずにバックライト明度取得要求を送信するテストを行う.
+     * serviceIdを指定せずにバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -738,7 +738,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDisplayLightNoDeviceId() {
+    public void testPutDisplayLightNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
@@ -748,76 +748,76 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でバックライト明度取得要求を送信するテストを行う.
+     * serviceIdが空状態でバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/display/light?deviceId=&kind=xxxx
+     * Path: /settings/display/light?serviceId=&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDisplayLightEmptyDeviceId() {
+    public void testPutDisplayLightEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_LIGHT);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでバックライト明度取得要求を送信するテストを行う.
+     * 存在しないserviceIdでバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/display/light?deviceId=123456789&kind=xxxx
+     * Path: /settings/display/light?serviceId=123456789&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDisplayLightInvalidDeviceId() {
+    public void testPutDisplayLightInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_LIGHT);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
+     * serviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/display/light?deviceId=123456789&deviceId=xxx&kind=xxxx
+     * Path: /settings/display/light?serviceId=123456789&serviceId=xxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -825,19 +825,19 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDisplayLightDuplicatedDeviceId() {
+    public void testPutDisplayLightDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_LIGHT);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -848,7 +848,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /settings/display/light?deviceId=xxxx&kind=xxxx
+     * Path: /settings/display/light?serviceId=xxxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -861,7 +861,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_LIGHT);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -877,7 +877,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /settings/display/light?deviceId=xxxx&kind=xxxx
+     * Path: /settings/display/light?serviceId=xxxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -890,7 +890,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_LIGHT);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_LEVEL, String.valueOf(LEVEL));
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -902,7 +902,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
-     * deviceIdを指定せずにバックライト明度取得要求を送信するテストを行う.
+     * serviceIdを指定せずにバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -913,7 +913,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDisplaySleepNoDeviceId() {
+    public void testGetDisplaySleepNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
@@ -922,74 +922,74 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でバックライト明度取得要求を送信するテストを行う.
+     * serviceIdが空状態でバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/display/sleep?deviceId=&kind=xxxx
+     * Path: /settings/display/sleep?serviceId=&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDisplaySleepEmptyDeviceId() {
+    public void testGetDisplaySleepEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_SLEEP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでバックライト明度取得要求を送信するテストを行う.
+     * 存在しないserviceIdでバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/display/sleep?deviceId=123456789&kind=xxxx
+     * Path: /settings/display/sleep?serviceId=123456789&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDisplaySleepInvalidDeviceId() {
+    public void testGetDisplaySleepInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_SLEEP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
+     * serviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /settings/display/sleep?deviceId=123456789&deviceId=xxx&kind=xxxx
+     * Path: /settings/display/sleep?serviceId=123456789&serviceId=xxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -997,25 +997,25 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetDisplaySleepDuplicatedDeviceId() {
+    public void testGetDisplaySleepDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_SLEEP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを指定せずにバックライト明度取得要求を送信するテストを行う.
+     * serviceIdを指定せずにバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -1026,7 +1026,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDisplaySleepNoDeviceId() {
+    public void testPutDisplaySleepNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
@@ -1036,76 +1036,76 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でバックライト明度取得要求を送信するテストを行う.
+     * serviceIdが空状態でバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/display/sleep?deviceId=&kind=xxxx
+     * Path: /settings/display/sleep?serviceId=&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDisplaySleepEmptyDeviceId() {
+    public void testPutDisplaySleepEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_SLEEP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(SettingsProfileConstants.PARAM_TIME, String.valueOf(TIME));
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでバックライト明度取得要求を送信するテストを行う.
+     * 存在しないserviceIdでバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/display/sleep?deviceId=123456789&kind=xxxx
+     * Path: /settings/display/sleep?serviceId=123456789&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDisplaySleepInvalidDeviceId() {
+    public void testPutDisplaySleepInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_SLEEP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(SettingsProfileConstants.PARAM_TIME, String.valueOf(TIME));
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
+     * serviceIdを2重に指定してバックライト明度取得要求を送信するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /settings/display/sleep?deviceId=123456789&deviceId=xxx&kind=xxxx
+     * Path: /settings/display/sleep?serviceId=123456789&serviceId=xxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1113,19 +1113,19 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutDisplaySleepDuplicatedDeviceId() {
+    public void testPutDisplaySleepDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SettingsProfileConstants.PROFILE_NAME);
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_SLEEP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_TIME, String.valueOf(TIME));
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1136,7 +1136,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /settings/display/sleep?deviceId=xxxx&kind=xxxx
+     * Path: /settings/display/sleep?serviceId=xxxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1149,7 +1149,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_SLEEP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_TIME, String.valueOf(TIME));
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -1165,7 +1165,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /settings/display/sleep?deviceId=xxxx&kind=xxxx
+     * Path: /settings/display/sleep?serviceId=xxxx&kind=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1178,7 +1178,7 @@ public class FailSettingsProfileTestCase extends RESTfulDConnectTestCase
         builder.setInterface(SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.setAttribute(SettingsProfileConstants.ATTRIBUTE_SLEEP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(SettingsProfileConstants.PARAM_TIME, String.valueOf(TIME));
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());

@@ -65,7 +65,7 @@ public class NormalFileProfileTestCase extends IntentDConnectTestCase {
      */
     public void testGetList001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileProfileConstants.ATTRIBUTE_LIST);
         Intent response = sendRequest(request);
@@ -103,7 +103,7 @@ public class NormalFileProfileTestCase extends IntentDConnectTestCase {
      */
     public void testGetList002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileProfileConstants.ATTRIBUTE_LIST);
         request.putExtra(FileProfileConstants.PARAM_MIME_TYPE, TestFileProfileConstants.MIME_TYPE);
@@ -139,7 +139,7 @@ public class NormalFileProfileTestCase extends IntentDConnectTestCase {
      */
     public void testGetReceive() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileProfileConstants.ATTRIBUTE_RECEIVE);
         request.putExtra(FileProfileConstants.PARAM_PATH, TestFileProfileConstants.PATH);
@@ -167,7 +167,7 @@ public class NormalFileProfileTestCase extends IntentDConnectTestCase {
     public void testSend() {
         final String name = "test.png";
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileProfileConstants.ATTRIBUTE_SEND);
         request.putExtra(FileProfileConstants.PARAM_PATH, TestFileProfileConstants.PATH);
@@ -198,7 +198,7 @@ public class NormalFileProfileTestCase extends IntentDConnectTestCase {
      */
     public void testRemove() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileProfileConstants.ATTRIBUTE_REMOVE);
         request.putExtra(FileProfileConstants.PARAM_PATH, TestFileProfileConstants.PATH);

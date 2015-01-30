@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import android.content.Intent;
 
@@ -73,9 +73,9 @@ public class RegisterNetworkServiceDiscovery extends DConnectRequest {
         // リクエストを作成
         mRequest = new Intent(IntentDConnectMessage.ACTION_PUT);
         mRequest.putExtra(DConnectMessage.EXTRA_PROFILE,
-                NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
+                ServiceDiscoveryProfileConstants.PROFILE_NAME);
         mRequest.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
+                ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
         mRequest.putExtra(DConnectMessage.EXTRA_SESSION_KEY, mSessionKey);
 
         Intent request = createRequestMessage(mRequest, mDevicePlugin);
@@ -94,7 +94,7 @@ public class RegisterNetworkServiceDiscovery extends DConnectRequest {
         if (mResponse != null) {
             // リカバリ不可能なのでログだけ出して終了
             // ここで、登録できなかった場合には、デバイス発見イベントは使用することができない。
-            // ただし、getnetworkservicesは使用できるので問題はないと考える。
+            // ただし、Service Discoveryは使用できるので問題はないと考える。
             int result = getResult(mResponse);
             if (result == DConnectMessage.RESULT_ERROR) {
                 int errorCode = getErrorCode(mResponse);

@@ -21,16 +21,16 @@ interface DeviceSchema extends BaseSchema {
     String TABLE_NAME = "Device";
 
     /** 
-     * デバイスID.
+     * サービスID.
      */
-    String DEVICE_ID = "device_id";
+    String SERVICE_ID = "service_id";
     
     /** 
      * テーブルcreate文.
      */
     String CREATE = "CREATE TABLE " + TABLE_NAME + " (" 
             + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " 
-            + DEVICE_ID + " TEXT NOT NULL, "
+            + SERVICE_ID + " TEXT NOT NULL, "
             + CREATE_DATE + " INTEGER NOT NULL, "
-            + UPDATE_DATE + " INTEGER NOT NULL, UNIQUE(" + DEVICE_ID + "));";
+            + UPDATE_DATE + " INTEGER NOT NULL, UNIQUE(" + SERVICE_ID + "));";
 }

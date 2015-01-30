@@ -94,7 +94,7 @@ public class NormalSystemProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetSystemDevice() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SystemProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SystemProfileConstants.ATTRIBUTE_DEVICE);
         Intent response = sendRequest(request);

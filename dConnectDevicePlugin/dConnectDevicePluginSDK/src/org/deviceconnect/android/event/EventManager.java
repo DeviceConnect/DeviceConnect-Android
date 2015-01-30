@@ -66,7 +66,7 @@ public enum EventManager {
         
         checkState();
         
-        String deviceId = request.getStringExtra(DConnectMessage.EXTRA_DEVICE_ID);
+        String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String profile = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         String inter = request.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
         String attribute = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
@@ -80,7 +80,7 @@ public enum EventManager {
         event.setProfile(profile);
         event.setInterface(inter);
         event.setAttribute(attribute);
-        event.setDeviceId(deviceId);
+        event.setServiceId(serviceId);
         if (name != null) {
             event.setReceiverName(name.flattenToString());
         }
@@ -140,18 +140,18 @@ public enum EventManager {
     }
 
     /**
-     * 指定されたデバイスIDとAPIに紐づくイベント情報の一覧を取得する.
+     * 指定されたサービスIDとAPIに紐づくイベント情報の一覧を取得する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param profile プロファイル名
      * @param inter インターフェース名
      * @param attribute アトリビュート名
      * @return イベントの一覧
      */
-    public List<Event> getEventList(final String deviceId, final String profile, 
+    public List<Event> getEventList(final String serviceId, final String profile, 
             final String inter, final String attribute) {
         checkState();
-        return mController.getEvents(deviceId, profile, inter, attribute);
+        return mController.getEvents(serviceId, profile, inter, attribute);
     }
     
     /**
@@ -188,7 +188,7 @@ public enum EventManager {
      */
     public static Intent createEventMessage(final Event event) {
         Intent message = MessageUtils.createEventIntent();
-        message.putExtra(DConnectMessage.EXTRA_DEVICE_ID, event.getDeviceId());
+        message.putExtra(DConnectMessage.EXTRA_SERVICE_ID, event.getServiceId());
         message.putExtra(DConnectMessage.EXTRA_PROFILE, event.getProfile());
         message.putExtra(DConnectMessage.EXTRA_INTERFACE, event.getInterface());
         message.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, event.getAttribute());

@@ -122,7 +122,7 @@ public class PhoneProfileFragment extends SmartDeviceFragment {
                     URIBuilder builder = new URIBuilder();
                     builder.setProfile(PhoneProfileConstants.PROFILE_NAME);
                     builder.setAttribute(PhoneProfileConstants.ATTRIBUTE_CALL);
-                    builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+                    builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
                     builder.addParameter(PhoneProfileConstants.PARAM_PHONE_NUMBER, number);
                     builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 

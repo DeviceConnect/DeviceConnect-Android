@@ -31,12 +31,12 @@ public class HostBatteryProfile extends BatteryProfile {
     private static final int ERROR_CODE = 100;
 
     @Override
-    protected boolean onGetLevel(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             int mLevel = ((HostDeviceService) getContext()).getBatteryLevel();
             int mScale = ((HostDeviceService) getContext()).getBatteryScale();
@@ -53,12 +53,12 @@ public class HostBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onGetCharging(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetCharging(final Intent request, final Intent response, final String serviceId) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             int mStatus = ((HostDeviceService) getContext()).getBatteryStatus();
             setResult(response, IntentDConnectMessage.RESULT_OK);
@@ -68,12 +68,12 @@ public class HostBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onGetAll(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             int mLevel = ((HostDeviceService) getContext()).getBatteryLevel();
             int mScale = ((HostDeviceService) getContext()).getBatteryScale();
@@ -93,19 +93,19 @@ public class HostBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onPutOnChargingChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnChargingChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
             // Add event
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).setDeviceId(deviceId);
+                ((HostDeviceService) getContext()).setServiceId(serviceId);
                 ((HostDeviceService) getContext()).registerBatteryConnectBroadcastReceiver();
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -116,12 +116,12 @@ public class HostBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onDeleteOnChargingChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnChargingChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -138,20 +138,20 @@ public class HostBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onPutOnBatteryChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnBatteryChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
             // Add event
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).setDeviceId(deviceId);
+                ((HostDeviceService) getContext()).setServiceId(serviceId);
                 ((HostDeviceService) getContext()).registerBatteryChargeBroadcastReceiver();
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
@@ -162,13 +162,13 @@ public class HostBatteryProfile extends BatteryProfile {
     }
 
     @Override
-    protected boolean onDeleteOnBatteryChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnBatteryChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -204,25 +204,25 @@ public class HostBatteryProfile extends BatteryProfile {
     }
 
     /**
-     * Check deviceId.
+     * Check serviceId.
      * 
-     * @param deviceId DeviceId
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId ServiceId
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        String regex = HostNetworkServiceDiscoveryProfile.DEVICE_ID;
+    private boolean checkServiceId(final String serviceId) {
+        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
         Pattern p = Pattern.compile(regex);
-        Matcher m = p.matcher(deviceId);
+        Matcher m = p.matcher(serviceId);
         return m.find();
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**
@@ -230,7 +230,7 @@ public class HostBatteryProfile extends BatteryProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 }

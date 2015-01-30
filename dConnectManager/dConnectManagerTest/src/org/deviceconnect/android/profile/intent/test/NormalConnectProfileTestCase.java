@@ -46,7 +46,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testGetWifi() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_WIFI);
         Intent response = sendRequest(request);
@@ -73,7 +73,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutWifi() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_WIFI);
         Intent response = sendRequest(request);
@@ -98,7 +98,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteWifi() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_WIFI);
         Intent response = sendRequest(request);
@@ -124,7 +124,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutOnWifiChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
@@ -155,7 +155,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteOnWifiChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
@@ -181,7 +181,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testGetBluetooth() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
         Intent response = sendRequest(request);
@@ -208,7 +208,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutBluetooth() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
         Intent response = sendRequest(request);
@@ -233,7 +233,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteBluetooth() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
         Intent response = sendRequest(request);
@@ -258,7 +258,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutOnBluetoothChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
@@ -289,7 +289,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteOnBluetoothChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
@@ -315,7 +315,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutBluetoothDiscoverable() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, ConnectProfileConstants.INTERFACE_BLUETOOTH);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
@@ -341,7 +341,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteBluetoothDiscoverable() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, ConnectProfileConstants.INTERFACE_BLUETOOTH);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
@@ -367,7 +367,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testGetNFC() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_NFC);
         Intent response = sendRequest(request);
@@ -394,7 +394,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutNFC() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_NFC);
         Intent response = sendRequest(request);
@@ -419,7 +419,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteNFC() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_NFC);
         Intent response = sendRequest(request);
@@ -444,7 +444,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutOnNFCChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
@@ -475,7 +475,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteOnNFCChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
@@ -501,7 +501,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testGetBLE() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_BLE);
         Intent response = sendRequest(request);
@@ -528,7 +528,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutBLE() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_BLE);
         Intent response = sendRequest(request);
@@ -553,7 +553,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteBLE() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_BLE);
         Intent response = sendRequest(request);
@@ -578,7 +578,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutOnBLEChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
@@ -609,7 +609,7 @@ public class NormalConnectProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteOnBLEChange() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, ConnectProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);

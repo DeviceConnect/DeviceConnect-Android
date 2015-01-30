@@ -1,5 +1,5 @@
 /*
- SpheroNetworkServceDiscoveryProfile.java
+ SpheroServceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -14,17 +14,17 @@ import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 /**
  * NetworkServiceDiscovery Profile.
  * @author NTT DOCOMO, INC.
  */
-public class SpheroNetworkServceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
+public class SpheroServceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
-    protected boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    protected boolean onGetServices(final Intent request, final Intent response) {
 
         Collection<DeviceInfo> devices = SpheroManager.INSTANCE.getConnectedDevices();
 
@@ -33,10 +33,10 @@ public class SpheroNetworkServceDiscoveryProfile extends NetworkServiceDiscovery
         for (DeviceInfo info : devices) {
 
             Bundle service = new Bundle();
-            NetworkServiceDiscoveryProfile.setId(service, info.getDevice().getUniqueId());
-            NetworkServiceDiscoveryProfile.setName(service, info.getDevice().getName());
-            NetworkServiceDiscoveryProfile.setType(service, NetworkType.BLUETOOTH);
-            NetworkServiceDiscoveryProfile.setOnline(service, true);
+            ServiceDiscoveryProfile.setId(service, info.getDevice().getUniqueId());
+            ServiceDiscoveryProfile.setName(service, info.getDevice().getName());
+            ServiceDiscoveryProfile.setType(service, NetworkType.BLUETOOTH);
+            ServiceDiscoveryProfile.setOnline(service, true);
 
             services[index++] = service;
         }

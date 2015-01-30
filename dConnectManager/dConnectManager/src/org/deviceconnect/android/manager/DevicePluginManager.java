@@ -164,7 +164,7 @@ public class DevicePluginManager {
                     DevicePlugin plugin = new DevicePlugin();
                     plugin.setClassName(className);
                     plugin.setPackageName(packageName);
-                    plugin.setDeviceId(hash);
+                    plugin.setServiceId(hash);
                     plugin.setDeviceName(receiverInfo.applicationInfo.loadLabel(pkgMgr).toString());
                     plugin.setStartServiceClassName(startClassName);
                     plugin.setSupportProfiles(checkDevicePluginXML(receiverInfo));
@@ -236,34 +236,34 @@ public class DevicePluginManager {
     }
 
     /**
-     * 指定されたデバイスIDと一致するデバイスプラグインを取得する.
-     * @param deviceId デバイスID
+     * 指定されたサービスIDと一致するデバイスプラグインを取得する.
+     * @param serviceId サービスID
      * @return デバイスプラグイン
      */
-    public DevicePlugin getDevicePlugin(final String deviceId) {
-        return mPlugins.get(deviceId);
+    public DevicePlugin getDevicePlugin(final String serviceId) {
+        return mPlugins.get(serviceId);
     }
 
     /**
-     * 指定されたデバイスIDからデバイスプラグインを取得する.
-     * 指定されたdeviceIdに対応するデバイスプラグインが存在しない場合にはnullを返却する。
-     * デバイスIDのネーミング規則は以下のようになる。
+     * 指定されたサービスIDからデバイスプラグインを取得する.
+     * 指定されたserviceIdに対応するデバイスプラグインが存在しない場合にはnullを返却する。
+     * サービスIDのネーミング規則は以下のようになる。
      * [device].[deviceplugin].[dconnect].deviceconnect.org
-     * [dconnect].deviceconnect.org が deviceIdに渡されたときには、
+     * [dconnect].deviceconnect.org が serviceIdに渡されたときには、
      * すべてのプラグインをListに格納して返します。
-     * @param deviceId パースするデバイスID
+     * @param serviceId パースするサービスID
      * @return デバイスプラグイン
      */
-    public List<DevicePlugin> getDevicePlugins(final String deviceId) {
-        if (deviceId == null) {
+    public List<DevicePlugin> getDevicePlugins(final String serviceId) {
+        if (serviceId == null) {
             return null;
         }
-        String pluginName = deviceId;
+        String pluginName = serviceId;
         int idx = pluginName.lastIndexOf(mDConnectDomain);
         if (idx > 0) {
             pluginName = pluginName.substring(0, idx - 1);
         } else {
-            // ここで見つからない場合には、デバイスIDとして不正なので
+            // ここで見つからない場合には、サービスIDとして不正なので
             // nullを返却する。
             return null;
         }
@@ -289,19 +289,19 @@ public class DevicePluginManager {
     }
 
     /**
-     * デバイスIDにDevice Connect Managerのドメイン名を追加する.
+     * サービスIDにDevice Connect Managerのドメイン名を追加する.
      * 
-     * デバイスIDがnullのときには、デバイスIDは無視します。
+     * サービスIDがnullのときには、サービスIDは無視します。
      * 
      * @param plugin デバイスプラグイン
-     * @param deviceId デバイスID
-     * @return Device Connect Managerのドメインなどが追加されたデバイスID
+     * @param serviceId サービスID
+     * @return Device Connect Managerのドメインなどが追加されたサービスID
      */
-    public String appendDeviceId(final DevicePlugin plugin, final String deviceId) {
-        if (deviceId == null) {
-            return plugin.getDeviceId() + DConnectMessageService.SEPARATOR + mDConnectDomain;
+    public String appendServiceId(final DevicePlugin plugin, final String serviceId) {
+        if (serviceId == null) {
+            return plugin.getServiceId() + DConnectMessageService.SEPARATOR + mDConnectDomain;
         } else {
-            return deviceId + DConnectMessageService.SEPARATOR + plugin.getDeviceId() 
+            return serviceId + DConnectMessageService.SEPARATOR + plugin.getServiceId() 
                     + DConnectMessageService.SEPARATOR + mDConnectDomain;
         }
     }
@@ -316,11 +316,11 @@ public class DevicePluginManager {
      * @param request リクエスト
      */
     public void appendPluginIdToSessionKey(final Intent request) {
-        String deviceId = request.getStringExtra(DConnectMessage.EXTRA_DEVICE_ID);
-        List<DevicePlugin> plugins = getDevicePlugins(deviceId);
+        String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
+        List<DevicePlugin> plugins = getDevicePlugins(serviceId);
         String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
         if (plugins != null && sessionKey != null) {
-            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugins.get(0).getDeviceId();
+            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugins.get(0).getServiceId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
                 sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION 
@@ -344,7 +344,7 @@ public class DevicePluginManager {
     public void appendPluginIdToSessionKey(final Intent request, final DevicePlugin plugin) {
         String sessionKey = request.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
         if (plugin != null && sessionKey != null) {
-            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugin.getDeviceId();
+            sessionKey = sessionKey + DConnectMessageService.SEPARATOR + plugin.getServiceId();
             ComponentName receiver = (ComponentName) request.getExtras().get(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {
                 sessionKey = sessionKey + DConnectMessageService.SEPARATOR_SESSION 
@@ -356,30 +356,30 @@ public class DevicePluginManager {
     }
 
     /**
-     * 指定されたリクエストのdeviceIdからプラグインIDを削除する.
+     * 指定されたリクエストのserviceIdからプラグインIDを削除する.
      * @param request リクエスト
      */
-    public void splitePluginIdToDeviceId(final Intent request) {
-        String deviceId = request.getStringExtra(DConnectMessage.EXTRA_DEVICE_ID);
-        List<DevicePlugin> plugins = getDevicePlugins(deviceId);
-        // 各デバイスプラグインへ渡すデバイスIDを作成
-        String id = DevicePluginManager.spliteDeviceId(plugins.get(0), deviceId);
-        request.putExtra(IntentDConnectMessage.EXTRA_DEVICE_ID, id);
-        mLogger.info("deviceId [dConnectManager->DevicePlugin]: " + id);
+    public void splitePluginIdToServiceId(final Intent request) {
+        String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
+        List<DevicePlugin> plugins = getDevicePlugins(serviceId);
+        // 各デバイスプラグインへ渡すサービスIDを作成
+        String id = DevicePluginManager.spliteServiceId(plugins.get(0), serviceId);
+        request.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID, id);
+        mLogger.info("serviceId [dConnectManager->DevicePlugin]: " + id);
     }
 
     /**
-     * デバイスIDを分解して、Device Connect Managerのドメイン名を省いた本来のデバイスIDにする.
+     * サービスIDを分解して、Device Connect Managerのドメイン名を省いた本来のサービスIDにする.
      * Device Connect Managerのドメインを省いたときに、何もない場合には空文字を返します。
      * @param plugin デバイスプラグイン
-     * @param deviceId デバイスID
-     * @return Device Connect Managerのドメインが省かれたデバイスID
+     * @param serviceId サービスID
+     * @return Device Connect Managerのドメインが省かれたサービスID
      */
-    public static String spliteDeviceId(final DevicePlugin plugin, final String deviceId) {
-        String p = plugin.getDeviceId();
-        int idx = deviceId.indexOf(p);
+    public static String spliteServiceId(final DevicePlugin plugin, final String serviceId) {
+        String p = plugin.getServiceId();
+        int idx = serviceId.indexOf(p);
         if (idx > 0) {
-            return deviceId.substring(0, idx - 1);
+            return serviceId.substring(0, idx - 1);
         }
         return "";
     }

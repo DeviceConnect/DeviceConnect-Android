@@ -44,7 +44,7 @@ public class ChromeCastNotificationProfile extends NotificationProfile {
 
     @Override
     protected boolean onPostNotify(final Intent request, final Intent response,
-            final String deviceId, final NotificationType type, final Direction dir,
+            final String serviceId, final NotificationType type, final Direction dir,
             final String lang, final String body, final String tag,
             final byte[] iconData) {
         ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
@@ -74,7 +74,7 @@ public class ChromeCastNotificationProfile extends NotificationProfile {
 
     @Override
     protected boolean onDeleteNotify(final Intent request,
-            final Intent response, final String deviceId,
+            final Intent response, final String serviceId,
             final String notificationId) {
         ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
         if (!isDeviceEnable(response, app)) {

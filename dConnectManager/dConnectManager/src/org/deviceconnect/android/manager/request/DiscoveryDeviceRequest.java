@@ -12,7 +12,7 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import android.content.Intent;
 
@@ -35,8 +35,8 @@ public class DiscoveryDeviceRequest extends LocalOAuthRequest {
     @Override
     protected void executeRequest(final String accessToken) {
         List<Event> evts = EventManager.INSTANCE.getEventList(
-                NetworkServiceDiscoveryProfileConstants.PROFILE_NAME,
-                NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
+                ServiceDiscoveryProfileConstants.PROFILE_NAME,
+                ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
         for (int i = 0; i < evts.size(); i++) {
             Event evt = evts.get(i);
             mEvent.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());

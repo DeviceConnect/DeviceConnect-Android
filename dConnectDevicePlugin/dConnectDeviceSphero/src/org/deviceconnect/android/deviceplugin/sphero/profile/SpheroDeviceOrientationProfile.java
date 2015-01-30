@@ -24,12 +24,12 @@ import org.deviceconnect.message.DConnectMessage;
 public class SpheroDeviceOrientationProfile extends DeviceOrientationProfile {
 
     @Override
-    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         
-        DeviceInfo device = SpheroManager.INSTANCE.getDevice(deviceId);
+        DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response);
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         }
 
@@ -51,7 +51,7 @@ public class SpheroDeviceOrientationProfile extends DeviceOrientationProfile {
     }
 
     @Override
-    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         
         // Deleteはデバイスが無くてもゴミを残さないように削除できるようにしておく。
@@ -59,7 +59,7 @@ public class SpheroDeviceOrientationProfile extends DeviceOrientationProfile {
         switch (error) {
         case NONE:
             setResult(response, DConnectMessage.RESULT_OK);
-            DeviceInfo device = SpheroManager.INSTANCE.getDevice(deviceId);
+            DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
             if (device != null) {
                 if (!SpheroManager.INSTANCE.hasSensorEvent(device)) {
                     SpheroManager.INSTANCE.stopSensor(device);

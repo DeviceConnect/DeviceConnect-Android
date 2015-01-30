@@ -114,7 +114,7 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + SystemProfileConstants.PROFILE_NAME);
         builder.append("/" + SystemProfileConstants.ATTRIBUTE_DEVICE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -189,7 +189,7 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile("unique");
         builder.setAttribute("event");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {

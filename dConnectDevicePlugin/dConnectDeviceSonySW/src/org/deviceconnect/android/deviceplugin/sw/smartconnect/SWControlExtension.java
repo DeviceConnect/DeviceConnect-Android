@@ -49,7 +49,7 @@ import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
 import android.bluetooth.BluetoothAdapter;
@@ -145,7 +145,7 @@ class SWControlExtension extends ControlExtension {
      * LocalOAuthで無視するプロファイル群.
      */
     private static final String[] IGNORE_PROFILES = {AuthorizationProfileConstants.PROFILE_NAME,
-            SystemProfileConstants.PROFILE_NAME, NetworkServiceDiscoveryProfileConstants.PROFILE_NAME };
+            SystemProfileConstants.PROFILE_NAME, ServiceDiscoveryProfileConstants.PROFILE_NAME };
 
     /**
      * Creates a control extension.
@@ -337,12 +337,12 @@ class SWControlExtension extends ControlExtension {
                  acceleration.putDouble(DeviceOrientationProfile.PARAM_Y, values[1]);
                  acceleration.putDouble(DeviceOrientationProfile.PARAM_Z, values[2]);
 
-                 String deviceId = findDeviceId();
-                 if (deviceId == null) {
+                 String serviceId = findServiceId();
+                 if (serviceId == null) {
                      return;
                  }
                  List<Event> events = EventManager.INSTANCE
-                          .getEventList(deviceId, DeviceOrientationProfileConstants.PROFILE_NAME,
+                          .getEventList(serviceId, DeviceOrientationProfileConstants.PROFILE_NAME,
                          null, DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
 
                  for (Event event : events) {
@@ -356,10 +356,10 @@ class SWControlExtension extends ControlExtension {
          }
 
          /**
-          * Find Device ID.
-          * @return Device ID
+          * Find Service ID.
+          * @return Service ID
           */
-         private String findDeviceId() {
+         private String findServiceId() {
              BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
              if (adapter != null) {
                  Set<BluetoothDevice> bondedDevices = adapter.getBondedDevices();

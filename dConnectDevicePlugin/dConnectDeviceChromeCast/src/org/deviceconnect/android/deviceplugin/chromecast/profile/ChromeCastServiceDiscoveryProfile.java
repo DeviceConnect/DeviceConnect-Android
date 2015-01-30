@@ -1,5 +1,5 @@
 /*
- ChromeCastNetworkServiceDiscoveryProfile.java
+ ChromeCastServiceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -15,7 +15,7 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscover
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -29,10 +29,10 @@ import android.os.Bundle;
  * </p>
  * @author NTT DOCOMO, INC.
  */
-public class ChromeCastNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
+public class ChromeCastServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
-    protected boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    protected boolean onGetServices(final Intent request, final Intent response) {
         NetworkType deviceType = NetworkType.WIFI;
         String deviceName = getContext().getResources().getString(R.string.device_name);
 
@@ -56,7 +56,7 @@ public class ChromeCastNetworkServiceDiscoveryProfile extends NetworkServiceDisc
 
     @Override
     protected boolean onPutOnServiceChange(final Intent request, final Intent response, 
-                                            final String deviceId, final String sessionKey) {
+                                            final String serviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.addEvent(request);
         switch (error) {
         case NONE:
@@ -74,7 +74,7 @@ public class ChromeCastNetworkServiceDiscoveryProfile extends NetworkServiceDisc
 
     @Override
     protected boolean onDeleteOnServiceChange(final Intent request, final Intent response,
-                                                final String deviceId, final String sessionKey) {
+                                                final String serviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         switch (error) {
         case NONE:

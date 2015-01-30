@@ -60,7 +60,7 @@ public class GetAccessTokenRequest extends DConnectRequest {
      * @throws UnsupportedEncodingException 文字のエンコードに失敗した場合に発生
      */
     private void getAccessToken() throws AuthorizatonException, UnsupportedEncodingException {
-        String deviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_DEVICE_ID);
+        String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String clientId = mRequest.getStringExtra(AuthorizationProfile.PARAM_CLIENT_ID);
         String grantType = mRequest.getStringExtra(AuthorizationProfile.PARAM_GRANT_TYPE);
         String[] scopes = parseScopes(mRequest.getStringExtra(AuthorizationProfile.PARAM_SCOPE));
@@ -71,9 +71,9 @@ public class GetAccessTokenRequest extends DConnectRequest {
         }
 
         // シグネイチャの確認
-        if (LocalOAuth2Main.checkSignature(signature, clientId, grantType, deviceId, scopes)) {
+        if (LocalOAuth2Main.checkSignature(signature, clientId, grantType, serviceId, scopes)) {
             // TODO _typeからアプリorデバイスプラグインかを判別できる？
-            ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).deviceId(deviceId)
+            ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)
                     .clientId(clientId).grantType(grantType).scopes(scopes).applicationName(applicationName)
                     .isForDevicePlugin(false) 
                     .build();

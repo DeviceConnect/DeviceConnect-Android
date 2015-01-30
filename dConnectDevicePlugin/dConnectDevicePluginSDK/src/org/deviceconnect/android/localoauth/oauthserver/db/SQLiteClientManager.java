@@ -171,14 +171,14 @@ public class SQLiteClientManager extends AbstractClientManager {
     }
     
     /**
-     * デバイスIDをキーにDB検索し該当するクライアントを返す.
-     * @param deviceId デバイスID
-     * @return  not null: デバイスIDが一致するクライアント / null: デバイスIDが一致するクライアント無し
+     * サービスIDをキーにDB検索し該当するクライアントを返す.
+     * @param serviceId サービスID
+     * @return  not null: サービスIDが一致するクライアント / null: サービスIDが一致するクライアント無し
      */
-    public Client findByDeviceId(final String deviceId) {
+    public Client findByServiceId(final String serviceId) {
         if (mDb != null) {
             Bundle where = new Bundle();
-            where.putString(SQLiteClient.DATA_TYPE_STRING + "," + SQLiteClient.DEVICEID_FIELD, deviceId);
+            where.putString(SQLiteClient.DATA_TYPE_STRING + "," + SQLiteClient.DEVICEID_FIELD, serviceId);
             Client[] clients = dbLoadClients(mDb, where);
             if (clients == null || clients.length == 0) {
                 return null;
@@ -220,7 +220,7 @@ public class SQLiteClientManager extends AbstractClientManager {
             where.putString(SQLiteClient.DATA_TYPE_STRING + "," + SQLiteClient.PACKAGENAME_FIELD,
                     packageInfo.getPackageName());
             where.putString(SQLiteClient.DATA_TYPE_STRING + "," + SQLiteClient.DEVICEID_FIELD,
-                    packageInfo.getDeviceId());
+                    packageInfo.getServiceId());
             SQLiteClient[] clients = dbLoadClients(mDb, where);
             if (clients == null || clients.length == 0) {
                 return null;
@@ -276,13 +276,13 @@ public class SQLiteClientManager extends AbstractClientManager {
                             packageName = c.getString(packageNameColumnIndex);
                         }
 
-                        String deviceId = null;
-                        final int deviceIdColumnIndex = c.getColumnIndex(SQLiteClient.DEVICEID_FIELD);
-                        if (!c.isNull(deviceIdColumnIndex)) {
-                            deviceId = c.getString(deviceIdColumnIndex);
+                        String serviceId = null;
+                        final int serviceIdColumnIndex = c.getColumnIndex(SQLiteClient.DEVICEID_FIELD);
+                        if (!c.isNull(serviceIdColumnIndex)) {
+                            serviceId = c.getString(serviceIdColumnIndex);
                         }
 
-                        PackageInfoOAuth packageInfo = new PackageInfoOAuth(packageName, deviceId);
+                        PackageInfoOAuth packageInfo = new PackageInfoOAuth(packageName, serviceId);
                         client.setPackageInfo(packageInfo);
 
                         final int clientSecretColumnIndex = c.getColumnIndex(SQLiteClient.CLIENTSECRET_FIELD);

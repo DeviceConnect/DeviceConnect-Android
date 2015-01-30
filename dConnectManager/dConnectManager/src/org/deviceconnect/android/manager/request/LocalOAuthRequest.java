@@ -126,14 +126,14 @@ public class LocalOAuthRequest extends DConnectRequest {
      * [実装要求]
      * null(エラー)を返す場合には、リクエスト元にレスポンスを返却するので注意が必要。
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return クライアントデータ
      */
-    protected ClientData executeCreateClient(final String deviceId) {
+    protected ClientData executeCreateClient(final String serviceId) {
         // 命令を実行する前にレスポンスを初期化しておく
         mResponse = null;
 
-        mLogger.info("executeCreateClient: " + deviceId);
+        mLogger.info("executeCreateClient: " + serviceId);
 
         // 各デバイスに送信するリクエストを作成
         Intent request = createRequestMessage(mRequest, mDevicePlugin);
@@ -143,7 +143,7 @@ public class LocalOAuthRequest extends DConnectRequest {
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
         request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, getContext().getPackageName());
-        request.putExtra(DConnectProfileConstants.PARAM_DEVICE_ID, deviceId);
+        request.putExtra(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId);
 
         // デバイスプラグインに送信
         mContext.sendBroadcast(request);
@@ -194,16 +194,16 @@ public class LocalOAuthRequest extends DConnectRequest {
      * [実装要求]
      * null(エラー)を返す場合には、リクエスト元にレスポンスを返却するので注意が必要。
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param clientId クライアントID
      * @param clientSecret クライアントシークレット
      * @return アクセストークン
      */
-    protected String executeAccessToken(final String deviceId, final String clientId, final String clientSecret) {
+    protected String executeAccessToken(final String serviceId, final String clientId, final String clientSecret) {
         // 命令を実行する前にレスポンスを初期化しておく
         mResponse = null;
 
-        mLogger.info("executeAccessToken: {deviceId: " + deviceId + ", clientId: " + clientId
+        mLogger.info("executeAccessToken: {serviceId: " + serviceId + ", clientId: " + clientId
                 + ", clientSecret: " + clientSecret + "}");
 
         // 各デバイスに送信するリクエストを作成
@@ -222,7 +222,7 @@ public class LocalOAuthRequest extends DConnectRequest {
         // シグネイチャ作成
         String signature = createSignature(clientId, clientSecret,
                 AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue(), 
-                request.getStringExtra(DConnectMessage.EXTRA_DEVICE_ID), getScope());
+                request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID), getScope());
         if (signature != null) {
             request.putExtra(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
         } else {
@@ -254,7 +254,7 @@ public class LocalOAuthRequest extends DConnectRequest {
                 int errorCode = getErrorCode(mResponse);
                 if (errorCode == DConnectMessage.ErrorCode.NOT_FOUND_CLIENT_ID.getCode() 
                         || errorCode == DConnectMessage.ErrorCode.AUTHORIZATION.getCode()) {
-                    mLocalOAuth.deleteOAuthData(deviceId);
+                    mLocalOAuth.deleteOAuthData(serviceId);
                 }
                 sendResponse(mResponse);
             }
@@ -316,10 +316,10 @@ public class LocalOAuthRequest extends DConnectRequest {
      * Local OAuthの有効期限切れの場合にリトライを行う.
      */
     protected void executeRequest() {
-        String deviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_DEVICE_ID);
+        String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
 
         if (mUseAccessToken) {
-            String accessToken = getAccessToken(deviceId);
+            String accessToken = getAccessToken(serviceId);
             if (accessToken != null) {
                 executeRequest(accessToken);
             } else {
@@ -333,7 +333,7 @@ public class LocalOAuthRequest extends DConnectRequest {
                     }
                 };
                 request.setContext(getContext());
-                request.setDeviceId(deviceId);
+                request.setServiceId(serviceId);
                 // OAuthの認証だけは、シングルスレッドで動作させないとおかしな挙動が発生
                 mRequestMgr.addRequestOnSingleThread(request);
 
@@ -345,7 +345,7 @@ public class LocalOAuthRequest extends DConnectRequest {
                     }
                 }
 
-                accessToken = getAccessToken(deviceId);
+                accessToken = getAccessToken(serviceId);
                 if (accessToken != null) {
                     executeRequest(accessToken);
                 }
@@ -356,13 +356,13 @@ public class LocalOAuthRequest extends DConnectRequest {
     }
 
     /**
-     * 指定されたデバイスIDに対応するアクセストークンを取得する.
+     * 指定されたサービスIDに対応するアクセストークンを取得する.
      * アクセストークンが存在しない場合にはnullを返却する。
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return アクセストークン
      */
-    private String getAccessToken(final String deviceId) {
-        OAuthData oauth = mLocalOAuth.getOAuthData(deviceId);
+    private String getAccessToken(final String serviceId) {
+        OAuthData oauth = mLocalOAuth.getOAuthData(serviceId);
         if (oauth != null) {
             return mLocalOAuth.getAccessToken(oauth.getId());
         }
@@ -377,14 +377,14 @@ public class LocalOAuthRequest extends DConnectRequest {
      * @param clientId クライアントID
      * @param clientSecret クライアントシークレット
      * @param grantType グラントタイプ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param scopes スコープ
      * @return 作成されたシグネイチャ
      */
     private String createSignature(final String clientId, final String clientSecret, final String grantType,
-            final String deviceId, final String[] scopes) {
+            final String serviceId, final String[] scopes) {
         try {
-            return LocalOAuth2Main.createSignature(clientId, grantType, deviceId,
+            return LocalOAuth2Main.createSignature(clientId, grantType, serviceId,
                     scopes, clientSecret);
         } catch (AuthorizatonException e) {
             return null;
@@ -457,14 +457,14 @@ public class LocalOAuthRequest extends DConnectRequest {
     private abstract class OAuthRequest extends DConnectRequest {
         /** ロックオブジェクト. */
         protected final Object mLockObj = new Object();
-        /** 送信先のデバイスID. */
-        protected String mDeviceId;
+        /** 送信先のサービスID. */
+        protected String mServiceId;
         /**
-         * デバイスIDを設定する.
-         * @param id デバイスID
+         * サービスIDを設定する.
+         * @param id サービスID
          */
-        public void setDeviceId(final String id) {
-            mDeviceId = id;
+        public void setServiceId(final String id) {
+            mServiceId = id;
         }
         @Override
         public void setResponse(final Intent response) {
@@ -484,9 +484,9 @@ public class LocalOAuthRequest extends DConnectRequest {
             String clientId = null;
             String clientSecret = null;
 
-            OAuthData oauth = mLocalOAuth.getOAuthData(mDeviceId);
+            OAuthData oauth = mLocalOAuth.getOAuthData(mServiceId);
             if (oauth == null) {
-                ClientData client = executeCreateClient(mDeviceId);
+                ClientData client = executeCreateClient(mServiceId);
                 if (client == null) {
                     // MEMO executeCreateClientの中でレスポンスは返しているので
                     // ここでは何も処理を行わない。
@@ -496,8 +496,8 @@ public class LocalOAuthRequest extends DConnectRequest {
                     clientId = client.mClientId;
                     clientSecret = client.mClientSecret;
                     // クライアントデータを保存
-                    mLocalOAuth.setOAuthData(mDeviceId, clientId, clientSecret);
-                    oauth = mLocalOAuth.getOAuthData(mDeviceId);
+                    mLocalOAuth.setOAuthData(mServiceId, clientId, clientSecret);
+                    oauth = mLocalOAuth.getOAuthData(mServiceId);
                 }
             } else {
                 clientId = oauth.getClientId();
@@ -507,7 +507,7 @@ public class LocalOAuthRequest extends DConnectRequest {
             String accessToken = mLocalOAuth.getAccessToken(oauth.getId());
             if (accessToken == null) {
                 // 再度アクセストークンを取得してから再度実行
-                accessToken = executeAccessToken(mDeviceId, clientId, clientSecret);
+                accessToken = executeAccessToken(mServiceId, clientId, clientSecret);
                 if (accessToken == null) {
                     // MEMO executeAccessTokenの中でレスポンスは返しているので
                     // ここでは何も処理を行わない。

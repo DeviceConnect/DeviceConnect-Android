@@ -32,13 +32,13 @@ public class HostVibrationProfile extends VibrationProfile {
     private boolean isCancelled = false;
 
     @Override
-    protected boolean onPutVibrate(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutVibrate(final Intent request, final Intent response, final String serviceId,
             final long[] pattern) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (pattern == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
@@ -98,12 +98,12 @@ public class HostVibrationProfile extends VibrationProfile {
     }
 
     @Override
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
 
             // Vibration Stop API
@@ -130,26 +130,26 @@ public class HostVibrationProfile extends VibrationProfile {
     }
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        String regex = HostNetworkServiceDiscoveryProfile.DEVICE_ID;
+    private boolean checkServiceId(final String serviceId) {
+        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
         Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(deviceId);
+        Matcher match = mPattern.matcher(serviceId);
 
         return match.find();
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**
@@ -157,7 +157,7 @@ public class HostVibrationProfile extends VibrationProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 }

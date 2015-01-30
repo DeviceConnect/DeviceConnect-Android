@@ -17,14 +17,14 @@ import android.content.Intent;
  */
 public class SonyCameraZoomProfile extends CameraProfile {
     @Override
-    protected boolean onPutActZoom(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutActZoom(final Intent request, final Intent response, final String serviceId,
             final String direction, final String movement) {
         return ((SonyCameraDeviceService) getContext())
-                .onPutActZoom(request, response, deviceId, direction, movement);
+                .onPutActZoom(request, response, serviceId, direction, movement);
     }
 
     @Override
-    protected boolean onGetZoomDiameter(final Intent request, final Intent response, final String deviceId) {
-        return ((SonyCameraDeviceService) getContext()).onGetZoomDiameter(request, response, deviceId);
+    protected boolean onGetZoomDiameter(final Intent request, final Intent response, final String serviceId) {
+        return ((SonyCameraDeviceService) getContext()).onGetZoomDiameter(request, response, serviceId);
     }
 }

@@ -21,7 +21,7 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
 import android.content.BroadcastReceiver;
@@ -131,21 +131,19 @@ public class IntentDConnectTestCase extends DConnectTestCase {
     protected List<DeviceInfo> searchDevices() {
         Intent intent = new Intent(IntentDConnectMessage.ACTION_GET);
         intent.putExtra(DConnectMessage.EXTRA_PROFILE,
-                NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
-        intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, 
-                NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
+                ServiceDiscoveryProfileConstants.PROFILE_NAME);
 
         Intent response = sendRequest(intent);
         assertResultOK(response);
 
         List<DeviceInfo> services = new ArrayList<DeviceInfo>();
         Parcelable[] servicesExtra = response.getParcelableArrayExtra(
-                NetworkServiceDiscoveryProfileConstants.PARAM_SERVICES);
+                ServiceDiscoveryProfileConstants.PARAM_SERVICES);
         for (int i = 0; i < servicesExtra.length; i++) {
             Bundle obj = (Bundle) servicesExtra[i];
-            String deviceId = obj.getString(NetworkServiceDiscoveryProfileConstants.PARAM_ID);
-            String deviceName = obj.getString(NetworkServiceDiscoveryProfileConstants.PARAM_NAME);
-            services.add(new DeviceInfo(deviceId, deviceName));
+            String serviceId = obj.getString(ServiceDiscoveryProfileConstants.PARAM_ID);
+            String deviceName = obj.getString(ServiceDiscoveryProfileConstants.PARAM_NAME);
+            services.add(new DeviceInfo(serviceId, deviceName));
         }
         return services;
     }

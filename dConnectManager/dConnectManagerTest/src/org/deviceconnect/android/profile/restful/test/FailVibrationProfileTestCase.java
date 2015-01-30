@@ -35,7 +35,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを指定せずにバイブレーションを開始するテストを行う.
+     * serviceIdを指定せずにバイブレーションを開始するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -46,7 +46,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutVibrateNoDeviceId() {
+    public void testPutVibrateNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
@@ -54,61 +54,61 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でバイブレーションを開始するテストを行う.
+     * serviceIdが空状態でバイブレーションを開始するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /vibration/vibrate?deviceId=
+     * Path: /vibration/vibrate?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutVibrateEmptyDeviceId() {
+    public void testPutVibrateEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでバイブレーションを開始するテストを行う.
+     * 存在しないserviceIdでバイブレーションを開始するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /vibration/vibrate?deviceId=123456789&mediId=xxxx
+     * Path: /vibration/vibrate?serviceId=123456789&mediId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutVibrateInvalidDeviceId() {
+    public void testPutVibrateInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -119,7 +119,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /vibration/vibrate?deviceId=xxxxx&abc=abc
+     * Path: /vibration/vibrate?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -131,7 +131,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -144,11 +144,11 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してバイブレーションを開始するテストを行う.
+     * serviceIdを2重に指定してバイブレーションを開始するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /vibration/vibrate?deviceId=123456789&deviceId=xxx
+     * Path: /vibration/vibrate?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -156,17 +156,17 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPutVibrateDuplicatedDeviceId() {
+    public void testPutVibrateDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -177,7 +177,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /vibration/vibrate?deviceId=xxxx
+     * Path: /vibration/vibrate?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -188,7 +188,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -204,7 +204,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /vibration/vibrate?deviceId=xxxx
+     * Path: /vibration/vibrate?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -215,7 +215,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -227,7 +227,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを指定せずにバイブレーションを停止するテストを行う.
+     * serviceIdを指定せずにバイブレーションを停止するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -238,7 +238,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteVibrateNoDeviceId() {
+    public void testDeleteVibrateNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
@@ -246,61 +246,61 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でバイブレーションを停止するテストを行う.
+     * serviceIdが空状態でバイブレーションを停止するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /vibration/vibrate?deviceId=
+     * Path: /vibration/vibrate?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteVibrateEmptyDeviceId() {
+    public void testDeleteVibrateEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでバイブレーションを停止するテストを行う.
+     * 存在しないserviceIdでバイブレーションを停止するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /vibration/vibrate?deviceId=123456789&mediId=xxxx
+     * Path: /vibration/vibrate?serviceId=123456789&mediId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteVibrateInvalidDeviceId() {
+    public void testDeleteVibrateInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -311,7 +311,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /vibration/vibrate?deviceId=xxxxx&abc=abc
+     * Path: /vibration/vibrate?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -323,7 +323,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -336,11 +336,11 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してバイブレーションを停止するテストを行う.
+     * serviceIdを2重に指定してバイブレーションを停止するテストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /vibration/vibrate?deviceId=123456789&deviceId=xxx
+     * Path: /vibration/vibrate?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -348,17 +348,17 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteVibrateDuplicatedDeviceId() {
+    public void testDeleteVibrateDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -369,7 +369,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /vibration/vibrate?deviceId=xxxx
+     * Path: /vibration/vibrate?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -380,7 +380,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -396,7 +396,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /vibration/vibrate?deviceId=xxxx
+     * Path: /vibration/vibrate?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -407,7 +407,7 @@ public class FailVibrationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
         builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());

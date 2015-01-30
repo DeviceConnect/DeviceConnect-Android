@@ -67,7 +67,7 @@ public class VibrationProfileFragment extends SmartDeviceFragment {
                     URIBuilder builder = new URIBuilder();
                     builder.setProfile(VibrationProfileConstants.PROFILE_NAME);
                     builder.setAttribute(VibrationProfileConstants.ATTRIBUTE_VIBRATE);
-                    builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+                    builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
                     if (p != null) {
                         builder.addParameter(VibrationProfileConstants.PARAM_PATTERN, p);
                     }

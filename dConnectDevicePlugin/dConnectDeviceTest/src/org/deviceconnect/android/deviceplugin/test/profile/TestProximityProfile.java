@@ -40,21 +40,21 @@ public class TestProximityProfile extends ProximityProfile {
     public static final double THRESHOLD = 0;
 
     /**
-     * デバイスIDをチェックする.
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * サービスIDをチェックする.
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkdeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkserviceId(final String serviceId) {
+        return TestServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptydeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyserviceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**
@@ -71,17 +71,17 @@ public class TestProximityProfile extends ProximityProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 
     @Override
-    protected boolean onPutOnDeviceProximity(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnDeviceProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -89,7 +89,7 @@ public class TestProximityProfile extends ProximityProfile {
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_DEVICE_PROXIMITY);
             Bundle proximity = new Bundle();
@@ -105,12 +105,12 @@ public class TestProximityProfile extends ProximityProfile {
     }
 
     @Override
-    protected boolean onDeleteOnDeviceProximity(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnDeviceProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -120,12 +120,12 @@ public class TestProximityProfile extends ProximityProfile {
     }
 
     @Override
-    protected boolean onPutOnUserProximity(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnUserProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -133,7 +133,7 @@ public class TestProximityProfile extends ProximityProfile {
             
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_USER_PROXIMITY);
             Bundle proximity = new Bundle();
@@ -145,12 +145,12 @@ public class TestProximityProfile extends ProximityProfile {
     }
 
     @Override
-    protected boolean onDeleteOnUserProximity(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnUserProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {

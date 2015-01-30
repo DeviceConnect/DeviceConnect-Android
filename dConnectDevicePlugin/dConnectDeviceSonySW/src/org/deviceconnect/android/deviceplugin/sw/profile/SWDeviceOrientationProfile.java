@@ -22,11 +22,11 @@ import android.content.Intent;
 public class SWDeviceOrientationProfile extends DeviceOrientationProfile {
 
     @Override
-    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
         EventError error = EventManager.INSTANCE.addEvent(request);
@@ -41,11 +41,11 @@ public class SWDeviceOrientationProfile extends DeviceOrientationProfile {
     }
 
     @Override
-    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
         EventError error = EventManager.INSTANCE.removeEvent(request);

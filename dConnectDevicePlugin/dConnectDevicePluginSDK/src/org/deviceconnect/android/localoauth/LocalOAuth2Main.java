@@ -253,7 +253,7 @@ public final class LocalOAuth2Main {
      * </p>
      * @param packageInfo アプリ(Android)の場合は、パッケージ名を入れる。<br>
      *            アプリ(Web)の場合は、パッケージ名にURLを入れる。<br>
-     *            デバイスプラグインの場合は、パッケージ名とデバイスIDを入れる。<br>
+     *            デバイスプラグインの場合は、パッケージ名とサービスIDを入れる。<br>
      * @return 登録したクライアント情報(クライアントID, クライアントシークレット)を返す。<br>
      *         nullは返らない。
      * @throws AuthorizatonException Authorization例外.
@@ -404,13 +404,13 @@ public final class LocalOAuth2Main {
      * @param signature signature
      * @param clientId クライアントID
      * @param grantType グラントタイプ("authorization_code"が渡される)
-     * @param deviceId デバイスID(デバイスプラグインの場合のみ設定する。アプリの場合はnullを入れる)
+     * @param serviceId サービスID(デバイスプラグインの場合のみ設定する。アプリの場合はnullを入れる)
      * @param scopes 要求されたスコープの配列
      * @return true: 一致した / false: 一致しなかった
      * @throws AuthorizatonException Authorization例外.
      */
     public static boolean checkSignature(final String signature, final String clientId, final String grantType,
-            final String deviceId, final String[] scopes) throws AuthorizatonException {
+            final String serviceId, final String[] scopes) throws AuthorizatonException {
 
         /* 引数チェック */
         if (signature == null) {
@@ -448,7 +448,7 @@ public final class LocalOAuth2Main {
                      * scopesを結合して暗号化しsignature作成
                      */
                     String innerSignature = AuthSignature.generateSignature(clientId, grantType,
-                            deviceId, scopes, clientSecret);
+                            serviceId, scopes, clientSecret);
                     
                     /* Signature一致判定 */
                     if (innerSignature.equals(signature)) {
@@ -466,7 +466,7 @@ public final class LocalOAuth2Main {
                         sLogger.fine(" - innerSignature:" + innerSignature);
                         sLogger.fine(" - clientId:" + clientId);
                         sLogger.fine(" - grantType:" + grantType);
-                        sLogger.fine(" - deviceId:" + deviceId);
+                        sLogger.fine(" - serviceId:" + serviceId);
                         sLogger.fine(" - scopes:" + strScopes);
                         sLogger.fine(" - clientSecret:" + clientSecret);
                     }
@@ -878,13 +878,13 @@ public final class LocalOAuth2Main {
      * 
      * @param clientId クライアントID
      * @param grantType グラントタイプ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param scopes スコープ
      * @param clientSecret クライアントシークレット
      * @return not null: 作成したSignature / null: nullは返さない。
      * @throws AuthorizatonException Authorization例外.
      */
-    public static String createSignature(final String clientId, final String grantType, final String deviceId,
+    public static String createSignature(final String clientId, final String grantType, final String serviceId,
             final String[] scopes, final String clientSecret) throws AuthorizatonException {
 
         /* 引数チェック */
@@ -898,7 +898,7 @@ public final class LocalOAuth2Main {
             throw new IllegalArgumentException("clientSecret is null.");
         }
         
-        String signature = AuthSignature.generateSignature(clientId, grantType, deviceId, scopes,
+        String signature = AuthSignature.generateSignature(clientId, grantType, serviceId, scopes,
                 clientSecret);
         return signature;
     }
@@ -1000,8 +1000,8 @@ public final class LocalOAuth2Main {
                 sLogger.fine("destroyAccessToken()");
                 sLogger.fine(" - clientId:" + client.getClientId());
                 sLogger.fine(" - packageName:" + packageInfo.getPackageName());
-                if (packageInfo.getDeviceId() != null) {
-                    sLogger.fine(" - deviceId:" + packageInfo.getDeviceId());
+                if (packageInfo.getServiceId() != null) {
+                    sLogger.fine(" - serviceId:" + packageInfo.getServiceId());
                 }
                 
                 /* コミット */
@@ -1965,8 +1965,8 @@ public final class LocalOAuth2Main {
         Intent intent = new Intent();
         intent.setClass(params.getContext(), ConfirmAuthActivity.class);
         intent.putExtra(ConfirmAuthActivity.EXTRA_THREADID, threadId);
-        if (params.getDeviceId() != null) {
-            intent.putExtra(ConfirmAuthActivity.EXTRA_DEVICEID, params.getDeviceId());
+        if (params.getServiceId() != null) {
+            intent.putExtra(ConfirmAuthActivity.EXTRA_DEVICEID, params.getServiceId());
         }
         intent.putExtra(ConfirmAuthActivity.EXTRA_APPLICATIONNAME, params.getApplicationName());
         intent.putExtra(ConfirmAuthActivity.EXTRA_SCOPES, params.getScopes());

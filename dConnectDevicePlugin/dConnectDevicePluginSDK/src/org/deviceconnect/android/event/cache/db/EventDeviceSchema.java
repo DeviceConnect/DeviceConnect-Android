@@ -27,8 +27,8 @@ interface EventDeviceSchema extends BaseSchema {
     String A_ID = "a_id";
     
     /** 
-     * デバイスID.
-     * デバイステーブルのIDであり、Device Connectで定義するdeviceIdとは異なる。
+     * サービスID.
+     * デバイステーブルのIDであり、Device Connectで定義するserviceIdとは異なる。
      */
     String D_ID = "d_id";
     

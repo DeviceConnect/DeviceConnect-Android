@@ -45,6 +45,26 @@ public interface IntentDConnectMessage extends DConnectMessage {
     String ACTION_EVENT = "org.deviceconnect.action.EVENT";
 
     /**
+     * パラメータ: {@value} .
+     */
+    String EXTRA_ORIGIN = "origin";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String EXTRA_KEY = "key";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String EXTRA_NONCE = "nonce";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String EXTRA_HMAC = "hmac";
+
+    /**
      * アクションを取得する.
      * @return アクション
      */

@@ -135,6 +135,7 @@ public final class DConnectUtil {
     /**
      * AndroidManifest.xmlのversionNameを取得する.
      * 
+     * @param context Context
      * @return versionName
      */
     public static String getVersionName(final Context context) {

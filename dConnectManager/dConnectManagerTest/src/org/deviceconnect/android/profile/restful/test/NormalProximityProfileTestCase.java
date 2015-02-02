@@ -130,7 +130,7 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ProximityProfileConstants.PROFILE_NAME);
         builder.append("/" + attribute);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -155,7 +155,7 @@ public class NormalProximityProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ProximityProfileConstants.PROFILE_NAME);
         builder.append("/" + attribute);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");

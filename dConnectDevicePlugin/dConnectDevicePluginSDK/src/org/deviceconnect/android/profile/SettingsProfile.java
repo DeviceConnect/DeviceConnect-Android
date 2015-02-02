@@ -65,21 +65,21 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
             MessageUtils.setUnknownAttributeError(response);
         } else {
 
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
 
             if (inter == null) {
                 if (attribute.equals(ATTRIBUTE_DATE)) {
-                    result = onGetDate(request, response, deviceId);
+                    result = onGetDate(request, response, serviceId);
                 } else {
                     MessageUtils.setUnknownAttributeError(response);
                 }
             } else {
                 if (inter.equals(INTERFACE_SOUND) && attribute.equals(ATTRIBUTE_VOLUME)) {
-                    result = onGetSoundVolume(request, response, deviceId, getVolumeKind(request));
+                    result = onGetSoundVolume(request, response, serviceId, getVolumeKind(request));
                 } else if (inter.equals(INTERFACE_DISPLAY) && attribute.equals(ATTRIBUTE_LIGHT)) {
-                    result = onGetDisplayLight(request, response, deviceId);
+                    result = onGetDisplayLight(request, response, serviceId);
                 } else if (inter.equals(INTERFACE_DISPLAY) && attribute.equals(ATTRIBUTE_SLEEP)) {
-                    result = onGetDisplaySleep(request, response, deviceId);
+                    result = onGetDisplaySleep(request, response, serviceId);
                 } else {
                     MessageUtils.setUnknownAttributeError(response);
                 }
@@ -99,22 +99,22 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
             MessageUtils.setUnknownAttributeError(response);
         } else {
 
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
 
             if (inter == null) {
                 if (attribute.equals(ATTRIBUTE_DATE)) {
-                    result = onPutDate(request, response, deviceId, getDate(request));
+                    result = onPutDate(request, response, serviceId, getDate(request));
                 } else {
                     MessageUtils.setUnknownAttributeError(response);
                 }
             } else {
                 if (inter.equals(INTERFACE_SOUND) && attribute.equals(ATTRIBUTE_VOLUME)) {
-                    result = onPutSoundVolume(request, response, deviceId, getVolumeKind(request),
+                    result = onPutSoundVolume(request, response, serviceId, getVolumeKind(request),
                                 getVolumeLevel(request));
                 } else if (inter.equals(INTERFACE_DISPLAY) && attribute.equals(ATTRIBUTE_LIGHT)) {
-                    result = onPutDisplayLight(request, response, deviceId, getLightLevel(request));
+                    result = onPutDisplayLight(request, response, serviceId, getLightLevel(request));
                 } else if (inter.equals(INTERFACE_DISPLAY) && attribute.equals(ATTRIBUTE_SLEEP)) {
-                    result = onPutDisplaySleep(request, response, deviceId, getTime(request));
+                    result = onPutDisplaySleep(request, response, serviceId, getTime(request));
                 } else {
                     MessageUtils.setUnknownAttributeError(response);
                 }
@@ -135,11 +135,11 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param kind 種別
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetSoundVolume(final Intent request, final Intent response, final String deviceId,
+    protected boolean onGetSoundVolume(final Intent request, final Intent response, final String serviceId,
             final VolumeKind kind) {
         setUnsupportedError(response);
         return true;
@@ -152,10 +152,10 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetDate(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetDate(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -168,10 +168,10 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetDisplayLight(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetDisplayLight(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -184,10 +184,10 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetDisplaySleep(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetDisplaySleep(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -203,12 +203,12 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param kind 種別
      * @param level 音量
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutSoundVolume(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutSoundVolume(final Intent request, final Intent response, final String serviceId,
             final VolumeKind kind, final Double level) {
         setUnsupportedError(response);
         return true;
@@ -221,11 +221,11 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param date 日時
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutDate(final Intent request, final Intent response, final String deviceId, final String date) {
+    protected boolean onPutDate(final Intent request, final Intent response, final String serviceId, final String date) {
         setUnsupportedError(response);
         return true;
     }
@@ -238,11 +238,11 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param level 明度パーセント
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutDisplayLight(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutDisplayLight(final Intent request, final Intent response, final String serviceId,
             final Double level) {
         setUnsupportedError(response);
         return true;
@@ -256,11 +256,11 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param time 消灯するまでの時間(ミリ秒)
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutDisplaySleep(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutDisplaySleep(final Intent request, final Intent response, final String serviceId,
             final Integer time) {
         setUnsupportedError(response);
         return true;

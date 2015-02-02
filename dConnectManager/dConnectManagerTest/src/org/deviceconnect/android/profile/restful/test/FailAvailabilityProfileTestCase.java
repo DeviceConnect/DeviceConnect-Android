@@ -29,6 +29,16 @@ public class FailAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
         super(string);
     }
 
+    @Override
+    protected boolean isLocalOAuth() {
+        return false;
+    }
+
+    @Override
+    protected boolean isSearchDevices() {
+        return false;
+    }
+
     /**
      * メソッドにPOSTを指定してサーバ起動確認テストを行う.
      * <pre>

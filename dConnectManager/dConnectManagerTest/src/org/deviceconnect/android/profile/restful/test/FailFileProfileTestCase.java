@@ -45,7 +45,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でファイル一覧取得テストを行う.
+     * serviceIdが無い状態でファイル一覧取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -56,7 +56,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetListNoDeviceId() {
+    public void testGetListNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
@@ -64,61 +64,61 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でファイル一覧取得テストを行う.
+     * serviceIdが空状態でファイル一覧取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/list?deviceId=
+     * Path: /file/list?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetListEmptyDeviceId() {
+    public void testGetListEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでファイル一覧取得テストを行う.
+     * 存在しないserviceIdでファイル一覧取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/list?deviceId=123456789
+     * Path: /file/list?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetListInvalidDeviceId() {
+    public void testGetListInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -129,7 +129,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/list?deviceId=xxxxx&abc=abc
+     * Path: /file/list?serviceId=xxxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -141,7 +141,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
@@ -154,11 +154,11 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してファイル一覧取得テストを行う.
+     * serviceIdを2重に指定してファイル一覧取得テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/list?deviceId=123456789&deviceId=xxx
+     * Path: /file/list?serviceId=123456789&serviceId=xxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -166,17 +166,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetListDuplicatedDeviceId() {
+    public void testGetListDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -187,7 +187,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /file/list?deviceId=xxxx
+     * Path: /file/list?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -198,7 +198,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -214,7 +214,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/list?deviceId=xxxx
+     * Path: /file/list?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -225,7 +225,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -241,7 +241,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /file/list?deviceId=xxxx
+     * Path: /file/list?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -252,7 +252,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_LIST);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -264,7 +264,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でファイル受信テストを行う.
+     * serviceIdが無い状態でファイル受信テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -275,7 +275,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetReceiveNoDeviceId() {
+    public void testGetReceiveNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
@@ -285,65 +285,65 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でファイル受信テストを行う.
+     * serviceIdが空状態でファイル受信テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/receive?deviceId=&mediaId=xxxx
+     * Path: /file/receive?serviceId=&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetReceiveEmptyDeviceId() {
+    public void testGetReceiveEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでファイル受信テストを行う.
+     * 存在しないserviceIdでファイル受信テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/receive?deviceId=123456789&mediaId=xxxx
+     * Path: /file/receive?serviceId=123456789&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetReceiveInvalidDeviceId() {
+    public void testGetReceiveInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -354,7 +354,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/receive?deviceId=xxxxx&mediaId=xxxx&abc=abc
+     * Path: /file/receive?serviceId=xxxxx&mediaId=xxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -366,7 +366,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter("abc", "abc");
@@ -381,11 +381,11 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してファイル受信テストを行う.
+     * serviceIdを2重に指定してファイル受信テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/receive?deviceId=123456789&deviceId=xxx&mediaId=xxxx
+     * Path: /file/receive?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -393,19 +393,19 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetReceiveDuplicatedDeviceId() {
+    public void testGetReceiveDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -416,7 +416,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/receive?deviceId=xxxxx
+     * Path: /file/receive?serviceId=xxxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -428,7 +428,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -444,7 +444,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /file/receive?deviceId=xxxx&mediaId=xxxx
+     * Path: /file/receive?serviceId=xxxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -455,7 +455,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -473,7 +473,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/receive?deviceId=xxxx&mediaId=xxxx
+     * Path: /file/receive?serviceId=xxxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -484,7 +484,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -502,7 +502,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /file/receive?deviceId=xxxx&mediaId=xxxx
+     * Path: /file/receive?serviceId=xxxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -513,7 +513,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -527,7 +527,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でファイル送信テストを行う.
+     * serviceIdが無い状態でファイル送信テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -538,7 +538,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostSendNoDeviceId() {
+    public void testPostSendNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
@@ -549,29 +549,29 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
             request.setEntity(getEntity());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でファイル送信テストを行う.
+     * serviceIdが空状態でファイル送信テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/send?deviceId=&mediaId=xxxx
+     * Path: /file/send?serviceId=&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostSendEmptyDeviceId() {
+    public void testPostSendEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -579,29 +579,29 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
             request.setEntity(getEntity());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでファイル送信テストを行う.
+     * 存在しないserviceIdでファイル送信テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/send?deviceId=123456789&mediaId=xxxx
+     * Path: /file/send?serviceId=123456789&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostSendInvalidDeviceId() {
+    public void testPostSendInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -609,7 +609,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
             request.setEntity(getEntity());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -620,7 +620,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/send?deviceId=xxxxx&mediaId=xxxx&abc=abc
+     * Path: /file/send?serviceId=xxxxx&mediaId=xxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -632,7 +632,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(FileProfileConstants.PARAM_FILE_TYPE, String.valueOf(FileType.FILE.getValue()));
@@ -649,11 +649,11 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してファイル送信テストを行う.
+     * serviceIdを2重に指定してファイル送信テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/send?deviceId=123456789&deviceId=xxx&mediaId=xxxx
+     * Path: /file/send?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -661,12 +661,12 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostSendDuplicatedDeviceId() {
+    public void testPostSendDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -674,7 +674,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
             request.setEntity(getEntity());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -685,7 +685,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/send?deviceId=xxxxx
+     * Path: /file/send?serviceId=xxxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -697,7 +697,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpPost request = new HttpPost(builder.toString());
@@ -713,7 +713,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/send?deviceId=xxxx&mediaId=xxxx
+     * Path: /file/send?serviceId=xxxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -724,7 +724,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -743,7 +743,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /file/send?deviceId=xxxx&mediaId=xxxx
+     * Path: /file/send?serviceId=xxxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -754,7 +754,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -768,7 +768,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でファイル削除テストを行う.
+     * serviceIdが無い状態でファイル削除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
@@ -779,7 +779,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteRemoveNoDeviceId() {
+    public void testDeleteRemoveNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
@@ -789,65 +789,65 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpDelete request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でファイル削除テストを行う.
+     * serviceIdが空状態でファイル削除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/remove?deviceId=&mediaId=xxxx
+     * Path: /file/remove?serviceId=&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteRemoveEmptyDeviceId() {
+    public void testDeleteRemoveEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpDelete request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでファイル削除テストを行う.
+     * 存在しないserviceIdでファイル削除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/remove?deviceId=123456789&mediaId=xxxx
+     * Path: /file/remove?serviceId=123456789&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteRemoveInvalidDeviceId() {
+    public void testDeleteRemoveInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpDelete request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -858,7 +858,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/remove?deviceId=xxxxx&mediaId=xxxx&abc=abc
+     * Path: /file/remove?serviceId=xxxxx&mediaId=xxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -870,7 +870,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter("abc", "abc");
@@ -885,11 +885,11 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してファイル削除テストを行う.
+     * serviceIdを2重に指定してファイル削除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/remove?deviceId=123456789&deviceId=xxx&mediaId=xxxx
+     * Path: /file/remove?serviceId=123456789&serviceId=xxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -897,19 +897,19 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteRemoveDuplicatedDeviceId() {
+    public void testDeleteRemoveDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpDelete request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -920,7 +920,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/remove?deviceId=xxxxx
+     * Path: /file/remove?serviceId=xxxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -932,7 +932,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpDelete request = new HttpDelete(builder.toString());
@@ -948,7 +948,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/remove?deviceId=xxxx&mediaId=xxxx
+     * Path: /file/remove?serviceId=xxxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -959,7 +959,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -977,7 +977,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/remove?deviceId=xxxx&mediaId=xxxx
+     * Path: /file/remove?serviceId=xxxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -988,7 +988,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1006,7 +1006,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /file/remove?deviceId=xxxx&mediaId=xxxx
+     * Path: /file/remove?serviceId=xxxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1017,7 +1017,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_REMOVE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
@@ -1032,7 +1032,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でディレクトリ作成テストを行う.
+     * serviceIdが無い状態でディレクトリ作成テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
@@ -1043,7 +1043,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostMkdirNoDeviceId() {
+    public void testPostMkdirNoServiceId() {
         final String name = "test";
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
@@ -1055,30 +1055,30 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);            
             assertResultError(root);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でディレクトリ作成テストを行う.
+     * serviceIdが空状態でディレクトリ作成テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /file/mkdir?deviceId=&path=xxxx
+     * Path: /file/mkdir?serviceId=&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostMkdirEmptyDeviceId() {
+    public void testPostMkdirEmptyServiceId() {
         final String name = "test";
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -1086,30 +1086,30 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでディレクトリ作成テストを行う.
+     * 存在しないserviceIdでディレクトリ作成テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /file/mkdir?deviceId=123456789&path=xxxx
+     * Path: /file/mkdir?serviceId=123456789&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostMkdirInvalidDeviceId() {
+    public void testPostMkdirInvalidServiceId() {
         final String name = "test";
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "12345678");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "12345678");
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -1117,7 +1117,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1128,7 +1128,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /file/mkdir?deviceId=xxxx&path=xxxx&abc=abc
+     * Path: /file/mkdir?serviceId=xxxx&path=xxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1140,7 +1140,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter("abc", "abc");
@@ -1155,24 +1155,24 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してディレクトリ作成テストを行う.
+     * serviceIdを2重に指定してディレクトリ作成テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /file/mkdir?deviceId=12345678&deviceId=xxxx&path=xxxx
+     * Path: /file/mkdir?serviceId=12345678&serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testPostMkdirDuplicatedDeviceId() {
+    public void testPostMkdirDuplicatedServiceId() {
         final String name = "test";
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "12345678");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "12345678");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -1180,7 +1180,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpPost request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1191,7 +1191,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /file/mkdir?deviceId=xxxx&path=xxxx
+     * Path: /file/mkdir?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1203,7 +1203,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -1222,7 +1222,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/mkdir?deviceId=xxxx&path=xxxx
+     * Path: /file/mkdir?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1234,7 +1234,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -1253,7 +1253,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /file/mkdir?deviceId=xxxx&path=xxxx
+     * Path: /file/mkdir?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1265,7 +1265,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_MKDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -1280,7 +1280,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdが無い状態でディレクトリ削除テストを行う.
+     * serviceIdが無い状態でディレクトリ削除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
@@ -1291,7 +1291,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteRmdirNoDeviceId() {
+    public void testDeleteRmdirNoServiceId() {
         final String name = "test";
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
@@ -1303,30 +1303,30 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpDelete request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(root);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdが空状態でディレクトリ削除テストを行う.
+     * serviceIdが空状態でディレクトリ削除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /file/rmdir?deviceId=&path=xxxx
+     * Path: /file/rmdir?serviceId=&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteRmdirEmptyDeviceId() {
+    public void testDeleteRmdirEmptyServiceId() {
         final String name = "test";
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -1334,30 +1334,30 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpDelete request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdでディレクトリ削除テストを行う.
+     * 存在しないserviceIdでディレクトリ削除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /file/rmdir?deviceId=123456789&path=xxxx
+     * Path: /file/rmdir?serviceId=123456789&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteRmdirInvalidDeviceId() {
+    public void testDeleteRmdirInvalidServiceId() {
         final String name = "test";
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "12345678");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "12345678");
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -1365,7 +1365,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpDelete request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1376,7 +1376,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /file/rmdir?deviceId=xxxx&path=xxxx&abc=abc
+     * Path: /file/rmdir?serviceId=xxxx&path=xxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1388,7 +1388,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter("abc", "abc");
@@ -1403,24 +1403,24 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してディレクトリ削除テストを行う.
+     * serviceIdを2重に指定してディレクトリ削除テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /file/rmdir?deviceId=12345678&deviceId=xxxx&path=xxxx
+     * Path: /file/rmdir?serviceId=12345678&serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testDeleteRmdirDuplicatedDeviceId() {
+    public void testDeleteRmdirDuplicatedServiceId() {
         final String name = "test";
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "12345678");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "12345678");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -1428,7 +1428,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
             HttpDelete request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
             assertResultError(root);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1439,7 +1439,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /file/rmdir?deviceId=xxxx&path=xxxx
+     * Path: /file/rmdir?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1451,7 +1451,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -1470,7 +1470,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /file/rmdir?deviceId=xxxx&path=xxxx
+     * Path: /file/rmdir?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1482,7 +1482,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
@@ -1501,7 +1501,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file/rmdir?deviceId=xxxx&path=xxxx
+     * Path: /file/rmdir?serviceId=xxxx&path=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -1513,7 +1513,7 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RMDIR);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(FileProfileConstants.PARAM_PATH, name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 

@@ -21,13 +21,13 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity
  * @author NTT DOCOMO, INC.
  */
 public class SonyCameraSettingActivity extends DConnectSettingPageFragmentActivity {
-    /** QX10のデバイスID. */
-    private String mDeviceId;
+    /** QX10のサービスID. */
+    private String mServiceId;
     /** 全Fragmentページ数. */
     private static final int PAGE_COUNTER = 3;
 
     /** フラグメント一覧. */
-    private List<SonyCameraBaseFragment> fragments = new ArrayList<SonyCameraBaseFragment>();
+    private List<SonyCameraBaseFragment> mFragments = new ArrayList<SonyCameraBaseFragment>();
 
     @Override
     protected void onResume() {
@@ -50,21 +50,21 @@ public class SonyCameraSettingActivity extends DConnectSettingPageFragmentActivi
     }
 
     /**
-     * デバイスIDを取得する.
+     * サービスIDを取得する.
      * 
-     * @return デバイスID
+     * @return サービスID
      */
-    public String getDeviceId() {
-        return mDeviceId;
+    public String getServiceId() {
+        return mServiceId;
     }
 
     /**
-     * デバイスIDを設定する.
+     * サービスIDを設定する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void setDeviceId(final String deviceId) {
-        mDeviceId = deviceId;
+    public void setServiceId(final String serviceId) {
+        mServiceId = serviceId;
     }
 
     @Override
@@ -74,13 +74,13 @@ public class SonyCameraSettingActivity extends DConnectSettingPageFragmentActivi
 
     @Override
     public Fragment createPage(final int position) {
-        if (fragments.size() == 0) {
-            fragments.add(new SonyCameraPreparationFragment());
-            fragments.add(new SonyCameraTurnOnFragment());
-            fragments.add(new SonyCameraConnectingFragment());
+        if (mFragments.size() == 0) {
+            mFragments.add(new SonyCameraPreparationFragment());
+            mFragments.add(new SonyCameraTurnOnFragment());
+            mFragments.add(new SonyCameraConnectingFragment());
         }
 
-        SonyCameraBaseFragment fragment = fragments.get(position);
+        SonyCameraBaseFragment fragment = mFragments.get(position);
         return fragment;
     }
 }

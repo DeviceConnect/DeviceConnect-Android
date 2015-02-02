@@ -93,7 +93,7 @@ public class NotificationProfileFragment extends SmartDeviceFragment {
                     URIBuilder uriBuilder = new URIBuilder();
                     uriBuilder.setProfile(NotificationProfileConstants.PROFILE_NAME);
                     uriBuilder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
-                    uriBuilder.addParameter(DConnectMessage.EXTRA_DEVICE_ID,
+                    uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID,
                             getSmartDevice().getId());
                     uriBuilder.addParameter(NotificationProfileConstants.PARAM_TYPE, type);
                     uriBuilder.addParameter(NotificationProfileConstants.PARAM_BODY, body);

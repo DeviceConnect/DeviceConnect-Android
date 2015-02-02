@@ -48,7 +48,7 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
         String attribute = getAttribute(request);
 
         if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equals(attribute)) {
-            result = onPutOnDeviceOrientation(request, response, getDeviceID(request), getSessionKey(request));
+            result = onPutOnDeviceOrientation(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -62,7 +62,7 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
         String attribute = getAttribute(request);
 
         if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equals(attribute)) {
-            result = onDeleteOnDeviceOrientation(request, response, getDeviceID(request), getSessionKey(request));
+            result = onDeleteOnDeviceOrientation(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -82,12 +82,12 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, 
-            final String deviceId, final String sessionKey) {
+            final String serviceId, final String sessionKey) {
         setUnsupportedError(response);
         return true;
     }
@@ -104,12 +104,12 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response,
-            final String deviceId, final String sessionKey) {
+            final String serviceId, final String sessionKey) {
         setUnsupportedError(response);
         return true;
     }

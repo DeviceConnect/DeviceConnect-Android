@@ -2,7 +2,7 @@
 <deviceplugin-provider xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <!-- dConnect Standard Profiles -->
-    <profile name="network_service_discovery" expireperiod="86400000">
+    <profile name="servicediscovery" expireperiod="86400000">
         <name lang="ja">デバイス検索</name>
         <description lang="ja">周辺のデバイスを検索する</description>
         <name lang="en">Network Service Discovery </name>

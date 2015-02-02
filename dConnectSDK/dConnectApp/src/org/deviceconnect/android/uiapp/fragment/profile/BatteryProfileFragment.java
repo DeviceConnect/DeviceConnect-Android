@@ -58,7 +58,7 @@ public class BatteryProfileFragment extends SmartDevicePreferenceFragment {
         protected DConnectMessage doInBackground(final String... args) {
             URIBuilder uriBuilder = new URIBuilder();
             uriBuilder.setProfile(BatteryProfileConstants.PROFILE_NAME);
-            uriBuilder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+            uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
             uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
             DConnectMessage message;

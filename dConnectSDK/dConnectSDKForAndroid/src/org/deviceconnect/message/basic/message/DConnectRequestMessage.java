@@ -244,11 +244,11 @@ public class DConnectRequestMessage extends BasicDConnectMessage {
     }
 
     /**
-     * デバイスIDを取得する.
-     * @return デバイスID
+     * サービスIDを取得する.
+     * @return サービスID
      */
-    public String getDeviceId() {
-        return getString(EXTRA_DEVICE_ID);
+    public String getServiceId() {
+        return getString(EXTRA_SERVICE_ID);
     }
 
     /**

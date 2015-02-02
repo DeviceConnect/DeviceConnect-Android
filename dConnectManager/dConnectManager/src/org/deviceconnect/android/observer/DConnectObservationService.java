@@ -58,12 +58,12 @@ public class DConnectObservationService extends Service {
     private static final int REQUEST_CODE = 0x0F0F0F;
 
     /**
-     * d-Connectのホスト名.
+     * Device Connectのホスト名.
      */
     private String mHost;
 
     /**
-     * d-Connectのポート番号.
+     * Device Connectのポート番号.
      */
     private int mPort;
 

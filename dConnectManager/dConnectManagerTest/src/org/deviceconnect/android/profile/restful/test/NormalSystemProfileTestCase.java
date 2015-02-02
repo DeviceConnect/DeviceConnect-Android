@@ -29,7 +29,7 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
     implements TestSystemProfileConstants {
 
     /** テスト用デバイスプラグインID. */
-    private String testPluginID;
+    private String mTestPluginID;
 
     /**
      * コンストラクタ.
@@ -41,7 +41,7 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
 
     @Override
     protected void tearDown() throws Exception {
-        testPluginID = null;
+        mTestPluginID = null;
         super.tearDown();
     }
 
@@ -79,7 +79,8 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
             JSONObject testPlugin = null;
             for (int i = 0; i < plugins.length(); i++) {
                 JSONObject plugin = plugins.getJSONObject(i);
-                if ("Device Connect Device Plugin for Test".equals(plugin.getString(SystemProfileConstants.PARAM_NAME))) {
+                if ("Device Connect Device Plugin for Test"
+                     .equals(plugin.getString(SystemProfileConstants.PARAM_NAME))) {
                     testPlugin = plugin;
                     break;
                 }
@@ -87,7 +88,7 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
             assertNotNull(testPlugin);
             String id = testPlugin.getString(SystemProfileConstants.PARAM_ID);
             assertNotNull(id);
-            testPluginID = id;
+            mTestPluginID = id;
             assertNotNull(testPlugin.getString(SystemProfileConstants.PARAM_NAME));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
@@ -113,7 +114,7 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + SystemProfileConstants.PROFILE_NAME);
         builder.append("/" + SystemProfileConstants.ATTRIBUTE_DEVICE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -158,7 +159,7 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + SystemProfileConstants.INTERFACE_DEVICE);
         builder.append("/" + SystemProfileConstants.ATTRIBUTE_WAKEUP);
         builder.append("?");
-        builder.append(SystemProfileConstants.PARAM_PLUGIN_ID + "=" + testPluginID);
+        builder.append(SystemProfileConstants.PARAM_PLUGIN_ID + "=" + mTestPluginID);
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -185,49 +186,44 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
      */
     public void testDeleteSystemEvents() throws JSONException {
         // イベント登録
-        {
-            URIBuilder builder = TestURIBuilder.createURIBuilder();
-            builder.setProfile("unique");
-            builder.setAttribute("event");
-            builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
-            builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
-            builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-            try {
-                HttpUriRequest request = new HttpPut(builder.toString());
-                JSONObject root = sendRequest(request);
-                assertResultOK(root);
-                JSONObject resp = waitForEvent();
-                assertNotNull("response is null.", resp);
-                assertEquals("unique", resp.getString(DConnectMessage.EXTRA_PROFILE));
-                assertEquals("event", resp.getString(DConnectMessage.EXTRA_ATTRIBUTE));
-            } catch (JSONException e) {
-                fail("Exception in JSONObject." + e.getMessage());
-            }
+        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        builder.setProfile("unique");
+        builder.setAttribute("event");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+        try {
+            HttpUriRequest request = new HttpPut(builder.toString());
+            JSONObject root = sendRequest(request);
+            assertResultOK(root);
+            JSONObject resp = waitForEvent();
+            assertNotNull("response is null.", resp);
+            assertEquals("unique", resp.getString(DConnectMessage.EXTRA_PROFILE));
+            assertEquals("event", resp.getString(DConnectMessage.EXTRA_ATTRIBUTE));
+        } catch (JSONException e) {
+            fail("Exception in JSONObject." + e.getMessage());
         }
 
         // イベント全削除
-        {
-            long removedTime = System.currentTimeMillis();
-            
-            URIBuilder builder = TestURIBuilder.createURIBuilder();
-            builder.setProfile(SystemProfileConstants.PROFILE_NAME);
-            builder.setAttribute(SystemProfileConstants.ATTRIBUTE_EVENTS);
-            builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
-            builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-            try {
-                HttpUriRequest request = new HttpDelete(builder.toString());
-                JSONObject resp = sendRequest(request);
-                assertResultOK(resp);
-            } catch (JSONException e) {
-                fail("Exception in JSONObject." + e.getMessage());
-            }
-            
-            // イベント解除確認
-            JSONObject event = waitForEvent(750);
-            if (event != null) {
-                long publishedTime = event.getLong("time");
-                assertTrue(removedTime >= publishedTime);
-            }
+        long removedTime = System.currentTimeMillis();
+        builder = TestURIBuilder.createURIBuilder();
+        builder.setProfile(SystemProfileConstants.PROFILE_NAME);
+        builder.setAttribute(SystemProfileConstants.ATTRIBUTE_EVENTS);
+        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+        try {
+            HttpUriRequest request = new HttpDelete(builder.toString());
+            JSONObject resp = sendRequest(request);
+            assertResultOK(resp);
+        } catch (JSONException e) {
+            fail("Exception in JSONObject." + e.getMessage());
+        }
+        
+        // イベント解除確認
+        JSONObject event = waitForEvent(750);
+        if (event != null) {
+            long publishedTime = event.getLong("time");
+            assertTrue(removedTime >= publishedTime);
         }
     }
 }

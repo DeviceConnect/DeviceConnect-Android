@@ -22,15 +22,15 @@ import android.content.Intent;
 public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingProfile {
 
     @Override
-    protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String deviceId) {
-        return ((SonyCameraDeviceService) getContext()).getMediaRecorder(request, response, deviceId);
+    protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String serviceId) {
+        return ((SonyCameraDeviceService) getContext()).getMediaRecorder(request, response, serviceId);
     }
 
     @Override
-    protected boolean onPutOnPhoto(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found deviceID:" + deviceId);
+        if (serviceId == null) {
+            MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
         } else {
@@ -47,15 +47,15 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
     }
 
     @Override
-    protected boolean onPutPreview(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId) {
         return ((SonyCameraDeviceService) getContext()).onPutPreview(request, response);
     }
 
     @Override
-    protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
         } else {
@@ -78,13 +78,13 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
     }
 
     @Override
-    protected boolean onDeletePreview(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId) {
         return ((SonyCameraDeviceService) getContext()).onDeletePreview(request, response);
     }
 
     @Override
-    protected boolean onPostTakePhoto(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPostTakePhoto(final Intent request, final Intent response, final String serviceId,
             final String target) {
-        return ((SonyCameraDeviceService) getContext()).onPostTakePhoto(request, response, deviceId, target);
+        return ((SonyCameraDeviceService) getContext()).onPostTakePhoto(request, response, serviceId, target);
     }
 }

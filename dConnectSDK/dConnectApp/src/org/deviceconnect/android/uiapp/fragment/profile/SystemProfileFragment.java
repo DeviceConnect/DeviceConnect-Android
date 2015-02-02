@@ -80,7 +80,7 @@ public class SystemProfileFragment extends SmartDevicePreferenceFragment {
             URIBuilder uriBuilder = new URIBuilder();
             uriBuilder.setProfile(SystemProfileConstants.PROFILE_NAME);
             uriBuilder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
-            uriBuilder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+            uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
             uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
             try {

@@ -118,7 +118,8 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * 【HTTP通信】
      * Method: GET
      * Path: /authorization/request_accesstoken?
-     *           clientId=xxxx&grantType=authorization_code&scope=battery,connect,deviceorientation&applicationName=xxxx&signature=xxxx
+     *           clientId=xxxx&grantType=authorization_code
+     *           &scope=battery,connect,deviceorientation&applicationName=xxxx&signature=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】

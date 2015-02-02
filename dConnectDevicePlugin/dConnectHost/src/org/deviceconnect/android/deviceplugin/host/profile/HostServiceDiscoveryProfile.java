@@ -1,5 +1,5 @@
 /*
- HostNetworkServiceDiscoveryProfile.java
+ HostServiceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -9,7 +9,7 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -21,11 +21,11 @@ import android.os.Bundle;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HostNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
+public class HostServiceDiscoveryProfile extends ServiceDiscoveryProfile {
     /**
      * デバイスプラグインID.
      */
-    public static final String DEVICE_ID = "Host";
+    public static final String SERVICE_ID = "Host";
 
     /**
      * デバイス名.
@@ -48,12 +48,12 @@ public class HostNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     public static final String DEVICE_CONFIG = "HostConfig";
 
     @Override
-    public boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    public boolean onGetServices(final Intent request, final Intent response) {
 
         List<Bundle> services = new ArrayList<Bundle>();
 
         Bundle service = new Bundle();
-        setId(service, DEVICE_ID);
+        setId(service, SERVICE_ID);
         setName(service, DEVICE_NAME);
         setType(service, DEVICE_TYPE);
         setOnline(service, DEVICE_ONLINE);

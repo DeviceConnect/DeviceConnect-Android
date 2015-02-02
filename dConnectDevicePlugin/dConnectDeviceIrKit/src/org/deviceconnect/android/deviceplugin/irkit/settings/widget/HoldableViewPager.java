@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
@@ -21,7 +22,7 @@ public class HoldableViewPager extends ViewPager {
     /** 
      * スクロールできるかのフラグ.
      */
-    private boolean scrollable;
+    private boolean mScrollable;
 
     /**
      * コンストラクタ.
@@ -30,7 +31,7 @@ public class HoldableViewPager extends ViewPager {
      */
     public HoldableViewPager(final Context context) {
         super(context);
-        scrollable = true;
+        mScrollable = true;
     }
 
     /**
@@ -41,13 +42,14 @@ public class HoldableViewPager extends ViewPager {
      */
     public HoldableViewPager(final Context context, final AttributeSet attrs) {
         super(context, attrs);
-        scrollable = true;
+        mScrollable = true;
     }
 
-    @Override
+    @SuppressLint("ClickableViewAccessibility")
+	@Override
     public boolean onTouchEvent(final MotionEvent event) {
         
-        if (!scrollable) {
+        if (!mScrollable) {
             return false;
         }
         
@@ -56,7 +58,7 @@ public class HoldableViewPager extends ViewPager {
  
     @Override
     public boolean onInterceptTouchEvent(final MotionEvent event) {
-        if (!scrollable) {
+        if (!mScrollable) {
             return false;
         }
         return super.onInterceptTouchEvent(event);
@@ -68,6 +70,6 @@ public class HoldableViewPager extends ViewPager {
      * @param s 制限
      */
     public void setScrollable(final boolean s) {
-        this.scrollable = s;
+        this.mScrollable = s;
     }
 }

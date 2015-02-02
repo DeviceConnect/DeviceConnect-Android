@@ -43,7 +43,7 @@ import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
@@ -77,7 +77,7 @@ public class ServiceListFragment extends ListFragment {
     private SmartDevice mDevice;
 
     /**
-     * d-Connectクライアント.
+     * Device Connectクライアント.
      */
     private DConnectClient mDConnectClient;
 
@@ -167,7 +167,7 @@ public class ServiceListFragment extends ListFragment {
             serviceFragment = new MediaPlayerProfileFragment();
         } else if (serviceName.equals(MediaStreamRecordingProfileConstants.PROFILE_NAME)) {
             serviceFragment = new MediaStreamRecordingProfileFragment();
-        } else if (serviceName.equals(NetworkServiceDiscoveryProfileConstants.PROFILE_NAME)) {
+        } else if (serviceName.equals(ServiceDiscoveryProfileConstants.PROFILE_NAME)) {
             serviceFragment = new NetworkServiceDiscoveryProfileFragment();
         } else if (serviceName.equals(NotificationProfileConstants.PROFILE_NAME)) {
             serviceFragment = new NotificationProfileFragment();
@@ -283,13 +283,13 @@ public class ServiceListFragment extends ListFragment {
                 return message;
             }
 
-            String deviceId = args[0];
+            String serviceId = args[0];
 
             try {
                 URIBuilder uriBuilder = new URIBuilder();
                 uriBuilder.setProfile(SystemProfileConstants.PROFILE_NAME);
                 uriBuilder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
-                uriBuilder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+                uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
                 uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                 mLogger.fine("request: " + uriBuilder.build().toString());

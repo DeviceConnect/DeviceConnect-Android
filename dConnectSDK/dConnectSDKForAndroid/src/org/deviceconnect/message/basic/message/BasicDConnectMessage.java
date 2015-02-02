@@ -35,15 +35,15 @@ public class BasicDConnectMessage extends HashMap<String, Object> implements DCo
     /**
      * ロガーインスタンス.
      */
-    private static Logger mLogger = Logger.getLogger("org.deviceconnect.sdk");
+    private static Logger sLogger = Logger.getLogger("org.deviceconnect.sdk");
 
     /**
      * コンストラクタ.
      */
     public BasicDConnectMessage() {
         super();
-        mLogger.entering(getClass().getName(), "DefaultDConnectMessage");
-        mLogger.exiting(getClass().getName(), "DefaultDConnectMessage");
+        sLogger.entering(getClass().getName(), "DefaultDConnectMessage");
+        sLogger.exiting(getClass().getName(), "DefaultDConnectMessage");
     }
 
     /**
@@ -54,8 +54,8 @@ public class BasicDConnectMessage extends HashMap<String, Object> implements DCo
      */
     public BasicDConnectMessage(final String json) throws JSONException {
         this(new JSONObject(json));
-        mLogger.entering(getClass().getName(), "DefaultDConnectMessage", json);
-        mLogger.exiting(getClass().getName(), "DefaultDConnectMessage");
+        sLogger.entering(getClass().getName(), "DefaultDConnectMessage", json);
+        sLogger.exiting(getClass().getName(), "DefaultDConnectMessage");
     }
 
     /**
@@ -67,8 +67,8 @@ public class BasicDConnectMessage extends HashMap<String, Object> implements DCo
     @SuppressWarnings("unchecked")
     public BasicDConnectMessage(final JSONObject json) throws JSONException {
         this((Map<String, Object>) parseJSONObject(json));
-        mLogger.entering(getClass().getName(), "DefaultDConnectMessage", json);
-        mLogger.exiting(getClass().getName(), "DefaultDConnectMessage");
+        sLogger.entering(getClass().getName(), "DefaultDConnectMessage", json);
+        sLogger.exiting(getClass().getName(), "DefaultDConnectMessage");
     }
 
     /**
@@ -78,8 +78,8 @@ public class BasicDConnectMessage extends HashMap<String, Object> implements DCo
      */
     public BasicDConnectMessage(final Map<String, Object> map) {
         super(map);
-        mLogger.entering(getClass().getName(), "DefaultDConnectMessage", map);
-        mLogger.exiting(getClass().getName(), "DefaultDConnectMessage");
+        sLogger.entering(getClass().getName(), "DefaultDConnectMessage", map);
+        sLogger.exiting(getClass().getName(), "DefaultDConnectMessage");
     }
 
     /**
@@ -88,20 +88,20 @@ public class BasicDConnectMessage extends HashMap<String, Object> implements DCo
      * @return 値
      */
     public String getString(final String key) {
-        mLogger.entering(getClass().getName(), "getString", key);
+        sLogger.entering(getClass().getName(), "getString", key);
         if (!containsKey(key)) {
-            mLogger.exiting(getClass().getName(), "getString", null);
+            sLogger.exiting(getClass().getName(), "getString", null);
             return null;
         }
 
         Object value = get(key);
         if (value != null && !(value instanceof String)) {
-            mLogger.fine("value is not String: " + value.getClass().getName());
-            mLogger.exiting(getClass().getName(), "getString", null);
+            sLogger.fine("value is not String: " + value.getClass().getName());
+            sLogger.exiting(getClass().getName(), "getString", null);
             return null;
         }
 
-        mLogger.exiting(getClass().getName(), "getString", value);
+        sLogger.exiting(getClass().getName(), "getString", value);
         return (String) value;
     }
 
@@ -111,24 +111,24 @@ public class BasicDConnectMessage extends HashMap<String, Object> implements DCo
      * @return 値
      */
     public int getInt(final String key) {
-        mLogger.entering(getClass().getName(), "getInt", key);
+        sLogger.entering(getClass().getName(), "getInt", key);
         if (!containsKey(key)) {
-            mLogger.exiting(getClass().getName(), "getInt", 0);
+            sLogger.exiting(getClass().getName(), "getInt", 0);
             return 0;
         }
 
         Object value = get(key);
         if (value == null || !(value instanceof Integer)) {
             if (value == null) {
-                mLogger.fine("value is not Integer: null");
+                sLogger.fine("value is not Integer: null");
             } else {
-                mLogger.fine("value is not Integer: " + value.getClass().getName());
+                sLogger.fine("value is not Integer: " + value.getClass().getName());
             }
-            mLogger.exiting(getClass().getName(), "getInt", 0);
+            sLogger.exiting(getClass().getName(), "getInt", 0);
             return 0;
         }
 
-        mLogger.exiting(getClass().getName(), "getInt", value);
+        sLogger.exiting(getClass().getName(), "getInt", value);
         return (Integer) value;
     }
 
@@ -138,24 +138,24 @@ public class BasicDConnectMessage extends HashMap<String, Object> implements DCo
      * @return 値
      */
     public boolean getBoolean(final String key) {
-        mLogger.entering(getClass().getName(), "getBoolean", key);
+        sLogger.entering(getClass().getName(), "getBoolean", key);
         if (!containsKey(key)) {
-            mLogger.exiting(getClass().getName(), "getBoolean", false);
+            sLogger.exiting(getClass().getName(), "getBoolean", false);
             return false;
         }
 
         Object value = get(key);
         if (value == null || !(value instanceof Boolean)) {
             if (value == null) {
-                mLogger.fine("value is not Boolean: null");
+                sLogger.fine("value is not Boolean: null");
             } else {
-                mLogger.fine("value is not Boolean: " + value.getClass().getName());
+                sLogger.fine("value is not Boolean: " + value.getClass().getName());
             }
-            mLogger.exiting(getClass().getName(), "getBoolean", false);
+            sLogger.exiting(getClass().getName(), "getBoolean", false);
             return false;
         }
 
-        mLogger.exiting(getClass().getName(), "getBoolean", value);
+        sLogger.exiting(getClass().getName(), "getBoolean", value);
         return (Boolean) value;
     }
 
@@ -165,30 +165,30 @@ public class BasicDConnectMessage extends HashMap<String, Object> implements DCo
      * @return 値
      */
     public float getFloat(final String key) {
-        mLogger.entering(getClass().getName(), "getFloat", key);
+        sLogger.entering(getClass().getName(), "getFloat", key);
         if (!containsKey(key)) {
-            mLogger.exiting(getClass().getName(), "getFloat", 0);
+            sLogger.exiting(getClass().getName(), "getFloat", 0);
             return 0;
         }
 
         Object value = get(key);
         if (value == null || !(value instanceof Float)) {
             if (value == null) {
-                mLogger.fine("value is not Float: null");
+                sLogger.fine("value is not Float: null");
             } else {
-                mLogger.fine("value is not Float: " + value.getClass().getName());
+                sLogger.fine("value is not Float: " + value.getClass().getName());
             }
-            mLogger.exiting(getClass().getName(), "getFloat", 0f);
+            sLogger.exiting(getClass().getName(), "getFloat", 0f);
             return 0f;
         }
 
-        mLogger.exiting(getClass().getName(), "getFloat", value);
+        sLogger.exiting(getClass().getName(), "getFloat", value);
         return (Float) value;
     }
 
     @Override
     public List<Object> getList(final String key) {
-        mLogger.entering(getClass().getName(), "getList", key);
+        sLogger.entering(getClass().getName(), "getList", key);
         if (!containsKey(key)) {
             return null;
         }
@@ -196,15 +196,15 @@ public class BasicDConnectMessage extends HashMap<String, Object> implements DCo
         Object value = get(key);
         if (value == null ||  !(value instanceof List<?>)) {
             if (value == null) {
-                mLogger.fine("value is not List<?>: null");
+                sLogger.fine("value is not List<?>: null");
             } else {
-                mLogger.fine("value is not List<?>: " + value.getClass().getName());
+                sLogger.fine("value is not List<?>: " + value.getClass().getName());
             }
-            mLogger.exiting(getClass().getName(), "getList", null);
+            sLogger.exiting(getClass().getName(), "getList", null);
             return null;
         }
 
-        mLogger.exiting(getClass().getName(), "getList", get(key));
+        sLogger.exiting(getClass().getName(), "getList", get(key));
         return castListObject((List<?>) value);
     }
 
@@ -336,7 +336,7 @@ public class BasicDConnectMessage extends HashMap<String, Object> implements DCo
      * @throws JSONException JSONエラーが発生した場合
      */
     private static Object parseJSONObject(final Object json) throws JSONException {
-        mLogger.entering(BasicDConnectMessage.class.getName(), "parseJSONObject", json);
+        sLogger.entering(BasicDConnectMessage.class.getName(), "parseJSONObject", json);
 
         Object object = null;
 
@@ -370,7 +370,7 @@ public class BasicDConnectMessage extends HashMap<String, Object> implements DCo
             object = json;
         }
 
-        mLogger.exiting(BasicDConnectMessage.class.getName(), "parseJSONObject", object);
+        sLogger.exiting(BasicDConnectMessage.class.getName(), "parseJSONObject", object);
         return object;
     }
 

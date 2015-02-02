@@ -5,10 +5,11 @@ Released under the MIT license
 http://opensource.org/licenses/mit-license.php
 */
 
-package org.deviceconnect.android.profile;
+package org.deviceconnect.android.original.profile;
 
 import org.deviceconnect.android.deviceplugin.util.DcLoggerLight;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfile;
 
 import android.content.Intent;
 

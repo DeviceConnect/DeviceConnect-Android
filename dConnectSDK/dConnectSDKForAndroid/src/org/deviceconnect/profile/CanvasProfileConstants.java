@@ -89,10 +89,9 @@ public interface CanvasProfileConstants extends DConnectProfileConstants {
         /**
          * 指定された定義値をもつ定数を宣言します.
          * 
-         * @param value 定義値
          */
         private Mode() {
-        	this.mValue = "";
+            this.mValue = "";
         }
 
         /**

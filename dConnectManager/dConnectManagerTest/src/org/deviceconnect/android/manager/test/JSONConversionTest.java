@@ -49,7 +49,7 @@ public class JSONConversionTest extends RESTfulDConnectTestCase {
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/json_test");
         builder.append("?");
-        builder.append(DConnectMessage.EXTRA_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectMessage.EXTRA_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectMessage.EXTRA_ACCESS_TOKEN + "=" + getAccessToken());
         HttpUriRequest request = new HttpGet(builder.toString());

@@ -37,7 +37,7 @@ public class NormalDeviceOrientationProfileTestCase extends
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /deviceorientation/ondeviceorientation?deviceId=xxxx&sessionKey=xxxx
+     * Path: /deviceorientation/ondeviceorientation?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -51,7 +51,7 @@ public class NormalDeviceOrientationProfileTestCase extends
         builder.append("/" + DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.append("/" + DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -92,7 +92,7 @@ public class NormalDeviceOrientationProfileTestCase extends
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /deviceorientation/ondeviceorientation?deviceId=xxxx&sessionKey=xxxx
+     * Path: /deviceorientation/ondeviceorientation?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -105,7 +105,7 @@ public class NormalDeviceOrientationProfileTestCase extends
         builder.append("/" + DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.append("/" + DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");

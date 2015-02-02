@@ -20,8 +20,8 @@ public class DevicePlugin {
     private String mPackageName;
     /** デバイスプラグインのクラス名. */
     private String mClassName;
-    /** デバイスID. */
-    private String mDeviceId;
+    /** サービスID. */
+    private String mServiceId;
     /** デバイスプラグイン名. */
     private String mDeviceName;
     /** Class name of service for restart. */
@@ -29,7 +29,7 @@ public class DevicePlugin {
     /**
      * サポートしているプロファイルを格納する.
      */
-    private List<String> supports = new ArrayList<String>();
+    private List<String> mSupports = new ArrayList<String>();
 
     /**
      * デバイスプラグインのパッケージ名を取得する.
@@ -63,15 +63,15 @@ public class DevicePlugin {
      * デバイスプラグインIDを取得する.
      * @return デバイスプラグインID
      */
-    public String getDeviceId() {
-        return mDeviceId;
+    public String getServiceId() {
+        return mServiceId;
     }
     /**
      * デバイスプラグインIDを設定する.
-     * @param deviceId デバイスプラグインID
+     * @param serviceId デバイスプラグインID
      */
-    public void setDeviceId(final String deviceId) {
-        this.mDeviceId = deviceId;
+    public void setServiceId(final String serviceId) {
+        this.mServiceId = serviceId;
     }
     /**
      * デバイスプラグイン名を取得する.
@@ -114,26 +114,26 @@ public class DevicePlugin {
      * @param profileName プロファイル名
      */
     public void addProfile(final String profileName) {
-        supports.add(profileName);
+        mSupports.add(profileName);
     }
     /**
      * サポートするプロファイルを設定する.
      * @param profiles プロファイル名一覧
      */
     public void setSupportProfiles(final List<String> profiles) {
-        supports = profiles;
+        mSupports = profiles;
     }
     /**
      * デバイスプラグインがサポートするプロファイルの一覧を取得する.
      * @return サポートするプロファイルの一覧
      */
     public List<String> getSupportProfiles() {
-        return supports;
+        return mSupports;
     }
     
     @Override
     public String toString() {
-        return "DeviceId: " + mDeviceId + "DeviceName: " + mDeviceName
+        return "ServiceId: " + mServiceId + "DeviceName: " + mDeviceName
                 + " package: " + mPackageName + " class: " + mClassName;
     }
 }

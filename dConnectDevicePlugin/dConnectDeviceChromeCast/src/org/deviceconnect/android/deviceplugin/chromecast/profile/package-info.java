@@ -6,6 +6,6 @@
  */
 
 /**
- * Chromecast profile package
+ * Device Connect Chromecast DevicePlugin Profiles.
  */
 package org.deviceconnect.android.deviceplugin.chromecast.profile;

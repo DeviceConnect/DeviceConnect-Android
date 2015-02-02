@@ -32,18 +32,18 @@ final class EventDeviceDao implements EventDeviceSchema {
      * 
      * @param db データベース操作オブジェクト
      * @param attributeId アトリビュートID
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return 登録出来た場合は登録時のIDを返す。重複している場合は登録済みのIDを返す。処理に失敗した場合は-1を返す。
      */
-    static long insert(final SQLiteDatabase db, final long attributeId, final long deviceId) {
+    static long insert(final SQLiteDatabase db, final long attributeId, final long serviceId) {
         
         long result = -1L;
         Cursor cursor = db.query(TABLE_NAME, new String[] {_ID}, A_ID + "=? AND " + D_ID + "=?", 
-                new String[] {"" + attributeId, "" + deviceId}, null, null, null);
+                new String[] {"" + attributeId, "" + serviceId}, null, null, null);
         if (cursor.getCount() == 0) {
             ContentValues values = new ContentValues();
             values.put(A_ID, attributeId);
-            values.put(D_ID, deviceId);
+            values.put(D_ID, serviceId);
             values.put(CREATE_DATE, Utils.getCurreTimestamp().getTime());
             values.put(UPDATE_DATE, Utils.getCurreTimestamp().getTime());
             result = db.insert(TABLE_NAME, null, values);

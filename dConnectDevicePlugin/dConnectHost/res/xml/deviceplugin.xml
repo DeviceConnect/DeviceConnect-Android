@@ -2,7 +2,7 @@
 <deviceplugin-provider xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <!-- dConnect Standard Profiles -->
-    <profile name="network_service_discovery" expireperiod="86400000">
+    <profile name="servicediscovery" expireperiod="86400000">
         <name lang="ja">デバイス検索 </name>
         <description lang="ja">周辺のデバイスを検索する </description>
         <name lang="en">Network Service Discovery </name>
@@ -93,5 +93,12 @@
         <name lang="en">Proximity</name>
         <description lang="en">Accesses media player feature. </description>
     </profile>
-
+    
+     <profile name="canvas" expireperiod="86400000">
+        <name lang="ja">キャンバス</name>
+        <description lang="ja">図形を描画する。</description>
+        <name lang="en">Canvas</name>
+        <description lang="en">Draw Shapes. </description>
+    </profile>
+     
 </deviceplugin-provider>

@@ -27,7 +27,7 @@ import android.widget.Button;
 import android.widget.LinearLayout.LayoutParams;
 
 /**
- * チュートリアル画面
+ * チュートリアル画面.
  * <p>
  * 画面を作成する
  * </p>
@@ -36,23 +36,26 @@ import android.widget.LinearLayout.LayoutParams;
  * @author NTT DOCOMO, INC.
  */
 public class ChromeCastSettingFragmentPage3 extends Fragment {
-    private static final String packageName = "com.google.android.apps.chromecast.app";
-    private int badgeWidth = 0;
-    private int badgeHeight = 0;
+    /** Chromecastアプリのパッケージ名. */
+    private static final String PACKAGE_NAME = "com.google.android.apps.chromecast.app";
+    /** バッジの横サイズ. */
+    private int mBadgeWidth = 0;
+    /** バッジの縦サイズ. */
+    private int mBadgeHeight = 0;
     
     /**
-     * Chromecast App (Google) のインストール状態を調べる
+     * Chromecast App (Google) のインストール状態を調べる.
      * 
      * @param   context         コンテキスト
      * @return  インストール状態    （true: インストールされている, false: インストールされていない）
      */
-    private boolean isApplicationInstalled(Context context) {
+    private boolean isApplicationInstalled(final Context context) {
         boolean installed = false;
         try {
-            context.getPackageManager().getPackageInfo(packageName, PackageManager.GET_META_DATA);
+            context.getPackageManager().getPackageInfo(PACKAGE_NAME, PackageManager.GET_META_DATA);
             installed = true;
         } catch (NameNotFoundException e) {
-            if(BuildConfig.DEBUG){
+            if (BuildConfig.DEBUG) { 
                 e.printStackTrace();
             }
         }
@@ -60,18 +63,17 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
     }
 
     /**
-     * Chromecast App (Google) のインストール状態に応じて、Buttonの背景を変更する
+     * Chromecast App (Google) のインストール状態に応じて、Buttonの背景を変更する.
      * 
      * @param   button  ボタン
-     * @return  なし
      */
-    private void changeButtonBackground(Button button) {
+    private void changeButtonBackground(final Button button) {
         if (isApplicationInstalled(button.getContext())) {
             button.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
             button.setBackgroundResource(R.drawable.button_blue);
             button.setText(getResources().getString(R.string.chromecast_settings_step_3_button));
         } else {
-            button.setLayoutParams(new LayoutParams(badgeWidth, badgeHeight));
+            button.setLayoutParams(new LayoutParams(mBadgeWidth, mBadgeHeight));
             button.setBackgroundResource(R.drawable.button_google_play);
             button.setText("");
         }
@@ -94,24 +96,24 @@ public class ChromeCastSettingFragmentPage3 extends Fragment {
             public void onClick(final View v) {
                 Intent intent;
                 if (isApplicationInstalled(v.getContext())) {
-                    intent = v.getContext().getPackageManager().getLaunchIntentForPackage(packageName);
+                    intent = v.getContext().getPackageManager().getLaunchIntentForPackage(PACKAGE_NAME);
                 } else {
-                    intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName));
+                    intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + PACKAGE_NAME));
                 }
                 startActivity(intent);
             }
         });
 
         Bitmap image = BitmapFactory.decodeResource(getResources(), R.drawable.button_google_play);
-        badgeWidth = image.getWidth();
-        badgeHeight = image.getHeight();
+        mBadgeWidth = image.getWidth();
+        mBadgeHeight = image.getHeight();
         image.recycle();
         
         button = (Button) rootView.findViewById(R.id.buttonChromecastSettingWifiRestart);
         button.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(final View v) {
-                WifiManager wifi = (WifiManager)getActivity().getSystemService(Context.WIFI_SERVICE);
+                WifiManager wifi = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
                 wifi.setWifiEnabled(false);
                 wifi.setWifiEnabled(true);
             }

@@ -16,6 +16,7 @@ import org.deviceconnect.message.basic.message.DConnectResponseMessage;
 import org.deviceconnect.message.client.DConnectClient;
 import org.deviceconnect.message.http.impl.client.HttpDConnectClient;
 import org.deviceconnect.message.http.impl.factory.HttpMessageFactory;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import android.os.AsyncTask;
 
@@ -36,8 +37,8 @@ public final class DConnectUtil {
     /** dConnectManagerのURI. */
     private static final String BASE_URI = "http://localhost:4035";
 
-    /** Network Service Discovery ProfileのURI. */
-    private static final String DISCOVERY_URI = BASE_URI + "/network_service_discovery/getnetworkservices";
+    /** Service Discovery ProfileのURI. */
+    private static final String DISCOVERY_URI = BASE_URI + "/" + ServiceDiscoveryProfileConstants.PROFILE_NAME;
 
     /**
      * コンストラクタ. ユーティリティクラスなのでprivateにしておく。

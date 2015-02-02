@@ -59,7 +59,7 @@ public class LocalOAuthOpenHelper extends SQLiteOpenHelper {
             + "id INTEGER PRIMARY KEY AUTOINCREMENT, "  /* ID */
             + "client_id VARCHAR(100), "                /* クライアントID */
             + "package_name VARCHAR(2000), "            /* パッケージ名 */
-            + "device_id VARCHAR(100), "                /* デバイスID(無しのときはnull) */
+            + "service_id VARCHAR(100), "                /* サービスID(無しのときはnull) */
             + "client_secret VARCHAR(100), "            /* クライアントシークレット */
             + "client_type INTEGER, "                   /* クライアントタイプ */
             + "registration_date INTEGER "              /* 登録日時(System.currentTimeMillis()で取得した値を格納する) */

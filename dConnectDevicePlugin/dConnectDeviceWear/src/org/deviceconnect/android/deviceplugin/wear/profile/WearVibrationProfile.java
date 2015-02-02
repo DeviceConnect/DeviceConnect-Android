@@ -52,14 +52,14 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
     private long[] mPattern;
 
     @Override
-    protected boolean onPutVibrate(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutVibrate(final Intent request, final Intent response, final String serviceId,
             final long[] pattern) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
         } else {
-            mId = getNodeId(deviceId);
+            mId = getNodeId(serviceId);
             mVibrateStatus = STATUS_VIBRATE_START;
             mPattern = pattern;
 
@@ -76,13 +76,13 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
     }
 
     @Override
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
-        } else if (!WearUtils.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
         } else {
-            mId = getNodeId(deviceId);
+            mId = getNodeId(serviceId);
             mVibrateStatus = STATUS_VIBRATE_STOP;
 
             // Connect Google Play Service
@@ -99,14 +99,14 @@ public class WearVibrationProfile extends VibrationProfile implements Connection
     }
 
     /**
-     * DeviceIDがらnodeを取得.
+     * ServiceIDがらnodeを取得.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return nodeId
      */
-    private String getNodeId(final String deviceId) {
-        String[] mDeviceIdArray = deviceId.split("\\(", 0);
-        String id = mDeviceIdArray[1].replace(")", "");
+    private String getNodeId(final String serviceId) {
+        String[] mServiceIdArray = serviceId.split("\\(", 0);
+        String id = mServiceIdArray[1].replace(")", "");
         return id;
     }
 

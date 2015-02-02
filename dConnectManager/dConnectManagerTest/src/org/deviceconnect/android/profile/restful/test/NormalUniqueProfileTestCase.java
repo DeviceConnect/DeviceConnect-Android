@@ -76,7 +76,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetUnique() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -106,7 +106,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setAttribute(ATTIBUTE_PING);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -137,7 +137,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(PROFILE_NAME);
         builder.setInterface(INTERFACE_TEST);
         builder.setAttribute(ATTIBUTE_PING);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -166,7 +166,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
     public void testPostUnique() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -196,7 +196,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setAttribute(ATTIBUTE_PING);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -227,7 +227,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(PROFILE_NAME);
         builder.setInterface(INTERFACE_TEST);
         builder.setAttribute(ATTIBUTE_PING);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
@@ -256,7 +256,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
     public void testPutUnique() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -286,7 +286,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setAttribute(ATTIBUTE_PING);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -317,7 +317,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(PROFILE_NAME);
         builder.setInterface(INTERFACE_TEST);
         builder.setAttribute(ATTIBUTE_PING);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -346,7 +346,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
     public void testDeleteUnique() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -376,7 +376,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(PROFILE_NAME);
         builder.setAttribute(ATTIBUTE_PING);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
@@ -407,7 +407,7 @@ public class NormalUniqueProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(PROFILE_NAME);
         builder.setInterface(INTERFACE_TEST);
         builder.setAttribute(ATTIBUTE_PING);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());

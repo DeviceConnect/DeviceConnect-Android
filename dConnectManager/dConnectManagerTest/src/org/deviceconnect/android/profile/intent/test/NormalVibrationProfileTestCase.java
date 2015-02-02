@@ -42,7 +42,7 @@ public class NormalVibrationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutVibrate001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, VibrationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         Intent response = sendRequest(request);
@@ -66,7 +66,7 @@ public class NormalVibrationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutVibrate002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, VibrationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         request.putExtra(VibrationProfileConstants.PARAM_PATTERN, "500,500,500");
@@ -90,7 +90,7 @@ public class NormalVibrationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteVibrate() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, VibrationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, VibrationProfileConstants.ATTRIBUTE_VIBRATE);
         Intent response = sendRequest(request);

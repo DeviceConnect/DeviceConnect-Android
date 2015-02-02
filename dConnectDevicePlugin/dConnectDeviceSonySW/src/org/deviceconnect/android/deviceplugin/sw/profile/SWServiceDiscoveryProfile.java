@@ -1,5 +1,5 @@
 /*
- SWNetworkServiceDiscoveryProfile.java
+ SWServiceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.bluetooth.BluetoothAdapter;
@@ -25,13 +25,13 @@ import com.sonyericsson.extras.liveware.aef.registration.Registration.DeviceColu
 import com.sonyericsson.extras.liveware.extension.util.registration.RegistrationAdapter;
 
 /**
- * SonySWデバイスプラグインの{@link NetworkServiceDiscoveryProfile}実装.
+ * SonySWデバイスプラグインの{@link ServiceDiscoveryProfile}実装.
  * @author NTT DOCOMO, INC.
  */
-public class SWNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
+public class SWServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
-    protected boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    protected boolean onGetServices(final Intent request, final Intent response) {
         List<Bundle> services = new ArrayList<Bundle>();
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         if (adapter != null) {

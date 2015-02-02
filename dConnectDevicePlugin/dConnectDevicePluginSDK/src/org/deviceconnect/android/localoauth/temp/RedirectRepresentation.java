@@ -8,7 +8,6 @@ package org.deviceconnect.android.localoauth.temp;
 
 import java.util.Map;
 
-import org.restlet.ext.oauth.AuthorizationServerResource;
 import org.restlet.representation.EmptyRepresentation;
 
 /**
@@ -17,52 +16,52 @@ import org.restlet.representation.EmptyRepresentation;
  */
 public class RedirectRepresentation extends EmptyRepresentation{
 
-	/**
-	 * RedirectProc.
-	 */
+    /**
+     * RedirectProc.
+     */
     public enum RedirectProc {
         /** 未設定. */
-		nothing,
+        nothing,
         /** AuthorizationServerResource.requestAuthorization() 実行. */   
-		requestAuthorization,
+        requestAuthorization,
         /** LoginPageActivity 表示. */
-		loginPage,
-		/** 認証ページ？. */
-		authPage,
-	}
+        loginPage,
+        /** 認証ページ？. */
+        authPage,
+    }
 
     /** セッションID. */
-	public static final String SESSION_ID = "session_id";
-	
-	/** リダイレクトProc. */
-	private RedirectProc mRedirectProc = null;
-	
-	/** オプション. */
-	private Map<String, Object> mOptions = null; 
-	
-	/**
-	 * コンストラクタ.
-	 * @param redirectProc redirectProc
-	 * @param options options
-	 */
-	public RedirectRepresentation(final RedirectProc redirectProc, final Map<String, Object> options) {
-		mRedirectProc = redirectProc;
-		mOptions = options; 
-	}
-	
-	/**
-	 * RedirectProcを返す.
-	 * @return RedirectProc
-	 */
-	public RedirectProc getRedirectProc() {
-		return mRedirectProc;
-	}
-	
-	/**
-	 * Optionsを返す.
-	 * @return Options
-	 */
-	public Map<String, Object> getOptions() {
-		return mOptions;
-	}
+    public static final String SESSION_ID = "session_id";
+    
+    /** リダイレクトProc. */
+    private RedirectProc mRedirectProc = null;
+    
+    /** オプション. */
+    private Map<String, Object> mOptions = null; 
+    
+    /**
+     * コンストラクタ.
+     * @param redirectProc redirectProc
+     * @param options options
+     */
+    public RedirectRepresentation(final RedirectProc redirectProc, final Map<String, Object> options) {
+        mRedirectProc = redirectProc;
+        mOptions = options; 
+    }
+    
+    /**
+     * RedirectProcを返す.
+     * @return RedirectProc
+     */
+    public RedirectProc getRedirectProc() {
+        return mRedirectProc;
+    }
+    
+    /**
+     * Optionsを返す.
+     * @return Options
+     */
+    public Map<String, Object> getOptions() {
+        return mOptions;
+    }
 }

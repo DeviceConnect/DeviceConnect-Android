@@ -17,7 +17,7 @@ public interface DConnectProfileConstants {
     /**
      * パラメータ: {@value} .
      */
-    String PARAM_DEVICE_ID = "deviceId";
+    String PARAM_SERVICE_ID = "serviceId";
 
     /**
      * パラメータ: {@value} .

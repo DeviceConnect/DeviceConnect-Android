@@ -50,14 +50,14 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     private static final int UNIT_SEC = 1000;
 
     /** Mute Status. */
-    private static Boolean mIsMute = false;
+    private static Boolean sIsMute = false;
 
     @Override
-    protected boolean onPutPlay(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onPutPlay(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             ((HostDeviceService) getContext()).playMedia();
             setResult(response, DConnectMessage.RESULT_OK);
@@ -66,11 +66,11 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutStop(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onPutStop(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             ((HostDeviceService) getContext()).stopMedia();
             setResult(response, DConnectMessage.RESULT_OK);
@@ -79,11 +79,11 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutPause(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onPutPause(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             ((HostDeviceService) getContext()).pauseMedia();
             setResult(response, DConnectMessage.RESULT_OK);
@@ -92,11 +92,11 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutResume(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onPutResume(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             ((HostDeviceService) getContext()).resumeMedia();
             setResult(response, DConnectMessage.RESULT_OK);
@@ -105,13 +105,13 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetPlayStatus(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetPlayStatus(final Intent request, final Intent response, final String serviceId) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
             return true;
         } else {
             ((HostDeviceService) getContext()).getPlayStatus(response);
@@ -121,12 +121,12 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutMedia(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutMedia(final Intent request, final Intent response, final String serviceId,
             final String mediaId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (TextUtils.isEmpty(mediaId)) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -147,12 +147,12 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetMedia(final Intent request, final Intent response, final String deviceId,
+    protected boolean onGetMedia(final Intent request, final Intent response, final String serviceId,
             final String mediaId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (TextUtils.isEmpty(mediaId)) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -288,12 +288,13 @@ private String getDisplayNameFromUri(final Uri mUri) {
 }
 
     @Override
-    protected boolean onGetMediaList(Intent request, Intent response, final String deviceId, final String query,
+    protected boolean onGetMediaList(final Intent request, final Intent response,
+            final String serviceId, final String query,
             final String mimeType, final String[] orders, final Integer offset, final Integer limit) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             if (BuildConfig.DEBUG) {
                 Log.i(TAG, "onGetMediaList");
@@ -484,12 +485,12 @@ private String getDisplayNameFromUri(final Uri mUri) {
     }
 
     @Override
-    protected boolean onPutVolume(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutVolume(final Intent request, final Intent response, final String serviceId,
             final Double volume) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (volume == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else if (0.0 > volume || volume > 1.0) {
@@ -507,12 +508,12 @@ private String getDisplayNameFromUri(final Uri mUri) {
     }
 
     @Override
-    protected boolean onGetVolume(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetVolume(final Intent request, final Intent response, final String serviceId) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
 
@@ -529,11 +530,11 @@ private String getDisplayNameFromUri(final Uri mUri) {
     }
 
     @Override
-    protected boolean onPutSeek(final Intent request, final Intent response, final String deviceId, final Integer pos) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onPutSeek(final Intent request, final Intent response, final String serviceId, final Integer pos) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (pos == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
@@ -547,11 +548,11 @@ private String getDisplayNameFromUri(final Uri mUri) {
     }
 
     @Override
-    protected boolean onGetSeek(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onGetSeek(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             int pos = ((HostDeviceService) getContext()).getMediaPos();
             if (pos < 0) {
@@ -569,15 +570,15 @@ private String getDisplayNameFromUri(final Uri mUri) {
     }
 
     @Override
-    protected boolean onPutMute(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onPutMute(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
             manager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-            mIsMute = true;
+            sIsMute = true;
             setResult(response, DConnectMessage.RESULT_OK);
             ((HostDeviceService) getContext()).sendOnStatusChangeEvent("mute");
         }
@@ -585,15 +586,15 @@ private String getDisplayNameFromUri(final Uri mUri) {
     }
 
     @Override
-    protected boolean onDeleteMute(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onDeleteMute(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             AudioManager manager = (AudioManager) this.getContext().getSystemService(Context.AUDIO_SERVICE);
             manager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-            mIsMute = false;
+            sIsMute = false;
             setResult(response, DConnectMessage.RESULT_OK);
             ((HostDeviceService) getContext()).sendOnStatusChangeEvent("unmute");
         }
@@ -601,26 +602,26 @@ private String getDisplayNameFromUri(final Uri mUri) {
     }
 
     @Override
-    protected boolean onGetMute(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onGetMute(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
-            setMute(response, mIsMute);
+            setMute(response, sIsMute);
             setResult(response, DConnectMessage.RESULT_OK);
         }
         return true;
     }
 
     @Override
-    protected boolean onPutOnStatusChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnStatusChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -631,7 +632,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).registerOnStatusChange(response, deviceId);
+                ((HostDeviceService) getContext()).registerOnStatusChange(response, serviceId);
                 return false;
             } else {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
@@ -641,13 +642,13 @@ private String getDisplayNameFromUri(final Uri mUri) {
     }
 
     @Override
-    protected boolean onDeleteOnStatusChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnStatusChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
             return true;
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -703,21 +704,21 @@ private String getDisplayNameFromUri(final Uri mUri) {
     }
 
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        return HostNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkServiceId(final String serviceId) {
+        return HostServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
+    private void createEmptyServiceId(final Intent response) {
         setResult(response, DConnectMessage.RESULT_ERROR);
     }
 
@@ -726,7 +727,7 @@ private String getDisplayNameFromUri(final Uri mUri) {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
+    private void createNotFoundService(final Intent response) {
         setResult(response, DConnectMessage.RESULT_ERROR);
     }
 

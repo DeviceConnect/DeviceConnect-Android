@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect Server Logger.
+ * Device Connect Server Logger.
  */
 package org.deviceconnect.server.logger;

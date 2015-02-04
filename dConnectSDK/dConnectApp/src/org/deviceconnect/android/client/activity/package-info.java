@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect クライアントアクティビティパッケージ.
+ * Device Connect クライアントアクティビティパッケージ.
  */
 package org.deviceconnect.android.client.activity;

@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connectを管理する.
+ * Device Connectを管理する.
  */
 package org.deviceconnect.android.manager;

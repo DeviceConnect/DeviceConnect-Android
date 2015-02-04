@@ -35,7 +35,7 @@ package org.deviceconnect.android.localoauth;
  * <td>○設定必要</td>
  * </tr>
  * <tr>
- * <td>mDeviceId</td>
+ * <td>mServiceId</td>
  * <td>○設定必要</td>
  * <td>×設定不要</td>
  * </tr>
@@ -76,8 +76,8 @@ public class ConfirmAuthParams {
     /** グラントタイプ. */
     private String mGrantType;
 
-    /** デバイスID(デバイスプラグイン用の場合のみ設定する). */
-    private String mDeviceId;
+    /** サービスID(デバイスプラグイン用の場合のみ設定する). */
+    private String mServiceId;
 
     /** スコープ名. */
     private String[] mScope;
@@ -93,7 +93,7 @@ public class ConfirmAuthParams {
         mApplicationName = null;
         mClientId = null;
         mGrantType = null;
-        mDeviceId = null;
+        mServiceId = null;
         mScope = null;
         mIsForDevicePlugin = true;
     }
@@ -109,7 +109,7 @@ public class ConfirmAuthParams {
         this.mApplicationName = builder.mApplicationName;
         this.mClientId = builder.mClientId;
         this.mGrantType = builder.mGrantType;
-        this.mDeviceId = builder.mDeviceId;
+        this.mServiceId = builder.mServiceId;
         this.mScope = builder.mScope;
         this.mIsForDevicePlugin = builder.mIsForDevicePlugin;
     }
@@ -187,21 +187,21 @@ public class ConfirmAuthParams {
     }
 
     /**
-     * デバイスIDを取得.
+     * サービスIDを取得.
      * 
-     * @return デバイスID
+     * @return サービスID
      */
-    public String getDeviceId() {
-        return mDeviceId;
+    public String getServiceId() {
+        return mServiceId;
     }
 
     /**
-     * デバイスIDを設定.
+     * サービスIDを設定.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void setDeviceId(final String deviceId) {
-        this.mDeviceId = deviceId;
+    public void setServiceId(final String serviceId) {
+        this.mServiceId = serviceId;
     }
 
     /**
@@ -257,8 +257,8 @@ public class ConfirmAuthParams {
         /** グラントタイプ. */
         private String mGrantType;
 
-        /** デバイスID(デバイスプラグイン用の場合のみ設定する). */
-        private String mDeviceId;
+        /** サービスID(デバイスプラグイン用の場合のみ設定する). */
+        private String mServiceId;
 
         /** スコープ. */
         private String[] mScope;
@@ -329,12 +329,12 @@ public class ConfirmAuthParams {
         }
 
         /**
-         * デバイスIDを設定する(デバイスプラグイン用の場合のみ設定する).
-         * @param deviceId デバイスID
+         * サービスIDを設定する(デバイスプラグイン用の場合のみ設定する).
+         * @param serviceId サービスID
          * @return ビルダー。
          */
-        public Builder deviceId(final String deviceId) {
-            mDeviceId = deviceId;
+        public Builder serviceId(final String serviceId) {
+            mServiceId = serviceId;
             return this;
         }
 

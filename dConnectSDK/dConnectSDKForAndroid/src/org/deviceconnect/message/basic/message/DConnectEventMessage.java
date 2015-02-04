@@ -130,20 +130,20 @@ public class DConnectEventMessage extends BasicDConnectMessage {
     }
     
     /**
-     * デバイスIDを取得する.
+     * サービスIDを取得する.
      * 
-     * @return デバイスID
+     * @return サービスID
      */
-    public String getDeviceId() {
-        return getString(DConnectMessage.EXTRA_DEVICE_ID);
+    public String getServiceId() {
+        return getString(DConnectMessage.EXTRA_SERVICE_ID);
     }
     
     /**
-     * デバイスIDを設定する.
+     * サービスIDを設定する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void setDeviceId(final String deviceId) {
-        put(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+    public void setServiceId(final String serviceId) {
+        put(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
     }
 }

@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.deviceconnect.android.profile.util.CanvasProfileUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
@@ -35,6 +36,7 @@ import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.getpebble.android.kit.BuildConfig;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
@@ -476,7 +478,9 @@ public final class PebbleManager {
                             mLockObj.wait(TIMEOUT);
                         }
                     } catch (InterruptedException e) {
-                        // do nothing.
+                        if (BuildConfig.DEBUG) {
+                            e.printStackTrace();
+                        }
                     }
                     // Pebbleへの送信結果
                     result = mResponseDataMap.remove(requestCode);
@@ -530,6 +534,9 @@ public final class PebbleManager {
                     try {
                         Thread.sleep(sleepMilliSec);
                     } catch (InterruptedException e) {
+                        if (BuildConfig.DEBUG) {
+                           e.printStackTrace();
+                        }
                     }
                 }
                 if (listener != null) {
@@ -547,7 +554,9 @@ public final class PebbleManager {
                         mBinaryLockObj.wait(TIMEOUT);
                     }
                 } catch (InterruptedException e) {
-                    // do nothing.
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
                 }
                 return (mBinarySendState == BinarySendState.STATE_ACK);
             }
@@ -574,7 +583,9 @@ public final class PebbleManager {
                         try {
                             Thread.sleep(sleepMilliSec);
                         } catch (InterruptedException e) {
-                            // do nothing.
+                            if (BuildConfig.DEBUG) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -603,6 +614,9 @@ public final class PebbleManager {
                         try {
                             Thread.sleep(sleepMilliSec);
                         } catch (InterruptedException e) {
+                            if (BuildConfig.DEBUG) {
+                               e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -655,8 +669,6 @@ public final class PebbleManager {
      * <p>
      * PebbleDictionaryの作成に失敗した場合はnullを返却する。
      * </p>
-     * 
-     * TODO 実装が中途半端なので、実用に耐えられない。
      * 
      * @param request リクエスト
      * @return PebbleDictionaryのインスタンス
@@ -729,6 +741,8 @@ public final class PebbleManager {
             return convertBatteryAttribute(attribute);
         case PROFILE_DEVICE_ORIENTATION:
             return convertDeviceOrientationAttribute(attribute);
+        default:
+            break;
         }
         return -1;
     }
@@ -839,9 +853,9 @@ public final class PebbleManager {
      * @param mode 画像描画モード
      * @param x 画像配置座標(x)
      * @param y 画像配置座標(y)
-     * @return 変換後のデータ
+     * @return 変換後のデータ / 描画モードが不正だった場合はnull
      */
-    public static byte[] convertImage(byte[] data, final String mode, final double x, final double y) {
+    public static byte[] convertImage(final byte[] data, final String mode, final double x, final double y) {
         final int width = 144;
         final int height = 120;
         return convertImage(data, width, height, mode, x, y);
@@ -858,27 +872,38 @@ public final class PebbleManager {
      * @param mode 画像描画モード
      * @param x 画像配置座標(x)
      * @param y 画像配置座標(y)
-     * @return 変換後のデータ
+     * @return 変換後のデータ / 描画モードが不正だった場合はnull
      */
-    public static byte[] convertImage(byte[] data, final int width, final int height, final String mode, final double x, final double y) {
+    public static byte[] convertImage(final byte[] data, final int width, final int height,
+                                  final String mode, final double x, final double y) {
         Bitmap b = BitmapFactory.decodeByteArray(data, 0, data.length);
         Bitmap b2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         
+        boolean isDraw = false;
         if (mode == null || mode.equals("")) {
             // 等倍描画モード 
-        	PebbleBitmapUtil.drawImageForNonScalesMode(b2, b, x, y);
+        	CanvasProfileUtils.drawImageForNonScalesMode(b2, b, x, y);
+        	isDraw = true;
         } else if (mode.equals(Mode.SCALES.getValue())) {
             // スケールモード 
-        	PebbleBitmapUtil.drawImageForScalesMode(b2, b);
+        	CanvasProfileUtils.drawImageForScalesMode(b2, b);
+        	isDraw = true;
         } else if (mode.equals(Mode.FILLS.getValue())) {
             // フィルモード 
-        	PebbleBitmapUtil.drawImageForFillsMode(b2, b);
+        	CanvasProfileUtils.drawImageForFillsMode(b2, b);
+        	isDraw = true;
+        } else {
+        	isDraw = false;
         }
         
-        byte[] buf = PebbleBitmapUtil.convertImageThresholding(b2);
-        b.recycle();
-        b2.recycle();
-        return buf;
+        if (isDraw) {
+        	byte[] buf = PebbleBitmapUtil.convertImageThresholding(b2);
+            b.recycle();
+            b2.recycle();
+            return buf;
+        } else {
+        	return null;
+        }
     }
 
     /**

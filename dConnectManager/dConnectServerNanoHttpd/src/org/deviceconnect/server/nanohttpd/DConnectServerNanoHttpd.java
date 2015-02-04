@@ -49,7 +49,7 @@ import fi.iki.elonen.WebSocketFrame;
 import fi.iki.elonen.WebSocketFrame.CloseCode;
 
 /**
- * d-Connectサーバー NanoHTTPD.
+ * Device Connect サーバー NanoHTTPD.
  * 
  * @author NTT DOCOMO, INC.
  */
@@ -96,9 +96,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      * 
      * @param config サーバー設定。
      * @param context コンテキストオブジェクト。
-     * @throws IllegalArgumentException contextがnullの場合スローされる。
      */
-    public DConnectServerNanoHttpd(DConnectServerConfig config, Context context) {
+    public DConnectServerNanoHttpd(final DConnectServerConfig config, final Context context) {
         super(config);
 
         if (context == null) {
@@ -276,12 +275,17 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      */
     private class NanoServer extends NanoWSD {
 
-        /** WebSocketのコネクションカウンター */
+        /** WebSocketのコネクションカウンター. */
         private int mWebSocketCount;
 
-        public NanoServer(String hostname, int port) {
+        /**
+         * コンストラクタ.
+         * @param hostname ホスト名
+         * @param port ポート
+         */
+        public NanoServer(final String hostname, final int port) {
             super(hostname, port);
-            mLogger.entering(getClass().getName(), "NanoServer", new Object[] { hostname, port });
+            mLogger.entering(getClass().getName(), "NanoServer", new Object[] {hostname, port});
 
             Firewall firewall = new Firewall(mConfig.getIPWhiteList());
             setFirewall(firewall);
@@ -291,7 +295,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        public Response serve(IHTTPSession session) {
+        public Response serve(final IHTTPSession session) {
             mLogger.entering(getClass().getName(), "serve", session);
             NanoHTTPD.Response nanoRes = null;
 
@@ -326,7 +330,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 nanoRes = new NanoHTTPD.Response("");
                 HttpRequest req = createRequest(session, nanoRes);
                 if (req == null) {
-                    // d-Connect用のリクエストが生成できない場合は何かしらのエラー、または別対応が入るので
+                    // Device Connect 用のリクエストが生成できない場合は何かしらのエラー、または別対応が入るので
                     // dConnectManagerへの通知はしない。
                     break;
                 }
@@ -380,11 +384,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * リクエストがWebSocket用かどうか判断する.
          * NanoWSDの当メソッドはFireFoxのリクエストに対応していないため、オーバーライドして修正する。
          * 
-         * @param session リクエスト情報。
+         * @param session リクエスト情報
+         * @return リクエストがWebsocket用かどうか
          * @see fi.iki.elonen.NanoWSD#isWebsocketRequested(fi.iki.elonen.NanoHTTPD.IHTTPSession)
          */
         @Override
-        protected boolean isWebsocketRequested(IHTTPSession session) {
+        protected boolean isWebsocketRequested(final IHTTPSession session) {
             // FireFox では Connetion : keep-alive, Upgrade とリクエストがくるので
             // Upgradeを含んでいればOKと見なす。
             Map<String, String> headers = session.getHeaders();
@@ -395,7 +400,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             }
             headValue = headValue.toLowerCase(Locale.ENGLISH);
 
-            return ((HEADER_UPGRADE_VALUE.equalsIgnoreCase(headers.get(HEADER_UPGRADE))) && headValue.indexOf(conValue) != -1);
+            return ((HEADER_UPGRADE_VALUE.equalsIgnoreCase(headers.get(HEADER_UPGRADE)))
+                            && headValue.indexOf(conValue) != -1);
         }
 
         /**
@@ -405,7 +411,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @param session リクエスト情報。
          * @return レスポンス。
          */
-        private Response parseWebSocketRequest(IHTTPSession session) {
+        private Response parseWebSocketRequest(final IHTTPSession session) {
             Map<String, String> headers = session.getHeaders();
 
             if (!HEADER_WEBSOCKET_VERSION_VALUE.equalsIgnoreCase(headers.get(HEADER_WEBSOCKET_VERSION))) {
@@ -438,7 +444,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @param code ステータスコード
          * @return ステータスコード
          */
-        private Status getStatus(HttpResponse.StatusCode code) {
+        private Status getStatus(final HttpResponse.StatusCode code) {
 
             int codeNum = code.getCode();
 
@@ -452,7 +458,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        protected WebSocket openWebSocket(IHTTPSession handshake) {
+        protected WebSocket openWebSocket(final IHTTPSession handshake) {
             // ここでコネクション数制限をかけてnullを返しても、呼び出しもとで
             // nullチェックをしていないため、更に上位の場所で制限をかける。
             return new NanoWebSocket(handshake);
@@ -462,9 +468,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * 静的コンテンツへのリクエストかどうかをチェックする.
          * 
          * @param session HTTPリクエストデータ
-         * @return d-Connectへのリクエストの場合はnullを返す。
+         * @return Device Connect へのリクエストの場合はnullを返す。
          */
-        private Response checkStaticFile(IHTTPSession session) {
+        private Response checkStaticFile(final IHTTPSession session) {
 
             mLogger.entering(getClass().getName(), "checkStaticFile", session);
             Response retval = null;
@@ -527,7 +533,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @param uri リクエストURI
          * @return MIMEタイプが推測できた場合MIMEタイプ文字列を、その他はnullを返す
          */
-        private String getMimeTypeFromURI(String uri) {
+        private String getMimeTypeFromURI(final String uri) {
 
             int dot = uri.lastIndexOf('.');
             String mime = null;
@@ -572,11 +578,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * 
          * @param session リクエストデータ
          * @param res 
-         *            NanoHTTPD用のレスポンスデータ。d-Connectへのリクエストが生成できない場合は当メソッドで適切なレスポンス値を設定する
+         *            NanoHTTPD用のレスポンスデータ。Device Connect へのリクエストが生成できない場合は当メソッドで適切なレスポンス値を設定する
          *            。
-         * @return d-Connect用リクエストデータ。d-Connectへリクエストを渡さない場合はnullを返す。
+         * @return Device Connect 用リクエストデータ。Device Connect へリクエストを渡さない場合はnullを返す。
          */
-        private HttpRequest createRequest(IHTTPSession session, NanoHTTPD.Response res) {
+        private HttpRequest createRequest(final IHTTPSession session, final NanoHTTPD.Response res) {
             String method = null;
             switch (session.getMethod()) {
             case GET:
@@ -592,14 +598,14 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 method = HttpRequest.HTTP_METHOD_PUT;
                 break;
             case OPTIONS:
-                // クロスドメイン対応としてOPTIONSがきたらd-Connectで対応しているメソッドを返す
+                // クロスドメイン対応としてOPTIONSがきたらDevice Connect で対応しているメソッドを返す
                 res.setStatus(Status.OK);
                 res.setMimeType(MIME_PLAINTEXT);
                 res.addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE");
-                // d-Connect対応外のメソッドだがエラーにはしないのでここで処理を終了。
+                // Device Connect 対応外のメソッドだがエラーにはしないのでここで処理を終了。
                 return null;
             default:
-                mLogger.warning("This http method is not treated by d-Connect : " + session.getMethod());
+                mLogger.warning("This http method is not treated by Device Connect  : " + session.getMethod());
                 break;
             }
 
@@ -638,7 +644,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @param session リクエストデータ
          * @return HTTPリクエストのBodyデータ
          */
-        private byte[] parseBody(IHTTPSession session) {
+        private byte[] parseBody(final IHTTPSession session) {
             // NanoHTTPDのparseBodyではマルチパートの場合に自動的に一時ファイルに
             // データを格納するようになっているため、独自にBodyを抜き出す。
             mLogger.entering(getClass().getName(), "parseBody", session);
@@ -651,8 +657,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             Map<String, String> headers = session.getHeaders();
             if (!session.getMethod().equals(Method.PUT) 
                     && !session.getMethod().equals(Method.POST)
-                    && !headers.containsKey("content-length")) 
-            {
+                    && !headers.containsKey("content-length")) {
                 return null;
             }
 
@@ -701,7 +706,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @param file チェック対象のファイル。
          * @return 読み込めるファイルの場合trueを、その他はfalseを返す。
          */
-        private boolean isReadableFile(File file) {
+        private boolean isReadableFile(final File file) {
 
             mLogger.entering(getClass().getName(), "isDeployedInDocumentRoot", file);
             boolean retval = false;
@@ -739,7 +744,11 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         /** セッションキー. */
         private String mSessionKey;
 
-        public NanoWebSocket(IHTTPSession handshakeRequest) {
+        /**
+         * コンストラクタ.
+         * @param handshakeRequest リクエスト
+         */
+        public NanoWebSocket(final IHTTPSession handshakeRequest) {
             super(handshakeRequest);
             mKeepAliveTask = new KeepAliveTask();
             mKeepAliveTimer = new Timer();
@@ -748,7 +757,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        public void sendEvent(String event) {
+        public void sendEvent(final String event) {
             try {
                 send(event);
             } catch (IOException e) {
@@ -760,7 +769,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        protected void onPong(WebSocketFrame pongFrame) {
+        protected void onPong(final WebSocketFrame pongFrame) {
             mLogger.entering(getClass().getName(), "onPong", pongFrame);
             mLogger.fine(pongFrame.toString());
             synchronized (mKeepAliveTask) {
@@ -773,7 +782,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        protected void onMessage(WebSocketFrame messageFrame) {
+        protected void onMessage(final WebSocketFrame messageFrame) {
             mLogger.entering(getClass().getName(), "onMessage", messageFrame);
             String jsonText = messageFrame.getTextPayload();
             if (jsonText == null || jsonText.length() == 0) {
@@ -803,9 +812,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        protected void onClose(CloseCode code, String reason, boolean initiatedByRemote) {
+        protected void onClose(final CloseCode code, final String reason, final boolean initiatedByRemote) {
 
-            mLogger.entering(getClass().getName(), "onClose", new Object[] { code, reason, initiatedByRemote });
+            mLogger.entering(getClass().getName(), "onClose", new Object[] {code, reason, initiatedByRemote});
 
             if (mSessionKey != null) {
                 mSockets.remove(mSessionKey);
@@ -821,12 +830,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         }
 
         @Override
-        protected void onException(IOException e) {
+        protected void onException(final IOException e) {
             mLogger.warning("Exception in the NanoWebSocket#onException() method. " + e.toString());
         }
 
         /**
-         * Keep-Alive用タイマータスク
+         * Keep-Alive用タイマータスク.
          * 
          * @author NTT DOCOMO, INC.
          * 
@@ -836,6 +845,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             /** 処理状態. */
             private KeepAliveState mState;
 
+            /**
+             * コンストラクタ.
+             */
             public KeepAliveTask() {
                 setState(KeepAliveState.GOT_PONG);
             }
@@ -843,9 +855,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             /**
              * 状態を変更する.
              * 
-             * @param state
+             * @param state 状態
              */
-            public void setState(KeepAliveState state) {
+            public void setState(final KeepAliveState state) {
                 mState = state;
             }
 

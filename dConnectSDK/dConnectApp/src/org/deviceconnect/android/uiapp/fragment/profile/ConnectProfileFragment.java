@@ -122,7 +122,7 @@ public class ConnectProfileFragment extends SmartDevicePreferenceFragment {
                     uriBuilder.setInterface(ConnectProfileConstants.INTERFACE_BLUETOOTH);
                     uriBuilder.setAttribute(ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
                     uriBuilder.addParameter(
-                            DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+                            DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
                     uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                     try {
@@ -203,7 +203,7 @@ public class ConnectProfileFragment extends SmartDevicePreferenceFragment {
                 } else if (mKey.equals(getString(R.string.key_connection_service_ble))) {
                     uriBuilder.setPath("/connect/ble");
                 }
-                uriBuilder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+                uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
                 uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                 HttpUriRequest request = null;
@@ -305,7 +305,7 @@ public class ConnectProfileFragment extends SmartDevicePreferenceFragment {
             }
 
             if (result) {
-                uriBuilder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+                uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
 
                 try {
                     HttpResponse response = getDConnectClient().execute(

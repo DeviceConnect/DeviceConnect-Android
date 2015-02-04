@@ -64,7 +64,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=" + type);
         builder.append("&");
@@ -105,7 +105,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=" + type);
         builder.append("&");
@@ -146,7 +146,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=" + type);
         builder.append("&");
@@ -187,7 +187,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=" + type);
         builder.append("&");
@@ -228,7 +228,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=" + type);
         builder.append("&");
@@ -271,7 +271,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=" + type);
         builder.append("&");
@@ -314,7 +314,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=" + type);
         builder.append("&");
@@ -341,7 +341,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto
      * </pre>
      * 
      * <pre>
@@ -356,7 +356,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -383,7 +383,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&lang=jp-JP
+     * Path: notification/notify?serviceId=xxxx&type=0&lang=jp-JP
      * </pre>
      * 
      * <pre>
@@ -398,7 +398,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -425,7 +425,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&lang=jp-JP
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&lang=jp-JP
      * </pre>
      * 
      * <pre>
@@ -440,7 +440,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -469,7 +469,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&body=test_body
+     * Path: notification/notify?serviceId=xxxx&type=0&body=test_body
      * </pre>
      * 
      * <pre>
@@ -484,7 +484,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -511,7 +511,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&body=test_body
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&body=test_body
      * </pre>
      * 
      * <pre>
@@ -526,7 +526,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -555,7 +555,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&lang=jp-JP&body=test_body
+     * Path: notification/notify?serviceId=xxxx&type=0&lang=jp-JP&body=test_body
      * </pre>
      * 
      * <pre>
@@ -570,7 +570,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -599,7 +599,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&lang=jp-JP&body=test_body
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&lang=jp-JP&body=test_body
      * </pre>
      * 
      * <pre>
@@ -614,7 +614,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -645,7 +645,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -660,7 +660,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -687,7 +687,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -702,7 +702,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -731,7 +731,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&lang=jp-JP&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&lang=jp-JP&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -746,7 +746,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -775,7 +775,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&lang=jp-JP&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&lang=jp-JP&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -790,7 +790,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -821,7 +821,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&body=test_body&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&body=test_body&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -836,7 +836,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -865,7 +865,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&body=test_body&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&body=test_body&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -880,7 +880,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -911,7 +911,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&lang=jp-JP&body=test_body&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&lang=jp-JP&body=test_body&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -926,7 +926,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -957,7 +957,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&lang=jp-JP&body=test_body&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&lang=jp-JP&body=test_body&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -972,7 +972,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1005,7 +1005,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0
+     * Path: notification/notify?serviceId=xxxx&type=0
      * </pre>
      * 
      * <pre>
@@ -1020,7 +1020,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
 
@@ -1052,7 +1052,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto
      * </pre>
      * 
      * <pre>
@@ -1067,7 +1067,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1101,7 +1101,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&lang=jp-JP
+     * Path: notification/notify?serviceId=xxxx&type=0&lang=jp-JP
      * </pre>
      * 
      * <pre>
@@ -1116,7 +1116,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1150,7 +1150,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&lang=jp-JP
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&lang=jp-JP
      * </pre>
      * 
      * <pre>
@@ -1165,7 +1165,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1201,7 +1201,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&body=test_body
+     * Path: notification/notify?serviceId=xxxx&type=0&body=test_body
      * </pre>
      * 
      * <pre>
@@ -1216,7 +1216,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1250,7 +1250,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&body=test_body
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&body=test_body
      * </pre>
      * 
      * <pre>
@@ -1265,7 +1265,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1301,7 +1301,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&lang=jp-JP&body=test_body
+     * Path: notification/notify?serviceId=xxxx&type=0&lang=jp-JP&body=test_body
      * </pre>
      * 
      * <pre>
@@ -1316,7 +1316,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1352,7 +1352,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&lang=jp-JP&body=test_body
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&lang=jp-JP&body=test_body
      * </pre>
      * 
      * <pre>
@@ -1367,7 +1367,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1405,7 +1405,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -1420,7 +1420,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1454,7 +1454,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -1469,7 +1469,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1505,7 +1505,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&lang=jp-JP&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&lang=jp-JP&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -1520,7 +1520,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1556,7 +1556,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&lang=jp-JP&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&lang=jp-JP&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -1571,7 +1571,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1609,7 +1609,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&body=test_body&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&body=test_body&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -1624,7 +1624,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1660,7 +1660,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&body=test_body&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&body=test_body&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -1675,7 +1675,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1713,7 +1713,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&lang=jp-JP&body=test_body&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&lang=jp-JP&body=test_body&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -1728,7 +1728,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1766,7 +1766,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: notification/notify?deviceId=xxxx&type=0&dir=auto&lang=jp-JP&body=test_body&tag=tag1,tag2,tag3
+     * Path: notification/notify?serviceId=xxxx&type=0&dir=auto&lang=jp-JP&body=test_body&tag=tag1,tag2,tag3
      * </pre>
      * 
      * <pre>
@@ -1781,7 +1781,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
@@ -1835,7 +1835,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_NOTIFICATION_ID + "="
                 + TestNotificationProfileConstants.NOTIFICATION_ID[0]);
@@ -1856,7 +1856,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclick?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onclick?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * 
      * <pre>
@@ -1881,7 +1881,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onshow?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onshow?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * 
      * <pre>
@@ -1899,7 +1899,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onshow?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onshow?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * 
      * <pre>
@@ -1924,7 +1924,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onshow?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onshow?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * 
      * <pre>
@@ -1942,7 +1942,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onclose?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onclose?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * 
      * <pre>
@@ -1967,7 +1967,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onclose?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onclose?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * 
      * <pre>
@@ -1985,7 +1985,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /notification/onerror?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onerror?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * 
      * <pre>
@@ -2010,7 +2010,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /notification/onerror?deviceId=xxxx&sessionKey=xxxx
+     * Path: /notification/onerror?serviceId=xxxx&sessionKey=xxxx
      * </pre>
      * 
      * <pre>
@@ -2035,7 +2035,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + attribute);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -2060,7 +2060,7 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + NotificationProfileConstants.PROFILE_NAME);
         builder.append("/" + attribute);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");

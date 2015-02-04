@@ -37,7 +37,7 @@ public class HttpRequestMessageFactory extends AbstractHttpMessageFactory<HttpRe
     /**
      * メッセージファクトリー.
      */
-    private static HttpRequestMessageFactory mHttpMessageFactory =
+    private static HttpRequestMessageFactory sHttpMessageFactory =
             new HttpRequestMessageFactory();
 
     /**
@@ -50,7 +50,7 @@ public class HttpRequestMessageFactory extends AbstractHttpMessageFactory<HttpRe
      * @return メッセージファクトリー
      */
     public static HttpRequestMessageFactory getMessageFactory() {
-        return mHttpMessageFactory;
+        return sHttpMessageFactory;
     }
 
     @Override

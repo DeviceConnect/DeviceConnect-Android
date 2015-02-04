@@ -16,6 +16,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.mime.MultipartEntity;
+import org.deviceconnect.android.test.BuildConfig;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
@@ -43,7 +44,7 @@ public class StressTestCase extends RESTfulDConnectTestCase {
      * コンストラクタ.
      * @param tag テストタグ
      */
-    public StressTestCase(String tag) {
+    public StressTestCase(final String tag) {
         super(tag);
     }
 
@@ -77,6 +78,7 @@ public class StressTestCase extends RESTfulDConnectTestCase {
      * <p>
      * リクエストに含まれるバイナリデータの一時保存処理に対して負荷をかける.
      * </p>
+     * @throws IOException IO Exception
      */
     public void testStressTestDConnectManagerProfileFileSend() throws IOException  {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
@@ -106,7 +108,7 @@ public class StressTestCase extends RESTfulDConnectTestCase {
     public void testStressTestDevicePluginProfile() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile("unique");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         HttpUriRequest request = new HttpGet(builder.toString());
         try {
@@ -144,7 +146,7 @@ public class StressTestCase extends RESTfulDConnectTestCase {
                     URIBuilder builder = TestURIBuilder.createURIBuilder();
                     builder.setProfile("unique");
                     builder.setAttribute("heavy");
-                    builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+                    builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
                     builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
                     builder.addParameter("key", Integer.toString(pos));
                     final HttpUriRequest request = new HttpGet(builder.toString());
@@ -184,6 +186,11 @@ public class StressTestCase extends RESTfulDConnectTestCase {
         stressEventAttribute("DELETE");
     }
 
+    /**
+     * Stress Event Attribute.
+     * @param method HTTP Method
+     * @throws InterruptedException Intterrupted Exception
+     */
     private void stressEventAttribute(final String method) throws InterruptedException {
         final int num = 50;
         final JSONObject[] responses = new JSONObject[num];
@@ -198,7 +205,7 @@ public class StressTestCase extends RESTfulDConnectTestCase {
                     URIBuilder builder = TestURIBuilder.createURIBuilder();
                     builder.setProfile("unique");
                     builder.setAttribute("event");
-                    builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+                    builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
                     builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
                     builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
                     builder.addParameter("key", Integer.toString(pos));
@@ -232,12 +239,17 @@ public class StressTestCase extends RESTfulDConnectTestCase {
         }
     }
 
+    /**
+     * Create File Send Request.
+     * @return HTTP URI Request
+     * @throws IOException IO Exception
+     */
     private HttpUriRequest createFileSendRequest() throws IOException {
         final String name = "test.png";
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(FileProfileConstants.PARAM_PATH, "/test/test.png");
 
@@ -264,22 +276,41 @@ public class StressTestCase extends RESTfulDConnectTestCase {
                 try {
                     in.close();
                 } catch (IOException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
     }
     
+    /**
+     * StressTest Count.
+     *
+     */
     private static class Count {
-        int cnt;
-        Count(int cnt) {
-            this.cnt = cnt;
+        /** Count. */
+        int mCount;
+        /**
+         * Constructor.
+         * @param cnt Count
+         */
+        Count(final int cnt) {
+            this.mCount = cnt;
         }
+        /**
+         * Signal.
+         */
         synchronized void signal() {
-            cnt--;
+            mCount--;
             notify();
         }
+        /**
+         * Start.
+         * @throws InterruptedException Interrupted Exception
+         */
         synchronized void start() throws InterruptedException {
-            while (cnt > 0) {
+            while (mCount > 0) {
                 wait();
             }
         }

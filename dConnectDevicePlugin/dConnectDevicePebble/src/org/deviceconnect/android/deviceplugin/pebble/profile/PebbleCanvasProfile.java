@@ -30,7 +30,7 @@ public class PebbleCanvasProfile extends CanvasProfile {
 
     @Override
     protected boolean onPostDrawImage(final Intent request, final Intent response,
-            final String deviceId, final String mimeType, final byte[] data, final double x, final double y,
+            final String serviceId, final String mimeType, final byte[] data, final double x, final double y,
             final String mode) {
 
         if (data == null) {
@@ -38,18 +38,24 @@ public class PebbleCanvasProfile extends CanvasProfile {
             return true;
         }
 
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
 
-        if (!PebbleUtil.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         }
 
         PebbleManager mgr = ((PebbleDeviceService) getContext()).getPebbleManager();
         byte[] buf = PebbleManager.convertImage(data, mode, x, y);
+        if (buf == null) {
+        	/* unknown mode-value. */
+        	MessageUtils.setInvalidRequestParameterError(response);
+        	return true;
+        }
+        
         mgr.sendDataToPebble(buf, new OnSendDataListener() {
             @Override
             public void onSend(final boolean successed) {

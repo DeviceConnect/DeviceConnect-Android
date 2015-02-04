@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect ManagerのUtilityクラス群.
+ * Device Connect ManagerのUtilityクラス群.
  */
 package org.deviceconnect.android.manager.util;

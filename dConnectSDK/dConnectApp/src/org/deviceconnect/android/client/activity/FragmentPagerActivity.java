@@ -28,6 +28,7 @@ import android.widget.ListView;
 /**
  * フラグメントページャーアクティビティ.
  */
+@SuppressWarnings("deprecation")
 public abstract class FragmentPagerActivity extends FragmentActivity {
 
     /**
@@ -94,7 +95,7 @@ public abstract class FragmentPagerActivity extends FragmentActivity {
             return true;
         }
 
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
         case R.id.action_settings:
             startActivity(new Intent(this, SettingsActivity.class));
             return true;

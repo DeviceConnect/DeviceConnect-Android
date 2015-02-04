@@ -19,7 +19,7 @@ import android.content.Intent;
  */
 public class DeliveryRequest extends LocalOAuthRequest {
     /** ロガー. */
-    private final Logger sLogger = Logger.getLogger("dconnect.manager");
+    private final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /**
      * 実際の命令を行う.
@@ -33,7 +33,7 @@ public class DeliveryRequest extends LocalOAuthRequest {
         // 命令を実行する前にレスポンスを初期化しておく
         mResponse = null;
 
-        sLogger.info("Delivery Request: " + mDevicePlugin.getPackageName() 
+        mLogger.info("Delivery Request: " + mDevicePlugin.getPackageName() 
                 + ", intent: " + mRequest.getExtras());
 
         // 命令をデバイスプラグインに送信
@@ -54,19 +54,19 @@ public class DeliveryRequest extends LocalOAuthRequest {
         if (mResponse != null) {
             int result = getResult(mResponse);
             if (result == DConnectMessage.RESULT_ERROR) {
-                retryCount++;
+                mRetryCount++;
                 int errorCode = getErrorCode(mResponse);
-                if (retryCount < MAX_RETRY_COUNT 
+                if (mRetryCount < MAX_RETRY_COUNT 
                         && errorCode == DConnectMessage.ErrorCode.NOT_FOUND_CLIENT_ID.getCode()) {
                     // クライアントIDが発見できなかった場合は、dConnectManagerとデバイスプラグインで
                     // 一致していないので、dConnectManagerのローカルに保存しているclientIdを削除
                     // してから、再度デバイスプラグインにクライアントIDの作成を要求を行う.
-                    String deviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_DEVICE_ID);
-                    if (deviceId != null) {
-                        mLocalOAuth.deleteOAuthData(deviceId);
+                    String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
+                    if (serviceId != null) {
+                        mLocalOAuth.deleteOAuthData(serviceId);
                     }
                     executeRequest();
-                } else if (retryCount < MAX_RETRY_COUNT 
+                } else if (mRetryCount < MAX_RETRY_COUNT 
                         && errorCode == DConnectMessage.ErrorCode.EXPIRED_ACCESS_TOKEN.getCode()) {
                     // アクセストークンの有効期限切れ
                     mLocalOAuth.deleteAccessToken(accessToken);

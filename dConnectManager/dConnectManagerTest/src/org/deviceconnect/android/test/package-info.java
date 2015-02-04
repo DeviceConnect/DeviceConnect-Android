@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-ConnectのTestCase.
+ * Device ConnectのTestCase.
  */
 package org.deviceconnect.android.test;

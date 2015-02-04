@@ -52,7 +52,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_KIND + "=1");
         builder.append("&");
@@ -90,7 +90,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_KIND + "=2");
         builder.append("&");
@@ -128,7 +128,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_KIND + "=3");
         builder.append("&");
@@ -166,7 +166,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_KIND + "=4");
         builder.append("&");
@@ -204,7 +204,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_KIND + "=5");
         builder.append("&");
@@ -241,7 +241,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_KIND + "=1");
         builder.append("&");
@@ -278,7 +278,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_KIND + "=2");
         builder.append("&");
@@ -315,7 +315,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_KIND + "=3");
         builder.append("&");
@@ -352,7 +352,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_KIND + "=4");
         builder.append("&");
@@ -389,7 +389,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_SOUND);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_VOLUME);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_KIND + "=5");
         builder.append("&");
@@ -426,7 +426,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_DATE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         builder.append("&");
@@ -460,7 +460,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.PROFILE_NAME);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_DATE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_DATE + "=" + TestSettingsProfileConstants.DATE);
         builder.append("&");
@@ -496,7 +496,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_LIGHT);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         builder.append("&");
@@ -531,7 +531,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_LIGHT);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_LEVEL + "=" + TestSettingsProfileConstants.LEVEL);
         builder.append("&");
@@ -567,7 +567,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_SLEEP);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         builder.append("&");
@@ -602,7 +602,7 @@ public class NormalSettingsProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + SettingsProfileConstants.INTERFACE_DISPLAY);
         builder.append("/" + SettingsProfileConstants.ATTRIBUTE_SLEEP);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(SettingsProfileConstants.PARAM_TIME + "=1");
         builder.append("&");

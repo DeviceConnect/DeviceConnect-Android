@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraMediaStreamRecordingProfile;
-import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraNetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraSystemProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraZoomProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
@@ -33,14 +33,14 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants.NetworkType;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,8 +72,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     private static final String FILE_EXTENSION = ".png";
     /** デバイス名. */
     private static final String DEVICE_NAME = "Sony Camera";
-    /** デバイスID. */
-    private static final String DEVICE_ID = "sony_camera";
+    /** サービスID. */
+    private static final String SERVICE_ID = "sony_camera";
     /** リトライ回数. */
     private static final int MAX_RETRY_COUNT = 3;
     /** 待機時間. */
@@ -88,6 +88,9 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     private static final String SONY_CAMERA_STATUS_RECORDING = "MovieRecording";
     /** 停止中. */
     private static final String SONY_CAMERA_STATUS_IDLE = "IDLE";
+
+    /** Defines a period 50 millisecond between server shutdown. */
+    private static final int PERIOD_WAIT_TIME = 50;
 
     /** ロガー. */
     private Logger mLogger = Logger.getLogger("sonycamera.dplugin");
@@ -264,12 +267,12 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             mLogger.fine("device found: " + checkDevice());
 
             Bundle service = new Bundle();
-            service.putString(NetworkServiceDiscoveryProfile.PARAM_ID, DEVICE_ID);
-            service.putString(NetworkServiceDiscoveryProfile.PARAM_NAME, DEVICE_NAME);
-            service.putString(NetworkServiceDiscoveryProfile.PARAM_TYPE,
-                    NetworkServiceDiscoveryProfile.NetworkType.WIFI.getValue());
-            service.putBoolean(NetworkServiceDiscoveryProfile.PARAM_ONLINE, true);
-            service.putString(NetworkServiceDiscoveryProfile.PARAM_CONFIG, wifiInfo.getSSID());
+            service.putString(ServiceDiscoveryProfile.PARAM_ID, SERVICE_ID);
+            service.putString(ServiceDiscoveryProfile.PARAM_NAME, DEVICE_NAME);
+            service.putString(ServiceDiscoveryProfile.PARAM_TYPE,
+                    ServiceDiscoveryProfile.NetworkType.WIFI.getValue());
+            service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+            service.putString(ServiceDiscoveryProfile.PARAM_CONFIG, wifiInfo.getSSID());
             services.add(service);
 
             // SonyCameraを見つけたので、SSIDを保存しておく
@@ -277,7 +280,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         }
 
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        response.putExtra(NetworkServiceDiscoveryProfile.PARAM_SERVICES, services.toArray(new Bundle[services.size()]));
+        response.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES, services.toArray(new Bundle[services.size()]));
 
         mLogger.exiting(this.getClass().getName(), "createSearchResponse");
         return true;
@@ -288,16 +291,16 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * 
      * @param request リクエスト
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param flashMode フラッシュモード
      * @return response レスポンス
      */
-    public boolean onPutFlashMode(final Intent request, final Intent response, final String deviceId,
+    public boolean onPutFlashMode(final Intent request, final Intent response, final String serviceId,
             final String flashMode) {
         final String[] modeList = {"off", "auto", "on", "slowSync", "rearSync", "wireless"};
         boolean checkResult = false;
-        if (deviceId == null || !deviceId.equals(DEVICE_ID)) {
-            MessageUtils.setEmptyDeviceIdError(response);
+        if (serviceId == null || !serviceId.equals(SERVICE_ID)) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
         for (String modecheck : modeList) {
@@ -345,13 +348,13 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * 
      * @param request リクエスト
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return 即座にレスポンスする場合はtrue、それ以外はfalse
      */
-    public boolean getMediaRecorder(final Intent request, final Intent response, final String deviceId) {
+    public boolean getMediaRecorder(final Intent request, final Intent response, final String serviceId) {
 
-        if (deviceId == null || !deviceId.equals(DEVICE_ID)) {
-            MessageUtils.setEmptyDeviceIdError(response);
+        if (serviceId == null || !serviceId.equals(SERVICE_ID)) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
 
@@ -427,7 +430,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                         height *= stillSize;
                         List<Bundle> recorders = new ArrayList<Bundle>();
                         Bundle recorder = new Bundle();
-                        recorder.putString(MediaStreamRecordingProfile.PARAM_ID, deviceId);
+                        recorder.putString(MediaStreamRecordingProfile.PARAM_ID, serviceId);
                         recorder.putString(MediaStreamRecordingProfile.PARAM_NAME, DEVICE_NAME);
                         recorder.putString(MediaStreamRecordingProfile.PARAM_STATE, mRecorderState);
                         recorder.putInt(MediaStreamRecordingProfile.PARAM_IMAGE_WIDTH, width);
@@ -492,19 +495,19 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * 
      * @param request リクエスト
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param target ターゲット
      * @return 即座にレスポンスを返す場合はtrue、それ以外はfalse
      */
-    public boolean onPostTakePhoto(final Intent request, final Intent response, final String deviceId,
+    public boolean onPostTakePhoto(final Intent request, final Intent response, final String serviceId,
             final String target) {
         mLogger.entering(this.getClass().getName(), "onPostTakePhoto");
 
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        if (deviceId == null || !deviceId.equals(DEVICE_ID)) {
-            mLogger.warning("deviceId is invalid. deviceId=" + deviceId);
+        if (serviceId == null || !serviceId.equals(SERVICE_ID)) {
+            mLogger.warning("serviceId is invalid. serviceId=" + serviceId);
             mLogger.exiting(this.getClass().getName(), "onPostTakePhoto");
-            MessageUtils.setEmptyDeviceIdError(response);
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
 
@@ -593,16 +596,16 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * 
      * @param request リクエスト
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param target ターゲット
      * @param timeslice タイムスライス
      * @return 即座に返答する場合はtrue、それ以外はfalse
      */
-    public boolean onPostRecord(final Intent request, final Intent response, final String deviceId,
+    public boolean onPostRecord(final Intent request, final Intent response, final String serviceId,
             final String target, final Long timeslice) {
 
-        if (deviceId == null || !deviceId.equals(DEVICE_ID)) {
-            MessageUtils.setEmptyDeviceIdError(response);
+        if (serviceId == null || !serviceId.equals(SERVICE_ID)) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
 
@@ -666,14 +669,15 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * 
      * @param request リクエスト
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param mediaId メディアID
      * @return 即座に返答する場合はtrue、それ以外はfalse
      */
-    public boolean onPutStop(final Intent request, final Intent response, final String deviceId, final String mediaId) {
+    public boolean onPutStop(final Intent request, final Intent response, final String serviceId,
+            final String mediaId) {
 
-        if (deviceId == null || !deviceId.equals(DEVICE_ID)) {
-            MessageUtils.setEmptyDeviceIdError(response);
+        if (serviceId == null || !serviceId.equals(SERVICE_ID)) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
 
@@ -771,7 +775,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     public void notifyTakePhoto(final String path, final String uri) {
         mLogger.entering(this.getClass().getName(), "notifyTakePhoto");
 
-        List<Event> evts = EventManager.INSTANCE.getEventList(DEVICE_ID,
+        List<Event> evts = EventManager.INSTANCE.getEventList(SERVICE_ID,
                 MediaStreamRecordingProfileConstants.PROFILE_NAME, null,
                 MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_PHOTO);
 
@@ -784,7 +788,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
             Intent intent = new Intent(IntentDConnectMessage.ACTION_EVENT);
             intent.setComponent(ComponentName.unflattenFromString(evt.getReceiverName()));
-            intent.putExtra(DConnectMessage.EXTRA_DEVICE_ID, DEVICE_ID);
+            intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, SERVICE_ID);
             intent.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfile.PROFILE_NAME);
             intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
             intent.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
@@ -860,27 +864,27 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
         createEventObserver();
 
-        List<Event> evts = EventManager.INSTANCE.getEventList(DEVICE_ID,
-                NetworkServiceDiscoveryProfileConstants.PROFILE_NAME, null,
-                NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
+        List<Event> evts = EventManager.INSTANCE.getEventList(SERVICE_ID,
+                ServiceDiscoveryProfileConstants.PROFILE_NAME, null,
+                ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
 
         for (Event evt : evts) {
             Bundle camera = new Bundle();
-            camera.putString(NetworkServiceDiscoveryProfile.PARAM_NAME, DEVICE_NAME);
-            camera.putString(NetworkServiceDiscoveryProfile.PARAM_TYPE, NetworkType.WIFI.getValue());
-            camera.putBoolean(NetworkServiceDiscoveryProfile.PARAM_STATE, true);
-            camera.putBoolean(NetworkServiceDiscoveryProfile.PARAM_ONLINE, true);
-            camera.putString(NetworkServiceDiscoveryProfile.PARAM_CONFIG, "");
+            camera.putString(ServiceDiscoveryProfile.PARAM_NAME, DEVICE_NAME);
+            camera.putString(ServiceDiscoveryProfile.PARAM_TYPE, NetworkType.WIFI.getValue());
+            camera.putBoolean(ServiceDiscoveryProfile.PARAM_STATE, true);
+            camera.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+            camera.putString(ServiceDiscoveryProfile.PARAM_CONFIG, "");
 
             Intent intent = new Intent(IntentDConnectMessage.ACTION_EVENT);
             intent.setComponent(ComponentName.unflattenFromString(evt.getReceiverName()));
-            intent.putExtra(DConnectMessage.EXTRA_DEVICE_ID, DEVICE_ID);
+            intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, SERVICE_ID);
             intent.putExtra(DConnectMessage.EXTRA_PROFILE,
-                    NetworkServiceDiscoveryProfile.PROFILE_NAME);
+                    ServiceDiscoveryProfile.PROFILE_NAME);
             intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                    NetworkServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
+                    ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
             intent.putExtra(DConnectMessage.EXTRA_SESSION_KEY, evt.getSessionKey());
-            intent.putExtra(NetworkServiceDiscoveryProfile.PARAM_NETWORK_SERVICE, camera);
+            intent.putExtra(ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE, camera);
 
             sendEvent(intent, evt.getAccessToken());
         }
@@ -978,8 +982,35 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             MediaStreamRecordingProfile.setUri(response, mServer.getUrl());
             return true;
+        } else {
+            if (mServer != null) {
+                mExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        // このスレッドが動く前にサーバの起動が行われた場合にはすぐにレスポンスを返却する
+                        if (mWhileFetching && mServer != null) {
+                            MediaStreamRecordingProfile.setResult(response,
+                                    DConnectMessage.RESULT_OK);
+                            MediaStreamRecordingProfile.setUri(response,
+                                    mServer.getUrl());
+                            sendErrorResponse(request, response);
+                            return;
+                        }
+                        // 前回起動時のサーバが停止していないので、ここで待つ
+                        while (!mWhileFetching && mServer != null) {
+                            try {
+                                Thread.sleep(PERIOD_WAIT_TIME);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }
+                        startPreview(request, response);
+                    }
+                });
+            } else {
+                startPreview(request, response);
+            }
         }
-        startPreview(request, response);
         return false;
     }
 
@@ -1160,8 +1191,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new SonyCameraNetworkServiceDiscoveryProfile();
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new SonyCameraServiceDiscoveryProfile();
     }
 
     /**
@@ -1169,14 +1200,14 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * 
      * @param request リクエスト
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param date 時間 yyyy-mm-ddThh:mm:ss+TimeZone(ex:0900)
      * @return 即座に返答する場合はtrue、それ以外はfalse
      */
-    public boolean onPutDate(final Intent request, final Intent response, final String deviceId, final String date) {
+    public boolean onPutDate(final Intent request, final Intent response, final String serviceId, final String date) {
 
-        if (deviceId == null || !deviceId.equals(DEVICE_ID)) {
-            MessageUtils.setEmptyDeviceIdError(response);
+        if (serviceId == null || !serviceId.equals(SERVICE_ID)) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
         if (date == null) {
@@ -1250,20 +1281,20 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * 
      * @param request リクエスト
      * @param response レスポンス
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param direction ズーム方向
      * @param movement ズーム動作
      * @return true
      */
-    public boolean onPutActZoom(final Intent request, final Intent response, final String deviceId,
+    public boolean onPutActZoom(final Intent request, final Intent response, final String serviceId,
             final String direction, final String movement) {
         mLogger.entering(this.getClass().getName(), "onPutActZoom");
 
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        if (deviceId == null || !deviceId.equals(DEVICE_ID)) {
-            mLogger.warning("deviceId is invalid. deviceId=" + deviceId);
+        if (serviceId == null || !serviceId.equals(SERVICE_ID)) {
+            mLogger.warning("serviceId is invalid. serviceId=" + serviceId);
             mLogger.exiting(this.getClass().getName(), "onPutActZoom");
-            MessageUtils.setEmptyDeviceIdError(response);
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
         if (direction == null || movement == null) {
@@ -1333,14 +1364,14 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * 
      * @param request request
      * @param response response
-     * @param deviceId deviceID
+     * @param serviceId deviceID
      * @return result
      */
-    public boolean onGetZoomDiameter(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null || !deviceId.equals(DEVICE_ID)) {
-            mLogger.warning("deviceId is invalid. deviceId=" + deviceId);
+    public boolean onGetZoomDiameter(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null || !serviceId.equals(SERVICE_ID)) {
+            mLogger.warning("serviceId is invalid. serviceId=" + serviceId);
             mLogger.exiting(this.getClass().getName(), "onGetZoomDiameter");
-            MessageUtils.setEmptyDeviceIdError(response);
+            MessageUtils.setEmptyServiceIdError(response);
             sendResponse(response);
             return true;
         }

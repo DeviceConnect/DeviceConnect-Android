@@ -20,7 +20,7 @@ import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 import fi.iki.elonen.NanoHTTPD;
 
 /**
- * Chromecast HttpServer クラス
+ * Chromecast HttpServer クラス.
  * 
  * <p>
  * HttpServer機能を提供<br/>
@@ -30,63 +30,64 @@ import fi.iki.elonen.NanoHTTPD;
  */
 public class ChromeCastHttpServer extends NanoHTTPD {
 
-    private String serverFileDir = null;
-    private String serverFileRealName = null;
-    private String serverFileDummyName = null;
+    /** Server File Directory. */
+    private String mServerFileDir = null;
+    /** Server File Real Name. */
+    private String mServerFileRealName = null;
+    /** Server File Dummy Name. */
+    private String mServerFileDummyName = null;
 
     /**
-     * コンストラクタ
+     * コンストラクタ.
      * 
-     * @param   host    ipアドレス
-     * @param   port    ポート番号
-     * @return  なし
+     * @param host ipアドレス
+     * @param port ポート番号
      */
-    public ChromeCastHttpServer(String host, int port) {
+    public ChromeCastHttpServer(final String host, final int port) {
         super(host, port);
     }
 
     /**
-     * クライアントに応答する
+     * クライアントに応答する.
      * 
-     * @param   session     セッション
-     * @return  response    レスポンス
+     * @param session セッション
+     * @return レスポンス
      */
-    public Response serve(IHTTPSession session) {
+    public Response serve(final IHTTPSession session) {
         Map<String, String> header = session.getHeaders();
         String uri = session.getUri();
         return respond(Collections.unmodifiableMap(header), session, uri);
     }
 
     /**
-     * ファイルを設定する
+     * ファイルを設定する.
      * 
-     * @param   dir         ファイルのディレクトリへのパス
-     * @param   realname    ファイル名
-     * @param   dummyName   ファイル名 (ダミー)
-     * @return  なし
+     * @param dir       ファイルのディレクトリへのパス
+     * @param realName  ファイル名
+     * @param dummyName ファイル名 (ダミー)
      */
-    public void setFilePath(String dir, String realName, String dummyName) {
-        serverFileDir = dir;
-        serverFileRealName = realName;
-        serverFileDummyName = dummyName;
+    public void setFilePath(final String dir, final String realName, final String dummyName) {
+        mServerFileDir = dir;
+        mServerFileRealName = realName;
+        mServerFileDummyName = dummyName;
     }
 
     /**
-     * クライアントをチェックする
+     * クライアントをチェックする.
      * 
-     * @param   headers     ヘッダー
-     * @return  有効か否か	    (true: 有効, false: 無効)
+     * @param headers ヘッダー
+     * @return  有効か否か	(true: 有効, false: 無効)
      */
-    private boolean checkRemote(Map<String, String> headers){
+    private boolean checkRemote(final Map<String, String> headers) {
         String remoteAddr = headers.get("remote-addr");		
         InetAddress addr;
         try {
             addr = InetAddress.getByName(remoteAddr);
-            if(addr.isSiteLocalAddress()){
+            if (addr.isSiteLocalAddress()) {
                 return true;
             }
         } catch (UnknownHostException e) {
-            if(BuildConfig.DEBUG){
+            if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
@@ -94,27 +95,28 @@ public class ChromeCastHttpServer extends NanoHTTPD {
     }
 
     /**
-     * クライアントへのレスポンスを作成する
+     * クライアントへのレスポンスを作成する.
      * 
      * @param   headers     ヘッダー
      * @param   session     セッション
      * @param   uri         ファイルのURI
-     * @return  response    レスポンス
+     * @return  レスポンス
      */
-    private Response respond(Map<String, String> headers, IHTTPSession session, String uri) {
+    private Response respond(final Map<String, String> headers, final IHTTPSession session, final String uri) {
 
-        if(!checkRemote(headers)){
+        if (!checkRemote(headers)) {
             return createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "");
         }
 
-        if(serverFileDir == null || serverFileRealName == null || serverFileDummyName == null || !serverFileDummyName.equals(uri)){
-            serverFileDir = null;
-            serverFileRealName = null;
-            serverFileDummyName = null;
+        if (mServerFileDir == null || mServerFileRealName == null
+                || mServerFileDummyName == null || !mServerFileDummyName.equals(uri)) {
+            mServerFileDir = null;
+            mServerFileRealName = null;
+            mServerFileDummyName = null;
             return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
         }
 
-        File file = new File(serverFileDir, serverFileRealName);
+        File file = new File(mServerFileDir, mServerFileRealName);
 
         Response response = null;
         response = serveFile(uri, headers, file, "");
@@ -127,44 +129,43 @@ public class ChromeCastHttpServer extends NanoHTTPD {
     }
 
     /**
-     * レスポンスを作成する
+     * レスポンスを作成する.
      * 
      * @param   status      ステータス
      * @param   mimeType    MIMEタイプ
      * @param   message     メッセージ (InputStream)
-     * @return  response    レスポンス
+     * @return レスポンス
      */
-    private Response createResponse(Response.Status status, String mimeType, InputStream message) {
+    private Response createResponse(final Response.Status status, final String mimeType, final InputStream message) {
         Response res = new Response(status, mimeType, message);
         res.addHeader("Accept-Ranges", "bytes");
         return res;
     }
 
     /**
-     * レスポンスを作成する
+     * レスポンスを作成する.
      * 
      * @param   status      ステータス
      * @param   mimeType    MIMEタイプ
      * @param   message     メッセージ (String)
-     * @return  response    レスポンス
+     * @return レスポンス
      */
-    private Response createResponse(Response.Status status, String mimeType, String message) {
+    private Response createResponse(final Response.Status status, final String mimeType, final String message) {
         Response res = new Response(status, mimeType, message);
         res.addHeader("Accept-Ranges", "bytes");
         return res;
     }
 
     /**
-     * ファイルのレスポンスを作成する
+     * ファイルのレスポンスを作成する.
      * 
      * @param   uri         ファイルのURI
      * @param   header      ヘッダー
      * @param   file        ファイル
      * @param   mime        MIMEタイプ
-     * @return  response    レスポンス
+     * @return レスポンス
      */
-    Response serveFile(String uri, Map<String, String> header, File file,
-            String mime) {
+    Response serveFile(final String uri, final Map<String, String> header, final File file, final String mime) {
 
         Response res;
         try {
@@ -185,6 +186,9 @@ public class ChromeCastHttpServer extends NanoHTTPD {
                             endAt = Long.parseLong(range.substring(minus + 1));
                         }
                     } catch (NumberFormatException ignored) {
+                        if (BuildConfig.DEBUG) {
+                            ignored.printStackTrace();
+                        }
                     }
                 }
             }
@@ -219,9 +223,9 @@ public class ChromeCastHttpServer extends NanoHTTPD {
                     res.addHeader("ETag", etag);
                 }
             } else {
-                if (etag.equals(header.get("if-none-match")))
+                if (etag.equals(header.get("if-none-match"))) {
                     res = createResponse(Response.Status.NOT_MODIFIED, mime, "");
-                else {
+                } else {
                     res = createResponse(Response.Status.OK, mime, new FileInputStream(file));
                     res.addHeader("Content-Length", "" + fileLen);
                     res.addHeader("ETag", etag);

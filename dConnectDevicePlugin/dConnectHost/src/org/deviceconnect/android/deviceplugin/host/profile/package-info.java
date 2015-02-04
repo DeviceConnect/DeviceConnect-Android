@@ -6,7 +6,7 @@
  */
 
 /**
- * d-Connect ホストデバイスプラグインプロファイルパッケージ.
+ * Device Connect ホストデバイスプラグインプロファイルパッケージ.
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 

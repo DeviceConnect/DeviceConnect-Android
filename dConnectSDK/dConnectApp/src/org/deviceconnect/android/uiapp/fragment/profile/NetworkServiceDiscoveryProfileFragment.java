@@ -20,7 +20,7 @@ import org.deviceconnect.android.uiapp.fragment.SmartDeviceFragment;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.basic.message.DConnectResponseMessage;
 import org.deviceconnect.message.http.impl.factory.HttpMessageFactory;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 
 import android.content.Context;
@@ -103,9 +103,8 @@ public class NetworkServiceDiscoveryProfileFragment extends SmartDeviceFragment 
             DConnectMessage message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
 
             URIBuilder uriBuilder = new URIBuilder();
-            uriBuilder.setProfile(NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
-            uriBuilder.setAttribute(NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
-            uriBuilder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+            uriBuilder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+            uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
             uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
             try {
@@ -136,14 +135,14 @@ public class NetworkServiceDiscoveryProfileFragment extends SmartDeviceFragment 
             }
 
             List<Object> services = message.getList(
-                    NetworkServiceDiscoveryProfileConstants.PARAM_SERVICES);
+                    ServiceDiscoveryProfileConstants.PARAM_SERVICES);
             if (services != null) {
                 for (Object object: services) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> service = (Map<String, Object>) object;
                     SmartDevice device = new SmartDevice(
-                        service.get(NetworkServiceDiscoveryProfileConstants.PARAM_ID).toString(),
-                        service.get(NetworkServiceDiscoveryProfileConstants.PARAM_NAME).toString());
+                        service.get(ServiceDiscoveryProfileConstants.PARAM_ID).toString(),
+                        service.get(ServiceDiscoveryProfileConstants.PARAM_NAME).toString());
                     devices.add(device);
                 }
             }

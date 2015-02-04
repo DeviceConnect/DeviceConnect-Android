@@ -21,7 +21,7 @@ interface EventSessionSchema extends BaseSchema {
     String TABLE_NAME = "EventSession";
 
     /** 
-     * イベントデバイスID.
+     * イベントサービスID.
      * EventDeviceテーブルのID。
      */
     String ED_ID = "ed_id";
@@ -43,4 +43,8 @@ interface EventSessionSchema extends BaseSchema {
             + UPDATE_DATE + " INTEGER NOT NULL, UNIQUE(" 
             + ED_ID + ", " + C_ID + "));";
     
+    /** 
+     * テーブルdrop文.
+     */
+    String DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 }

@@ -24,6 +24,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+import org.deviceconnect.android.deviceplugin.sonycamera.BuildConfig;
+
 import android.net.Uri;
 
 /**
@@ -286,7 +288,9 @@ public class MixedReplaceMediaServer {
                 mServerSocket.close();
                 mServerSocket = null;
             } catch (IOException e) {
-                // do nothing
+                if (BuildConfig.DEBUG) {
+                   e.printStackTrace();
+                }
             }
         }
         mPath = null;
@@ -380,13 +384,18 @@ public class MixedReplaceMediaServer {
                     try {
                         mStream.close();
                     } catch (IOException e) {
-                        // do nothing.
+                        if (BuildConfig.DEBUG) {
+                            e.printStackTrace();
+                         }
                     }
                 }
                 try {
                     mSocket.close();
                 } catch (IOException e) {
-                    // do nothing.
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                     }
+
                 }
                 mRunnables.remove(this);
             }
@@ -571,9 +580,10 @@ public class MixedReplaceMediaServer {
     
     /**
      * Generate a error http header.
+     * @param status Status
      * @return http header
      */
-    private String generateErrorHeader(String status) {
+    private String generateErrorHeader(final String status) {
         StringBuilder sb = new StringBuilder();
         sb.append("HTTP/1.0 " + status + " OK\r\n");
         sb.append("Server: " + mServerName + "\r\n");

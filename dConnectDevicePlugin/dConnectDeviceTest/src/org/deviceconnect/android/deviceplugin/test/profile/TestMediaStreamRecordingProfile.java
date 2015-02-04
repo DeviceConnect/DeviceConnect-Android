@@ -12,8 +12,6 @@ import java.util.List;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.MediaStreamRecordingProfileConstants.RecorderState;
-import org.deviceconnect.profile.MediaStreamRecordingProfileConstants.RecordingState;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -76,20 +74,20 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     public static final String PATH = "test.mp4"; // TODO MEDIA_IDとURIは仕様的にどう違う？
 
     /**
-     * デバイスIDをチェックする.
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * サービスIDをチェックする.
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkdeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkserviceId(final String serviceId) {
+        return TestServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**
@@ -104,16 +102,16 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
      * デバイスが発見できなかった場合のエラーを作成する.
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response, "Device is not found.");
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response, "Service is not found.");
     }
 
     @Override
-    protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             List<Bundle> recorders = new LinkedList<Bundle>();
@@ -132,12 +130,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onPostTakePhoto(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPostTakePhoto(final Intent request, final Intent response, final String serviceId, 
             final String target) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setUri(response, URI);
@@ -146,12 +144,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onPostRecord(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPostRecord(final Intent request, final Intent response, final String serviceId, 
             final String target, final Long timeslice) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setUri(response, URI);
@@ -160,12 +158,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onPutPause(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutPause(final Intent request, final Intent response, final String serviceId, 
             final String target) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -173,12 +171,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onPutResume(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutResume(final Intent request, final Intent response, final String serviceId, 
             final String target) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -186,12 +184,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onPutStop(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutStop(final Intent request, final Intent response, final String serviceId, 
             final String target) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -199,12 +197,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onPutMuteTrack(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutMuteTrack(final Intent request, final Intent response, final String serviceId, 
             final String target) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -212,12 +210,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onPutUnmuteTrack(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutUnmuteTrack(final Intent request, final Intent response, final String serviceId, 
             final String target) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -225,12 +223,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onGetOptions(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onGetOptions(final Intent request, final Intent response, final String serviceId, 
             final String target) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setImageWidth(response, 0, 0);
@@ -241,12 +239,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onPutOptions(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutOptions(final Intent request, final Intent response, final String serviceId, 
             final String target, final Integer imageWidth, final Integer imageHeight, final String mimeType) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else if (TextUtils.isEmpty(target) || imageWidth == null 
                 || imageHeight == null || TextUtils.isEmpty(mimeType)) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -257,12 +255,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onPutOnPhoto(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutOnPhoto(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -270,7 +268,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_PHOTO);
             Bundle photo = new Bundle();
@@ -283,12 +281,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onPutOnRecordingChange(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutOnRecordingChange(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -296,7 +294,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_RECORDING_CHANGE);
             Bundle media = new Bundle();
@@ -309,13 +307,14 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
         return true;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    protected boolean onPutOnDataAvailable(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPutOnDataAvailable(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -323,7 +322,7 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_DATA_AVAILABLE);
             Bundle media = new Bundle();
@@ -336,12 +335,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -351,12 +350,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onDeleteOnRecordingChange(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteOnRecordingChange(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
@@ -366,12 +365,12 @@ public class TestMediaStreamRecordingProfile extends MediaStreamRecordingProfile
     }
 
     @Override
-    protected boolean onDeleteOnDataAvailable(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteOnDataAvailable(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {

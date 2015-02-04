@@ -27,21 +27,21 @@ final class DeviceDao implements DeviceSchema {
     }
 
     /**
-     * デバイスIDを登録する.
+     * サービスIDを登録する.
      * 
      * @param db DB操作オブジェクト
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return 登録出来た場合は登録時のIDを返す。重複している場合は登録済みのIDを返す。処理に失敗した場合は-1を返す。
      */
-    static long insert(final SQLiteDatabase db, final String deviceId) {
+    static long insert(final SQLiteDatabase db, final String serviceId) {
 
-        String did = (deviceId != null) ? deviceId : "";
+        String did = (serviceId != null) ? serviceId : "";
         long result = -1L;
-        Cursor cursor = db.query(TABLE_NAME, new String[] {_ID}, DEVICE_ID + "=?", new String[] {did}, null, null,
+        Cursor cursor = db.query(TABLE_NAME, new String[] {_ID}, SERVICE_ID + "=?", new String[] {did}, null, null,
                 null);
         if (cursor.getCount() == 0) {
             ContentValues values = new ContentValues();
-            values.put(DEVICE_ID, did);
+            values.put(SERVICE_ID, did);
             values.put(CREATE_DATE, Utils.getCurreTimestamp().getTime());
             values.put(UPDATE_DATE, Utils.getCurreTimestamp().getTime());
             result = db.insert(TABLE_NAME, null, values);

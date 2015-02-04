@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">Device Connect Manager</string>
-
+    <string name="description"></string>
     <!-- ================= SettingsActivity ================= -->
 
     <string name="activity_settings_server_on_off">Device Connect Manager</string>
@@ -73,12 +73,12 @@
     <string name="action_search">Network Service Discovery</string>
     <string name="action_access_token">Request AccessToken</string>
     <string name="action_input_session_key">Input SessionKey</string>
-    <string name="discovery">network_service_discovery</string>
+    <string name="discovery">servicediscovery</string>
     <string name="http_method">HTTP Method:</string>
     <string name="profile">Profile:</string>
     <string name="interfaces">Interfaces:</string>
     <string name="attribute">Attribute:</string>
-    <string name="deviceid">Device ID:</string>
+    <string name="serviceid">Service ID:</string>
     <string name="send_request">Send</string>
     <string name="select_or_url">Parameter or URL</string>
     <string name="url_hint1">param1=xxx&amp;param2=yyy</string>
@@ -100,15 +100,14 @@
         <item>request_accesstoken</item>
     </string-array>
 
-    <!-- NetworkServiceDiscovery API -->
-    <string name="network_service_discovery_profile">/network_service_discovery/getnetworkservices</string>
+    <!-- ServiceDiscovery API -->
+    <string name="service_discovery_profile">/servicediscovery</string>
 
-    <string-array name="network_service_discovery_interface_list">
+    <string-array name="service_discovery_interface_list">
         <item></item>
     </string-array>
-    <string-array name="network_service_discovery_attrib_list">
+    <string-array name="service_discovery_attrib_list">
         <item></item>
-        <item>getnetworkservices</item>
         <item>onservicechange</item>
     </string-array>
 
@@ -429,7 +428,7 @@
         <item>settings</item>
         <item>system</item>
         <item>vibration</item>
-        <item>network_service_discovery</item>
+        <item>servicediscovery</item>
         <item>light</item>
         <item>camera</item>
         <item>mhealth</item>

@@ -50,7 +50,6 @@ public class TestFileProfile extends FileProfile {
     /**
      * コンストラクタ.
      * 
-     * @param context コンテキスト
      * @param fileMgr ファイルマネージャ
      */
     public TestFileProfile(final FileManager fileMgr) {
@@ -58,22 +57,22 @@ public class TestFileProfile extends FileProfile {
     }
     
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkServiceId(final String serviceId) {
+        return TestServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response, "Device ID is empty.");
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response, "Service ID is empty.");
     }
 
     /**
@@ -81,20 +80,20 @@ public class TestFileProfile extends FileProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response, "Device is not found.");
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response, "Service is not found.");
     }
 
     @Override
-    protected boolean onGetReceive(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onGetReceive(final Intent request, final Intent response, final String serviceId, 
             final String path) {
-        if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
-            String uri = getFileManager().getContentUri() + "/" + getFilenameFromPath(path);
+            String uri = getFileManager().getContentUri() + "/" + getFileNameFromPath(path);
             setURI(response, uri);
             setMIMEType(response, MIME_TYPE);
         }
@@ -102,10 +101,10 @@ public class TestFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onGetList(final Intent request, final Intent response, final String deviceId, final String path,
+    protected boolean onGetList(final Intent request, final Intent response, final String serviceId, final String path,
             final String mimeType, final String order, final Integer offset, final Integer limit) {
-        if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             List<Bundle> files = new ArrayList<Bundle>();
@@ -124,17 +123,17 @@ public class TestFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onPostSend(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPostSend(final Intent request, final Intent response, final String serviceId, 
             final String path, final String mimeType, final byte[] data) {
-        if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
             String u = null;
             try {
                 // MEMO: テスト簡素化のため、テストプラグイン内ではディレクトリツリーを持たせない.
-                String filename = getFilenameFromPath(path);
+                String filename = getFileNameFromPath(path);
                 u = getFileManager().saveFile(filename, data);
             } catch (IOException e) {
                 u = null;
@@ -149,9 +148,10 @@ public class TestFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onPostMkdir(Intent request, Intent response, String deviceId, String path) {
-        if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onPostMkdir(final Intent request, final Intent response,
+                                        final String serviceId, final String path) {
+        if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -161,9 +161,10 @@ public class TestFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onDeleteRmdir(Intent request, Intent response, String deviceId, String path, boolean force) {
-        if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onDeleteRmdir(final Intent request, final Intent response,
+                                    final String serviceId, final String path, final boolean force) {
+        if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -172,7 +173,12 @@ public class TestFileProfile extends FileProfile {
         return true;
     }
 
-    private String getFilenameFromPath(String path) {
+    /**
+     * FileパスからFile名を取得する.
+     * @param path Fileパス
+     * @return File名
+     */
+    private String getFileNameFromPath(final String path) {
         String[] components = path.split("/");
         if (components.length == 0) {
             return path;
@@ -181,16 +187,16 @@ public class TestFileProfile extends FileProfile {
     }
 
     @Override
-    protected boolean onDeleteRemove(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onDeleteRemove(final Intent request, final Intent response, final String serviceId, 
             final String path) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            getFileManager().removeFile(getFilenameFromPath(path));
+            getFileManager().removeFile(getFileNameFromPath(path));
             setResult(response, DConnectMessage.RESULT_OK);
         }
         

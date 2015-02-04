@@ -41,7 +41,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/media?deviceId=xxxx&mediaId=xxxx
+     * Path: /media_player/media?serviceId=xxxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -53,7 +53,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -69,7 +69,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/media?deviceId=xxxx&mediaId=xxxx
+     * Path: /media_player/media?serviceId=xxxx&mediaId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -81,7 +81,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, TEST_MEDIA_ID);
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -97,7 +97,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/media_list?deviceId=xxxx
+     * Path: /media_player/media_list?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -109,7 +109,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
@@ -124,7 +124,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/play_status?deviceId=xxxx
+     * Path: /media_player/play_status?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -136,7 +136,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PLAY_STATUS);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
@@ -153,7 +153,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/play?deviceId=xxxx
+     * Path: /media_player/play?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -165,7 +165,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PLAY);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
@@ -180,7 +180,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/stop?deviceId=xxxx
+     * Path: /media_player/stop?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -192,7 +192,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_STOP);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
@@ -207,7 +207,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/pause?deviceId=xxxx
+     * Path: /media_player/pause?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -219,7 +219,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PAUSE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
@@ -234,7 +234,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/resume?deviceId=xxxx
+     * Path: /media_player/resume?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -246,7 +246,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_RESUME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
@@ -261,7 +261,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/seek?deviceId=xxxx&pos=xxxx
+     * Path: /media_player/seek?serviceId=xxxx&pos=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -273,7 +273,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_POS, String.valueOf(0));
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -289,7 +289,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/seek?deviceId=xxxx
+     * Path: /media_player/seek?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -301,7 +301,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_SEEK);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
@@ -317,7 +317,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/volume?deviceId=xxxx&volume=xxxx
+     * Path: /media_player/volume?serviceId=xxxx&volume=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -329,7 +329,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(MediaPlayerProfileConstants.PARAM_VOLUME, String.valueOf(TEST_VOLUME));
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
@@ -345,7 +345,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/volume?deviceId=xxxx
+     * Path: /media_player/volume?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -357,7 +357,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_VOLUME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
@@ -373,7 +373,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /media_player/mute?deviceId=xxxx
+     * Path: /media_player/mute?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -385,7 +385,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MUTE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject response = sendRequest(request);
@@ -400,7 +400,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /media_player/mute?deviceId=xxxx
+     * Path: /media_player/mute?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -412,7 +412,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MUTE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject response = sendRequest(request);
@@ -427,7 +427,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /media_player/mute?deviceId=xxxx
+     * Path: /media_player/mute?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -439,7 +439,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
         builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MUTE);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);
@@ -468,7 +468,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + MediaPlayerProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaPlayerProfileConstants.ATTRIBUTE_ON_STATUS_CHANGE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -505,7 +505,7 @@ public class NormalMediaPlayerProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + MediaPlayerProfileConstants.PROFILE_NAME);
         builder.append("/" + MediaPlayerProfileConstants.ATTRIBUTE_ON_STATUS_CHANGE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");

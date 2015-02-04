@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect デバイス/プロファイルパッケージ.
+ * Device Connect デバイス/プロファイルパッケージ.
  */
 package org.deviceconnect.android.uiapp.device;

@@ -49,9 +49,9 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
     private String mClientKey;
 
     /**
-     * デバイスID.
+     * サービスID.
      */
-    private String mDeviceId;
+    private String mServiceId;
 
     /**
      * デバイスキー.
@@ -215,12 +215,12 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
     }
 
     /**
-     * デバイスIDを設定する.
+     * サービスIDを設定する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void setDeviceId(final String deviceId) {
-        mDeviceId = deviceId;
+    public void setServiceId(final String serviceId) {
+        mServiceId = serviceId;
     }
 
     /**
@@ -233,12 +233,12 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
     }
 
     /**
-     * デバイスIDを取得する.
+     * サービスIDを取得する.
      * 
-     * @return デバイスID
+     * @return サービスID
      */
-    public String getDeviceId() {
-        return mDeviceId;
+    public String getServiceId() {
+        return mServiceId;
     }
 
     /**

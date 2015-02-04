@@ -6,6 +6,6 @@
  */
 
 /**
- * ホストデバイスプラグインアクティビティパッケージ.
+ * Host DevicePlugin Activity Package.
  */
 package org.deviceconnect.android.deviceplugin.host.activity;

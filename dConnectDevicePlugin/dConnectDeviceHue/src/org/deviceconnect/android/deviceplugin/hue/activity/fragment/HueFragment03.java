@@ -37,49 +37,16 @@ import com.philips.lighting.model.PHLight;
 public class HueFragment03 extends Fragment implements OnClickListener {
 
     /** ライトの登録. */
-    private static Button mButtonRegister;
+    private static Button sButtonRegister;
 
     /** HueSDK. */
-    private static PHHueSDK mPhHueSDK;
+    private static PHHueSDK sPhHueSDK;
 
     /** ProgressView. */
     private View mProgressView;
 
-    /** 接続したアクセスポイント */
+    /** 接続したアクセスポイント. */
     private final PHAccessPoint mAccessPoint;
-
-    public HueFragment03(PHAccessPoint accessPoint) {
-        this.mAccessPoint = accessPoint;
-    }
-
-    @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-        View mRootView = inflater.inflate(R.layout.hue_fragment_03, container, false);
-        if (mRootView != null) {
-            mButtonRegister = (Button) mRootView.findViewById(R.id.btnSearchLight);
-            mButtonRegister.setOnClickListener(this);
-            mProgressView = mRootView.findViewById(R.id.progress_light_search);
-        }
-        return mRootView;
-    }
-
-    /**
-     * ライト検索.
-     */
-    private void searchLight() {
-
-        mPhHueSDK = PHHueSDK.create();
-        PHBridge bridge = mPhHueSDK.getSelectedBridge();
-        
-        if (bridge == null) {
-            mProgressView.setVisibility(View.GONE);
-            return;
-        } else {
-            mProgressView.setVisibility(View.VISIBLE);
-            bridge.findNewLights(new PHLightListenerImpl());
-        }
-    }
-
     /**
      * ライト検索リスナー.
      */
@@ -114,14 +81,14 @@ public class HueFragment03 extends Fragment implements OnClickListener {
 
         @Override
         public void onSearchComplete() {
-            if (mPhHueSDK != null) {
-                PHBridge b = mPhHueSDK.getSelectedBridge();
+            if (sPhHueSDK != null) {
+                PHBridge b = sPhHueSDK.getSelectedBridge();
                 if (b != null) {
-                    mPhHueSDK.disconnect(b);
+                    sPhHueSDK.disconnect(b);
                     
-                    mPhHueSDK.connect(mAccessPoint);
-                    mPhHueSDK.enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
-                    mPhHueSDK.getLastHeartbeat().put(b.getResourceCache().getBridgeConfiguration().getIpAddress(),
+                    sPhHueSDK.connect(mAccessPoint);
+                    sPhHueSDK.enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
+                    sPhHueSDK.getLastHeartbeat().put(b.getResourceCache().getBridgeConfiguration().getIpAddress(),
                             System.currentTimeMillis());
                 }
             }
@@ -140,23 +107,62 @@ public class HueFragment03 extends Fragment implements OnClickListener {
         }
 
         @Override
-        public void onStateUpdate(Map<String, String> arg0, List<PHHueError> arg1) {
+        public void onStateUpdate(final Map<String, String> list, final  List<PHHueError> error) {
         }
 
         @Override
-        public void onReceivingLightDetails(PHLight light) {
+        public void onReceivingLightDetails(final PHLight light) {
+        }
+    }
+
+
+    /**
+     * コンストラクタ.
+     * @param accessPoint Access Point
+     */
+    public HueFragment03(final PHAccessPoint accessPoint) {
+        this.mAccessPoint = accessPoint;
+    }
+
+    @Override
+    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+            final Bundle savedInstanceState) {
+        View mRootView = inflater.inflate(R.layout.hue_fragment_03, container, false);
+        if (mRootView != null) {
+            sButtonRegister = (Button) mRootView.findViewById(R.id.btnSearchLight);
+            sButtonRegister.setOnClickListener(this);
+            mProgressView = mRootView.findViewById(R.id.progress_light_search);
+        }
+        return mRootView;
+    }
+
+    /**
+     * ライト検索.
+     */
+    private void searchLight() {
+
+        sPhHueSDK = PHHueSDK.create();
+        PHBridge bridge = sPhHueSDK.getSelectedBridge();
+        
+        if (bridge == null) {
+            mProgressView.setVisibility(View.GONE);
+            return;
+        } else {
+            mProgressView.setVisibility(View.VISIBLE);
+            bridge.findNewLights(new PHLightListenerImpl());
+        }
+    }
+
+
+    @Override
+    public void onClick(final View view) {
+        if (view.equals(sButtonRegister)) {
+            searchLight();
         }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-    }
-
-    @Override
-    public void onClick(View view) {
-        if (view.equals(mButtonRegister)) {
-            searchLight();
-        }
     }
 }

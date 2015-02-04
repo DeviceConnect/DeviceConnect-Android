@@ -51,7 +51,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
     public void testPostNotifyType001() {
         final int type = 0;
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, type);
@@ -87,7 +87,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
     public void testPostNotifyType002() {
         final int type = 1;
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, type);
@@ -123,7 +123,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
     public void testPostNotifyType003() {
         final int type = 2;
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, type);
@@ -159,7 +159,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
     public void testPostNotifyType004() {
         final int type = 3;
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, type);
@@ -196,7 +196,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
     public void testPostNotifyDir001() {
         final int type = 0;
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, type);
@@ -234,7 +234,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
     public void testPostNotifyDir002() {
         final int type = 0;
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, type);
@@ -272,7 +272,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
     public void testPostNotifyDir003() {
         final int type = 0;
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, type);
@@ -308,7 +308,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -343,7 +343,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -379,7 +379,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional003() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -415,7 +415,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional004() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -451,7 +451,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional005() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -488,7 +488,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional006() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -526,7 +526,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional007() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -563,7 +563,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional008() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -599,7 +599,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional009() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -636,7 +636,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional010() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -674,7 +674,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional011() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -712,7 +712,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional012() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -750,7 +750,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional013() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -789,7 +789,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional014() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -829,7 +829,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional015() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -867,7 +867,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional016() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -903,7 +903,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional017() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -940,7 +940,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional018() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -978,7 +978,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional019() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1016,7 +1016,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional020() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1054,7 +1054,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional021() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1093,7 +1093,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional022() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1133,7 +1133,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional023() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1172,7 +1172,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional024() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1210,7 +1210,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional025() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1249,7 +1249,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional026() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1289,7 +1289,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional027() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1329,7 +1329,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional028() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1369,7 +1369,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional029() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1410,7 +1410,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional030() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1452,7 +1452,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPostNotifyOptional031() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_POST);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_TYPE, 0);
@@ -1489,7 +1489,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteNotify() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         request.putExtra(NotificationProfileConstants.PARAM_NOTIFICATION_ID,
@@ -1518,7 +1518,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutOnClick() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
@@ -1552,7 +1552,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteOnClick() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_CLICK);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
@@ -1580,7 +1580,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutOnShow() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
@@ -1614,7 +1614,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteOnShow() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_SHOW);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
@@ -1642,7 +1642,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutOnClose() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
@@ -1676,7 +1676,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteOnClose() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_CLOSE);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
@@ -1704,7 +1704,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testPutOnError() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
@@ -1738,7 +1738,7 @@ public class NormalNotificationProfileTestCase extends IntentDConnectTestCase {
      */
     public void testDeleteOnError() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, NotificationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, NotificationProfileConstants.ATTRIBUTE_ON_ERROR);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, getClientId());

@@ -6,6 +6,6 @@
  */
 
 /**
- * Chromecast setting package
+ * Device Connect Chromecast DevicePlugin Setting UI.
  */
 package org.deviceconnect.android.deviceplugin.chromecast.setting;

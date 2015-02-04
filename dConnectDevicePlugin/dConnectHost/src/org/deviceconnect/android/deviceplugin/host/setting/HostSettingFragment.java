@@ -15,6 +15,7 @@ import org.deviceconnect.android.deviceplugin.host.IHostDeviceCallback;
 import org.deviceconnect.android.deviceplugin.host.IHostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.R;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
@@ -23,10 +24,8 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.Message;
 import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -45,19 +44,14 @@ public class HostSettingFragment extends Fragment {
     /** context. */
     private Activity mActivity;
 
-    /** PluginID. */
-    private String mPluginId;
-
     /** 検索中のダイアログ. */
     private ProgressDialog mDialog;
 
-    /** Handler Action. */
-    private static final int HANDLER_ACTION_DISMISS = 1;
-
     /** プロセス間通信でつなぐService. */
-    private static IHostDeviceService mService;
+    private static IHostDeviceService sService;
 
-    @Override
+    @SuppressLint("DefaultLocale")
+	@Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
             final Bundle savedInstanceState) {
 
@@ -80,7 +74,7 @@ public class HostSettingFragment extends Fragment {
             int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
             final String formatedIpAddress = String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
                     (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
-
+            
             // Host IP表示用
             mDeviceHostIpTextView = (TextView) mView.findViewById(R.id.host_ipaddress);
             mDeviceHostIpTextView.setText("Your IP:" + formatedIpAddress);
@@ -96,17 +90,12 @@ public class HostSettingFragment extends Fragment {
 
         showProgressDialog();
         try {
-            mService.searchHost();
+            sService.searchHost();
         } catch (RemoteException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
-        // Handlerに通知する
-        MyHandler handler = new MyHandler();
-        Message mMsg = new Message();
-        mMsg.what = HANDLER_ACTION_DISMISS;
-        handler.sendMessageDelayed(mMsg, 8000);
     }
 
     /**
@@ -116,7 +105,7 @@ public class HostSettingFragment extends Fragment {
 
         showProgressDialog();
         try {
-            mService.invokeHost();
+            sService.invokeHost();
         } catch (RemoteException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -168,22 +157,6 @@ public class HostSettingFragment extends Fragment {
         }
     }
 
-    /**
-     * Handlerクラスを継承して拡張.
-     */
-    class MyHandler extends Handler {
-
-        @Override
-        public void handleMessage(final Message msg) {
-
-            if (msg.what == HANDLER_ACTION_DISMISS) {
-                dismissProgressDialog();
-
-                Toast.makeText(mActivity, "Hostが発見できません。(エラー:タイムアウト, 原因:同じネットワーク内にHostsが存在しません。)", Toast.LENGTH_SHORT)
-                        .show();
-            }
-        }
-    }
 
     /**
      * プロセス間通信用のサービス.
@@ -192,9 +165,9 @@ public class HostSettingFragment extends Fragment {
 
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
-            mService = IHostDeviceService.Stub.asInterface(service);
+            sService = IHostDeviceService.Stub.asInterface(service);
             try {
-                mService.registerCallback(mCallback);
+                sService.registerCallback(mCallback);
             } catch (RemoteException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
@@ -205,8 +178,8 @@ public class HostSettingFragment extends Fragment {
         @Override
         public void onServiceDisconnected(final ComponentName name) {
             try {
-                mService.unregisterCallback(mCallback);
-                mService = null;
+                sService.unregisterCallback(mCallback);
+                sService = null;
             } catch (RemoteException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();

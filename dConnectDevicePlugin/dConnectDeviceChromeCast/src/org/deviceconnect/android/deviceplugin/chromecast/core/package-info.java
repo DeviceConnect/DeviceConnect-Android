@@ -6,6 +6,6 @@
  */
 
 /**
- * Chromecast core package
+ * Chromecastの管理を行う.
  */
 package org.deviceconnect.android.deviceplugin.chromecast.core;

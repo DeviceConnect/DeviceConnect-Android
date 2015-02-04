@@ -27,7 +27,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 
 /**
- * System プロファイル (Chromecast)
+ * System プロファイル (Chromecast).
  * <p>
  * Chromecastのシステム情報を提供する
  * </p>
@@ -36,10 +36,9 @@ import android.os.Bundle;
 public class ChromeCastSystemProfile extends SystemProfile {
 
     /**
-     * コンストラクタ
+     * コンストラクタ.
      * 
      * @param   provider    プロバイダ
-     * @return  なし
      */
     public ChromeCastSystemProfile(final DConnectProfileProvider provider) {
         super(provider);
@@ -51,9 +50,8 @@ public class ChromeCastSystemProfile extends SystemProfile {
     }
 
     /**
-     * バージョンを取得する
+     * バージョンを取得する.
      * 
-     * @param   なし
      * @return  version バージョン
      */
     private String getCurrentVersionName() {
@@ -68,26 +66,26 @@ public class ChromeCastSystemProfile extends SystemProfile {
     }
 
     @Override
-    protected boolean onGetDevice(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetDevice(final Intent request, final Intent response, final String serviceId) {
         // Select Route, launch
         ChromeCastDiscovery discovery = ((ChromeCastService) getContext()).getChromeCastDiscovery();
         ChromeCastApplication application = ((ChromeCastService) getContext()).getChromeCastApplication();
-        if(discovery.getSelectedDevice() != null){
-            if(discovery.getSelectedDevice().getFriendlyName().equals(deviceId)){
+        if (discovery.getSelectedDevice() != null) {
+            if (discovery.getSelectedDevice().getFriendlyName().equals(serviceId)) {
                 application.connect();
-            }else{
-                discovery.setRouteName(deviceId);
+            } else {
+                discovery.setRouteName(serviceId);
             }
-        }else{
-            discovery.setRouteName(deviceId);
+        } else {
+            discovery.setRouteName(serviceId);
         }
 
         // connect
         Bundle connect = new Bundle();
-        setWifiState(connect, getWifiState(deviceId));
-        setBluetoothState(connect, getBluetoothState(deviceId));
-        setNFCState(connect, getNFCState(deviceId));
-        setBLEState(connect, getBLEState(deviceId));
+        setWifiState(connect, getWifiState(serviceId));
+        setBluetoothState(connect, getBluetoothState(serviceId));
+        setNFCState(connect, getNFCState(serviceId));
+        setBLEState(connect, getBLEState(serviceId));
         setConnect(response, connect);
 
         // version

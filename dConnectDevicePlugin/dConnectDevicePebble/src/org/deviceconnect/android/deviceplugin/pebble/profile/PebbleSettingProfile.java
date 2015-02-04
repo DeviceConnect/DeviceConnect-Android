@@ -24,12 +24,12 @@ import com.getpebble.android.kit.util.PebbleDictionary;
 public class PebbleSettingProfile extends SettingsProfile {
     @Override
     protected boolean onGetDate(final Intent request, final Intent response, 
-            final String deviceId) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+            final String serviceId) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             // Pebbleに送信

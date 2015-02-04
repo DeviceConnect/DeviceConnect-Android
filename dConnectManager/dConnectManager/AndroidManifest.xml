@@ -53,8 +53,6 @@
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" >
-            <intent-filter>
-            </intent-filter>
         </activity>
 
         <!-- 警告画面用Activity. -->

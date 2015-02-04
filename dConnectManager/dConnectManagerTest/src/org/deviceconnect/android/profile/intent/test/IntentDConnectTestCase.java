@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.profile.intent.test;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -77,6 +79,11 @@ public class IntentDConnectTestCase extends DConnectTestCase {
     @Override
     protected void tearDown() throws Exception {
         getApplicationContext().unregisterReceiver(mResponseReceiver);
+
+        // タイムアウトしたとき、前のintentが残り、
+        // その結果が次の処理で取得されることがあるよう
+        mRequests.clear();
+
         super.tearDown();
     }
 
@@ -186,6 +193,7 @@ public class IntentDConnectTestCase extends DConnectTestCase {
      * @return レスポンスのintent
      */
     protected Intent sendRequest(final Intent intent) {
+        final byte[] nonce = generateRandom(16);
         final int requestCode = generateRequestCode();
 
         ComponentName cn = new ComponentName("org.deviceconnect.android.test", 
@@ -194,6 +202,7 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         intent.putExtra(IntentDConnectMessage.EXTRA_RECEIVER, cn);
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(IntentDConnectMessage.EXTRA_ACCESS_TOKEN, mAccessToken);
+        intent.putExtra(IntentDConnectMessage.EXTRA_NONCE, toHexString(nonce));
 
         getApplicationContext().sendBroadcast(intent);
 
@@ -212,9 +221,20 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         assertEquals(resp.getStringExtra(DConnectProfileConstants.PARAM_PRODUCT), DCONNECT_MANAGER_APP_NAME);
         assertEquals(resp.getStringExtra(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
 
-        // タイムアウトしたとき、前のintentが残り、
-        // その結果が次の処理で取得されることがあるよう
-        mRequests.clear();
+        // HMACの検証
+        String hmacString = resp.getStringExtra(IntentDConnectMessage.EXTRA_HMAC);
+        if (hmacString == null) {
+            fail("Device Connect Manager must send HMAC.");
+        }
+        try {
+            byte[] expectedHmac = calculateHMAC(nonce);
+            assertEquals(expectedHmac, toByteArray(hmacString));
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
+        }
+
         return resp;
     }
 

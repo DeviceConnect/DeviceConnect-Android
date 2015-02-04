@@ -6,17 +6,15 @@
  */
 package org.deviceconnect.android.observer;
 
-import java.io.IOException;
-import java.net.Socket;
-import java.util.List;
+import java.util.ArrayList;
 
-import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.observer.activity.WarningDialogActivity;
 import org.deviceconnect.android.observer.receiver.ObserverReceiver;
+import org.deviceconnect.android.observer.util.AndroidSocket;
+import org.deviceconnect.android.observer.util.SockStatUtil;
+import org.deviceconnect.android.observer.util.SocketState;
 
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -26,7 +24,7 @@ import android.os.IBinder;
 import android.os.SystemClock;
 
 /**
- * dConnectの生存確認を行うサービス.
+ * DeviceConnectの生存確認を行うサービス.
  * 
  * @author NTT DOCOMO, INC.
  */
@@ -48,9 +46,14 @@ public class DConnectObservationService extends Service {
     public static final String ACTION_CHECK = "org.deviceconnect.android.intent.action.observer.CHECK";
 
     /**
-     * dConnectManagerのサービス名.
+     * 占有しているパッケージ名.
      */
-    private static final String DCONNECT_SERVICE_NAME = DConnectService.class.getCanonicalName();
+    public static final String PARAM_PACKAGE_NAME = "org.deviceconnect.android.intent.param.observer.PACKAGE_NAME";
+
+    /**
+     * 占有されているポート番号.
+     */
+    public static final String PARAM_PORT = "org.deviceconnect.android.intent.param.observer.PORT";
 
     /**
      * リクエストコード.
@@ -58,12 +61,7 @@ public class DConnectObservationService extends Service {
     private static final int REQUEST_CODE = 0x0F0F0F;
 
     /**
-     * Device Connectのホスト名.
-     */
-    private String mHost;
-
-    /**
-     * Device Connectのポート番号.
+     * Device Connect のポート番号.
      */
     private int mPort;
 
@@ -83,7 +81,6 @@ public class DConnectObservationService extends Service {
         stopObservation();
         DConnectSettings settings = DConnectSettings.getInstance();
         settings.load(DConnectObservationService.this);
-        mHost = settings.getHost();
         mPort = settings.getPort();
         mInterval = settings.getObservationInterval();
         // onDestroyが呼ばれずに死ぬこともあるようなので必ず最初に解除処理を入れる。
@@ -108,16 +105,16 @@ public class DConnectObservationService extends Service {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    boolean running = isManagerRunning();
-                    boolean holding = isHoldingPort();
-
-                    if (!running && holding) {
+                    String appPackage = getHoldingAppSocketInfo();
+                    if (appPackage != null) {
                         stopObservation();
                         Intent i = new Intent();
                         i.setClass(getApplicationContext(), WarningDialogActivity.class);
                         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK 
                                 | Intent.FLAG_ACTIVITY_NO_ANIMATION
                                 | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                        i.putExtra(PARAM_PACKAGE_NAME, appPackage);
+                        i.putExtra(PARAM_PORT, mPort);
                         getApplication().startActivity(i);
                         stopSelf();
                     }
@@ -157,37 +154,20 @@ public class DConnectObservationService extends Service {
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         am.cancel(sender);
     }
-
     /**
-     * dConnectManagerが起動しているかチェックする.
-     * 
-     * @return 起動している場合true、その他はfalseを返す。
+     * ポートを占有しているアプリを取得する.
+     * @return 占有しているアプリのパッケージ名
      */
-    private boolean isManagerRunning() {
-        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        List<RunningServiceInfo> services = activityManager.getRunningServices(Integer.MAX_VALUE);
-
-        for (RunningServiceInfo info : services) {
-            if (DCONNECT_SERVICE_NAME.equals(info.service.getClassName())) {
-                return true;
-            }
+    private String getHoldingAppSocketInfo() {
+        ArrayList<AndroidSocket> sockets = SockStatUtil.getSocketList(this);
+        String deviceConnectPackageName = getPackageName();
+        for (AndroidSocket aSocket:sockets) {
+           if (!aSocket.getAppName().equals(deviceConnectPackageName)
+                && aSocket.getLocalPort() == mPort
+                && aSocket.getState() == SocketState.TCP_LISTEN) {
+               return aSocket.getAppName();
+           }
         }
-        return false;
+        return null;
     }
-
-    /**
-     * ポートを占有しているかチェックする.
-     * 
-     * @return ポートが使用されている場合はtrue、その他はfalseを返す。
-     */
-    private boolean isHoldingPort() {
-        try {
-            Socket socket = new Socket(mHost, mPort);
-            socket.close();
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
 }

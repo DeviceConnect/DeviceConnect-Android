@@ -23,7 +23,6 @@ import javax.crypto.SecretKey;
 
 import org.deviceconnect.android.cipher.signature.AuthSignature;
 import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
-import org.deviceconnect.message.intent.impl.client.DefaultIntentClient;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.BatteryProfileConstants;
@@ -41,6 +40,8 @@ import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
 
+import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -63,6 +64,10 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
 
     /** DeviceConnectManagerのバージョン名. */
     protected static final String DCONNECT_MANAGER_VERSION_NAME = "1.0";
+
+    /** 起動用インテントを受信するクラスのコンポーネント名. */
+    private static final String LAUNCH_RECEIVER
+        = "org.deviceconnect.android.manager/.receiver.DConnectManagerLaunchReceiver";
 
     /** HMACアルゴリズム. */
     private static final String HMAC_ALGORITHM = "HmacSHA256";
@@ -238,14 +243,14 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     /**
      * Device Connect Managerに対してHMAC生成キーを送信する.
      */
-    protected void sendHMAC() {
+    protected void sendHMACKey() {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
-        intent.setComponent(DefaultIntentClient.DEFAULT_MESSAGE_RECEIVER);
-        intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getContext().getPackageName());
+        intent.setComponent(ComponentName.unflattenFromString(LAUNCH_RECEIVER));
+        intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getClientPackageName());
         intent.putExtra(IntentDConnectMessage.EXTRA_KEY, getHMACString());
-        intent.setData(Uri.parse("gotapi://"));
+        intent.setData(Uri.parse("dconnect://start"));
         getContext().sendBroadcast(intent);
     }
 
@@ -346,7 +351,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        sendHMAC();
+        sendHMACKey();
         if (isLocalOAuth()) {
             mClientId = getClientIdCache();
             mClientSecret = getClientSecretCache();

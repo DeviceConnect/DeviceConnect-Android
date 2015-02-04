@@ -22,6 +22,7 @@ import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
+import org.deviceconnect.android.manager.hmac.HmacManager;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
@@ -68,6 +69,9 @@ public abstract class DConnectMessageService extends Service
     /** リクエストコードのエラー値を定義. */
     private static final int ERROR_CODE = Integer.MIN_VALUE;
 
+    /** 起動用URIスキーム名. */
+    private static final String SCHEME_LAUNCH = "dconnect";
+
     /** ロガー. */
     protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
@@ -94,6 +98,9 @@ public abstract class DConnectMessageService extends Service
 
     /** Local OAuthのデータを管理するクラス. */
     private DConnectLocalOAuth mLocalOAuth;
+
+    /** HMAC管理クラス. */
+    private HmacManager mHmacManager;
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -136,6 +143,9 @@ public abstract class DConnectMessageService extends Service
 
         // デバイスプラグインとのLocal OAuth情報
         mLocalOAuth = new DConnectLocalOAuth(this);
+
+        // HMAC管理クラス
+        mHmacManager = new HmacManager(this);
 
         // リクエスト管理クラスの作成
         mRequestManager = new DConnectRequestManager();
@@ -182,6 +192,12 @@ public abstract class DConnectMessageService extends Service
         if (action == null) {
             mLogger.warning("action is null.");
             mLogger.exiting(this.getClass().getName(), "onStartCommand");
+            return START_STICKY;
+        }
+
+        String scheme = intent.getScheme();
+        if (SCHEME_LAUNCH.equals(scheme)) {
+            mHmacManager.updateKey(intent);
             return START_STICKY;
         }
 
@@ -548,7 +564,14 @@ public abstract class DConnectMessageService extends Service
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(IntentDConnectMessage.EXTRA_PRODUCT, getString(R.string.app_name));
         intent.putExtra(IntentDConnectMessage.EXTRA_VERSION, DConnectUtil.getVersionName(this));
-        // TODO ここにHMACを付加する処理。サーバのなりすまし対策にて対応。
+
+        if (mHmacManager.usesHmac(request)) {
+            String hmac = mHmacManager.generateHmac(request);
+            if (hmac != null) {
+                intent.putExtra(IntentDConnectMessage.EXTRA_HMAC, hmac);
+            }
+        }
+
         intent.setComponent(cn);
         return intent;
     }

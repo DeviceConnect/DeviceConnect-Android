@@ -27,17 +27,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="start"
-                    android:path="/"
-                    android:scheme="dconnect" />
-            </intent-filter>
         </activity>
 
         <!-- キーワード表示用Activitiy. -->
@@ -76,6 +65,19 @@
             </intent-filter>
         </receiver>
 
+        <!-- Device Connect Manager起動用Intentを受領するためのBroadcastReceiver. -->
+        <receiver android:name="org.deviceconnect.android.manager.receiver.DConnectManagerLaunchReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="start"
+                    android:path="/"
+                    android:scheme="dconnect" />
+            </intent-filter>
+        </receiver>
+
         <!-- アプリケーションのインストールやアンインストールといったイベントを受領するためのBroadcastReceiver. -->
         <receiver android:name="org.deviceconnect.android.manager.receiver.PackageManageReceiver" >
             <intent-filter>
@@ -87,7 +89,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- dConnect Manager本体のサービス. -->
+        <!-- Device Connect Manager本体のサービス. -->
         <!-- Activityとは別プロセスで動作させるために、:dconnect_process上で動作させている。 -->
         <service
             android:name="org.deviceconnect.android.manager.DConnectService"

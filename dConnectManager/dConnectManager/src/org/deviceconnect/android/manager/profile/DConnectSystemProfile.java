@@ -66,7 +66,7 @@ public class DConnectSystemProfile extends SystemProfile {
         } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
             return sendNotSupportActionError(request, response);
         }
-        // 各デバイスプラグインに渡すのfalse
+        // 各デバイスプラグインに渡すのでfalse
         return false;
     }
 
@@ -81,7 +81,7 @@ public class DConnectSystemProfile extends SystemProfile {
         } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
             return sendNotSupportActionError(request, response);
         }
-        // 各デバイスプラグインに渡すのfalse
+        // 各デバイスプラグインに渡すのでfalse
         return false;
     }
 
@@ -96,7 +96,7 @@ public class DConnectSystemProfile extends SystemProfile {
         } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
             return onDeleteEvents(request, response);
         }
-        // 各デバイスプラグインに渡すのfalse
+        // 各デバイスプラグインに渡すのでfalse
         return false;
     }
 
@@ -111,7 +111,7 @@ public class DConnectSystemProfile extends SystemProfile {
         } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
             return sendNotSupportActionError(request, response);
         }
-        // 各デバイスプラグインに渡すのfalse
+        // 各デバイスプラグインに渡すのでfalse
         return false;
     }
 

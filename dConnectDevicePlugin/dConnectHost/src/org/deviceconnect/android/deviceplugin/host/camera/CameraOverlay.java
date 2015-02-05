@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.provider.FileManager;
 
 import android.content.BroadcastReceiver;
@@ -39,7 +40,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
     /**
      * 写真を取るまでの待機時間を定義.
      */
-    private static final int PERIOD_TAKE_PHOTO_WAIT = 1000;
+    private static final int PERIOD_TAKE_PHOTO_WAIT = 200;
 
     /**
      * JPEGの圧縮クオリティを定義.
@@ -79,6 +80,13 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     /** 画像を送るサーバ. */
     private MixedReplaceMediaServer mServer;
+
+    /**
+     * 終了フラグ.
+     * <p>
+     * 撮影が終わった後にOverlayを終了するかチェックする
+     */
+    private boolean mFinishFlag;
 
     /**
      * 画面回転のイベントを受け付けるレシーバー.
@@ -157,7 +165,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
         mCamera.setPreviewCallback(this);
 
         mTextView = new TextView(mContext);
-        mTextView.setText("●PREVIEW");
+        mTextView.setText(R.string.overlay_preview);
         mTextView.setTextColor(Color.RED);
         mTextView.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
         mTextView.setClickable(true);
@@ -204,6 +212,15 @@ public class CameraOverlay implements Camera.PreviewCallback {
             mTextView = null;
         }
         mContext.unregisterReceiver(mOrientReceiver);
+        mFinishFlag = false;
+    }
+
+    /**
+     * 写真撮影後にOverlayを非表示にするフラグを設定する.
+     * @param flag trueの場合は撮影後に非表示にする
+     */
+    public synchronized void setFinishFlag(final boolean flag) {
+        mFinishFlag = flag;
     }
 
     /**
@@ -211,40 +228,53 @@ public class CameraOverlay implements Camera.PreviewCallback {
      * <p>
      * 写真撮影の結果はlistenerに通知される。
      * @param listener 撮影結果を通知するリスナー
-     * @param finish trueの場合は撮影完了時にオーバーレイを終了する
      */
-    public synchronized void takePicture(final OnTakePhotoListener listener,
-            final boolean finish) {
+    public void takePicture(final OnTakePhotoListener listener) {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                mPreview.takePicture(new Camera.PictureCallback() {
-                    @Override
-                    public void onPictureTaken(final byte[] data, final Camera camera) {
-                        String fileName = createNewFileName();
-                        String pictureUri = null;
-                        try {
-                            pictureUri = mFileMgr.saveFile(fileName, data);
-                            if (listener != null) {
-                                listener.onTakenPhoto(pictureUri);
-                            }
-                        } catch (IOException e) {
-                            if (listener != null) {
-                                listener.onFailedTakePhoto();
-                            }
-                        }
-
-                        if (finish) {
-                            hide();
-                        } else if (mCamera != null) {
-                            mCamera.startPreview();
-                        }
-                    }
-                });
+                takePictureInternal(listener);
             }
         }, PERIOD_TAKE_PHOTO_WAIT);
     }
 
+    /**
+     * 写真撮影を行う内部メソッド.
+     * @param listener 撮影結果を通知するリスナー
+     */
+    private synchronized void takePictureInternal(final OnTakePhotoListener listener) {
+        if (mPreview == null || mCamera == null) {
+            if (listener != null) {
+                listener.onFailedTakePhoto();
+            }
+            return;
+        }
+        mPreview.takePicture(new Camera.PictureCallback() {
+            @Override
+            public void onPictureTaken(final byte[] data, final Camera camera) {
+                String fileName = createNewFileName();
+                String pictureUri = null;
+                try {
+                    pictureUri = mFileMgr.saveFile(fileName, data);
+                    if (listener != null) {
+                        listener.onTakenPhoto(pictureUri);
+                    }
+                } catch (IOException e) {
+                    if (listener != null) {
+                        listener.onFailedTakePhoto();
+                    }
+                }
+
+                synchronized (CameraOverlay.this) {
+                    if (mFinishFlag) {
+                        hide();
+                    } else if (mCamera != null) {
+                        mCamera.startPreview();
+                    }
+                }
+            }
+        });
+    }
     /**
      * Displayの密度を取得する.
      * @return 密度

@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +32,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.deviceconnect.android.test.DConnectTestCase;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
@@ -216,6 +219,9 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      * @return HttpResponse
      */
     protected final HttpResponse requestHttpResponse(final HttpUriRequest request) {
+        // Origin指定
+        request.addHeader("X-GotAPI-Origin", getClientPackageName());
+        
         HttpClient client = new DefaultHttpClient();
         try {
             return client.execute(request);
@@ -238,39 +244,53 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
 
     /**
      * HTTPリクエストを送信する.
-     * @param request HTTPリクエスト
+     * @param originalRequest HTTPリクエスト
      * @param requiredAuth 指定したリクエストを送信する前に認証を行うかどうか
      * @return レスポンス
      */
-    protected final JSONObject sendRequest(final HttpUriRequest request, final boolean requiredAuth) {
+    protected final JSONObject sendRequest(final HttpUriRequest originalRequest, final boolean requiredAuth) {
+        HttpUriRequest request = originalRequest;
+        if (requiredAuth) {
+            URI uri = request.getURI();
+            URIBuilder builder = new URIBuilder(uri);
+            builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+            request = recreateRequest(request, builder);
+        }
+        final byte[] nonce = generateRandom(16);
+        request = addParam(request, IntentDConnectMessage.EXTRA_NONCE, toHexString(nonce));
+
         JSONObject response = sendRequest(request, requiredAuth, 0);
         try {
             assertEquals(response.getString(DConnectProfileConstants.PARAM_PRODUCT), DCONNECT_MANAGER_APP_NAME);
             assertEquals(response.getString(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
+
+            // HMACの検証
+            String hmacString = response.getString(IntentDConnectMessage.EXTRA_HMAC);
+            if (hmacString == null) {
+                fail("Device Connect Manager must send HMAC.");
+            }
+            byte[] expectedHmac = calculateHMAC(nonce);
+            assertEquals(expectedHmac, toByteArray(hmacString));
         } catch (JSONException e) {
             return null;
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
         }
         return response;
     }
 
     /**
      * HTTPリクエストを送信する.
-     * @param originalRequest HTTPリクエスト
+     * @param request HTTPリクエスト
      * @param requiredAuth 指定したリクエストを送信する前に認証を行うかどうか
      * @param count 送信回数
      * @return レスポンス
      */
-    protected final JSONObject sendRequest(final HttpUriRequest originalRequest, final boolean requiredAuth,
+    protected final JSONObject sendRequest(final HttpUriRequest request, final boolean requiredAuth,
             final int count)  {
         try {
-            HttpUriRequest request = originalRequest;
-            if (requiredAuth) {
-                URI uri = request.getURI();
-                URIBuilder builder = new URIBuilder(uri);
-                builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-                request = recreateRequest(request, builder);
-            }
-
             JSONObject response = sendRequestInternal(request, requiredAuth);
             int result = response.getInt(DConnectMessage.EXTRA_RESULT);
             if (result == DConnectMessage.RESULT_ERROR && count <= RETRY_COUNT) {
@@ -547,5 +567,19 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
             fail("Invalid method is specified: " + request.getMethod());
             return null;
         }
+    }
+
+    /**
+     * HTTPリクエストにリクエストパラメータを追加する.
+     * @param request HTTPリクエスト
+     * @param key パラメータキー
+     * @param value パラメータ値
+     * @return リクエストパラメータを追加したHTTPリクエスト
+     */
+    private HttpUriRequest addParam(final HttpUriRequest request, final String key, final String value) {
+        URI uri = request.getURI();
+        URIBuilder builder = new URIBuilder(uri);
+        builder.addParameter(key, value);
+        return recreateRequest(request, builder);
     }
 }

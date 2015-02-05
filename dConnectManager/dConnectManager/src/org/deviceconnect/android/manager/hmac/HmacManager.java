@@ -6,14 +6,8 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.deviceconnect.android.localoauth.ClientPackageInfo;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -54,37 +48,36 @@ public final class HmacManager {
     /**
      * Updates HMAC key by the key included in the specified request.
      * 
-     * @param request The request sent by a client
+     * @param origin Origin of application
+     * @param key HMAC key
      */
-    public void updateKey(final Intent request) {
-        if (request == null) {
-            throw new IllegalArgumentException("request is null.");
+    public void updateKey(final String origin, final String key) {
+        if (origin == null) {
+            throw new IllegalArgumentException("origin is null.");
+        }
+        if (origin.equals(EMPTY)) {
+            throw new IllegalArgumentException("origin is an empty string.");
+        }
+        if (key == null) {
+            throw new IllegalArgumentException("key is null.");
         }
 
-        String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-        String key = request.getStringExtra(IntentDConnectMessage.EXTRA_KEY);
-        if (key != null && origin != null && !origin.equals(EMPTY)) {
-            if (key.equals(EMPTY)) {
-                mCache.removeKey(origin);
-            } else {
-                mCache.addKey(origin, key);
-            }
+        if (key.equals(EMPTY)) {
+            mCache.removeKey(origin);
+        } else {
+            mCache.addKey(origin, key);
         }
     }
 
     /**
      * Returns whether the client uses HMAC or not.
      * 
-     * @param request The request sent by a client
+     * @param origin Origin of application
      * @return true if the client uses HMAC, otherwise false
      */
-    public boolean usesHmac(final Intent request) {
-        if (request == null) {
-            throw new IllegalArgumentException("request is null.");
-        }
-        String origin = findOrigin(request);
+    public boolean usesHmac(final String origin) {
         if (origin == null) {
-            return false;
+            throw new IllegalArgumentException("origin is null.");
         }
         return mCache.hasKey(origin);
     }
@@ -92,21 +85,16 @@ public final class HmacManager {
     /**
      * Generates HMAC.
      * 
-     * @param request request sent by a client
+     * @param origin Origin of application
+     * @param nonce Nonce
      * @return HMAC
      */
-    public String generateHmac(final Intent request) {
-        if (request == null) {
-            throw new IllegalArgumentException("Request is null.");
-        }
-
-        String origin = findOrigin(request);
+    public String generateHmac(final String origin, final String nonce) {
         if (origin == null) {
-            return null;
+            throw new IllegalArgumentException("origin is null.");
         }
-        String nonce = request.getStringExtra(IntentDConnectMessage.EXTRA_NONCE);
         if (nonce == null) {
-            return null;
+            throw new IllegalArgumentException("nonce is null.");
         }
         HmacKey hmacKey = mCache.getKey(origin);
         if (hmacKey == null) {
@@ -124,25 +112,6 @@ public final class HmacManager {
         } catch (InvalidKeyException e) {
             throw new RuntimeException("keySpec is null.");
         }
-    }
-
-    /**
-     * Gets an origin of the specified request.
-     * 
-     * @param request Request
-     * @return an origin of the specified request
-     */
-    private String findOrigin(final Intent request) {
-        String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
-        if (accessToken == null) {
-            return null;
-        }
-        ClientPackageInfo packageInfo = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
-        if (packageInfo == null) {
-            return null;
-        }
-        // Origin is a package name of LocalOAuth client.
-        return packageInfo.getPackageInfo().getPackageName();
     }
 
     /**

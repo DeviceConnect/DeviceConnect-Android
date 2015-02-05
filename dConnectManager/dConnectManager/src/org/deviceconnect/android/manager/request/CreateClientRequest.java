@@ -27,11 +27,13 @@ public class CreateClientRequest extends DConnectRequest {
 
     @Override
     public void run() {
+        // TODO packageではなくoriginパラメータをもとにクライアントIDを作成すること。
         String packageName = mRequest.getStringExtra(AuthorizationProfile.PARAM_PACKAGE);
         if (packageName == null) {
             MessageUtils.setInvalidRequestParameterError(mResponse);
         } else {
             // Local OAuthでクライアント作成
+            // TODO GotAPIではアプリの種別を区別しているので、リクエストから{@link ApplicationType}を取得して保存すること。
             PackageInfoOAuth packageInfo = new PackageInfoOAuth(packageName);
             try {
                 ClientData client = LocalOAuth2Main.createClient(packageInfo);

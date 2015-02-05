@@ -16,6 +16,7 @@ import java.net.URLDecoder;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -202,6 +203,9 @@ public class DConnectServerEventListenerImpl implements
             }
         }
 
+        // Headerの解析
+        parseHeaders(request, intent);
+
         // Bodyの解析
         if (hasMultipart(contentType)) {
             parseMultipart(request, intent);
@@ -211,7 +215,7 @@ public class DConnectServerEventListenerImpl implements
 
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(DConnectService.EXTRA_INNER_TYPE,
-                DConnectService.EXTRA_TYPE_HTTP);
+                DConnectService.INNER_TYPE_HTTP);
         mContext.startService(intent);
 
         // レスポンスが返ってくるまで待つ
@@ -346,6 +350,24 @@ public class DConnectServerEventListenerImpl implements
      */
     private boolean isUrlEncoded(final String contentType) {
         return contentType != null && contentType.indexOf("application/x-www-form-urlencoded") != -1;
+    }
+
+    /**
+     * 受信したHTTPリクエストのヘッダを解釈し、Intentに格納する.
+     * @param request HTTPリクエスト
+     * @param intent key-valueを格納するIntent
+     */
+    private void parseHeaders(final HttpRequest request, final Intent intent) {
+        Map<String, String> headers = request.getHeaders();
+        for (Entry<String, String> entry :  headers.entrySet()) {
+            String key = entry.getKey();
+            if (key.equalsIgnoreCase("origin")) {
+                intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, entry.getValue());
+                intent.putExtra(DConnectService.EXTRA_INNER_APP_TYPE, DConnectService.INNER_APP_TYPE_WEB);
+            } else if (key.equalsIgnoreCase("X-GotAPI-Origin")) {
+                intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, entry.getValue());
+            }
+        }
     }
 
     /**

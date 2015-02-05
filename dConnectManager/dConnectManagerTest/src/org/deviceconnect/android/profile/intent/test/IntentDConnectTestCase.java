@@ -204,6 +204,8 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         if (afterAuth) {
             intent.putExtra(IntentDConnectMessage.EXTRA_ACCESS_TOKEN, mAccessToken);
+        } else {
+            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getClientPackageName());
         }
         intent.putExtra(IntentDConnectMessage.EXTRA_NONCE, toHexString(nonce));
 
@@ -225,19 +227,17 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         assertEquals(resp.getStringExtra(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
 
         // HMACの検証
-        if (afterAuth) {
-            String hmacString = resp.getStringExtra(IntentDConnectMessage.EXTRA_HMAC);
-            if (hmacString == null) {
-                fail("Device Connect Manager must send HMAC.");
-            }
-            try {
-                byte[] expectedHmac = calculateHMAC(nonce);
-                assertEquals(expectedHmac, toByteArray(hmacString));
-            } catch (InvalidKeyException e) {
-                throw new RuntimeException("The JDK does not support HMAC-SHA256.");
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException("The JDK does not support HMAC-SHA256.");
-            }
+        String hmacString = resp.getStringExtra(IntentDConnectMessage.EXTRA_HMAC);
+        if (hmacString == null) {
+            fail("Device Connect Manager must send HMAC.");
+        }
+        try {
+            byte[] expectedHmac = calculateHMAC(nonce);
+            assertEquals(expectedHmac, toByteArray(hmacString));
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
         }
 
         return resp;

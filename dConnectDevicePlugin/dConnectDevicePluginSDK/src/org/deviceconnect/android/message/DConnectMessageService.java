@@ -52,10 +52,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
         ServiceDiscoveryProfileConstants.PROFILE_NAME
     };
 
-    /** プラグイン側のService Discoveryのプロファイル名: {@value} */
+    /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
     private static final String PROFILE_NETWORK_SERVICE_DISCOVERY = "networkServiceDiscovery";
 
-    /** プラグイン側のService Discoveryのプロファイル名: {@value} */
+    /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
     private static final String ATTRIBUTE_GET_NETWORK_SERVICES = "getNetworkServices";
 
     /**
@@ -113,6 +113,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         addProfile(new AuthorizationProfile());
         // 必須プロファイルの追加
         addProfile(getSystemProfile());
+        addProfile(getServiceInformationProfile());
         addProfile(getServiceDiscoveryProfile());
     }
 

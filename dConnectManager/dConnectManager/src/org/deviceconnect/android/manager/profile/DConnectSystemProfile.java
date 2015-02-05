@@ -51,7 +51,6 @@ public class DConnectSystemProfile extends SystemProfile {
      * @param pluginMgr プラグイン管理クラス
      */
     public DConnectSystemProfile(final DConnectProfileProvider provider, final DevicePluginManager pluginMgr) {
-        super(provider);
         mProvider = provider;
         mPluginMgr = pluginMgr;
     }

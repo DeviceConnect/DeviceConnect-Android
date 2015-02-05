@@ -49,7 +49,7 @@ public class HostPhoneProfile extends PhoneProfile {
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     this.getContext().startActivity(intent);
                     setResult(response, DConnectMessage.RESULT_OK);
-                } catch (Exception e) {
+                } catch (NullPointerException e) {
                     MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "phone app is not exist");
                     setResult(response, DConnectMessage.RESULT_ERROR);
                 }

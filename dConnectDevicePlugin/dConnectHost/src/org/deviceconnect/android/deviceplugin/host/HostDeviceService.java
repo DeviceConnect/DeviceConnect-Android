@@ -96,7 +96,41 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
 
     /** バッファーサイズ. */
     private static final int BUFFER_SIZE = 1024;
-
+    // ----------------------------------------------
+    // MediaPlayer Profile
+    // ----------------------------------------------
+    /** MediaPlayerのインスタンス. */
+    private MediaPlayer mMediaPlayer;
+    /** Mediaのステータス. */
+    private int mMediaStatus = 0;
+    /** Mediaが未設定. */
+    private static final int MEDIA_PLAYER_NODATA = 0;
+    /** Mediaがセット. */
+    private static final int MEDIA_PLAYER_SET = 1;
+    /** Mediaが再生中. */
+    private static final int MEDIA_PLAYER_PLAY = 2;
+    /** Mediaが一時停止中. */
+    private static final int MEDIA_PLAYER_PAUSE = 3;
+    /** Mediaが停止. */
+    private static final int MEDIA_PLAYER_STOP = 4;
+    /** Mediaが再生完了. */
+    private static final int MEDIA_PLAYER_COMPLETE = 5;
+    /** MEDIAタイプ(動画). */
+    private static final int MEDIA_TYPE_VIDEO = 1;
+    /** MEDIAタイプ(音楽). */
+    private static final int MEDIA_TYPE_MUSIC = 2;
+//    /** MEDIAタイプ(音声). */
+//    private static final int MEDIA_TYPE_AUDIO = 3;
+    /** Media Status. */
+    private int mSetMediaType = 0;
+    /** onStatusChange Eventの状態. */
+    private boolean mOnStatusChangeEventFlag = false;
+    /** 現在再生中のファイルパス. */
+    private String mMyCurrentFilePath = "";
+    /** 現在再生中のファイルパス. */
+    private String mMyCurrentFileMIMEType = "";
+    /** 現在再生中のPosition. */
+    private int mMyCurrentMediaPosition = 0;
     /** SensorManager. */
     private SensorManager mSensorManager;
 
@@ -682,7 +716,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                     sendBroadcast(response);
                 }
 
-            } catch (Exception e) {
+            } catch (IOException e) {
                 MessageUtils.setUnknownError(response, "Can not write data:" + path + e);
                 sendBroadcast(response);
             }
@@ -736,7 +770,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 response.putExtra(FileDescriptorProfile.PARAM_FILE_DATA, fileContent.toString());
                 sendBroadcast(response);
 
-            } catch (Exception e) {
+            } catch (IOException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
@@ -824,41 +858,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
         }
     }
 
-    // ----------------------------------------------
-    // MediaPlayer Profile
-    // ----------------------------------------------
-    /** MediaPlayerのインスタンス. */
-    private MediaPlayer mMediaPlayer;
-    /** Mediaのステータス. */
-    private int mMediaStatus = 0;
-    /** Mediaが未設定. */
-    private static final int MEDIA_PLAYER_NODATA = 0;
-    /** Mediaがセット. */
-    private static final int MEDIA_PLAYER_SET = 1;
-    /** Mediaが再生中. */
-    private static final int MEDIA_PLAYER_PLAY = 2;
-    /** Mediaが一時停止中. */
-    private static final int MEDIA_PLAYER_PAUSE = 3;
-    /** Mediaが停止. */
-    private static final int MEDIA_PLAYER_STOP = 4;
-    /** Mediaが再生完了. */
-    private static final int MEDIA_PLAYER_COMPLETE = 5;
-    /** MEDIAタイプ(動画). */
-    private static final int MEDIA_TYPE_VIDEO = 1;
-    /** MEDIAタイプ(音楽). */
-    private static final int MEDIA_TYPE_MUSIC = 2;
-//    /** MEDIAタイプ(音声). */
-//    private static final int MEDIA_TYPE_AUDIO = 3;
-    /** Media Status. */
-    private int mSetMediaType = 0;
-    /** onStatusChange Eventの状態. */
-    private boolean mOnStatusChangeEventFlag = false;
-    /** 現在再生中のファイルパス. */
-    private String mMyCurrentFilePath = "";
-    /** 現在再生中のファイルパス. */
-    private String mMyCurrentFileMIMEType = "";
-    /** 現在再生中のPosition. */
-    private int mMyCurrentMediaPosition = 0;
+
     
     /**
      * サポートしているaudioのタイプ一覧.
@@ -949,7 +949,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:" + filePath);
                 sendOnStatusChangeEvent("media");
                 sendBroadcast(response);
-            } catch (Exception e) {
+            } catch (IOException e) {
                 response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
                 response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
                 sendBroadcast(response);
@@ -1040,7 +1040,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             c.moveToFirst();
             String filename = c.getString(c.getColumnIndex(MediaStore.MediaColumns.DATA));
             return filename;
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             return null;
         }
     }
@@ -1055,7 +1055,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
             try {
                 mMediaStatus = MEDIA_PLAYER_PLAY;
                 mMediaPlayer.start();
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
@@ -1090,7 +1090,11 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 }
                 mMediaPlayer.start();
                 mMediaStatus = MEDIA_PLAYER_PLAY;
-            } catch (Exception e) {
+            } catch (IllegalStateException e) {
+                if (BuildConfig.DEBUG) {
+                    e.printStackTrace();
+                }
+            } catch (IOException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
@@ -1136,7 +1140,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 mMediaStatus = MEDIA_PLAYER_PAUSE;
                 mMediaPlayer.pause();
 
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
@@ -1249,7 +1253,7 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 mMediaPlayer.stop();
                 mMediaStatus = MEDIA_PLAYER_STOP;
                 sendOnStatusChangeEvent("stop");
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }

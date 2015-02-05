@@ -11,6 +11,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -487,7 +488,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 hex.append(Integer.toHexString(0xFF & hash[i]));
             }
             result = hex.toString();
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -565,7 +566,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
         try {
             mId = Integer.parseInt(mediaId);
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             url = mediaId;
         }
 
@@ -644,7 +645,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 c.close();
             }
             return filename;
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             return null;
         }
     }

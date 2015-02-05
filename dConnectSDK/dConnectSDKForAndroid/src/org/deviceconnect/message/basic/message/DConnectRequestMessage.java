@@ -305,11 +305,7 @@ public class DConnectRequestMessage extends BasicDConnectMessage {
      * @return ポート
      */
     public int getPort() {
-        try {
-            return getInt(EXTRA_PORT);
-        } catch (RuntimeException e) {
-            return -1;
-        }
+        return getInt(EXTRA_PORT);
     }
 
 }

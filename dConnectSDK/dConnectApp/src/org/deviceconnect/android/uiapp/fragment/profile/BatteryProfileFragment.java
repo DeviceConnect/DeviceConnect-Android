@@ -98,7 +98,7 @@ public class BatteryProfileFragment extends SmartDevicePreferenceFragment {
                 pref.setTitle(getString(R.string.level));
                 pref.setSummary(Double.toString(level.doubleValue()) + "%");
                 batteryStatusList.addPreference(pref);
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                 Preference pref = new Preference(getActivity());
                 pref.setTitle(getString(R.string.level));
                 pref.setSummary("-");
@@ -111,7 +111,7 @@ public class BatteryProfileFragment extends SmartDevicePreferenceFragment {
                 pref.setTitle(getString(R.string.charging));
                 pref.setSummary(Boolean.toString(charging));
                 batteryStatusList.addPreference(pref);
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                 Preference pref = new Preference(getActivity());
                 pref.setTitle(getString(R.string.charging));
                 pref.setSummary("-");
@@ -124,7 +124,7 @@ public class BatteryProfileFragment extends SmartDevicePreferenceFragment {
                 pref.setTitle(getString(R.string.chargingtime));
                 pref.setSummary(Integer.toString(chargingTime));
                 batteryStatusList.addPreference(pref);
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                 Preference pref = new Preference(getActivity());
                 pref.setTitle(getString(R.string.chargingtime));
                 pref.setSummary("-");
@@ -137,7 +137,7 @@ public class BatteryProfileFragment extends SmartDevicePreferenceFragment {
                 pref.setTitle(getString(R.string.dischargingtime));
                 pref.setSummary(Integer.toString(dischargingTime));
                 batteryStatusList.addPreference(pref);
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                 Preference pref = new Preference(getActivity());
                 pref.setTitle(getString(R.string.dischargingtime));
                 pref.setSummary("-");

@@ -209,14 +209,14 @@ public final class DBCacheController extends BaseCacheController {
                 break;
             }
             
-            Client client = ClientDao.getById(db, data.cId);
+            Client client = ClientDao.getById(db, data.mCId);
             if (client == null) {
                 break;
             }
             
-            search.setAccessToken(client.accessToken);
-            search.setCreateDate(data.createDate);
-            search.setUpdateDate(data.updateDate);
+            search.setAccessToken(client.mAccessToken);
+            search.setCreateDate(data.mCreateDate);
+            search.setUpdateDate(data.mUpdateDate);
             
             result = search;
             
@@ -266,11 +266,11 @@ public final class DBCacheController extends BaseCacheController {
                 event.setProfile(profile);
                 event.setInterface(inter);
                 event.setAttribute(attribute);
-                event.setSessionKey(client.sessionKey);
-                event.setAccessToken(client.accessToken);
-                event.setReceiverName(client.receiver);
-                event.setCreateDate(client.esCreateDate);
-                event.setUpdateDate(client.esUpdateDate);
+                event.setSessionKey(client.mSessionKey);
+                event.setAccessToken(client.mAccessToken);
+                event.setReceiverName(client.mReceiver);
+                event.setCreateDate(client.mESCreateDate);
+                event.setUpdateDate(client.mESUpdateDate);
                 result.add(event);
             }
             
@@ -313,7 +313,7 @@ public final class DBCacheController extends BaseCacheController {
             String[] ids = new String[clients.length];
             int i = 0;
             for (Client client : clients) {
-                ids[i++] = "" + client.id;
+                ids[i++] = "" + client.mId;
             }
             EventError error = EventSessionDao.delete(db, ids);
             if (error == EventError.FAILED || error == EventError.INVALID_PARAMETER) {

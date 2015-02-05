@@ -50,7 +50,7 @@ final class EventDeviceDao implements EventDeviceSchema {
         } else if (cursor.moveToFirst()) {
             try {
                 result = cursor.getLong(0);
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                 result = -1L;
             }
         }

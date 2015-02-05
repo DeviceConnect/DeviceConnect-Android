@@ -174,7 +174,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
                             }
                         });
 
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -200,7 +200,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
                         mCallbacks.onChromeCastMediaPlayerResult(response, result, "load");
                     }
                 });
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -223,7 +223,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
                                     null);
                         }
                     });
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -245,7 +245,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
                                     null);
                         }
                     });
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -267,7 +267,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
                                     null);
                         }
                     });
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
@@ -292,7 +292,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
                                         null);
                             }
                         });
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -313,7 +313,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
             } else {
                 return 0;
             }
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -340,7 +340,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
                                         null);
                             }
                         });
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -357,7 +357,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
     public double getVolume(final Intent response) {
         try {
             return mRemoteMediaPlayer.getMediaStatus().getStreamVolume();
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -384,7 +384,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
                                         null);
                             }
                         });
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -401,7 +401,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
     public long getSeek(final Intent response) {
         try {
             return mRemoteMediaPlayer.getApproximateStreamPosition();
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             mCallbacks.onChromeCastMediaPlayerResult(response, null, e.getMessage());
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
@@ -419,7 +419,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
         MediaStatus status = null;
         try {
             status = mRemoteMediaPlayer.getMediaStatus();
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }

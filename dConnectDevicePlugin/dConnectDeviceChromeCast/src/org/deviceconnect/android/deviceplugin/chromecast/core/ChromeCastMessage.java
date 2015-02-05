@@ -164,7 +164,7 @@ public class ChromeCastMessage implements ChromeCastApplication.Callbacks {
                                 mCallbacks.onChromeCastMessageResult(response, result, null);
                             }
                         });
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                 mCallbacks.onChromeCastMessageResult(response, null, e.getMessage());
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();

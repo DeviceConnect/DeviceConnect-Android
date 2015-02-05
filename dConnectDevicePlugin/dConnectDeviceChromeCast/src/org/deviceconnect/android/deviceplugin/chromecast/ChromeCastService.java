@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,8 +16,8 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServ
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastMediaPlayerProfile;
-import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastNotificationProfile;
+import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastSystemProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -30,6 +31,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaStatus;
@@ -81,7 +83,7 @@ public class ChromeCastService extends DConnectMessageService implements
         try {
             mServer = new ChromeCastHttpServer("0.0.0.0", SERVER_PORT);
             mServer.start();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.getStackTrace();
         }
         

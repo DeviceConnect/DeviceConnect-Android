@@ -484,7 +484,7 @@ public class HostFileProfile extends FileProfile {
                 try {
                     mMakeDir.mkdir();
                     setResult(response, DConnectMessage.RESULT_OK);
-                } catch (Exception e) {
+                } catch (NullPointerException e) {
                     setResult(response, DConnectMessage.RESULT_ERROR);
                     MessageUtils.setUnknownError(response, "can not make dir :" + mMakeDir);
                 }
@@ -515,7 +515,7 @@ public class HostFileProfile extends FileProfile {
                 try {
                     mMakeDir.delete();
                     setResult(response, DConnectMessage.RESULT_OK);
-                } catch (Exception e) {
+                } catch (NullPointerException e) {
                     setResult(response, DConnectMessage.RESULT_ERROR);
                     MessageUtils.setUnknownError(response, "can not make dir :" + mMakeDir);
                 }

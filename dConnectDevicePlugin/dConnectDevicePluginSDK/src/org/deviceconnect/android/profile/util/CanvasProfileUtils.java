@@ -14,8 +14,13 @@ import android.graphics.Canvas;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class CanvasProfileUtils {
+public final class CanvasProfileUtils {
 
+    /**
+     * Private Contructor.
+     */
+    private CanvasProfileUtils() {
+    }
     /**
      * Draw the image to viewBitmap at the same scale drawing mode.
      * @param viewBitmap Bitmap to be displayed on the device.
@@ -23,10 +28,11 @@ public class CanvasProfileUtils {
      * @param x x
      * @param y y
      */
-    public static void drawImageForNonScalesMode(final Bitmap viewBitmap, final Bitmap bitmap, final double x, final double y) {
+    public static void drawImageForNonScalesMode(final Bitmap viewBitmap,
+             final Bitmap bitmap, final double x, final double y) {
         
-        float startGridX = (float)x;
-        float startGridY = (float)y;
+        float startGridX = (float) x;
+        float startGridY = (float) y;
         
         Canvas canvas = new Canvas(viewBitmap);
         
@@ -38,7 +44,7 @@ public class CanvasProfileUtils {
      * @param viewBitmap Bitmap to be displayed on the device.
      * @param bitmap Bitmap image.
      */
-    public static void drawImageForScalesMode(final Bitmap viewBitmap, Bitmap bitmap) {
+    public static void drawImageForScalesMode(final Bitmap viewBitmap, final Bitmap bitmap) {
         
         float startGridX = 0;
         float startGridY = 0;

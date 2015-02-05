@@ -33,32 +33,32 @@ final class ClientDao implements ClientSchema {
         /**
          * ID.
          */
-        long id;
+        long mId;
 
         /**
          * アクセストークン.
          */
-        String accessToken;
+        String mAccessToken;
 
         /**
          * セッションキー.
          */
-        String sessionKey;
+        String mSessionKey;
 
         /**
          * レシーバー.
          */
-        String receiver;
+        String mReceiver;
         
         /** 
          * EventSessionの作成日.
          */
-        Timestamp esCreateDate;
+        Timestamp mESCreateDate;
         
         /** 
          * EventSessionの更新日.
          */
-        Timestamp esUpdateDate;
+        Timestamp mESUpdateDate;
     }
 
     /**
@@ -107,7 +107,7 @@ final class ClientDao implements ClientSchema {
                 if (count != 1) {
                     result = -1;
                 }
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                 result = -1L;
             }
         }
@@ -135,12 +135,12 @@ final class ClientDao implements ClientSchema {
             do {
                 try {
                     Client data = new Client();
-                    data.id = c.getLong(0);
-                    data.sessionKey = c.getString(1);
-                    data.accessToken = c.getString(2);
-                    data.receiver = c.getString(3);
+                    data.mId = c.getLong(0);
+                    data.mSessionKey = c.getString(1);
+                    data.mAccessToken = c.getString(2);
+                    data.mReceiver = c.getString(3);
                     result[index++] = data;
-                } catch (Exception e) {
+                } catch (NullPointerException e) {
                     result = null;
                 }
             } while (c.moveToNext());
@@ -166,11 +166,11 @@ final class ClientDao implements ClientSchema {
         if (c.moveToFirst()) {
             result = new Client();
             try {
-                result.id = c.getLong(0);
-                result.sessionKey = c.getString(1);
-                result.accessToken = c.getString(2);
-                result.receiver = c.getString(3);
-            } catch (Exception e) {
+                result.mId = c.getLong(0);
+                result.mSessionKey = c.getString(1);
+                result.mAccessToken = c.getString(2);
+                result.mReceiver = c.getString(3);
+            } catch (NullPointerException e) {
                 result = null;
             }
         }
@@ -272,16 +272,16 @@ final class ClientDao implements ClientSchema {
             do {
                 try {
                     Client data = new Client();
-                    data.id = c.getLong(0);
-                    data.sessionKey = c.getString(1);
-                    data.accessToken = c.getString(2);
-                    data.receiver = c.getString(3);
+                    data.mId = c.getLong(0);
+                    data.mSessionKey = c.getString(1);
+                    data.mAccessToken = c.getString(2);
+                    data.mReceiver = c.getString(3);
                     long createTime = c.getLong(4);
                     long updateTime = c.getLong(5);
-                    data.esCreateDate = new Timestamp(createTime);
-                    data.esUpdateDate = new Timestamp(updateTime);
+                    data.mESCreateDate = new Timestamp(createTime);
+                    data.mESUpdateDate = new Timestamp(updateTime);
                     result[index++] = data;
-                } catch (Exception e) {
+                } catch (NullPointerException e) {
                     result = null;
                 }
             } while (c.moveToNext());

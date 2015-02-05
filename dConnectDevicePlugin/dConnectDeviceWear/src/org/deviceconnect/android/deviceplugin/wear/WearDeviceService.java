@@ -27,7 +27,7 @@ import android.content.Intent;
 /**
  * Service.
  * 
- * @param <T> DeviceTestService
+ * 
  * @author NTT DOCOMO, INC.
  */
 public class WearDeviceService extends DConnectMessageService {

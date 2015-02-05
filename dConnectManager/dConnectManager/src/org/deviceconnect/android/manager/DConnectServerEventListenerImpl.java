@@ -171,11 +171,13 @@ public class DConnectServerEventListenerImpl implements
 
         // プロファイルが存在しない場合にはエラー
         if (profile == null) {
-            try {
-                setEmptyProfile(response);
-            } catch (Exception e) {
-                setErrorResponse(response);
-            }
+                try {
+                    setEmptyProfile(response);
+                } catch (UnsupportedEncodingException e) {
+                    setErrorResponse(response);
+                } catch (JSONException e) {
+                    setErrorResponse(response);
+                }
             return true;
         }
 
@@ -373,7 +375,7 @@ public class DConnectServerEventListenerImpl implements
                         }
                     }
                 }
-            } catch (Exception e) {
+            } catch (UnsupportedEncodingException e) {
                 mLogger.warning("Exception in parseBody");
             }
         }

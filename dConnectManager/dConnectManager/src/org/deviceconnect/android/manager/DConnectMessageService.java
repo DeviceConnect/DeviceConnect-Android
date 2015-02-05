@@ -26,7 +26,7 @@ import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
-import org.deviceconnect.android.manager.profile.DConnectNetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.manager.profile.DConnectServiceDiscoveryProfile;
 import org.deviceconnect.android.manager.profile.DConnectSystemProfile;
 import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
@@ -36,11 +36,11 @@ import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -59,7 +59,7 @@ public abstract class DConnectMessageService extends Service
     /** ローカルのドメイン名. */
     private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
 
-    /** デバイスIDやセッションキーを分割するセパレータ. */
+    /** サービスIDやセッションキーを分割するセパレータ. */
     public static final String SEPARATOR = ".";
 
     /** セッションキーとreceiverを分けるセパレータ. */
@@ -69,7 +69,7 @@ public abstract class DConnectMessageService extends Service
     private static final int ERROR_CODE = Integer.MIN_VALUE;
 
     /** ロガー. */
-    protected final Logger sLogger = Logger.getLogger("dconnect.manager");
+    protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** dConnect Managerのドメイン名. */
     private String mDConnectDomain = LOCALHOST_DCONNECT;
@@ -108,12 +108,12 @@ public abstract class DConnectMessageService extends Service
             AndroidHandler handler = new AndroidHandler("dconnect.manager");
             handler.setFormatter(new SimpleFormatter());
             handler.setLevel(Level.ALL);
-            sLogger.addHandler(handler);
-            sLogger.setLevel(Level.ALL);
+            mLogger.addHandler(handler);
+            mLogger.setLevel(Level.ALL);
         } else {
-            sLogger.setLevel(Level.OFF);
+            mLogger.setLevel(Level.OFF);
         }
-        sLogger.entering(this.getClass().getName(), "onCreate");
+        mLogger.entering(this.getClass().getName(), "onCreate");
 
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new DBCacheController(this));
@@ -122,11 +122,11 @@ public abstract class DConnectMessageService extends Service
         mSettings = DConnectSettings.getInstance();
         mSettings.load(this);
 
-        sLogger.info("Settings");
-        sLogger.info("    SSL: " + mSettings.isSSL());
-        sLogger.info("    Host: " + mSettings.getHost());
-        sLogger.info("    Port: " + mSettings.getPort());
-        sLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
+        mLogger.info("Settings");
+        mLogger.info("    SSL: " + mSettings.isSSL());
+        mLogger.info("    Host: " + mSettings.getHost());
+        mLogger.info("    Port: " + mSettings.getPort());
+        mLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
 
         // ファイル管理クラス
         mFileMgr = new FileManager(this);
@@ -148,40 +148,40 @@ public abstract class DConnectMessageService extends Service
         // プロファイルの追加
         addProfile(new AuthorizationProfile());
         addProfile(new DConnectAvailabilityProfile());
-        addProfile(new DConnectNetworkServiceDiscoveryProfile(mPluginMgr));
+        addProfile(new DConnectServiceDiscoveryProfile(mPluginMgr));
         addProfile(new DConnectFilesProfile(this));
         addProfile(new DConnectSystemProfile(this, mPluginMgr));
 
         // dConnect Managerで処理せず、登録されたデバイスプラグインに処理させるプロファイル
         setDeliveryProfile(new DConnectDeliveryProfile(mPluginMgr, mLocalOAuth));
 
-        sLogger.exiting(this.getClass().getName(), "onCreate");
+        mLogger.exiting(this.getClass().getName(), "onCreate");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        sLogger.entering(this.getClass().getName(), "onDestroy");
+        mLogger.entering(this.getClass().getName(), "onDestroy");
         // リクエストを削除
         mRequestManager.shutdown();
         // Local OAuthの後始末
         LocalOAuth2Main.destroy();
-        sLogger.exiting(this.getClass().getName(), "onDestroy");
+        mLogger.exiting(this.getClass().getName(), "onDestroy");
     }
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         super.onStartCommand(intent, flags, startId);
         if (intent == null) {
-            sLogger.warning("intent is null.");
-            sLogger.exiting(this.getClass().getName(), "onStartCommand");
+            mLogger.warning("intent is null.");
+            mLogger.exiting(this.getClass().getName(), "onStartCommand");
             return START_STICKY;
         }
 
         String action = intent.getAction();
         if (action == null) {
-            sLogger.warning("action is null.");
-            sLogger.exiting(this.getClass().getName(), "onStartCommand");
+            mLogger.warning("action is null.");
+            mLogger.exiting(this.getClass().getName(), "onStartCommand");
             return START_STICKY;
         }
 
@@ -209,7 +209,7 @@ public abstract class DConnectMessageService extends Service
         int requestCode = request.getIntExtra(
                 IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
         if (requestCode == ERROR_CODE) {
-            sLogger.warning("Illegal requestCode in onRequestReceive. requestCode=" + requestCode);
+            mLogger.warning("Illegal requestCode in onRequestReceive. requestCode=" + requestCode);
             return;
         }
 
@@ -268,7 +268,7 @@ public abstract class DConnectMessageService extends Service
         int requestCode = response.getIntExtra(
                 IntentDConnectMessage.EXTRA_REQUEST_CODE, ERROR_CODE);
         if (requestCode == ERROR_CODE) {
-            sLogger.warning("Illegal requestCode in onResponseReceive. requestCode=" + requestCode);
+            mLogger.warning("Illegal requestCode in onResponseReceive. requestCode=" + requestCode);
             return;
         }
 
@@ -282,12 +282,12 @@ public abstract class DConnectMessageService extends Service
      */
     public void onEventReceive(final Intent event) {
         String sessionKey = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
-        String deviceId = event.getStringExtra(DConnectMessage.EXTRA_DEVICE_ID);
+        String serviceId = event.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String profile = event.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         String inter = event.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
         String attribute = event.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
 
-        sLogger.fine("onEventReceive: [sessionKey: " + sessionKey + " deviceId: " + deviceId
+        mLogger.fine("onEventReceive: [sessionKey: " + sessionKey + " serviceId: " + serviceId
                 + " profile: " + profile + " inter: " + inter + " attribute: " + attribute + "]");
 
         if (sessionKey != null) {
@@ -303,25 +303,25 @@ public abstract class DConnectMessageService extends Service
             String key = convertSessionKey2Key(sessionKey);
             DevicePlugin plugin = mPluginMgr.getDevicePlugin(pluginId);
             if (plugin == null) {
-                sLogger.warning("plugin is null.");
+                mLogger.warning("plugin is null.");
                 return;
             }
-            String did = mPluginMgr.appendDeviceId(plugin, deviceId);
+            String did = mPluginMgr.appendServiceId(plugin, serviceId);
             event.putExtra(DConnectMessage.EXTRA_SESSION_KEY, key);
 
             // Local OAuthの仕様で、デバイスを発見するごとにclientIdを作成して、
             // アクセストークンを取得する作業を行う。
-            if (NetworkServiceDiscoveryProfileConstants.PROFILE_NAME.equals(profile) 
-                || NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
+            if (ServiceDiscoveryProfileConstants.PROFILE_NAME.equals(profile) 
+                || ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE.equals(attribute)) {
 
                 // network service discoveryの場合には、networkServiceのオブジェクトの中にデータが含まれる
                 Bundle service = (Bundle) event.getParcelableExtra(
-                        NetworkServiceDiscoveryProfile.PARAM_NETWORK_SERVICE);
-                String id = service.getString(NetworkServiceDiscoveryProfile.PARAM_ID);
-                did = mPluginMgr.appendDeviceId(plugin, id);
+                        ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE);
+                String id = service.getString(ServiceDiscoveryProfile.PARAM_ID);
+                did = mPluginMgr.appendServiceId(plugin, id);
 
-                // デバイスIDを変更
-                replaceDeviceId(event, plugin);
+                // サービスIDを変更
+                replaceServiceId(event, plugin);
 
                 OAuthData oauth = mLocalOAuth.getOAuthData(did);
                 if (oauth == null && plugin != null) {
@@ -336,11 +336,11 @@ public abstract class DConnectMessageService extends Service
                     }
                 }
             } else {
-                replaceDeviceId(event, plugin);
+                replaceServiceId(event, plugin);
                 sendEvent(receiver, event);
             }
         } else {
-            sLogger.warning("onEventReceive: sessionKey is null.");
+            mLogger.warning("onEventReceive: sessionKey is null.");
         }
     }
 
@@ -455,7 +455,7 @@ public abstract class DConnectMessageService extends Service
     public void onDeviceFound(final DevicePlugin plugin) {
         RegisterNetworkServiceDiscovery req = new RegisterNetworkServiceDiscovery();
         req.setContext(this);
-        req.setSessionKey(plugin.getDeviceId());
+        req.setSessionKey(plugin.getServiceId());
         req.setDestination(plugin);
         req.setDevicePluginManager(mPluginMgr);
         addRequest(req);
@@ -463,7 +463,7 @@ public abstract class DConnectMessageService extends Service
 
     @Override
     public void onDeviceLost(final DevicePlugin plugin) {
-        mLocalOAuth.deleteOAuthDatas(plugin.getDeviceId());
+        mLocalOAuth.deleteOAuthDatas(plugin.getServiceId());
     }
 
     /**
@@ -492,36 +492,34 @@ public abstract class DConnectMessageService extends Service
     }
 
     /**
-     * イベント用メッセージのデバイスIDを置換する.
+     * イベント用メッセージのサービスIDを置換する.
      * <br>
      * 
-     * デバイスプラグインから送られてくるデバイスIDは、デバイスプラグインの中でIDになっている。
-     * dConnect ManagerでデバイスプラグインのIDをデバイスIDに付加することでDNSっぽい動きを実現する。
+     * デバイスプラグインから送られてくるサービスIDは、デバイスプラグインの中でIDになっている。
+     * dConnect ManagerでデバイスプラグインのIDをサービスIDに付加することでDNSっぽい動きを実現する。
      * 
      * @param event イベントメッセージ用Intent
      * @param plugin 送信元のデバイスプラグイン
      */
-    private void replaceDeviceId(final Intent event, final DevicePlugin plugin) {
-        String deviceId = event
-                .getStringExtra(IntentDConnectMessage.EXTRA_DEVICE_ID);
-        event.putExtra(IntentDConnectMessage.EXTRA_DEVICE_ID,
-                mPluginMgr.appendDeviceId(plugin, deviceId));
+    private void replaceServiceId(final Intent event, final DevicePlugin plugin) {
+        String serviceId = event
+                .getStringExtra(IntentDConnectMessage.EXTRA_SERVICE_ID);
+        event.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID,
+                mPluginMgr.appendServiceId(plugin, serviceId));
     }
 
     /**
      * デバイスプラグインのクライアントを作成する.
      * @param plugin クライアントを作成するデバイスプラグイン
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param event 送信するイベント
      */
-    private void createClientOfDevicePlugin(final DevicePlugin plugin, final String deviceId, final Intent event) {
+    private void createClientOfDevicePlugin(final DevicePlugin plugin, final String serviceId, final Intent event) {
         Intent intent = new Intent(IntentDConnectMessage.ACTION_GET);
         intent.setComponent(plugin.getComponentName());
         intent.putExtra(DConnectMessage.EXTRA_PROFILE,
-                NetworkServiceDiscoveryProfileConstants.PROFILE_NAME);
-        intent.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                NetworkServiceDiscoveryProfileConstants.ATTRIBUTE_GET_NETWORK_SERVICES);
-        intent.putExtra(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+                ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        intent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
 
         DiscoveryDeviceRequest request = new DiscoveryDeviceRequest();
         request.setContext(this);
@@ -550,7 +548,7 @@ public abstract class DConnectMessageService extends Service
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(IntentDConnectMessage.EXTRA_PRODUCT, getString(R.string.app_name));
         intent.putExtra(IntentDConnectMessage.EXTRA_VERSION, DConnectUtil.getVersionName(this));
-        // TODO: ここにHMACを付加する処理。サーバのなりすまし対策にて対応。
+        // TODO ここにHMACを付加する処理。サーバのなりすまし対策にて対応。
         intent.setComponent(cn);
         return intent;
     }
@@ -570,7 +568,7 @@ public abstract class DConnectMessageService extends Service
      * @param event 送信するイベントメッセージ
      */
     public void sendEvent(final String receiver, final Intent event) {
-        sLogger.fine("★ sendEvent: " + receiver + " intent: " + event.getExtras());
+        mLogger.fine("★ sendEvent: " + receiver + " intent: " + event.getExtras());
         Intent targetIntent = new Intent(event);
         targetIntent.setComponent(ComponentName.unflattenFromString(receiver));
         sendBroadcast(targetIntent);

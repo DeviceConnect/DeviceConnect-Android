@@ -32,7 +32,7 @@ import org.json.JSONObject;
  * <pre>
  * {@code
  * AuthProcesser.asyncAuthorize("localhost", 4035, false, "com.example.client", "Auth Example App", 
- *             new String[] {"battery", "system", "network_service_discovery"},
+ *             new String[] {"battery", "system", "servicediscovery"},
  *             new AuthorizationHandler() 
  *      {
  *

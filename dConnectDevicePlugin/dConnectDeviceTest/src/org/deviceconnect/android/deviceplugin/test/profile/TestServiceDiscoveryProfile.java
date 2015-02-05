@@ -1,5 +1,5 @@
 /*
- TestNetworkServiceDiscoveryProfile.java
+ TestServiceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -10,37 +10,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.content.Intent;
 import android.os.Bundle;
 
 /**
- * JUnit用テストデバイスプラグイン、NetworkServiceDiscoveryプロファイル.
+ * JUnit用テストデバイスプラグイン、ServiceDiscoveryプロファイル.
  * @author NTT DOCOMO, INC.
  */
-public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
+public class TestServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     /**
-     * テスト用デバイスID.
+     * テスト用サービスID.
      */
-    public static final String DEVICE_ID = "test_device_id";
+    public static final String SERVICE_ID = "test_service_id";
 
     /**
-     * 特殊文字を含むテスト用デバイスID.
+     * 特殊文字を含むテスト用サービスID.
      */
-    public static final String DEVICE_ID_SPECIAL_CHARACTERS = "!#$'()-~¥@[;+:*],._/=?&%^|`\"{}<>";
+    public static final String SERVICE_ID_SPECIAL_CHARACTERS = "!#$'()-~¥@[;+:*],._/=?&%^|`\"{}<>";
 
     /**
-     * テスト用デバイス名: {@value}
+     * テスト用デバイス名: {@value} .
      */
     public static final String DEVICE_NAME = "Test Success Device";
 
     /**
-     * テスト用デバイス名: {@value}
+     * テスト用デバイス名: {@value} .
      */
-    public static final String DEVICE_NAME_SPECIAL_CHARACTERS = "Test Device ID Special Characters";
+    public static final String DEVICE_NAME_SPECIAL_CHARACTERS = "Test Service ID Special Characters";
 
     /**
      * テスト用デバイスタイプ.
@@ -66,21 +66,21 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     }
 
     @Override
-    protected boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    protected boolean onGetServices(final Intent request, final Intent response) {
         List<Bundle> services = new ArrayList<Bundle>();
 
         // 典型的なサービス
         Bundle service = new Bundle();
-        setId(service, DEVICE_ID);
+        setId(service, SERVICE_ID);
         setName(service, DEVICE_NAME);
         setType(service, DEVICE_TYPE);
         setOnline(service, DEVICE_ONLINE);
         setConfig(service, DEVICE_CONFIG);
         services.add(service);
 
-        // デバイスIDが特殊なサービス
+        // サービスIDが特殊なサービス
         service = new Bundle();
-        setId(service, DEVICE_ID_SPECIAL_CHARACTERS);
+        setId(service, SERVICE_ID_SPECIAL_CHARACTERS);
         setName(service, DEVICE_NAME_SPECIAL_CHARACTERS);
         setType(service, DEVICE_TYPE);
         setOnline(service, DEVICE_ONLINE);
@@ -94,7 +94,8 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     }
 
     @Override
-    protected boolean onPutOnServiceChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response,
+                                            final String serviceId, final String sessionKey) {
         
         if (sessionKey == null) {
             createEmptySessionKey(response);
@@ -103,12 +104,12 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
 
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_SERVICE_CHANGE);
             
             Bundle service = new Bundle();
-            setId(service, DEVICE_ID);
+            setId(service, SERVICE_ID);
             setName(service, DEVICE_NAME);
             setType(service, DEVICE_TYPE);
             setOnline(service, DEVICE_ONLINE);
@@ -123,7 +124,8 @@ public class TestNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryP
     }
 
     @Override
-    protected boolean onDeleteOnServiceChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response,
+                                                final String serviceId, final String sessionKey) {
         if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {

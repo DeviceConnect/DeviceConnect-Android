@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.deviceconnect.android.cipher.signature.AuthSignature;
-import org.deviceconnect.android.test.plugin.profile.TestNetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.ConnectProfileConstants;
@@ -24,10 +24,10 @@ import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
@@ -67,7 +67,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
             FileProfileConstants.PROFILE_NAME,
             MediaStreamRecordingProfileConstants.PROFILE_NAME,
             MediaPlayerProfileConstants.PROFILE_NAME,
-            NetworkServiceDiscoveryProfileConstants.PROFILE_NAME,
+            ServiceDiscoveryProfileConstants.PROFILE_NAME,
             NotificationProfileConstants.PROFILE_NAME,
             PhoneProfileConstants.PROFILE_NAME,
             ProximityProfileConstants.PROFILE_NAME,
@@ -119,7 +119,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     private List<PluginInfo> mPlugins;
 
     /** ロガー. */
-    protected final Logger sLogger = Logger.getLogger("dconnect.manager");
+    protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** クライアントID. */
     protected String mClientId;
@@ -275,7 +275,6 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        checkDConnectService();
         if (isLocalOAuth()) {
             mClientId = getClientIdCache();
             mClientSecret = getClientSecretCache();
@@ -357,70 +356,25 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
         return true;
     }
 
-    /**
-     * dConnect Managerが起動しているかどうかのチェックを行う.
-     * もしもdConnect Managerが動作していない場合には起動を行い、しばらく待つ。
-     */
-    protected void checkDConnectService() {
-        // DConnectServiceが起動していない場合
-//        if (!isRunningDConnectService()) {
-//            Intent intent = new Intent();
-//            intent.setClass(getApplicationContext(), DConnectService.class);
-//            getApplicationContext().startService(intent);
-//            // DConnectServiceの起動を少し待つ
-//            try {
-//                Thread.sleep(TIME_WAIT_FOR_DCONNECT);
-//            } catch (InterruptedException e) {
-//                return;
-//            }
-//        }
-    }
-
-//    /**
-//     * dConnectManagerが動作しているか確認を行う.
-//     * @return 動作している場合はtrue、それ以外はfalse
-//     */
-//    private boolean isRunningDConnectService() {
-//        return isRunningService(
-//                "org.deviceconnect.android.DConnectService");
-//    }
-
-//    /**
-//     * 指定された名前のサービスが動作しているか確認を行う.
-//     * @param serviceName サービス名
-//     * @return 動作している場合はtrue、それ以外はfalse
-//     */
-//    private boolean isRunningService(final String serviceName) {
-//        ActivityManager mgr = (ActivityManager) getApplicationContext()
-//                .getSystemService(Context.ACTIVITY_SERVICE);
-//        List<RunningServiceInfo> services = mgr
-//                .getRunningServices(Integer.MAX_VALUE);
-//        for (RunningServiceInfo info : services) {
-//            if (serviceName.equals(info.service.getClassName())) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
 
     /**
-     * デバイスIDを取得する.
-     * @return デバイスID
+     * サービスIDを取得する.
+     * @return サービスID
      */
-    protected String getDeviceId() {
-        return getDeviceIdByName(TestNetworkServiceDiscoveryProfileConstants.DEVICE_NAME);
+    protected String getServiceId() {
+        return getServiceIdByName(TestServiceDiscoveryProfileConstants.DEVICE_NAME);
     }
 
     /**
      * 指定したデバイス名をもつデバイスのIDを取得する.
      * @param deviceName デバイス名
-     * @return デバイスID
+     * @return サービスID
      */
-    protected String getDeviceIdByName(final String deviceName) {
+    protected String getServiceIdByName(final String deviceName) {
         for (int i = 0; i < mDevices.size(); i++) {
             DeviceInfo obj = mDevices.get(i);
             if (deviceName.equals(obj.getDeviceName())) {
-                return obj.getDeviceId();
+                return obj.getServiceId();
             }
         }
         return null;
@@ -489,7 +443,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    sLogger.warning("Exception occured in close method.");
+                    mLogger.warning("Exception occured in close method.");
                 }
             }
         }
@@ -501,9 +455,9 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     protected static class DeviceInfo {
 
         /**
-         * デバイスID.
+         * サービスID.
          */
-        private final String mDeviceId;
+        private final String mServiceId;
 
         /**
          * デバイス名.
@@ -512,21 +466,21 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
 
         /**
          * コンストラクタ.
-         * @param deviceId デバイスID
+         * @param serviceId サービスID
          * @param deviceName デバイス名
          */
-        public DeviceInfo(final String deviceId, final String deviceName) {
-            this.mDeviceId = deviceId;
+        public DeviceInfo(final String serviceId, final String deviceName) {
+            this.mServiceId = serviceId;
             this.mDeviceName = deviceName;
         }
 
         /**
-         * デバイスIDを取得する.
+         * サービスIDを取得する.
          * 
-         * @return デバイスID
+         * @return サービスID
          */
-        public String getDeviceId() {
-            return mDeviceId;
+        public String getServiceId() {
+            return mServiceId;
         }
 
         /**

@@ -5,7 +5,7 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect RESTful APIのテストケース.
+ * Device Connect RESTful APIのテストケース.
  * <p>
  * 正常系および異常系テストを提供する.
  * </p>
@@ -15,7 +15,7 @@
  * <ul>
  * <li>必須パラメータが指定されていない</li>
  * <li>規定されている範囲に含まれない値が指定されている</li>
- * <li>存在しないデバイスIDが指定されている</li>
+ * <li>存在しないサービスIDが指定されている</li>
  * </ul>
  * 本パッケージの各テストケースのリクエストに対するレスポンスは、下記のパッケージで定義する.
  * org.deviceconnect.android.test.plugin.profile

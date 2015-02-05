@@ -48,7 +48,7 @@ public class IntentHttpMessageParser implements HttpMessageParser {
     /**
      * レスポンスバッファ.
      */
-    private static List<Intent> mResponseList = new ArrayList<Intent>();
+    private static List<Intent> sResponseList = new ArrayList<Intent>();
 
     /**
      * コンストラクタ.
@@ -69,7 +69,7 @@ public class IntentHttpMessageParser implements HttpMessageParser {
 
         // wait for response, or response timeout
         // if SoTimeout is 0, infinite wait
-        while (mResponseList.size() == 0 && (mSoTimeout == 0
+        while (sResponseList.size() == 0 && (mSoTimeout == 0
                 || mSoTimeout > System.currentTimeMillis() - parseStart)) {
             try {
                 Thread.sleep(WAIT_TIME);
@@ -79,11 +79,11 @@ public class IntentHttpMessageParser implements HttpMessageParser {
             }
         }
 
-        if (mResponseList.size() <= 0 && mSoTimeout <= System.currentTimeMillis() - parseStart) {
+        if (sResponseList.size() <= 0 && mSoTimeout <= System.currentTimeMillis() - parseStart) {
             throw new IOException("response timeout");
         }
 
-        Intent intent = mResponseList.remove(0);
+        Intent intent = sResponseList.remove(0);
 
         DConnectMessage dmessage =
                 IntentMessageFactory.getMessageFactory().newDConnectMessage(intent);
@@ -100,7 +100,7 @@ public class IntentHttpMessageParser implements HttpMessageParser {
      * @param intent レスポンスインテント
      */
     static void addResponse(final Intent intent) {
-        mResponseList.add(intent);
+        sResponseList.add(intent);
     }
 
 }

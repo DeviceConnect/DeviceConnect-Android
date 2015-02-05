@@ -48,7 +48,7 @@ public class DConnectDeliveryProfile extends DConnectProfile {
 
     @Override
     public boolean onRequest(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
 
         // TODO wakeup以外にも例外的な動きをするProfileがある場合には再検討すること。
         // System Profileのwakeupは例外的にpluginIdで宛先を決める
@@ -59,18 +59,18 @@ public class DConnectDeliveryProfile extends DConnectProfile {
             String attr = getAttribute(request);
             if (SystemProfileConstants.INTERFACE_DEVICE.equals(inter)
                     && SystemProfileConstants.ATTRIBUTE_WAKEUP.equals(attr)) {
-                deviceId = request.getStringExtra(SystemProfileConstants.PARAM_PLUGIN_ID);
-                if (deviceId == null) {
+                serviceId = request.getStringExtra(SystemProfileConstants.PARAM_PLUGIN_ID);
+                if (serviceId == null) {
                     sendEmptyPluginId(request, response);
                     return true;
                 }
             }
         }
 
-        if (deviceId == null) {
-            sendEmptyDeviceId(request, response);
+        if (serviceId == null) {
+            sendEmptyServiceId(request, response);
         } else {
-            List<DevicePlugin> plugins = mDevicePluginManager.getDevicePlugins(deviceId);
+            List<DevicePlugin> plugins = mDevicePluginManager.getDevicePlugins(serviceId);
             if (plugins != null && plugins.size() > 0) {
                 DeliveryRequest req = new DeliveryRequest();
                 req.setContext(getContext());
@@ -81,7 +81,7 @@ public class DConnectDeliveryProfile extends DConnectProfile {
                 req.setDestination(plugins.get(0));
                 ((DConnectMessageService) getContext()).addRequest(req);
             } else {
-                sendNotFoundDevice(request, response);
+                sendNotFoundService(request, response);
             }
         }
 
@@ -89,12 +89,12 @@ public class DConnectDeliveryProfile extends DConnectProfile {
     }
 
     /**
-     * 送信元のリクエストにdeviceIdがnullの場合のエラーを返却する.
+     * 送信元のリクエストにserviceIdがnullの場合のエラーを返却する.
      * @param request 送信元のリクエスト
      * @param response レスポンス
      */
-    private void sendEmptyDeviceId(final Intent request, final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void sendEmptyServiceId(final Intent request, final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
         sendResponse(request, response);
     }
 
@@ -103,8 +103,8 @@ public class DConnectDeliveryProfile extends DConnectProfile {
      * @param request 送信元のリクエスト
      * @param response レスポンス
      */
-    private void sendNotFoundDevice(final Intent request, final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void sendNotFoundService(final Intent request, final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
         sendResponse(request, response);
     }
 

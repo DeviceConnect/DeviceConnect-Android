@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect Managerのリクエスト処理を行うパッケージ.
+ * Device Connect Managerのリクエスト処理を行うパッケージ.
  */
 package org.deviceconnect.android.manager.request;

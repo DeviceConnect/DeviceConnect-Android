@@ -23,7 +23,7 @@ import android.os.Bundle;
 public class HueSystemProfile extends SystemProfile {
 
     /**
-     * Constructor.
+     * コンストラクター.
      * @param provider provider
      */
     public HueSystemProfile(final DConnectProfileProvider provider) {

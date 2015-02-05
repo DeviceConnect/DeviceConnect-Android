@@ -16,6 +16,6 @@ public interface TestNotificationProfileConstants {
     /**
      * テスト用のnotification id.
      */
-    String[] NOTIFICATION_ID = { "1", "2", "3", "4", "5", };
+    String[] NOTIFICATION_ID = {"1", "2", "3", "4", "5"};
 
 }

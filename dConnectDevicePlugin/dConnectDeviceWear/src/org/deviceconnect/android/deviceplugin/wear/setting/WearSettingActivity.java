@@ -18,8 +18,8 @@ import android.support.v4.app.Fragment;
  */
 public class WearSettingActivity extends DConnectSettingPageFragmentActivity {
 
-    /** デバイスID. */
-    private String mDeviceId;
+    /** サービスID. */
+    private String mServiceId;
 
     /** ページ数. */
     private static final int PAGE_COUNT = 1;
@@ -34,21 +34,21 @@ public class WearSettingActivity extends DConnectSettingPageFragmentActivity {
     }
 
     /**
-     * デバイスIDを取得する.
+     * サービスIDを取得する.
      * 
-     * @return デバイスID
+     * @return サービスID
      */
-    public String getDeviceId() {
-        return mDeviceId;
+    public String getServiceId() {
+        return mServiceId;
     }
 
     /**
-     * デバイスIDを設定する.
+     * サービスIDを設定する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    public void setDeviceId(final String deviceId) {
-        mDeviceId = deviceId;
+    public void setServiceId(final String serviceId) {
+        mServiceId = serviceId;
     }
 
     @Override

@@ -5,7 +5,7 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect DicePlus DevicePlugin の設定画面.
+ * Device Connect DicePlus DevicePlugin の設定画面.
  * @author NTT DOCOMO, INC.
  */
 package org.deviceconnect.android.deviceplugin.pebble.setting;

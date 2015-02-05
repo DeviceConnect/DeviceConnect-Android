@@ -54,13 +54,13 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
             MessageUtils.setUnknownAttributeError(response);
         } else {
             
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             
             if (attribute.equals(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
-                result = onPutOnDeviceProximity(request, response, deviceId, sessionKey);
+                result = onPutOnDeviceProximity(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_USER_PROXIMITY)) {
-                result = onPutOnUserProximity(request, response, deviceId, sessionKey);
+                result = onPutOnUserProximity(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -77,13 +77,13 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
             MessageUtils.setUnknownAttributeError(response);
         } else {
             
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             
             if (attribute.equals(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
-                result = onDeleteOnDeviceProximity(request, response, deviceId, sessionKey);
+                result = onDeleteOnDeviceProximity(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_USER_PROXIMITY)) {
-                result = onDeleteOnUserProximity(request, response, deviceId, sessionKey);
+                result = onDeleteOnUserProximity(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -104,11 +104,11 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnDeviceProximity(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnDeviceProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -122,11 +122,11 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutOnUserProximity(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnUserProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -144,11 +144,11 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnDeviceProximity(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnDeviceProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;
@@ -162,11 +162,11 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteOnUserProximity(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnUserProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         setUnsupportedError(response);
         return true;

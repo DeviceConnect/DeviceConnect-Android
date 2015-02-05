@@ -55,7 +55,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      * Action: GET
      * Extra:
      *     requestCode=xxxx
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     profile=file_descriptor
      *     attribute=open
      *     mediaId=xxxx
@@ -70,7 +70,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      */
     public void testOpen() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_OPEN);
         request.putExtra(FileDescriptorProfileConstants.PARAM_PATH, TestFileDescriptorProfileConstants.PATH);
@@ -86,7 +86,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      * Action: PUT
      * Extra:
      *     requestCode=xxxx
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     profile=file_descriptor
      *     attribute=close
      *     mediaId=xxxx
@@ -99,7 +99,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      */
     public void testClose() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_CLOSE);
         request.putExtra(FileDescriptorProfileConstants.PARAM_PATH, TestFileDescriptorProfileConstants.PATH);
@@ -114,7 +114,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      * Action: GET
      * Extra:
      *     requestCode=xxxx
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     profile=file_descriptor
      *     attribute=read
      *     mediaId=xxxx
@@ -130,7 +130,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      */
     public void testRead001() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_READ);
         request.putExtra(FileDescriptorProfileConstants.PARAM_PATH, TestFileDescriptorProfileConstants.PATH);
@@ -150,7 +150,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      * Action: GET
      * Extra:
      *     requestCode=xxxx
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     profile=file_descriptor
      *     attribute=read
      *     mediaId=xxxx
@@ -167,7 +167,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      */
     public void testRead002() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_READ);
         request.putExtra(FileDescriptorProfileConstants.PARAM_PATH, TestFileDescriptorProfileConstants.PATH);
@@ -189,7 +189,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      * Action: PUT
      * Extra:
      *     requestCode=xxxx
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     profile=file_descriptor
      *     attribute=write
      *     mediaId=xxxx
@@ -204,7 +204,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      */
     public void testWrite001() throws IOException {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_WRITE);
         request.putExtra(FileDescriptorProfileConstants.PARAM_PATH, TestFileDescriptorProfileConstants.PATH);
@@ -221,7 +221,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      * Action: PUT
      * Extra:
      *     requestCode=xxxx
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     profile=file_descriptor
      *     attribute=write
      *     mediaId=xxxx
@@ -237,7 +237,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      */
     public void testWrite002() throws IOException {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_WRITE);
         request.putExtra(FileDescriptorProfileConstants.PARAM_PATH, TestFileDescriptorProfileConstants.PATH);
@@ -255,7 +255,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      * Action: PUT
      * Extra:
      *     requestCode=xxxx
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     profile=file_descriptor
      *     callback=onwatchfile
      *     sessionKey=xxxx
@@ -269,7 +269,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      */
     public void testWatchFile01() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_ON_WATCH_FILE);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
@@ -291,7 +291,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      * Action: DELETE
      * Extra:
      *     requestCode=xxxx
-     *     deviceId=xxxx
+     *     serviceId=xxxx
      *     profile=file_descriptor
      *     callback=onwatchfile
      *     sessionKey=xxxx
@@ -304,7 +304,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
      */
     public void testWatchFile02() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_ON_WATCH_FILE);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);

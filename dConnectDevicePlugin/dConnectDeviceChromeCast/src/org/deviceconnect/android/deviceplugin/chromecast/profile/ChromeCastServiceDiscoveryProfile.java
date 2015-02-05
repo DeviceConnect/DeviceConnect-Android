@@ -1,5 +1,5 @@
 /*
- ChromeCastNetworkServiceDiscoveryProfile.java
+ ChromeCastServiceDiscoveryProfile.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -15,7 +15,7 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscover
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -23,26 +23,26 @@ import android.content.Intent;
 import android.os.Bundle;
 
 /**
- * Network Service Discovery プロファイル (Chromecast)
+ * Network Service Discovery プロファイル (Chromecast).
  * <p>
  * Chromecastの検索機能を提供する
  * </p>
  * @author NTT DOCOMO, INC.
  */
-public class ChromeCastNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
+public class ChromeCastServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
-    protected boolean onGetGetNetworkServices(final Intent request, final Intent response) {
-        NetworkType DEVICE_TYPE = NetworkType.WIFI;
-        String DEVICE_NAME = getContext().getResources().getString(R.string.device_name);
+    protected boolean onGetServices(final Intent request, final Intent response) {
+        NetworkType deviceType = NetworkType.WIFI;
+        String deviceName = getContext().getResources().getString(R.string.device_name);
 
         ChromeCastDiscovery discovery = ((ChromeCastService) getContext()).getChromeCastDiscovery();
         List<Bundle> services = new ArrayList<Bundle>();
-        for(int i=0; i<discovery.getDeviceNames().size(); i++){
+        for (int i = 0; i < discovery.getDeviceNames().size(); i++) {
             Bundle service = new Bundle();
             setId(service, discovery.getDeviceNames().get(i));
-            setName(service, DEVICE_NAME + " (" + discovery.getDeviceNames().get(i) + ")");
-            setType(service, DEVICE_TYPE);
+            setName(service, deviceName + " (" + discovery.getDeviceNames().get(i) + ")");
+            setType(service, deviceType);
             setOnline(service, true);
             services.add(service);
         }
@@ -55,7 +55,8 @@ public class ChromeCastNetworkServiceDiscoveryProfile extends NetworkServiceDisc
     }
 
     @Override
-    protected boolean onPutOnServiceChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response, 
+                                            final String serviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.addEvent(request);
         switch (error) {
         case NONE:
@@ -72,7 +73,8 @@ public class ChromeCastNetworkServiceDiscoveryProfile extends NetworkServiceDisc
     }
 
     @Override
-    protected boolean onDeleteOnServiceChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response,
+                                                final String serviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         switch (error) {
         case NONE:

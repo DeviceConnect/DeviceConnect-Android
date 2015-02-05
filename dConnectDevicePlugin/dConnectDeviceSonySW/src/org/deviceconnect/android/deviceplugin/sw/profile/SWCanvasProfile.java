@@ -40,20 +40,20 @@ public class SWCanvasProfile extends CanvasProfile {
     }
 
     @Override
-    protected boolean onPostDrawImage(final Intent request, final Intent response, final String deviceId, 
+    protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId, 
             final String mimeType, final byte[] data, final double x, final double y, final String mode) {
-    	BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
-            MessageUtils.setNotFoundDeviceError(response, "No device is found: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
-        if (data == null || deviceId == null) {
+        if (data == null || serviceId == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }
         DisplaySize size = determineDisplaySize(getContext(), SWUtil.toHostAppPackageName(device.getName()));
 
-        showDisplay(data, x, y, mode, size, deviceId, response);
+        showDisplay(data, x, y, mode, size, serviceId, response);
 
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
@@ -67,11 +67,11 @@ public class SWCanvasProfile extends CanvasProfile {
      * @param y y座標
      * @param mode 画像描画モード
      * @param size 画面サイズ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param response レスポンス
      */
     private void showDisplay(final byte[] data, final double x, final double y,
-            final String mode, final DisplaySize size, final String deviceId,
+            final String mode, final DisplaySize size, final String serviceId,
             final Intent response) {
 
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -79,8 +79,8 @@ public class SWCanvasProfile extends CanvasProfile {
         Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, options);
 
         // 最終的にSWに表示するBitmapの作成(大きさはSWの画面サイズ)
-        final int width = size.width;
-        final int height = size.height;
+        final int width = size.getWidth();
+        final int height = size.getHeight();
         Bitmap viewBitmap = Bitmap.createBitmap(width, height, SWConstants.DEFAULT_BITMAP_CONFIG);
 
         if (mode == null || mode.equals("")) {
@@ -99,7 +99,7 @@ public class SWCanvasProfile extends CanvasProfile {
         
         Intent intent = new Intent(Control.Intents.CONTROL_DISPLAY_DATA_INTENT);
         intent.putExtra(Control.Intents.EXTRA_DATA, outputStream.toByteArray());
-        sendToHostApp(intent, deviceId);
+        sendToHostApp(intent, serviceId);
     }
     
     /**
@@ -107,7 +107,7 @@ public class SWCanvasProfile extends CanvasProfile {
      * @param viewBitmap SWに表示するBitmap
      * @param bitmap 描画する画像のバイナリ
      */
-    private void drawImageForScalesMode(final Bitmap viewBitmap, Bitmap bitmap) {
+    private void drawImageForScalesMode(final Bitmap viewBitmap, final Bitmap bitmap) {
         
         // 描画開始地点
         float startGridX = 0;
@@ -153,11 +153,12 @@ public class SWCanvasProfile extends CanvasProfile {
      * @param x x座標
      * @param y y座標
      */
-    private void drawImageForNonScalesMode(final Bitmap viewBitmap, final Bitmap bitmap, final double x, final double y) {
+    private void drawImageForNonScalesMode(final Bitmap viewBitmap,
+                            final Bitmap bitmap, final double x, final double y) {
         
         // 描画開始地点
-        float startGridX = (float)x;
-        float startGridY = (float)y;
+        float startGridX = (float) x;
+        float startGridY = (float) y;
         
         //canvasに表示用Bitmapをセット
         Canvas canvas = new Canvas(viewBitmap);
@@ -215,10 +216,10 @@ public class SWCanvasProfile extends CanvasProfile {
      * ホストアプリケーションに対してインテントを送信する.
      * 
      * @param intent インテント
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      */
-    protected void sendToHostApp(final Intent intent, final String deviceId) {
-        BluetoothDevice device = SWUtil.findSmartWatch(deviceId);
+    protected void sendToHostApp(final Intent intent, final String serviceId) {
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         String deviceName = device.getName();
         intent.putExtra(Control.Intents.EXTRA_AEA_PACKAGE_NAME, getContext().getPackageName());
         intent.setPackage(SWUtil.toHostAppPackageName(deviceName));

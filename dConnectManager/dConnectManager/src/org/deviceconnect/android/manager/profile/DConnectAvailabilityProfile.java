@@ -27,7 +27,7 @@ public class DConnectAvailabilityProfile extends DConnectProfile implements Avai
     }
 
     @Override
-    protected boolean onGetRequest(Intent request, Intent response) {
+    protected boolean onGetRequest(final Intent request, final Intent response) {
         setResult(response, DConnectMessage.RESULT_OK);
         ((DConnectService) getContext()).sendResponse(request, response);
         return true;

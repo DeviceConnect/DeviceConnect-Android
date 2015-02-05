@@ -767,7 +767,7 @@ public enum IRKitManager {
             @Override
             public void run() {
                 String deviceKey = null;
-                String deviceId = null;
+                String serviceId = null;
                 do {
                     List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
                     nameValuePairs.add(new BasicNameValuePair("clientkey", clientKey));
@@ -793,19 +793,19 @@ public enum IRKitManager {
 
                     try {
                         JSONObject json = new JSONObject(body);
-                        deviceId = json.getString("deviceid");
+                        serviceId = json.getString("deviceid");
                         deviceKey = json.getString("devicekey");
                     } catch (JSONException e) {
                         if (BuildConfig.DEBUG) {
                             e.printStackTrace();
                         }
-                        deviceId = null;
+                        serviceId = null;
                         deviceKey = null;
                         break;
                     }
                 } while (false);
 
-                callback.onGetDevice(deviceId, deviceKey);
+                callback.onGetDevice(serviceId, deviceKey);
             }
         }).start();
     }
@@ -909,10 +909,10 @@ public enum IRKitManager {
      * IRKitがインターネットに接続したかをチェックする.
      * 
      * @param clientKey クライアントキー
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param callback コールバック
      */
-    public void checkIfIRKitIsConnectedToInternet(final String clientKey, final String deviceId, 
+    public void checkIfIRKitIsConnectedToInternet(final String clientKey, final String serviceId, 
             final IRKitConnectionCheckingCallback callback) {
         new Thread(new Runnable() {
 
@@ -922,7 +922,7 @@ public enum IRKitManager {
                 do {
                     List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
                     nameValuePairs.add(new BasicNameValuePair("clientkey", clientKey));
-                    nameValuePairs.add(new BasicNameValuePair("deviceid", deviceId));
+                    nameValuePairs.add(new BasicNameValuePair("deviceid", serviceId));
                     UrlEncodedFormEntity param = null;
                     try {
                         param = new UrlEncodedFormEntity(nameValuePairs);
@@ -1026,10 +1026,10 @@ public enum IRKitManager {
         /**
          * 新規デバイスが生成できたことを通知する.
          * 
-         * @param deviceId デバイスID
+         * @param serviceId サービスID
          * @param deviceKey デバイスキー
          */
-        void onGetDevice(String deviceId, String deviceKey);
+        void onGetDevice(String serviceId, String deviceKey);
     }
 
     /**

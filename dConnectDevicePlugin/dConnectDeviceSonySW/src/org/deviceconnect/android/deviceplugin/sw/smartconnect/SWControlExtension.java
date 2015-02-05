@@ -49,7 +49,7 @@ import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
 import android.bluetooth.BluetoothAdapter;
@@ -78,6 +78,9 @@ import com.sonyericsson.extras.liveware.extension.util.sensor.AccessorySensorEve
 import com.sonyericsson.extras.liveware.extension.util.sensor.AccessorySensorException;
 import com.sonyericsson.extras.liveware.extension.util.sensor.AccessorySensorManager;
 
+/**
+ * Sony SmartWatch Control Extension.
+ */
 class SWControlExtension extends ControlExtension {
     /**
      * デバイスセンサー.
@@ -142,7 +145,7 @@ class SWControlExtension extends ControlExtension {
      * LocalOAuthで無視するプロファイル群.
      */
     private static final String[] IGNORE_PROFILES = {AuthorizationProfileConstants.PROFILE_NAME,
-            SystemProfileConstants.PROFILE_NAME, NetworkServiceDiscoveryProfileConstants.PROFILE_NAME };
+            SystemProfileConstants.PROFILE_NAME, ServiceDiscoveryProfileConstants.PROFILE_NAME };
 
     /**
      * Creates a control extension.
@@ -301,35 +304,45 @@ class SWControlExtension extends ControlExtension {
      * 加速度センサーイベントリスナー.
      */
      private class AccelerometerEventListener implements AccessorySensorEventListener {
+         /**
+          * Interval Start Time.
+          */
+         long mStart = 0;
+         /**
+          * Device Name.
+          */
+         final String mDeviceName;
 
-         long start = 0;
-         final String deviceName;
-
+         /**
+          * Constructor.
+          */
          AccelerometerEventListener() {
              if (SWConstants.PACKAGE_SMART_WATCH_2.equals(mHostAppPackageName)) {
-                 deviceName = SWConstants.DEVICE_NAME_SMART_WATCH_2;
+                 mDeviceName = SWConstants.DEVICE_NAME_SMART_WATCH_2;
              } else {
-                 deviceName = SWConstants.DEVICE_NAME_SMART_WATCH;
+                 mDeviceName = SWConstants.DEVICE_NAME_SMART_WATCH;
              }
          }
 
          @Override
          public void onSensorEvent(final AccessorySensorEvent sensorEvent) {
-             if (start == 0 || System.currentTimeMillis() - start > mInterval) {
+             if (mStart == 0 || System.currentTimeMillis() - mStart > mInterval) {
                  float[] values = sensorEvent.getSensorValues();
                  Bundle orientation = new Bundle();
                  Bundle acceleration = new Bundle();
-                 orientation.putBundle(DeviceOrientationProfile.PARAM_ACCELERATION_INCLUDING_GRAVITY, acceleration);
+                 orientation.putBundle(DeviceOrientationProfile.PARAM_ACCELERATION_INCLUDING_GRAVITY,
+                                           acceleration);
                  orientation.putLong(DeviceOrientationProfile.PARAM_INTERVAL, mInterval);
                  acceleration.putDouble(DeviceOrientationProfile.PARAM_X, values[0]);
                  acceleration.putDouble(DeviceOrientationProfile.PARAM_Y, values[1]);
                  acceleration.putDouble(DeviceOrientationProfile.PARAM_Z, values[2]);
 
-                 String deviceId = findDeviceId();
-                 if (deviceId == null) {
+                 String serviceId = findServiceId();
+                 if (serviceId == null) {
                      return;
                  }
-                 List<Event> events = EventManager.INSTANCE.getEventList(deviceId, DeviceOrientationProfileConstants.PROFILE_NAME,
+                 List<Event> events = EventManager.INSTANCE
+                          .getEventList(serviceId, DeviceOrientationProfileConstants.PROFILE_NAME,
                          null, DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
 
                  for (Event event : events) {
@@ -338,17 +351,21 @@ class SWControlExtension extends ControlExtension {
                      sendEvent(message, event.getAccessToken());
                  }
 
-                 start = System.currentTimeMillis();
+                 mStart = System.currentTimeMillis();
              }
          }
 
-         private String findDeviceId() {
+         /**
+          * Find Service ID.
+          * @return Service ID
+          */
+         private String findServiceId() {
              BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
              if (adapter != null) {
                  Set<BluetoothDevice> bondedDevices = adapter.getBondedDevices();
                  if (bondedDevices != null) {
                      for (BluetoothDevice device : bondedDevices) {
-                         if (deviceName.equals(device.getName())) {
+                         if (mDeviceName.equals(device.getName())) {
                              String address = device.getAddress();
                              return address.replace(":", "").toLowerCase(Locale.ENGLISH);
                          }

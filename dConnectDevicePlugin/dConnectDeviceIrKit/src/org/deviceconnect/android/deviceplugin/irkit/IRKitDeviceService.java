@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.DetectionListener;
 import org.deviceconnect.android.deviceplugin.irkit.network.WiFiUtil;
-import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitNetworkServceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitServceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitRmeoteControllerProfile;
 import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitSystemProfile;
 import org.deviceconnect.android.event.Event;
@@ -19,10 +19,10 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.NetworkServiceDiscoveryProfileConstants.NetworkType;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
 import android.content.Intent;
 import android.net.wifi.WifiManager;
@@ -95,21 +95,21 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
     }
 
     /**
-     * デバイスIDからIRKitのデバイスを取得する.
+     * サービスIDからIRKitのデバイスを取得する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return デバイス
      */
-    public IRKitDevice getDevice(final String deviceId) {
-        return mDevices.get(deviceId);
+    public IRKitDevice getDevice(final String serviceId) {
+        return mDevices.get(serviceId);
     }
 
     /**
-     * getnetworkservicesのリクエストを用意する.
+     * Service Discoveryのリクエストを用意する.
      * 
      * @param response レスポンスオブジェクト
      */
-    public void prepareGetNetworkServicesResponse(final Intent response) {
+    public void prepareServiceDiscoveryResponse(final Intent response) {
 
         synchronized (mDevices) {
 
@@ -119,12 +119,12 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
                 Bundle service = createService(device, true);
                 services[index++] = service;
                 if (BuildConfig.DEBUG) {
-                    Log.d("IRKit", "prepareGetNetworkServicesResponse service=" + service);
+                    Log.d("IRKit", "prepareServiceDiscoveryResponse service=" + service);
                 }
             }
 
-            NetworkServiceDiscoveryProfile.setServices(response, services);
-            NetworkServiceDiscoveryProfile.setResult(response, DConnectMessage.RESULT_OK);
+            ServiceDiscoveryProfile.setServices(response, services);
+            ServiceDiscoveryProfile.setResult(response, DConnectMessage.RESULT_OK);
         }
 
     }
@@ -135,8 +135,8 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new IRKitNetworkServceDiscoveryProfile();
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new IRKitServceDiscoveryProfile();
     }
 
     @Override
@@ -174,12 +174,12 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         if ((!hit && isOnline) || (hit && !isOnline)) {
             Bundle service = createService(device, isOnline);
 
-            List<Event> events = EventManager.INSTANCE.getEventList(NetworkServiceDiscoveryProfile.PROFILE_NAME,
-                    NetworkServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
+            List<Event> events = EventManager.INSTANCE.getEventList(ServiceDiscoveryProfile.PROFILE_NAME,
+                    ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
 
             for (Event e : events) {
                 Intent message = EventManager.createEventMessage(e);
-                NetworkServiceDiscoveryProfile.setNetworkService(message, service);
+                ServiceDiscoveryProfile.setNetworkService(message, service);
                 sendEvent(message, e.getAccessToken());
             }
         }
@@ -195,11 +195,11 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
      */
     private Bundle createService(final IRKitDevice device, final boolean online) {
         Bundle service = new Bundle();
-        NetworkServiceDiscoveryProfile.setId(service, device.getName());
-        NetworkServiceDiscoveryProfile.setName(service, device.getName());
-        NetworkServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
-        NetworkServiceDiscoveryProfile.setState(service, online);
-        NetworkServiceDiscoveryProfile.setOnline(service, online);
+        ServiceDiscoveryProfile.setId(service, device.getName());
+        ServiceDiscoveryProfile.setName(service, device.getName());
+        ServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
+        ServiceDiscoveryProfile.setState(service, online);
+        ServiceDiscoveryProfile.setOnline(service, online);
         return service;
     }
 

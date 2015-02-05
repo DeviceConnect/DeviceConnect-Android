@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-ConnectManagerのテスト機能を提供する.
+ * Device ConnectManagerのテスト機能を提供する.
  */
 package org.deviceconnect.android.deviceplugin.test;

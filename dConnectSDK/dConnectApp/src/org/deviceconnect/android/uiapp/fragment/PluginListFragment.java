@@ -45,7 +45,7 @@ import android.widget.Toast;
 public class PluginListFragment extends ListFragment {
 
     /**
-     * d-Connectクライアント.
+     * DeviceConnectクライアント.
      */
     private DConnectClient mDConnectClient;
 
@@ -207,7 +207,8 @@ public class PluginListFragment extends ListFragment {
             List<Object> plugins = result.getList(SystemProfileConstants.PARAM_PLUGINS);
             if (plugins != null) {
                 for (Object object : plugins) {
-                    HashMap<Object, Object> plugin = (HashMap<Object, Object>) object;
+                    @SuppressWarnings("unchecked")
+					HashMap<Object, Object> plugin = (HashMap<Object, Object>) object;
                     if (plugin != null) {
                         String name = (String) plugin.get("name");
                         String id = (String) plugin.get("id");

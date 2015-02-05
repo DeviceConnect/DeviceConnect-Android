@@ -69,18 +69,18 @@ final class EventSessionDao implements EventSessionSchema {
      * イベントとセッションデータのマッチング情報を登録する.
      * 
      * @param db データベース操作オブジェクト
-     * @param eventDeviceId EventDeviceテーブルのID
+     * @param eventServiceId EventDeviceテーブルのID
      * @param clientId ClientテーブルのID
      * @return 登録出来た場合は登録時のIDを返す。重複している場合は登録済みのIDを返す。処理に失敗した場合は-1を返す。
      */
-    static long insert(final SQLiteDatabase db, final long eventDeviceId, final long clientId) {
+    static long insert(final SQLiteDatabase db, final long eventServiceId, final long clientId) {
         
         long result = -1L;
         Cursor cursor = db.query(TABLE_NAME, new String[] {_ID}, ED_ID + "=? AND " + C_ID + "=?", 
-                new String[] {"" + eventDeviceId, "" + clientId}, null, null, null);
+                new String[] {"" + eventServiceId, "" + clientId}, null, null, null);
         if (cursor.getCount() == 0) {
             ContentValues values = new ContentValues();
-            values.put(ED_ID, eventDeviceId);
+            values.put(ED_ID, eventServiceId);
             values.put(C_ID, clientId);
             values.put(CREATE_DATE, Utils.getCurreTimestamp().getTime());
             values.put(UPDATE_DATE, Utils.getCurreTimestamp().getTime());
@@ -239,7 +239,7 @@ final class EventSessionDao implements EventSessionSchema {
         sb.append(prepared);
         sb.append(and);
         sb.append("d.");
-        sb.append(DeviceSchema.DEVICE_ID);
+        sb.append(DeviceSchema.SERVICE_ID);
         sb.append(prepared);
         sb.append(and);
         sb.append("c.");
@@ -251,11 +251,11 @@ final class EventSessionDao implements EventSessionSchema {
         sb.append(prepared);
         
         String inter = null2WhiteSpace(event.getInterface());
-        String deviceId =  null2WhiteSpace(event.getDeviceId());
+        String serviceId =  null2WhiteSpace(event.getServiceId());
         String receiver = null2WhiteSpace(event.getReceiverName());
         
         String[] params = {event.getProfile(), inter, event.getAttribute(), 
-                deviceId, event.getSessionKey(), receiver};
+                serviceId, event.getSessionKey(), receiver};
         Cursor c = db.rawQuery(sb.toString(), params);
         
         if (c.moveToFirst()) {

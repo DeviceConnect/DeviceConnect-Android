@@ -81,19 +81,19 @@ public class DConnectResponseMessage extends BasicDConnectMessage {
     }
 
     /**
-     * デバイスIDを取得する.
-     * @return デバイスID
+     * サービスIDを取得する.
+     * @return サービスID
      */
-    public String getDeviceId() {
-        return getString(EXTRA_DEVICE_ID);
+    public String getServiceId() {
+        return getString(EXTRA_SERVICE_ID);
     }
 
     /**
-     * デバイスIDを設定する.
-     * @param id デバイスID
+     * サービスIDを設定する.
+     * @param id サービスID
      */
-    public void setDeviceId(final String id) {
-        put(EXTRA_DEVICE_ID, id);
+    public void setServiceId(final String id) {
+        put(EXTRA_SERVICE_ID, id);
     }
 
     /**

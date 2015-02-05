@@ -31,8 +31,8 @@ public final class WearConst {
     /** WearからAndroid. */
     public static final String WERA_TO_DEVICE_DEIVCEORIENTATION_DATA = "org.deviceconnect.wear.deivceorienatation.data";
 
-    /** DeviceId. */
-    public static final String PARAM_DEVICEID = "deviceId";
+    /** ServiceId. */
+    public static final String PARAM_DEVICEID = "serviceId";
 
     /** NotificationId. */
     public static final String PARAM_NOTIFICATIONID = "norificationId";

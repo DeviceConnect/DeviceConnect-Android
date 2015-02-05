@@ -21,8 +21,8 @@ public class SonyCameraSettingsProfile extends SettingsProfile {
 
     @Override
     protected boolean onPutDate(final Intent request, final Intent response, 
-            final String deviceId, final String date) {
-        return ((SonyCameraDeviceService) getContext()).onPutDate(request, response, deviceId, date);
+            final String serviceId, final String date) {
+        return ((SonyCameraDeviceService) getContext()).onPutDate(request, response, serviceId, date);
     }
 
 }

@@ -46,10 +46,10 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
-        PHBridge bridge = findBridge(deviceId);
+        String serviceId = getServiceID(request);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         List<Bundle> lightsParam = new ArrayList<Bundle>();
@@ -69,7 +69,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLight(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String lightId = getLightID(request);
 
         // 必須パラメータの存在チェック
@@ -78,14 +78,14 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         PHLight light = bridge.getResourceCache().getLights().get(lightId);
         if (light == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
@@ -97,16 +97,17 @@ public class HueLightProfile extends LightProfile {
             colorParam = "FFFFFF";
         }
         Color hueColor = new Color(colorParam);
-        lightState.setX(hueColor.x);
-        lightState.setY(hueColor.y);
+        lightState.setX(hueColor.mX);
+        lightState.setY(hueColor.mY);
         String brightnessParam = getBrightness(request);
         if (brightnessParam != null) {
-            lightState.setBrightness(Integer.valueOf(new Brightness(brightnessParam).value));
+            lightState.setBrightness(Integer.valueOf(new Brightness(brightnessParam).mValue));
         }
 
         bridge.updateLightState(light, lightState, new PHLightAdapter() {
             @Override
-            public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
+            public void onStateUpdate(final Map<String, String> successAttribute,
+                    final List<PHHueError> errorAttribute) {
                 sendResultOK(response);
             }
 
@@ -121,7 +122,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onDeleteLight(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String lightId = getLightID(request);
 
         // 必須パラメータの存在チェック
@@ -130,21 +131,22 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         PHLight light = bridge.getResourceCache().getLights().get(lightId);
         if (light == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
         PHLightState lightState = new PHLightState();
         lightState.setOn(false);
         bridge.updateLightState(light, lightState, new PHLightAdapter() {
             @Override
-            public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
+            public void onStateUpdate(final Map<String, String> successAttribute,
+                    final List<PHHueError> errorAttribute) {
                 sendResultOK(response);
             }
 
@@ -161,7 +163,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLight(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String lightId = getLightID(request);
         String name = getName(request);
 
@@ -175,14 +177,14 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         PHLight light = getLight(bridge, lightId);
         if (light == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found light: " + lightId + "@" + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
@@ -207,10 +209,10 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onGetLightGroup(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
-        PHBridge bridge = findBridge(deviceId);
+        String serviceId = getServiceID(request);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         List<Bundle> groupsParam = new ArrayList<Bundle>();
@@ -245,7 +247,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLightGroup(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String groupId = getGroupId(request);
 
         // 必須パラメータの存在チェック
@@ -254,9 +256,9 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
@@ -268,11 +270,11 @@ public class HueLightProfile extends LightProfile {
             colorParam = "FFFFFF";
         }
         Color hueColor = new Color(colorParam);
-        lightState.setX(hueColor.x);
-        lightState.setY(hueColor.y);
+        lightState.setX(hueColor.mX);
+        lightState.setY(hueColor.mY);
         String brightnessParam = getBrightness(request);
         if (brightnessParam != null) {
-            lightState.setBrightness(Integer.valueOf(new Brightness(brightnessParam).value));
+            lightState.setBrightness(Integer.valueOf(new Brightness(brightnessParam).mValue));
         }
 
         if ("0".equals(groupId)) {
@@ -296,7 +298,8 @@ public class HueLightProfile extends LightProfile {
             }
 
             @Override
-            public void onStateUpdate(final Map<String, String> successAttributes, final List<PHHueError> errorAttributes) {
+            public void onStateUpdate(final Map<String, String> successAttributes,
+                    final List<PHHueError> errorAttributes) {
                 sendResultOK(response);
             }
         });
@@ -305,7 +308,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onDeleteLightGroup(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String groupId = getGroupId(request);
 
         // 必須パラメータの存在チェック
@@ -314,9 +317,9 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
@@ -344,7 +347,8 @@ public class HueLightProfile extends LightProfile {
             }
 
             @Override
-            public void onStateUpdate(final Map<String, String> successAttributes, final List<PHHueError> errorAttributes) {
+            public void onStateUpdate(final Map<String, String> successAttributes,
+                    final List<PHHueError> errorAttributes) {
                 sendResultOK(response);
             }
         });
@@ -353,7 +357,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLightGroup(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String groupId = getGroupId(request);
         
         // 必須パラメータの存在チェック
@@ -362,9 +366,9 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
         
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
         String name = getName(request);
@@ -398,7 +402,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLightGroupCreate(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String groupName = getGroupName(request);
         String lightIds = getLightIds(request);
         
@@ -420,9 +424,9 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
@@ -450,7 +454,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onDeleteLightGroupClear(final Intent request, final Intent response) {
-        String deviceId = getDeviceID(request);
+        String serviceId = getServiceID(request);
         String groupId = getGroupId(request);
 
         // 必須パラメータの存在チェック
@@ -459,9 +463,9 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(deviceId);
+        PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
-            MessageUtils.setNotFoundDeviceError(response, "Not found bridge: " + deviceId);
+            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
@@ -482,18 +486,29 @@ public class HueLightProfile extends LightProfile {
         return false;
     }
 
-    private PHBridge findBridge(String deviceId) {
+    /**
+     * Hueのブリッジを検索する.
+     * @param serviceId Service ID
+     * @return Hueのブリッジを管理するオブジェクト
+     */
+    private PHBridge findBridge(final String serviceId) {
         PHBridge bridge = PHHueSDK.getInstance().getSelectedBridge();
         if (bridge != null) {
             PHBridgeResourcesCache cache = bridge.getResourceCache();
             String ipAddress = cache.getBridgeConfiguration().getIpAddress();
-            if (deviceId.equals(ipAddress)) {
+            if (serviceId.equals(ipAddress)) {
                 return bridge;
             }
         }
         return null;
     }
 
+    /**
+     * Hue Lightを管理するオブジェクトを取得する.
+     * @param bridge Hueのブリッジ
+     * @param lightId Light ID
+     * @return Lightを管理するオブジェクト
+     */
     private PHLight getLight(final PHBridge bridge, final String lightId) {
         for (PHLight light : bridge.getResourceCache().getAllLights()) {
             if (light.getIdentifier().equals(lightId)) {
@@ -503,6 +518,12 @@ public class HueLightProfile extends LightProfile {
         return null;
     }
 
+    /**
+     * Hue Lightのグループ情報を管理するオブジェクトを取得する.
+     * @param bridge Hueのブリッジ
+     * @param groupID Group ID
+     * @return Lightのグループ情報を持つオブジェクト
+     */
     private PHGroup getGroup(final PHBridge bridge, final String groupID) {
         for (PHGroup group : bridge.getResourceCache().getAllGroups()) {
             if (groupID.equals(group.getIdentifier())) {
@@ -512,6 +533,11 @@ public class HueLightProfile extends LightProfile {
         return null;
     }
 
+    /**
+     * 選択したLight IDのリストを取得する.
+     * @param lightIdList Light IDをカンマ区切りした文字列
+     * @return Light IDのリスト
+     */
     private String[] getSelectedIdList(final String lightIdList) {
         String[] strAry = lightIdList.split(",");
         int i = 0;
@@ -554,7 +580,7 @@ public class HueLightProfile extends LightProfile {
      * @param request request
      * @return lightid
      */
-    private static final String getLightID(final Intent request) {
+    private static String getLightID(final Intent request) {
         return request.getStringExtra(PARAM_LIGHT_ID);
     }
 
@@ -564,7 +590,7 @@ public class HueLightProfile extends LightProfile {
      * @param request request
      * @return myName
      */
-    private static final String getName(final Intent request) {
+    private static String getName(final Intent request) {
         return request.getStringExtra(PARAM_NAME);
     }
 
@@ -574,7 +600,7 @@ public class HueLightProfile extends LightProfile {
      * @param request request
      * @return myName
      */
-    private static final String getGroupName(final Intent request) {
+    private static String getGroupName(final Intent request) {
         return request.getStringExtra(PARAM_GROUP_NAME);
     }
 
@@ -584,7 +610,7 @@ public class HueLightProfile extends LightProfile {
      * @param request request
      * @return myName
      */
-    private static final String getLightIds(final Intent request) {
+    private static String getLightIds(final Intent request) {
         return request.getStringExtra(PARAM_LIGHT_IDS);
     }
 
@@ -594,7 +620,7 @@ public class HueLightProfile extends LightProfile {
      * @param request request
      * @return myName
      */
-    private static final String getGroupId(final Intent request) {
+    private static String getGroupId(final Intent request) {
         return request.getStringExtra(PARAM_GROUP_ID);
     }
 
@@ -604,7 +630,7 @@ public class HueLightProfile extends LightProfile {
      * @param request request
      * @return PARAM_BRIGHTNESS
      */
-    private static final String getBrightness(final Intent request) {
+    private static String getBrightness(final Intent request) {
         return request.getStringExtra(PARAM_BRIGHTNESS);
     }
 
@@ -614,73 +640,104 @@ public class HueLightProfile extends LightProfile {
      * @param request リクエスト
      * @return colorパラメータ
      */
-    private static final String getColor(final Intent request) {
+    private static String getColor(final Intent request) {
         return request.getStringExtra(PARAM_COLOR);
     }
 
     /**
      * Hueの色指定.
+     * @author NTT DOCOMO, INC.
      */
     private static class Color {
-        static final String MODEL = "LST001";
+        /**
+         * モデル.
+         */
+        private static final String MODEL = "LST001";
+        /** RGBの文字列の長さ. */
+        private static final int RGB_LENGTH = 6;
+        /** R. */
+        final int mR;
+        /** G. */
+        final int mG;
+        /** B. */
+        final int mB;
+        /** 色相のX座標. */
+        final float mX;
+        /** 色相のY座標. */
+        final float mY;
         
-        final int r;
-        final int g;
-        final int b;
-        
-        final float x;
-        final float y;
-        
-        Color(String rgb) {
+        /**
+         * コンストラクタ.
+         * @param rgb RGBの文字列
+         */
+        Color(final String rgb) {
             if (rgb == null) {
                 throw new IllegalArgumentException();
             }
-            if (rgb.length() != 6) {
+            if (rgb.length() != RGB_LENGTH) {
                 throw new IllegalArgumentException();
             }
-            String r = rgb.substring(0, 2);
-            String g = rgb.substring(2, 4);
-            String b = rgb.substring(4, 6);
-            if (r == null) {
+            String rr = rgb.substring(0, 2);
+            String gg = rgb.substring(2, 4);
+            String bb = rgb.substring(4, 6);
+            if (rr == null) {
                 throw new IllegalArgumentException();
             }
-            if (g == null) {
+            if (gg == null) {
                 throw new IllegalArgumentException();
             }
-            if (b == null) {
+            if (bb == null) {
                 throw new IllegalArgumentException();
             }
-            this.r = Integer.parseInt(r, 16);
-            this.g = Integer.parseInt(g, 16);
-            this.b = Integer.parseInt(b, 16);
-            float[] xy = PHUtilities.calculateXYFromRGB(this.r, this.g, this.b, MODEL);
-            x = xy[0];
-            y = xy[1];
+            this.mR = Integer.parseInt(rr, 16);
+            this.mG = Integer.parseInt(gg, 16);
+            this.mB = Integer.parseInt(bb, 16);
+            float[] xy = PHUtilities.calculateXYFromRGB(this.mR, this.mG, this.mB, MODEL);
+            mX = xy[0];
+            mY = xy[1];
         }
     }
 
+    /**
+     * Hueの明るさ判定.
+     * @author NTT DOCOMO, INC.
+     *
+     */
     private static class Brightness {
+        /** 明るさのMax値. */
         static final int MAX_VALUE = 255;
+        /** 明るさのチューニング用Max値. */
         static final int TUNED_MAX_VALUE = 254;
-        final int value;
+        /** 明るさの値. */
+        final int mValue;
         
-        Brightness(String param) {
+        /**
+         * コンストラクタ.
+         * @param param 明るさ
+         */
+        Brightness(final String param) {
             int temp = (int) (MAX_VALUE * Float.parseFloat(param));
             if (temp >= MAX_VALUE) {
                 temp = TUNED_MAX_VALUE; // 255を指定するとHue上のエラーとなるため254に丸める.
             }
-            value = temp;
+            mValue = temp;
         }
     }
 
+    /**
+     * ライトのアダプター.
+     * @author NTT DOCOMO, INC.
+     *
+     */
     private static class PHLightAdapter implements PHLightListener {
 
         @Override
-        public void onError(int code, String message) {
+        public void onError(final int code, final String message) {
         }
 
         @Override
-        public void onStateUpdate(Map<String, String> successAttribute, List<PHHueError> errorAttribute) {
+        public void onStateUpdate(final Map<String, String> successAttribute,
+                final List<PHHueError> errorAttribute) {
         }
 
         @Override
@@ -688,11 +745,11 @@ public class HueLightProfile extends LightProfile {
         }
 
         @Override
-        public void onReceivingLightDetails(PHLight light) {
+        public void onReceivingLightDetails(final PHLight light) {
         }
 
         @Override
-        public void onReceivingLights(List<PHBridgeResource> lights) {
+        public void onReceivingLights(final List<PHBridgeResource> lights) {
         }
 
         @Override
@@ -700,6 +757,11 @@ public class HueLightProfile extends LightProfile {
         }
     }
     
+    /**
+     * ライトグループのアダプター.
+     * @author NTT DOCOMO, INC.
+     *
+     */
     private static class PHGroupAdapter implements PHGroupListener {
         @Override
         public void onError(final int code, final String msg) {

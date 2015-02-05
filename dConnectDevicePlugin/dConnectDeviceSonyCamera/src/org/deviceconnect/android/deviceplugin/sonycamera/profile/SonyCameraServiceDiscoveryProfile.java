@@ -1,5 +1,5 @@
 /*
- * SonyCameraNetworkServiceDiscoveryProfile
+ * SonyCameraServiceDiscoveryProfile
  * Copyright (c) 2014 NTT DOCOMO,INC.
  * Released under the MIT license
  * http://opensource.org/licenses/mit-license.php
@@ -12,7 +12,7 @@ import org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService
 import android.content.Intent;
 
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -22,22 +22,22 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
  * Sony Camera 用 Network Service Discovery プロファイル.
  * @author NTT DOCOMO, INC.
  */
-public class SonyCameraNetworkServiceDiscoveryProfile extends NetworkServiceDiscoveryProfile {
+public class SonyCameraServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
-    protected boolean onGetGetNetworkServices(final Intent request, final Intent response) {
+    protected boolean onGetServices(final Intent request, final Intent response) {
         return ((SonyCameraDeviceService) getContext()).searchSonyCameraDevice(request, response);
     }
 
     @Override
-    protected boolean onPutOnServiceChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         EventError error = EventManager.INSTANCE.addEvent(request);
         switch (error) {
         case NONE:
-            response.putExtra(IntentDConnectMessage.EXTRA_PROFILE, NetworkServiceDiscoveryProfile.PROFILE_NAME);
+            response.putExtra(IntentDConnectMessage.EXTRA_PROFILE, ServiceDiscoveryProfile.PROFILE_NAME);
             response.putExtra(IntentDConnectMessage.EXTRA_ATTRIBUTE,
-                    NetworkServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
+                    ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
 
             setResult(response, DConnectMessage.RESULT_OK);
 
@@ -53,14 +53,14 @@ public class SonyCameraNetworkServiceDiscoveryProfile extends NetworkServiceDisc
     }
 
     @Override
-    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String deviceId,
+    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         switch (error) {
         case NONE:
-            response.putExtra(IntentDConnectMessage.EXTRA_PROFILE, NetworkServiceDiscoveryProfile.PROFILE_NAME);
+            response.putExtra(IntentDConnectMessage.EXTRA_PROFILE, ServiceDiscoveryProfile.PROFILE_NAME);
             response.putExtra(IntentDConnectMessage.EXTRA_ATTRIBUTE,
-                    NetworkServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
+                    ServiceDiscoveryProfile.ATTRIBUTE_ON_SERVICE_CHANGE);
             setResult(response, DConnectMessage.RESULT_OK);
             break;
         case INVALID_PARAMETER:

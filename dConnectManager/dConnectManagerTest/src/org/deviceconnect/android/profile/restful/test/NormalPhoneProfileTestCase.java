@@ -53,7 +53,7 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + PhoneProfileConstants.PROFILE_NAME);
         builder.append("/" + PhoneProfileConstants.ATTRIBUTE_CALL);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(PhoneProfileConstants.PARAM_PHONE_NUMBER + "=" + TestPhoneProfileConstants.PHONE_NUMBER);
         builder.append("&");
@@ -86,7 +86,7 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + PhoneProfileConstants.PROFILE_NAME);
         builder.append("/" + PhoneProfileConstants.ATTRIBUTE_SET);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(PhoneProfileConstants.PARAM_MODE + "=0");
         builder.append("&");
@@ -119,7 +119,7 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + PhoneProfileConstants.PROFILE_NAME);
         builder.append("/" + PhoneProfileConstants.ATTRIBUTE_SET);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(PhoneProfileConstants.PARAM_MODE + "=1");
         builder.append("&");
@@ -152,7 +152,7 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + PhoneProfileConstants.PROFILE_NAME);
         builder.append("/" + PhoneProfileConstants.ATTRIBUTE_SET);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(PhoneProfileConstants.PARAM_MODE + "=2");
         builder.append("&");
@@ -185,7 +185,7 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + PhoneProfileConstants.PROFILE_NAME);
         builder.append("/" + PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -197,8 +197,10 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             JSONObject event = waitForEvent();
             JSONObject phoneStatus = event.getJSONObject(PhoneProfileConstants.PARAM_PHONE_STATUS);
-            Assert.assertEquals(TestPhoneProfileConstants.PHONE_NUMBER, phoneStatus.getString(PhoneProfileConstants.PARAM_PHONE_NUMBER));
-            Assert.assertEquals(PhoneProfileConstants.CallState.FINISHED.getValue(), phoneStatus.getInt(PhoneProfileConstants.PARAM_STATE));
+            Assert.assertEquals(TestPhoneProfileConstants.PHONE_NUMBER,
+                  phoneStatus.getString(PhoneProfileConstants.PARAM_PHONE_NUMBER));
+            Assert.assertEquals(PhoneProfileConstants.CallState.FINISHED.getValue(),
+                  phoneStatus.getInt(PhoneProfileConstants.PARAM_STATE));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -222,7 +224,7 @@ public class NormalPhoneProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + PhoneProfileConstants.PROFILE_NAME);
         builder.append("/" + PhoneProfileConstants.ATTRIBUTE_ON_CONNECT);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");

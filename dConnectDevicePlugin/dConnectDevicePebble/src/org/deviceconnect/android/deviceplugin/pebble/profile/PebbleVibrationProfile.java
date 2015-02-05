@@ -23,13 +23,13 @@ import com.getpebble.android.kit.util.PebbleDictionary;
  */
 public class PebbleVibrationProfile extends VibrationProfile {
     @Override
-    protected boolean onPutVibrate(final Intent request, final Intent response, final String deviceId,
+    protected boolean onPutVibrate(final Intent request, final Intent response, final String serviceId,
             final long[] pattern) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             // リクエスト作成
@@ -62,12 +62,12 @@ public class PebbleVibrationProfile extends VibrationProfile {
     }
 
     @Override
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String deviceId) {
-        if (deviceId == null) {
-            MessageUtils.setEmptyDeviceIdError(response);
+    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
             return true;
-        } else if (!PebbleUtil.checkDeviceId(deviceId)) {
-            MessageUtils.setNotFoundDeviceError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
             return true;
         } else {
             PebbleDictionary dic = new PebbleDictionary();

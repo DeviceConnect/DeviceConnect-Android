@@ -102,7 +102,7 @@ public class ExtraProfileFragment extends SmartDeviceFragment {
         if (attr != null && attr.length() > 0) {
             builder.setAttribute(attr.toString());
         }
-        builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID,
+        builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID,
                 getSmartDevice().getId());
         if (accessToken != null) {
             builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN,

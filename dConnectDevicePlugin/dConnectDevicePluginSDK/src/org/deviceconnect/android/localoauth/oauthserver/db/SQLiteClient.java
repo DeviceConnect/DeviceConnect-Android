@@ -60,7 +60,7 @@ public class SQLiteClient implements Client {
     public static final String PACKAGENAME_FIELD = "package_name";
 
     /** SQLフィールド名. */
-    public static final String DEVICEID_FIELD = "device_id";
+    public static final String DEVICEID_FIELD = "service_id";
 
     /** SQLフィールド名. */
     public static final String CLIENTSECRET_FIELD = "client_secret";
@@ -291,7 +291,7 @@ public class SQLiteClient implements Client {
         ContentValues values = new ContentValues();
         values.put(CLIENTID_FIELD, mClientId);
         values.put(PACKAGENAME_FIELD, mPackageInfo.getPackageName());
-        values.put(DEVICEID_FIELD, mPackageInfo.getDeviceId());
+        values.put(DEVICEID_FIELD, mPackageInfo.getServiceId());
         values.put(CLIENTSECRET_FIELD, clientSecret);
         values.put(CLIENTTYPE_FIELD, mClientType.ordinal());
         values.put(REGISTRATION_DATE_FIELD, mRegistrationDate);

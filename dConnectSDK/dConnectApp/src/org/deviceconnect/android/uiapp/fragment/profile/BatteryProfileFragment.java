@@ -92,57 +92,38 @@ public class BatteryProfileFragment extends SmartDevicePreferenceFragment {
             PreferenceCategory batteryStatusList = (PreferenceCategory) findPreference(
                     getString(R.string.key_battery_profile_list));
 
-            try {
-                Number level = (Number) result.get(BatteryProfileConstants.PARAM_LEVEL);
-                Preference pref = new Preference(getActivity());
-                pref.setTitle(getString(R.string.level));
+            Number level = (Number) result.get(BatteryProfileConstants.PARAM_LEVEL);
+            Preference pref = new Preference(getActivity());
+            pref.setTitle(getString(R.string.level));
+            if (level != null) {
                 pref.setSummary(Double.toString(level.doubleValue()) + "%");
-                batteryStatusList.addPreference(pref);
-            } catch (NullPointerException e) {
-                Preference pref = new Preference(getActivity());
-                pref.setTitle(getString(R.string.level));
+            } else {
                 pref.setSummary("-");
-                batteryStatusList.addPreference(pref);
             }
+            batteryStatusList.addPreference(pref);
 
-            try {
-                boolean charging = result.getBoolean(BatteryProfileConstants.PARAM_CHARGING);
-                Preference pref = new Preference(getActivity());
-                pref.setTitle(getString(R.string.charging));
-                pref.setSummary(Boolean.toString(charging));
-                batteryStatusList.addPreference(pref);
-            } catch (NullPointerException e) {
-                Preference pref = new Preference(getActivity());
-                pref.setTitle(getString(R.string.charging));
-                pref.setSummary("-");
-                batteryStatusList.addPreference(pref);
-            }
+            boolean charging = result.getBoolean(BatteryProfileConstants.PARAM_CHARGING);
+            pref.setTitle(getString(R.string.charging));
+            pref.setSummary(Boolean.toString(charging));
+            batteryStatusList.addPreference(pref);
 
-            try {
-                int chargingTime = result.getInt(BatteryProfileConstants.PARAM_CHARGING_TIME);
-                Preference pref = new Preference(getActivity());
-                pref.setTitle(getString(R.string.chargingtime));
+            int chargingTime = result.getInt(BatteryProfileConstants.PARAM_CHARGING_TIME);
+            pref.setTitle(getString(R.string.chargingtime));
+            if (chargingTime >= 0) {
                 pref.setSummary(Integer.toString(chargingTime));
-                batteryStatusList.addPreference(pref);
-            } catch (NullPointerException e) {
-                Preference pref = new Preference(getActivity());
-                pref.setTitle(getString(R.string.chargingtime));
+            } else {
                 pref.setSummary("-");
-                batteryStatusList.addPreference(pref);
             }
+            batteryStatusList.addPreference(pref);
 
-            try {
-                int dischargingTime = result.getInt(BatteryProfileConstants.PARAM_DISCHARGING_TIME);
-                Preference pref = new Preference(getActivity());
-                pref.setTitle(getString(R.string.dischargingtime));
+            int dischargingTime = result.getInt(BatteryProfileConstants.PARAM_DISCHARGING_TIME);
+            pref.setTitle(getString(R.string.dischargingtime));
+            if (dischargingTime >= 0) {
                 pref.setSummary(Integer.toString(dischargingTime));
-                batteryStatusList.addPreference(pref);
-            } catch (NullPointerException e) {
-                Preference pref = new Preference(getActivity());
-                pref.setTitle(getString(R.string.dischargingtime));
+            } else {
                 pref.setSummary("-");
-                batteryStatusList.addPreference(pref);
             }
+            batteryStatusList.addPreference(pref);
         }
     }
 

@@ -481,10 +481,10 @@ public class HostFileProfile extends FileProfile {
                 setResult(response, DConnectMessage.RESULT_ERROR);
                 MessageUtils.setUnknownError(response, "can not make dir :" + mMakeDir);
             } else {
-                try {
-                    mMakeDir.mkdir();
+                boolean isMakeDir = mMakeDir.mkdir();
+                if (isMakeDir) {
                     setResult(response, DConnectMessage.RESULT_OK);
-                } catch (NullPointerException e) {
+                } else {
                     setResult(response, DConnectMessage.RESULT_ERROR);
                     MessageUtils.setUnknownError(response, "can not make dir :" + mMakeDir);
                 }
@@ -506,18 +506,18 @@ public class HostFileProfile extends FileProfile {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
             File mBaseDir = mFileManager.getBasePath();
-            File mMakeDir = new File(mBaseDir, path);
+            File mDeleteDir = new File(mBaseDir, path);
 
-            if (mMakeDir.isFile()) {
+            if (mDeleteDir.isFile()) {
                 setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setUnknownError(response, mMakeDir + "is file");
+                MessageUtils.setUnknownError(response, mDeleteDir + "is file");
             } else {
-                try {
-                    mMakeDir.delete();
+                boolean isDelete = mDeleteDir.delete();
+                if (isDelete) {
                     setResult(response, DConnectMessage.RESULT_OK);
-                } catch (NullPointerException e) {
+                } else {
                     setResult(response, DConnectMessage.RESULT_ERROR);
-                    MessageUtils.setUnknownError(response, "can not make dir :" + mMakeDir);
+                    MessageUtils.setUnknownError(response, "can not delete dir :" + mDeleteDir);
                 }
             }
         }

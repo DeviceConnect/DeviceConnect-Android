@@ -237,8 +237,8 @@ public class SpheroLightProfile extends DConnectProfile {
             c[0] = Integer.parseInt(color.substring(0, 2), 16);
             c[1] = Integer.parseInt(color.substring(2, 4), 16);
             c[2] = Integer.parseInt(color.substring(4, 6), 16);
-        } catch (NullPointerException e) {
-            return null;
+        } catch (IndexOutOfBoundsException e) {
+           return null;
         } catch (NumberFormatException e) {
            return null;
         }

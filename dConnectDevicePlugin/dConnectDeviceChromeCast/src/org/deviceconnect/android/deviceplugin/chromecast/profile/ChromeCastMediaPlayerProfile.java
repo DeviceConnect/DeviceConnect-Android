@@ -636,18 +636,14 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      * @return  パス
      */
     private String getPathFromUri(final Uri mUri) {
-        try {
-            String filename = null;
-            Cursor c = this.getContext().getContentResolver().query(mUri, null, null, null, null);
-            if (c != null) {
-                c.moveToFirst();
-                filename = c.getString(c.getColumnIndex(MediaStore.MediaColumns.DATA));
-                c.close();
-            }
-            return filename;
-        } catch (NullPointerException e) {
-            return null;
+        String filename = null;
+        Cursor c = this.getContext().getContentResolver().query(mUri, null, null, null, null);
+        if (c != null) {
+            c.moveToFirst();
+            filename = c.getString(c.getColumnIndex(MediaStore.MediaColumns.DATA));
+            c.close();
         }
+        return filename;
     }
 
     /**

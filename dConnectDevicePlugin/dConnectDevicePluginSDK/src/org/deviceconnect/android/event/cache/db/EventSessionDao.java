@@ -86,10 +86,8 @@ final class EventSessionDao implements EventSessionSchema {
             values.put(UPDATE_DATE, Utils.getCurreTimestamp().getTime());
             result = db.insert(TABLE_NAME, null, values);
         } else if (cursor.moveToFirst()) {
-            try {
+            if (cursor.getColumnIndex(_ID) != -1) {
                 result = cursor.getLong(0);
-            } catch (NumberFormatException e) {
-                result = -1L;
             }
         }
 
@@ -260,7 +258,7 @@ final class EventSessionDao implements EventSessionSchema {
         
         if (c.moveToFirst()) {
             result = new EventSession();
-            try {
+            if (c.getColumnIndex(_ID) != -1) {
                 result.mId = c.getLong(0);
                 result.mEdId = c.getLong(1);
                 result.mCId = c.getLong(2);
@@ -268,9 +266,7 @@ final class EventSessionDao implements EventSessionSchema {
                 long updateTime = c.getLong(4);
                 result.mCreateDate = new Timestamp(createTime);
                 result.mUpdateDate = new Timestamp(updateTime);
-            } catch (NullPointerException e) {
-                result = null;
-            }
+            } 
         }
         c.close();
         

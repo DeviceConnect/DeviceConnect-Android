@@ -155,21 +155,14 @@ public class ChromeCastMessage implements ChromeCastApplication.Callbacks {
      */
     public void sendMessage(final Intent response, final String message) {
         if (mApplication.getGoogleApiClient() != null && mMessageChannel != null) {
-            try {
-                Cast.CastApi.sendMessage(mApplication.getGoogleApiClient(),
-                        mMessageChannel.getNamespace(), message)
-                        .setResultCallback(new ResultCallback<Status>() {
-                            @Override
-                            public void onResult(final Status result) {
-                                mCallbacks.onChromeCastMessageResult(response, result, null);
-                            }
-                        });
-            } catch (NullPointerException e) {
-                mCallbacks.onChromeCastMessageResult(response, null, e.getMessage());
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-            }
+            Cast.CastApi.sendMessage(mApplication.getGoogleApiClient(),
+                    mMessageChannel.getNamespace(), message)
+                    .setResultCallback(new ResultCallback<Status>() {
+                        @Override
+                        public void onResult(final Status result) {
+                            mCallbacks.onChromeCastMessageResult(response, result, null);
+                        }
+                    });
         }
     }
 

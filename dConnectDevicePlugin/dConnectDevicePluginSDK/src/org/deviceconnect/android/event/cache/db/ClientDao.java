@@ -97,7 +97,7 @@ final class ClientDao implements ClientSchema {
             values.put(UPDATE_DATE, Utils.getCurreTimestamp().getTime());
             result = db.insert(TABLE_NAME, null, values);
         } else if (cursor.moveToFirst()) {
-            try {
+            if (cursor.getColumnIndex(_ID) != -1) {
                 result = cursor.getLong(0);
                 // アクセストークンは更新されるので、重複の場合は常に新しいものにアップデートしておく
                 ContentValues values = new ContentValues();
@@ -107,8 +107,6 @@ final class ClientDao implements ClientSchema {
                 if (count != 1) {
                     result = -1;
                 }
-            } catch (NullPointerException e) {
-                result = -1L;
             }
         }
         cursor.close();
@@ -133,15 +131,13 @@ final class ClientDao implements ClientSchema {
             int index = 0;
             result = new Client[c.getCount()];
             do {
-                try {
+                if (c.getColumnIndex(_ID) != -1) {
                     Client data = new Client();
                     data.mId = c.getLong(0);
                     data.mSessionKey = c.getString(1);
                     data.mAccessToken = c.getString(2);
                     data.mReceiver = c.getString(3);
                     result[index++] = data;
-                } catch (NullPointerException e) {
-                    result = null;
                 }
             } while (c.moveToNext());
         }
@@ -165,13 +161,11 @@ final class ClientDao implements ClientSchema {
 
         if (c.moveToFirst()) {
             result = new Client();
-            try {
+            if (c.getColumnIndex(_ID) != -1) {
                 result.mId = c.getLong(0);
                 result.mSessionKey = c.getString(1);
                 result.mAccessToken = c.getString(2);
                 result.mReceiver = c.getString(3);
-            } catch (NullPointerException e) {
-                result = null;
             }
         }
         c.close();
@@ -270,8 +264,8 @@ final class ClientDao implements ClientSchema {
             int index = 0;
             result = new Client[c.getCount()];
             do {
-                try {
-                    Client data = new Client();
+                 if (c.getColumnIndex(_ID) != -1) {
+                     Client data = new Client();
                     data.mId = c.getLong(0);
                     data.mSessionKey = c.getString(1);
                     data.mAccessToken = c.getString(2);
@@ -281,8 +275,6 @@ final class ClientDao implements ClientSchema {
                     data.mESCreateDate = new Timestamp(createTime);
                     data.mESUpdateDate = new Timestamp(updateTime);
                     result[index++] = data;
-                } catch (NullPointerException e) {
-                    result = null;
                 }
             } while (c.moveToNext());
         }

@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect 仮想サーバーNanoHTTPパッケージ.
+ * Device Connect 仮想サーバーNanoHTTPパッケージ.
  */
 package org.deviceconnect.server.nanohttpd;

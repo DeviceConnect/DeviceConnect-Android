@@ -95,7 +95,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /system/device?deviceId=123456789&deviceId=xxxx
+     * Path: /system/device?serviceId=123456789&serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -119,7 +119,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /system/device?deviceId=123456789&deviceId=xxxx
+     * Path: /system/device?serviceId=123456789&serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -139,7 +139,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを指定せずにデバイスのシステムプロファイルを取得する.
+     * serviceIdを指定せずにデバイスのシステムプロファイルを取得する.
      * <pre>
      * 【HTTP通信】
      * Method: GET
@@ -150,66 +150,66 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetSystemDeviceNoDeviceId() {
+    public void testGetSystemDeviceNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_DEVICE_ID.getCode(), root);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * deviceIdに空文字を指定してデバイスのシステムプロファイルを取得する.
+     * serviceIdに空文字を指定してデバイスのシステムプロファイルを取得する.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /system/device?deviceId=
+     * Path: /system/device?serviceId=
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetSystemDeviceEmptyDeviceId() {
+    public void testGetSystemDeviceEmptyServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
 
     /**
-     * 存在しないdeviceIdを指定してデバイスのシステムプロファイルを取得する.
+     * 存在しないserviceIdを指定してデバイスのシステムプロファイルを取得する.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /system/device?deviceId=123456789
+     * Path: /system/device?serviceId=123456789
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetSystemDeviceInvalidDeviceId() {
+    public void testGetSystemDeviceInvalidServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -220,7 +220,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /system/device?deviceId=xxxx&abc=abc
+     * Path: /system/device?serviceId=xxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -231,7 +231,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter("abc", "abc");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -247,11 +247,11 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * deviceIdを2重に指定してデバイスのシステムプロファイルを取得する.
+     * serviceIdを2重に指定してデバイスのシステムプロファイルを取得する.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /system/device?deviceId=123456789&deviceId=xxxx
+     * Path: /system/device?serviceId=123456789&serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -259,16 +259,16 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * ・resultに1が返ってくること。
      * </pre>
      */
-    public void testGetSystemDeviceDuplicatedDeviceId() {
+    public void testGetSystemDeviceDuplicatedServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, "123456789");
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_DEVICE.getCode(), root);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -279,7 +279,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /system/device?deviceId=123456789&deviceId=xxxx
+     * Path: /system/device?serviceId=123456789&serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -290,7 +290,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
@@ -305,7 +305,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /system/device?deviceId=123456789&deviceId=xxxx
+     * Path: /system/device?serviceId=123456789&serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -316,7 +316,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
@@ -331,7 +331,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /system/device?deviceId=123456789&deviceId=xxxx
+     * Path: /system/device?serviceId=123456789&serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -342,7 +342,7 @@ public class FailSystemProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(SystemProfileConstants.PROFILE_NAME);
         builder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);

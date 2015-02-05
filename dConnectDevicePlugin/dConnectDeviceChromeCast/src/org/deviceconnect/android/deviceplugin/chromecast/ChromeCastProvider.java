@@ -13,7 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 
 /**
- * サービスプロバイダー (Chromecast)
+ * サービスプロバイダー (Chromecast).
  * <p>
  * リクエストメッセージを受信し、レスポンスメッセージを送信するサービス
  * </p>

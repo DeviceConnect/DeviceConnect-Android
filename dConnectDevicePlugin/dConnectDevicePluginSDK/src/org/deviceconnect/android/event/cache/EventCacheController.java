@@ -53,7 +53,7 @@ public interface EventCacheController {
     /**
      * キャッシュから指定された条件に合うイベントデータを取得する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param profile プロファイル名
      * @param inter インターフェース名
      * @param attribute 属性名
@@ -61,19 +61,19 @@ public interface EventCacheController {
      * @param receiver レシーバー名
      * @return イベントデータ。条件に合うものが無い場合はnullを返す。
      */
-    Event getEvent(String deviceId, String profile, String inter, 
+    Event getEvent(String serviceId, String profile, String inter, 
             String attribute, String sessionKey, String receiver);
     
     /**
      * キャッシュから条件にあうイベントデータの一覧を取得する.
      * 
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param profile プロファイル名
      * @param inter インターフェース名
      * @param attribute 属性名
      * @return イベントデータの一覧。無い場合は空のリストを返す。
      */
-    List<Event> getEvents(String deviceId, String profile, String inter, String attribute);
+    List<Event> getEvents(String serviceId, String profile, String inter, String attribute);
     
     /**
      * キャッシュデータをフラッシュする.

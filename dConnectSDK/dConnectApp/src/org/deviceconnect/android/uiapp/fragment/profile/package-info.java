@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect プロファイルフラグメントパッケージ.
+ * Device Connect プロファイルフラグメントパッケージ.
  */
 package org.deviceconnect.android.uiapp.fragment.profile;

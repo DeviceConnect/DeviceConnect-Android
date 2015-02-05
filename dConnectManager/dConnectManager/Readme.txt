@@ -22,9 +22,9 @@ local.propertiesの修正ができたら、Antを実行することでビルド�
 2.アプリが起動すると同時にデバッグ用の画面が起動する。
 3.HttpMethod(GET,POST,PUT,DELETE,マルチパート)が選択できるので、呼び出すメソッドに合わせたMethodを選ぶ。
    マルチパート時は、自動的にassetsフォルダのtest.pngを送るようになっている。
-   このときのHTTPMethodはPOST。test.pngは自動的に付加されるが、deviceidなどの属性は付加されないため、
+   このときのHTTPMethodはPOST。test.pngは自動的に付加されるが、serviceIdなどの属性は付加されないため、
    次に説明するテキスト入力欄でGETのときのようにパラメータを指定すること。
-4.実行したいRESTAPIのパスを、「/method/profile?deviceid=xxxx」と出ているテキスト入力欄に、
+4.実行したいRESTAPIのパスを、「/method/profile?serviceId=xxxx」と出ているテキスト入力欄に、
 「http://ホスト名:ポート番号/」以下のパスのみ入力する。
    GETでもPOSTでもマルチパートでも、パラメータの指定の方式はKeyValueの形式で行うこと。
    デバッグアプリの方で内部的にそれぞれのHttpMethodの形式にあった形に変換している。
@@ -46,7 +46,7 @@ dConnectManagerを別アプリから使用する場合は、dConnectManagerの�
 以下のようなURLにHttpリクエストを投げること。
 
    例)
-      http://localhost:8080/{profile}/{interfaces}/{attribute}?deviceid=xxxxx
+      http://localhost:8080/{profile}/{interfaces}/{attribute}?serviceId=xxxxx
 
-{profile}/{interfaces}/{attribute}?deviceid=xxxxxについては、RESTfulAPI仕様書を確認のこと。
+{profile}/{interfaces}/{attribute}?serviceId=xxxxxについては、RESTfulAPI仕様書を確認のこと。
 もしくは、dConnectSDKのReadmeを参照。

@@ -10,10 +10,10 @@ package org.deviceconnect.android.deviceplugin.hue;
 import java.util.List;
 
 import org.deviceconnect.android.deviceplugin.hue.profile.HueLightProfile;
-import org.deviceconnect.android.deviceplugin.hue.profile.HueNetworkServceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.hue.profile.HueServceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hue.profile.HueSystemProfile;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
@@ -64,10 +64,13 @@ public class HueDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new HueNetworkServceDiscoveryProfile();
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new HueServceDiscoveryProfile();
     }
 
+    /**
+     * Hueのブリッジとの通信を管理するリスナー.
+     */
     private final PHSDKListener mPhListener = new PHSDKListener() {
 
         @Override

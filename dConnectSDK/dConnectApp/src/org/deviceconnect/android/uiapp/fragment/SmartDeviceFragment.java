@@ -31,7 +31,7 @@ public abstract class SmartDeviceFragment extends Fragment {
     private SmartDevice mDevice;
 
     /**
-     * d-Connectクライアント.
+     * Device Connectクライアント.
      */
     private DConnectClient mDConnectClient;
 
@@ -86,8 +86,8 @@ public abstract class SmartDeviceFragment extends Fragment {
     }
 
     /**
-     * d-Connectクライアントを取得する.
-     * @return d-Connectクライアント
+     * Device Connectクライアントを取得する.
+     * @return Device Connectクライアント
      */
     public DConnectClient getDConnectClient() {
         return mDConnectClient;

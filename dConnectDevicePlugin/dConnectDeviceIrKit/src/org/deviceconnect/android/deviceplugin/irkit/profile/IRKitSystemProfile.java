@@ -14,7 +14,6 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.SystemProfileConstants.ConnectState;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -41,10 +40,10 @@ public class IRKitSystemProfile extends SystemProfile {
     }
 
     @Override
-    protected ConnectState getWifiState(final String deviceId) {
+    protected ConnectState getWifiState(final String serviceId) {
         
         IRKitDeviceService service = (IRKitDeviceService) getContext();
-        IRKitDevice device = service.getDevice(deviceId);
+        IRKitDevice device = service.getDevice(serviceId);
         
         if (device != null) {
             return ConnectState.ON;

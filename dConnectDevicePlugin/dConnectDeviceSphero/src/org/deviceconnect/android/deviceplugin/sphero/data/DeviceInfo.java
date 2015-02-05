@@ -14,9 +14,10 @@ import orbotix.sphero.SensorControl;
 import orbotix.sphero.SensorFlag;
 import orbotix.sphero.SensorListener;
 import orbotix.sphero.Sphero;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.sphero.BuildConfig;
+
+import android.util.Log;
 
 /**
  * デバイス情報.

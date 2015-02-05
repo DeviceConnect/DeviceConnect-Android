@@ -26,7 +26,6 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;

@@ -14,162 +14,221 @@ import java.util.Map;
  * <p>
  * デフォルトでステータスコードはOK(200)に設定されている。
  * </p>
+ * 
  * @author NTT DOCOMO, INC.
  */
 public final class HttpResponse {
 
-	/** Content-Type. */
-	private String contentType;
+    /** Content-Type. */
+    private String mContentType;
 
-	/** body. */
-	private byte[] body;
+    /** body. */
+    private byte[] mBody;
 
-	/** ヘッダー群. */
-	private Map<String, String> headers;
+    /** ヘッダー群. */
+    private Map<String, String> mHeaders;
 
-	/** ステータスコード. */
-	private StatusCode code;
+    /** ステータスコード. */
+    private StatusCode mCode;
 
-	/**
-	 * HTTPレスポンスのステータスコード定数.
-	 * 
-	 * @author NTT DOCOMO, INC.
-	 * 
-	 */
-	public static enum StatusCode {
-		CONTINUE(100), SWITCHING_PROTOCOLS(101), OK(200), CREATED(201), ACCEPTED(
-				202), NON_AUTHORITATIVE_INFOMATIN(203), NO_CONTENT(204), RESET_CONTENT(
-				205), PARTIAL_CONTENT(206), MULTIPLE_CHOICES(300), MOVED_PERMANENTLY(
-				301), MOVED_TEMPORARILY(302), SEE_OTHER(303), NOT_MODIFIED(304), USE_PROXY(
-				305), BAD_REQUEST(400), UNAUTHORIZED(401), PAYMENT_REQUIRED(402), FORBIDDEN(
-				403), NOT_FOUND(404), METHOD_NOT_ALLOWED(405), NOT_ACCEPTABLE(
-				406), PROXY_AUTHENTICATION_REQUIRED(407), REQUEST_TIME_OUT(408), CONFICT(
-				409), GONE(410), LENGTH_REQUIRED(411), PRECONDITION_FAILED(412), REQUEST_ENTRY_TOO_LARGE(
-				413), REQUEST_URI_TOO_LARGE(414), UNSUPPORTED_MEDIA_TYPE(415), REQUEST_RANGE_NOT_SATISFIABLE(
-				416), EXPECTATION_FAILED(417), INTERNAL_SERVER_ERROR(500), NOT_IMPLEMENTED(
-				501), BAD_GATEWAY(502), SERVICE_UNAVAILABLE(503), GATEWAY_TIME_OUT(
-				504), HTTP_VERSION_NOT_SUPPORTED(505);
+    /**
+     * HTTPレスポンスのステータスコード定数.
+     * 
+     * @author NTT DOCOMO, INC.
+     * 
+     */
+    public static enum StatusCode {
+        /** Continue. */
+        CONTINUE(100),
+        /** Switching Protocols. */
+        SWITCHING_PROTOCOLS(101),
+        /** OK. */
+        OK(200),
+        /** Created. */
+        CREATED(201),
+        /** Accepted. */
+        ACCEPTED(202),
+        /** Non Authoritative Information. */
+        NON_AUTHORITATIVE_INFOMATIN(203),
+        /** No Content. */
+        NO_CONTENT(204),
+        /** Reset Content. */
+        RESET_CONTENT(205),
+        /** Partial Content. */
+        PARTIAL_CONTENT(206),
+        /** Multiple Choices. */
+        MULTIPLE_CHOICES(300),
+        /** Moved Permanentry. */
+        MOVED_PERMANENTLY(301),
+        /** Moved Temporarily. */
+        MOVED_TEMPORARILY(302),
+        /** See Other. */
+        SEE_OTHER(303),
+        /** Not Modified. */
+        NOT_MODIFIED(304),
+        /** Use Proxy. */
+        USE_PROXY(305),
+        /** Bad Request. */
+        BAD_REQUEST(400),
+        /** Unauthorized. */
+        UNAUTHORIZED(401),
+        /** Payment Required. */
+        PAYMENT_REQUIRED(402),
+        /** Forbidden. */
+        FORBIDDEN(403),
+        /** Not Found. */
+        NOT_FOUND(404),
+        /** Method Not Allowed. */
+        METHOD_NOT_ALLOWED(405),
+        /** Not Acceptable. */
+        NOT_ACCEPTABLE(406),
+        /** Proxy Authentication Required. */
+        PROXY_AUTHENTICATION_REQUIRED(407),
+        /** Request Time Out. */
+        REQUEST_TIME_OUT(408),
+        /** Confict. */
+        CONFICT(409),
+        /** GONE. */
+        GONE(410),
+        /** Length Required. */
+        LENGTH_REQUIRED(411),
+        /** Precondition Failed. */
+        PRECONDITION_FAILED(412),
+        /** Request Entry Too Large. */
+        REQUEST_ENTRY_TOO_LARGE(413),
+        /** Request URI Too Large. */
+        REQUEST_URI_TOO_LARGE(414),
+        /** Unsupported Media Type. */
+        UNSUPPORTED_MEDIA_TYPE(415),
+        /** Request Range Not Satisfiable. */
+        REQUEST_RANGE_NOT_SATISFIABLE(416),
+        /** Expectation Failed. */
+        EXPECTATION_FAILED(417),
+        /** Internal Server Error. */
+        INTERNAL_SERVER_ERROR(500),
+        /** Not Implemented. */
+        NOT_IMPLEMENTED(501),
+        /** Bad Gateway. */
+        BAD_GATEWAY(502),
+        /** Service Unavailable. */
+        SERVICE_UNAVAILABLE(503),
+        /** Gateway Time Out. */
+        GATEWAY_TIME_OUT(504),
+        /** HTTP Version Not Supported. */
+        HTTP_VERSION_NOT_SUPPORTED(505);
 
-		/** ステータスコード. */
-		private final int mCode;
+        /** ステータスコード. */
+        private final int mStatusCode;
 
-		/**
-		 * コンストラクタ.
-		 * 
-		 * @param code
-		 *            ステータスコード値
-		 */
-		private StatusCode(int code) {
-			mCode = code;
-		}
+        /**
+         * コンストラクタ.
+         * 
+         * @param code ステータスコード値
+         */
+        private StatusCode(final int code) {
+            mStatusCode = code;
+        }
 
-		/**
-		 * ステータスコード値を取得する.
-		 * 
-		 * @return ステータスコード
-		 */
-		public int getCode() {
-			return mCode;
-		}
-	}
+        /**
+         * ステータスコード値を取得する.
+         * 
+         * @return ステータスコード
+         */
+        public int getCode() {
+            return mStatusCode;
+        }
+    }
 
-	/**
-	 * コンストラクタ.
-	 */
-	public HttpResponse() {
-		headers = new HashMap<String, String>();
-		code = StatusCode.OK;
-	}
+    /**
+     * コンストラクタ.
+     */
+    public HttpResponse() {
+        mHeaders = new HashMap<String, String>();
+        mCode = StatusCode.OK;
+    }
 
-	/**
-	 * Content-Typeを取得する.
-	 * 
-	 * @return Content-Type
-	 */
-	public String getContentType() {
-		return contentType;
-	}
+    /**
+     * Content-Typeを取得する.
+     * 
+     * @return Content-Type
+     */
+    public String getContentType() {
+        return mContentType;
+    }
 
-	/**
-	 * Content-Typeを設定する.
-	 * 
-	 * @param contentType
-	 *            設定するContent-Type
-	 */
-	public void setContentType(String contentType) {
-		this.contentType = contentType;
-	}
+    /**
+     * Content-Typeを設定する.
+     * 
+     * @param contentType 設定するContent-Type
+     */
+    public void setContentType(final String contentType) {
+        this.mContentType = contentType;
+    }
 
-	/**
-	 * Bodyを取得する.
-	 * 
-	 * @return Bodyのデータ
-	 */
-	public byte[] getBody() {
-		return body;
-	}
+    /**
+     * Bodyを取得する.
+     * 
+     * @return Bodyのデータ
+     */
+    public byte[] getBody() {
+        return mBody;
+    }
 
-	/**
-	 * Bodyを設定する.
-	 * 
-	 * @param body
-	 *            設定するBodyのデータ
-	 */
-	public void setBody(byte[] body) {
-		this.body = body;
-	}
+    /**
+     * Bodyを設定する.
+     * 
+     * @param body 設定するBodyのデータ
+     */
+    public void setBody(final byte[] body) {
+        this.mBody = body;
+    }
 
-	/**
-	 * レスポンスにヘッダーを追加する.
-	 * 当メソッドではContent-Typeを追加しない。Content-Typeを設定する場合はsetContentTypeを使うこと。
-	 * 
-	 * @param name
-	 *            ヘッダー名
-	 * @param value
-	 *            値
-	 * @throws IllegalArgumentException
-	 *             引数値がnullの場合スローされる。
-	 */
-	public void addHeader(String name, String value) {
+    /**
+     * レスポンスにヘッダーを追加する.
+     * 当メソッドではContent-Typeを追加しない。Content-Typeを設定する場合はsetContentTypeを使うこと。
+     * 
+     * @param name ヘッダー名
+     * @param value 値
+     */
+    public void addHeader(final String name, final String value) {
 
-		if (name == null || value == null) {
-			String argName = name == null ? "name" : "value";
-			throw new IllegalArgumentException(argName + " must not be null.");
-		}
+        if (name == null || value == null) {
+            String argName = name == null ? "name" : "value";
+            throw new IllegalArgumentException(argName + " must not be null.");
+        }
 
-		// Content-Typeは別に変数としてセットさせるため、ヘッダーには入れさせない
-		if ("content-type".equals(name.toLowerCase())) {
-			return;
-		}
+        // Content-Typeは別に変数としてセットさせるため、ヘッダーには入れさせない
+        if ("content-type".equals(name.toLowerCase())) {
+            return;
+        }
 
-		headers.put(name, value);
-	}
+        mHeaders.put(name, value);
+    }
 
-	/**
-	 * ヘッダーを取得する.
-	 * 
-	 * @return ヘッダーのマップオブジェクト。
-	 */
-	public Map<String, String> getHeaders() {
-		return headers;
-	}
+    /**
+     * ヘッダーを取得する.
+     * 
+     * @return ヘッダーのマップオブジェクト。
+     */
+    public Map<String, String> getHeaders() {
+        return mHeaders;
+    }
 
-	/**
-	 * ステータスコードを取得する.
-	 * 
-	 * @return ステータスコード
-	 */
-	public StatusCode getCode() {
-		return code;
-	}
+    /**
+     * ステータスコードを取得する.
+     * 
+     * @return ステータスコード
+     */
+    public StatusCode getCode() {
+        return mCode;
+    }
 
-	/**
-	 * ステータスコードを設定する.
-	 * 
-	 * @param code
-	 *            ステータスコード
-	 */
-	public void setCode(StatusCode code) {
-		this.code = code;
-	}
+    /**
+     * ステータスコードを設定する.
+     * 
+     * @param code ステータスコード
+     */
+    public void setCode(final StatusCode code) {
+        this.mCode = code;
+    }
 }

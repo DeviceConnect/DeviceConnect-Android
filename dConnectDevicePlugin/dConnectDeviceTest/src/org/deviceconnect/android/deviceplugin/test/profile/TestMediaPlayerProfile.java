@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.test.profile;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.MediaPlayerProfileConstants.PlayStatus;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,22 +21,22 @@ import android.text.TextUtils;
 public class TestMediaPlayerProfile extends MediaPlayerProfile {
     
     /**
-     * デバイスIDをチェックする.
+     * サービスIDをチェックする.
      * 
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkDeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkServiceId(final String serviceId) {
+        return TestServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptyDeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response, "Device ID is empty.");
+    private void createEmptyServiceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response, "Service ID is empty.");
     }
 
     /**
@@ -45,19 +44,19 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response, "Device is not found.");
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response, "Service is not found.");
     }
     
     
 
     @Override
-    protected boolean onPutPlay(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onPutPlay(final Intent request, final Intent response, final String serviceId) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -66,11 +65,11 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutStop(Intent request, Intent response, String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onPutStop(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -78,11 +77,11 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutPause(Intent request, Intent response, String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onPutPause(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -90,11 +89,11 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutResume(Intent request, Intent response, String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onPutResume(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -102,12 +101,12 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetPlayStatus(Intent request, Intent response, String deviceId) {
+    protected boolean onGetPlayStatus(final Intent request, final Intent response, final String serviceId) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setStatus(response, PlayStatus.PLAY);
@@ -117,12 +116,13 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutMedia(Intent request, Intent response, String deviceId, String mediaId) {
+    protected boolean onPutMedia(final Intent request, final Intent response,
+                                    final String serviceId, final String mediaId) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (TextUtils.isEmpty(mediaId)) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -132,12 +132,13 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetMedia(Intent request, Intent response, String deviceId, String mediaId) {
+    protected boolean onGetMedia(final Intent request, final Intent response,
+                                        final String serviceId, final String mediaId) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (TextUtils.isEmpty(mediaId)) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -160,13 +161,14 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetMediaList(Intent request, Intent response, String deviceId, String query, String mimeType,
-            String[] orders, Integer offset, Integer limit) {
+    protected boolean onGetMediaList(final Intent request, final Intent response,
+            final String serviceId, final String query, final String mimeType,
+            final String[] orders, final Integer offset, final Integer limit) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setCount(response, 1);
@@ -191,12 +193,13 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutVolume(Intent request, Intent response, String deviceId, Double volume) {
+    protected boolean onPutVolume(final Intent request, final Intent response,
+                                    final String serviceId, final Double volume) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (volume == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else if (0.0 > volume || volume > 1.0) {
@@ -208,27 +211,28 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetVolume(Intent request, Intent response, String deviceId) {
+    protected boolean onGetVolume(final Intent request, final Intent response, final String serviceId) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
-            setVolume(response, 0.5);    
+            setVolume(response, 0.5);
         }
         
         return true;
     }
 
     @Override
-    protected boolean onPutSeek(Intent request, Intent response, String deviceId, Integer pos) {
+    protected boolean onPutSeek(final Intent request, final Intent response,
+                                            final String serviceId, final Integer pos) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (pos == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else if (0 > pos) {
@@ -242,12 +246,12 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetSeek(Intent request, Intent response, String deviceId) {
+    protected boolean onGetSeek(final Intent request, final Intent response, final String serviceId) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setPos(response, 0);
@@ -257,12 +261,12 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutMute(Intent request, Intent response, String deviceId) {
+    protected boolean onPutMute(final Intent request, final Intent response, final String serviceId) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -271,11 +275,11 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onDeleteMute(Intent request, Intent response, String deviceId) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onDeleteMute(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -283,12 +287,12 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetMute(Intent request, Intent response, String deviceId) {
+    protected boolean onGetMute(final Intent request, final Intent response, final String serviceId) {
         
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setResult(response, DConnectMessage.RESULT_OK);
             setMute(response, true);
@@ -298,12 +302,13 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutOnStatusChange(Intent request, Intent response, String deviceId, String sessionKey) {
+    protected boolean onPutOnStatusChange(final Intent request, final Intent response,
+                                                    final String serviceId, final String sessionKey) {
 
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -312,7 +317,7 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
             // テスト用イベントメッセージを1秒後にブロードキャスト
             Intent message = MessageUtils.createEventIntent();
             setSessionKey(message, sessionKey);
-            setDeviceID(message, deviceId);
+            setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_STATUS_CHANGE);
             Bundle mediaPlayer = new Bundle();
@@ -329,11 +334,12 @@ public class TestMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onDeleteOnStatusChange(Intent request, Intent response, String deviceId, String sessionKey) {
-        if (deviceId == null) {
-            createEmptyDeviceId(response);
-        } else if (!checkDeviceId(deviceId)) {
-            createNotFoundDevice(response);
+    protected boolean onDeleteOnStatusChange(final Intent request, final Intent response,
+                                                final String serviceId, final String sessionKey) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {

@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-ConnectのTest用Profile.
+ * Device ConnectのTest用Profile.
  */
 package org.deviceconnect.android.deviceplugin.test.profile;

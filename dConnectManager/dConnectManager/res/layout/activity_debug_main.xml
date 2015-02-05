@@ -102,7 +102,7 @@
             android:layout_weight="2"
             android:enabled="false" />
     </LinearLayout>
-    <!-- deviceid -->
+    <!-- serviceid -->
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -115,7 +115,7 @@
             android:layout_gravity="center"
             android:layout_weight="2"
             android:gravity="center"
-            android:text="@string/deviceid"
+            android:text="@string/serviceid"
             android:textSize="20sp" />
 
         <Spinner

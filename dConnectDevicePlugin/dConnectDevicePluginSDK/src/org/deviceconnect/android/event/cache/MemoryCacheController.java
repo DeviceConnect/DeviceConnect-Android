@@ -24,15 +24,15 @@ import org.deviceconnect.android.event.EventError;
 public class MemoryCacheController extends BaseCacheController {
 
     /**
-     * イベントマップ. deviceId毎にイベントの種類をキーにイベント情報を管理する。
+     * イベントマップ. serviceId毎にイベントの種類をキーにイベント情報を管理する。
      * 
      */
     private Map<String, Map<String, List<Event>>> mEventMap;
     
     /** 
-     * 空のデバイスID用キー.
+     * 空のサービスID用キー.
      */
-    private static final String NULL_DEVICE_ID = "__null";
+    private static final String NULL_SERVICE_ID = "__null";
     
     /** 
      * 空のレシーバー用キー.
@@ -47,18 +47,18 @@ public class MemoryCacheController extends BaseCacheController {
     }
     
     /**
-     * イベント情報からデバイスIDを取得する.
-     * デバイスIDが無い場合はnullを示す特殊な文字列を返す。
+     * イベント情報からサービスIDを取得する.
+     * サービスIDが無い場合はnullを示す特殊な文字列を返す。
      * 
      * @param event イベントデータ
-     * @return デバイスID
+     * @return サービスID
      */
-    private String getDeviceId(final Event event) {
-        String deviceId = event.getDeviceId();
-        if (deviceId == null) {
-            deviceId = NULL_DEVICE_ID;
+    private String getServiceId(final Event event) {
+        String serviceId = event.getServiceId();
+        if (serviceId == null) {
+            serviceId = NULL_SERVICE_ID;
         }
-        return deviceId;
+        return serviceId;
     }
     
     /**
@@ -83,12 +83,12 @@ public class MemoryCacheController extends BaseCacheController {
             return EventError.INVALID_PARAMETER;
         }
         
-        String deviceId = getDeviceId(event);
-        Map<String, List<Event>> events = mEventMap.get(deviceId);
+        String serviceId = getServiceId(event);
+        Map<String, List<Event>> events = mEventMap.get(serviceId);
         
         if (events == null) {
             events = new HashMap<String, List<Event>>();
-            mEventMap.put(deviceId, events);
+            mEventMap.put(serviceId, events);
         }
         
         String path = event.getProfile();
@@ -127,8 +127,8 @@ public class MemoryCacheController extends BaseCacheController {
             return EventError.INVALID_PARAMETER;
         }
         
-        String deviceId = getDeviceId(event);
-        Map<String, List<Event>> events = mEventMap.get(deviceId);
+        String serviceId = getServiceId(event);
+        Map<String, List<Event>> events = mEventMap.get(serviceId);
         
         if (events == null) {
             return EventError.NOT_FOUND;
@@ -161,7 +161,7 @@ public class MemoryCacheController extends BaseCacheController {
     }
 
     @Override
-    public synchronized Event getEvent(final String deviceId, final String profile, final String inter, 
+    public synchronized Event getEvent(final String serviceId, final String profile, final String inter, 
             final String attribute, final String sessionKey, final String receiver) {
         Event event = null;
         String tmpReceiver = receiver;
@@ -170,7 +170,7 @@ public class MemoryCacheController extends BaseCacheController {
         }
         
         do {
-            List<Event> eventList = getEvents(deviceId, profile, inter, attribute);
+            List<Event> eventList = getEvents(serviceId, profile, inter, attribute);
             if (eventList == null) {
                 break;
             }
@@ -187,14 +187,14 @@ public class MemoryCacheController extends BaseCacheController {
     }
 
     @Override
-    public synchronized List<Event> getEvents(final String deviceId, final String profile, 
+    public synchronized List<Event> getEvents(final String serviceId, final String profile, 
             final String inter, final String attribute) {
         
-        String tmpDeviceId = deviceId;
-        if (deviceId == null) {
-            tmpDeviceId = NULL_DEVICE_ID;
+        String tmpServiceId = serviceId;
+        if (serviceId == null) {
+            tmpServiceId = NULL_SERVICE_ID;
         }
-        Map<String, List<Event>> events = mEventMap.get(tmpDeviceId);
+        Map<String, List<Event>> events = mEventMap.get(tmpServiceId);
         
         if (events == null) {
             return new ArrayList<Event>();
@@ -226,7 +226,7 @@ public class MemoryCacheController extends BaseCacheController {
     
     /**
      * イベントデータのキャッシュオブジェクトを取得する.
-     * Map&lt;deviceId, Map&lt;profile+interface+attribute, List&lt;Event&gt;&gt;&gt;。
+     * Map&lt;serviceId, Map&lt;profile+interface+attribute, List&lt;Event&gt;&gt;&gt;。
      * 
      * @return キャッシュ
      */

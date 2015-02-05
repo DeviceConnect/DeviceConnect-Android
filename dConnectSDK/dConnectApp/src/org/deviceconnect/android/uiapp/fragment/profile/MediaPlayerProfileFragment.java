@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.deviceconnect.android.uiapp.BuildConfig;
 import org.deviceconnect.android.uiapp.R;
 import org.deviceconnect.android.uiapp.fragment.SmartDeviceFragment;
 import org.deviceconnect.message.DConnectMessage;
@@ -24,7 +24,7 @@ import org.deviceconnect.message.basic.message.DConnectResponseMessage;
 import org.deviceconnect.message.http.impl.factory.HttpMessageFactory;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
-
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -96,7 +96,8 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
         mListView = (ListView) view.findViewById(R.id.listview);
         mListView.setAdapter(mListAdapter);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
+            @SuppressWarnings("unchecked")
+			@Override
             public void onItemClick(final AdapterView<?> parent, final View view,
                     final int position, final long id) {
                 mCurrent = (Map<String, Object>) mListAdapter.getItem(position);
@@ -149,12 +150,12 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
          * @throws IOException I/Oエラーが発生した場合
          */
         private DConnectMessage getMediaList() throws IOException {
-            String deviceId = getSmartDevice().getId();
+            String serviceId = getSmartDevice().getId();
 
             URIBuilder builder = new URIBuilder();
             builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
             builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA_LIST);
-            builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+            builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
             builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
             DConnectMessage message = null;
@@ -217,14 +218,16 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
             return position;
         }
 
-        @Override
+        @SuppressLint("InflateParams")
+		@Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
             View view = convertView;
             if (view == null) {
                 view = mInflater.inflate(R.layout.fragment_file_item, null);
             }
 
-            final Map<String, Object> item = (Map<String, Object>) getItem(position);
+            @SuppressWarnings("unchecked")
+			final Map<String, Object> item = (Map<String, Object>) getItem(position);
             if (item != null) {
                 TextView nameText = (TextView) view.findViewById(R.id.text1);
                 nameText.setText((String) item.get(MediaPlayerProfileConstants.PARAM_TITLE));
@@ -240,21 +243,26 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
         mExecService.execute(new Runnable() {
             @Override
             public void run() {
-                String deviceId = getSmartDevice().getId();
+                String serviceId = getSmartDevice().getId();
 
                 URIBuilder builder = new URIBuilder();
                 builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
                 builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PLAY);
-                builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+                builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
                 builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-                DConnectMessage message = null;
                 try {
                     HttpResponse response = getDConnectClient().execute(
                             getDefaultHost(), new HttpPut(builder.build()));
-                    message = (new HttpMessageFactory()).newDConnectMessage(response);
+                   (new HttpMessageFactory()).newDConnectMessage(response);
                 } catch (URISyntaxException e) {
+                	if (BuildConfig.DEBUG) {
+                		e.printStackTrace();
+                	}
                 } catch (IOException e) {
+                	if (BuildConfig.DEBUG) {
+                		e.printStackTrace();
+                	}
                 }
             }
         });
@@ -267,21 +275,26 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
         mExecService.execute(new Runnable() {
             @Override
             public void run() {
-                String deviceId = getSmartDevice().getId();
+                String serviceId = getSmartDevice().getId();
 
                 URIBuilder builder = new URIBuilder();
                 builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
                 builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_PAUSE);
-                builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+                builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
                 builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-                DConnectMessage message = null;
                 try {
                     HttpResponse response = getDConnectClient().execute(
                             getDefaultHost(), new HttpPut(builder.build()));
-                    message = (new HttpMessageFactory()).newDConnectMessage(response);
+                    (new HttpMessageFactory()).newDConnectMessage(response);
                 } catch (URISyntaxException e) {
+                	if (BuildConfig.DEBUG) {
+                		e.printStackTrace();
+                	}
                 } catch (IOException e) {
+                	if (BuildConfig.DEBUG) {
+                		e.printStackTrace();
+                	}
                 }
             }
         });
@@ -298,13 +311,13 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
                     return;
                 }
 
-                String deviceId = getSmartDevice().getId();
+                String serviceId = getSmartDevice().getId();
                 String mediaId = (String) mCurrent.get(MediaPlayerProfileConstants.PARAM_MEDIA_ID);
                 
                 URIBuilder builder = new URIBuilder();
                 builder.setProfile(MediaPlayerProfileConstants.PROFILE_NAME);
                 builder.setAttribute(MediaPlayerProfileConstants.ATTRIBUTE_MEDIA);
-                builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, deviceId);
+                builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
                 builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
                 builder.addParameter(MediaPlayerProfileConstants.PARAM_MEDIA_ID, mediaId);
 
@@ -317,7 +330,13 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
                         playMedia();
                     }
                 } catch (URISyntaxException e) {
+                	if (BuildConfig.DEBUG) {
+                		e.printStackTrace();
+                	}
                 } catch (IOException e) {
+                	if (BuildConfig.DEBUG) {
+                		e.printStackTrace();
+                	}
                 }
             }
         });

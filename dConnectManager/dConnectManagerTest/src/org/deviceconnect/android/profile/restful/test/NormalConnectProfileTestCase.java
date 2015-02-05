@@ -52,7 +52,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_WIFI);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -84,7 +84,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_WIFI);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -115,7 +115,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_WIFI);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -146,7 +146,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -183,7 +183,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_WIFI_CHANGE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -217,7 +217,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -249,7 +249,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -280,7 +280,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -311,7 +311,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -348,7 +348,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -382,7 +382,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -414,7 +414,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLUETOOTH);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_DISCOVERABLE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -446,7 +446,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_NFC);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -478,7 +478,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_NFC);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -509,7 +509,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_NFC);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -540,7 +540,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -577,7 +577,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_NFC_CHANGE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -611,7 +611,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -643,7 +643,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -674,7 +674,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_BLE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
         try {
@@ -705,7 +705,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -742,7 +742,7 @@ public class NormalConnectProfileTestCase extends RESTfulDConnectTestCase {
         builder.append("/" + ConnectProfileConstants.PROFILE_NAME);
         builder.append("/" + ConnectProfileConstants.ATTRIBUTE_ON_BLE_CHANGE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");

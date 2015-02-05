@@ -10,11 +10,37 @@ package org.deviceconnect.android.deviceplugin.sw.profile;
  * SWの画面サイズ.
  */
 class DisplaySize {
-    public final int width;
-    public final int height;
+    /**
+     * SW's Display Width.
+     */
+    private final int mWidth;
+    /**
+     * SW's Display Height.
+     */
+    private final int mHeight;
 
-    public DisplaySize(int w, int h) {
-        width = w;
-        height = h;
+    /**
+     * Constructor.
+     * @param w Width
+     * @param h height
+     */
+    public DisplaySize(final int w, final int h) {
+        mWidth = w;
+        mHeight = h;
+    }
+    /**
+     * Get Width.
+     * @return width
+     */
+    public int getWidth() {
+        return mWidth;
+    }
+
+    /**
+     * Get Height.
+     * @return height
+     */
+    public int getHeight() {
+        return mHeight;
     }
 }

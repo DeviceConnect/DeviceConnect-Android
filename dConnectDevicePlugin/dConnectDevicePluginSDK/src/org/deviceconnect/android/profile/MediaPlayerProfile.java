@@ -45,26 +45,26 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_MEDIA)) {
                 String mediaId = getMediaId(request);
-                result = onGetMedia(request, response, deviceId, mediaId);
+                result = onGetMedia(request, response, serviceId, mediaId);
             } else if (attribute.equals(ATTRIBUTE_MEDIA_LIST)) {
                 String query = getQuery(request);
                 String mimeType = getMIMEType(request);
                 String[] orders = getOrder(request);
                 Integer offset = getOffset(request);
                 Integer limit = getLimit(request);
-                result = onGetMediaList(request, response, deviceId, query, 
+                result = onGetMediaList(request, response, serviceId, query, 
                         mimeType, orders, offset, limit);
             } else if (attribute.equals(ATTRIBUTE_PLAY_STATUS)) {
-                result = onGetPlayStatus(request, response, deviceId);
+                result = onGetPlayStatus(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_SEEK)) {
-                result = onGetSeek(request, response, deviceId);
+                result = onGetSeek(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_VOLUME)) {
-                result = onGetVolume(request, response, deviceId);
+                result = onGetVolume(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_MUTE)) {
-                result = onGetMute(request, response, deviceId);
+                result = onGetMute(request, response, serviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -81,29 +81,29 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_MEDIA)) {
                 String mediaId = getMediaId(request);
-                result = onPutMedia(request, response, deviceId, mediaId);
+                result = onPutMedia(request, response, serviceId, mediaId);
             } else if (attribute.equals(ATTRIBUTE_PLAY)) {
-                result = onPutPlay(request, response, deviceId);
+                result = onPutPlay(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_STOP)) {
-                result = onPutStop(request, response, deviceId);
+                result = onPutStop(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_PAUSE)) {
-                result = onPutPause(request, response, deviceId);
+                result = onPutPause(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_RESUME)) {
-                result = onPutResume(request, response, deviceId);
+                result = onPutResume(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_SEEK)) {
                 Integer pos = getPos(request);
-                result = onPutSeek(request, response, deviceId, pos);
+                result = onPutSeek(request, response, serviceId, pos);
             } else if (attribute.equals(ATTRIBUTE_VOLUME)) {
                 Double volume = getVolume(request);
-                result = onPutVolume(request, response, deviceId, volume);
+                result = onPutVolume(request, response, serviceId, volume);
             } else if (attribute.equals(ATTRIBUTE_MUTE)) {
-                result = onPutMute(request, response, deviceId);
+                result = onPutMute(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_ON_STATUS_CHANGE)) {
                 String sessionKey = getSessionKey(request);
-                result = onPutOnStatusChange(request, response, deviceId, sessionKey);
+                result = onPutOnStatusChange(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -119,12 +119,12 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
         if (attribute == null) {
             MessageUtils.setUnknownAttributeError(response);
         } else {
-            String deviceId = getDeviceID(request);
+            String serviceId = getServiceID(request);
             if (attribute.equals(ATTRIBUTE_MUTE)) {
-                result = onDeleteMute(request, response, deviceId);
+                result = onDeleteMute(request, response, serviceId);
             } else if (attribute.equals(ATTRIBUTE_ON_STATUS_CHANGE)) {
                 String sessionKey = getSessionKey(request);
-                result = onDeleteOnStatusChange(request, response, deviceId, sessionKey);
+                result = onDeleteOnStatusChange(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -145,12 +145,12 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param mediaId メディアID
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onGetMedia(final Intent request, final Intent response,
-            final String deviceId, final String mediaId) {
+            final String serviceId, final String mediaId) {
         setUnsupportedError(response);
         return true;
     }
@@ -200,7 +200,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param query クエリ
      * @param mimeType マイムタイプ
      * @param orders オーダー
@@ -208,7 +208,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * @param limit リミット
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetMediaList(final Intent request, final Intent response, final String deviceId,
+    protected boolean onGetMediaList(final Intent request, final Intent response, final String serviceId,
             final String query, final String mimeType, final String[] orders, 
             final Integer offset, final Integer limit) {
         setUnsupportedError(response);
@@ -228,10 +228,10 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetPlayStatus(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetPlayStatus(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -249,10 +249,10 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetSeek(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetSeek(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -270,10 +270,10 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetVolume(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetVolume(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -291,10 +291,10 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetMute(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onGetMute(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -312,12 +312,12 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param mediaId メディアID
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutMedia(final Intent request, final Intent response,
-            final String deviceId, final String mediaId) {
+            final String serviceId, final String mediaId) {
         setUnsupportedError(response);
         return true;
     }
@@ -340,11 +340,11 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutPlay(final Intent request, final Intent response,
-            final String deviceId) {
+            final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -367,11 +367,11 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutStop(final Intent request, final Intent response,
-            final String deviceId) {
+            final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -394,11 +394,11 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutPause(final Intent request, final Intent response,
-            final String deviceId) {
+            final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -421,11 +421,11 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutResume(final Intent request, final Intent response,
-            final String deviceId) {
+            final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -447,11 +447,11 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param pos 再生位置
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutSeek(final Intent request, final Intent response, final String deviceId, final Integer pos) {
+    protected boolean onPutSeek(final Intent request, final Intent response, final String serviceId, final Integer pos) {
         setUnsupportedError(response);
         return true;
     }
@@ -473,12 +473,12 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param volume ボリューム
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutVolume(final Intent request, final Intent response,
-            final String deviceId, final Double volume) {
+            final String serviceId, final Double volume) {
         setUnsupportedError(response);
         return true;
     }
@@ -496,10 +496,10 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutMute(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onPutMute(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -517,12 +517,12 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutOnStatusChange(final Intent request, final Intent response,
-            final String deviceId, final String sessionKey) {
+            final String serviceId, final String sessionKey) {
         setUnsupportedError(response);
         return true;
     }
@@ -540,10 +540,10 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteMute(final Intent request, final Intent response, final String deviceId) {
+    protected boolean onDeleteMute(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -561,12 +561,12 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
-     * @param deviceId デバイスID
+     * @param serviceId サービスID
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onDeleteOnStatusChange(final Intent request, final Intent response,
-            final String deviceId, final String sessionKey) {
+            final String serviceId, final String sessionKey) {
         setUnsupportedError(response);
         return true;
     }

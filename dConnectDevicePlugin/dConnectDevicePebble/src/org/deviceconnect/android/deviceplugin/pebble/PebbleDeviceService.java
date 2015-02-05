@@ -11,7 +11,7 @@ import java.util.Set;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleBatteryProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleCanvasProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleNetworkServceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleServceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleNotificationProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSettingProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSystemProfile;
@@ -24,7 +24,7 @@ import android.bluetooth.BluetoothDevice;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.NetworkServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -69,8 +69,8 @@ public class PebbleDeviceService extends DConnectMessageService {
     }
 
     @Override
-    protected NetworkServiceDiscoveryProfile getNetworkServiceDiscoveryProfile() {
-        return new PebbleNetworkServceDiscoveryProfile(this);
+    protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
+        return new PebbleServceDiscoveryProfile(this);
     }
 
     /**
@@ -83,7 +83,7 @@ public class PebbleDeviceService extends DConnectMessageService {
     }
     
     /**
-     * 現在接続されているPebbleのデバイスIDを取得する.
+     * 現在接続されているPebbleのサービスIDを取得する.
      * <p>
      * 発見されない場合にはnullを返却する。
      * </p>
@@ -92,9 +92,9 @@ public class PebbleDeviceService extends DConnectMessageService {
      * PebbleKitでは、命令を識別して出す機能はない。<br/>
      * 基本は1対1で考える。<br/>
      * </p>
-     * @return デバイスID
+     * @return サービスID
      */
-    public String getDeviceId() {
+    public String getServiceId() {
         BluetoothAdapter defaultAdapter = BluetoothAdapter.getDefaultAdapter();
         Set<BluetoothDevice> bondedDevices = defaultAdapter.getBondedDevices();
         if (bondedDevices.size() > 0) {
@@ -102,9 +102,9 @@ public class PebbleDeviceService extends DConnectMessageService {
                 String deviceName = device.getName();
                 String deviceAddress = device.getAddress();
                 // URIに使えるように、Macアドレスの":"を取り除いて小文字に変換する 
-                String deviceid = deviceAddress.replace(":", "").toLowerCase();
+                String serviceId = deviceAddress.replace(":", "").toLowerCase();
                 if (deviceName.indexOf("Pebble") != -1) {
-                    return PebbleNetworkServceDiscoveryProfile.DEVICE_ID + deviceid;
+                    return PebbleServceDiscoveryProfile.SERVICE_ID + serviceId;
                 }
             }
         }

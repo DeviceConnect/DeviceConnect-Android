@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect 仮想サーバーHTTPデータパッケージ.
+ * Device Connect  仮想サーバーHTTPデータパッケージ.
  */
 package org.deviceconnect.server.http;

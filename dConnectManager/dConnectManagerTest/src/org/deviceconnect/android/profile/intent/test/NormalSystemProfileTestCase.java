@@ -28,7 +28,7 @@ public class NormalSystemProfileTestCase extends IntentDConnectTestCase
     implements TestSystemProfileConstants {
 
     /** テスト用デバイスプラグインID. */
-    private String testPluginID;
+    private String mTestPluginID;
 
     /**
      * コンストラクタ.
@@ -74,7 +74,7 @@ public class NormalSystemProfileTestCase extends IntentDConnectTestCase
         assertNotNull(testPlugin);
         String id = testPlugin.getString(SystemProfileConstants.PARAM_ID);
         assertNotNull(id);
-        testPluginID = id;
+        mTestPluginID = id;
         assertNotNull(testPlugin.getString(SystemProfileConstants.PARAM_NAME));
     }
 
@@ -94,7 +94,7 @@ public class NormalSystemProfileTestCase extends IntentDConnectTestCase
      */
     public void testGetSystemDevice() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_DEVICE_ID, getDeviceId());
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SystemProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SystemProfileConstants.ATTRIBUTE_DEVICE);
         Intent response = sendRequest(request);
@@ -131,7 +131,7 @@ public class NormalSystemProfileTestCase extends IntentDConnectTestCase
     public void testPutSystemWakeup() {
         testGetSystem();
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
-        request.putExtra(SystemProfileConstants.PARAM_PLUGIN_ID, testPluginID);
+        request.putExtra(SystemProfileConstants.PARAM_PLUGIN_ID, mTestPluginID);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, SystemProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_INTERFACE, SystemProfileConstants.ATTRIBUTE_DEVICE);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, SystemProfileConstants.ATTRIBUTE_WAKEUP);

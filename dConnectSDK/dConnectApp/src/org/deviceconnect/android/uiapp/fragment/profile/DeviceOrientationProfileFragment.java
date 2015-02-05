@@ -78,7 +78,7 @@ public class DeviceOrientationProfileFragment extends SmartDeviceFragment {
                     builder.setPort(getPort());
                     builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
                     builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
-                    builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+                    builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
                     builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
                     builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
                     HttpResponse response = HttpEventManager.INSTANCE.registerEvent(builder, new EventHandler() {
@@ -131,7 +131,7 @@ public class DeviceOrientationProfileFragment extends SmartDeviceFragment {
                     builder.setPort(getPort());
                     builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
                     builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
-                    builder.addParameter(DConnectMessage.EXTRA_DEVICE_ID, getSmartDevice().getId());
+                    builder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
                     builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
                     builder.addParameter(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
                     HttpEventManager.INSTANCE.unregisterEvent(builder);

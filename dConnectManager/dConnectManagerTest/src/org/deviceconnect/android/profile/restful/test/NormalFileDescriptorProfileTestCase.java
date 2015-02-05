@@ -59,7 +59,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + FileDescriptorProfileConstants.PROFILE_NAME);
         builder.append("/" + FileDescriptorProfileConstants.ATTRIBUTE_OPEN);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(FileDescriptorProfileConstants.PARAM_PATH + "=test.txt");
         builder.append("&");
@@ -94,7 +94,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + FileDescriptorProfileConstants.PROFILE_NAME);
         builder.append("/" + FileDescriptorProfileConstants.ATTRIBUTE_CLOSE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(FileDescriptorProfileConstants.PARAM_PATH + "=test.txt");
         builder.append("&");
@@ -127,7 +127,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + FileDescriptorProfileConstants.PROFILE_NAME);
         builder.append("/" + FileDescriptorProfileConstants.ATTRIBUTE_READ);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(FileDescriptorProfileConstants.PARAM_PATH + "=test.txt");
         builder.append("&");
@@ -166,7 +166,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + FileDescriptorProfileConstants.PROFILE_NAME);
         builder.append("/" + FileDescriptorProfileConstants.ATTRIBUTE_READ);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(FileDescriptorProfileConstants.PARAM_PATH + "=test.txt");
         builder.append("&");
@@ -208,7 +208,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + FileDescriptorProfileConstants.PROFILE_NAME);
         builder.append("/" + FileDescriptorProfileConstants.ATTRIBUTE_WRITE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(FileDescriptorProfileConstants.PARAM_PATH + "=test.txt");
         builder.append("&");
@@ -248,7 +248,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + FileDescriptorProfileConstants.PROFILE_NAME);
         builder.append("/" + FileDescriptorProfileConstants.ATTRIBUTE_WRITE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(FileDescriptorProfileConstants.PARAM_PATH + "=test.txt");
         builder.append("&");
@@ -290,7 +290,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + FileDescriptorProfileConstants.PROFILE_NAME);
         builder.append("/" + FileDescriptorProfileConstants.ATTRIBUTE_ON_WATCH_FILE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");
@@ -331,7 +331,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("/" + FileDescriptorProfileConstants.PROFILE_NAME);
         builder.append("/" + FileDescriptorProfileConstants.ATTRIBUTE_ON_WATCH_FILE);
         builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_DEVICE_ID + "=" + getDeviceId());
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(DConnectProfileConstants.PARAM_SESSION_KEY + "=" + getClientId());
         builder.append("&");

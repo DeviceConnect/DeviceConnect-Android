@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -26,7 +26,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
-
 import org.deviceconnect.android.deviceplugin.pebble.R;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
@@ -46,10 +45,10 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
     /**
      * フラグメント一覧.
      */
-    private List<Fragment> fragments = new ArrayList<Fragment>();
+    private List<Fragment> mFragments = new ArrayList<Fragment>();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
@@ -60,19 +59,19 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
 
     @Override
     public Fragment createPage(final int position) {
-        if (fragments.size() == 0) {
-            fragments.add(new BluetoothActivationFragment());
-            fragments.add(new BluetoothSettingPromptFragment());
-            fragments.add(new A_AppInstrallationFragment());
-            fragments.add(new P_AppInstrallationFragment());
-            fragments.add(new SettingFinishFragment());
+        if (mFragments.size() == 0) {
+            mFragments.add(new BluetoothActivationFragment());
+            mFragments.add(new BluetoothSettingPromptFragment());
+            mFragments.add(new AppInstrallationFragmentA());
+            mFragments.add(new AppInstrallationFragmentP());
+            mFragments.add(new SettingFinishFragment());
         }
-        return fragments.get(position);
+        return mFragments.get(position);
     }
 
     /**
      * カレントページをセットする.
-     * @param position
+     * @param position Page Position
      */
     public void setCurrentPage(final int position) {
         getViewPager().setCurrentItem(position, true);
@@ -90,7 +89,8 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
      */
     public class BluetoothActivationFragment extends BaseFragment {
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+                                       final Bundle savedInstanceState) {
             View root = inflater.inflate(R.layout.dconnect_settings_step_1, container, false);
             return root;
         }
@@ -101,12 +101,13 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
      */
     public class BluetoothSettingPromptFragment extends BaseFragment {
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+                                      final Bundle savedInstanceState) {
             View root = inflater.inflate(R.layout.dconnect_settings_step_2, container, false);
             Button button = (Button) root.findViewById(R.id.dconnect_settings_step_2_button_launch_bluetooth_setting);
             button.setOnClickListener(new OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(final View v) {
                     startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
                 }
             });
@@ -117,14 +118,15 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
     /**
      * 手順3 必須アプリのインストール.
      */
-    public class A_AppInstrallationFragment extends BaseFragment {
+    public class AppInstrallationFragmentA extends BaseFragment {
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+                                                    final Bundle savedInstanceState) {
             View root = inflater.inflate(R.layout.dconnect_settings_step_3, container, false);
             Button btn = (Button) root.findViewById(R.id.dconnect_settings_step_3_button_install_pebble);
             btn.setOnClickListener(new OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(final View v) {
                     Uri uri = Uri.parse("market://details?id=" + PACKAGE_PEBBLE);
                     Intent intent = new Intent(Intent.ACTION_VIEW, uri);
                     startActivity(intent);
@@ -137,14 +139,15 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
     /**
      * 手順4 必須アプリのインストール.
      */
-    public class P_AppInstrallationFragment extends BaseFragment {
+    public class AppInstrallationFragmentP extends BaseFragment {
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+                                                    final Bundle savedInstanceState) {
             View root = inflater.inflate(R.layout.dconnect_settings_step_4, container, false);
             Button btn = (Button) root.findViewById(R.id.dconnect_settings_step_4_button_install_plugin);
             btn.setOnClickListener(new OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(final View v) {
                     installPebbleApprication(getPbwFileName());
                 }
             });
@@ -154,9 +157,9 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
     
     /**
      * uri で指定した Pebble側アプリケーションをインストールする.
-     * @param uri
+     * @param uri URI
      */
-    private void installPebbleApprication(Uri uri) {
+    private void installPebbleApprication(final Uri uri) {
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         intent.setClassName(PEBBLE_LAUNCH_COMPONENT, PEBBLE_LAUNCH_ACTIVITY);
         PackageManager pm = this.getPackageManager();
@@ -172,11 +175,13 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
      * リソースから pbw ファイルを作成し、その uri を返す.
      * @return uri を返す.
      */
-    @SuppressWarnings("deprecation")
+    @SuppressLint("WorldReadableFiles")
+	@SuppressWarnings("deprecation")
     private Uri getPbwFileName() {
         File file = this.getFileStreamPath("dc_pebble.pbw");
         try {
-            fileCopy(getResources().openRawResource(R.raw.dc_pebble), openFileOutput(file.getName(), MODE_WORLD_READABLE));
+            fileCopy(getResources().openRawResource(R.raw.dc_pebble),
+                   openFileOutput(file.getName(), MODE_WORLD_READABLE));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -189,7 +194,8 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
      */
     public class SettingFinishFragment extends BaseFragment {
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+                                                 final Bundle savedInstanceState) {
             View root = inflater.inflate(R.layout.dconnect_settings_step_finish, container, false);
             return root;
         }
@@ -199,11 +205,11 @@ public class PebbleSettingActivity extends DConnectSettingPageFragmentActivity {
      * ファイルをコピーする.
      * @param is 入力
      * @param os 出力
-     * @throws IOException
+     * @throws IOException IO Exception
      */
-    private void fileCopy(InputStream is, OutputStream os)throws IOException{  
+    private void fileCopy(final InputStream is, final OutputStream os) throws IOException {
         byte[] b = new byte[1024];
-        while(is.read(b) > 0) {
+        while (is.read(b) > 0) {
             os.write(b);
         }
         is.close();

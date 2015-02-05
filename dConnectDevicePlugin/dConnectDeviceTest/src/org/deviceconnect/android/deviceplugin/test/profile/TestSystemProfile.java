@@ -28,21 +28,21 @@ public class TestSystemProfile extends SystemProfile {
     public static final String VERSION = "1.0";
     
     /**
-     * デバイスIDをチェックする.
-     * @param deviceId デバイスID
-     * @return <code>deviceId</code>がテスト用デバイスIDに等しい場合はtrue、そうでない場合はfalse
+     * サービスIDをチェックする.
+     * @param serviceId サービスID
+     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
-    private boolean checkdeviceId(final String deviceId) {
-        return TestNetworkServiceDiscoveryProfile.DEVICE_ID.equals(deviceId);
+    private boolean checkserviceId(final String serviceId) {
+        return TestServiceDiscoveryProfile.SERVICE_ID.equals(serviceId);
     }
 
     /**
-     * デバイスIDが空の場合のエラーを作成する.
+     * サービスIDが空の場合のエラーを作成する.
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createEmptydeviceId(final Intent response) {
-        MessageUtils.setEmptyDeviceIdError(response);
+    private void createEmptyserviceId(final Intent response) {
+        MessageUtils.setEmptyServiceIdError(response);
     }
 
     /**
@@ -50,8 +50,8 @@ public class TestSystemProfile extends SystemProfile {
      * 
      * @param response レスポンスを格納するIntent
      */
-    private void createNotFoundDevice(final Intent response) {
-        MessageUtils.setNotFoundDeviceError(response);
+    private void createNotFoundService(final Intent response) {
+        MessageUtils.setNotFoundServiceError(response);
     }
 
     /**
@@ -63,12 +63,12 @@ public class TestSystemProfile extends SystemProfile {
     }
 
     @Override
-    protected boolean onGetDevice(Intent request, Intent response, String deviceId) {
+    protected boolean onGetDevice(final Intent request, final Intent response, final String serviceId) {
         
-        if (deviceId == null) {
-            createEmptydeviceId(response);
-        } else if (!checkdeviceId(deviceId)) {
-            createNotFoundDevice(response);
+        if (serviceId == null) {
+            createEmptyserviceId(response);
+        } else if (!checkserviceId(serviceId)) {
+            createNotFoundService(response);
         } else {
             setVersion(response, VERSION);
             setSupports(response, new String[]{});
@@ -85,7 +85,7 @@ public class TestSystemProfile extends SystemProfile {
     }
 
     @Override
-    protected boolean onPutWakeup(Intent request, Intent response, String pluginId) {
+    protected boolean onPutWakeup(final Intent request, final Intent response, final String pluginId) {
         // /system/device/wakeupはテスト用デバイスプラグインでは疎通確認だけを行う.
         // 正常に設定画面が開かれることの確認は、実際のデバイスプラグインのテストで行う.
         setResult(response, DConnectMessage.RESULT_OK);
@@ -93,7 +93,7 @@ public class TestSystemProfile extends SystemProfile {
     }
 
     @Override
-    protected boolean onDeleteEvents(Intent request, Intent response, String sessionKey) {
+    protected boolean onDeleteEvents(final Intent request, final Intent response, final String sessionKey) {
         boolean removed = EventManager.INSTANCE.removeEvents(sessionKey);
         if (removed) {
             setResult(response, DConnectMessage.RESULT_OK);

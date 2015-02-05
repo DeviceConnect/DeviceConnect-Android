@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * d-Connect Manager本体のテストケース.
+ * Device Connect Manager本体のテストケース.
  */
 package org.deviceconnect.android.manager.test;

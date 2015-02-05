@@ -49,7 +49,7 @@ public class MultipartTest extends RESTfulDConnectTestCase {
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
         try {
             MultipartEntity entity = new MultipartEntity();
-            entity.addPart(DConnectProfileConstants.PARAM_DEVICE_ID, new StringBody(getDeviceId()));
+            entity.addPart(DConnectProfileConstants.PARAM_SERVICE_ID, new StringBody(getServiceId()));
             entity.addPart(NotificationProfileConstants.PARAM_TYPE, new StringBody("0"));
             entity.addPart(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, new StringBody(getAccessToken()));
             HttpPost request = new HttpPost(builder.toString());
@@ -72,7 +72,7 @@ public class MultipartTest extends RESTfulDConnectTestCase {
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
         try {
             MultipartEntity entity = new MultipartEntity();
-            entity.addPart(DConnectProfileConstants.PARAM_DEVICE_ID, new StringBody(getDeviceId()));
+            entity.addPart(DConnectProfileConstants.PARAM_SERVICE_ID, new StringBody(getServiceId()));
             entity.addPart(DConnectProfileConstants.PARAM_SESSION_KEY, new StringBody(getClientId()));
             entity.addPart(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, new StringBody(getAccessToken()));
             HttpPut request = new HttpPut(builder.toString());
@@ -101,7 +101,7 @@ public class MultipartTest extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_DEVICE_ID, getDeviceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(FileProfileConstants.PARAM_PATH, "/test/zero.dat");
         builder.addParameter(FileProfileConstants.PARAM_FILE_TYPE,

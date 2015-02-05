@@ -8,6 +8,12 @@
         <name lang="en">Network Service Discovery (for test)</name>
         <description lang="en">Searches near devices. (for test)</description>
     </profile>
+    <profile name="serviceinformation" expireperiod="86400000">
+        <name lang="ja">デバイス情報 </name>
+        <description lang="ja">デバイス情報を取得する </description>
+        <name lang="en">Service Information</name>
+        <description lang="en">Gets service information.</description>
+    </profile>
     <profile name="system" expireperiod="86400000">
         <name lang="ja">システム (テスト用)</name>
         <description lang="ja">システム情報を取得する　(テスト用)</description>

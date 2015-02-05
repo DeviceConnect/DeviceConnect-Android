@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay;
 import org.deviceconnect.android.deviceplugin.host.manager.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostCanvasProfile;
@@ -28,10 +29,10 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostFileDescriptorPro
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRecordingProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostPhoneProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostProximityProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSettingsProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
@@ -1319,6 +1320,17 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
     /** Server for MotionJPEG. */
     private MixedReplaceMediaServer mServer;
 
+    /** カメラを表示するためのオーバーレイ. */
+    private CameraOverlay mOverlay;
+
+    /**
+     * カメラが使用されているか確認する.
+     * @return カメラが使用されている場合はtrue、それ以外はfalse
+     */
+    public boolean isShowCamera() {
+        return mOverlay != null && mOverlay.isShow();
+    }
+
     /**
      * Start a web server.
      * @return url of web server or null if this server cannot start.
@@ -1330,6 +1342,16 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 mServer.setServerName("HostDevicePlugin Server");
                 mServer.setContentType("image/jpg");
                 String ip = mServer.start();
+
+                if (mOverlay == null) {
+                    mOverlay = new CameraOverlay(this);
+                    mOverlay.setFileManager(mFileMgr);
+                    mOverlay.show();
+                } else if (!mOverlay.isShow()) {
+                    mOverlay.show();
+                }
+                mOverlay.setServer(mServer);
+
                 return ip;
             } else {
                 return mServer.getUrl();
@@ -1346,9 +1368,38 @@ public class HostDeviceService extends DConnectMessageService implements SensorE
                 mServer.stop();
                 mServer = null;
             }
+            if (mOverlay != null) {
+                mOverlay.hide();
+                mOverlay = null;
+            }
         }
     }
 
+    public void takePicture(final CameraOverlay.OnTakePhotoListener listener) {
+        if (mOverlay == null) {
+            mOverlay = new CameraOverlay(this);
+            mOverlay.setFileManager(mFileMgr);
+            mOverlay.show();
+            mOverlay.takePicture(new CameraOverlay.OnTakePhotoListener() {
+                @Override
+                public void onTakenPhoto(final String uri) {
+                    listener.onTakenPhoto(uri);
+                    mOverlay = null;
+                }
+                @Override
+                public void onFailedTakePhoto() {
+                    listener.onFailedTakePhoto();
+                    mOverlay = null;
+                }
+            }, true);
+        } else {
+            if (!mOverlay.isShow()) {
+                mOverlay.show();
+            }
+            mOverlay.takePicture(listener, false);
+        }
+    }
+    
     /**
      * Cameraからのデータ受信用.
      */

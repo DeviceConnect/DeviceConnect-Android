@@ -32,6 +32,7 @@
     <uses-feature android:name="android.hardware.camera.autofocus" />
     <uses-feature android:name="android.hardware.camera.flash" />
 
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -96,12 +97,6 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar" >
         </activity>
 
-        <receiver android:name="org.deviceconnect.android.deviceplugin.host.camera.CameraReceiver" >
-            <intent-filter>
-                <action android:name="org.deviceconnect.android.intent.action.SEND_CAMERA_TO_HOSTDP" />
-            </intent-filter>
-        </receiver>
-
         <service
             android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceNotificationService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
@@ -120,16 +115,6 @@
         </activity>
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.video.VideoPlayer"
-            android:launchMode="singleInstance"
-            android:screenOrientation="landscape" >
-        </activity>
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.camera.CameraActivity"
-            android:screenOrientation="landscape" >
-        </activity>
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.video.PhotoActivity"
-            android:finishOnCloseSystemDialogs="true"
             android:launchMode="singleInstance"
             android:screenOrientation="landscape" >
         </activity>
@@ -158,11 +143,11 @@
             android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
             android:exported="false" >
         </service>
-        
+
         <!-- Canvas Profile -->
-        <activity android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
             android:launchMode="singleTop" >
-            
         </activity>
     </application>
 

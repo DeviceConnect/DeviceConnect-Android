@@ -19,6 +19,7 @@ import org.deviceconnect.android.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -81,6 +82,15 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * @return SystemProfileのインスタンス
      */
     protected abstract SystemProfile getSystemProfile();
+
+    /**
+     * ServiceInformationProfileを取得する.
+     * ServiceInformationProfileは必須実装となるため、本メソッドでServiceInformationProfileのインスタンスを渡すこと。
+     * このメソッドで返却したServiceInformationProfileは自動で登録される。
+     * 
+     * @return SystemProfileのインスタンス
+     */
+    protected abstract ServiceInformationProfile getServiceInformationProfile();
 
     /**
      * ServiceDiscoveryProfileを取得する.

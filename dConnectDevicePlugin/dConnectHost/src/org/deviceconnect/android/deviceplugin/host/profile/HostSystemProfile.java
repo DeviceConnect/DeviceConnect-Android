@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import org.deviceconnect.android.deviceplugin.host.setting.HostSettingActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -23,15 +22,6 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class HostSystemProfile extends SystemProfile {
-
-    /**
-     * System Profile.
-     * 
-     * @param provider プロバイダ
-     */
-    public HostSystemProfile(final DConnectProfileProvider provider) {
-        super(provider);
-    }
 
     /**
      * 設定画面を設定.

@@ -30,6 +30,7 @@ import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -94,7 +95,12 @@ public class DeviceTestService extends DConnectMessageService {
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new TestSystemProfile(this);
+        return new TestSystemProfile();
+    }
+
+    @Override
+    protected ServiceInformationProfile getServiceInformationProfile() {
+        return new ServiceInformationProfile(this) { };
     }
 
     @Override

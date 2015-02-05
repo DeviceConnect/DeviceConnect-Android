@@ -20,6 +20,7 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
@@ -131,7 +132,12 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new IRKitSystemProfile(this);
+        return new IRKitSystemProfile();
+    }
+
+    @Override
+    protected ServiceInformationProfile getServiceInformationProfile() {
+        return new ServiceInformationProfile(this) { };
     }
 
     @Override

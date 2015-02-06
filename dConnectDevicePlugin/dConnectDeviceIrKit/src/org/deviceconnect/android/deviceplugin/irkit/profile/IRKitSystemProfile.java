@@ -17,7 +17,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 /**
- * IrKitデバイスプラグイン System プロファイル.
+ * IRKit System Profile.
  * @author NTT DOCOMO, INC.
  */
 public class IRKitSystemProfile extends SystemProfile {

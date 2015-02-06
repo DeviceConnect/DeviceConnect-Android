@@ -16,10 +16,11 @@ import org.deviceconnect.android.deviceplugin.test.profile.TestFileDescriptorPro
 import org.deviceconnect.android.deviceplugin.test.profile.TestFileProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestMediaStreamRecordingProfile;
-import org.deviceconnect.android.deviceplugin.test.profile.TestServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestNotificationProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestPhoneProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestProximityProfile;
+import org.deviceconnect.android.deviceplugin.test.profile.TestServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.test.profile.TestServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestSettingsProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestSystemProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestVibrationProfile;
@@ -100,7 +101,7 @@ public class DeviceTestService extends DConnectMessageService {
 
     @Override
     protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) { };
+        return new TestServiceInformationProfile(this);
     }
 
     @Override

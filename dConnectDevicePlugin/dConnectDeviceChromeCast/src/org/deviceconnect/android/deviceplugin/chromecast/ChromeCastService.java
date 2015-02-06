@@ -80,11 +80,15 @@ public class ChromeCastService extends DConnectMessageService implements
         String appId = getString(R.string.application_id);
         String appMsgUrn = getString(R.string.application_message_urn);
 
-        try {
-            mServer = new ChromeCastHttpServer("0.0.0.0", SERVER_PORT);
-            mServer.start();
-        } catch (IOException e) {
-            e.getStackTrace();
+        int portCount = 0;
+        while (portCount < 500) {  // Portを決定する
+            try {
+                mServer = new ChromeCastHttpServer("0.0.0.0", SERVER_PORT + portCount);
+                mServer.start();
+                break;
+            } catch (IOException e) {
+                portCount++;
+            }
         }
         
         mDiscovery = new ChromeCastDiscovery(this, appId);

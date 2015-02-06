@@ -18,6 +18,7 @@ import org.deviceconnect.android.uiapp.fragment.SmartDevicePreferenceFragment;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.basic.message.DConnectResponseMessage;
 import org.deviceconnect.message.http.impl.factory.HttpMessageFactory;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 
@@ -78,8 +79,7 @@ public class SystemProfileFragment extends SmartDevicePreferenceFragment {
             DConnectMessage message;
 
             URIBuilder uriBuilder = new URIBuilder();
-            uriBuilder.setProfile(SystemProfileConstants.PROFILE_NAME);
-            uriBuilder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
+            uriBuilder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
             uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
             uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 

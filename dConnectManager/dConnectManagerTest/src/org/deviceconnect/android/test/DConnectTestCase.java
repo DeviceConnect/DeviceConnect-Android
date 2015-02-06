@@ -28,6 +28,7 @@ import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
@@ -67,10 +68,11 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
             FileProfileConstants.PROFILE_NAME,
             MediaStreamRecordingProfileConstants.PROFILE_NAME,
             MediaPlayerProfileConstants.PROFILE_NAME,
-            ServiceDiscoveryProfileConstants.PROFILE_NAME,
             NotificationProfileConstants.PROFILE_NAME,
             PhoneProfileConstants.PROFILE_NAME,
             ProximityProfileConstants.PROFILE_NAME,
+            ServiceDiscoveryProfileConstants.PROFILE_NAME,
+            ServiceInformationProfileConstants.PROFILE_NAME,
             SettingsProfileConstants.PROFILE_NAME,
             SystemProfileConstants.PROFILE_NAME,
             VibrationProfileConstants.PROFILE_NAME,

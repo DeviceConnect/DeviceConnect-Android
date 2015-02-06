@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.LightProfile;
+import org.deviceconnect.android.original.profile.LightProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.content.Intent;

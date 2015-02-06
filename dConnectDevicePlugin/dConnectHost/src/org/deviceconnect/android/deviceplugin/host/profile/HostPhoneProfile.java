@@ -35,7 +35,7 @@ public class HostPhoneProfile extends PhoneProfile {
     protected boolean onPostCall(final Intent request, final Intent response, final String serviceId,
             final String phoneNumber) {
 
-        mLogger.entering(this.getClass().getName(), "onPostReceive", new Object[] { request, response });
+        mLogger.entering(this.getClass().getName(), "onPostReceive", new Object[] {request, response});
 
         if (serviceId == null) {
             createEmptyServiceId(response);

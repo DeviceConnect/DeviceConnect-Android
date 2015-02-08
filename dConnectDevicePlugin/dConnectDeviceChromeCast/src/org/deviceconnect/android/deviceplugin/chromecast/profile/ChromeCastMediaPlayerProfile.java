@@ -492,6 +492,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
+            return null;
         }
         return result;
     }
@@ -539,8 +540,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         String dir = new File(path).getParent();
         String realName = new File(path).getName();
         String extension = MimeTypeMap.getFileExtensionFromUrl(realName);
-        String dummyName = getMd5("" + System.currentTimeMillis()) + "." + extension;
-
+        String md5 = getMd5("" + System.currentTimeMillis());
+        if (md5 == null) {
+            return null;
+        }
+        String dummyName = md5 + "." + extension;
+        
         server.setFilePath(dir, realName, "/" + dummyName);
         return "http://" + getIpAddress() + ":" + server.getListeningPort()
                 + "/" + dummyName;
@@ -585,6 +590,11 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                         .getColumnIndex(MediaStore.Video.Media.TITLE));
                 url = getDummyUrlFromMediaId(mId);
                 cursor.close();
+                if (url == null) {
+                    response.putExtra(DConnectMessage.EXTRA_VALUE, "url is null");
+                    setResult(response, DConnectMessage.RESULT_ERROR);
+                    return true;
+                }
             }
             this.mMediaId = mId.toString();
         }

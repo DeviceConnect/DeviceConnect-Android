@@ -13,6 +13,7 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.util.AttributeSet;
@@ -202,6 +203,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         }
     }
 
+    
     /**
      * 最適なプレビューサイズを取得する. 指定されたサイズに最適なものがない場合にはnullを返却する。
      * 
@@ -256,6 +258,17 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         WindowManager mgr = (WindowManager) context
                 .getSystemService(Context.WINDOW_SERVICE);
         int rot = mgr.getDefaultDisplay().getRotation();
+        int base = 90;
+        Configuration config = getContext().getResources().getConfiguration();
+        switch (config.orientation) {
+        default:
+        case Configuration.ORIENTATION_PORTRAIT:
+            base = 90;
+            break;
+        case Configuration.ORIENTATION_LANDSCAPE:
+            base = 0;
+            break;
+        }
         int degree = 0;
         switch (rot) {
         default:
@@ -272,7 +285,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             degree = 270;
             break;
         }
-        return (90 + 360 - degree) % 360;
+        return (base + 360 - degree) % 360;
     }
 
     /**

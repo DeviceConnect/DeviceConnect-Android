@@ -288,7 +288,8 @@ private String getDisplayNameFromUri(final Uri mUri) {
 }
 
     @Override
-    protected boolean onGetMediaList(Intent request, Intent response, final String serviceId, final String query,
+    protected boolean onGetMediaList(final Intent request, final Intent response,
+            final String serviceId, final String query,
             final String mimeType, final String[] orders, final Integer offset, final Integer limit) {
         if (serviceId == null) {
             createEmptyServiceId(response);

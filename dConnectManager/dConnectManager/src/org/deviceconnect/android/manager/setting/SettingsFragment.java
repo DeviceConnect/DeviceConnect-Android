@@ -184,10 +184,10 @@ public class SettingsFragment extends PreferenceFragment
         } else if (preference instanceof SwitchPreference) {
             if (getString(R.string.key_settings_dconn_server_on_off).equals(key)) {
                 boolean checked = ((Boolean) newValue).booleanValue();
-                mCheckBoxSslPreferences.setEnabled(checked);
-                mCheckBoxOauthPreferences.setEnabled(checked);
-                mCheckBoxExternalPreferences.setEnabled(checked);
-                mEditPortPreferences.setEnabled(checked);
+                mCheckBoxSslPreferences.setEnabled(!checked);
+                mCheckBoxOauthPreferences.setEnabled(!checked);
+                mCheckBoxExternalPreferences.setEnabled(!checked);
+                mEditPortPreferences.setEnabled(!checked);
                 // dConnectManagerのON/OFF
                 Intent intent = new Intent(getActivity(), DConnectService.class);
                 if (checked) {

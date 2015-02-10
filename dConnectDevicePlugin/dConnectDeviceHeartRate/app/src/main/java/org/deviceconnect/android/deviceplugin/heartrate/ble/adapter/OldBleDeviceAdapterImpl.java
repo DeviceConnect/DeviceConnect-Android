@@ -44,6 +44,11 @@ public class OldBleDeviceAdapterImpl extends BleDeviceAdapter {
         return mBluetoothAdapter.getRemoteDevice(address);
     }
 
+    @Override
+    public boolean isEnabled() {
+        return mBluetoothAdapter.isEnabled();
+    }
+
     private final BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {

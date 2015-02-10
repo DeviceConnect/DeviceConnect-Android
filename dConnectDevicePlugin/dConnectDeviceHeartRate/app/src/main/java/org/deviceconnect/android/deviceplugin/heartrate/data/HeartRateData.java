@@ -13,7 +13,7 @@ public class HeartRateData {
     private int mId;
     private int mHeartRate;
     private int mEnergyExpended;
-    private float mRRInterval;
+    private double mRRInterval;
 
     public int getId() {
         return mId;
@@ -39,11 +39,11 @@ public class HeartRateData {
         mEnergyExpended = energyExpended;
     }
 
-    public float getRRInterval() {
+    public double getRRInterval() {
         return mRRInterval;
     }
 
-    public void setRRInterval(float RRInterval) {
+    public void setRRInterval(double RRInterval) {
         mRRInterval = RRInterval;
     }
 }

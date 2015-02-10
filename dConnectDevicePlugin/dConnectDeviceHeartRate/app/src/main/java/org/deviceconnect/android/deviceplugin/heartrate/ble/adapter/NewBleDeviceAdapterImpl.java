@@ -54,6 +54,11 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
         return mBluetoothAdapter.getRemoteDevice(address);
     }
 
+    @Override
+    public boolean isEnabled() {
+        return mBluetoothAdapter.isEnabled();
+    }
+
     private final ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {

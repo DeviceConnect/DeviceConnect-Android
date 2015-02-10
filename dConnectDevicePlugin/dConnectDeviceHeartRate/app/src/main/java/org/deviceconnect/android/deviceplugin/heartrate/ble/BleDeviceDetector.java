@@ -102,6 +102,13 @@ public class BleDeviceDetector {
         return mScanning;
     }
 
+    public boolean isEnabled() {
+        if (mBleAdapter == null) {
+            return false;
+        }
+        return mBleAdapter.isEnabled();
+    }
+
     /**
      * Sets a BluetoothDiscoveryListener.
      * @param listener Notify that discovered the bluetooth device
@@ -127,9 +134,12 @@ public class BleDeviceDetector {
     /**
      * Gets a BluetoothDevice from address.
      * @param address bluetooth address
-     * @return instance of BluetoothDevice
+     * @return instance of BluetoothDevice, null if not found device
      */
     public BluetoothDevice getDevice(final String address) {
+        if (mBleAdapter == null || !mBleAdapter.isEnabled()) {
+            return null;
+        }
         return mBleAdapter.getDevice(address);
     }
 
@@ -138,6 +148,11 @@ public class BleDeviceDetector {
      * @param enable Start the scan if enable is true. Stop the scan if enable is false
      */
     private synchronized void scanLeDevice(final boolean enable) {
+
+        if (mBleAdapter == null || !mBleAdapter.isEnabled()) {
+            return;
+        }
+
         if (enable) {
             mScanning = true;
             mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {

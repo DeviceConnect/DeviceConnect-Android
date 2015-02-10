@@ -5,4 +5,20 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 
+    <string name="summary_title">[1/4] デバイスプラグイン概要</string>
+    <string name="summary_body">このデバイスプラグインはBluetooth Low Eneryの仕様であるHeart Rateに対応しているデバイスと接続することができます。\n\n以下のデバイスと接続できることを確認しています。\n・Mio Alpha\n・H7\n・BLUEHR</string>
+
+    <string name="mio_alpha_title">[2/4] Mio Alphaの準備</string>
+    <string name="mio_alpha_body">FINDという文字列が点滅するまで、長押してください。\n\n※他のデバイスの場合にはそれぞれの説明書をご確認ください。</string>
+
+    <string name="bluetooth_settings_title">[3/4] Bluetooth設定</string>
+    <string name="bluetooth_settings_body">端末のBluetooth設定画面より設定をONにしてください。</string>
+    <string name="bluetooth_settings_button">設定画面を開く</string>
+
+    <string name="heart_rate_setting_title">[4/4] デバイス接続</string>
+
+    <string name="heart_rate_setting_connect">接続</string>
+    <string name="heart_rate_setting_disconnect">解除</string>
+    <string name="heart_rate_setting_default_name">Unknown</string>
+    <string name="heart_rate_setting_default_address">Unknown</string>
 </resources>

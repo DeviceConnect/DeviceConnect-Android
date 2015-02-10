@@ -12,7 +12,10 @@ import org.deviceconnect.android.localoauth.exception.AuthorizatonException;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.restlet.ext.oauth.PackageInfoOAuth;
+
+import android.util.Log;
 
 /**
  * LocalOAuth2にClinetを作成するためのリクエスト.
@@ -27,14 +30,12 @@ public class CreateClientRequest extends DConnectRequest {
 
     @Override
     public void run() {
-        // TODO packageではなくoriginパラメータをもとにクライアントIDを作成すること。
-        String packageName = mRequest.getStringExtra(AuthorizationProfile.PARAM_PACKAGE);
-        if (packageName == null) {
+        String origin = mRequest.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        if (origin == null) {
             MessageUtils.setInvalidRequestParameterError(mResponse);
         } else {
             // Local OAuthでクライアント作成
-            // TODO GotAPIではアプリの種別を区別しているので、リクエストから{@link ApplicationType}を取得して保存すること。
-            PackageInfoOAuth packageInfo = new PackageInfoOAuth(packageName);
+            PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
             try {
                 ClientData client = LocalOAuth2Main.createClient(packageInfo);
                 if (client != null) {

@@ -45,6 +45,11 @@ public interface IntentDConnectMessage extends DConnectMessage {
     String ACTION_EVENT = "org.deviceconnect.action.EVENT";
 
     /**
+     * アクション:MANAGER_LAUNCHED.
+     */
+    String ACTION_MANAGER_LAUNCHED = "org.deviceconnect.action.MANAGER_LAUNCHED";
+
+    /**
      * パラメータ: {@value} .
      */
     String EXTRA_ORIGIN = "origin";

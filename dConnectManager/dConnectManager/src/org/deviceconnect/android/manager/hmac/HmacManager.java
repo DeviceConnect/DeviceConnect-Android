@@ -1,3 +1,9 @@
+/*
+ HmacManager.java
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.manager.hmac;
 
 import java.security.InvalidKeyException;
@@ -16,6 +22,7 @@ import android.provider.BaseColumns;
 
 /**
  * HMAC Manager.
+ * @author NTT DOCOMO, INC.
  */
 public final class HmacManager {
 

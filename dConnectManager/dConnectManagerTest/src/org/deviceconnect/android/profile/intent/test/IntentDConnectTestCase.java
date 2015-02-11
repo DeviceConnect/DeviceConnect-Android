@@ -22,6 +22,7 @@ import org.deviceconnect.android.test.DConnectTestCase;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
@@ -88,11 +89,11 @@ public class IntentDConnectTestCase extends DConnectTestCase {
     }
 
     @Override
-    protected String[] createClient(final String packageName) {
+    protected String[] createClient() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, packageName);
+        request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
 
         Intent response = sendRequest(request, false);
         assertResultOK(response);
@@ -174,6 +175,22 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         return plugins;
     }
 
+    @Override
+    protected boolean isManagerAvailable() {
+        Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, AvailabilityProfileConstants.PROFILE_NAME);
+        request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
+        Intent response = sendRequest(request);
+        if (response == null) {
+            return false;
+        }
+        if (!response.hasExtra(DConnectMessage.EXTRA_RESULT)) {
+            return false;
+        }
+        int result = response.getIntExtra(DConnectMessage.EXTRA_RESULT, -1);
+        return result == DConnectMessage.RESULT_OK;
+    }
+
     /**
      * タイムアウトを設定する.
      * デフォルトでは、DEFAULT_RESTFUL_TIMEOUTが設定されている。
@@ -205,7 +222,7 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         if (afterAuth) {
             intent.putExtra(IntentDConnectMessage.EXTRA_ACCESS_TOKEN, mAccessToken);
         } else {
-            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getClientPackageName());
+            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
         }
         intent.putExtra(IntentDConnectMessage.EXTRA_NONCE, toHexString(nonce));
 

@@ -34,6 +34,7 @@ import org.deviceconnect.android.test.DConnectTestCase;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
@@ -87,11 +88,10 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     }
 
     @Override
-    protected String[] createClient(final String packageName) {
+    protected String[] createClient() {
         URIBuilder builder  = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_PACKAGE, packageName);
         try {
             HttpGet request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request, false);
@@ -178,6 +178,22 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
         return plugins;
     }
 
+    @Override
+    protected boolean isManagerAvailable() {
+        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        builder.setProfile(AvailabilityProfileConstants.PROFILE_NAME);
+        try {
+            HttpUriRequest request = new HttpGet(builder.toString());
+            JSONObject root = sendRequest(request);
+            if (root == null) {
+                return false;
+            }
+            return root.getInt(DConnectMessage.EXTRA_RESULT) == DConnectMessage.RESULT_OK;
+        } catch (JSONException e) {
+            return false;
+        }
+    }
+
     /**
      * HTTP経由でファイルデータを取得する.
      * @param uri ファイルへのURI
@@ -220,7 +236,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      */
     protected final HttpResponse requestHttpResponse(final HttpUriRequest request) {
         // Origin指定
-        request.addHeader("X-GotAPI-Origin", getClientPackageName());
+        request.addHeader("X-GotAPI-Origin", getOrigin());
         
         HttpClient client = new DefaultHttpClient();
         try {
@@ -265,13 +281,12 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
             assertEquals(response.getString(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
 
             // HMACの検証
+            assertTrue("Device Connect Manager must send HMAC.", response.has(IntentDConnectMessage.EXTRA_HMAC));
             String hmacString = response.getString(IntentDConnectMessage.EXTRA_HMAC);
-            if (hmacString == null) {
-                fail("Device Connect Manager must send HMAC.");
-            }
             byte[] expectedHmac = calculateHMAC(nonce);
             assertEquals(expectedHmac, toByteArray(hmacString));
         } catch (JSONException e) {
+            fail("Invalid JSON.");
             return null;
         } catch (InvalidKeyException e) {
             throw new RuntimeException("The JDK does not support HMAC-SHA256.");

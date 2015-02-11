@@ -11,6 +11,7 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 
 /**
  * Device Connect Managerからのレスポンスを待つレシーバー.
@@ -30,10 +31,15 @@ public class TestCaseBroadcastReceiver extends BroadcastReceiver {
             testAction = DConnectTestCase.TEST_ACTION_RESPONSE;
         } else if (IntentDConnectMessage.ACTION_EVENT.equals(action)) {
             testAction = DConnectTestCase.TEST_ACTION_EVENT;
+        } else if (IntentDConnectMessage.ACTION_MANAGER_LAUNCHED.equals(action)) {
+            testAction = DConnectTestCase.TEST_ACTION_MANAGER_LAUNCHED;
         }
         if (testAction != null) {
             Intent targetIntent = new Intent(testAction);
-            targetIntent.putExtras(intent.getExtras());
+            Bundle extra = intent.getExtras();
+            if (extra != null) {
+                targetIntent.putExtras(extra);
+            }
             context.sendBroadcast(targetIntent);
         }
     }

@@ -15,6 +15,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.crypto.KeyGenerator;
@@ -40,10 +42,11 @@ import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
 
-import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
@@ -67,7 +70,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
 
     /** 起動用インテントを受信するクラスのコンポーネント名. */
     private static final String LAUNCH_RECEIVER
-        = "org.deviceconnect.android.manager/.receiver.DConnectManagerLaunchReceiver";
+        = "org.deviceconnect.android.manager/.setting.SettingActivity";
 
     /** HMACアルゴリズム. */
     private static final String HMAC_ALGORITHM = "HmacSHA256";
@@ -103,10 +106,10 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
             FileProfileConstants.PROFILE_NAME,
             MediaStreamRecordingProfileConstants.PROFILE_NAME,
             MediaPlayerProfileConstants.PROFILE_NAME,
-            ServiceDiscoveryProfileConstants.PROFILE_NAME,
             NotificationProfileConstants.PROFILE_NAME,
             PhoneProfileConstants.PROFILE_NAME,
             ProximityProfileConstants.PROFILE_NAME,
+            ServiceDiscoveryProfileConstants.PROFILE_NAME,
             SettingsProfileConstants.PROFILE_NAME,
             SystemProfileConstants.PROFILE_NAME,
             VibrationProfileConstants.PROFILE_NAME,
@@ -123,6 +126,10 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     /** テスト用Action: EVENT. */
     public static final String TEST_ACTION_EVENT
             = "org.deviceconnect.android.test.intent.action.EVENT";
+
+    /** テスト用Action: MANAGER_LAUNCHED. */
+    public static final String TEST_ACTION_MANAGER_LAUNCHED
+            = "org.deviceconnect.android.test.intent.action.MANAGER_LAUNCHED";
 
     /** テスト用プラグインID. */
     public static final String TEST_PLUGIN_ID = "test_plugin_id";
@@ -168,10 +175,10 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
 
     /**
      * コンストラクタ.
-     * @param string テストタグ
+     * @param tag テストタグ
      */
-    public DConnectTestCase(final String string) {
-        setName(string);
+    public DConnectTestCase(final String tag) {
+        setName(tag);
     }
 
     /**
@@ -209,10 +216,9 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
      * レスポンスとしてクライアントIDまたはクライアントシークレットのいずれかを受信できなかった場合はnullを返すこと.
      * </p>
      * 
-     * @param packageName パッケージ名
      * @return クライアントIDおよびクライアントシークレットを格納した配列
      */
-    protected abstract String[] createClient(String packageName);
+    protected abstract String[] createClient();
 
     /**
      * dConnectManagerに対してアクセストークン取得リクエストを送信する.
@@ -241,17 +247,42 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     protected abstract List<PluginInfo> searchPlugins();
 
     /**
-     * Device Connect Managerに対してHMAC生成キーを送信する.
+     * Device Connect Managerが起動しているかどうかを確認する.
+     * @return Device Connect Managerが起動している場合はtrue、そうでない場合はfalse
      */
-    protected void sendHMACKey() {
+    protected abstract boolean isManagerAvailable();
+
+    /**
+     * Managerが起動するまでブロックする.
+     * @throws InterruptedException スレッドが割り込まれた場合
+     */
+    protected void waitForManager() throws InterruptedException {
+        final CountDownLatch lockObj = new CountDownLatch(1);
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(final Context context, final Intent intent) {
+                lockObj.countDown();
+            }
+        };
+        getContext().registerReceiver(receiver, new IntentFilter(TEST_ACTION_MANAGER_LAUNCHED));
+
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
         intent.setComponent(ComponentName.unflattenFromString(LAUNCH_RECEIVER));
-        intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getClientPackageName());
+        intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
         intent.putExtra(IntentDConnectMessage.EXTRA_KEY, getHMACString());
+        intent.putExtra(IntentDConnectMessage.EXTRA_RECEIVER,
+                new ComponentName(getContext(), TestCaseBroadcastReceiver.class));
         intent.setData(Uri.parse("dconnect://start"));
-        getContext().sendBroadcast(intent);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(intent);
+
+        // 起動通知を受信するまでプロック
+        if (!lockObj.await(20, TimeUnit.SECONDS)) {
+            fail("Manager launching timeout.");
+        }
+        getContext().unregisterReceiver(receiver);
     }
 
     /**
@@ -266,6 +297,15 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
         Mac mac = Mac.getInstance(HMAC_ALGORITHM);
         mac.init(HMAC_KEY);
         return mac.doFinal(nonce);
+    }
+
+    /**
+     * Originを取得する.
+     * 
+     * @return Origin
+     */
+    protected String getOrigin() {
+        return getContext().getPackageName();
     }
 
     /**
@@ -351,14 +391,14 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        sendHMACKey();
+        waitForManager();
         if (isLocalOAuth()) {
             mClientId = getClientIdCache();
             mClientSecret = getClientSecretCache();
             mAccessToken = getAccessTokenCache();
             // クライアントID、クライアントシークレット取得
             if (mClientId == null || mClientSecret == null) {
-                String[] client = createClient(getClientPackageName());
+                String[] client = createClient();
                 assertNotNull(client);
                 assertNotNull(client[0]);
                 assertNotNull(client[1]);
@@ -378,23 +418,6 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
             setDevices(searchDevices());
             setPlugins(searchPlugins());
         }
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        mClientId = null;
-        mClientSecret = null;
-        mAccessToken = null;
-        super.tearDown();
-    }
-
-    /**
-     * OAuthクライアントとしてのパッケージ名を取得する.
-     * 
-     * @return パッケージ名
-     */
-    protected String getClientPackageName() {
-        return getContext().getPackageName();
     }
 
     /**

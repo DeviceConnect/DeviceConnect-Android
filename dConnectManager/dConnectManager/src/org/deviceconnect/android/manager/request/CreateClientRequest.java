@@ -15,8 +15,6 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.restlet.ext.oauth.PackageInfoOAuth;
 
-import android.util.Log;
-
 /**
  * LocalOAuth2にClinetを作成するためのリクエスト.
  * @author NTT DOCOMO, INC.

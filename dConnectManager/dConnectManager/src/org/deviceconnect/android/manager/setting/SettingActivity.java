@@ -50,6 +50,11 @@ public class SettingActivity extends Activity {
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        setIntent(intent);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         Intent intent = getIntent();

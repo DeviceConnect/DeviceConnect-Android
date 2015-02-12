@@ -84,7 +84,8 @@ public class ConfirmAuthFramgment extends Fragment {
 
         /* スコープ一覧表示 */
         ListView listViewScopes = (ListView) view.findViewById(R.id.listViewScopes);
-        listViewScopes.setAdapter(new ArrayAdapter<String>(getActivity(), R.layout.confirm_auth_scopes_list_item, R.id.textViewScope,
+        listViewScopes.setAdapter(new ArrayAdapter<String>(getActivity(),
+               R.layout.confirm_auth_scopes_list_item, R.id.textViewScope,
                 displayScopes));
         
         /* 承認ボタン */

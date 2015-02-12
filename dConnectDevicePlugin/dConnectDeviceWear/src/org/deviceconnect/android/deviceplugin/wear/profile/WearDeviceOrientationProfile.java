@@ -48,10 +48,10 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     private static final String TAG = "WEAR";
 
     /** StaticなDevice名. */
-    private static String mServiceId;
+    private static String sServiceId;
 
     /** Status. */
-    private static int statusEvent;
+    private static int sStatusEvent;
 
     /** EVENT_REGISTER . */
     private static final int EVENT_REGISTER = 1;
@@ -60,7 +60,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     private static final int EVENT_UNREGISTER = 2;
 
     /** 内部管理用iD. */
-    private static String mId = "";
+    private static String sId = "";
 
     @Override
     protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
@@ -72,9 +72,9 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            mServiceId = serviceId;
-            mId = getNodeId(serviceId);
-            statusEvent = EVENT_REGISTER;
+            sServiceId = serviceId;
+            sId = getNodeId(serviceId);
+            sStatusEvent = EVENT_REGISTER;
 
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
@@ -110,8 +110,8 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            mId = getNodeId(serviceId);
-            statusEvent = EVENT_UNREGISTER;
+            sId = getNodeId(serviceId);
+            sStatusEvent = EVENT_UNREGISTER;
             mGoogleApiClient = new GoogleApiClient.Builder(this.getContext()).addApi(Wearable.API)
                     .addConnectionCallbacks(this).addOnConnectionFailedListener(this).build();
 
@@ -122,7 +122,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
                     @Override
                     protected Void doInBackground(final Void... params) {
                         Collection<String> nodes = getNodes();
-                        sendMessageToWear(mId, EVENT_UNREGISTER, nodes,
+                        sendMessageToWear(sId, EVENT_UNREGISTER, nodes,
                                 WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER, "");
                         return null;
 
@@ -151,19 +151,19 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
             Log.i(TAG, "onConnected");
         }
 
-        if (statusEvent == EVENT_REGISTER) {
+        if (sStatusEvent == EVENT_REGISTER) {
 
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(final Void... params) {
                     Collection<String> nodes = getNodes();
-                    sendMessageToWear(mId, EVENT_REGISTER, nodes, WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER,
+                    sendMessageToWear(sId, EVENT_REGISTER, nodes, WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER,
                             "");
                     return null;
                 }
             }.execute();
 
-        } else if (statusEvent == EVENT_UNREGISTER) {
+        } else if (sStatusEvent == EVENT_UNREGISTER) {
             if (BuildConfig.DEBUG) {
                 Log.i(TAG, "onConnected:EVENT_UNREGISTER");
             }
@@ -172,7 +172,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
                 @Override
                 protected Void doInBackground(final Void... params) {
                     Collection<String> nodes = getNodes();
-                    sendMessageToWear(mId, EVENT_UNREGISTER, nodes,
+                    sendMessageToWear(sId, EVENT_UNREGISTER, nodes,
                             WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER, "");
                     return null;
                 }
@@ -243,12 +243,8 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
                                 }
                             });
 
-                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
+                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
                             action, message.getBytes()).await();
-
-                    if (!result.getStatus().isSuccess()) {
-                    } else {
-                    }
                 }
             }
         } else if (status == EVENT_UNREGISTER) {
@@ -256,14 +252,8 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
 
                 // 指定デバイスのノードに送信
                 if (node.indexOf(id) != -1) {
-                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
+                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
                             WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER, "".getBytes()).await();
-
-                    if (!result.getStatus().isSuccess()) {
-
-                    } else {
-                        mGoogleApiClient.disconnect();
-                    }
                 }
             }
         }
@@ -299,7 +289,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
         orientation.putLong(DeviceOrientationProfile.PARAM_INTERVAL, 0);
         setInterval(orientation, Integer.parseInt(mDataArray[6]));
 
-        List<Event> events = EventManager.INSTANCE.getEventList(mServiceId, DeviceOrientationProfile.PROFILE_NAME, null,
+        List<Event> events = EventManager.INSTANCE.getEventList(sServiceId, DeviceOrientationProfile.PROFILE_NAME, null,
                 DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
 
         for (int i = 0; i < events.size(); i++) {

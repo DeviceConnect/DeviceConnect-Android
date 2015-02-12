@@ -72,7 +72,7 @@ public class DeviceTestService extends DConnectMessageService {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(final Intent intent, final int flags, final int startId) {
         mLogger.info("onStartCommand: intent=" + intent);
         if (intent != null) {
             mLogger.info("onStartCommand: extras=" + toString(intent.getExtras()));
@@ -80,7 +80,12 @@ public class DeviceTestService extends DConnectMessageService {
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private String toString(Bundle bundle) {
+    /**
+     * JSON文字列に変換する.
+     * @param bundle Bundle
+     * @return JSON String
+     */
+    private String toString(final Bundle bundle) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         for (Iterator<String> it = bundle.keySet().iterator(); it.hasNext();) {

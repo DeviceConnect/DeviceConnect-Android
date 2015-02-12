@@ -83,7 +83,7 @@ public class ChromeCastService extends DConnectMessageService implements
         String appMsgUrn = getString(R.string.application_message_urn);
 
         int portCount = 0;
-        while (portCount < 500) {// Portを決定する
+        while (portCount < 500) { // Portを決定する
             try {
                 mServer = new ChromeCastHttpServer("0.0.0.0", SERVER_PORT + portCount);
                 mServer.start();

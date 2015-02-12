@@ -573,10 +573,13 @@ public abstract class DConnectMessageService extends Service
 
         // HMAC生成
         String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        mLogger.info("Origin in Extra: " + origin);
         if (origin == null) {
             String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
+            mLogger.info("Check accessToken in Extra: " + accessToken);
             if (accessToken != null) {
                 origin = findOrigin(accessToken);
+                mLogger.info("Find origin by accessToken:" + origin);
             }
         }
         if (origin != null) {
@@ -589,6 +592,8 @@ public abstract class DConnectMessageService extends Service
                     }
                 }
             }
+        } else {
+            mLogger.warning("Origin is not found.");
         }
 
         intent.setComponent(cn);

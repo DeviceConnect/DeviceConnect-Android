@@ -8,6 +8,7 @@ package org.deviceconnect.android.manager.setting;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.logging.Logger;
 
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.localoauth.activity.AccessTokenListActivity;
@@ -21,7 +22,6 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -36,6 +36,9 @@ public class SettingActivity extends Activity {
 
     /** HMAC管理クラス. */
     private HmacManager mHmacManager;
+
+    /** ロガー. */
+    protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /**
      * {@inheritDoc}
@@ -61,6 +64,7 @@ public class SettingActivity extends Activity {
         if (intent != null && SCHEME_LAUNCH.equals(intent.getScheme())) {
             String key = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEY);
             String origin = intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+            mLogger.info("Requested to update HMAC key: origin=" + origin + ", key=" + key);
             try {
                 if (origin != null) {
                     origin = URLDecoder.decode(origin, "UTF-8");
@@ -70,9 +74,11 @@ public class SettingActivity extends Activity {
                 }
             } catch (UnsupportedEncodingException e) {
                 // nothing to do.
+                mLogger.warning("Failed to decode origin=" + origin);
                 return;
             }
             startService(new Intent(this, DConnectService.class));
+            mLogger.info("Started Device Connect Manager by custom URI Scheme.");
 
             ComponentName receiver = intent.getParcelableExtra(DConnectMessage.EXTRA_RECEIVER);
             if (receiver != null) {

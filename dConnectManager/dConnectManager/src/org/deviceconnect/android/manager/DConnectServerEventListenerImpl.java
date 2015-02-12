@@ -358,15 +358,30 @@ public class DConnectServerEventListenerImpl implements
      * @param intent key-valueを格納するIntent
      */
     private void parseHeaders(final HttpRequest request, final Intent intent) {
+        Entry<String, String> webOrigin = null;
+        Entry<String, String> nativeOrigin = null;
         Map<String, String> headers = request.getHeaders();
         for (Entry<String, String> entry :  headers.entrySet()) {
             String key = entry.getKey();
             if (key.equalsIgnoreCase("origin")) {
-                intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, entry.getValue());
-                intent.putExtra(DConnectService.EXTRA_INNER_APP_TYPE, DConnectService.INNER_APP_TYPE_WEB);
+                webOrigin = entry;
             } else if (key.equalsIgnoreCase("X-GotAPI-Origin")) {
-                intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, entry.getValue());
+                nativeOrigin = entry;
             }
+        }
+        if (nativeOrigin != null) {
+            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, nativeOrigin.getValue());
+            mLogger.info("Origin specified in HTTP request (native): " + nativeOrigin.getValue());
+        } else if (webOrigin != null) {
+            String value = webOrigin.getValue();
+            if (value == null || value.equals("null")) {
+                value = "file://";
+            }
+            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, value);
+            intent.putExtra(DConnectService.EXTRA_INNER_APP_TYPE, DConnectService.INNER_APP_TYPE_WEB);
+            mLogger.info("Origin specified in HTTP request (web): " + value);
+        } else {
+            mLogger.warning("No origin is specified in HTTP request: " + request);
         }
     }
 

@@ -50,7 +50,7 @@ public class SettingActivity extends Activity {
     }
 
     @Override
-    protected void onNewIntent(Intent intent) {
+    protected void onNewIntent(final Intent intent) {
         setIntent(intent);
     }
 

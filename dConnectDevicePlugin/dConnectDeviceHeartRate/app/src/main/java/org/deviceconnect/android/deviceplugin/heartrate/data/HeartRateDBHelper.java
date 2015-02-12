@@ -20,6 +20,7 @@ public class HeartRateDBHelper {
 
     private static final String COL_NAME = "name";
     private static final String COL_ADDRESS = "address";
+    private static final String COL_LOCATION = "location";
     private static final String COL_REGISTER_FLAG = "register_flag";
 
     private DBHelper mDBHelper;
@@ -32,6 +33,7 @@ public class HeartRateDBHelper {
         ContentValues values = new ContentValues();
         values.put(COL_NAME, device.getName());
         values.put(COL_ADDRESS, device.getAddress());
+        values.put(COL_LOCATION, device.getSensorLocation());
         values.put(COL_REGISTER_FLAG, device.isRegisterFlag() ? 1 : 0);
 
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
@@ -87,6 +89,7 @@ public class HeartRateDBHelper {
             device.setId(cursor.getInt(cursor.getColumnIndex(BaseColumns._ID)));
             device.setName(cursor.getString(cursor.getColumnIndex(COL_NAME)));
             device.setAddress(cursor.getString(cursor.getColumnIndex(COL_ADDRESS)));
+            device.setSensorLocation(cursor.getInt(cursor.getColumnIndex(COL_LOCATION)));
             device.setRegisterFlag(cursor.getInt(cursor.getColumnIndex(COL_REGISTER_FLAG)) == 1);
             devices.add(device);
             next = cursor.moveToNext();
@@ -115,6 +118,7 @@ public class HeartRateDBHelper {
                     + BaseColumns._ID + " INTEGER PRIMARY KEY, "
                     + COL_NAME + " TEXT NOT NULL, "
                     + COL_ADDRESS + " TEXT NOT NULL, "
+                    + COL_LOCATION + " INTEGER, "
                     + COL_REGISTER_FLAG + " INTEGER"
                     + ");";
             db.execSQL(sql);

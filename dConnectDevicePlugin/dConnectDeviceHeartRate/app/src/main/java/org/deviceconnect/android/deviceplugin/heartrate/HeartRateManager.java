@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.heartrate;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateDBHelper;
@@ -19,7 +18,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 import static org.deviceconnect.android.deviceplugin.heartrate.HeartRateConnector.HeartRateConnectEventListener;
 import static org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector.BleDeviceDiscoveryListener;
@@ -28,6 +29,9 @@ import static org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDete
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateManager {
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
+
     /**
      * application context.
      */
@@ -169,6 +173,10 @@ public class HeartRateManager {
         return mRegisterDevices;
     }
 
+    public Set<BluetoothDevice> getBondedDevices() {
+        return mDetector.getBondedDevices();
+    }
+
     public HeartRateData getHeartRateData(String address) {
         HeartRateDevice device = findRegisteredHeartRateDeviceByAddress(address);
         return getHeartRateData(device);
@@ -211,19 +219,26 @@ public class HeartRateManager {
         return false;
     }
 
+    /**
+     * Implementation of BleDeviceDiscoveryListener.
+     */
     private BleDeviceDiscoveryListener mDiscoveryListener = new BleDeviceDiscoveryListener() {
         @Override
         public void onDiscovery(final List<BluetoothDevice> devices) {
+            mLogger.fine("BleDeviceDiscoveryListener#onDiscovery: " + devices.size());
             if (mHRDiscoveryListener != null) {
                 mHRDiscoveryListener.onDiscovery(devices);
             }
         }
     };
 
+    /**
+     * Implementation of HeartRateConnectEventListener.
+     */
     private HeartRateConnectEventListener mHRConnectListener = new HeartRateConnectEventListener() {
         @Override
         public void onConnected(final BluetoothDevice device) {
-            Log.e("ABC", "onConnected: " + device);
+            mLogger.fine("HeartRateConnectEventListener#onConnected: [" + device + "]");
             HeartRateDevice hr = findRegisteredHeartRateDeviceByAddress(device.getAddress());
             if (hr == null) {
                 hr = registerHeartRateDevice(device);
@@ -238,7 +253,7 @@ public class HeartRateManager {
 
         @Override
         public void onDisconnected(final BluetoothDevice device) {
-            Log.e("ABC", "onDisconnected: unregister : " + device);
+            mLogger.fine("HeartRateConnectEventListener#onDisconnected: [" + device + "]");
             HeartRateDevice hr = findConnectedHeartRateDeviceByAddress(device.getAddress());
             if (hr == null && !containRegisteredHeartRateDevice(device)) {
                 if (mHRDiscoveryListener != null) {
@@ -247,22 +262,34 @@ public class HeartRateManager {
             } else {
                 mConnectedDevices.remove(hr);
             }
-            Log.e("ABC", "onDisconnected: unregister : end" );
         }
 
         @Override
         public void onConnectFailed(final BluetoothDevice device) {
+            mLogger.fine("HeartRateConnectEventListener#onConnectFailed: [" + device + "]");
             if (mHRDiscoveryListener != null) {
                 mHRDiscoveryListener.onConnectFailed(device);
             }
         }
 
         @Override
+        public void onReadSensorLocation(BluetoothDevice device, int location) {
+            mLogger.fine("HeartRateConnectEventListener#onReadSensorLocation: ["
+                    + device + "]: " + location);
+            HeartRateDevice hr = findConnectedHeartRateDeviceByAddress(device.getAddress());
+            if (hr != null) {
+                hr.setSensorLocation(location);
+                mDBHelper.updateHeartRateDevice(hr);
+            }
+        }
+
+        @Override
         public void onReceivedData(final BluetoothDevice device, final int heartRate,
                 final int energyExpended, final double rrInterval) {
-            Log.e("ABC", device + ": " + heartRate);
+            mLogger.fine("HeartRateConnectEventListener#onReceivedData: [" + device + "]");
             HeartRateDevice hr = findRegisteredHeartRateDeviceByAddress(device.getAddress());
             if (hr == null) {
+                mLogger.warning("device not found. device:[" + device + "]");
                 return;
             }
 
@@ -279,12 +306,18 @@ public class HeartRateManager {
         }
     };
 
+    /**
+     * This interface is used to implement {@link HeartRateManager} callbacks.
+     */
     public static interface OnHeartRateDiscoveryListener {
         void onDiscovery(List<BluetoothDevice> devices);
         void onConnected(BluetoothDevice device);
         void onConnectFailed(BluetoothDevice device);
     }
 
+    /**
+     * This interface is used to implement {@link HeartRateManager} callbacks.
+     */
     public static interface OnHeartRateEventListener {
         void onReceivedData(HeartRateDevice device, HeartRateData data);
     }

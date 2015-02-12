@@ -15,6 +15,7 @@ public class ErrorDialogFragment extends DialogFragment {
     private static final String PARAM_TITLE = "title";
     private static final String PARAM_MESSAGE = "message";
     private AlertDialog mDialog;
+    private DialogInterface.OnDismissListener mListener;
 
     public static ErrorDialogFragment newInstance(final String title, final String message) {
         ErrorDialogFragment instance = new ErrorDialogFragment();
@@ -60,5 +61,17 @@ public class ErrorDialogFragment extends DialogFragment {
     public void onDestroy() {
         super.onDestroy();
         mDialog = null;
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (mListener != null) {
+            mListener.onDismiss(dialog);
+        }
+    }
+
+    public void setOnDismissListener(DialogInterface.OnDismissListener listener) {
+        mListener = listener;
     }
 }

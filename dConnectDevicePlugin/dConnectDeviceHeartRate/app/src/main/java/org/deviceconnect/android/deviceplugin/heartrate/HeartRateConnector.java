@@ -28,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import static android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT16;
 import static android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT8;
@@ -36,6 +37,9 @@ import static android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT8;
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateConnector {
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
+
     private static final int CHK_FIRST_WAIT_PERIOD = 10 * 1000;
     private static final int CHK_WAIT_PERIOD = 10 * 1000;
     /**
@@ -58,10 +62,13 @@ public class HeartRateConnector {
     private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
 
     /**
-     * ScheduledFuture of scan timer.
+     * ScheduledFuture of automatic connection timer.
      */
-    private ScheduledFuture<?> mScanTimerFuture;
+    private ScheduledFuture<?> mAutoConnectTimerFuture;
 
+    /**
+     * Instance of BleDeviceDetector.
+     */
     private BleDeviceDetector mBleDeviceDetector;
 
     /**
@@ -100,9 +107,6 @@ public class HeartRateConnector {
             throw new IllegalArgumentException("device is null");
         }
         device.connectGatt(mContext, false, mBluetoothGattCallback);
-        if (!mRegisterDevices.contains(device.getAddress())) {
-            mRegisterDevices.add(device.getAddress());
-        }
     }
 
     /**
@@ -127,12 +131,12 @@ public class HeartRateConnector {
      * Start Bluetooth LE connect automatically.
      */
     public void start() {
-        mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+        mAutoConnectTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 synchronized (mRegisterDevices) {
                     for (String address : mRegisterDevices) {
-                        if (!containGatt(address)) {
+                        if (!containGattMap(address)) {
                             BluetoothDevice device = mBleDeviceDetector.getDevice(address);
                             if (device != null) {
                                 connectDevice(device);
@@ -149,11 +153,16 @@ public class HeartRateConnector {
      */
     public void stop() {
         mHRDevices.clear();
-        mScanTimerFuture.cancel(true);
+        mAutoConnectTimerFuture.cancel(true);
         mRegisterDevices.clear();
     }
 
-    private boolean containGatt(String address) {
+    /**
+     * Tests whether this mHRDevices contains address.
+     * @param address ble device address
+     * @return true if address is an element of mHRDevices, false otherwise
+     */
+    private boolean containGattMap(String address) {
         for (BluetoothGatt gatt : mHRDevices.keySet()) {
             if (gatt.getDevice().getAddress().equalsIgnoreCase(address)) {
                 return true;
@@ -192,6 +201,9 @@ public class HeartRateConnector {
         mHRDevices.put(gatt, DeviceState.GET_LOCATION);
         if (mListener != null) {
             mListener.onConnected(gatt.getDevice());
+        }
+        if (!mRegisterDevices.contains(gatt.getDevice().getAddress())) {
+            mRegisterDevices.add(gatt.getDevice().getAddress());
         }
     }
 
@@ -243,7 +255,6 @@ public class HeartRateConnector {
     }
 
     private boolean next(final BluetoothGatt gatt) {
-        Log.i("ABC", "@@@@@@ next: enter");
         if (!mHRDevices.containsKey(gatt)) {
             newHeartRateDevice(gatt);
         }
@@ -262,13 +273,18 @@ public class HeartRateConnector {
                 }
                 break;
             default:
+                mLogger.warning("Illegal state. state=" + state);
                 break;
         }
 
         return false;
     }
 
-
+    /**
+     *
+     * @param gatt
+     * @param characteristic
+     */
     private void notifyHeartRateMeasurement(final BluetoothGatt gatt,
             final BluetoothGattCharacteristic characteristic) {
         int heartRate = 0;
@@ -323,7 +339,8 @@ public class HeartRateConnector {
         @Override
         public void onConnectionStateChange(final BluetoothGatt gatt,
                                             final int status, final int newState) {
-            Log.i("ABC", "@@@@@@ onConnectionStateChange: " + status + " -> " + newState);
+            mLogger.fine("@@@@@@ onConnectionStateChange: [" + gatt.getDevice() + "]: "
+                    + status + " -> " + newState);
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 gatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -337,7 +354,7 @@ public class HeartRateConnector {
 
         @Override
         public void onServicesDiscovered(final BluetoothGatt gatt, final int status) {
-            Log.w("ABC", "onServicesDiscovered");
+            mLogger.fine("@@@@@@ onServicesDiscovered: [" + gatt.getDevice() + "]");
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (!hasHeartRateService(gatt)) {
                     // ble device has no heart rate service.
@@ -360,9 +377,13 @@ public class HeartRateConnector {
         @Override
         public void onCharacteristicRead(final BluetoothGatt gatt,
                                          final BluetoothGattCharacteristic characteristic, final int status) {
-            Log.i("ABC", "@@@@@@ onCharacteristicRead: ");
+            mLogger.fine("@@@@@@ onCharacteristicRead: [" + gatt.getDevice() + "]");
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (isBodySensorLocation(characteristic)) {
+                    int location = characteristic.getIntValue(FORMAT_UINT8, 0);
+                    if (mListener != null) {
+                        mListener.onReadSensorLocation(gatt.getDevice(), location);
+                    }
                 }
             }
             mHRDevices.put(gatt, DeviceState.REGISTER_NOTIFY);
@@ -372,6 +393,7 @@ public class HeartRateConnector {
         @Override
         public void onCharacteristicChanged(final BluetoothGatt gatt,
                                             final BluetoothGattCharacteristic characteristic) {
+            mLogger.fine("@@@@@@ onCharacteristicChanged: [" + gatt.getDevice() + "]");
             if (isHeartRateMeasurement(characteristic)) {
                 notifyHeartRateMeasurement(gatt, characteristic);
             }
@@ -396,6 +418,7 @@ public class HeartRateConnector {
 
         void onConnectFailed(BluetoothDevice device);
 
+        void onReadSensorLocation(BluetoothDevice device, int location);
         void onReceivedData(BluetoothDevice device, int heartRate,
                             int energyExpended, double rrInterval);
     }

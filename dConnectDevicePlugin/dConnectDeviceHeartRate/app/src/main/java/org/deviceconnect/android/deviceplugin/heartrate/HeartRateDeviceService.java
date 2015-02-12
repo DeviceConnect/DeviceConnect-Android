@@ -13,10 +13,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 
+import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateHealthProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateSystemProfile;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -49,6 +52,8 @@ public class HeartRateDeviceService extends DConnectMessageService {
         app.initialize();
 
         registerBluetoothFilter();
+
+        addProfile(new HeartRateHealthProfile());
     }
 
     @Override
@@ -59,12 +64,17 @@ public class HeartRateDeviceService extends DConnectMessageService {
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new HeartRateSystemProfile(this);
+        return new HeartRateSystemProfile();
     }
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
         return new HeartRateServiceDiscoveryProfile();
+    }
+
+    @Override
+    protected ServiceInformationProfile getServiceInformationProfile() {
+        return new HeartRateServiceInformationProfile(this);
     }
 
     private void registerBluetoothFilter() {

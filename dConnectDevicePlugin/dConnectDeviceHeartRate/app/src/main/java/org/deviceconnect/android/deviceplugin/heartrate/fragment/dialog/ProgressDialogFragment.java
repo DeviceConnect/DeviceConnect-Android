@@ -38,6 +38,7 @@ public class ProgressDialogFragment extends DialogFragment {
         mDialog.setTitle(title);
         mDialog.setMessage(message);
         mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+
         setCancelable(false);
 
         return mDialog;

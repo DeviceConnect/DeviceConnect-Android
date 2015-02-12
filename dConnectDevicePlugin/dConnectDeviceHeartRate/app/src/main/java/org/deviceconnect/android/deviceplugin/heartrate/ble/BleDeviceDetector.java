@@ -15,6 +15,7 @@ import org.deviceconnect.android.deviceplugin.heartrate.ble.adapter.NewBleDevice
 import org.deviceconnect.android.deviceplugin.heartrate.ble.adapter.OldBleDeviceAdapterImpl;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -161,6 +162,13 @@ public class BleDeviceDetector {
             return null;
         }
         return mBleAdapter.getDevice(address);
+    }
+
+    public Set<BluetoothDevice> getBondedDevices() {
+        if (mBleAdapter == null || !mBleAdapter.isEnabled()) {
+            return null;
+        }
+        return mBleAdapter.getBondedDevices();
     }
 
     /**

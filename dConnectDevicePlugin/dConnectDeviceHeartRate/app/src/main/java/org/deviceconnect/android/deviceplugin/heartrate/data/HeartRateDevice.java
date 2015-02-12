@@ -13,6 +13,7 @@ public class HeartRateDevice {
     private int mId = -1;
     private String mName;
     private String mAddress;
+    private int mSensorLocation = -1;
     private boolean mRegisterFlag;
     private boolean mConnectFlag;
 
@@ -38,6 +39,14 @@ public class HeartRateDevice {
 
     public void setAddress(String address) {
         mAddress = address;
+    }
+
+    public int getSensorLocation() {
+        return mSensorLocation;
+    }
+
+    public void setSensorLocation(int sensorLocation) {
+        mSensorLocation = sensorLocation;
     }
 
     public boolean isRegisterFlag() {

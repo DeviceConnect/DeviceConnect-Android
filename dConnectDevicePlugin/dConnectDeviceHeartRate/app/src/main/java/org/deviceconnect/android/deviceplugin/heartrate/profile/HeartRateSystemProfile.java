@@ -10,21 +10,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateSystemProfile extends SystemProfile {
-    /**
-     * Constructor.
-     * @param provider profile provider
-     */
-    public HeartRateSystemProfile(final DConnectProfileProvider provider) {
-        super(provider);
-    }
-
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
         return null;

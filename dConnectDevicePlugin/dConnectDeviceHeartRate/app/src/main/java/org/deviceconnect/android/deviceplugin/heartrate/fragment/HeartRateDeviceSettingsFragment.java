@@ -8,10 +8,10 @@ package org.deviceconnect.android.deviceplugin.heartrate.fragment;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,6 +31,7 @@ import org.deviceconnect.android.deviceplugin.heartrate.fragment.dialog.Progress
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager.OnHeartRateDiscoveryListener;
 
@@ -47,13 +48,13 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     /**
      * Dialog.
      */
-    private DialogFragment mDialogFragment;
+    private ErrorDialogFragment mErrorDialogFragment;
+
+    private ProgressDialogFragment mProgressDialogFragment;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
             @Nullable Bundle savedInstanceState) {
-
-        setRetainInstance(true);
 
         mDeviceAdapter = new DeviceAdapter(getActivity(), createDeviceContainers());
 
@@ -75,6 +76,8 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         super.onPause();
         getManager().setOnHeartRateDiscoveryListener(null);
         getManager().stopScanBle();
+        dismissProgressDialog();
+        dismissErrorDialog();
     }
 
     /**
@@ -103,35 +106,52 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
                 }
             }
         });
-
     }
 
     private void showProgressDialog(String name) {
+        dismissProgressDialog();
+
         Resources res = getActivity().getResources();
         String title = res.getString(R.string.heart_rate_setting_connecting_title);
         String message = res.getString(R.string.heart_rate_setting_connecting_message, name);
-        mDialogFragment = ProgressDialogFragment.newInstance(title, message);
-        mDialogFragment.show(getFragmentManager(), "dialog");
+        mProgressDialogFragment = ProgressDialogFragment.newInstance(title, message);
+        mProgressDialogFragment.show(getFragmentManager(), "dialog");
     }
 
     private void dismissProgressDialog() {
-        if (mDialogFragment != null) {
-            mDialogFragment.dismiss();
+        if (mProgressDialogFragment != null) {
+            mProgressDialogFragment.dismiss();
+            mProgressDialogFragment = null;
         }
     }
 
     private void showErrorDialog(String name) {
+        dismissErrorDialog();
+
         Resources res = getActivity().getResources();
         String title = res.getString(R.string.heart_rate_setting_dialog_error_title);
         String message = null;
         if (name == null) {
-            res.getString(R.string.heart_rate_setting_dialog_error_message,
-                    R.string.heart_rate_setting_default_name);
+            message = res.getString(R.string.heart_rate_setting_dialog_error_message,
+                    getString(R.string.heart_rate_setting_default_name));
         } else {
-            res.getString(R.string.heart_rate_setting_dialog_error_message, name);
+            message = res.getString(R.string.heart_rate_setting_dialog_error_message, name);
         }
-        mDialogFragment = ErrorDialogFragment.newInstance(title, message);
-        mDialogFragment.show(getFragmentManager(), "dialog");
+        mErrorDialogFragment = ErrorDialogFragment.newInstance(title, message);
+        mErrorDialogFragment.show(getFragmentManager(), "error_dialog");
+        mErrorDialogFragment.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                mErrorDialogFragment = null;
+            }
+        });
+    }
+
+    private void dismissErrorDialog() {
+        if (mErrorDialogFragment != null) {
+            mErrorDialogFragment.dismiss();
+            mErrorDialogFragment = null;
+        }
     }
 
     /**
@@ -197,6 +217,16 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         for (HeartRateDevice device : devices) {
             containers.add(createContainer(device, true));
         }
+
+        // MEMO: add of device that are paired to smart phone.
+        Set<BluetoothDevice> pairing = getManager().getBondedDevices();
+        for (BluetoothDevice device : pairing) {
+            String name = device.getName();
+            if (name != null && name.indexOf("PS-100") != -1) {
+                containers.add(createContainer(device));
+            }
+        }
+
         return containers;
     }
 

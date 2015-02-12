@@ -14,6 +14,8 @@ import android.content.Context;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceAdapter;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 
+import java.util.Set;
+
 /**
  *
  * @author NTT DOCOMO, INC.
@@ -42,6 +44,11 @@ public class OldBleDeviceAdapterImpl extends BleDeviceAdapter {
     @Override
     public BluetoothDevice getDevice(String address) {
         return mBluetoothAdapter.getRemoteDevice(address);
+    }
+
+    @Override
+    public Set<BluetoothDevice> getBondedDevices() {
+        return mBluetoothAdapter.getBondedDevices();
     }
 
     @Override

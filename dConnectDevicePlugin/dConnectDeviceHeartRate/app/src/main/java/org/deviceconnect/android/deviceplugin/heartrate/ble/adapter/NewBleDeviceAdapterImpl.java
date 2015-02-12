@@ -20,6 +20,7 @@ import org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceAdapter;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -52,6 +53,11 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
     @Override
     public BluetoothDevice getDevice(String address) {
         return mBluetoothAdapter.getRemoteDevice(address);
+    }
+
+    @Override
+    public Set<BluetoothDevice> getBondedDevices() {
+        return mBluetoothAdapter.getBondedDevices();
     }
 
     @Override

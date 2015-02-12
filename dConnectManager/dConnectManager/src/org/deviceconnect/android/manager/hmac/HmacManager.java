@@ -234,7 +234,7 @@ public final class HmacManager {
          * @param origin Origin
          * @return HMAC key
          */
-        HmacKey getKey(final String origin) {
+        synchronized HmacKey getKey(final String origin) {
             SQLiteDatabase db = openDB();
             if (db == null) {
                 return null;
@@ -265,7 +265,7 @@ public final class HmacManager {
          * @param key HMAC key
          * @return Result
          */
-        HmacKeyError addKey(final String origin, final String key) {
+        synchronized HmacKeyError addKey(final String origin, final String key) {
             if (origin == null) {
                 throw new IllegalArgumentException("origin is null");
             }
@@ -322,7 +322,7 @@ public final class HmacManager {
          * @param origin Origin
          * @return Result
          */
-        HmacKeyError removeKey(final String origin) {
+        synchronized HmacKeyError removeKey(final String origin) {
             if (origin == null) {
                 throw new IllegalArgumentException("origin is null");
             }

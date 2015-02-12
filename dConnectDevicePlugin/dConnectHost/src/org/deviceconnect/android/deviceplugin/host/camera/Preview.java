@@ -259,16 +259,13 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
                 .getSystemService(Context.WINDOW_SERVICE);
         int rot = mgr.getDefaultDisplay().getRotation();
         int base = 90;
+
         Configuration config = getContext().getResources().getConfiguration();
-        switch (config.orientation) {
-        default:
-        case Configuration.ORIENTATION_PORTRAIT:
-            base = 90;
-            break;
-        case Configuration.ORIENTATION_LANDSCAPE:
+        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE 
+                && (rot == Surface.ROTATION_0 || rot == Surface.ROTATION_180)) {
             base = 0;
-            break;
         }
+
         int degree = 0;
         switch (rot) {
         default:

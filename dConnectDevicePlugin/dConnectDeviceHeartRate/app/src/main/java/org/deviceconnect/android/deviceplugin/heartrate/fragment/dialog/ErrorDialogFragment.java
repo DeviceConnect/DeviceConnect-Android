@@ -1,0 +1,64 @@
+package org.deviceconnect.android.deviceplugin.heartrate.fragment.dialog;
+
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+
+import org.deviceconnect.android.deviceplugin.heartrate.R;
+
+/**
+ *
+ */
+public class ErrorDialogFragment extends DialogFragment {
+    private static final String PARAM_TITLE = "title";
+    private static final String PARAM_MESSAGE = "message";
+    private AlertDialog mDialog;
+
+    public static ErrorDialogFragment newInstance(final String title, final String message) {
+        ErrorDialogFragment instance = new ErrorDialogFragment();
+
+        Bundle arguments = new Bundle();
+        arguments.putString(PARAM_TITLE, title);
+        arguments.putString(PARAM_MESSAGE, message);
+
+        instance.setArguments(arguments);
+
+        return instance;
+    }
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        if (mDialog != null) {
+            return mDialog;
+        }
+
+        String title = getArguments().getString(PARAM_TITLE);
+        String message = getArguments().getString(PARAM_MESSAGE);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setPositiveButton(R.string.heart_rate_setting_dialog_positive,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dismiss();
+                    }
+                });
+        mDialog = builder.create();
+        return mDialog;
+    }
+
+    @Override
+    public Dialog getDialog() {
+        return mDialog;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mDialog = null;
+    }
+}

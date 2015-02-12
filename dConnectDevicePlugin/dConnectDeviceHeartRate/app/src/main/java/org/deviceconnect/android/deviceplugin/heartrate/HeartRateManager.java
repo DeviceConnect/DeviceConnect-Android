@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.deviceconnect.android.deviceplugin.heartrate.HeartRateConnector.HeartRateConnectEventListener;
-import static org.deviceconnect.android.deviceplugin.heartrate.HeartRateConnector.HeartRateDeviceCheckListener;
 import static org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector.BleDeviceDiscoveryListener;
 
 /**
@@ -52,7 +51,7 @@ public class HeartRateManager {
     // TODO: consider synchronized
     private List<HeartRateDevice> mConnectedDevices = Collections.synchronizedList(
             new ArrayList<HeartRateDevice>());
-    private List<HeartRateDevice> mDiscoveryDevices = Collections.synchronizedList(
+    private List<HeartRateDevice> mRegisterDevices = Collections.synchronizedList(
             new ArrayList<HeartRateDevice>());
     private Map<HeartRateDevice, HeartRateData> mHRData = new ConcurrentHashMap<>();
 
@@ -68,13 +67,14 @@ public class HeartRateManager {
 
         mConnector = new HeartRateConnector(context);
         mConnector.setListener(mHRConnectListener);
+        mConnector.setBleDeviceDetector(mDetector);
 
         mDBHelper = new HeartRateDBHelper(context);
 
         List<HeartRateDevice> list = mDBHelper.getHeartRateDevices();
         for (HeartRateDevice device : list) {
             if (device.isRegisterFlag()) {
-                mDiscoveryDevices.add(device);
+                mRegisterDevices.add(device);
             }
         }
 
@@ -88,22 +88,21 @@ public class HeartRateManager {
     }
 
     public void start() {
-        synchronized (mDiscoveryDevices) {
-            for (HeartRateDevice device : mDiscoveryDevices) {
-                if (device.isRegisterFlag()) {
-                    connectBleDevice(device);
-                }
+        mDetector.initialize();
+        synchronized (mRegisterDevices) {
+            for (HeartRateDevice device : mRegisterDevices) {
+                connectBleDevice(device.getAddress());
             }
         }
+        if (mDetector.isScanning()) {
+            mDetector.startScan();
+        }
+        mConnector.start();
     }
 
     public void stop() {
-        synchronized (mConnectedDevices) {
-            for (HeartRateDevice device : mConnectedDevices) {
-                disconnectBleDevice(device);
-            }
-        }
         mConnectedDevices.clear();
+        mConnector.stop();
     }
 
     /**
@@ -120,57 +119,58 @@ public class HeartRateManager {
         mDetector.stopScan();
     }
 
-    public void registerHeartRateDevice(final HeartRateDevice device) {
-        connectBleDevice(device);
-        device.setRegisterFlag(true);
-        if (device.getId() == -1) {
-            mDBHelper.addHeartRateDevice(device);
-        } else {
-            mDBHelper.updateHeartRateDevice(device);
+    private HeartRateDevice registerHeartRateDevice(final BluetoothDevice device) {
+        HeartRateDevice hr = new HeartRateDevice();
+        hr.setName(device.getName());
+        hr.setAddress(device.getAddress());
+        hr.setRegisterFlag(true);
+        hr.setConnectFlag(true);
+        mDBHelper.addHeartRateDevice(hr);
+        mRegisterDevices.add(hr);
+        return hr;
+    }
+
+    private void unregisterHeartRateDevice(final String address) {
+        HeartRateDevice hr = findRegisteredHeartRateDeviceByAddress(address);
+        if (hr != null) {
+            mDBHelper.removeHeartRateDevice(hr);
+            mRegisterDevices.remove(hr);
         }
     }
-
-    public void unregisterHeartRateDevice(final HeartRateDevice device) {
-        disconnectBleDevice(device);
-        device.setRegisterFlag(false);
-        mDBHelper.updateHeartRateDevice(device);
-    }
-
 
     /**
      * Connect to GATT Server hosted by device.
-     * @param device device that connect to GATT
+     * @param address address for ble device
      */
-    private void connectBleDevice(final HeartRateDevice device) {
-        BluetoothDevice blue = mDetector.getDevice(device.getAddress());
+    public void connectBleDevice(final String address) {
+        BluetoothDevice blue = mDetector.getDevice(address);
         if (blue != null) {
             mConnector.connectDevice(blue);
         }
-        Log.e("ABC", "connectBleDevice: " + device);
     }
 
     /**
      * Disconnect to GATT Server hosted by device.
-     * @param device device that disconnect to GATT
+     * @param address address for ble device
      */
-    private void disconnectBleDevice(final HeartRateDevice device) {
-        BluetoothDevice blue = mDetector.getDevice(device.getAddress());
+    public void disconnectBleDevice(final String address) {
+        BluetoothDevice blue = mDetector.getDevice(address);
         if (blue != null) {
             mConnector.disconnectDevice(blue);
         }
-        device.setConnectFlag(false);
+        unregisterHeartRateDevice(address);
     }
 
     public List<HeartRateDevice> getConnectedDevices() {
         return mConnectedDevices;
     }
 
-    public List<HeartRateDevice> getDiscoveryDevices() {
-        return mDiscoveryDevices;
+    public List<HeartRateDevice> getRegisterDevices() {
+        return mRegisterDevices;
     }
 
     public HeartRateData getHeartRateData(String address) {
-        HeartRateDevice device = findHeartRateDeviceByAddress(address);
+        HeartRateDevice device = findRegisteredHeartRateDeviceByAddress(address);
         return getHeartRateData(device);
     }
 
@@ -178,8 +178,17 @@ public class HeartRateManager {
         return mHRData.get(device);
     }
 
-    private HeartRateDevice findHeartRateDeviceByAddress(String address) {
-        for (HeartRateDevice d : mDiscoveryDevices) {
+    private HeartRateDevice findRegisteredHeartRateDeviceByAddress(String address) {
+        for (HeartRateDevice d : mRegisterDevices) {
+            if (d.getAddress().equalsIgnoreCase(address)) {
+                return d;
+            }
+        }
+        return null;
+    }
+
+    private HeartRateDevice findConnectedHeartRateDeviceByAddress(String address) {
+        for (HeartRateDevice d : mConnectedDevices) {
             if (d.getAddress().equalsIgnoreCase(address)) {
                 return d;
             }
@@ -188,38 +197,13 @@ public class HeartRateManager {
     }
 
     /**
-     * Checks whether device has Heart Rate Service.
+     * Tests whether this mRegisterDevices contains the specified object.
      * @param device device will be checked
-     */
-    private void checkDevice(final BluetoothDevice device) {
-        Log.e("ABC", "checkDevice: " + device);
-        mConnector.checkHeartRateDevice(device, new HeartRateDeviceCheckListener() {
-            @Override
-            public void onChecked(final BluetoothDevice device, final boolean checked) {
-                if (checked) {
-                    Log.e("ABC", "onChecked: " + device + " " + checked);
-                    HeartRateDevice hr = new HeartRateDevice();
-                    hr.setAddress(device.getAddress());
-                    hr.setName(device.getName());
-                    hr.setRegisterFlag(false);
-
-                    if (!mDiscoveryDevices.contains(hr)) {
-                        mDiscoveryDevices.add(hr);
-                        mHRDiscoveryListener.onDiscovery(mDiscoveryDevices);
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * Tests whether this mDiscoveryDevices contains the specified object.
-     * @param device device will be checked
-     * @return true if object is an element of mDiscoveryDevices, false
+     * @return true if object is an element of mRegisterDevices, false
      *         otherwise
      */
-    private boolean containDevices(final BluetoothDevice device) {
-        for (HeartRateDevice d : mDiscoveryDevices) {
+    private boolean containRegisteredHeartRateDevice(final BluetoothDevice device) {
+        for (HeartRateDevice d : mRegisterDevices) {
             if (d.getAddress().equalsIgnoreCase(device.getAddress())) {
                 return true;
             }
@@ -230,11 +214,8 @@ public class HeartRateManager {
     private BleDeviceDiscoveryListener mDiscoveryListener = new BleDeviceDiscoveryListener() {
         @Override
         public void onDiscovery(final List<BluetoothDevice> devices) {
-            Log.e("ABC", "onDiscovery: " + devices.size());
-            for (BluetoothDevice device : devices) {
-                if (!containDevices(device)) {
-                    checkDevice(device);
-                }
+            if (mHRDiscoveryListener != null) {
+                mHRDiscoveryListener.onDiscovery(devices);
             }
         }
     };
@@ -242,29 +223,46 @@ public class HeartRateManager {
     private HeartRateConnectEventListener mHRConnectListener = new HeartRateConnectEventListener() {
         @Override
         public void onConnected(final BluetoothDevice device) {
-            HeartRateDevice hr = findHeartRateDeviceByAddress(device.getAddress());
-            hr.setConnectFlag(true);
-            mConnectedDevices.add(hr);
             Log.e("ABC", "onConnected: " + device);
+            HeartRateDevice hr = findRegisteredHeartRateDeviceByAddress(device.getAddress());
+            if (hr == null) {
+                hr = registerHeartRateDevice(device);
+            } else {
+                hr.setConnectFlag(true);
+            }
+            mConnectedDevices.add(hr);
+            if (mHRDiscoveryListener != null) {
+                mHRDiscoveryListener.onConnected(device);
+            }
         }
 
         @Override
         public void onDisconnected(final BluetoothDevice device) {
-            HeartRateDevice hr = findHeartRateDeviceByAddress(device.getAddress());
-            hr.setConnectFlag(false);
-            mConnectedDevices.remove(hr);
+            Log.e("ABC", "onDisconnected: unregister : " + device);
+            HeartRateDevice hr = findConnectedHeartRateDeviceByAddress(device.getAddress());
+            if (hr == null && !containRegisteredHeartRateDevice(device)) {
+                if (mHRDiscoveryListener != null) {
+                    mHRDiscoveryListener.onConnectFailed(device);
+                }
+            } else {
+                mConnectedDevices.remove(hr);
+            }
+            Log.e("ABC", "onDisconnected: unregister : end" );
         }
 
         @Override
         public void onConnectFailed(final BluetoothDevice device) {
+            if (mHRDiscoveryListener != null) {
+                mHRDiscoveryListener.onConnectFailed(device);
+            }
         }
 
         @Override
         public void onReceivedData(final BluetoothDevice device, final int heartRate,
                 final int energyExpended, final double rrInterval) {
             Log.e("ABC", device + ": " + heartRate);
-            HeartRateDevice hr = findHeartRateDeviceByAddress(device.getAddress());
-            if (hr != null) {
+            HeartRateDevice hr = findRegisteredHeartRateDeviceByAddress(device.getAddress());
+            if (hr == null) {
                 return;
             }
 
@@ -282,7 +280,9 @@ public class HeartRateManager {
     };
 
     public static interface OnHeartRateDiscoveryListener {
-        void onDiscovery(List<HeartRateDevice> devices);
+        void onDiscovery(List<BluetoothDevice> devices);
+        void onConnected(BluetoothDevice device);
+        void onConnectFailed(BluetoothDevice device);
     }
 
     public static interface OnHeartRateEventListener {

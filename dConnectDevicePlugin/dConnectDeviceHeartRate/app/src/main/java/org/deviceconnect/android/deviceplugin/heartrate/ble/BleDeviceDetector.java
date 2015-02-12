@@ -59,6 +59,8 @@ public class BleDeviceDetector {
     private BleDeviceDiscoveryListener mListener;
     private List<BluetoothDevice> mDevices = new CopyOnWriteArrayList<>();
 
+    private BleDeviceAdapterFactory mFactory;
+
     /**
      * Constructor.
      * @param context context of this application
@@ -83,7 +85,8 @@ public class BleDeviceDetector {
      */
     public BleDeviceDetector(final Context context, final BleDeviceAdapterFactory factory) {
         mContext = context;
-        mBleAdapter = factory.createAdapter(context);
+        mFactory = factory;
+        initialize();
     }
 
     /**
@@ -95,6 +98,15 @@ public class BleDeviceDetector {
     }
 
     /**
+     * Initialize the BleDeviceDetector.
+     */
+    public synchronized void initialize() {
+        if (mBleAdapter == null) {
+            mBleAdapter = mFactory.createAdapter(mContext);
+        }
+    }
+
+    /**
      * Get a state of scan.
      * @return true if scanning a ble
      */
@@ -102,6 +114,10 @@ public class BleDeviceDetector {
         return mScanning;
     }
 
+    /**
+     * Return true if Bluetooth is currently enabled and ready for use.
+     * @return true if the local adapter is turned on
+     */
     public boolean isEnabled() {
         if (mBleAdapter == null) {
             return false;
@@ -121,14 +137,18 @@ public class BleDeviceDetector {
      * Start Bluetooth LE scan.
      */
     public void startScan() {
-        scanLeDevice(true);
+        if (isEnabled()) {
+            scanLeDevice(true);
+        }
     }
 
     /**
      * Stop Bluetooth LE scan.
      */
     public void stopScan() {
-        scanLeDevice(false);
+        if (isEnabled()) {
+            scanLeDevice(false);
+        }
     }
 
     /**
@@ -162,12 +182,20 @@ public class BleDeviceDetector {
                     mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            mBleAdapter.stopScan(mScanCallback);
-                            notifyBluetoothDevice();
+                            if (mBleAdapter.isEnabled()) {
+                                mBleAdapter.stopScan(mScanCallback);
+                                notifyBluetoothDevice();
+                            } else {
+                                mScanTimerFuture.cancel(true);
+                            }
                         }
                     }, SCAN_PERIOD);
-                    mDevices.clear();
-                    mBleAdapter.startScan(mScanCallback);
+                    if (mBleAdapter.isEnabled()) {
+                        mDevices.clear();
+                        mBleAdapter.startScan(mScanCallback);
+                    } else {
+                        mScanTimerFuture.cancel(true);
+                    }
                 }
             }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);
         } else {

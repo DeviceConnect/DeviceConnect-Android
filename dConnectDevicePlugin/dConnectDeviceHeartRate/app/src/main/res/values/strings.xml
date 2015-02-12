@@ -16,9 +16,13 @@
     <string name="bluetooth_settings_button">設定画面を開く</string>
 
     <string name="heart_rate_setting_title">[4/4] デバイス接続</string>
-
     <string name="heart_rate_setting_connect">接続</string>
     <string name="heart_rate_setting_disconnect">解除</string>
     <string name="heart_rate_setting_default_name">Unknown</string>
     <string name="heart_rate_setting_default_address">Unknown</string>
+    <string name="heart_rate_setting_connecting_title">BLE接続中</string>
+    <string name="heart_rate_setting_connecting_message">%1$sと接続中</string>
+    <string name="heart_rate_setting_dialog_positive">OK</string>
+    <string name="heart_rate_setting_dialog_error_title">BLE接続エラー</string>
+    <string name="heart_rate_setting_dialog_error_message">%1$sとの接続に失敗しました</string>
 </resources>

@@ -86,4 +86,14 @@ public class HeartRateDevice {
         result = 31 * result + (mAddress != null ? mAddress.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"name\": " + mName + ", ");
+        builder.append("\"address\": " + mAddress + ", ");
+        builder.append("\"registerFlag\": " + mRegisterFlag + ", ");
+        builder.append("\"connectFlag\": " + mConnectFlag + "} ");
+        return builder.toString();
+    }
 }

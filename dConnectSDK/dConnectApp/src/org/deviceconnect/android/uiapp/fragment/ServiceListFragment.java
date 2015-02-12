@@ -43,10 +43,11 @@ import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
@@ -287,8 +288,7 @@ public class ServiceListFragment extends ListFragment {
 
             try {
                 URIBuilder uriBuilder = new URIBuilder();
-                uriBuilder.setProfile(SystemProfileConstants.PROFILE_NAME);
-                uriBuilder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
+                uriBuilder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
                 uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
                 uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 

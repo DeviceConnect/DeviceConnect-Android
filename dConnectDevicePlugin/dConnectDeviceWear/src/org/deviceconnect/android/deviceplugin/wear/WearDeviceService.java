@@ -10,8 +10,8 @@ import java.util.List;
 
 import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.wear.profile.WearServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearNotificationProfile;
+import org.deviceconnect.android.deviceplugin.wear.profile.WearServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearSystemProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearVibrationProfile;
 import org.deviceconnect.android.event.Event;
@@ -20,6 +20,7 @@ import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 import android.content.Intent;
@@ -77,7 +78,12 @@ public class WearDeviceService extends DConnectMessageService {
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new WearSystemProfile(this);
+        return new WearSystemProfile();
+    }
+
+    @Override
+    protected ServiceInformationProfile getServiceInformationProfile() {
+        return new ServiceInformationProfile(this) { };
     }
 
     @Override

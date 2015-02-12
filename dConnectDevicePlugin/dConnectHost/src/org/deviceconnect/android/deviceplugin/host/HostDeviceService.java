@@ -47,6 +47,7 @@ import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.android.profile.FileDescriptorProfile;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
@@ -341,7 +342,12 @@ public class HostDeviceService extends DConnectMessageService implements
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new HostSystemProfile(this);
+        return new HostSystemProfile();
+    }
+
+    @Override
+    protected ServiceInformationProfile getServiceInformationProfile() {
+        return new ServiceInformationProfile(this) { };
     }
 
     @Override

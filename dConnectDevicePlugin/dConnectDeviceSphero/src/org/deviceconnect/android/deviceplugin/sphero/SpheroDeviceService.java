@@ -24,6 +24,7 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 import android.content.BroadcastReceiver;
@@ -169,7 +170,12 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new SpheroSystemProfile(this);
+        return new SpheroSystemProfile();
+    }
+
+    @Override
+    protected ServiceInformationProfile getServiceInformationProfile() {
+        return new ServiceInformationProfile(this) { };
     }
 
     @Override

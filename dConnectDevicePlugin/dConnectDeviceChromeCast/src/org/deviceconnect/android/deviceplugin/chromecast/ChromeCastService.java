@@ -18,6 +18,7 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastNotificationProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastSystemProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -26,6 +27,7 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -81,7 +83,7 @@ public class ChromeCastService extends DConnectMessageService implements
         String appMsgUrn = getString(R.string.application_message_urn);
 
         int portCount = 0;
-        while (portCount < 500) {  // Portを決定する
+        while (portCount < 500) {// Portを決定する
             try {
                 mServer = new ChromeCastHttpServer("0.0.0.0", SERVER_PORT + portCount);
                 mServer.start();
@@ -115,7 +117,12 @@ public class ChromeCastService extends DConnectMessageService implements
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new ChromeCastSystemProfile(this);
+        return new ChromeCastSystemProfile();
+    }
+
+    @Override
+    protected ServiceInformationProfile getServiceInformationProfile() {
+        return new ChromeCastServiceInformationProfile(this);
     }
 
     @Override

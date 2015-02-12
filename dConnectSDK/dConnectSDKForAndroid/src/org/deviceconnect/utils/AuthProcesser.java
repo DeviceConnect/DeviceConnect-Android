@@ -144,7 +144,9 @@ public final class AuthProcesser {
             }
         } catch (IllegalArgumentException e) {
             callback.onAuthFailed(ErrorCode.INVALID_REQUEST_PARAMETER);
-        } catch (Exception e) {
+        } catch (IOException e) {
+            callback.onAuthFailed(ErrorCode.UNKNOWN);
+        } catch (JSONException e) {
             callback.onAuthFailed(ErrorCode.UNKNOWN);
         } finally {
             client.getConnectionManager().shutdown();

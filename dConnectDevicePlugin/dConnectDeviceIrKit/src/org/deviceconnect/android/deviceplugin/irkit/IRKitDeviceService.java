@@ -11,8 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.DetectionListener;
 import org.deviceconnect.android.deviceplugin.irkit.network.WiFiUtil;
-import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitServceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitRmeoteControllerProfile;
+import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitServceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.irkit.profile.IRKitSystemProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -20,6 +21,7 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
@@ -131,7 +133,12 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new IRKitSystemProfile(this);
+        return new IRKitSystemProfile();
+    }
+
+    @Override
+    protected ServiceInformationProfile getServiceInformationProfile() {
+        return new IRKitServiceInformationProfile(this);
     }
 
     @Override

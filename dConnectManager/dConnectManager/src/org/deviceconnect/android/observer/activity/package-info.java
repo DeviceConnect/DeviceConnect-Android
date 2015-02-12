@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * Device Connectの監視に関するActivityクラスを提供します.
+ * Device Connect の監視に関するActivityクラスを提供します.
  */
 package org.deviceconnect.android.observer.activity;

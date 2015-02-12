@@ -7,11 +7,10 @@
 package org.deviceconnect.android.deviceplugin.test.profile.unique;
 
 import java.util.ArrayList;
-
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -21,6 +20,9 @@ import android.os.Bundle;
  */
 public class TestJSONConversionProfile extends DConnectProfile {
 
+    /**
+     * Profile Name.
+     */
     private static final String PROFILE_NAME = "json_test";
 
     @Override
@@ -28,8 +30,9 @@ public class TestJSONConversionProfile extends DConnectProfile {
         return PROFILE_NAME;
     }
 
-    @Override
-    protected boolean onGetRequest(Intent request, Intent response) {
+    @SuppressLint("UseValueOf")
+	@Override
+    protected boolean onGetRequest(final Intent request, final Intent response) {
         Bundle b = new Bundle();
         b.putString(IntentDConnectMessage.EXTRA_REQUEST_CODE, "");
         b.putString("uri", "http://localhost:8080");

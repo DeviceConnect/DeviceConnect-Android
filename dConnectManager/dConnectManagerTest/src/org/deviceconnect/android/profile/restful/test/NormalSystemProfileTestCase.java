@@ -22,7 +22,7 @@ import org.json.JSONObject;
 
 
 /**
- * Network Service Discoveryプロファイルの正常系テスト.
+ * Systemプロファイルの正常系テスト.
  * @author NTT DOCOMO, INC.
  */
 public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
@@ -90,49 +90,6 @@ public class NormalSystemProfileTestCase extends RESTfulDConnectTestCase
             assertNotNull(id);
             mTestPluginID = id;
             assertNotNull(testPlugin.getString(SystemProfileConstants.PARAM_NAME));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * デバイスのシステムプロファイルを取得する.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /system/device?deviceid=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに0が返ってくること。
-     * ・versionにStringが返ってくること。
-     * </pre>
-     */
-    public void testGetSystemDevice() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(DCONNECT_MANAGER_URI);
-        builder.append("/" + SystemProfileConstants.PROFILE_NAME);
-        builder.append("/" + SystemProfileConstants.ATTRIBUTE_DEVICE);
-        builder.append("?");
-        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
-        builder.append("&");
-        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject resp = sendRequest(request);
-            assertNotNull("root is null.", resp);
-            assertEquals(DConnectMessage.RESULT_OK,
-                    resp.getInt(DConnectMessage.EXTRA_RESULT));
-            assertEquals("1.0", 
-                    resp.getString(SystemProfileConstants.PARAM_VERSION));
-            JSONObject connect = resp.getJSONObject(SystemProfileConstants.PARAM_CONNECT);
-            assertNotNull(connect);
-            assertEquals(false, connect.getBoolean(SystemProfileConstants.PARAM_WIFI));
-            assertEquals(false, connect.getBoolean(SystemProfileConstants.PARAM_BLUETOOTH));
-            assertEquals(false, connect.getBoolean(SystemProfileConstants.PARAM_NFC));
-            assertEquals(false, connect.getBoolean(SystemProfileConstants.PARAM_BLE));
-            JSONArray supports = resp.getJSONArray(SystemProfileConstants.PARAM_SUPPORTS);
-            assertNotNull(supports);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

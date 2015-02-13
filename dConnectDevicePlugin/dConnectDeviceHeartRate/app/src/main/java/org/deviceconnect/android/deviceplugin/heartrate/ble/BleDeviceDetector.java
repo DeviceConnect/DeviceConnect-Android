@@ -164,6 +164,10 @@ public class BleDeviceDetector {
         return mBleAdapter.getDevice(address);
     }
 
+    /**
+     * Gets the set of BluetoothDevice that are bonded (paired) to the local adapter.
+     * @return set of BluetoothDevice, or null on error
+     */
     public Set<BluetoothDevice> getBondedDevices() {
         if (mBleAdapter == null || !mBleAdapter.isEnabled()) {
             return null;

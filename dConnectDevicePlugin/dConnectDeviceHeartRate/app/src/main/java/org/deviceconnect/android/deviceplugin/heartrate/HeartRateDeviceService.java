@@ -17,6 +17,8 @@ import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateHealthP
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateSystemProfile;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
@@ -27,6 +29,9 @@ import org.deviceconnect.android.profile.SystemProfile;
  */
 public class HeartRateDeviceService extends DConnectMessageService {
 
+    /**
+     * Received a event that Bluetooth has been changed.
+     */
     private BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -42,18 +47,23 @@ public class HeartRateDeviceService extends DConnectMessageService {
         }
     };
 
+    /**
+     * Instance of handler.
+     */
     private Handler mHandler = new Handler();
 
     @Override
     public void onCreate() {
         super.onCreate();
 
+        EventManager.INSTANCE.setController(new MemoryCacheController());
+
         HeartRateApplication app = (HeartRateApplication) getApplication();
         app.initialize();
 
-        registerBluetoothFilter();
+        addProfile(new HeartRateHealthProfile(app.getHeartRateManager()));
 
-        addProfile(new HeartRateHealthProfile());
+        registerBluetoothFilter();
     }
 
     @Override
@@ -77,12 +87,17 @@ public class HeartRateDeviceService extends DConnectMessageService {
         return new HeartRateServiceInformationProfile(this);
     }
 
+    /**
+     * Register a BroadcastReceiver of Bluetooth event.
+     */
     private void registerBluetoothFilter() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mSensorReceiver, filter, null, mHandler);
     }
-
+    /**
+     * Unregister a previously registered BroadcastReceiver.
+     */
     private void unregisterBlutoothFilter() {
         unregisterReceiver(mSensorReceiver);
     }

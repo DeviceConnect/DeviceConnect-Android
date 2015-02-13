@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <string name="app_name">HeartRateDevicePlugin</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
+    <string name="app_name">BLE(HeartRate)デバイスプラグイン</string>
 
     <string name="summary_title">[1/4] デバイスプラグイン概要</string>
     <string name="summary_body">このデバイスプラグインはBluetooth Low Eneryの仕様であるHeart Rateに対応しているデバイスと接続することができます。\n\n以下のデバイスと接続できることを確認しています。\n・Mio Alpha\n・H7\n・BLUEHR</string>

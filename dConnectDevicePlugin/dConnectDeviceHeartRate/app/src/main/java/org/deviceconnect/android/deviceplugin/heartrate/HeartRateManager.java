@@ -91,6 +91,10 @@ public class HeartRateManager {
         mHRDiscoveryListener = listener;
     }
 
+    public void setOnHeartRateEventListener(OnHeartRateEventListener listener) {
+        mHREvtListener = listener;
+    }
+
     public void start() {
         mDetector.initialize();
         synchronized (mRegisterDevices) {
@@ -165,19 +169,36 @@ public class HeartRateManager {
         unregisterHeartRateDevice(address);
     }
 
+    /**
+     * Gets a list of ble device connected.
+     * @return list of ble device
+     */
     public List<HeartRateDevice> getConnectedDevices() {
         return mConnectedDevices;
     }
 
+    /**
+     * Gets a list of ble device that was registered to automatic connection.
+     * @return list of ble device
+     */
     public List<HeartRateDevice> getRegisterDevices() {
         return mRegisterDevices;
     }
 
+    /**
+     * Gets the set of BluetoothDevice that are bonded (paired) to the local adapter.
+     * @return set of BluetoothDevice, or null on error
+     */
     public Set<BluetoothDevice> getBondedDevices() {
         return mDetector.getBondedDevices();
     }
 
-    public HeartRateData getHeartRateData(String address) {
+    /**
+     * Gets the {@link HeartRateData} from address.
+     * @param address ble device address
+     * @return {@link HeartRateData}, or null on error
+     */
+    public HeartRateData getHeartRateData(final String address) {
         HeartRateDevice device = findRegisteredHeartRateDeviceByAddress(address);
         return getHeartRateData(device);
     }
@@ -222,7 +243,7 @@ public class HeartRateManager {
     /**
      * Implementation of BleDeviceDiscoveryListener.
      */
-    private BleDeviceDiscoveryListener mDiscoveryListener = new BleDeviceDiscoveryListener() {
+    private final BleDeviceDiscoveryListener mDiscoveryListener = new BleDeviceDiscoveryListener() {
         @Override
         public void onDiscovery(final List<BluetoothDevice> devices) {
             mLogger.fine("BleDeviceDiscoveryListener#onDiscovery: " + devices.size());
@@ -235,7 +256,7 @@ public class HeartRateManager {
     /**
      * Implementation of HeartRateConnectEventListener.
      */
-    private HeartRateConnectEventListener mHRConnectListener = new HeartRateConnectEventListener() {
+    private final HeartRateConnectEventListener mHRConnectListener = new HeartRateConnectEventListener() {
         @Override
         public void onConnected(final BluetoothDevice device) {
             mLogger.fine("HeartRateConnectEventListener#onConnected: [" + device + "]");

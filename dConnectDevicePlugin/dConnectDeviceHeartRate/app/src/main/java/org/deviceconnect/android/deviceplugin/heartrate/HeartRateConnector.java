@@ -14,7 +14,6 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
@@ -42,6 +41,7 @@ public class HeartRateConnector {
 
     private static final int CHK_FIRST_WAIT_PERIOD = 10 * 1000;
     private static final int CHK_WAIT_PERIOD = 10 * 1000;
+
     /**
      * application context.
      */
@@ -320,11 +320,8 @@ public class HeartRateConnector {
             }
         }
 
-        if (BuildConfig.DEBUG) {
-            Log.i("ABC", "HEART RATE: " + heartRate);
-            Log.i("ABC", "EnergyExpended: " + energyExpended);
-            Log.i("ABC", "RR-Interval: " + rrInterval);
-        }
+        mLogger.warning("@@@@@@ HEART RATE[" + heartRate + ", "
+                + energyExpended + ", " + rrInterval + "]");
 
         BluetoothDevice device = gatt.getDevice();
         if (mListener != null) {

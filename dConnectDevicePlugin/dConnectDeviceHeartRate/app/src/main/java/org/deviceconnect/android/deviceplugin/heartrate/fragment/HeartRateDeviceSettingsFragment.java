@@ -46,10 +46,13 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     private DeviceAdapter mDeviceAdapter;
 
     /**
-     * Dialog.
+     * Error Dialog.
      */
     private ErrorDialogFragment mErrorDialogFragment;
 
+    /**
+     * Progress Dialog.
+     */
     private ProgressDialogFragment mProgressDialogFragment;
 
     @Override
@@ -220,10 +223,12 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
         // MEMO: add of device that are paired to smart phone.
         Set<BluetoothDevice> pairing = getManager().getBondedDevices();
-        for (BluetoothDevice device : pairing) {
-            String name = device.getName();
-            if (name != null && name.indexOf("PS-100") != -1) {
-                containers.add(createContainer(device));
+        if (pairing != null) {
+            for (BluetoothDevice device : pairing) {
+                String name = device.getName();
+                if (name != null && name.indexOf("PS-100") != -1) {
+                    containers.add(createContainer(device));
+                }
             }
         }
 

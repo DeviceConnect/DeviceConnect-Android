@@ -1,3 +1,9 @@
+/*
+ HeartRateDBHelper
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.heartrate.data;
 
 import android.content.ContentValues;
@@ -11,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * @author NTT DOCOMO, INC.
  */
 public class HeartRateDBHelper {
 

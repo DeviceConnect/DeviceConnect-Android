@@ -18,10 +18,12 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
+import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
+import org.deviceconnect.android.manager.hmac.HmacManager;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
@@ -47,6 +49,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.text.TextUtils;
 
 /**
  * DConnectMessageを受信するサービス.
@@ -67,6 +70,9 @@ public abstract class DConnectMessageService extends Service
 
     /** リクエストコードのエラー値を定義. */
     private static final int ERROR_CODE = Integer.MIN_VALUE;
+
+    /** 起動用URIスキーム名. */
+    private static final String SCHEME_LAUNCH = "dconnect";
 
     /** ロガー. */
     protected final Logger mLogger = Logger.getLogger("dconnect.manager");
@@ -94,6 +100,9 @@ public abstract class DConnectMessageService extends Service
 
     /** Local OAuthのデータを管理するクラス. */
     private DConnectLocalOAuth mLocalOAuth;
+
+    /** HMAC管理クラス. */
+    private HmacManager mHmacManager;
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -136,6 +145,9 @@ public abstract class DConnectMessageService extends Service
 
         // デバイスプラグインとのLocal OAuth情報
         mLocalOAuth = new DConnectLocalOAuth(this);
+
+        // HMAC管理クラス
+        mHmacManager = new HmacManager(this);
 
         // リクエスト管理クラスの作成
         mRequestManager = new DConnectRequestManager();
@@ -182,6 +194,16 @@ public abstract class DConnectMessageService extends Service
         if (action == null) {
             mLogger.warning("action is null.");
             mLogger.exiting(this.getClass().getName(), "onStartCommand");
+            return START_STICKY;
+        }
+
+        String scheme = intent.getScheme();
+        if (SCHEME_LAUNCH.equals(scheme)) {
+            String key = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEY);
+            String origin = intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+            if (key != null && !TextUtils.isEmpty(origin)) {
+                mHmacManager.updateKey(origin, key);
+            }
             return START_STICKY;
         }
 
@@ -548,9 +570,49 @@ public abstract class DConnectMessageService extends Service
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(IntentDConnectMessage.EXTRA_PRODUCT, getString(R.string.app_name));
         intent.putExtra(IntentDConnectMessage.EXTRA_VERSION, DConnectUtil.getVersionName(this));
-        // TODO ここにHMACを付加する処理。サーバのなりすまし対策にて対応。
+
+        // HMAC生成
+        String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        mLogger.info("Origin in Extra: " + origin);
+        if (origin == null) {
+            String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
+            mLogger.info("Check accessToken in Extra: " + accessToken);
+            if (accessToken != null) {
+                origin = findOrigin(accessToken);
+                mLogger.info("Find origin by accessToken:" + origin);
+            }
+        }
+        if (origin != null) {
+            if (mHmacManager.usesHmac(origin)) {
+                String nonce = request.getStringExtra(IntentDConnectMessage.EXTRA_NONCE);
+                if (nonce != null) {
+                    String hmac = mHmacManager.generateHmac(origin, nonce);
+                    if (hmac != null) {
+                        intent.putExtra(IntentDConnectMessage.EXTRA_HMAC, hmac);
+                    }
+                }
+            }
+        } else {
+            mLogger.warning("Origin is not found.");
+        }
+
         intent.setComponent(cn);
         return intent;
+    }
+
+    /**
+     * 指定されたアクセストークンのOriginを取得する.
+     * 
+     * @param accessToken アクセストークン
+     * @return Origin
+     */
+    private String findOrigin(final String accessToken) {
+        ClientPackageInfo packageInfo = LocalOAuth2Main.findClientPackageInfoByAccessToken(accessToken);
+        if (packageInfo == null) {
+            return null;
+        }
+        // Origin is a package name of LocalOAuth client.
+        return packageInfo.getPackageInfo().getPackageName();
     }
 
     /**

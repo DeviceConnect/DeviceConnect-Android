@@ -11,11 +11,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+
+import javax.crypto.KeyGenerator;
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
 
 import org.deviceconnect.android.cipher.signature.AuthSignature;
 import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.ConnectProfileConstants;
@@ -33,9 +43,14 @@ import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
 
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.net.Uri;
 import android.test.InstrumentationTestCase;
 
 
@@ -53,6 +68,30 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
 
     /** DeviceConnectManagerのバージョン名. */
     protected static final String DCONNECT_MANAGER_VERSION_NAME = "1.0";
+
+    /** 起動用インテントを受信するクラスのコンポーネント名. */
+    private static final String LAUNCH_RECEIVER
+        = "org.deviceconnect.android.manager/.setting.SettingActivity";
+
+    /** HMACアルゴリズム. */
+    private static final String HMAC_ALGORITHM = "HmacSHA256";
+
+    /** 乱数生成用オブジェクト. */
+    private static final Random RANDOM;
+
+    /** HMACの生成キー. */
+    private static final SecretKey HMAC_KEY;
+    
+    static {
+        RANDOM = new Random();
+        try {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(HMAC_ALGORITHM);
+            HMAC_KEY = keyGenerator.generateKey();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("The JDK does not support " + HMAC_ALGORITHM
+                    + ". Try these testcases on other JDK.");
+        }
+    }
 
     /**
      * プロファイル一覧.
@@ -89,6 +128,10 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     /** テスト用Action: EVENT. */
     public static final String TEST_ACTION_EVENT
             = "org.deviceconnect.android.test.intent.action.EVENT";
+
+    /** テスト用Action: MANAGER_LAUNCHED. */
+    public static final String TEST_ACTION_MANAGER_LAUNCHED
+            = "org.deviceconnect.android.test.intent.action.MANAGER_LAUNCHED";
 
     /** テスト用プラグインID. */
     public static final String TEST_PLUGIN_ID = "test_plugin_id";
@@ -134,10 +177,10 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
 
     /**
      * コンストラクタ.
-     * @param string テストタグ
+     * @param tag テストタグ
      */
-    public DConnectTestCase(final String string) {
-        setName(string);
+    public DConnectTestCase(final String tag) {
+        setName(tag);
     }
 
     /**
@@ -158,15 +201,26 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     }
 
     /**
+     * バイト配列のアサート文.
+     * @param expected 期待するバイト配列
+     * @param actual 実際のバイト倍列
+     */
+    protected static void assertEquals(final byte[] expected, final byte[] actual) {
+        assertEquals(expected.length, actual.length);
+        for (int i = 0; i < expected.length; i++) {
+            assertEquals(expected[i], actual[i]);
+        }
+    }
+
+    /**
      * dConnectManagerに対してクライアント作成リクエストを送信する.
      * <p>
      * レスポンスとしてクライアントIDまたはクライアントシークレットのいずれかを受信できなかった場合はnullを返すこと.
      * </p>
      * 
-     * @param packageName パッケージ名
      * @return クライアントIDおよびクライアントシークレットを格納した配列
      */
-    protected abstract String[] createClient(String packageName);
+    protected abstract String[] createClient();
 
     /**
      * dConnectManagerに対してアクセストークン取得リクエストを送信する.
@@ -193,6 +247,68 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
      * @return dConnectManagerから取得した最新のプラグイン一覧
      */
     protected abstract List<PluginInfo> searchPlugins();
+
+    /**
+     * Device Connect Managerが起動しているかどうかを確認する.
+     * @return Device Connect Managerが起動している場合はtrue、そうでない場合はfalse
+     */
+    protected abstract boolean isManagerAvailable();
+
+    /**
+     * Managerが起動するまでブロックする.
+     * @throws InterruptedException スレッドが割り込まれた場合
+     */
+    protected void waitForManager() throws InterruptedException {
+        final CountDownLatch lockObj = new CountDownLatch(1);
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(final Context context, final Intent intent) {
+                lockObj.countDown();
+            }
+        };
+        getContext().registerReceiver(receiver, new IntentFilter(TEST_ACTION_MANAGER_LAUNCHED));
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.setComponent(ComponentName.unflattenFromString(LAUNCH_RECEIVER));
+        intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
+        intent.putExtra(IntentDConnectMessage.EXTRA_KEY, getHMACString());
+        intent.putExtra(IntentDConnectMessage.EXTRA_RECEIVER,
+                new ComponentName(getContext(), TestCaseBroadcastReceiver.class));
+        intent.setData(Uri.parse("dconnect://start"));
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(intent);
+
+        // 起動通知を受信するまでプロック
+        if (!lockObj.await(20, TimeUnit.SECONDS)) {
+            fail("Manager launching timeout.");
+        }
+        getContext().unregisterReceiver(receiver);
+    }
+
+    /**
+     * 指定されたNONCEからHMACを生成する.
+     * 
+     * @param nonce リクエスト時に送信したNONCE
+     * @return HMACのバイト配列
+     * @throws NoSuchAlgorithmException 使用するアルゴリズムがサポートされていない場合
+     * @throws InvalidKeyException キーが不正な場合
+     */
+    protected byte[] calculateHMAC(final byte[] nonce) throws NoSuchAlgorithmException, InvalidKeyException {
+        Mac mac = Mac.getInstance(HMAC_ALGORITHM);
+        mac.init(HMAC_KEY);
+        return mac.doFinal(nonce);
+    }
+
+    /**
+     * Originを取得する.
+     * 
+     * @return Origin
+     */
+    protected String getOrigin() {
+        return getContext().getPackageName();
+    }
 
     /**
      * クライアントIDのオンメモリ上のキャッシュを取得する.
@@ -277,13 +393,14 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        waitForManager();
         if (isLocalOAuth()) {
             mClientId = getClientIdCache();
             mClientSecret = getClientSecretCache();
             mAccessToken = getAccessTokenCache();
             // クライアントID、クライアントシークレット取得
             if (mClientId == null || mClientSecret == null) {
-                String[] client = createClient(getClientPackageName());
+                String[] client = createClient();
                 assertNotNull(client);
                 assertNotNull(client[0]);
                 assertNotNull(client[1]);
@@ -303,23 +420,6 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
             setDevices(searchDevices());
             setPlugins(searchPlugins());
         }
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        mClientId = null;
-        mClientSecret = null;
-        mAccessToken = null;
-        super.tearDown();
-    }
-
-    /**
-     * OAuthクライアントとしてのパッケージ名を取得する.
-     * 
-     * @return パッケージ名
-     */
-    protected String getClientPackageName() {
-        return getContext().getPackageName();
     }
 
     /**
@@ -357,7 +457,6 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     protected boolean isSearchDevices() {
         return true;
     }
-
 
     /**
      * サービスIDを取得する.
@@ -449,6 +548,63 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
                 }
             }
         }
+    }
+
+    /**
+     * 指定したサイズ(単位はバイト)の乱数を生成し、その16進文字列を返す. 
+     * @param size バイト数
+     * @return 乱数の16進文字列
+     */
+    protected byte[] generateRandom(final int size) {
+        byte[] key = new byte[size];
+        RANDOM.nextBytes(key);
+        return key;
+    }
+
+    /**
+     * 指定したバイト配列の16進文字列を返す.
+     * @param b バイト配列
+     * @return 16進文字列
+     */
+    protected static String toHexString(final byte[] b) {
+        if (b == null) {
+            throw new IllegalArgumentException();
+        }
+        StringBuilder str = new StringBuilder();
+        for (int i = 0; i < b.length; i++) {
+            String substr = Integer.toHexString(b[i] & 0xff);
+            if (substr.length() < 2) {
+                str.append("0");
+            }
+            str.append(substr);
+        }
+        return str.toString();
+    }
+
+    /**
+     * バイト配列の16進文字列を解析する.
+     * @param b バイト配列の16進文字列
+     * @return 解析したバイト配列
+     */
+    protected static byte[] toByteArray(final String b) {
+        String c = b;
+        if (c.length() % 2 != 0) {
+            c = "0" + c;
+        }
+        byte[] array = new byte[b.length() / 2];
+        for (int i = 0; i < b.length() / 2; i++) {
+            String hex = b.substring(2 * i, 2 * i + 2);
+            array[i] = (byte) Integer.parseInt(hex, 16);
+        }
+        return array;
+    }
+
+    /**
+     * HMAC生成キーの16進文字列表現を返す. 
+     * @return HMAC生成キーの16進文字列表現
+     */
+    protected String getHMACString() {
+        return toHexString(HMAC_KEY.getEncoded());
     }
 
     /**

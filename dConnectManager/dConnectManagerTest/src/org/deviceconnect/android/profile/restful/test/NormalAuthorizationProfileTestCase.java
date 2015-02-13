@@ -35,12 +35,17 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
         return false;
     }
 
+    @Override
+    protected String getOrigin() {
+        return "abc";
+    }
+
     /**
      * クライアント作成テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/create_client?packageName=xxxx
+     * Path: /authorization/create_client
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -50,7 +55,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * </pre>
      */
     public void testCreateClient() {
-        String[] clientInfo = createClient("abc");
+        String[] clientInfo = createClient();
         String clientId = clientInfo[0];
         String clientSecret = clientInfo[1];
         assertNotNull(clientId);
@@ -62,7 +67,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/create_client?packageName=xxxx
+     * Path: /authorization/create_client
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -72,12 +77,11 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * </pre>
      */
     public void testCreateClientOverwrite() {
-        final String packageName = "abc";
-        String[] clientInfo = createClient(packageName);
+        String[] clientInfo = createClient();
         assertNotNull(clientInfo);
         assertNotNull(clientInfo[0]);
         assertNotNull(clientInfo[1]);
-        String[] newClientInfo = createClient(packageName);
+        String[] newClientInfo = createClient();
         assertNotNull(newClientInfo);
         assertNotNull(newClientInfo[0]);
         assertNotNull(newClientInfo[1]);
@@ -102,7 +106,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * </pre>
      */
     public void testRequestAccessToken() {
-        String[] clientInfo = createClient("abc");
+        String[] clientInfo = createClient();
         String clientId = clientInfo[0];
         String clientSecret = clientInfo[1];
         assertNotNull(clientId);
@@ -130,7 +134,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * </pre>
      */
     public void testRequestAccessTokenMultiScope() {
-        String[] clientInfo = createClient("abc");
+        String[] clientInfo = createClient();
         String clientId = clientInfo[0];
         String clientSecret = clientInfo[1];
         assertNotNull(clientId);

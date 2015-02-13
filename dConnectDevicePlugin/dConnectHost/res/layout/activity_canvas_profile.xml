@@ -21,7 +21,7 @@
 
     </LinearLayout>
 
-    <org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileView
+    <ImageView
         android:id="@+id/canvasProfileView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

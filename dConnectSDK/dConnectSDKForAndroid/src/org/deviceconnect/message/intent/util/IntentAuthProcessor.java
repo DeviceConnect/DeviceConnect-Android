@@ -140,11 +140,11 @@ public final class IntentAuthProcessor {
 
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_PACKAGE, packageName);
 
         HttpUriRequest request = null;
         try {
             request = new HttpGet(builder.build());
+            request.addHeader(AuthorizationProfileConstants.HEADER_GOTAPI_ORIGIN, packageName);
         } catch (URISyntaxException e1) {
             throw new IllegalArgumentException("Invalid Param. Check parameters.");
         }

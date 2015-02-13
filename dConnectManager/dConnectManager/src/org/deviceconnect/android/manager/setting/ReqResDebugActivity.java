@@ -874,6 +874,7 @@ public class ReqResDebugActivity extends Activity implements
                 }
 
                 HttpUriRequest request = params[0];
+                request.setHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getPackageName());
                 DefaultHttpClient client = new DefaultHttpClient();
                 try {
                     HttpResponse response = client.execute(request);

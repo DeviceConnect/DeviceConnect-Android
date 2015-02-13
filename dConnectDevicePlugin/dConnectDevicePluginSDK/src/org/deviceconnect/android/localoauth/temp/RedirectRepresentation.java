@@ -14,7 +14,7 @@ import org.restlet.representation.EmptyRepresentation;
  * RedirectRepresentation(Restletの同名のクラスが複雑で切り離しにくいので、簡略化した別クラスを追加して置き換えた).
  * @author NTT DOCOMO, INC.
  */
-public class RedirectRepresentation extends EmptyRepresentation{
+public class RedirectRepresentation extends EmptyRepresentation {
 
     /**
      * RedirectProc.

@@ -19,11 +19,6 @@ public interface SystemProfileConstants extends DConnectProfileConstants {
     String PROFILE_NAME = "system";
 
     /**
-     * 属性: {@value} .
-     */
-    String ATTRIBUTE_DEVICE = "device";
-
-    /**
      * インターフェース: {@value} .
      */
     String INTERFACE_DEVICE = "device";
@@ -56,11 +51,6 @@ public interface SystemProfileConstants extends DConnectProfileConstants {
     /**
      * パス: {@value} .
      */
-    String PATH_DEVICE = PATH_PROFILE + SEPARATOR + ATTRIBUTE_DEVICE;
-
-    /**
-     * パス: {@value} .
-     */
     String PATH_EVENTS = PATH_PROFILE + SEPARATOR + ATTRIBUTE_EVENTS;
     
     /**
@@ -74,36 +64,10 @@ public interface SystemProfileConstants extends DConnectProfileConstants {
     String PATH_WAKEUP = PATH_PROFILE + SEPARATOR 
             + INTERFACE_DEVICE + SEPARATOR + "wakeup";
 
-    
     /**
      * パラメータ: {@value} .
      */
     String PARAM_SUPPORTS = "supports";
-
-    /**
-     * パラメータ: {@value} .
-     */
-    String PARAM_CONNECT = "connect";
-
-    /**
-     * パラメータ: {@value} .
-     */
-    String PARAM_WIFI = "wifi";
-
-    /**
-     * パラメータ: {@value} .
-     */
-    String PARAM_BLUETOOTH = "bluetooth";
-
-    /**
-     * パラメータ: {@value} .
-     */
-    String PARAM_NFC = "nfc";
-
-    /**
-     * パラメータ: {@value} .
-     */
-    String PARAM_BLE = "ble";
 
     /**
      * パラメータ: {@value}.
@@ -124,23 +88,5 @@ public interface SystemProfileConstants extends DConnectProfileConstants {
      * パラメータ: {@value}.
      */
     String PARAM_PLUGIN_ID = "pluginId";
-
-    /**
-     * 接続状態定数.
-     */
-    enum ConnectState {
-        /**
-         * 非対応.
-         */
-        NONE,
-        /**
-         * 接続ON.
-         */
-        ON,
-        /**
-         * 接続OFF.
-         */
-        OFF
-    }
 
 }

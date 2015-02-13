@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.manager;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.deviceconnect.android.manager.util.DConnectUtil;
@@ -13,6 +14,7 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Intent;
@@ -76,8 +78,10 @@ public class DConnectService extends DConnectMessageService {
                 JSONObject root = new JSONObject();
                 DConnectUtil.convertBundleToJSON(root, event.getExtras());
                 mWebServer.sendEvent(key, root.toString());
-            } catch (Exception e) {
-                mLogger.warning("Exception in sendEvent: " + e.toString());
+            } catch (JSONException e) {
+                mLogger.warning("JSONException in sendEvent: " + e.toString());
+            } catch (IOException e) {
+                mLogger.warning("IOException in sendEvent: " + e.toString());
             }
         } else {
             super.sendEvent(receiver, event);

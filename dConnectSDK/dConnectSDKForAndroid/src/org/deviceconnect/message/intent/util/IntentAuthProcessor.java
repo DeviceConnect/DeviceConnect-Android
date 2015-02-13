@@ -195,7 +195,11 @@ public final class IntentAuthProcessor {
                 }
                 String accessToken = json.getString(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN);
                 callback.onAuthorized(clientId, clientSecret, accessToken);
-            } catch (Exception e) {
+            } catch (JSONException e) {
+                error = ErrorCode.UNKNOWN;
+                e.printStackTrace();
+                break;
+            } catch (IOException e) {
                 error = ErrorCode.UNKNOWN;
                 e.printStackTrace();
                 break;

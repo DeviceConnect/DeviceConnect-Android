@@ -44,7 +44,7 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
     public static final String SERVICE_ID = "Wear";
 
     /**
-     * デバイス名: {@value}
+     * デバイス名: {@value}.
      */
     public static final String DEVICE_NAME = "Android Wear";
 
@@ -66,7 +66,7 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
     /**
      * StaticなResponse Intent.
      */
-    public static Intent mResponse;
+    private static Intent sResponse;
 
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
@@ -74,13 +74,14 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
                 .addConnectionCallbacks(this).addOnConnectionFailedListener(this).build();
         mGoogleApiClient.connect();
 
-        mResponse = response;
+        sResponse = response;
 
         return false;
     }
 
     @Override
-    protected boolean onPutOnServiceChange(final Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response,
+           final String serviceId, final String sessionKey) {
 
         if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -141,9 +142,9 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
                     services.add(service);
                 }
 
-                setResult(mResponse, DConnectMessage.RESULT_OK);
-                setServices(mResponse, services);
-                getContext().sendBroadcast(mResponse);
+                setResult(sResponse, DConnectMessage.RESULT_OK);
+                setServices(sResponse, services);
+                getContext().sendBroadcast(sResponse);
 
                 return null;
             }
@@ -169,13 +170,13 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
 
     @Override
     public void onConnectionSuspended(final int cause) {
-        setResult(mResponse, DConnectMessage.RESULT_ERROR);
-        getContext().sendBroadcast(mResponse);
+        setResult(sResponse, DConnectMessage.RESULT_ERROR);
+        getContext().sendBroadcast(sResponse);
     }
 
     @Override
     public void onConnectionFailed(final ConnectionResult result) {
-        setResult(mResponse, DConnectMessage.RESULT_ERROR);
-        getContext().sendBroadcast(mResponse);
+        setResult(sResponse, DConnectMessage.RESULT_ERROR);
+        getContext().sendBroadcast(sResponse);
     }
 }

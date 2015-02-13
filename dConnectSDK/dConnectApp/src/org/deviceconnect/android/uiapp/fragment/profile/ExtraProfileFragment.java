@@ -161,8 +161,7 @@ public class ExtraProfileFragment extends SmartDeviceFragment {
                 DConnectMessage message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
                 try {
                     HttpRequest request = args[0];
-                    HttpResponse response = getDConnectClient().execute(
-                            getDefaultHost(), request);
+                    HttpResponse response = sendHttpRequest(request);
                     message = (new HttpMessageFactory()).newDConnectMessage(response);
                 } catch (IOException e) {
                     e.printStackTrace();

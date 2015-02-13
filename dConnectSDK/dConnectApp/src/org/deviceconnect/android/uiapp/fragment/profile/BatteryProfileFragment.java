@@ -63,8 +63,7 @@ public class BatteryProfileFragment extends SmartDevicePreferenceFragment {
 
             DConnectMessage message;
             try {
-                HttpResponse response = getDConnectClient().execute(
-                        getDefaultHost(), new HttpGet(uriBuilder.build()));
+                HttpResponse response = sendHttpRequest(new HttpGet(uriBuilder.build()));
                 message = (new HttpMessageFactory()).newDConnectMessage(response);
             } catch (IOException e) {
                 message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);

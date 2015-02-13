@@ -367,7 +367,7 @@ public class DConnectServerEventListenerImpl implements
             String key = entry.getKey();
             if (key.equalsIgnoreCase("origin")) {
                 webOrigin = entry;
-            } else if (key.equalsIgnoreCase("X-GotAPI-Origin")) {
+            } else if (key.equalsIgnoreCase(DConnectMessage.HEADER_GOTAPI_ORIGIN)) {
                 nativeOrigin = entry;
             }
         }

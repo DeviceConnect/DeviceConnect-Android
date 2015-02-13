@@ -2,5 +2,7 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:drawable="@drawable/close_small_button_push"
           android:state_pressed="true" />
+    <item android:drawable="@drawable/close_small_button_focus"
+          android:state_focused="true" />
     <item android:drawable="@drawable/close_small_button_normal" />
 </selector>

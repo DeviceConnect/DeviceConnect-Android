@@ -61,7 +61,7 @@
 
     <!-- ================= WarningDialogActivity ================= -->
     <string name="activity_warning">警告</string>
-    <string name="activity_warning_mess">d-Connect以外のアプリケーションがポートを利用しているため、d-Connectを起動することができません。</string>
+    <string name="activity_warning_mess">DeviceConnect以外のアプリケーションがポートを利用しているため、d-Connectを起動することができません。</string>
     <string name="activity_warning_ok">OK</string>
     <string name="activity_warning_disable">次から表示しない</string>
 
@@ -101,14 +101,24 @@
     </string-array>
 
     <!-- ServiceDiscovery API -->
-    <string name="service_discovery_profile">/servicediscovery</string>
+    <string name="servicediscovery_profile">servicediscovery</string>
 
-    <string-array name="service_discovery_interface_list">
+    <string-array name="servicediscovery_interface_list">
         <item></item>
     </string-array>
-    <string-array name="service_discovery_attrib_list">
+    <string-array name="servicediscovery_attrib_list">
         <item></item>
         <item>onservicechange</item>
+    </string-array>
+
+    <!-- ServiceInformation API -->
+    <string name="serviceinformation_profile">serviceinformation</string>
+
+    <string-array name="serviceinformation_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="serviceinformation_attrib_list">
+        <item></item>
     </string-array>
 
     <!-- System API -->
@@ -116,7 +126,6 @@
 
     <string-array name="system_interface_list">
         <item></item>
-        <item>device</item>
     </string-array>
     <string-array name="system_attrib_list">
         <item></item>
@@ -429,6 +438,7 @@
         <item>system</item>
         <item>vibration</item>
         <item>servicediscovery</item>
+        <item>serviceinformation</item>
         <item>light</item>
         <item>camera</item>
         <item>mhealth</item>

@@ -19,13 +19,13 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 import org.deviceconnect.android.cipher.signature.AuthSignature;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.HttpHeaders;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.message.HttpHeaders;
 import org.deviceconnect.message.intent.impl.client.DefaultIntentClient;
 import org.deviceconnect.message.intent.params.IntentConnectionParams;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
 import org.deviceconnect.utils.AuthProcesser.AuthorizationHandler;
+import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -140,11 +140,11 @@ public final class IntentAuthProcessor {
 
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_PACKAGE, packageName);
 
         HttpUriRequest request = null;
         try {
             request = new HttpGet(builder.build());
+            request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, packageName);
         } catch (URISyntaxException e1) {
             throw new IllegalArgumentException("Invalid Param. Check parameters.");
         }

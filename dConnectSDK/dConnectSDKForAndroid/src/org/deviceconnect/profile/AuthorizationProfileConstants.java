@@ -53,6 +53,11 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /**
      * パラメータ: {@value}.
      */
+    String PARAM_ORIGIN = "origin";
+
+    /**
+     * パラメータ: {@value}.
+     */
     String PARAM_CLIENT_ID = "clientId";
 
     /**

@@ -156,6 +156,11 @@ public interface DConnectMessage extends Map<String, Object> {
     int RESULT_ERROR = 1;
 
     /**
+     * Androidネイティブアプリのオリジンを示すHTTPリクエストヘッダ名.
+     */
+    String HEADER_GOTAPI_ORIGIN = "X-GotAPI-Origin";
+
+    /**
      * Stringを取得する.
      * 
      * @param key キー

@@ -126,7 +126,7 @@ public final class AuthProcesser {
         HttpUriRequest request = null;
         try {
             request = new HttpGet(builder.build());
-            request.addHeader(AuthorizationProfileConstants.HEADER_GOTAPI_ORIGIN, packageName);
+            request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, packageName);
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Invalid URI. Check parameters.");
         }

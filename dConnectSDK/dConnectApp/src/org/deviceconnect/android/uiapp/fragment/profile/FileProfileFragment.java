@@ -140,8 +140,7 @@ public class FileProfileFragment extends SmartDeviceFragment {
 
             DConnectMessage message = null;
             try {
-                HttpResponse response = getDConnectClient().execute(
-                        getDefaultHost(), new HttpGet(builder.build()));
+                HttpResponse response = sendHttpRequest(new HttpGet(builder.build()));
                 message = (new HttpMessageFactory()).newDConnectMessage(response);
             } catch (URISyntaxException e) {
                 throw new IOException(e);

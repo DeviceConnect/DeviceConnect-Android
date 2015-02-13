@@ -47,7 +47,6 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
 
     /**
      * パラメータ: {@value}.
-     * @deprecated
      */
     String PARAM_PACKAGE = "package";
 
@@ -100,11 +99,6 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
      * パラメータ: {@value}.
      */
     String PARAM_EXPIRE_PERIOD = "expirePeriod";
-
-    /**
-     * Androidネイティブアプリのオリジンを示すHTTPリクエストヘッダ名.
-     */
-    String HEADER_GOTAPI_ORIGIN = "X-GotAPI-Origin";
 
     /**
      * grantType.

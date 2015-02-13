@@ -42,27 +42,27 @@ final class EventSessionDao implements EventSessionSchema {
         /** 
          * ID.
          */
-        long id;
+        long mId;
         
         /** 
          * EventDeviceテーブルのID.
          */
-        long edId;
+        long mEdId;
         
         /** 
          * ClientテーブルのID.
          */
-        long cId;
+        long mCId;
         
         /** 
          * 作成日.
          */
-        Timestamp createDate;
+        Timestamp mCreateDate;
         
         /** 
          * 更新日.
          */
-        Timestamp updateDate;
+        Timestamp mUpdateDate;
     }
 
     /**
@@ -86,10 +86,8 @@ final class EventSessionDao implements EventSessionSchema {
             values.put(UPDATE_DATE, Utils.getCurreTimestamp().getTime());
             result = db.insert(TABLE_NAME, null, values);
         } else if (cursor.moveToFirst()) {
-            try {
+            if (cursor.getColumnIndex(_ID) != -1) {
                 result = cursor.getLong(0);
-            } catch (Exception e) {
-                result = -1L;
             }
         }
 
@@ -111,7 +109,7 @@ final class EventSessionDao implements EventSessionSchema {
             return EventError.NOT_FOUND;
         }
         
-        int count = db.delete(TABLE_NAME, _ID + "=?", new String[] {"" + data.id});
+        int count = db.delete(TABLE_NAME, _ID + "=?", new String[] {"" + data.mId});
         if (count == 0) {
             return EventError.NOT_FOUND;
         } else if (count != 1) {
@@ -119,10 +117,10 @@ final class EventSessionDao implements EventSessionSchema {
         }
         
         Cursor c = db.query(TABLE_NAME, new String[] {_ID}, ED_ID + "=?", 
-                new String[] {"" + data.edId}, null, null, null);
+                new String[] {"" + data.mEdId}, null, null, null);
         if (c.getCount() == 0) {
             // デバイスに紐づくセッション情報がなくなったので削除
-            count = EventDeviceDao.deleteById(db, data.edId);
+            count = EventDeviceDao.deleteById(db, data.mEdId);
             if (count != 1) {
                 c.close();
                 return EventError.FAILED;
@@ -260,17 +258,15 @@ final class EventSessionDao implements EventSessionSchema {
         
         if (c.moveToFirst()) {
             result = new EventSession();
-            try {
-                result.id = c.getLong(0);
-                result.edId = c.getLong(1);
-                result.cId = c.getLong(2);
+            if (c.getColumnIndex(_ID) != -1) {
+                result.mId = c.getLong(0);
+                result.mEdId = c.getLong(1);
+                result.mCId = c.getLong(2);
                 long createTime = c.getLong(3);
                 long updateTime = c.getLong(4);
-                result.createDate = new Timestamp(createTime);
-                result.updateDate = new Timestamp(updateTime);
-            } catch (Exception e) {
-                result = null;
-            }
+                result.mCreateDate = new Timestamp(createTime);
+                result.mUpdateDate = new Timestamp(updateTime);
+            } 
         }
         c.close();
         

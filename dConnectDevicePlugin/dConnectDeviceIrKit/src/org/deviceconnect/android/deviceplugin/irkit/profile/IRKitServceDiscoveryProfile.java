@@ -16,7 +16,7 @@ import org.deviceconnect.message.DConnectMessage;
 import android.content.Intent;
 
 /**
- * Network service discovery profile.
+ * IRKit Network Service Discovery Profile.
  * @author NTT DOCOMO, INC.
  */
 public class IRKitServceDiscoveryProfile extends ServiceDiscoveryProfile {

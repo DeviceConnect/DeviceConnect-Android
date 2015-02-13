@@ -56,21 +56,24 @@ public class TestUniqueProfile extends DConnectProfile {
     public static final String ATTRIBUTE_EVENT = "event";
 
     /**
-     * パラメータ: {@value}
+     * パラメータ: {@value}.
      */
     public static final String PARAM_PATH = "path";
 
     /**
-     * パラメータ: {@value}
+     * パラメータ: {@value}.
      */
     public static final String PARAM_KEY = "key";
 
     /**
-     * パラメータ: {@value}
+     * パラメータ: {@value}.
      */
     public static final String PARAM_TIME = "time";
 
-    private Timer eventTimer;
+    /**
+     * イベントのタイマー.
+     */
+    private Timer mEventTimer;
 
     @Override
     public String getProfileName() {
@@ -158,13 +161,18 @@ public class TestUniqueProfile extends DConnectProfile {
         }
     }
 
+    /**
+     * Start Event.
+     * @param serviceId serviceId
+     */
     private synchronized void startEvent(final String serviceId) {
-        if (eventTimer == null) {
-            eventTimer = new Timer(true);
+        if (mEventTimer == null) {
+            mEventTimer = new Timer(true);
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
-                    List<Event> events = EventManager.INSTANCE.getEventList(serviceId, getProfileName(), null, ATTRIBUTE_EVENT);
+                    List<Event> events = EventManager.INSTANCE.getEventList(
+                          serviceId, getProfileName(), null, ATTRIBUTE_EVENT);
                     for (Event event : events) {
                         Intent eventMsg = EventManager.createEventMessage(event);
                         eventMsg.putExtra(PARAM_TIME, System.currentTimeMillis());
@@ -172,22 +180,35 @@ public class TestUniqueProfile extends DConnectProfile {
                     }
                 }
             };
-            eventTimer.schedule(task, 0, 500);
+            mEventTimer.schedule(task, 0, 500);
         }
     }
 
+    /**
+     * Stop Event.
+     */
     private synchronized void stopEvent() {
-        if (eventTimer != null) {
-            eventTimer.cancel();
-            eventTimer = null;
+        if (mEventTimer != null) {
+            mEventTimer.cancel();
+            mEventTimer = null;
         }
     }
 
-    private void setPath(Intent response, String path) {
+    /**
+     * Set Path.
+     * @param response Response
+     * @param path Path
+     */
+    private void setPath(final Intent response, final String path) {
         response.putExtra(PARAM_PATH, path);
     }
 
-    private String createPath(Intent request) {
+    /**
+     * Create Path.
+     * @param request Request
+     * @return Create Path
+     */
+    private String createPath(final Intent request) {
         String action = request.getAction();
         if (action == null) {
             return null;

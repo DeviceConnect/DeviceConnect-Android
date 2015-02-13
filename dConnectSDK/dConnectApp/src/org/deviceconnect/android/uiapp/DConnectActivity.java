@@ -11,12 +11,15 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.client.activity.FragmentPagerActivity;
+import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.uiapp.activity.PluginListActivity;
 import org.deviceconnect.android.uiapp.device.SmartDevice;
 import org.deviceconnect.android.uiapp.fragment.ServiceListFragment;
@@ -35,10 +38,11 @@ import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
@@ -99,6 +103,7 @@ public class DConnectActivity extends FragmentPagerActivity {
         MediaPlayerProfileConstants.PROFILE_NAME,
         MediaStreamRecordingProfileConstants.PROFILE_NAME,
         ServiceDiscoveryProfileConstants.PROFILE_NAME,
+        ServiceInformationProfileConstants.PROFILE_NAME,
         NotificationProfileConstants.PROFILE_NAME,
         PhoneProfileConstants.PROFILE_NAME,
         ProximityProfileConstants.PROFILE_NAME,
@@ -122,10 +127,21 @@ public class DConnectActivity extends FragmentPagerActivity {
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler("deviceconnect.uiapp");
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            mLogger.addHandler(handler);
+            mLogger.setLevel(Level.ALL);
+        } else {
+            mLogger.setLevel(Level.OFF);
+        }
+
         mLogger.entering(getClass().getName(), "onCreate", savedInstanceState);
         super.onCreate(savedInstanceState);
 
         mDConnectClient = new HttpDConnectClient();
+        HttpEventManager.INSTANCE.setOrigin(getPackageName());
 
         (new ServiceDiscoveryTask()).execute();
 
@@ -426,6 +442,8 @@ public class DConnectActivity extends FragmentPagerActivity {
                 builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                 HttpUriRequest request = new HttpGet(builder.build());
+                request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getPackageName());
+                mLogger.info(request.getMethod() + " " + request.getURI());
                 HttpResponse response = mDConnectClient.execute(request);
                 message = (new HttpMessageFactory()).newDConnectMessage(response);
             } catch (URISyntaxException e) {
@@ -461,6 +479,7 @@ public class DConnectActivity extends FragmentPagerActivity {
                         service.get(ServiceDiscoveryProfileConstants.PARAM_ID).toString(),
                         service.get(ServiceDiscoveryProfileConstants.PARAM_NAME).toString());
                     devices.add(device);
+                    mLogger.info("Found smart device: " + device.getId());
                 }
             }
 

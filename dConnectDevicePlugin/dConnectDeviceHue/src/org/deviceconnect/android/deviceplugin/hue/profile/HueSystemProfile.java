@@ -8,7 +8,6 @@ http://opensource.org/licenses/mit-license.php
 package org.deviceconnect.android.deviceplugin.hue.profile;
 
 import org.deviceconnect.android.deviceplugin.hue.activity.HueMainActivity;
-import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
 
 import android.app.Activity;
@@ -21,14 +20,6 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class HueSystemProfile extends SystemProfile {
-
-    /**
-     * コンストラクター.
-     * @param provider provider
-     */
-    public HueSystemProfile(final DConnectProfileProvider provider) {
-        super(provider);
-    }
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {

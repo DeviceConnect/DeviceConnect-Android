@@ -42,13 +42,13 @@ import java.util.HashSet;
 public class SampleUserManager {
 
     /** ユーザーデータ配列. */
-    private HashSet<SampleUser> userSet;
+    private HashSet<SampleUser> mUserSet;
 
     /**
      * コンストラクタ. 
      */
     public SampleUserManager() {
-        userSet = new HashSet<SampleUser>();
+        mUserSet = new HashSet<SampleUser>();
     }
 
     /**
@@ -58,8 +58,8 @@ public class SampleUserManager {
      */
     public SampleUser addUser(final String id) {
         SampleUser user = new SampleUser(id);
-        if (!userSet.contains(user)) {
-            userSet.add(user);
+        if (!mUserSet.contains(user)) {
+            mUserSet.add(user);
             return user;
         }
         return null;
@@ -71,7 +71,7 @@ public class SampleUserManager {
      * @return not null: ユーザーIDが一致するユーザーデータ / null: 該当するユーザーデータが見つからなかった
      */
     public SampleUser findUserById(final String id) {
-        for (SampleUser user : userSet) {
+        for (SampleUser user : mUserSet) {
             if (user.getId().equals(id)) {
                 return user;
             }

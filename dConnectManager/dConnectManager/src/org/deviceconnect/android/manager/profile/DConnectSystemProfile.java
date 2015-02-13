@@ -51,7 +51,6 @@ public class DConnectSystemProfile extends SystemProfile {
      * @param pluginMgr プラグイン管理クラス
      */
     public DConnectSystemProfile(final DConnectProfileProvider provider, final DevicePluginManager pluginMgr) {
-        super(provider);
         mProvider = provider;
         mPluginMgr = pluginMgr;
     }
@@ -67,7 +66,7 @@ public class DConnectSystemProfile extends SystemProfile {
         } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
             return sendNotSupportActionError(request, response);
         }
-        // 各デバイスプラグインに渡すのfalse
+        // 各デバイスプラグインに渡すのでfalse
         return false;
     }
 
@@ -82,7 +81,7 @@ public class DConnectSystemProfile extends SystemProfile {
         } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
             return sendNotSupportActionError(request, response);
         }
-        // 各デバイスプラグインに渡すのfalse
+        // 各デバイスプラグインに渡すのでfalse
         return false;
     }
 
@@ -97,7 +96,7 @@ public class DConnectSystemProfile extends SystemProfile {
         } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
             return onDeleteEvents(request, response);
         }
-        // 各デバイスプラグインに渡すのfalse
+        // 各デバイスプラグインに渡すのでfalse
         return false;
     }
 
@@ -112,7 +111,7 @@ public class DConnectSystemProfile extends SystemProfile {
         } else if (SystemProfileConstants.ATTRIBUTE_EVENTS.equals(attri)) {
             return sendNotSupportActionError(request, response);
         }
-        // 各デバイスプラグインに渡すのfalse
+        // 各デバイスプラグインに渡すのでfalse
         return false;
     }
 

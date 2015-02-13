@@ -33,6 +33,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.deviceconnect.android.cipher.signature.AuthSignature;
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
@@ -640,12 +641,8 @@ public class ReqResDebugActivity extends Activity implements
         if (signature == null || accessToken == null) {
             return false;
         }
-        try {
-            String sig = AuthSignature.generateSignature(accessToken, clinetSecret);
-            return signature.equals(sig);
-        } catch (Exception e) {
-            return false;
-        }
+        String sig = AuthSignature.generateSignature(accessToken, clinetSecret);
+        return signature.equals(sig);
     }
 
     /**
@@ -941,8 +938,10 @@ public class ReqResDebugActivity extends Activity implements
                     android.R.layout.simple_spinner_dropdown_item, data);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             mDI.setAdapter(adapter);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (JSONException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
         }
     }
 

@@ -9,7 +9,7 @@ package org.deviceconnect.android.localoauth.temp;
 import org.restlet.representation.EmptyRepresentation;
 
 /**
- * ResultRepresentation
+ * ResultRepresentation.
  * @author NTT DOCOMO, INC.
  */
 public class ResultRepresentation extends EmptyRepresentation {
@@ -25,7 +25,7 @@ public class ResultRepresentation extends EmptyRepresentation {
 
 	/**
 	 * Resultを設定する.
-	 * @param result
+	 * @param result Result
 	 */
 	public void setResult(final boolean result) {
 		mResult = result;

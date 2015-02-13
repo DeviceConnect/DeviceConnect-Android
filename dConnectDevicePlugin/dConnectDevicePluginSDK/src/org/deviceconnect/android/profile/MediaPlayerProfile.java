@@ -451,7 +451,8 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * @param pos 再生位置
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutSeek(final Intent request, final Intent response, final String serviceId, final Integer pos) {
+    protected boolean onPutSeek(final Intent request, final Intent response,
+              final String serviceId, final Integer pos) {
         setUnsupportedError(response);
         return true;
     }

@@ -29,7 +29,8 @@ public class WearSettingFragment extends Fragment implements OnClickListener {
     private ImageView mImageView;
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater,
+           final ViewGroup container, final Bundle savedInstanceState) {
         // Positionを取得
         Bundle mBundle = getArguments();
         int mPagePosition = mBundle.getInt("position", 0);
@@ -48,7 +49,7 @@ public class WearSettingFragment extends Fragment implements OnClickListener {
     }
 
     @Override
-    public void onClick(View v) {
+    public void onClick(final View v) {
         if (v.equals(mImageView)) {
             Uri uri = Uri.parse("market://details?id=com.google.android.wearable.app");
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);

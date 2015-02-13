@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.profile.intent.test;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +22,7 @@ import org.deviceconnect.android.test.DConnectTestCase;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.profile.AvailabilityProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
@@ -77,17 +80,22 @@ public class IntentDConnectTestCase extends DConnectTestCase {
     @Override
     protected void tearDown() throws Exception {
         getApplicationContext().unregisterReceiver(mResponseReceiver);
+
+        // タイムアウトしたとき、前のintentが残り、
+        // その結果が次の処理で取得されることがあるよう
+        mRequests.clear();
+
         super.tearDown();
     }
 
     @Override
-    protected String[] createClient(final String packageName) {
+    protected String[] createClient() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, packageName);
+        request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
 
-        Intent response = sendRequest(request);
+        Intent response = sendRequest(request, false);
         assertResultOK(response);
         String clientId = response.getStringExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID);
         String clientSecret = response.getStringExtra(AuthorizationProfileConstants.PARAM_CLIENT_SECRET);
@@ -123,7 +131,7 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         request.putExtra(AuthorizationProfileConstants.PARAM_GRANT_TYPE, LocalOAuth2Main.AUTHORIZATION_CODE);
         request.putExtra(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
 
-        Intent response = sendRequest(request);
+        Intent response = sendRequest(request, false);
         return response.getStringExtra(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN);
     }
 
@@ -167,6 +175,22 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         return plugins;
     }
 
+    @Override
+    protected boolean isManagerAvailable() {
+        Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, AvailabilityProfileConstants.PROFILE_NAME);
+        request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
+        Intent response = sendRequest(request);
+        if (response == null) {
+            return false;
+        }
+        if (!response.hasExtra(DConnectMessage.EXTRA_RESULT)) {
+            return false;
+        }
+        int result = response.getIntExtra(DConnectMessage.EXTRA_RESULT, -1);
+        return result == DConnectMessage.RESULT_OK;
+    }
+
     /**
      * タイムアウトを設定する.
      * デフォルトでは、DEFAULT_RESTFUL_TIMEOUTが設定されている。
@@ -183,9 +207,11 @@ public class IntentDConnectTestCase extends DConnectTestCase {
      * タイムアウトした場合にはnullを返却する。
      * 
      * @param intent リクエストのintent
+     * @param afterAuth アプリ認可済みかどうかのフラグ
      * @return レスポンスのintent
      */
-    protected Intent sendRequest(final Intent intent) {
+    protected Intent sendRequest(final Intent intent, final boolean afterAuth) {
+        final byte[] nonce = generateRandom(16);
         final int requestCode = generateRequestCode();
 
         ComponentName cn = new ComponentName("org.deviceconnect.android.test", 
@@ -193,7 +219,12 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         intent.setComponent(ComponentName.unflattenFromString(DCCONNECT_MANAGER_RECEIVER));
         intent.putExtra(IntentDConnectMessage.EXTRA_RECEIVER, cn);
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
-        intent.putExtra(IntentDConnectMessage.EXTRA_ACCESS_TOKEN, mAccessToken);
+        if (afterAuth) {
+            intent.putExtra(IntentDConnectMessage.EXTRA_ACCESS_TOKEN, mAccessToken);
+        } else {
+            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
+        }
+        intent.putExtra(IntentDConnectMessage.EXTRA_NONCE, toHexString(nonce));
 
         getApplicationContext().sendBroadcast(intent);
 
@@ -212,10 +243,37 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         assertEquals(resp.getStringExtra(DConnectProfileConstants.PARAM_PRODUCT), DCONNECT_MANAGER_APP_NAME);
         assertEquals(resp.getStringExtra(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
 
-        // タイムアウトしたとき、前のintentが残り、
-        // その結果が次の処理で取得されることがあるよう
-        mRequests.clear();
+        // HMACの検証
+        String hmacString = resp.getStringExtra(IntentDConnectMessage.EXTRA_HMAC);
+        if (hmacString == null) {
+            fail("Device Connect Manager must send HMAC.");
+        }
+        try {
+            byte[] expectedHmac = calculateHMAC(nonce);
+            assertEquals(expectedHmac, toByteArray(hmacString));
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
+        }
+
         return resp;
+    }
+
+    /**
+     * IntentでdConnectManagerにリクエストを出す.
+     * <p>
+     * このメソッドを呼び出す前に、アプリ認可を済ませておくこと。
+     * </p>
+     * <p>
+     * 内部で、request_codeとreceiverのデータを付加する。
+     * タイムアウトした場合にはnullを返却する。
+     * </p>
+     * @param intent リクエストのintent
+     * @return レスポンスのintent
+     */
+    protected Intent sendRequest(final Intent intent) {
+        return sendRequest(intent, true);
     }
 
     /**

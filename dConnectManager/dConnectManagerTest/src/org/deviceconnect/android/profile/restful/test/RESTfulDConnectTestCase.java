@@ -236,7 +236,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      */
     protected final HttpResponse requestHttpResponse(final HttpUriRequest request) {
         // Origin指定
-        request.addHeader("X-GotAPI-Origin", getOrigin());
+        request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
         
         HttpClient client = new DefaultHttpClient();
         try {

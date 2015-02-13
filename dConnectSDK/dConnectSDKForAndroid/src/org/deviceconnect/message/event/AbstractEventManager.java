@@ -53,6 +53,11 @@ public abstract class AbstractEventManager {
     private String mSessionKey;
 
     /**
+     * アプリケーションのオリジン.
+     */
+    private String mOrigin;
+
+    /**
      * EventManagerを生成する.
      */
     public AbstractEventManager() {
@@ -84,6 +89,24 @@ public abstract class AbstractEventManager {
             throw new IllegalArgumentException("requestCode must no be null.");
         }
         mHandlers.remove(key);
+    }
+
+    /**
+     * アプリケーションのオリジンを設定する.
+     * 
+     * @param origin オリジン
+     */
+    public void setOrigin(final String origin) {
+        mOrigin = origin;
+    }
+
+    /**
+     * アプリケーションのオリジンを取得する.
+     * 
+     * @return オリジン
+     */
+    public String getOrigin() {
+        return mOrigin;
     }
 
     /**
@@ -155,7 +178,8 @@ public abstract class AbstractEventManager {
             // クエリストリングを消すためにnullを設定。パラメータはbodyで送る。
             builder.setParameters(null);
             request = new HttpPut(builder.build());
-            request.setEntity(new UrlEncodedFormEntity(params));
+            request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
+            request.setEntity(new UrlEncodedFormEntity(params));            
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Invalid URI parameter.");
         }
@@ -202,6 +226,7 @@ public abstract class AbstractEventManager {
             key = getKey(builder);
             builder.setParameters(params);
             request = new HttpDelete(builder.build());
+            request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Invalid URI parameter.");
         }

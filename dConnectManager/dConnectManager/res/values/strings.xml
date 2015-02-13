@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">Device Connect Manager</string>
-
+    <string name="description"></string>
     <!-- ================= SettingsActivity ================= -->
 
     <string name="activity_settings_server_on_off">Device Connect Manager</string>

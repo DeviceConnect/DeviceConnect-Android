@@ -18,10 +18,11 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
 
-        <!-- dConnect Manager設定画面用Activity. -->
+        <!-- Device Connect Manager設定画面用Activity. -->
         <activity
             android:name="org.deviceconnect.android.manager.setting.SettingActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,10 +30,8 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="start"
                     android:path="/"
@@ -47,14 +46,12 @@
             android:theme="@style/AppTheme.Translucent" >
         </activity>
 
-        <!-- dConnect Managerデバック用Activity. -->
+        <!-- Device Connect Managerデバック用Activity. -->
         <activity
             android:name="org.deviceconnect.android.manager.setting.ReqResDebugActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" >
-            <intent-filter>
-            </intent-filter>
         </activity>
 
         <!-- 警告画面用Activity. -->
@@ -87,7 +84,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- dConnect Manager本体のサービス. -->
+        <!-- Device Connect Manager本体のサービス. -->
         <!-- Activityとは別プロセスで動作させるために、:dconnect_process上で動作させている。 -->
         <service
             android:name="org.deviceconnect.android.manager.DConnectService"
@@ -95,7 +92,7 @@
             android:process=":dconnect_process" >
         </service>
 
-        <!-- dConnectのファイルを管理するProvider. -->
+        <!-- Device Connectのファイルを管理するProvider. -->
         <provider
             android:name="org.deviceconnect.android.provider.FileProvider"
             android:authorities="org.deviceconnect.android.manager.provider"
@@ -118,7 +115,7 @@
         </service>
 
         <!-- Device Connect監視サービス. -->
-        <!-- dConnectManagerの生存確認を行うため、dConnectManagerとは別プロセスで動作する。 -->
+        <!-- Device ConnectManagerの生存確認を行うため、Device Connect Managerとは別プロセスで動作する。 -->
         <service
             android:name="org.deviceconnect.android.observer.DConnectObservationService"
             android:exported="false"

@@ -8,6 +8,7 @@
 package org.deviceconnect.android.deviceplugin.host.video;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
@@ -92,13 +93,9 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
 
         mCamera = getCameraInstance();
         mRecorder = new MediaRecorder();
-        try {
-            mCamera.unlock();
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-        }
+
+        mCamera.unlock();
+
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -107,18 +104,12 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         if (mFileName != null) {
             mRecorder.setCamera(mCamera);
             mFile = new File(mFileMgr.getBasePath(), mFileName);
-            try {
-                mRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-                mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-                mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
-                mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-                mRecorder.setOutputFile(mFile.toString());
-            } catch (Exception e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-            }
+            mRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+            mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
+            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mRecorder.setOutputFile(mFile.toString());
         } else {
             finish();
         }
@@ -166,13 +157,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
      */
     private void releaseMediaRecorder() {
         if (mRecorder != null) {
-            try {
-                mRecorder.stop();
-            } catch (Exception e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-            }
+            mRecorder.stop();
             mRecorder.reset();
             mRecorder.release();
             mRecorder = null;
@@ -186,13 +171,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
      */
     private synchronized Camera getCameraInstance() {
         Camera c = null;
-        try {
-            c = Camera.open();
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-        }
+        c = Camera.open();
         return c;
     }
 
@@ -201,13 +180,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
      */
     private synchronized void releaseCamera() {
         if (mCamera != null) {
-            try {
-                mCamera.lock();
-            } catch (Exception e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-            }
+            mCamera.lock();
             mCamera.release();
             mCamera = null;
         }
@@ -223,19 +196,16 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         mRecorder.setPreviewDisplay(mHolder.getSurface());
         try {
             mRecorder.prepare();
-        } catch (Exception e) {
+        } catch (IllegalStateException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
         }
-
-        try {
-            mRecorder.start();
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-        }
+        mRecorder.start();
     }
 
     @Override

@@ -225,7 +225,8 @@ public abstract class SettingsProfile extends DConnectProfile implements Setting
      * @param date 日時
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutDate(final Intent request, final Intent response, final String serviceId, final String date) {
+    protected boolean onPutDate(final Intent request, final Intent response,
+                                final String serviceId, final String date) {
         setUnsupportedError(response);
         return true;
     }

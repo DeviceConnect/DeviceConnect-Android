@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.manager;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.deviceconnect.android.manager.util.DConnectUtil;
@@ -13,6 +14,7 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Intent;
@@ -22,10 +24,15 @@ import android.content.Intent;
  * @author NTT DOCOMO, INC.
  */
 public class DConnectService extends DConnectMessageService {
-    /** 内部用タイプを定義する. */
+    /** 内部用: 通信タイプを定義する. */
     public static final String EXTRA_INNER_TYPE = "_type";
-    /** HTTPからの通信タイプを定義する. */
-    public static final String EXTRA_TYPE_HTTP = "http";
+    /** 通信タイプがHTTPであることを示す定数. */
+    public static final String INNER_TYPE_HTTP = "http";
+
+    /** 内部用: アプリケーションタイプを定義する. */
+    public static final String EXTRA_INNER_APP_TYPE = "_app_type";
+    /** 通信相手がWebアプリケーションであることを示す定数. */
+    public static final String INNER_APP_TYPE_WEB = "web";
 
     /** Webサーバ. */
     private DConnectServer mWebServer;
@@ -55,7 +62,7 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void sendResponse(final Intent request, final Intent response) {
         Intent intent = createResponseIntent(request, response);
-        if (EXTRA_TYPE_HTTP.equals(request.getStringExtra(EXTRA_INNER_TYPE))) {
+        if (INNER_TYPE_HTTP.equals(request.getStringExtra(EXTRA_INNER_TYPE))) {
             mWebServerListener.onResponse(intent);
         } else {
             sendBroadcast(intent);
@@ -71,8 +78,10 @@ public class DConnectService extends DConnectMessageService {
                 JSONObject root = new JSONObject();
                 DConnectUtil.convertBundleToJSON(root, event.getExtras());
                 mWebServer.sendEvent(key, root.toString());
-            } catch (Exception e) {
-                mLogger.warning("Exception in sendEvent: " + e.toString());
+            } catch (JSONException e) {
+                mLogger.warning("JSONException in sendEvent: " + e.toString());
+            } catch (IOException e) {
+                mLogger.warning("IOException in sendEvent: " + e.toString());
             }
         } else {
             super.sendEvent(receiver, event);

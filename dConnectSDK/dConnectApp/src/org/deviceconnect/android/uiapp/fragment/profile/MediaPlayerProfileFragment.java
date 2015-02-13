@@ -160,8 +160,7 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
 
             DConnectMessage message = null;
             try {
-                HttpResponse response = getDConnectClient().execute(
-                        getDefaultHost(), new HttpGet(builder.build()));
+                HttpResponse response = sendHttpRequest(new HttpGet(builder.build()));
                 
                 message = (new HttpMessageFactory()).newDConnectMessage(response);
             } catch (URISyntaxException e) {
@@ -252,8 +251,7 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
                 builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                 try {
-                    HttpResponse response = getDConnectClient().execute(
-                            getDefaultHost(), new HttpPut(builder.build()));
+                    HttpResponse response = sendHttpRequest(new HttpPut(builder.build()));
                    (new HttpMessageFactory()).newDConnectMessage(response);
                 } catch (URISyntaxException e) {
                 	if (BuildConfig.DEBUG) {
@@ -284,8 +282,7 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
                 builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                 try {
-                    HttpResponse response = getDConnectClient().execute(
-                            getDefaultHost(), new HttpPut(builder.build()));
+                    HttpResponse response = sendHttpRequest(new HttpPut(builder.build()));
                     (new HttpMessageFactory()).newDConnectMessage(response);
                 } catch (URISyntaxException e) {
                 	if (BuildConfig.DEBUG) {
@@ -323,8 +320,7 @@ public class MediaPlayerProfileFragment extends SmartDeviceFragment {
 
                 DConnectMessage message = null;
                 try {
-                    HttpResponse response = getDConnectClient().execute(
-                            getDefaultHost(), new HttpPut(builder.build()));
+                    HttpResponse response = sendHttpRequest(new HttpPut(builder.build()));
                     message = (new HttpMessageFactory()).newDConnectMessage(response);
                     if (message.getInt(DConnectMessage.EXTRA_RESULT) == DConnectMessage.RESULT_OK) {
                         playMedia();

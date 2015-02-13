@@ -152,7 +152,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
     protected final long[] parsePattern(final String pattern) {
 
         if (pattern == null || pattern.length() == 0) {
-            return new long[] { getMaxVibrationTime() };
+            return new long[] {getMaxVibrationTime()};
         }
 
         long[] result = null;
@@ -189,7 +189,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
         } else {
             try {
                 long time = Long.parseLong(pattern);
-                result = new long[] { time };
+                result = new long[] {time};
             } catch (NumberFormatException e) {
                 mLogger.warning("Exception in the VibrationProfile#parsePattern() method. " + e.toString());
             }

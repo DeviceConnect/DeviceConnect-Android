@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.deviceconnect.android.uiapp.DConnectActivity;
 import org.deviceconnect.android.uiapp.R;
@@ -43,10 +45,11 @@ import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
@@ -246,6 +249,21 @@ public class ServiceListFragment extends ListFragment {
     }
 
     /**
+     * HTTPリクエストを同期的に送信する.
+     * <p>
+     * 送信する前に送信元のAndroidアプリのオリジンをHTTPリクエストヘッダに追加する.
+     * </p>
+     * @param request HTTPリクエスト
+     * @return 受信したHTTPレスポンス
+     * @throws ClientProtocolException プロトコルでエラーが発生した場合
+     * @throws IOException HTTP通信に失敗した場合
+     */
+    public HttpResponse sendHttpRequest(final HttpRequest request) throws ClientProtocolException, IOException {
+        request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getActivity().getPackageName());
+        return mDConnectClient.execute(getDefaultHost(), request);
+    }
+
+    /**
      * サービス選択リスナー.
      */
     public interface ServiceListSelectedListener {
@@ -287,14 +305,12 @@ public class ServiceListFragment extends ListFragment {
 
             try {
                 URIBuilder uriBuilder = new URIBuilder();
-                uriBuilder.setProfile(SystemProfileConstants.PROFILE_NAME);
-                uriBuilder.setAttribute(SystemProfileConstants.ATTRIBUTE_DEVICE);
+                uriBuilder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
                 uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
                 uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                 mLogger.fine("request: " + uriBuilder.build().toString());
-                HttpResponse response = mDConnectClient.execute(
-                        getDefaultHost(), new HttpGet(uriBuilder.build()));
+                HttpResponse response = sendHttpRequest(new HttpGet(uriBuilder.build()));
                 mLogger.fine("response: " + message.toString());
 
                 message = (new HttpMessageFactory()).newDConnectMessage(response);

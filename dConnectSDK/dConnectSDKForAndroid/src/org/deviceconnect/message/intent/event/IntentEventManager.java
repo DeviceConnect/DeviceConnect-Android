@@ -13,6 +13,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.HttpHeaders;
 import org.deviceconnect.message.event.AbstractEventManager;
 import org.deviceconnect.message.event.EventHandler;
@@ -144,6 +145,7 @@ public final class IntentEventManager extends AbstractEventManager {
         DefaultIntentClient client = new DefaultIntentClient(params);
         // DefaultIntentClientの仕様として、Hostで行き先を指定しているのでコンポーネント名を設定しておく
         request.setHeader(HttpHeaders.HOST, mDConnectComponentName.flattenToShortString());
+        request.setHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
         HttpResponse response = client.execute(request);
         // shutdownをするとEntityが取れなくなるためコピーを作成する。
         HttpResponse retRes = copyResponse(response);

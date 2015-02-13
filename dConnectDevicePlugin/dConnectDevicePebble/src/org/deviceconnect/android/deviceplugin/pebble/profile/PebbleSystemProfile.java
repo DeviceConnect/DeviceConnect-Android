@@ -14,7 +14,6 @@ import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -33,14 +32,6 @@ public class PebbleSystemProfile extends SystemProfile {
     private Logger mLogger = Logger.getLogger("Pebble");
     /** sessionKeyが設定されていないときのエラーメッセージ. */
     private static final String ERROR_MESSAGE = "sessionKey must be specified.";
-    /**
-     * コンストラクタ.
-     * 
-     * @param provider プロファイルリスト.
-     */
-    public PebbleSystemProfile(final DConnectProfileProvider provider) {
-        super(provider);
-    }
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {

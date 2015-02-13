@@ -6,12 +6,6 @@
  */
 package org.deviceconnect.android.profile.restful.test;
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.profile.AvailabilityProfileConstants;
-import org.deviceconnect.utils.URIBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * Availabilityプロファイルの正常系テスト.
@@ -49,15 +43,7 @@ public class NormalAvailabilityProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetAvailability() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(AvailabilityProfileConstants.PROFILE_NAME);
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
+        assertTrue(isManagerAvailable());
     }
 
 }

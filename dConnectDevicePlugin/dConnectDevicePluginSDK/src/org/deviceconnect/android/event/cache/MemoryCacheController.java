@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -99,7 +100,7 @@ public class MemoryCacheController extends BaseCacheController {
         
         List<Event> eventList = events.get(path);
         if (eventList == null) {
-            eventList = new ArrayList<Event>();
+            eventList = new CopyOnWriteArrayList<Event>();
             events.put(path, eventList);
         }
         

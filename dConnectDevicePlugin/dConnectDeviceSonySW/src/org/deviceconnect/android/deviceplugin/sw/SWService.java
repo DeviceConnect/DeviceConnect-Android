@@ -17,6 +17,7 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.db.DBCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
@@ -39,7 +40,12 @@ public class SWService extends DConnectMessageService {
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new SWSystemProfile(this);
+        return new SWSystemProfile();
+    }
+
+    @Override
+    protected ServiceInformationProfile getServiceInformationProfile() {
+        return new ServiceInformationProfile(this) { };
     }
 
     @Override

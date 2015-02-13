@@ -14,6 +14,7 @@ import org.deviceconnect.android.deviceplugin.hue.profile.HueServceDiscoveryProf
 import org.deviceconnect.android.deviceplugin.hue.profile.HueSystemProfile;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
@@ -60,7 +61,12 @@ public class HueDeviceService extends DConnectMessageService {
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new HueSystemProfile(this);
+        return new HueSystemProfile();
+    }
+
+    @Override
+    protected ServiceInformationProfile getServiceInformationProfile() {
+        return new ServiceInformationProfile(this) { };
     }
 
     @Override

@@ -25,27 +25,33 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.KeyManagementException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.logging.Logger;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+
 import org.deviceconnect.server.nanohttpd.BuildConfig;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
+
 import com.google.fix.PRNGFixes;
 import com.google.polo.ssl.SslUtil;
 
@@ -367,8 +373,12 @@ public final class KeyStoreManager {
 
             sslContext.init(mKeyManagers, mTrustManagers, new SecureRandom());
             retval = sslContext.getServerSocketFactory();
-        } catch (Exception e) {
-            mLogger.warning("Exception in the DConnectServerNanoHttpd#createServerSocketFactory() method. "
+        } catch (NoSuchAlgorithmException e) {
+            mLogger.warning("NoSuchAlgorithmException in the"
+                    + " DConnectServerNanoHttpd#createServerSocketFactory() method. "
+                    + e.toString());
+        } catch (KeyManagementException e) {
+            mLogger.warning("KeyManagementException in the DConnectServerNanoHttpd#createServerSocketFactory() method. "
                     + e.toString());
         }
         mLogger.exiting(getClass().getName(), "createServerSocketFactory", retval);

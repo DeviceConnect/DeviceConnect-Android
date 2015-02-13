@@ -10,7 +10,7 @@ import android.os.IBinder;
  */
 public class DConnectLaunchService extends Service {
     @Override
-    public IBinder onBind(Intent intent) {
+    public IBinder onBind(final Intent intent) {
         return null;
     }
 }

@@ -142,8 +142,9 @@ public class LocalOAuthRequest extends DConnectRequest {
         request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, getContext().getPackageName());
         request.putExtra(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId);
+        String origin = mRequest.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, origin);
 
         // デバイスプラグインに送信
         mContext.sendBroadcast(request);

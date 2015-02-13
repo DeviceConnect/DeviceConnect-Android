@@ -215,6 +215,8 @@ public final class HttpEventManager extends AbstractEventManager {
     
     @Override
     protected HttpResponse execute(final HttpUriRequest request) throws IOException {
+        request.setHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
+
         DefaultHttpClient client = new DefaultHttpClient();
         HttpResponse response = client.execute(request);
         HttpResponse retRes = copyResponse(response);

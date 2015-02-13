@@ -126,7 +126,7 @@ public class ConnectProfileFragment extends SmartDevicePreferenceFragment {
                     uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                     try {
-                        getDConnectClient().execute(new HttpPut(uriBuilder.build()));
+                        sendHttpRequest(new HttpPut(uriBuilder.build()));
                     } catch (IOException e) {
                         mLogger.warning(e.toString());
                     } catch (URISyntaxException e) {
@@ -213,8 +213,7 @@ public class ConnectProfileFragment extends SmartDevicePreferenceFragment {
                     request = new HttpDelete(uriBuilder.build());
                 }
 
-                HttpResponse response = getDConnectClient().execute(
-                        getDefaultHost(), request);
+                HttpResponse response = sendHttpRequest(request);
                 message = (new HttpMessageFactory()).newDConnectMessage(response);
             } catch (IOException e) {
                 message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);
@@ -308,8 +307,7 @@ public class ConnectProfileFragment extends SmartDevicePreferenceFragment {
                 uriBuilder.addParameter(DConnectMessage.EXTRA_SERVICE_ID, getSmartDevice().getId());
 
                 try {
-                    HttpResponse response = getDConnectClient().execute(
-                            getDefaultHost(), new HttpGet(uriBuilder.build()));
+                    HttpResponse response = sendHttpRequest(new HttpGet(uriBuilder.build()));
                     DConnectMessage message = (new HttpMessageFactory())
                             .newDConnectMessage(response);
                     if (message.getInt(DConnectMessage.EXTRA_RESULT)

@@ -8,6 +8,7 @@
 package org.deviceconnect.android.deviceplugin.host.audio;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
@@ -68,13 +69,17 @@ public class AudioRecorder extends Activity {
         } else {
             mFile = new File(mFileMgr.getBasePath(), mFileName);
             mMediaRecorder.setOutputFile(mFile.toString());
-            try {
-                mMediaRecorder.prepare();
-            } catch (Exception e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
+                try {
+                    mMediaRecorder.prepare();
+                } catch (IllegalStateException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
+                } catch (IOException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
                 }
-            }
             mMediaRecorder.start();
         }
     }

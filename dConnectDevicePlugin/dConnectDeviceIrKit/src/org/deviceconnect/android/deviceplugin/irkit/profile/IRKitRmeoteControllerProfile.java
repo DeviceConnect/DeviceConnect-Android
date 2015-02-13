@@ -21,7 +21,7 @@ import android.content.Intent;
 import android.util.Log;
 
 /**
- * IrKit Profile.
+ * IRKit Remote Controller Profile.
  * @author NTT DOCOMO, INC.
  */
 public class IRKitRmeoteControllerProfile extends DConnectProfile {

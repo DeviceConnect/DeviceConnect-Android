@@ -32,8 +32,6 @@
 
         <!-- Setting -->
         <activity android:name="org.deviceconnect.android.deviceplugin.wear.setting.WearSettingActivity" >
-            <intent-filter>
-            </intent-filter>
         </activity>
 
         <!-- d-Connect Test Device Plugin Provider. -->

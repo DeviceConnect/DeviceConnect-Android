@@ -6,12 +6,17 @@
  */
 package org.deviceconnect.android.uiapp.fragment;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.deviceconnect.android.uiapp.DConnectActivity;
 import org.deviceconnect.android.uiapp.R;
 import org.deviceconnect.android.uiapp.device.SmartDevice;
+import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.client.DConnectClient;
 import org.deviceconnect.message.http.impl.client.HttpDConnectClient;
 
@@ -91,6 +96,21 @@ public abstract class SmartDeviceFragment extends Fragment {
      */
     public DConnectClient getDConnectClient() {
         return mDConnectClient;
+    }
+
+    /**
+     * HTTPリクエストを同期的に送信する.
+     * <p>
+     * 送信する前に送信元のAndroidアプリのオリジンをHTTPリクエストヘッダに追加する.
+     * </p>
+     * @param request HTTPリクエスト
+     * @return 受信したHTTPレスポンス
+     * @throws ClientProtocolException プロトコルでエラーが発生した場合
+     * @throws IOException HTTP通信に失敗した場合
+     */
+    public HttpResponse sendHttpRequest(final HttpRequest request) throws ClientProtocolException, IOException {
+        request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getActivity().getPackageName());
+        return getDConnectClient().execute(getDefaultHost(), request);
     }
 
     /**

@@ -1,0 +1,6 @@
+include 'dConnectSDKForAndroid'
+project(':dConnectSDKForAndroid').projectDir = new File('../../dConnectSDK/dConnectSDKForAndroid')
+include 'dConnectDevicePluginSDK'
+project(':dConnectDevicePluginSDK').projectDir = new File('../../dConnectDevicePlugin/dConnectDevicePluginSDK')
+include 'dConnectServerNanoHttpd'
+project(':dConnectServerNanoHttpd').projectDir = new File('../dConnectServerNanoHttpd')

@@ -183,26 +183,24 @@ public class SettingsFragment extends PreferenceFragment
             }
         } else if (preference instanceof SwitchPreference) {
             if (getString(R.string.key_settings_dconn_server_on_off).equals(key)) {
-                SwitchPreference pref = ((SwitchPreference) preference);
-                boolean checked = pref.isChecked();
-                mCheckBoxSslPreferences.setEnabled(checked);
-                mCheckBoxOauthPreferences.setEnabled(checked);
-                mCheckBoxExternalPreferences.setEnabled(checked);
-                mEditPortPreferences.setEnabled(checked);
+                boolean checked = ((Boolean) newValue).booleanValue();
+                mCheckBoxSslPreferences.setEnabled(!checked);
+                mCheckBoxOauthPreferences.setEnabled(!checked);
+                mCheckBoxExternalPreferences.setEnabled(!checked);
+                mEditPortPreferences.setEnabled(!checked);
                 // dConnectManagerのON/OFF
                 Intent intent = new Intent(getActivity(), DConnectService.class);
-                if (!checked) {
+                if (checked) {
                     getActivity().startService(intent);
                 } else {
                     getActivity().stopService(intent);
                 }
             } else if (getString(R.string.key_settings_dconn_observer_on_off).equals(key)) {
-                SwitchPreference pref = ((SwitchPreference) preference);
-                boolean checked = pref.isChecked();
+                boolean checked = ((Boolean) newValue).booleanValue();
                 // 監視サービスのON/OFF
                 Intent intent = new Intent();
                 intent.setClass(getActivity(), ObserverReceiver.class);
-                if (!checked) {
+                if (checked) {
                     intent.setAction(DConnectObservationService.ACTION_START);
                 } else {
                     intent.setAction(DConnectObservationService.ACTION_STOP);

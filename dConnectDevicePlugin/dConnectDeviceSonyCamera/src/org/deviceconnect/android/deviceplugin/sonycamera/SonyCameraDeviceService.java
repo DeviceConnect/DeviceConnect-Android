@@ -34,6 +34,7 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
@@ -1187,7 +1188,12 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
     @Override
     protected SystemProfile getSystemProfile() {
-        return new SonyCameraSystemProfile(this);
+        return new SonyCameraSystemProfile();
+    }
+
+    @Override
+    protected ServiceInformationProfile getServiceInformationProfile() {
+        return new ServiceInformationProfile(this) { };
     }
 
     @Override

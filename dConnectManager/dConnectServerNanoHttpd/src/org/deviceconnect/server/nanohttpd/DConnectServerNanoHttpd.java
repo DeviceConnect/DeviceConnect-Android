@@ -692,7 +692,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 }
 
                 retval = bout.toByteArray();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 mLogger.warning("Exception in the NanoServer#parseBody() method. " + e.toString());
             }
 

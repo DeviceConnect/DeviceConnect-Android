@@ -11,7 +11,7 @@ import org.deviceconnect.android.message.DConnectMessageServiceProvider;
 import android.app.Service;
 
 /**
- * IrKitデバイスプラグイン.
+ * IRKitデバイスプロバイダ.
  * 
  * @param <T>
  * @author NTT DOCOMO, INC.

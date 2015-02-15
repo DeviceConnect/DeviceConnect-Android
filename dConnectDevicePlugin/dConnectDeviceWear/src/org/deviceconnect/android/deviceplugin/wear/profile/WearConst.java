@@ -23,10 +23,12 @@ public final class WearConst {
     public static final String DEVICE_TO_WEAR_NOTIFICATION_OPEN = "org.deviceconnect.wear.notification.open";
 
     /** DeviceOrientationが開かれたら. */
-    public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER = "org.deviceconnect.wear.deivceorienatation.regist";
+    public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER
+                          = "org.deviceconnect.wear.deivceorienatation.regist";
 
     /** DeviceOrientationが開かれたら. */
-    public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER = "org.deviceconnect.wear.deivceorienatation.unregist";
+    public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER
+    = "org.deviceconnect.wear.deivceorienatation.unregist";
 
     /** WearからAndroid. */
     public static final String WERA_TO_DEVICE_DEIVCEORIENTATION_DATA = "org.deviceconnect.wear.deivceorienatation.data";

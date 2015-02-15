@@ -117,7 +117,12 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
         Fragment page;
         try {
             page = (Fragment) PAGES[position].newInstance();
-        } catch (Exception e) {
+        } catch (InstantiationException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+            page = null;
+        } catch (IllegalAccessException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }

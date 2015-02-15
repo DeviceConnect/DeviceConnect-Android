@@ -211,7 +211,8 @@ public class HostSettingsProfile extends SettingsProfile {
     }
 
     @Override
-    protected boolean onPutDate(final Intent request, final Intent response, final String serviceId, final String date) {
+    protected boolean onPutDate(final Intent request, final Intent response,
+                            final String serviceId, final String date) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {

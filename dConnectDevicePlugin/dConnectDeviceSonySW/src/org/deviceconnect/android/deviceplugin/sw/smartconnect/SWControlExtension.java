@@ -408,13 +408,13 @@ class SWControlExtension extends ControlExtension {
                 acceleration.putDouble(DeviceOrientationProfile.PARAM_Y, values[1]);
                 acceleration.putDouble(DeviceOrientationProfile.PARAM_Z, values[2]);
 
-                String serviceId = findServiceId(mDeviceName);
-                if (serviceId == null) {
-                    return;
-                }
-                List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                        DeviceOrientationProfileConstants.PROFILE_NAME, null,
-                        DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
+                 String serviceId = findServiceId(mDeviceName);
+                 if (serviceId == null) {
+                     return;
+                 }
+                 List<Event> events = EventManager.INSTANCE
+                          .getEventList(serviceId, DeviceOrientationProfileConstants.PROFILE_NAME,
+                         null, DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
 
                 for (Event event : events) {
                     Intent message = EventManager.createEventMessage(event);

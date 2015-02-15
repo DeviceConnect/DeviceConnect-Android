@@ -252,8 +252,12 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
 
                 // Send to select device node.
                 if (node.indexOf(id) != -1) {
-                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
+                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
                             WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER, "".getBytes()).await();
+
+                    if (result.getStatus().isSuccess()) {
+                        mGoogleApiClient.disconnect();
+                    }
                 }
             }
         }

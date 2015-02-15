@@ -10,11 +10,11 @@ import java.util.List;
 
 import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.wear.profile.WearKeyEventProfile;
-import org.deviceconnect.android.deviceplugin.wear.profile.WearServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearNotificationProfile;
+import org.deviceconnect.android.deviceplugin.wear.profile.WearServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearSystemProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearVibrationProfile;
+import org.deviceconnect.android.deviceplugin.wear.profile.WearKeyEventProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.db.DBCacheController;

@@ -19,17 +19,6 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class WearSystemProfile extends SystemProfile {
-<<<<<<< HEAD
-    /**
-     * Constructor.
-     * 
-     * @param plugin Plugin.
-     */
-    public WearSystemProfile(final DConnectProfileProvider plugin) {
-        super(plugin);
-    }
-=======
->>>>>>> master
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {

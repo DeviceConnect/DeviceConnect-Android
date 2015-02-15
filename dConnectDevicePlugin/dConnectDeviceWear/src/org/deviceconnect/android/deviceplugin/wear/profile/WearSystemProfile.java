@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.wear.profile;
 
 import org.deviceconnect.android.deviceplugin.wear.setting.WearSettingActivity;
-import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.SystemProfile;
 
 import android.app.Activity;
@@ -20,14 +19,6 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class WearSystemProfile extends SystemProfile {
-    /**
-     * Constructor.
-     * 
-     * @param plugin Plugin.
-     */
-    public WearSystemProfile(final DConnectProfileProvider plugin) {
-        super(plugin);
-    }
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {

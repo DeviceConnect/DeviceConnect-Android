@@ -243,14 +243,8 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
                                 }
                             });
 
-                    MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
+                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
                             action, message.getBytes()).await();
-
-                    if (!result.getStatus().isSuccess()) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "failed send message(register).");
-                        }
-                    }
                 }
             }
         } else if (status == EVENT_UNREGISTER) {
@@ -263,10 +257,6 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
 
                     if (result.getStatus().isSuccess()) {
                         mGoogleApiClient.disconnect();
-                    } else {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "failed send message(unregister).");
-                        }
                     }
                 }
             }

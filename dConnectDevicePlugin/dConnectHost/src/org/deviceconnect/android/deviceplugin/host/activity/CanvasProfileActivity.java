@@ -12,14 +12,18 @@ import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawObjectInterf
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Paint.Style;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ImageView;
 
 /**
  * Canvas Profile Activity.
@@ -27,17 +31,12 @@ import android.widget.Button;
  * @author NTT DOCOMO, INC.
  */
 public class CanvasProfileActivity extends Activity {
-    
+
     /**
-     * Intent ACTION (ready receive draw request).
+     * background color.
      */
-    public static final String ACTION_READY_RECEIVE_DRAW_REQUEST = "ACTION_READY_RECEIVE_DRAW_REQUEST";
-    
-    /**
-     * Intent ACTION (draw to canvas).
-     */
-    public static final String ACTION_DRAW_TO_CANVAS = "ACTION_DRAW_TO_CANVAS";
-    
+    private static final int CANVAS_BACKGROUND_COLOR = Color.WHITE; 
+
     /**
      * Close button object.
      */
@@ -46,55 +45,75 @@ public class CanvasProfileActivity extends Activity {
     /**
      * Canvas view object.
      */
-    private CanvasProfileView mCanvasView;
+    private ImageView mCanvasView;
     
     /**
      * Canvas draw object.
      */
     private CanvasDrawObjectInterface mCanvasDraw;
     
-    
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_canvas_profile);
-        
+
         mCloseButton = (Button) findViewById(R.id.buttonClose);
-        mCanvasView = (CanvasProfileView) findViewById(R.id.canvasProfileView);
-        
+        mCanvasView = (ImageView) findViewById(R.id.canvasProfileView);
+
         mCloseButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(final View v) {
                 finish();
             }
         });
-        
-        // Initialize draw request receiver.
-        BroadcastReceiver receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(final Context context, final Intent intent) {
-                
-                if (intent.getAction().equals(ACTION_DRAW_TO_CANVAS)) {
-                    mCanvasDraw = CanvasDrawUtils.getCanvasDrawObjectFromIntent(intent);
-                    if (mCanvasDraw != null) {
-                        mCanvasView.setDrawObject(mCanvasDraw, true);
-                    }
-                }
-            }
-        };
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(ACTION_DRAW_TO_CANVAS);
-        registerReceiver(receiver, intentFilter);
+
+        Intent intent = getIntent();
+        refreshImage(intent);
     }
-    
+
     @Override
-    protected void onStart() {
-        super.onStart();
-        
-        // send ready receiver broadcast to HostCanvasProfile.
-        Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction(CanvasProfileActivity.ACTION_READY_RECEIVE_DRAW_REQUEST);
-        sendBroadcast(broadcastIntent);
+    public void onWindowFocusChanged(final boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        refreshImageView();
+    }
+
+    @Override
+    protected void onNewIntent(final Intent intent) {
+        super.onNewIntent(intent);
+        refreshImage(intent);
+    }
+
+    /**
+     * refresh image.
+     * @param intent Intent
+     */
+    private void refreshImage(final Intent intent) {
+        mCanvasDraw = CanvasDrawUtils.getCanvasDrawObjectFromIntent(intent);
+        if (mCanvasView.getWidth() > 0 && mCanvasView.getHeight() > 0) {
+            refreshImageView();
+        }
     }
     
+    /**
+     * refresh image view.
+     */
+    private void refreshImageView() {
+        Bitmap viewBitmap = Bitmap.createBitmap(mCanvasView.getWidth(), mCanvasView.getHeight(), Bitmap.Config.RGB_565);
+        drawClearBackground(viewBitmap);
+        mCanvasDraw.draw(viewBitmap);
+        mCanvasView.setImageBitmap(viewBitmap);
+    }
+    
+    /**
+     * fill backbroundcolor to viewBitmap.
+     * @param viewBitmap viewBitmap
+     */
+    private void drawClearBackground(final Bitmap viewBitmap) {
+        Canvas canvas = new Canvas(viewBitmap);
+        Rect rect = new Rect(0, 0, viewBitmap.getWidth(), viewBitmap.getHeight());
+        Paint paint = new Paint();
+        paint.setColor(CANVAS_BACKGROUND_COLOR);
+        paint.setStyle(Style.FILL);
+        canvas.drawRect(rect, paint);
+    }
 }

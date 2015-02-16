@@ -24,6 +24,7 @@ import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.hmac.HmacManager;
+import org.deviceconnect.android.manager.policy.Whitelist;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
@@ -104,6 +105,9 @@ public abstract class DConnectMessageService extends Service
     /** HMAC管理クラス. */
     private HmacManager mHmacManager;
 
+    /** ホワイトリスト管理クラス. */
+    private Whitelist mWhitelist;
+
     @Override
     public IBinder onBind(final Intent intent) {
         return null;
@@ -148,6 +152,9 @@ public abstract class DConnectMessageService extends Service
 
         // HMAC管理クラス
         mHmacManager = new HmacManager(this);
+
+        // ホワイトリスト管理クラス
+        mWhitelist = new Whitelist(this);
 
         // リクエスト管理クラスの作成
         mRequestManager = new DConnectRequestManager();
@@ -244,6 +251,14 @@ public abstract class DConnectMessageService extends Service
         Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
         response.putExtra(DConnectMessage.EXTRA_REQUEST_CODE, requestCode);
+
+        // リクエストの発行元の確認
+        String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        if (origin == null || !mWhitelist.allows(origin)) {
+            MessageUtils.setInvalidOriginError(response);
+            sendResponse(request, response);
+            return;
+        }
 
         // プロファイル名の取得
         String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);

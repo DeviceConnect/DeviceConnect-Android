@@ -55,9 +55,19 @@
     <string name="key_settings_about_tos">settings_about_tos</string>
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
 
+    <!-- ================= WhitelistActivity ================= -->
+    <string name="activity_whitelist_title">許可する発行元</string>
+    <string name="no_origin_pattern">許可されている発行元はありません</string>
+    <string name="dialog_delete_origin_pattern_message">削除しますか？</string>
+    <string name="dialog_delete_origin_pattern_positive">削除する</string>
+    <string name="dialog_delete_origin_pattern_negative">キャンセル</string>
+    <string name="menu_add_origin_pattern">追加</string>
+    <string name="dialog_add_origin_pattern_title">許可する発行元を追加</string>
+    <string name="dialog_add_origin_pattern_positive">追加する</string>
+    <string name="dialog_add_origin_pattern_negative">キャンセル</string>
+
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>
-    <string name="activity_keyword_ok">OK</string>
 
     <!-- ================= WarningDialogActivity ================= -->
     <string name="activity_warning">警告</string>

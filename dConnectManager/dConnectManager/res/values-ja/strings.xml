@@ -32,6 +32,8 @@
     <string name="activity_settings_about">About</string>
     <string name="activity_settings_general">General</string>
     <string name="activity_settings_not_logged_in">Not logged in yet</string>
+    <string name="activity_settings_whitelist">Whitelist</string>
+    <string name="activity_settings_edit_origin_patterns">Edit</string>
     <string name="activity_settings_device_plugin">Device Plugin</string>
     <string name="activity_settings_restart_device_plugin">Restart</string>
     <string name="activity_settings_restart_device_plugin_title">Starting Device Plugin</string>
@@ -53,6 +55,7 @@
     <string name="key_settings_open_source_licenses">settings_open_source_licenses</string>
     <string name="key_settings_about_privacypolicy">settings_about_privacypolicy</string>
     <string name="key_settings_about_tos">settings_about_tos</string>
+    <string name="key_settings_whitelist">settings_whitelist</string>
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
 
     <!-- ================= KeywordDialogActivity ================= -->

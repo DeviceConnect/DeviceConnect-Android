@@ -198,18 +198,21 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
         @Override
         public void onDiscovery(final List<BluetoothDevice> devices) {
-           getActivity().runOnUiThread(new Runnable() {
-               @Override
-               public void run() {
-                   mDeviceAdapter.clear();
-                   mDeviceAdapter.addAll(createDeviceContainers());
-                   for (BluetoothDevice device : devices) {
-                       if (!containAddressForAdapter(device)) {
-                           mDeviceAdapter.add(createContainer(device));
-                       }
-                   }
-                   mDeviceAdapter.notifyDataSetChanged();
-               }
+            if (mDeviceAdapter == null) {
+                return;
+            }
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mDeviceAdapter.clear();
+                    mDeviceAdapter.addAll(createDeviceContainers());
+                    for (BluetoothDevice device : devices) {
+                        if (!containAddressForAdapter(device.getAddress())) {
+                            mDeviceAdapter.add(createContainer(device));
+                        }
+                    }
+                    mDeviceAdapter.notifyDataSetChanged();
+                }
            });
         }
     };
@@ -226,13 +229,23 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         if (pairing != null) {
             for (BluetoothDevice device : pairing) {
                 String name = device.getName();
-                if (name != null && name.indexOf("PS-100") != -1) {
+                if (name != null && name.indexOf("PS-100") != -1
+                        && !containAddressForList(containers, device.getAddress())) {
                     containers.add(createContainer(device));
                 }
             }
         }
 
         return containers;
+    }
+
+    private boolean containAddressForList(List<DeviceContainer> containers, final String address) {
+        for (DeviceContainer container : containers) {
+            if (container.getAddress().equalsIgnoreCase(address)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private DeviceContainer findDeviceContainerByAddress(final String address) {
@@ -261,11 +274,11 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         return container;
     }
 
-    private boolean containAddressForAdapter(final BluetoothDevice device) {
+    private boolean containAddressForAdapter(final String address) {
         int size = mDeviceAdapter.getCount();
         for (int i = 0; i < size; i++) {
             DeviceContainer container = mDeviceAdapter.getItem(i);
-            if (container.getAddress().equalsIgnoreCase(device.getAddress())) {
+            if (container.getAddress().equalsIgnoreCase(address)) {
                 return true;
             }
         }

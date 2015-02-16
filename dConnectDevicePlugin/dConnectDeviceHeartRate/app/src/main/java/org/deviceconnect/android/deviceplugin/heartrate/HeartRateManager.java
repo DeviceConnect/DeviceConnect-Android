@@ -266,7 +266,9 @@ public class HeartRateManager {
             } else {
                 hr.setConnectFlag(true);
             }
-            mConnectedDevices.add(hr);
+            if (!mConnectedDevices.contains(hr)) {
+                mConnectedDevices.add(hr);
+            }
             if (mHRDiscoveryListener != null) {
                 mHRDiscoveryListener.onConnected(device);
             }

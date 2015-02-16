@@ -72,7 +72,7 @@ public class CanvasProfileActivity extends Activity {
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
+    public void onWindowFocusChanged(final boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         refreshImageView();
     }
@@ -108,7 +108,7 @@ public class CanvasProfileActivity extends Activity {
      * fill backbroundcolor to viewBitmap.
      * @param viewBitmap viewBitmap
      */
-    private void drawClearBackground(Bitmap viewBitmap) {
+    private void drawClearBackground(final Bitmap viewBitmap) {
         Canvas canvas = new Canvas(viewBitmap);
         Rect rect = new Rect(0, 0, viewBitmap.getWidth(), viewBitmap.getHeight());
         Paint paint = new Paint();

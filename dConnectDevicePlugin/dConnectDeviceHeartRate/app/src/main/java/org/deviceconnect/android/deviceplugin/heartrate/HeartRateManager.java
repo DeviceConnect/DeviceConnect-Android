@@ -26,14 +26,21 @@ import static org.deviceconnect.android.deviceplugin.heartrate.HeartRateConnecto
 import static org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector.BleDeviceDiscoveryListener;
 
 /**
+ * This class manages the HeartRate device.
+ * <p>
+ * This class provides the following functions:
+ *     <li>Scan ble device</li>
+ *     <li>Connect a GATT of Heart Rate Service</li>
+ *     <li>Get heart rate</li>
+ * </p>
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateManager {
-    /** ロガー. */
+    /** Logger. */
     private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
 
     /**
-     * application context.
+     * Application context.
      */
     private Context mContext;
 
@@ -87,14 +94,25 @@ public class HeartRateManager {
         }
     }
 
+    /**
+     * Sets a OnHeartRateDiscoveryListener.
+     * @param listener The listener to be told when found device or connected device
+     */
     public void setOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
         mHRDiscoveryListener = listener;
     }
 
+    /**
+     * Sets a OnHeartRateEventListener.
+     * @param listener The listener to be told when get a data of heart rate
+     */
     public void setOnHeartRateEventListener(OnHeartRateEventListener listener) {
         mHREvtListener = listener;
     }
 
+    /**
+     * Starts a HeartRateManager.
+     */
     public void start() {
         mDetector.initialize();
         synchronized (mRegisterDevices) {
@@ -108,6 +126,9 @@ public class HeartRateManager {
         mConnector.start();
     }
 
+    /**
+     * Stops a HeartRateManager.
+     */
     public void stop() {
         mConnectedDevices.clear();
         mConnector.stop();
@@ -127,17 +148,25 @@ public class HeartRateManager {
         mDetector.stopScan();
     }
 
+    /**
+     * Register the {@link HeartRateDevice} to database from BluetoothDevice.
+     * @param device Instance of BluetoothDevice
+     * @return {@link HeartRateDevice}
+     */
     private HeartRateDevice registerHeartRateDevice(final BluetoothDevice device) {
         HeartRateDevice hr = new HeartRateDevice();
         hr.setName(device.getName());
         hr.setAddress(device.getAddress());
         hr.setRegisterFlag(true);
-        hr.setConnectFlag(true);
         mDBHelper.addHeartRateDevice(hr);
         mRegisterDevices.add(hr);
         return hr;
     }
 
+    /**
+     * Unregister the {@link HeartRateDevice} to database from BluetoothDevice.
+     * @param address address of device
+     */
     private void unregisterHeartRateDevice(final String address) {
         HeartRateDevice hr = findRegisteredHeartRateDeviceByAddress(address);
         if (hr != null) {
@@ -147,7 +176,7 @@ public class HeartRateManager {
     }
 
     /**
-     * Connect to GATT Server hosted by device.
+     * Connect to GATT Server by address.
      * @param address address for ble device
      */
     public void connectBleDevice(final String address) {
@@ -158,7 +187,7 @@ public class HeartRateManager {
     }
 
     /**
-     * Disconnect to GATT Server hosted by device.
+     * Disconnect to GATT Server by address.
      * @param address address for ble device
      */
     public void disconnectBleDevice(final String address) {
@@ -170,16 +199,16 @@ public class HeartRateManager {
     }
 
     /**
-     * Gets a list of ble device connected.
-     * @return list of ble device
+     * Gets the list of BLE device that connected.
+     * @return list of BLE device
      */
     public List<HeartRateDevice> getConnectedDevices() {
         return mConnectedDevices;
     }
 
     /**
-     * Gets a list of ble device that was registered to automatic connection.
-     * @return list of ble device
+     * Gets the list of BLE device that was registered to automatic connection.
+     * @return list of BLE device
      */
     public List<HeartRateDevice> getRegisterDevices() {
         return mRegisterDevices;
@@ -195,7 +224,7 @@ public class HeartRateManager {
 
     /**
      * Gets the {@link HeartRateData} from address.
-     * @param address ble device address
+     * @param address address of ble device
      * @return {@link HeartRateData}, or null on error
      */
     public HeartRateData getHeartRateData(final String address) {
@@ -203,10 +232,20 @@ public class HeartRateManager {
         return getHeartRateData(device);
     }
 
+    /**
+     * Gets the {@link HeartRateData} from {@link HeartRateDevice}.
+     * @param device Instance of {@link HeartRateDevice}
+     * @return {@link HeartRateData}, or null on error
+     */
     public HeartRateData getHeartRateData(final HeartRateDevice device) {
         return mHRData.get(device);
     }
 
+    /**
+     * Find the {@link HeartRateDevice} from address.
+     * @param address address of ble device
+     * @return {@link HeartRateDevice}, or null
+     */
     private HeartRateDevice findRegisteredHeartRateDeviceByAddress(final String address) {
         for (HeartRateDevice d : mRegisterDevices) {
             if (d.getAddress().equalsIgnoreCase(address)) {
@@ -216,6 +255,11 @@ public class HeartRateManager {
         return null;
     }
 
+    /**
+     * Find the {@link HeartRateDevice} from address.
+     * @param address address of ble device
+     * @return {@link HeartRateDevice}, or null
+     */
     private HeartRateDevice findConnectedHeartRateDeviceByAddress(final String address) {
         for (HeartRateDevice d : mConnectedDevices) {
             if (d.getAddress().equalsIgnoreCase(address)) {
@@ -226,7 +270,7 @@ public class HeartRateManager {
     }
 
     /**
-     * Tests whether this mRegisterDevices contains the specified object.
+     * Tests whether this mRegisterDevices contains the BluetoothDevice.
      * @param device device will be checked
      * @return true if object is an element of mRegisterDevices, false
      *         otherwise
@@ -263,8 +307,6 @@ public class HeartRateManager {
             HeartRateDevice hr = findRegisteredHeartRateDeviceByAddress(device.getAddress());
             if (hr == null) {
                 hr = registerHeartRateDevice(device);
-            } else {
-                hr.setConnectFlag(true);
             }
             if (!mConnectedDevices.contains(hr)) {
                 mConnectedDevices.add(hr);

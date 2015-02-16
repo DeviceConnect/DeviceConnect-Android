@@ -25,6 +25,7 @@ import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
+ * This service provide Health Profile.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateDeviceService extends DConnectMessageService {
@@ -32,7 +33,7 @@ public class HeartRateDeviceService extends DConnectMessageService {
     /**
      * Received a event that Bluetooth has been changed.
      */
-    private BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -50,7 +51,7 @@ public class HeartRateDeviceService extends DConnectMessageService {
     /**
      * Instance of handler.
      */
-    private Handler mHandler = new Handler();
+    private final Handler mHandler = new Handler();
 
     @Override
     public void onCreate() {

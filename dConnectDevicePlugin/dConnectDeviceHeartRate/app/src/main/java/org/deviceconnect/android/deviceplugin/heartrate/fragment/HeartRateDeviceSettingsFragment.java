@@ -84,8 +84,8 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     }
 
     /**
-     * Connect to Ble device has heart rate service.
-     * @param device Ble device has heart rate service.
+     * Connect to the BLE device that have heart rate service.
+     * @param device BLE device that have heart rate service.
      */
     private void connectDevice(final DeviceContainer device) {
         getManager().connectBleDevice(device.getAddress());
@@ -93,8 +93,8 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     }
 
     /**
-     * Disconnect to Ble device has heart rate service.
-     * @param device Ble device has heart rate service.
+     * Disconnect to the BLE device that have heart rate service.
+     * @param device BLE device that have heart rate service.
      */
     private void disconnectDevice(final DeviceContainer device) {
         getManager().disconnectBleDevice(device.getAddress());
@@ -111,6 +111,10 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         });
     }
 
+    /**
+     * Display the dialog of connecting a ble device.
+     * @param name device name
+     */
     private void showProgressDialog(final String name) {
         dismissProgressDialog();
 
@@ -121,6 +125,9 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         mProgressDialogFragment.show(getFragmentManager(), "dialog");
     }
 
+    /**
+     * Dismiss the dialog of connecting a ble device.
+     */
     private void dismissProgressDialog() {
         if (mProgressDialogFragment != null) {
             mProgressDialogFragment.dismiss();
@@ -128,6 +135,10 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         }
     }
 
+    /**
+     * Display the error dialog.
+     * @param name device name
+     */
     private void showErrorDialog(final String name) {
         dismissErrorDialog();
 
@@ -150,6 +161,9 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         });
     }
 
+    /**
+     * Dismiss the error dialog.
+     */
     private void dismissErrorDialog() {
         if (mErrorDialogFragment != null) {
             mErrorDialogFragment.dismiss();
@@ -217,6 +231,10 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         }
     };
 
+    /**
+     * Create a list of device.
+     * @return list of device
+     */
     private List<DeviceContainer> createDeviceContainers() {
         List<DeviceContainer> containers = new ArrayList<>();
         List<HeartRateDevice> devices = getManager().getRegisterDevices();
@@ -229,7 +247,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         if (pairing != null) {
             for (BluetoothDevice device : pairing) {
                 String name = device.getName();
-                if (name != null && name.indexOf("PS-100") != -1
+                if (name != null && name.contains("PS-100")
                         && !containAddressForList(containers, device.getAddress())) {
                     containers.add(createContainer(device));
                 }
@@ -239,6 +257,12 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         return containers;
     }
 
+    /**
+     * Returns true if this address contains the list of device.
+     * @param containers list of device
+     * @param address address
+     * @return true if address is an element of this List, false otherwise
+     */
     private boolean containAddressForList(final List<DeviceContainer> containers, final String address) {
         for (DeviceContainer container : containers) {
             if (container.getAddress().equalsIgnoreCase(address)) {
@@ -248,6 +272,11 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         return false;
     }
 
+    /**
+     * Look for a DeviceContainer with the given address.
+     * @param address address
+     * @return The DeviceContainer that has the given address or null
+     */
     private DeviceContainer findDeviceContainerByAddress(final String address) {
         int size = mDeviceAdapter.getCount();
         for (int i = 0; i < size; i++) {
@@ -259,6 +288,11 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         return null;
     }
 
+    /**
+     * Create a DeviceContainer from BluetoothDevice.
+     * @param device Instance of BluetoothDevice
+     * @return Instance of DeviceContainer
+     */
     private DeviceContainer createContainer(final BluetoothDevice device) {
         DeviceContainer container = new DeviceContainer();
         container.setName(device.getName());
@@ -266,6 +300,12 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         return container;
     }
 
+    /**
+     * Create a DeviceContainer from HeartRateDevice.
+     * @param device Instance of HeartRateDevice
+     * @param register
+     * @return Instance of DeviceContainer
+     */
     private DeviceContainer createContainer(final HeartRateDevice device, final boolean register) {
         DeviceContainer container = new DeviceContainer();
         container.setName(device.getName());

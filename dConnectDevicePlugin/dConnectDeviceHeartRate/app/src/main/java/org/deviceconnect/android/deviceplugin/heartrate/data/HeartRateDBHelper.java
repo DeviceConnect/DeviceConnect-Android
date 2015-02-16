@@ -17,11 +17,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This class manage a database.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateDBHelper {
 
+    /**
+     * Define the name of the database.
+     */
     private static final String DB_NAME = "heart_rate.db";
+
+    /**
+     * Define the version of the database.
+     */
     private static final int DB_VERSION = 1;
     private static final String TBL_NAME = "device_tbl";
 
@@ -32,10 +40,19 @@ public class HeartRateDBHelper {
 
     private DBHelper mDBHelper;
 
+    /**
+     * Constructor.
+     * @param context application context
+     */
     public HeartRateDBHelper(final Context context) {
         mDBHelper = new DBHelper(context);
     }
 
+    /**
+     * Add the device to database.
+     * @param device device
+     * @return the row ID of the newly added row, or -1 if an error occurred
+     */
     public synchronized long addHeartRateDevice(final HeartRateDevice device) {
         ContentValues values = new ContentValues();
         values.put(COL_NAME, device.getName());
@@ -51,6 +68,11 @@ public class HeartRateDBHelper {
         }
     }
 
+    /**
+     * Update the device in the database.
+     * @param device device
+     * @return the number of rows updated
+     */
     public synchronized int updateHeartRateDevice(final HeartRateDevice device) {
         ContentValues values = new ContentValues();
         values.put(COL_REGISTER_FLAG, device.isRegisterFlag() ? 1 : 0);
@@ -68,6 +90,11 @@ public class HeartRateDBHelper {
         }
     }
 
+    /**
+     * Delete the device in the database.
+     * @param device device
+     * @return the number of rows deleted, 0 otherwise
+     */
     public synchronized int removeHeartRateDevice(final HeartRateDevice device) {
         String whereClause = COL_ADDRESS + "=?";
         String[] whereArgs = {
@@ -82,6 +109,10 @@ public class HeartRateDBHelper {
         }
     }
 
+    /**
+     * Get a list of device in the database.
+     * @return a list of device
+     */
     public synchronized List<HeartRateDevice> getHeartRateDevices() {
         String sql = "SELECT * FROM " + TBL_NAME;
         String[] selectionArgs = {};

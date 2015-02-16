@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.heartrate.data;
 
 /**
+ * This class is information of a Heart Rate.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateData {
@@ -45,5 +46,15 @@ public class HeartRateData {
 
     public void setRRInterval(final double rrInterval) {
         mRRInterval = rrInterval;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{\"id\": " + mId + ", ");
+        builder.append("\"heartRate\": " + mHeartRate + ", ");
+        builder.append("\"energyExpended\": " + mEnergyExpended + ", ");
+        builder.append("\"RRInterval\": " + mRRInterval +  "} ");
+        return builder.toString();
     }
 }

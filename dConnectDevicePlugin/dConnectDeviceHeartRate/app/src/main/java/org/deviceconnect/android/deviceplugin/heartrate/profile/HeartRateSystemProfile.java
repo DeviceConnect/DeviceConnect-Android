@@ -14,6 +14,7 @@ import org.deviceconnect.android.deviceplugin.heartrate.activity.HeartRateDevice
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
+ * Implement SystemProfile.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateSystemProfile extends SystemProfile {

@@ -1,3 +1,9 @@
+/*
+ ErrorDialogFragment
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.heartrate.fragment.dialog;
 
 import android.app.AlertDialog;
@@ -9,7 +15,8 @@ import android.support.v4.app.DialogFragment;
 import org.deviceconnect.android.deviceplugin.heartrate.R;
 
 /**
- *
+ * This fragment displays a dialog of error.
+ * @author NTT DOCOMO, INC.
  */
 public class ErrorDialogFragment extends DialogFragment {
     private static final String PARAM_TITLE = "title";

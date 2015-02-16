@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.heartrate.data;
 
 /**
+ * This class is information of a device.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateDevice {
@@ -15,7 +16,6 @@ public class HeartRateDevice {
     private String mAddress;
     private int mSensorLocation = -1;
     private boolean mRegisterFlag;
-    private boolean mConnectFlag;
 
     public int getId() {
         return mId;
@@ -57,14 +57,6 @@ public class HeartRateDevice {
         mRegisterFlag = registerFlag;
     }
 
-    public boolean isConnectFlag() {
-        return mConnectFlag;
-    }
-
-    public void setConnectFlag(final boolean connectFlag) {
-        mConnectFlag = connectFlag;
-    }
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -99,10 +91,11 @@ public class HeartRateDevice {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"name\": " + mName + ", ");
+        builder.append("{\"id\": " + mId + ", ");
+        builder.append("\"name\": " + mName + ", ");
         builder.append("\"address\": " + mAddress + ", ");
-        builder.append("\"registerFlag\": " + mRegisterFlag + ", ");
-        builder.append("\"connectFlag\": " + mConnectFlag + "} ");
+        builder.append("\"location\": " + mSensorLocation + ", ");
+        builder.append("\"registerFlag\": " + mRegisterFlag + "} ");
         return builder.toString();
     }
 }

@@ -9,9 +9,14 @@ package org.deviceconnect.android.deviceplugin.heartrate.ble;
 import android.content.Context;
 
 /**
- *
+ * This factory to create new BleDeviceAdapter.
  * @author NTT DOCOMO, INC.
  */
 public interface BleDeviceAdapterFactory {
+    /**
+     * Create a new BleDeviceAdapter.
+     * @param context context of this application
+     * @return Instance of BleDeviceAdapter, or null on error
+     */
     BleDeviceAdapter createAdapter(Context context);
 }

@@ -11,7 +11,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 
 /**
- *
+ * A class containing utility methods related to BLE.
  * @author NTT DOCOMO, INC.
  */
 public final class BleUtils {

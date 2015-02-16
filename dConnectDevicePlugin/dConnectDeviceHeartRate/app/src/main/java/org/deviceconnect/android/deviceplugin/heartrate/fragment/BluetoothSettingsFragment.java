@@ -19,6 +19,7 @@ import android.widget.Button;
 import org.deviceconnect.android.deviceplugin.heartrate.R;
 
 /**
+ * This fragment do setting of the Bluetooth.
  * @author NTT DOCOMO, INC.
  */
 public class BluetoothSettingsFragment extends Fragment {

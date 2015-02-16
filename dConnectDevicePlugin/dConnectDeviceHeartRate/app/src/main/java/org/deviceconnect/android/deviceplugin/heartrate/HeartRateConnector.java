@@ -33,13 +33,21 @@ import static android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT16;
 import static android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT8;
 
 /**
+ * This class manage BLE device.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateConnector {
-    /** ロガー. */
+    /** Logger. */
     private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
 
+    /**
+     * Define the time to delay first execution.
+     */
     private static final int CHK_FIRST_WAIT_PERIOD = 10 * 1000;
+
+    /**
+     * Define the period between successive executions.
+     */
     private static final int CHK_WAIT_PERIOD = 10 * 1000;
 
     /**
@@ -52,8 +60,14 @@ public class HeartRateConnector {
      */
     private HeartRateConnectEventListener mListener;
 
+    /**
+     * Map of Device state.
+     */
     private Map<BluetoothGatt, DeviceState> mHRDevices = new ConcurrentHashMap<>();
 
+    /**
+     * List of registered device.
+     */
     private List<String> mRegisterDevices = new ArrayList<>();
 
     /**
@@ -130,7 +144,7 @@ public class HeartRateConnector {
     }
 
     /**
-     * Start Bluetooth LE connect automatically.
+     * Start BLE connect automatically.
      */
     public void start() {
         mAutoConnectTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
@@ -151,7 +165,7 @@ public class HeartRateConnector {
     }
 
     /**
-     * Stop Bluetooth LE connect automatically.
+     * Stop BLE connect automatically.
      */
     public void stop() {
         mHRDevices.clear();
@@ -161,7 +175,7 @@ public class HeartRateConnector {
 
     /**
      * Tests whether this mHRDevices contains address.
-     * @param address ble device address
+     * @param address BLE device address
      * @return true if address is an element of mHRDevices, false otherwise
      */
     private boolean containGattMap(final String address) {
@@ -176,10 +190,9 @@ public class HeartRateConnector {
     }
 
     /**
-     * Checks Ble Device has Heart Rate Service.
-     *
+     * Tests whether BLE Device has Heart Rate Service.
      * @param gatt GATT Service
-     * @return true ble device has Heart Rate Service
+     * @return true BLE device has Heart Rate Service
      */
     private boolean hasHeartRateService(final BluetoothGatt gatt) {
         BluetoothGattService service = gatt.getService(UUID.fromString(
@@ -187,21 +200,41 @@ public class HeartRateConnector {
         return service != null;
     }
 
+    /**
+     * Checks whether characteristic's uuid and checkUuid is same.
+     * @param characteristic uuid
+     * @param checkUuid uuid
+     * @return true uuid is same, false otherwise
+     */
     private boolean isCharacteristic(final BluetoothGattCharacteristic characteristic,
                                      final String checkUuid) {
         String uuid = characteristic.getUuid().toString();
         return checkUuid.equalsIgnoreCase(uuid);
     }
 
+    /**
+     * Checks whether characteristic is body sensor location.
+     * @param characteristic uuid
+     * @return true uuid is same, false otherwise
+     */
     private boolean isBodySensorLocation(final BluetoothGattCharacteristic characteristic) {
         return isCharacteristic(characteristic, BleUtils.CHAR_BODY_SENSOR_LOCATION);
     }
 
+    /**
+     * Checks whether characteristic is Heart Rate Measurement
+     * @param characteristic uuid
+     * @return true uuid is same, false otherwise
+     */
     private boolean isHeartRateMeasurement(final BluetoothGattCharacteristic characteristic) {
         return isCharacteristic(characteristic, BleUtils.CHAR_HEART_RATE_MEASUREMENT);
     }
 
-    private void newHeartRateDevice(final BluetoothGatt gatt) {
+    /**
+     * Register a state of GATT Service and connects GATT Service.
+     * @param gatt GATT
+     */
+    private void registerHeartRateDeviceState(final BluetoothGatt gatt) {
         mHRDevices.put(gatt, DeviceState.GET_LOCATION);
         if (mListener != null) {
             mListener.onConnected(gatt.getDevice());
@@ -258,9 +291,13 @@ public class HeartRateConnector {
         return registered;
     }
 
-    private boolean next(final BluetoothGatt gatt) {
+    /**
+     * Shift to the next state on GATT Service.
+     * @param gatt GATT Service
+     */
+    private void next(final BluetoothGatt gatt) {
         if (!mHRDevices.containsKey(gatt)) {
-            newHeartRateDevice(gatt);
+            registerHeartRateDeviceState(gatt);
         }
 
         DeviceState state = mHRDevices.get(gatt);
@@ -276,18 +313,19 @@ public class HeartRateConnector {
                     mHRDevices.put(gatt, DeviceState.ERROR);
                 }
                 break;
+            case CONNECTED:
+                mLogger.fine("GATT Service is connected.");
+                break;
             default:
                 mLogger.warning("Illegal state. state=" + state);
                 break;
         }
-
-        return false;
     }
 
     /**
-     *
-     * @param gatt
-     * @param characteristic
+     * Notify heart rate to {@link HeartRateConnectEventListener}.
+     * @param gatt GATT Service
+     * @param characteristic BluetoothGattCharacteristic
      */
     private void notifyHeartRateMeasurement(final BluetoothGatt gatt,
             final BluetoothGattCharacteristic characteristic) {
@@ -309,6 +347,7 @@ public class HeartRateConnector {
 
             // Sensor Contact Status bits
             if ((buf[0] & 0x60) != 0) {
+                // MEMO no implements yet
             }
 
             // Energy Expended Status bit

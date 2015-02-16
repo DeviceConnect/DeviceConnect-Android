@@ -10,6 +10,7 @@ import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 
 /**
+ * Implement ServiceInformationProfile.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateServiceInformationProfile extends ServiceInformationProfile {

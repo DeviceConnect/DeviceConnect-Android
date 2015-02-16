@@ -23,7 +23,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- *
+ * This class to detect the BLE device.
  * @author NTT DOCOMO, INC.
  */
 public class BleDeviceDetector {
@@ -109,7 +109,7 @@ public class BleDeviceDetector {
 
     /**
      * Get a state of scan.
-     * @return true if scanning a ble
+     * @return true if scanning a BLE
      */
     public boolean isScanning() {
         return mScanning;
@@ -229,7 +229,7 @@ public class BleDeviceDetector {
     }
 
     /**
-     * Bluetooth Adapter.
+     * Implement the BluetoothAdapter.
      */
     private final BleDeviceAdapter.BleDeviceScanCallback mScanCallback =
             new BleDeviceAdapter.BleDeviceScanCallback() {
@@ -242,12 +242,12 @@ public class BleDeviceDetector {
     };
 
     /**
-     * This listener to be notified when discovered the ble device.
+     * This listener to be notified when discovered the BLE device.
      */
     public static interface BleDeviceDiscoveryListener {
         /**
-         * Discovered the ble device.
-         * @param devices ble device list
+         * Discovered the BLE device.
+         * @param devices BLE device list
          */
         void onDiscovery(List<BluetoothDevice> devices);
     }

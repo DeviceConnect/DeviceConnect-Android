@@ -17,7 +17,7 @@ import org.deviceconnect.android.deviceplugin.heartrate.fragment.SummaryFragment
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 /**
- *
+ * This activity is settings screen.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateDeviceSettingsActivity extends DConnectSettingPageFragmentActivity {

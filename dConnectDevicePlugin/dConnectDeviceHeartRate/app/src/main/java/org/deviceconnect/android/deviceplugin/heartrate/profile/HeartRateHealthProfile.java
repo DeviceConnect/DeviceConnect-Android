@@ -23,6 +23,7 @@ import org.deviceconnect.message.DConnectMessage;
 import java.util.List;
 
 /**
+ * Implement HealthProfile.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateHealthProfile extends HealthProfile {

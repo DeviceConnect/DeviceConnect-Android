@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import org.deviceconnect.android.deviceplugin.heartrate.R;
 
 /**
+ * This fragment explain settings of Mio Alpha.
  * @author NTT DOCOMO, INC.
  */
 public class MioAlphaInstructionsFragment extends Fragment {

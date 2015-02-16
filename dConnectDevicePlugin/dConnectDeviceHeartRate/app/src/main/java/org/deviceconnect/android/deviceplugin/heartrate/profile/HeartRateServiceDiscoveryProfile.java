@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Implement ServiceDiscoveryProfile.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateServiceDiscoveryProfile extends ServiceDiscoveryProfile {

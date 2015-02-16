@@ -17,7 +17,7 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.HealthProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * @author NTT DOCOMO, INC.
  */
-public class HeartRateHealthProfile extends DConnectProfile {
+public class HeartRateHealthProfile extends HealthProfile {
     /**
      * Implementation of {@link HeartRateManager.OnHeartRateEventListener}.
      */
@@ -46,66 +46,22 @@ public class HeartRateHealthProfile extends DConnectProfile {
     }
 
     @Override
-    public String getProfileName() {
-        return "health";
-    }
-
-    @Override
-    protected boolean onGetRequest(Intent request, Intent response) {
-
-        String attribute = getAttribute(request);
-        if ("heartrate".equals(attribute)) {
-            String serviceId = request.getStringExtra(PARAM_SERVICE_ID);
-            return onGetHeartRate(request, response, serviceId);
-        } else {
-            MessageUtils.setNotSupportAttributeError(response);
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPutRequest(Intent request, Intent response) {
-        String attribute = getAttribute(request);
-        if ("heartrate".equals(attribute)) {
-            String serviceId = request.getStringExtra(PARAM_SERVICE_ID);
-            String sessionKey = request.getStringExtra(PARAM_SESSION_KEY);
-            return onPutHeartRate(request, response, serviceId, sessionKey);
-        } else {
-            MessageUtils.setNotSupportAttributeError(response);
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onDeleteRequest(Intent request, Intent response) {
-        String attribute = getAttribute(request);
-        if ("heartrate".equals(attribute)) {
-            String serviceId = request.getStringExtra(PARAM_SERVICE_ID);
-            String sessionKey = request.getStringExtra(PARAM_SESSION_KEY);
-            return onDeleteHeartRate(request, response, serviceId, sessionKey);
-        } else {
-            MessageUtils.setNotSupportAttributeError(response);
-        }
-        return true;
-    }
-
     public boolean onGetHeartRate(final Intent request, final Intent response, final String serviceId) {
-
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else {
             HeartRateData data = getManager().getHeartRateData(serviceId);
             if (data == null) {
-                setResult(response, DConnectMessage.RESULT_ERROR);
+                MessageUtils.setNotFoundServiceError(response);
             } else {
                 setResult(response, DConnectMessage.RESULT_OK);
-                response.putExtra("heartRate", data.getHeartRate());
+                setHeartRate(response, data.getHeartRate());
             }
         }
-
         return true;
     }
 
+    @Override
     public boolean onPutHeartRate(final Intent request, final Intent response,
                                   final String serviceId, final String sessionKey) {
         if (serviceId == null) {
@@ -113,16 +69,22 @@ public class HeartRateHealthProfile extends DConnectProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
         } else {
-            EventError error = EventManager.INSTANCE.addEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
+            HeartRateData data = getManager().getHeartRateData(serviceId);
+            if (data == null) {
+                MessageUtils.setNotFoundServiceError(response);
             } else {
-                MessageUtils.setUnknownError(response);
+                EventError error = EventManager.INSTANCE.addEvent(request);
+                if (error == EventError.NONE) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setUnknownError(response);
+                }
             }
         }
         return true;
     }
 
+    @Override
     public boolean onDeleteHeartRate(final Intent request, final Intent response,
                                      final String serviceId, final String sessionKey) {
         if (serviceId == null) {
@@ -146,15 +108,20 @@ public class HeartRateHealthProfile extends DConnectProfile {
         return true;
     }
 
+    /**
+     * Notify the heart rate event to DeviceConnectManager.
+     * @param device Identifies the remote device
+     * @param data Data of heart rate
+     */
     private void notifyHeartRateData(final HeartRateDevice device, final HeartRateData data) {
         HeartRateDeviceService service = (HeartRateDeviceService) getContext();
-        List<Event> evts = EventManager.INSTANCE.getEventList(device.getAddress(),
-                "health", null, "heartrate");
-        synchronized (evts) {
-            for (Event evt : evts) {
-                Intent intent = EventManager.createEventMessage(evt);
-                intent.putExtra("heartRate", data.getHeartRate());
-                service.sendEvent(intent, evt.getAccessToken());
+        List<Event> events = EventManager.INSTANCE.getEventList(device.getAddress(),
+                getProfileName(), null, ATTRIBUTE_HEART_RATE);
+        synchronized (events) {
+            for (Event event : events) {
+                Intent intent = EventManager.createEventMessage(event);
+                setHeartRate(intent, data.getHeartRate());
+                service.sendEvent(intent, event.getAccessToken());
             }
         }
     }

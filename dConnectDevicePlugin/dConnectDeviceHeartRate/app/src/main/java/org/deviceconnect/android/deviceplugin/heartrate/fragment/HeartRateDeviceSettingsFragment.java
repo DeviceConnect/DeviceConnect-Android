@@ -87,7 +87,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
      * Connect to Ble device has heart rate service.
      * @param device Ble device has heart rate service.
      */
-    private void connectDevice(DeviceContainer device) {
+    private void connectDevice(final DeviceContainer device) {
         getManager().connectBleDevice(device.getAddress());
         showProgressDialog(device.getName());
     }
@@ -111,7 +111,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         });
     }
 
-    private void showProgressDialog(String name) {
+    private void showProgressDialog(final String name) {
         dismissProgressDialog();
 
         Resources res = getActivity().getResources();
@@ -128,7 +128,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         }
     }
 
-    private void showErrorDialog(String name) {
+    private void showErrorDialog(final String name) {
         dismissErrorDialog();
 
         Resources res = getActivity().getResources();
@@ -239,7 +239,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         return containers;
     }
 
-    private boolean containAddressForList(List<DeviceContainer> containers, final String address) {
+    private boolean containAddressForList(final List<DeviceContainer> containers, final String address) {
         for (DeviceContainer container : containers) {
             if (container.getAddress().equalsIgnoreCase(address)) {
                 return true;
@@ -294,7 +294,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
             return mName;
         }
 
-        public void setName(String name) {
+        public void setName(final String name) {
             if (name == null) {
                 mName = getActivity().getResources().getString(
                     R.string.heart_rate_setting_default_name);
@@ -307,7 +307,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
             return mAddress;
         }
 
-        public void setAddress(String address) {
+        public void setAddress(final String address) {
             mAddress = address;
         }
 

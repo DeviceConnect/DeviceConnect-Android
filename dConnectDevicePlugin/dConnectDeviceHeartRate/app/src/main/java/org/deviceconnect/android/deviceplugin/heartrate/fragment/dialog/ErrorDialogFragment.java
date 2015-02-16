@@ -30,7 +30,7 @@ public class ErrorDialogFragment extends DialogFragment {
     }
 
     @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
         if (mDialog != null) {
             return mDialog;
         }
@@ -64,14 +64,14 @@ public class ErrorDialogFragment extends DialogFragment {
     }
 
     @Override
-    public void onDismiss(DialogInterface dialog) {
+    public void onDismiss(final DialogInterface dialog) {
         super.onDismiss(dialog);
         if (mListener != null) {
             mListener.onDismiss(dialog);
         }
     }
 
-    public void setOnDismissListener(DialogInterface.OnDismissListener listener) {
+    public void setOnDismissListener(final DialogInterface.OnDismissListener listener) {
         mListener = listener;
     }
 }

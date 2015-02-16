@@ -19,7 +19,7 @@ public class HeartRateData {
         return mId;
     }
 
-    public void setId(int id) {
+    public void setId(final int id) {
         mId = id;
     }
 
@@ -27,7 +27,7 @@ public class HeartRateData {
         return mHeartRate;
     }
 
-    public void setHeartRate(int heartRate) {
+    public void setHeartRate(final int heartRate) {
         mHeartRate = heartRate;
     }
 
@@ -35,7 +35,7 @@ public class HeartRateData {
         return mEnergyExpended;
     }
 
-    public void setEnergyExpended(int energyExpended) {
+    public void setEnergyExpended(final int energyExpended) {
         mEnergyExpended = energyExpended;
     }
 
@@ -43,7 +43,7 @@ public class HeartRateData {
         return mRRInterval;
     }
 
-    public void setRRInterval(double RRInterval) {
-        mRRInterval = RRInterval;
+    public void setRRInterval(final double rrInterval) {
+        mRRInterval = rrInterval;
     }
 }

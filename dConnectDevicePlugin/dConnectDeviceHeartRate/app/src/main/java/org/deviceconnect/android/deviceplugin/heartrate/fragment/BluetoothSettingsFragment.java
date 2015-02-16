@@ -30,7 +30,7 @@ public class BluetoothSettingsFragment extends Fragment {
         Button btn = (Button) rootView.findViewById(R.id.btn_settings_open);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 Intent intent = new Intent();
                 intent.setAction(Settings.ACTION_BLUETOOTH_SETTINGS);
                 startActivity(intent);

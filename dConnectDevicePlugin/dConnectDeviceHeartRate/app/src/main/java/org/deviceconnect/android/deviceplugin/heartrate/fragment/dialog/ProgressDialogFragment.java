@@ -26,7 +26,7 @@ public class ProgressDialogFragment extends DialogFragment {
     }
 
     @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
         if (mDialog != null) {
             return mDialog;
         }

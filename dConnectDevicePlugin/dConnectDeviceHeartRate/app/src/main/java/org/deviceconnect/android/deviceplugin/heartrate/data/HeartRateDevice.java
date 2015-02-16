@@ -21,7 +21,7 @@ public class HeartRateDevice {
         return mId;
     }
 
-    public void setId(int id) {
+    public void setId(final int id) {
         mId = id;
     }
 
@@ -29,7 +29,7 @@ public class HeartRateDevice {
         return mName;
     }
 
-    public void setName(String name) {
+    public void setName(final String name) {
         mName = name;
     }
 
@@ -37,7 +37,7 @@ public class HeartRateDevice {
         return mAddress;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(final String address) {
         mAddress = address;
     }
 
@@ -45,7 +45,7 @@ public class HeartRateDevice {
         return mSensorLocation;
     }
 
-    public void setSensorLocation(int sensorLocation) {
+    public void setSensorLocation(final int sensorLocation) {
         mSensorLocation = sensorLocation;
     }
 
@@ -53,7 +53,7 @@ public class HeartRateDevice {
         return mRegisterFlag;
     }
 
-    public void setRegisterFlag(boolean registerFlag) {
+    public void setRegisterFlag(final boolean registerFlag) {
         mRegisterFlag = registerFlag;
     }
 
@@ -61,7 +61,7 @@ public class HeartRateDevice {
         return mConnectFlag;
     }
 
-    public void setConnectFlag(boolean connectFlag) {
+    public void setConnectFlag(final boolean connectFlag) {
         mConnectFlag = connectFlag;
     }
 

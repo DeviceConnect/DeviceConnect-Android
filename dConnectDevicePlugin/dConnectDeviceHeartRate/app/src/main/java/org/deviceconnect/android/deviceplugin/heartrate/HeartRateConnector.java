@@ -19,10 +19,10 @@ import org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -52,7 +52,7 @@ public class HeartRateConnector {
      */
     private HeartRateConnectEventListener mListener;
 
-    private Map<BluetoothGatt, DeviceState> mHRDevices = new HashMap<>();
+    private Map<BluetoothGatt, DeviceState> mHRDevices = new ConcurrentHashMap<>();
 
     private List<String> mRegisterDevices = new ArrayList<>();
 
@@ -76,7 +76,7 @@ public class HeartRateConnector {
      *
      * @param context application context
      */
-    public HeartRateConnector(Context context) {
+    public HeartRateConnector(final Context context) {
         mContext = context;
     }
 
@@ -84,7 +84,7 @@ public class HeartRateConnector {
      * Sets a instance of BleDeviceDetector.
      * @param detector instance of BleDeviceDetector
      */
-    public void setBleDeviceDetector(BleDeviceDetector detector) {
+    public void setBleDeviceDetector(final BleDeviceDetector detector) {
         mBleDeviceDetector = detector;
     }
 
@@ -93,7 +93,7 @@ public class HeartRateConnector {
      *
      * @param listener listener
      */
-    public void setListener(HeartRateConnectEventListener listener) {
+    public void setListener(final HeartRateConnectEventListener listener) {
         mListener = listener;
     }
 
@@ -119,9 +119,11 @@ public class HeartRateConnector {
             throw new IllegalArgumentException("device is null");
         }
         String address = device.getAddress();
-        for (BluetoothGatt gatt : mHRDevices.keySet()) {
-            if (gatt.getDevice().getAddress().equalsIgnoreCase(address)) {
-                gatt.disconnect();
+        synchronized (mHRDevices) {
+            for (BluetoothGatt gatt : mHRDevices.keySet()) {
+                if (gatt.getDevice().getAddress().equalsIgnoreCase(address)) {
+                    gatt.disconnect();
+                }
             }
         }
         mRegisterDevices.remove(device.getAddress());
@@ -162,10 +164,12 @@ public class HeartRateConnector {
      * @param address ble device address
      * @return true if address is an element of mHRDevices, false otherwise
      */
-    private boolean containGattMap(String address) {
-        for (BluetoothGatt gatt : mHRDevices.keySet()) {
-            if (gatt.getDevice().getAddress().equalsIgnoreCase(address)) {
-                return true;
+    private boolean containGattMap(final String address) {
+        synchronized (mHRDevices) {
+            for (BluetoothGatt gatt : mHRDevices.keySet()) {
+                if (gatt.getDevice().getAddress().equalsIgnoreCase(address)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -177,7 +181,7 @@ public class HeartRateConnector {
      * @param gatt GATT Service
      * @return true ble device has Heart Rate Service
      */
-    private boolean hasHeartRateService(BluetoothGatt gatt) {
+    private boolean hasHeartRateService(final BluetoothGatt gatt) {
         BluetoothGattService service = gatt.getService(UUID.fromString(
                 BleUtils.SERVICE_HEART_RATE_SERVICE));
         return service != null;
@@ -213,7 +217,7 @@ public class HeartRateConnector {
      * @param gatt GATT Service
      * @return true if gatt has Generic Access Service, false if gatt has no service.
      */
-    private boolean callGetBodySensorLocation(BluetoothGatt gatt) {
+    private boolean callGetBodySensorLocation(final BluetoothGatt gatt) {
         boolean result = false;
         BluetoothGattService service = gatt.getService(UUID.fromString(
                 BleUtils.SERVICE_HEART_RATE_SERVICE));
@@ -233,7 +237,7 @@ public class HeartRateConnector {
      * @param gatt GATT Service
      * @return true if successful in notification of registration
      */
-    private boolean callRegisterHeartRateMeasurement(BluetoothGatt gatt) {
+    private boolean callRegisterHeartRateMeasurement(final BluetoothGatt gatt) {
         boolean registered = false;
         BluetoothGattService service = gatt.getService(UUID.fromString(
                 BleUtils.SERVICE_HEART_RATE_SERVICE));

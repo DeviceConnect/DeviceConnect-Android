@@ -58,13 +58,22 @@ public final class BleUtils {
     private BleUtils() {
     }
 
-    /** check if BLE Supported device */
-    public static boolean isBLESupported(Context context) {
+    /**
+     * Check if BLE Supported device.
+     * @param context context of application
+     * @return Returns true if the devices supports the BLE, else
+     * false.
+     */
+    public static boolean isBLESupported(final Context context) {
         return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
     }
 
-    /** get BluetoothManager */
-    public static BluetoothManager getManager(Context context) {
+    /**
+     * Get BluetoothManager.
+     * @param context context of application
+     * @return Instance of BluetoothManager or null if the BluetoothManager does not exist.
+     */
+    public static BluetoothManager getManager(final Context context) {
         return (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
     }
 }

@@ -63,7 +63,7 @@ public class HeartRateManager {
      * Constructor.
      * @param context application context
      */
-    public HeartRateManager(Context context) {
+    public HeartRateManager(final Context context) {
         mContext = context;
 
         mDetector = new BleDeviceDetector(context);
@@ -203,11 +203,11 @@ public class HeartRateManager {
         return getHeartRateData(device);
     }
 
-    public HeartRateData getHeartRateData(HeartRateDevice device) {
+    public HeartRateData getHeartRateData(final HeartRateDevice device) {
         return mHRData.get(device);
     }
 
-    private HeartRateDevice findRegisteredHeartRateDeviceByAddress(String address) {
+    private HeartRateDevice findRegisteredHeartRateDeviceByAddress(final String address) {
         for (HeartRateDevice d : mRegisterDevices) {
             if (d.getAddress().equalsIgnoreCase(address)) {
                 return d;
@@ -216,7 +216,7 @@ public class HeartRateManager {
         return null;
     }
 
-    private HeartRateDevice findConnectedHeartRateDeviceByAddress(String address) {
+    private HeartRateDevice findConnectedHeartRateDeviceByAddress(final String address) {
         for (HeartRateDevice d : mConnectedDevices) {
             if (d.getAddress().equalsIgnoreCase(address)) {
                 return d;
@@ -296,7 +296,7 @@ public class HeartRateManager {
         }
 
         @Override
-        public void onReadSensorLocation(BluetoothDevice device, int location) {
+        public void onReadSensorLocation(final BluetoothDevice device, final int location) {
             mLogger.fine("HeartRateConnectEventListener#onReadSensorLocation: ["
                     + device + "]: " + location);
             HeartRateDevice hr = findConnectedHeartRateDeviceByAddress(device.getAddress());

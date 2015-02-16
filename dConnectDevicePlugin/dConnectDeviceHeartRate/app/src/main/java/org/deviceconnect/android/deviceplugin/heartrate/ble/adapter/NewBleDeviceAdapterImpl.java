@@ -33,25 +33,25 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
     private BluetoothLeScanner mBleScanner;
     private BleDeviceScanCallback mCallback;
 
-    public NewBleDeviceAdapterImpl(Context context) {
+    public NewBleDeviceAdapterImpl(final Context context) {
         BluetoothManager manager = BleUtils.getManager(context);
         mBluetoothAdapter = manager.getAdapter();
         mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
     }
 
     @Override
-    public void startScan(BleDeviceScanCallback callback) {
+    public void startScan(final BleDeviceScanCallback callback) {
         mCallback = callback;
         mBleScanner.startScan(mScanCallback);
     }
 
     @Override
-    public void stopScan(BleDeviceScanCallback callback) {
+    public void stopScan(final BleDeviceScanCallback callback) {
         mBleScanner.stopScan(mScanCallback);
     }
 
     @Override
-    public BluetoothDevice getDevice(String address) {
+    public BluetoothDevice getDevice(final String address) {
         return mBluetoothAdapter.getRemoteDevice(address);
     }
 
@@ -67,18 +67,18 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
 
     private final ScanCallback mScanCallback = new ScanCallback() {
         @Override
-        public void onScanResult(int callbackType, ScanResult result) {
+        public void onScanResult(final int callbackType, final ScanResult result) {
             if (mCallback != null) {
                 mCallback.onLeScan(result.getDevice(), result.getRssi());
             }
         }
 
         @Override
-        public void onBatchScanResults(List<ScanResult> results) {
+        public void onBatchScanResults(final List<ScanResult> results) {
         }
 
         @Override
-        public void onScanFailed(int errorCode) {
+        public void onScanFailed(final int errorCode) {
         }
     };
 }

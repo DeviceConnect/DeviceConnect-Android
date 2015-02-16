@@ -5,7 +5,7 @@ android {
     buildToolsVersion "21.1.2"
 
     defaultConfig {
-        applicationId "health.ble.deviceplugin.android.deviceconnect.org.heartratedeviceplugin"
+        applicationId "org.deviceconnect.android.deviceplugin.heartrate"
         minSdkVersion 19
         targetSdkVersion 21
         versionCode 1

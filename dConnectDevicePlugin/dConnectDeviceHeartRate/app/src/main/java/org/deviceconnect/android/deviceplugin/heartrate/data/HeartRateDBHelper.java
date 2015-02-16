@@ -36,7 +36,7 @@ public class HeartRateDBHelper {
         mDBHelper = new DBHelper(context);
     }
 
-    public synchronized long addHeartRateDevice(HeartRateDevice device) {
+    public synchronized long addHeartRateDevice(final HeartRateDevice device) {
         ContentValues values = new ContentValues();
         values.put(COL_NAME, device.getName());
         values.put(COL_ADDRESS, device.getAddress());
@@ -51,7 +51,7 @@ public class HeartRateDBHelper {
         }
     }
 
-    public synchronized int updateHeartRateDevice(HeartRateDevice device) {
+    public synchronized int updateHeartRateDevice(final HeartRateDevice device) {
         ContentValues values = new ContentValues();
         values.put(COL_REGISTER_FLAG, device.isRegisterFlag() ? 1 : 0);
 
@@ -68,7 +68,7 @@ public class HeartRateDBHelper {
         }
     }
 
-    public synchronized int removeHeartRateDevice(HeartRateDevice device) {
+    public synchronized int removeHeartRateDevice(final HeartRateDevice device) {
         String whereClause = COL_ADDRESS + "=?";
         String[] whereArgs = {
                 device.getAddress()
@@ -110,17 +110,17 @@ public class HeartRateDBHelper {
         }
 
         @Override
-        public void onCreate(SQLiteDatabase db) {
+        public void onCreate(final SQLiteDatabase db) {
             createDB(db);
         }
 
         @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
             db.execSQL("DROP TABLE IF EXISTS " + TBL_NAME);
             createDB(db);
         }
 
-        private void createDB(SQLiteDatabase db) {
+        private void createDB(final SQLiteDatabase db) {
             String sql = "CREATE TABLE " + TBL_NAME + " ("
                     + BaseColumns._ID + " INTEGER PRIMARY KEY, "
                     + COL_NAME + " TEXT NOT NULL, "

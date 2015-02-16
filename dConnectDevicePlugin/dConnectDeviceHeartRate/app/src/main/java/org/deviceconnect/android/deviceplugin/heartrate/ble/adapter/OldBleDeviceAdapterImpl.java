@@ -25,24 +25,24 @@ public class OldBleDeviceAdapterImpl extends BleDeviceAdapter {
     private BluetoothAdapter mBluetoothAdapter;
     private BleDeviceScanCallback mCallback;
 
-    public OldBleDeviceAdapterImpl(Context context) {
+    public OldBleDeviceAdapterImpl(final Context context) {
         BluetoothManager manager = BleUtils.getManager(context);
         mBluetoothAdapter = manager.getAdapter();
     }
 
     @Override
-    public void startScan(BleDeviceScanCallback callback) {
+    public void startScan(final BleDeviceScanCallback callback) {
         mCallback = callback;
         mBluetoothAdapter.startLeScan(mLeScanCallback);
     }
 
     @Override
-    public void stopScan(BleDeviceScanCallback callback) {
+    public void stopScan(final BleDeviceScanCallback callback) {
         mBluetoothAdapter.stopLeScan(mLeScanCallback);
     }
 
     @Override
-    public BluetoothDevice getDevice(String address) {
+    public BluetoothDevice getDevice(final String address) {
         return mBluetoothAdapter.getRemoteDevice(address);
     }
 

@@ -17,7 +17,7 @@ public class HeartRateServiceInformationProfile extends ServiceInformationProfil
      * Constructor.
      * @param provider profile provider
      */
-    public HeartRateServiceInformationProfile(DConnectProfileProvider provider) {
+    public HeartRateServiceInformationProfile(final DConnectProfileProvider provider) {
         super(provider);
     }
 }

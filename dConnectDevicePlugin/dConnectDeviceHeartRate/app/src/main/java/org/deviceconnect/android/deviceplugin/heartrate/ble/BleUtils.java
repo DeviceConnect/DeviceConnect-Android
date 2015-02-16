@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.heartrate.ble;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.Build;
 
 /**
  * A class containing utility methods related to BLE.
@@ -65,7 +66,8 @@ public final class BleUtils {
      * false.
      */
     public static boolean isBLESupported(final Context context) {
-        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+        return Build.VERSION.SDK_INT >= 18 &&
+                context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
     }
 
     /**

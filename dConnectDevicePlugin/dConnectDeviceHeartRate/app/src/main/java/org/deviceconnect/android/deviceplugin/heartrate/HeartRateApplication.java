@@ -8,6 +8,8 @@ package org.deviceconnect.android.deviceplugin.heartrate;
 
 import android.app.Application;
 
+import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
+
 /**
  * @author NTT DOCOMO, INC.
  */
@@ -21,7 +23,7 @@ public class HeartRateApplication extends Application {
      * Initialize the HeartRateApplication.
      */
     public void initialize() {
-        if (mMgr == null) {
+        if (mMgr == null && BleUtils.isBLESupported(getApplicationContext())) {
             mMgr = new HeartRateManager(getApplicationContext());
         }
     }

@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 
+import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateHealthProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceInformationProfile;
@@ -56,6 +57,11 @@ public class HeartRateDeviceService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        if (!BleUtils.isBLESupported(this)) {
+            stopSelf();
+            return;
+        }
 
         EventManager.INSTANCE.setController(new MemoryCacheController());
 

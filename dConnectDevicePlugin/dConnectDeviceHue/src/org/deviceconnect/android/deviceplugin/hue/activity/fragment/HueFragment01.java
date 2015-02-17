@@ -109,7 +109,8 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
     };
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater,
+            final ViewGroup container, final Bundle savedInstanceState) {
 
         View mRootView = inflater.inflate(R.layout.hue_fragment_01, container, false);
 

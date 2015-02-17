@@ -144,7 +144,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
         Resources res = getActivity().getResources();
         String title = res.getString(R.string.heart_rate_setting_dialog_error_title);
-        String message = null;
+        String message;
         if (name == null) {
             message = res.getString(R.string.heart_rate_setting_dialog_error_message,
                     getString(R.string.heart_rate_setting_default_name));
@@ -186,6 +186,9 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     private OnHeartRateDiscoveryListener mEvtListener = new OnHeartRateDiscoveryListener() {
         @Override
         public void onConnected(final BluetoothDevice device) {
+            if (getActivity() == null) {
+                return;
+            }
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -201,6 +204,9 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
         @Override
         public void onConnectFailed(final BluetoothDevice device) {
+            if (getActivity() == null) {
+                return;
+            }
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -213,6 +219,9 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         @Override
         public void onDiscovery(final List<BluetoothDevice> devices) {
             if (mDeviceAdapter == null) {
+                return;
+            }
+            if (getActivity() == null) {
                 return;
             }
             getActivity().runOnUiThread(new Runnable() {
@@ -260,7 +269,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     /**
      * Returns true if this address contains the list of device.
      * @param containers list of device
-     * @param address address
+     * @param address address of device
      * @return true if address is an element of this List, false otherwise
      */
     private boolean containAddressForList(final List<DeviceContainer> containers, final String address) {
@@ -274,7 +283,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
     /**
      * Look for a DeviceContainer with the given address.
-     * @param address address
+     * @param address address of device
      * @return The DeviceContainer that has the given address or null
      */
     private DeviceContainer findDeviceContainerByAddress(final String address) {
@@ -303,7 +312,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     /**
      * Create a DeviceContainer from HeartRateDevice.
      * @param device Instance of HeartRateDevice
-     * @param register
+     * @param register Registration flag
      * @return Instance of DeviceContainer
      */
     private DeviceContainer createContainer(final HeartRateDevice device, final boolean register) {
@@ -314,6 +323,11 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         return container;
     }
 
+    /**
+     * Returns true if this address contains the mDeviceAdapter.
+     * @param address address of device
+     * @return true if address is an element of mDeviceAdapter, false otherwise
+     */
     private boolean containAddressForAdapter(final String address) {
         int size = mDeviceAdapter.getCount();
         for (int i = 0; i < size; i++) {

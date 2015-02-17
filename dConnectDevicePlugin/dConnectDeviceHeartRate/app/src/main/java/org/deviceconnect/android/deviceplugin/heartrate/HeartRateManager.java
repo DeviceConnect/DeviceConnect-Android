@@ -247,9 +247,11 @@ public class HeartRateManager {
      * @return {@link HeartRateDevice}, or null
      */
     private HeartRateDevice findRegisteredHeartRateDeviceByAddress(final String address) {
-        for (HeartRateDevice d : mRegisterDevices) {
-            if (d.getAddress().equalsIgnoreCase(address)) {
-                return d;
+        synchronized (mRegisterDevices) {
+            for (HeartRateDevice d : mRegisterDevices) {
+                if (d.getAddress().equalsIgnoreCase(address)) {
+                    return d;
+                }
             }
         }
         return null;
@@ -261,9 +263,11 @@ public class HeartRateManager {
      * @return {@link HeartRateDevice}, or null
      */
     private HeartRateDevice findConnectedHeartRateDeviceByAddress(final String address) {
-        for (HeartRateDevice d : mConnectedDevices) {
-            if (d.getAddress().equalsIgnoreCase(address)) {
-                return d;
+        synchronized (mConnectedDevices) {
+            for (HeartRateDevice d : mConnectedDevices) {
+                if (d.getAddress().equalsIgnoreCase(address)) {
+                    return d;
+                }
             }
         }
         return null;
@@ -276,9 +280,11 @@ public class HeartRateManager {
      *         otherwise
      */
     private boolean containRegisteredHeartRateDevice(final BluetoothDevice device) {
-        for (HeartRateDevice d : mRegisterDevices) {
-            if (d.getAddress().equalsIgnoreCase(device.getAddress())) {
-                return true;
+        synchronized (mRegisterDevices) {
+            for (HeartRateDevice d : mRegisterDevices) {
+                if (d.getAddress().equalsIgnoreCase(device.getAddress())) {
+                    return true;
+                }
             }
         }
         return false;

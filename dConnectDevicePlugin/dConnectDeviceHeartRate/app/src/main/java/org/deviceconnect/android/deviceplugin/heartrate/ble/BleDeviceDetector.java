@@ -186,6 +186,10 @@ public class BleDeviceDetector {
         }
 
         if (enable) {
+            if (mScanning || mScanTimerFuture != null) {
+                // scan have already started.
+                return;
+            }
             mScanning = true;
             mScanTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
                 @Override
@@ -215,6 +219,7 @@ public class BleDeviceDetector {
             mBleAdapter.stopScan(mScanCallback);
             if (mScanTimerFuture != null) {
                 mScanTimerFuture.cancel(true);
+                mScanTimerFuture = null;
             }
         }
     }

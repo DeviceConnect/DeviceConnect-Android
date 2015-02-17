@@ -19,6 +19,7 @@ import org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -66,9 +67,10 @@ public class HeartRateConnector {
     private Map<BluetoothGatt, DeviceState> mHRDevices = new ConcurrentHashMap<>();
 
     /**
-     * List of registered device.
+     * List of address of device that registered.
      */
-    private List<String> mRegisterDevices = new ArrayList<>();
+    private List<String> mRegisterDevices = Collections.synchronizedList(
+            new ArrayList<String>());
 
     /**
      * Instance of ScheduledExecutorService.
@@ -144,9 +146,20 @@ public class HeartRateConnector {
     }
 
     /**
-     * Start BLE connect automatically.
+     * Start timer for automatic connection of BLE device.
+     * <p>
+     *     If timer has already started, this method do nothing.
+     * </p>
+     * @throws IllegalStateException if BleDeviceDetector has not been set, this exception occur.
      */
-    public void start() {
+    public synchronized void start() {
+        if (mAutoConnectTimerFuture != null) {
+            // timer has already started.
+            return;
+        }
+        if (mBleDeviceDetector == null) {
+            throw new IllegalStateException("BleDeviceDetector has not been set.");
+        }
         mAutoConnectTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -165,12 +178,15 @@ public class HeartRateConnector {
     }
 
     /**
-     * Stop BLE connect automatically.
+     * Stop timer for automatic connection of BLE device.
      */
-    public void stop() {
+    public synchronized void stop() {
         mHRDevices.clear();
-        mAutoConnectTimerFuture.cancel(true);
         mRegisterDevices.clear();
+        if (mAutoConnectTimerFuture != null) {
+            mAutoConnectTimerFuture.cancel(true);
+            mAutoConnectTimerFuture = null;
+        }
     }
 
     /**
@@ -338,10 +354,16 @@ public class HeartRateConnector {
         if (buf.length > 1) {
             // Heart Rate Value Format bit
             if ((buf[0] & 0x80) != 0) {
-                heartRate = characteristic.getIntValue(FORMAT_UINT16, offset);
+                Integer v = characteristic.getIntValue(FORMAT_UINT16, offset);
+                if (v != null) {
+                    heartRate = v.intValue();
+                }
                 offset += 2;
             } else {
-                heartRate = characteristic.getIntValue(FORMAT_UINT8, offset);
+                Integer v = characteristic.getIntValue(FORMAT_UINT8, offset);
+                if (v != null) {
+                    heartRate = v.intValue();
+                }
                 offset += 1;
             }
 
@@ -352,14 +374,19 @@ public class HeartRateConnector {
 
             // Energy Expended Status bit
             if ((buf[0] & 0x10) != 0) {
-                energyExpended = characteristic.getIntValue(FORMAT_UINT16, offset);
+                Integer v = characteristic.getIntValue(FORMAT_UINT16, offset);
+                if (v != null) {
+                    energyExpended = v.intValue();
+                }
                 offset += 2;
             }
 
             // RR-Interval bit
             if ((buf[0] & 0x08) != 0) {
-                int value = characteristic.getIntValue(FORMAT_UINT16, offset);
-                rrInterval = ((double) value / 1024.0) * 1000.0;
+                Integer v = characteristic.getIntValue(FORMAT_UINT16, offset);
+                if (v != null) {
+                    rrInterval = ((double) v.intValue() / 1024.0) * 1000.0;
+                }
             }
         }
 
@@ -420,8 +447,8 @@ public class HeartRateConnector {
             mLogger.fine("@@@@@@ onCharacteristicRead: [" + gatt.getDevice() + "]");
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (isBodySensorLocation(characteristic)) {
-                    int location = characteristic.getIntValue(FORMAT_UINT8, 0);
-                    if (mListener != null) {
+                    Integer location = characteristic.getIntValue(FORMAT_UINT8, 0);
+                    if (mListener != null && location != null) {
                         mListener.onReadSensorLocation(gatt.getDevice(), location);
                     }
                 }

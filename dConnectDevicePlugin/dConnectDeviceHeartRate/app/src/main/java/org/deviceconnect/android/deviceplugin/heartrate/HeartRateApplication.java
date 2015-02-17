@@ -11,6 +11,7 @@ import android.app.Application;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 
 /**
+ * Implementation of Application.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateApplication extends Application {

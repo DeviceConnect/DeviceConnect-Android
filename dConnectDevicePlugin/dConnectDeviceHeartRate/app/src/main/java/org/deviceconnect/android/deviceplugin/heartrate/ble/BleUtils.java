@@ -60,9 +60,9 @@ public final class BleUtils {
     }
 
     /**
-     * Check if BLE Supported device.
+     * Checks whether device(smart phone) supports BLE.
      * @param context context of application
-     * @return Returns true if the devices supports the BLE, else
+     * @return Returns true if the device supports BLE, else
      * false.
      */
     public static boolean isBLESupported(final Context context) {
@@ -71,7 +71,7 @@ public final class BleUtils {
     }
 
     /**
-     * Get BluetoothManager.
+     * Gets instance of BluetoothManager.
      * @param context context of application
      * @return Instance of BluetoothManager or null if the BluetoothManager does not exist.
      */

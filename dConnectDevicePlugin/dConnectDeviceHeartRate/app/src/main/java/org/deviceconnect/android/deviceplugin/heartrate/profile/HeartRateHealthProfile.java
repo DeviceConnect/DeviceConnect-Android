@@ -42,7 +42,7 @@ public class HeartRateHealthProfile extends HealthProfile {
      * Constructor.
      * @param mgr instance of {@link HeartRateManager}
      */
-    public HeartRateHealthProfile(HeartRateManager mgr) {
+    public HeartRateHealthProfile(final HeartRateManager mgr) {
         mgr.setOnHeartRateEventListener(mHeartRateEventListener);
     }
 
@@ -134,7 +134,13 @@ public class HeartRateHealthProfile extends HealthProfile {
      */
     private HeartRateManager getManager() {
         HeartRateDeviceService service = (HeartRateDeviceService) getContext();
+        if (service == null) {
+            return null;
+        }
         HeartRateApplication app = (HeartRateApplication) service.getApplication();
+        if (app == null) {
+            return null;
+        }
         return app.getHeartRateManager();
     }
 }

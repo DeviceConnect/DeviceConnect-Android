@@ -46,10 +46,8 @@ final class DeviceDao implements DeviceSchema {
             values.put(UPDATE_DATE, Utils.getCurreTimestamp().getTime());
             result = db.insert(TABLE_NAME, null, values);
         } else if (cursor.moveToFirst()) {
-            try {
+            if (cursor.getColumnIndex(_ID) != -1) {
                 result = cursor.getLong(0);
-            } catch (Exception e) {
-                result = -1L;
             }
         }
         cursor.close();

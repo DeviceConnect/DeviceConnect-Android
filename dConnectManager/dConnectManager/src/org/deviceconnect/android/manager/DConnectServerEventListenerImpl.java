@@ -16,6 +16,7 @@ import java.net.URLDecoder;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -171,11 +172,13 @@ public class DConnectServerEventListenerImpl implements
 
         // プロファイルが存在しない場合にはエラー
         if (profile == null) {
-            try {
-                setEmptyProfile(response);
-            } catch (Exception e) {
-                setErrorResponse(response);
-            }
+                try {
+                    setEmptyProfile(response);
+                } catch (UnsupportedEncodingException e) {
+                    setErrorResponse(response);
+                } catch (JSONException e) {
+                    setErrorResponse(response);
+                }
             return true;
         }
 
@@ -202,6 +205,9 @@ public class DConnectServerEventListenerImpl implements
             }
         }
 
+        // Headerの解析
+        parseHeaders(request, intent);
+
         // Bodyの解析
         if (hasMultipart(contentType)) {
             parseMultipart(request, intent);
@@ -211,7 +217,7 @@ public class DConnectServerEventListenerImpl implements
 
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(DConnectService.EXTRA_INNER_TYPE,
-                DConnectService.EXTRA_TYPE_HTTP);
+                DConnectService.INNER_TYPE_HTTP);
         mContext.startService(intent);
 
         // レスポンスが返ってくるまで待つ
@@ -349,6 +355,39 @@ public class DConnectServerEventListenerImpl implements
     }
 
     /**
+     * 受信したHTTPリクエストのヘッダを解釈し、Intentに格納する.
+     * @param request HTTPリクエスト
+     * @param intent key-valueを格納するIntent
+     */
+    private void parseHeaders(final HttpRequest request, final Intent intent) {
+        Entry<String, String> webOrigin = null;
+        Entry<String, String> nativeOrigin = null;
+        Map<String, String> headers = request.getHeaders();
+        for (Entry<String, String> entry :  headers.entrySet()) {
+            String key = entry.getKey();
+            if (key.equalsIgnoreCase("origin")) {
+                webOrigin = entry;
+            } else if (key.equalsIgnoreCase(DConnectMessage.HEADER_GOTAPI_ORIGIN)) {
+                nativeOrigin = entry;
+            }
+        }
+        if (nativeOrigin != null) {
+            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, nativeOrigin.getValue());
+            mLogger.info("Origin specified in HTTP request (native): " + nativeOrigin.getValue());
+        } else if (webOrigin != null) {
+            String value = webOrigin.getValue();
+            if (value == null || value.equals("null")) {
+                value = "file://";
+            }
+            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, value);
+            intent.putExtra(DConnectService.EXTRA_INNER_APP_TYPE, DConnectService.INNER_APP_TYPE_WEB);
+            mLogger.info("Origin specified in HTTP request (web): " + value);
+        } else {
+            mLogger.warning("No origin is specified in HTTP request: " + request);
+        }
+    }
+
+    /**
      * BodyのKey-Valueを解釈し、Intentに格納する.
      * @param request HTTPリクエスト
      * @param intent key-valueを格納するIntent
@@ -373,7 +412,7 @@ public class DConnectServerEventListenerImpl implements
                         }
                     }
                 }
-            } catch (Exception e) {
+            } catch (UnsupportedEncodingException e) {
                 mLogger.warning("Exception in parseBody");
             }
         }

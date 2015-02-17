@@ -13,7 +13,7 @@ package org.deviceconnect.android.localoauth.temp;
 public class AuthenticationException extends Exception {
 
     /**
-     * Serial Version UID
+     * Serial Version UID.
      */
     private static final long serialVersionUID = 1L;
 

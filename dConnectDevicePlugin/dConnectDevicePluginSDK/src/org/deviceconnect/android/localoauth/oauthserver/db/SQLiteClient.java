@@ -211,6 +211,7 @@ public class SQLiteClient implements Client {
 
     /**
      * リダイレクトURIs設定.
+     * @param redirectURIs リダイレクトURI
      */
     public void setRedirectURIs(final String[] redirectURIs) {
 

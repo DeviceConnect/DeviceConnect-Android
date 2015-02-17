@@ -160,11 +160,16 @@ public class CanvasDrawImageObject implements CanvasDrawObjectInterface {
         if (mData == null) {
             return;
         }
-        
+         
         // data convert to bitmap.
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inMutable = true;
         Bitmap bitmap = BitmapFactory.decodeByteArray(mData, 0, mData.length, options);
+        
+        // can't decode bitmap.
+        if (bitmap == null) {
+            return;
+        }
         
         // draw image.
         if (mMode == Mode.NONSCALE_MODE) {

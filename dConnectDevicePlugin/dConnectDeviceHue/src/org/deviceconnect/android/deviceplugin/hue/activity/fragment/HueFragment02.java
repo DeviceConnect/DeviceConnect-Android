@@ -66,22 +66,22 @@ public class HueFragment02 extends Fragment implements OnClickListener {
 
     /** 前回IPアドレスがスキャンできたかのフラグ. */
     private boolean mLastSearchWasIPScan = false;
-    
+
     /** 次のハンドラーの時間. */
     private static long sNextTime;
-    
+
     /** ハンドラーの再呼び出しの命令. */
     private static final int INVALIDATE = 1;
-    
+
     /** ハンドラー用のCounter. */
     private static int sCount = 0;
-    
+
     /** 周期. */
     private static final int CYCLE = 1000;
-    
+
     /** Activity. */
     private Activity mActivity;
-    
+
     /**
      * Hue接続状態.
      */
@@ -95,6 +95,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         /** 認証済み. */
         AUTHENTICATE_SUCCESS
     };
+
     /**
      * タイマーハンドラー.
      */
@@ -104,7 +105,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
             Message msg = message;
             if (msg.what == INVALIDATE) {
                 if (sHueStatus == HueState.INIT) {
-                    
+
                     // 画像をアニメーション.
                     if (sCount == 0) {
                         sImageView.setImageResource(R.drawable.img01);
@@ -113,7 +114,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
                         sImageView.setImageResource(R.drawable.img02);
                         sCount = 0;
                     }
-                    
+
                     msg = obtainMessage(INVALIDATE);
                     long current = SystemClock.uptimeMillis();
 
@@ -127,12 +128,12 @@ public class HueFragment02 extends Fragment implements OnClickListener {
                     sNextTime += CYCLE;
 
                 } else if (sHueStatus == HueState.AUTHENTICATE_SUCCESS) {
-                    
+
                     sTextViewStatus.setText(R.string.frag02_authsuccess);
                     sTextViewHowto.setText(R.string.frag02_authsuccess_howto);
                     sImageView.setImageResource(R.drawable.img05);
                     sButton.setText(R.string.frag02_authsuccess_btn);
-                    
+
                     sTextViewStatus.invalidate();
                     sTextViewHowto.invalidate();
                     sImageView.invalidate();
@@ -165,7 +166,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
             }
         }
     };
-    
+
     /**
      * hueブリッジのNotificationを受け取るためのリスナー.
      */
@@ -175,19 +176,15 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         public void onBridgeConnected(final PHBridge b) {
             sHueStatus = HueState.AUTHENTICATE_SUCCESS;
             HANDLER.sendEmptyMessage(INVALIDATE);
-            
+
             mActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        String message = getString(R.string.frag02_connected);
-                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    String message = getString(R.string.frag02_connected);
+                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
                 }
             });
-            
+
             // 接続.
             sPhHueSDK.setSelectedBridge(b);
             sPhHueSDK.enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
@@ -216,7 +213,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
 
         @Override
         public void onConnectionLost(final PHAccessPoint accessPoint) {
-            
+
             if (!sPhHueSDK.getDisconnectedAccessPoint().contains(accessPoint)) {
                 sPhHueSDK.getDisconnectedAccessPoint().add(accessPoint);
             }
@@ -224,18 +221,17 @@ public class HueFragment02 extends Fragment implements OnClickListener {
 
         @Override
         public void onConnectionResumed(final PHBridge bridge) {
-            
-            sPhHueSDK.getLastHeartbeat().put(bridge.getResourceCache()
-                    .getBridgeConfiguration().getIpAddress(),  System.currentTimeMillis());
+
+            sPhHueSDK.getLastHeartbeat().put(bridge.getResourceCache().getBridgeConfiguration().getIpAddress(),
+                    System.currentTimeMillis());
             for (int i = 0; i < sPhHueSDK.getDisconnectedAccessPoint().size(); i++) {
 
-                if (sPhHueSDK.getDisconnectedAccessPoint().get(i)
-                        .getIpAddress().equals(bridge.getResourceCache()
-                                .getBridgeConfiguration().getIpAddress())) {
+                if (sPhHueSDK.getDisconnectedAccessPoint().get(i).getIpAddress()
+                        .equals(bridge.getResourceCache().getBridgeConfiguration().getIpAddress())) {
                     sPhHueSDK.getDisconnectedAccessPoint().remove(i);
                 }
             }
-            
+
         }
 
         @Override
@@ -244,9 +240,9 @@ public class HueFragment02 extends Fragment implements OnClickListener {
                 if (!mLastSearchWasIPScan) {
                     sPhHueSDK = PHHueSDK.getInstance();
                     PHBridgeSearchManager sm = (PHBridgeSearchManager) sPhHueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
-                    sm.search(false, false, true);               
+                    sm.search(false, false, true);
                     mLastSearchWasIPScan = true;
-                } 
+                }
             }
         }
 
@@ -255,9 +251,9 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         }
     };
 
-    
     /**
      * HueFragment02を返す.
+     * 
      * @param accessPoint Access Point
      * @return HueFragment02
      */
@@ -270,13 +266,13 @@ public class HueFragment02 extends Fragment implements OnClickListener {
     }
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-            final Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater,
+            final ViewGroup container, final Bundle savedInstanceState) {
 
         View mRootView = inflater.inflate(R.layout.hue_fragment_02, container, false);
 
         mActivity = this.getActivity();
-        
+
         if (mRootView != null) {
 
             // Macアドレスを画面に反映.
@@ -313,28 +309,26 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         sHueStatus = HueState.INIT;
         sTextViewStatus.setText(R.string.frag02_init);
         sTextViewHowto.setText(R.string.frag02_init_howto);
-        
+
         // Hueのインスタンスを取得.
         sPhHueSDK = PHHueSDK.create();
-        
+
         // HueブリッジからのCallbackを受け取るためのリスナーを登録.
         sPhHueSDK.getNotificationManager().registerSDKListener(mListener);
 
         // User名を追加.
         sAccessPoint.setUsername(HueConstants.USERNAME);
-        
+
         // アクセスポイントに接続.
         if (!sPhHueSDK.isAccessPointConnected(sAccessPoint)) {
             sPhHueSDK.connect(sAccessPoint);
         } else {
             sHueStatus = HueState.AUTHENTICATE_SUCCESS;
         }
-        
+
         // アニメーションの開始.
         HANDLER.sendEmptyMessageDelayed(INVALIDATE, CYCLE);
     }
-    
-
 
     @Override
     public void onClick(final View v) {
@@ -343,11 +337,9 @@ public class HueFragment02 extends Fragment implements OnClickListener {
             FragmentManager manager = getFragmentManager();
             FragmentTransaction transaction = manager.beginTransaction();
 
-            transaction.setCustomAnimations(R.anim.fragment_slide_right_enter,
-                    R.anim.fragment_slide_left_exit,
-                    R.anim.fragment_slide_left_enter, 
-                    R.anim.fragment_slide_right_exit);
-            
+            transaction.setCustomAnimations(R.anim.fragment_slide_right_enter, R.anim.fragment_slide_left_exit,
+                    R.anim.fragment_slide_left_enter, R.anim.fragment_slide_right_exit);
+
             transaction.replace(R.id.fragment_frame, new HueFragment03(sAccessPoint));
 
             transaction.commit();
@@ -361,7 +353,7 @@ public class HueFragment02 extends Fragment implements OnClickListener {
             } else {
                 sHueStatus = HueState.AUTHENTICATE_SUCCESS;
             }
-            
+
             // アニメーションの開始.
             HANDLER.sendEmptyMessageDelayed(INVALIDATE, CYCLE);
         }

@@ -33,6 +33,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.deviceconnect.android.cipher.signature.AuthSignature;
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
@@ -47,10 +48,11 @@ import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
@@ -163,10 +165,11 @@ public class ReqResDebugActivity extends Activity implements
         FileProfileConstants.PROFILE_NAME,
         MediaPlayerProfileConstants.PROFILE_NAME,
         MediaStreamRecordingProfileConstants.PROFILE_NAME,
-        ServiceDiscoveryProfileConstants.PROFILE_NAME,
         NotificationProfileConstants.PROFILE_NAME,
         PhoneProfileConstants.PROFILE_NAME,
         ProximityProfileConstants.PROFILE_NAME,
+        ServiceDiscoveryProfileConstants.PROFILE_NAME,
+        ServiceInformationProfileConstants.PROFILE_NAME,
         SettingsProfileConstants.PROFILE_NAME,
         SystemProfileConstants.PROFILE_NAME,
         VibrationProfileConstants.PROFILE_NAME,
@@ -498,12 +501,17 @@ public class ReqResDebugActivity extends Activity implements
         if (mProgressDialog != null) {
             return false;
         }
-        mProgressDialog = new ProgressDialog(this);
-        mProgressDialog.setTitle("dConnectと通信中");
-        mProgressDialog.setMessage("少しお待ちください.");
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.show();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mProgressDialog = new ProgressDialog(ReqResDebugActivity.this);
+                mProgressDialog.setTitle("DeviceConnectと通信中");
+                mProgressDialog.setMessage("少しお待ちください.");
+                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                mProgressDialog.setCancelable(false);
+                mProgressDialog.show();
+            }
+        });
         return true;
     }
 
@@ -640,12 +648,8 @@ public class ReqResDebugActivity extends Activity implements
         if (signature == null || accessToken == null) {
             return false;
         }
-        try {
-            String sig = AuthSignature.generateSignature(accessToken, clinetSecret);
-            return signature.equals(sig);
-        } catch (Exception e) {
-            return false;
-        }
+        String sig = AuthSignature.generateSignature(accessToken, clinetSecret);
+        return signature.equals(sig);
     }
 
     /**
@@ -870,6 +874,7 @@ public class ReqResDebugActivity extends Activity implements
                 }
 
                 HttpUriRequest request = params[0];
+                request.setHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getPackageName());
                 DefaultHttpClient client = new DefaultHttpClient();
                 try {
                     HttpResponse response = client.execute(request);
@@ -941,8 +946,10 @@ public class ReqResDebugActivity extends Activity implements
                     android.R.layout.simple_spinner_dropdown_item, data);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             mDI.setAdapter(adapter);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (JSONException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
         }
     }
 

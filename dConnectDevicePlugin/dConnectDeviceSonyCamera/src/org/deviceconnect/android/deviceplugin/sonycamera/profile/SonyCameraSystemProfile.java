@@ -8,31 +8,20 @@
 package org.deviceconnect.android.deviceplugin.sonycamera.profile;
 
 import org.deviceconnect.android.deviceplugin.sonycamera.activity.SonyCameraSettingActivity;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.message.DConnectMessage;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.DConnectProfileProvider;
-import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.message.DConnectMessage;
 
 /**
  * Sony Camera 用 System プロファイル.
  * @author NTT DOCOMO, INC.
  */
 public class SonyCameraSystemProfile extends SystemProfile {
-
-    /**
-     * コンストラクタ.
-     * 
-     * @param provider プロバイダ
-     */
-    public SonyCameraSystemProfile(final DConnectProfileProvider provider) {
-        super(provider);
-    }
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {

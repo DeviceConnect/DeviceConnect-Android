@@ -61,7 +61,7 @@ import android.os.Bundle;
 public class SQLiteTokenManager extends AbstractTokenManager {
 
     /** セッションマップ. */
-    private final Map<String, AuthSession> sessions = new ConcurrentHashMap<String, AuthSession>();
+    private final Map<String, AuthSession> mSessions = new ConcurrentHashMap<String, AuthSession>();
 
     /**
      * DBオブジェクト.
@@ -223,7 +223,7 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      */
     public String storeSession(final AuthSession session) throws OAuthException {
         String code = generateRawCode();
-        sessions.put(code, session);
+        mSessions.put(code, session);
         return code;
     }
 
@@ -234,7 +234,7 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      * @throws OAuthException OAuth関連の例外 
      */
     public AuthSession restoreSession(final String code) throws OAuthException {
-        AuthSession session = sessions.remove(code);
+        AuthSession session = mSessions.remove(code);
         if (session == null) {
             throw new OAuthException(OAuthError.invalid_grant, "Invalid code.", null);
         }

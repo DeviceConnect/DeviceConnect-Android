@@ -296,7 +296,7 @@ public enum IRKitManager {
                 body = EntityUtils.toString(entity);
             }
             
-        } catch (Exception e) {
+        } catch (IOException e) {
             body = null;
         } finally {
             if (entity != null) {
@@ -892,7 +892,7 @@ public enum IRKitManager {
                             break;
                         }
                     }
-                } catch (Exception e) {
+                } catch (IOException e) {
                     if (BuildConfig.DEBUG) {
                         e.printStackTrace();
                     }

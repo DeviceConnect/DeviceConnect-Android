@@ -84,17 +84,10 @@ public class ChromeCastApplication implements
         if (mApiClient == null) {
             return;
         }
-
-        try {
-            if (connectionHint != null && connectionHint.getBoolean(Cast.EXTRA_APP_NO_LONGER_RUNNING)) {
-                teardown();
-            } else {
-                launchApplication();
-            }
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
+        if (connectionHint != null && connectionHint.getBoolean(Cast.EXTRA_APP_NO_LONGER_RUNNING)) {
+            teardown();
+        } else {
+            launchApplication();
         }
     }
 
@@ -156,46 +149,41 @@ public class ChromeCastApplication implements
      */
     public void connect() {
         
-        try {
-            if (mApiClient != null && mIsApplicationDisconnected) {
-                mIsApplicationDisconnected = false;
-                launchApplication();
-            }
-            
-            if (mApiClient == null) {
-                mIsApplicationDisconnected = false;
-                
-                mCastListener = new Cast.Listener() {
-                    @Override
-                    public void onApplicationDisconnected(final int statusCode) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "onApplicationDisconnected$statusCode: " + statusCode);
-                        }
-                        mIsApplicationDisconnected = true;
-                    }
-                    @Override
-                    public void onApplicationStatusChanged() {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "onApplicationStatusChanged");
-                        }
-                    }
-                };
-                
-                Cast.CastOptions.Builder apiOptionsBuilder = 
-                        Cast.CastOptions.builder(mSelectedDevice, mCastListener);
-                mApiClient = new GoogleApiClient.Builder(this.mContext)
-                        .addApi(Cast.API, apiOptionsBuilder.build())
-                        .addConnectionCallbacks(this)
-                        .addOnConnectionFailedListener(this)
-                        .build();
-                mApiClient.connect();
-            }
-            
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
+        if (mApiClient != null && mIsApplicationDisconnected) {
+            mIsApplicationDisconnected = false;
+            launchApplication();
         }
+        
+        if (mApiClient == null) {
+            mIsApplicationDisconnected = false;
+            
+            mCastListener = new Cast.Listener() {
+                @Override
+                public void onApplicationDisconnected(final int statusCode) {
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "onApplicationDisconnected$statusCode: " + statusCode);
+                    }
+                    mIsApplicationDisconnected = true;
+                }
+                @Override
+                public void onApplicationStatusChanged() {
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "onApplicationStatusChanged");
+                    }
+                }
+            };
+            
+            Cast.CastOptions.Builder apiOptionsBuilder = 
+                    Cast.CastOptions.builder(mSelectedDevice, mCastListener);
+            mApiClient = new GoogleApiClient.Builder(this.mContext)
+                    .addApi(Cast.API, apiOptionsBuilder.build())
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .build();
+            mApiClient.connect();
+        }
+            
+
     }
     
     /**

@@ -43,10 +43,6 @@ public final class SockStatUtil {
      */
     private static final int HEX = 16;
     /**
-     * デフォルトのUUID.
-     */
-    private static final int DEFAULT_UUID = 666;
-    /**
      * IPの16進数の文字列長.
      */
     private static final int IP_HEX_LENGTH = 8;
@@ -111,20 +107,13 @@ public final class SockStatUtil {
                     case LOCAL_IP_PORT:  //Analysis of Local IP and Port number
                         String[] localAddress = token.split(":");
                         aSocket.setLocalAddress(convertIPtoString(localAddress[0]));
-                        try {
-                            aSocket.setLocalPort(Integer.parseInt(localAddress[1], HEX));
-                        } catch (Exception e) {
-                            aSocket.setLocalPort(0);
-                        }
+
+                        aSocket.setLocalPort(Integer.parseInt(localAddress[1], HEX));
                         break;
                     case REMOTE_IP_PORT: //Analysis of Remote IP and Port number
                         String[] remoteAddress = token.split(":");
                         aSocket.setRemoteAddress(convertIPtoString(remoteAddress[0]));
-                        try {
-                            aSocket.setRemotePort(Integer.parseInt(remoteAddress[1], HEX));
-                        } catch (Exception e) {
-                            aSocket.setRemotePort(0);
-                        }
+                        aSocket.setRemotePort(Integer.parseInt(remoteAddress[1], HEX));
                         break;
                     case CONNECTION_STATE: //Connection status
                         if (socketType == SocketType.TCP) {
@@ -138,11 +127,7 @@ public final class SockStatUtil {
                         }
                         break;
                     case UID: //Uid of occupancy to the program
-                        try {
-                            aSocket.setUid(Integer.parseInt(token));
-                        } catch (Exception e) {
-                            aSocket.setUid(DEFAULT_UUID);
-                        }
+                        aSocket.setUid(Integer.parseInt(token));
                         break;
                     default:
                 }
@@ -168,12 +153,8 @@ public final class SockStatUtil {
         do {
             StringBuilder stringbuilder;
             String s2;
-            try {
-                stringbuilder = (new StringBuilder(String.valueOf(s1)))
-                        .append(Integer.parseInt(ipString.substring(i - 2, i), HEX));
-            } catch (Exception exception) {
-                return "unknown";
-            }
+            stringbuilder = (new StringBuilder(String.valueOf(s1)))
+                    .append(Integer.parseInt(ipString.substring(i - 2, i), HEX));
             if (j < IP_DECIMAL_LENGTH - 1) {
                 s2 = ".";
             } else {

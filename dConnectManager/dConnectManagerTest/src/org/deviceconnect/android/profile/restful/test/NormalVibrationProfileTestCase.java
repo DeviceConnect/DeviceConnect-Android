@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.profile.restful.test;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import org.apache.http.NameValuePair;
@@ -69,8 +70,8 @@ public class NormalVibrationProfileTestCase extends RESTfulDConnectTestCase {
             assertResultOK(root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
-        } catch (Exception e) {
-            fail("Exception in JSONObject." + e.getMessage());
+        } catch (UnsupportedEncodingException e) {
+            fail("Exception in UnsupportedEncoding." + e.getMessage());
         }
     }
 

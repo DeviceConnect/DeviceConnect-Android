@@ -120,25 +120,25 @@ public final class LocalOAuth2Main {
     private static final String DUMMY_SCOPE1 = "scope1";
 
     /** UserManager. */
-    private static SampleUserManager userManager;
+    private static SampleUserManager sUserManager;
 
     /** ClientManager. */
-    private static ClientManager clientManager;
+    private static ClientManager sClientManager;
 
     /** TokenManager. */
-    private static TokenManager tokenManager;
+    private static TokenManager sTokenManager;
 
     /** DBHelper. */
-    private static LocalOAuthOpenHelper mDbHelper;
+    private static LocalOAuthOpenHelper sDbHelper;
     
     /** ロガー. */
     private static Logger sLogger = Logger.getLogger("org.deviceconnect.localoauth");
 
     /** 自動テストモードフラグ. */
-    private static boolean mAutoTestMode = false;
+    private static boolean sAutoTestMode = false;
 
     /** DBアクセス用Lockオブジェクト. */
-    private static Object mLockForDbAccess = new Object();
+    private static Object sLockForDbAccess = new Object();
 
     /**
      * Bindフラグ.
@@ -147,7 +147,16 @@ public final class LocalOAuth2Main {
      * 基本的にConfirmAuthActivityは、１つだけ起動するようにするので、Bindされる数も1つになる。
      * </p>
      */
-    private static boolean mBound;
+    private static boolean sBound;
+    
+    /** メッセンジャー. */
+    private static Messenger sMessenger = new Messenger(new ApprovalHandler());
+
+    /** 承認確認画面リクエストキュー(アクセスする際はsynchronizedが必要). */
+    private static List<ConfirmAuthRequest> sRequestQueue = new ArrayList<ConfirmAuthRequest>();
+
+    /** 承認確認画面リクエストキュー用Lockオブジェクト. */
+    private static Object sLockForRequstQueue = new Object();
 
     /**
      * コンストラクタ.
@@ -160,7 +169,7 @@ public final class LocalOAuth2Main {
      * @return SampleUserManagerのインスタンス
      */
     public static SampleUserManager getSampleUserManager() {
-        return userManager;
+        return sUserManager;
     }
 
     /**
@@ -169,7 +178,7 @@ public final class LocalOAuth2Main {
      * @return ClientManagerのインスタンス
      */
     public static ClientManager getClientManager() {
-        return clientManager;
+        return sClientManager;
     }
 
     /**
@@ -181,15 +190,15 @@ public final class LocalOAuth2Main {
      * @return Binder
      */
     static IBinder onBind(final Intent intent) {
-        mBound = true;
-        return mMessenger.getBinder();
+        sBound = true;
+        return sMessenger.getBinder();
     }
 
     /**
      * LocalOAuth2Serviceでbinderがunbindされた場合の処理を行う.
      */
     static void onUnbind() {
-        mBound = false;
+        sBound = false;
     }
 
     /**
@@ -197,7 +206,7 @@ public final class LocalOAuth2Main {
      * @param autoTestMode 自動テストモードモードフラグ(true: 有効にする / false: 無効にする) 
      */
     public static void setUseAutoTestMode(final boolean autoTestMode) {
-        mAutoTestMode = autoTestMode;
+        sAutoTestMode = autoTestMode;
     }
 
     /**
@@ -205,7 +214,7 @@ public final class LocalOAuth2Main {
      * @return true: 有効 / false: 無効 
      */
     public static boolean isAutoTestMode() {
-        return mAutoTestMode;
+        return sAutoTestMode;
     }
 
     /**
@@ -218,12 +227,12 @@ public final class LocalOAuth2Main {
      */
     public static void initialize(final android.content.Context context) {
         /* DB初期化処理 */
-        mDbHelper = new LocalOAuthOpenHelper(context);
+        sDbHelper = new LocalOAuthOpenHelper(context);
         
         /* 初期化処理 */
-        userManager = new SampleUserManager();
-        clientManager = new SQLiteClientManager();
-        tokenManager = new SQLiteTokenManager();
+        sUserManager = new SampleUserManager();
+        sClientManager = new SQLiteClientManager();
+        sTokenManager = new SQLiteTokenManager();
 
         /* ユーザー追加 */
         addUserData(SampleUser.LOCALOAUTH_USER, SampleUser.LOCALOAUTH_PASS);
@@ -235,14 +244,14 @@ public final class LocalOAuth2Main {
     public static void destroy() {
         
         /* DBをまとめてクローズ */
-        if (mDbHelper != null) {
-            mDbHelper.close();
+        if (sDbHelper != null) {
+            sDbHelper.close();
         }
         
-        userManager = null;
-        clientManager = null;
-        tokenManager = null;
-        mDbHelper = null;
+        sUserManager = null;
+        sClientManager = null;
+        sTokenManager = null;
+        sDbHelper = null;
     }
     
 
@@ -284,18 +293,18 @@ public final class LocalOAuth2Main {
         SQLiteClientManager sqliteClientManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getWritableDatabase();
+                db = sDbHelper.getWritableDatabase();
                 db.beginTransaction();
                 
                 /* TokenManagerにDBオブジェクトを設定 */
-                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                 sqliteTokenManager.setDb(db);
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteClientManager = (SQLiteClientManager) clientManager;
+                sqliteClientManager = (SQLiteClientManager) sClientManager;
                 sqliteClientManager.setDb(db);
                 
                 /* パッケージ情報に対応するクライアントIDがすでに登録済なら破棄する */
@@ -354,18 +363,18 @@ public final class LocalOAuth2Main {
         SQLiteClientManager sqliteClientManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getWritableDatabase();
+                db = sDbHelper.getWritableDatabase();
                 db.beginTransaction();
                 
                 /* TokenManagerにDBオブジェクトを設定 */
-                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                 sqliteTokenManager.setDb(db);
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteClientManager = (SQLiteClientManager) clientManager;
+                sqliteClientManager = (SQLiteClientManager) sClientManager;
                 sqliteClientManager.setDb(db);
                 
                 /* クライアントデータ削除 */
@@ -429,13 +438,13 @@ public final class LocalOAuth2Main {
         SQLiteClientManager sqliteClientManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getReadableDatabase();
+                db = sDbHelper.getReadableDatabase();
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteClientManager = (SQLiteClientManager) clientManager;
+                sqliteClientManager = (SQLiteClientManager) sClientManager;
                 sqliteClientManager.setDb(db);
                 
                 /* LocalOAuthが保持しているクライアントシークレットを取得 */
@@ -580,25 +589,25 @@ public final class LocalOAuth2Main {
         SQLiteTokenManager sqliteTokenManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getWritableDatabase();
+                db = sDbHelper.getWritableDatabase();
                 db.beginTransaction();
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteClientManager = (SQLiteClientManager) clientManager;
+                sqliteClientManager = (SQLiteClientManager) sClientManager;
                 sqliteClientManager.setDb(db);
     
                 /* TokenManagerにDBオブジェクトを設定 */
-                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                 sqliteTokenManager.setDb(db);
     
                 /* クライアントをDBから読み込み */
                 client = getClient(params);
     
                 /* トークンをDBから読み込み */
-                token = tokenManager.findToken(client, SampleUser.USERNAME);
+                token = sTokenManager.findToken(client, SampleUser.USERNAME);
     
                 /* コミット */
                 db.setTransactionSuccessful();
@@ -671,7 +680,7 @@ public final class LocalOAuth2Main {
 
             // ActivityがサービスがBindされていない場合には、
             // Activityを起動する。
-            if (!mBound) {
+            if (!sBound) {
                 startConfirmAuthActivity(pickupRequest());
             }
         }
@@ -699,17 +708,17 @@ public final class LocalOAuth2Main {
         SQLiteTokenManager sqliteTokenManager = null;
 
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getReadableDatabase();
+                db = sDbHelper.getReadableDatabase();
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteClientManager = (SQLiteClientManager) clientManager;
+                sqliteClientManager = (SQLiteClientManager) sClientManager;
                 sqliteClientManager.setDb(db);
                 
                 /* TokenManagerにDBオブジェクトを設定 */
-                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                 sqliteTokenManager.setDb(db);
                 
                 /* パッケージ情報からクライアントデータを取得 */
@@ -780,18 +789,18 @@ public final class LocalOAuth2Main {
         SQLiteTokenManager sqliteTokenManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getWritableDatabase();
+                db = sDbHelper.getWritableDatabase();
                 db.beginTransaction();
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteClientManager = (SQLiteClientManager) clientManager;
+                sqliteClientManager = (SQLiteClientManager) sClientManager;
                 sqliteClientManager.setDb(db);
                 
                 /* TokenManagerにDBオブジェクトを設定 */
-                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                 sqliteTokenManager.setDb(db);
                 
                 /* アクセストークンを元にトークンを検索する */
@@ -926,13 +935,13 @@ public final class LocalOAuth2Main {
         SQLiteClientManager sqliteClientManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getReadableDatabase();
+                db = sDbHelper.getReadableDatabase();
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteClientManager = (SQLiteClientManager) clientManager;
+                sqliteClientManager = (SQLiteClientManager) sClientManager;
                 sqliteClientManager.setDb(db);
                 
                 /* クライアントIDを元にをクライアントデータを検索する */
@@ -981,22 +990,22 @@ public final class LocalOAuth2Main {
         SQLiteTokenManager sqliteTokenManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getWritableDatabase();
+                db = sDbHelper.getWritableDatabase();
                 db.beginTransaction();
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteClientManager = (SQLiteClientManager) clientManager;
+                sqliteClientManager = (SQLiteClientManager) sClientManager;
                 sqliteClientManager.setDb(db);
                 
                 /* TokenManagerにDBオブジェクトを設定 */
-                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                 sqliteTokenManager.setDb(db);
                 
-                Client client = clientManager.findByPackageInfo(packageInfo);
-                tokenManager.revokeAllTokens(client);
+                Client client = sClientManager.findByPackageInfo(packageInfo);
+                sTokenManager.revokeAllTokens(client);
                 sLogger.fine("destroyAccessToken()");
                 sLogger.fine(" - clientId:" + client.getClientId());
                 sLogger.fine(" - packageName:" + packageInfo.getPackageName());
@@ -1047,17 +1056,17 @@ public final class LocalOAuth2Main {
         SQLiteTokenManager sqliteTokenManager = null;
 
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getReadableDatabase();
+                db = sDbHelper.getReadableDatabase();
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteClientManager = (SQLiteClientManager) clientManager;
+                sqliteClientManager = (SQLiteClientManager) sClientManager;
                 sqliteClientManager.setDb(db);
                 
                 /* TokenManagerにDBオブジェクトを設定 */
-                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                 sqliteTokenManager.setDb(db);
                 
                 SQLiteToken token = (SQLiteToken) sqliteTokenManager.findTokenByAccessToken(accessToken);
@@ -1112,13 +1121,13 @@ public final class LocalOAuth2Main {
         SQLiteTokenManager sqliteTokenManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getReadableDatabase();
+                db = sDbHelper.getReadableDatabase();
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                 sqliteTokenManager.setDb(db);
                 
                 /* LocalOAuthが保持しているクライアントシークレットを取得 */
@@ -1154,13 +1163,13 @@ public final class LocalOAuth2Main {
         SQLiteTokenManager sqliteTokenManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getReadableDatabase();
+                db = sDbHelper.getReadableDatabase();
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                 sqliteTokenManager.setDb(db);
                 
                 /* LocalOAuthが保持しているクライアントシークレットを取得 */
@@ -1192,14 +1201,14 @@ public final class LocalOAuth2Main {
         SQLiteTokenManager sqliteTokenManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getWritableDatabase();
+                db = sDbHelper.getWritableDatabase();
                 db.beginTransaction();
                 
                 /* TokenManagerにDBオブジェクトを設定 */
-                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                 sqliteTokenManager.setDb(db);
                 
                 sqliteTokenManager.revokeToken(tokenId);
@@ -1232,14 +1241,14 @@ public final class LocalOAuth2Main {
         SQLiteTokenManager sqliteTokenManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getWritableDatabase();
+                db = sDbHelper.getWritableDatabase();
                 db.beginTransaction();
                 
                 /* TokenManagerにDBオブジェクトを設定 */
-                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                 sqliteTokenManager.setDb(db);
                 
                 sqliteTokenManager.revokeAllTokens(SampleUser.USERNAME);
@@ -1274,13 +1283,13 @@ public final class LocalOAuth2Main {
         SQLiteClientManager sqliteClientManager = null;
         
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getReadableDatabase();
+                db = sDbHelper.getReadableDatabase();
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteClientManager = (SQLiteClientManager) clientManager;
+                sqliteClientManager = (SQLiteClientManager) sClientManager;
                 sqliteClientManager.setDb(db);
                 
                 /* LocalOAuthが保持しているクライアントシークレットを取得 */
@@ -1314,14 +1323,14 @@ public final class LocalOAuth2Main {
         SQLiteClientManager sqliteClientManager = null;
 
         /* DBを同時アクセスさせない */
-        synchronized (mLockForDbAccess) {
+        synchronized (sLockForDbAccess) {
             try {
                 /* DBオープン */
-                db = mDbHelper.getWritableDatabase();
+                db = sDbHelper.getWritableDatabase();
                 db.beginTransaction();
                 
                 /* ClientManagerにDBオブジェクトを設定 */
-                sqliteClientManager = (SQLiteClientManager) clientManager;
+                sqliteClientManager = (SQLiteClientManager) sClientManager;
                 sqliteClientManager.setDb(db);
                 
                 sqliteClientManager.cleanupClient(LocalOAuth2Settings.CLIENT_CLEANUP_TIME);
@@ -1379,18 +1388,18 @@ public final class LocalOAuth2Main {
                         SQLiteTokenManager sqliteTokenManager = null;
                         
                         /* DBを同時アクセスさせない */
-                        synchronized (mLockForDbAccess) {
+                        synchronized (sLockForDbAccess) {
                             try {
                                 /* DBオープン */
-                                db = mDbHelper.getWritableDatabase();
+                                db = sDbHelper.getWritableDatabase();
                                 db.beginTransaction();
                                 
                                 /* ClientManagerにDBオブジェクトを設定 */
-                                sqliteClientManager = (SQLiteClientManager) clientManager;
+                                sqliteClientManager = (SQLiteClientManager) sClientManager;
                                 sqliteClientManager.setDb(db);
                                 
                                 /* TokenManagerにDBオブジェクトを設定 */
-                                sqliteTokenManager = (SQLiteTokenManager) tokenManager;
+                                sqliteTokenManager = (SQLiteTokenManager) sTokenManager;
                                 sqliteTokenManager.setDb(db);
                                 
                                 /* アクセストークン発行する前に古い無効なトークン(クライアントIDが削除されて残っていたトークン)をクリーンアップする */
@@ -1461,8 +1470,6 @@ public final class LocalOAuth2Main {
         }
     }
 
-    /** メッセンジャー. */
-    private static Messenger mMessenger = new Messenger(new ApprovalHandler());
 
     /**
      * アクセストークンデータを返却する.
@@ -1475,7 +1482,7 @@ public final class LocalOAuth2Main {
 
         String clientId = params.getClientId();
 
-        Client client = clientManager.findById(clientId);
+        Client client = sClientManager.findById(clientId);
         if (client != null) {
 
             /* AuthSessionを登録してセッションIDを取得 */
@@ -1532,7 +1539,7 @@ public final class LocalOAuth2Main {
                                 String accessToken = callAccessTokenServerResource(client, authCode, applicationName);
                                 
                                 /* トークンデータを参照 */
-                                Token token = tokenManager.findTokenByAccessToken(accessToken);
+                                Token token = sTokenManager.findTokenByAccessToken(accessToken);
                                 
                                 /* アクセストークンデータを返す */
                                 AccessTokenScope[] accessTokenScopes = scopesToAccessTokenScopes(token.getScope());
@@ -1619,7 +1626,7 @@ public final class LocalOAuth2Main {
             request.setCookies(cookies);
         }
 
-        AuthorizationServerResource.init(request, response, clientManager, tokenManager);
+        AuthorizationServerResource.init(request, response, sClientManager, sTokenManager);
         
         /* Formに設定する */
         Form paramsA = new Form();
@@ -1795,7 +1802,7 @@ public final class LocalOAuth2Main {
      * @param pass パスワード
      */
     private static void addUserData(final String user, final String pass) {
-        userManager.addUser(user).setPassword(pass.toCharArray());
+        sUserManager.addUser(user).setPassword(pass.toCharArray());
     }
 
     /**
@@ -1807,7 +1814,7 @@ public final class LocalOAuth2Main {
     private static Client addClientData(final PackageInfoOAuth packageInfo) {
         String[] redirectURIs = {DUMMY_REDIRECTURI};
         Map<String, Object> params = new HashMap<String, Object>();
-        Client client = clientManager.createClient(packageInfo, ClientType.CONFIDENTIAL, redirectURIs, params);
+        Client client = sClientManager.createClient(packageInfo, ClientType.CONFIDENTIAL, redirectURIs, params);
         return client;
     }
 
@@ -1817,9 +1824,9 @@ public final class LocalOAuth2Main {
      * @param clientId クライアントID
      */
     private static void removeClientData(final String clientId) {
-        Client client = clientManager.findById(clientId);
+        Client client = sClientManager.findById(clientId);
         if (client != null) {
-            clientManager.deleteClient(clientId);
+            sClientManager.deleteClient(clientId);
         }
     }
 
@@ -1828,17 +1835,11 @@ public final class LocalOAuth2Main {
      * @param clientId トークンデータ
      */
     private static void removeTokenData(final String clientId) {
-        Client client = clientManager.findById(clientId);
+        Client client = sClientManager.findById(clientId);
         if (client != null) {
-            tokenManager.revokeToken(client);
+            sTokenManager.revokeToken(client);
         }
     }
-
-    /** 承認確認画面リクエストキュー(アクセスする際はsynchronizedが必要). */
-    private static List<ConfirmAuthRequest> mRequestQueue = new ArrayList<ConfirmAuthRequest>();
-
-    /** 承認確認画面リクエストキュー用Lockオブジェクト. */
-    private static Object mLockForRequstQueue = new Object();
 
     /**
      * 承認確認画面リクエストをキューに追加する.
@@ -1846,8 +1847,8 @@ public final class LocalOAuth2Main {
      * @param request リクエスト
      */
     private static void enqueueRequest(final ConfirmAuthRequest request) {
-        synchronized (mLockForRequstQueue) {
-            mRequestQueue.add(request);
+        synchronized (sLockForRequstQueue) {
+            sRequestQueue.add(request);
         }
     }
 
@@ -1858,10 +1859,10 @@ public final class LocalOAuth2Main {
      */
     private static ConfirmAuthRequest pickupRequest() {
         ConfirmAuthRequest request = null;
-        synchronized (mLockForRequstQueue) {
-            int requestCount = mRequestQueue.size();
+        synchronized (sLockForRequstQueue) {
+            int requestCount = sRequestQueue.size();
             if (requestCount > 0) {
-                request = mRequestQueue.get(0);
+                request = sRequestQueue.get(0);
             }
         }
         return request;
@@ -1876,18 +1877,18 @@ public final class LocalOAuth2Main {
      */
     private static ConfirmAuthRequest dequeueRequest(final long threadId, final boolean isDeleteRequest) {
         ConfirmAuthRequest request = null;
-        synchronized (mLockForRequstQueue) {
+        synchronized (sLockForRequstQueue) {
             /* スレッドIDが一致するリクエストデータを検索する */
-            int requestCount = mRequestQueue.size();
+            int requestCount = sRequestQueue.size();
             for (int i = 0; i < requestCount; i++) {
-                ConfirmAuthRequest req = mRequestQueue.get(i);
+                ConfirmAuthRequest req = sRequestQueue.get(i);
                 if (req.getThreadId() == threadId) {
                     if (isDeleteRequest) {
                         /* スレッドIDに対応するリクエストデータを取得し、キューから削除する */
-                        request = mRequestQueue.remove(i);
+                        request = sRequestQueue.remove(i);
                     } else {
                         /* スレッドIDに対応するリクエストデータを取得 */
-                        request = mRequestQueue.get(i);
+                        request = sRequestQueue.get(i);
                     }
                     break;
                 }
@@ -1904,7 +1905,7 @@ public final class LocalOAuth2Main {
      * @throws AuthorizatonException Authorization例外.
      */
     private static Client getClient(final ConfirmAuthParams confirmAuthParams) throws AuthorizatonException {
-        Client client = clientManager.findById(confirmAuthParams.getClientId());
+        Client client = sClientManager.findById(confirmAuthParams.getClientId());
         if (client == null) {
             throw new AuthorizatonException(AuthorizatonException.CLIENT_NOT_FOUND);
         }
@@ -1942,7 +1943,7 @@ public final class LocalOAuth2Main {
             int iArg1 = (arg1 != null) ? arg1 : 0;
             int iArg2 = (arg2 != null) ? arg2 : 0;
             Message sendMsg = Message.obtain(null, messageId, iArg1, iArg2);
-            sendMsg.replyTo = mMessenger;
+            sendMsg.replyTo = sMessenger;
             try {
                 replyTo.send(sendMsg);
             } catch (RemoteException e) {

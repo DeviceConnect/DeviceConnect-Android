@@ -50,23 +50,25 @@ public class SampleUser {
     
     
     /** ID. */
-    private final String id;
+    private final String mId;
 
     /** パスワード. */
-    private char[] password;
+    private char[] mPassword;
 
     /** ステータス. */
-    private String status;
+    private String mStatus;
 
-    /** コンストラクタ. */
+    /** コンストラクタ. 
+     * @param id ID
+     */
     public SampleUser(final String id) {
-        this.id = id;
+        this.mId = id;
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 97 * hash + (this.id != null ? this.id.hashCode() : 0);
+        hash = 97 * hash + (this.mId != null ? this.mId.hashCode() : 0);
         return hash;
     }
 
@@ -79,7 +81,7 @@ public class SampleUser {
             return false;
         }
         final SampleUser other = (SampleUser) obj;
-        if ((this.id == null) ? (other.id != null) : !this.id.equals(other.id)) {
+        if ((this.mId == null) ? (other.mId != null) : !this.mId.equals(other.mId)) {
             return false;
         }
         return true;
@@ -89,14 +91,14 @@ public class SampleUser {
      * @return the id
      */
     public String getId() {
-        return id;
+        return mId;
     }
 
     /**
      * @return the status
      */
     public String getStatus() {
-        return status;
+        return mStatus;
     }
 
     /**
@@ -104,21 +106,22 @@ public class SampleUser {
      *            the status to set
      */
     public void setStatus(final String status) {
-        this.status = status;
+        this.mStatus = status;
     }
 
     /**
      * @return the password
      */
     public char[] getPassword() {
-        return password;
+        return mPassword;
     }
 
     /**
+     * Set Password.
      * @param password
      *            the password to set
      */
-    public void setPassword(char[] password) {
-        this.password = password;
+    public void setPassword(final char[] password) {
+        this.mPassword = password;
     }
 }

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.deviceconnect.android.BuildConfig;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -60,9 +61,13 @@ public final class DevicePluginXmlUtil {
                     try {
                         supportProfiles = parseDevicePluginXML(xrp);
                     } catch (XmlPullParserException e) {
-
+                        if (BuildConfig.DEBUG) {
+                            e.printStackTrace();
+                        }
                     } catch (IOException e) {
-
+                        if (BuildConfig.DEBUG) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -153,15 +158,14 @@ public final class DevicePluginXmlUtil {
                             expirePeriod *= LocalOAuth2Settings.MINUTE;
 
                         } catch (NumberFormatException e) {
-
+                            if (BuildConfig.DEBUG) {
+                                e.printStackTrace();
+                            }
                         }
                     }
 
                     /* profileデータ初期化してプロファイル名と有効期限を設定 */
                     profile = new DevicePluginXmlProfile(profileName, expirePeriod);
-
-                } else if (eventType == XmlPullParser.TEXT) {
-
                 } else if (eventType == XmlPullParser.END_TAG) {
                     /* 有効期限がマイナス値なら格納しない */
                     if (profile != null && profile.getExpirePeriod() >= 0) {

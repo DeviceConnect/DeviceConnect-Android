@@ -144,7 +144,7 @@
         <!-- Canvas Profile -->
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
-            android:launchMode="singleTop" >
+            android:launchMode="singleTask" >
         </activity>
     </application>
 

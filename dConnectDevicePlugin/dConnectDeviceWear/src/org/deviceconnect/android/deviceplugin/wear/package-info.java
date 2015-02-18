@@ -5,6 +5,6 @@
  http://opensource.org/licenses/mit-license.php
  */
 /**
- * Profile of wear.
+ * Service of wear.
  */
-package org.deviceconnect.android.deviceplugin.wear.profile;
+package org.deviceconnect.android.deviceplugin.wear;

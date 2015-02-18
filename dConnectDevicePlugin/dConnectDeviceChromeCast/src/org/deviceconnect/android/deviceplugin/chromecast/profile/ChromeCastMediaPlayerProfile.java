@@ -11,6 +11,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -487,10 +488,11 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 hex.append(Integer.toHexString(0xFF & hash[i]));
             }
             result = hex.toString();
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
+            return null;
         }
         return result;
     }
@@ -538,8 +540,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         String dir = new File(path).getParent();
         String realName = new File(path).getName();
         String extension = MimeTypeMap.getFileExtensionFromUrl(realName);
-        String dummyName = getMd5("" + System.currentTimeMillis()) + "." + extension;
-
+        String md5 = getMd5("" + System.currentTimeMillis());
+        if (md5 == null) {
+            return null;
+        }
+        String dummyName = md5 + "." + extension;
+        
         server.setFilePath(dir, realName, "/" + dummyName);
         return "http://" + getIpAddress() + ":" + server.getListeningPort()
                 + "/" + dummyName;
@@ -565,7 +571,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
         try {
             mId = Integer.parseInt(mediaId);
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             url = mediaId;
         }
 
@@ -584,6 +590,11 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                         .getColumnIndex(MediaStore.Video.Media.TITLE));
                 url = getDummyUrlFromMediaId(mId);
                 cursor.close();
+                if (url == null) {
+                    response.putExtra(DConnectMessage.EXTRA_VALUE, "url is null");
+                    setResult(response, DConnectMessage.RESULT_ERROR);
+                    return true;
+                }
             }
             this.mMediaId = mId.toString();
         }
@@ -635,18 +646,14 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      * @return  パス
      */
     private String getPathFromUri(final Uri mUri) {
-        try {
-            String filename = null;
-            Cursor c = this.getContext().getContentResolver().query(mUri, null, null, null, null);
-            if (c != null) {
-                c.moveToFirst();
-                filename = c.getString(c.getColumnIndex(MediaStore.MediaColumns.DATA));
-                c.close();
-            }
-            return filename;
-        } catch (Exception e) {
-            return null;
+        String filename = null;
+        Cursor c = this.getContext().getContentResolver().query(mUri, null, null, null, null);
+        if (c != null) {
+            c.moveToFirst();
+            filename = c.getString(c.getColumnIndex(MediaStore.MediaColumns.DATA));
+            c.close();
         }
+        return filename;
     }
 
     /**

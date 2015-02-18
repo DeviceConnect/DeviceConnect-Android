@@ -179,12 +179,8 @@ public class HueFragment02 extends Fragment implements OnClickListener {
             mActivity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        String message = getString(R.string.frag02_connected);
-                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    String message = getString(R.string.frag02_connected);
+                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
                 }
             });
             

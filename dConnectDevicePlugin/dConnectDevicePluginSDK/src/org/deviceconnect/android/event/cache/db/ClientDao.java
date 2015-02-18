@@ -33,32 +33,32 @@ final class ClientDao implements ClientSchema {
         /**
          * ID.
          */
-        long id;
+        long mId;
 
         /**
          * アクセストークン.
          */
-        String accessToken;
+        String mAccessToken;
 
         /**
          * セッションキー.
          */
-        String sessionKey;
+        String mSessionKey;
 
         /**
          * レシーバー.
          */
-        String receiver;
+        String mReceiver;
         
         /** 
          * EventSessionの作成日.
          */
-        Timestamp esCreateDate;
+        Timestamp mESCreateDate;
         
         /** 
          * EventSessionの更新日.
          */
-        Timestamp esUpdateDate;
+        Timestamp mESUpdateDate;
     }
 
     /**
@@ -97,7 +97,7 @@ final class ClientDao implements ClientSchema {
             values.put(UPDATE_DATE, Utils.getCurreTimestamp().getTime());
             result = db.insert(TABLE_NAME, null, values);
         } else if (cursor.moveToFirst()) {
-            try {
+            if (cursor.getColumnIndex(_ID) != -1) {
                 result = cursor.getLong(0);
                 // アクセストークンは更新されるので、重複の場合は常に新しいものにアップデートしておく
                 ContentValues values = new ContentValues();
@@ -107,8 +107,6 @@ final class ClientDao implements ClientSchema {
                 if (count != 1) {
                     result = -1;
                 }
-            } catch (Exception e) {
-                result = -1L;
             }
         }
         cursor.close();
@@ -133,15 +131,13 @@ final class ClientDao implements ClientSchema {
             int index = 0;
             result = new Client[c.getCount()];
             do {
-                try {
+                if (c.getColumnIndex(_ID) != -1) {
                     Client data = new Client();
-                    data.id = c.getLong(0);
-                    data.sessionKey = c.getString(1);
-                    data.accessToken = c.getString(2);
-                    data.receiver = c.getString(3);
+                    data.mId = c.getLong(0);
+                    data.mSessionKey = c.getString(1);
+                    data.mAccessToken = c.getString(2);
+                    data.mReceiver = c.getString(3);
                     result[index++] = data;
-                } catch (Exception e) {
-                    result = null;
                 }
             } while (c.moveToNext());
         }
@@ -165,13 +161,11 @@ final class ClientDao implements ClientSchema {
 
         if (c.moveToFirst()) {
             result = new Client();
-            try {
-                result.id = c.getLong(0);
-                result.sessionKey = c.getString(1);
-                result.accessToken = c.getString(2);
-                result.receiver = c.getString(3);
-            } catch (Exception e) {
-                result = null;
+            if (c.getColumnIndex(_ID) != -1) {
+                result.mId = c.getLong(0);
+                result.mSessionKey = c.getString(1);
+                result.mAccessToken = c.getString(2);
+                result.mReceiver = c.getString(3);
             }
         }
         c.close();
@@ -270,19 +264,17 @@ final class ClientDao implements ClientSchema {
             int index = 0;
             result = new Client[c.getCount()];
             do {
-                try {
-                    Client data = new Client();
-                    data.id = c.getLong(0);
-                    data.sessionKey = c.getString(1);
-                    data.accessToken = c.getString(2);
-                    data.receiver = c.getString(3);
+                 if (c.getColumnIndex(_ID) != -1) {
+                     Client data = new Client();
+                    data.mId = c.getLong(0);
+                    data.mSessionKey = c.getString(1);
+                    data.mAccessToken = c.getString(2);
+                    data.mReceiver = c.getString(3);
                     long createTime = c.getLong(4);
                     long updateTime = c.getLong(5);
-                    data.esCreateDate = new Timestamp(createTime);
-                    data.esUpdateDate = new Timestamp(updateTime);
+                    data.mESCreateDate = new Timestamp(createTime);
+                    data.mESUpdateDate = new Timestamp(updateTime);
                     result[index++] = data;
-                } catch (Exception e) {
-                    result = null;
                 }
             } while (c.moveToNext());
         }

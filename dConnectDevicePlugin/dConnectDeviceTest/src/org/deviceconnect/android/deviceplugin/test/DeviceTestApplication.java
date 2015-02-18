@@ -12,8 +12,6 @@ import java.util.logging.SimpleFormatter;
 
 import org.deviceconnect.android.logger.AndroidHandler;
 
-import org.deviceconnect.android.deviceplugin.test.BuildConfig;
-
 import android.app.Application;
 
 /**

@@ -43,13 +43,13 @@ public class HostPhoneProfile extends PhoneProfile {
             createNotFoundService(response);
         } else {
             if (phoneNumber != null) {
-                try {
-                    Uri uri = Uri.parse("tel:" + phoneNumber);
-                    Intent intent = new Intent(Intent.ACTION_CALL, uri);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    this.getContext().startActivity(intent);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } catch (Exception e) {
+                Uri uri = Uri.parse("tel:" + phoneNumber);
+                if (uri != null) {
+                Intent intent = new Intent(Intent.ACTION_CALL, uri);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                this.getContext().startActivity(intent);
+                setResult(response, DConnectMessage.RESULT_OK);
+                } else {
                     MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "phone app is not exist");
                     setResult(response, DConnectMessage.RESULT_ERROR);
                 }

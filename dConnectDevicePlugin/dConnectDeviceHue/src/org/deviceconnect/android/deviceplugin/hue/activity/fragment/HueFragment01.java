@@ -185,7 +185,6 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
     @Override
     public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
 
@@ -239,7 +238,10 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
             View rowView = inflater.inflate(R.layout.hue_list, parent, false);
 
             TextView mTextView = (TextView) rowView.findViewById(R.id.row_textview1);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 168acb1dcdd65fdce171f906bf2dd959264b9b03
             String listTitle = mAccessPoint.get(position).getMacAddress() + "("
                     + mAccessPoint.get(position).getIpAddress() + ")";
             mTextView.setText(listTitle);

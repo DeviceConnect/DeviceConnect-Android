@@ -98,7 +98,11 @@
         <provider
             android:name="org.deviceconnect.android.provider.FileProvider"
             android:authorities="org.deviceconnect.android.manager.provider"
-            android:exported="true" />
+            android:exported="true" >
+            <meta-data
+                android:name="filelocation"
+                android:resource="@xml/filelocation" />
+        </provider>
 
         <!-- LocalOAuth -->
         <!-- Local OAuth 認可ダイアログ用Activity. -->

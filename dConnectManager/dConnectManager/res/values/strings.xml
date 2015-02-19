@@ -3,6 +3,7 @@
 
     <string name="app_name">Device Connect Manager</string>
     <string name="description"></string>
+
     <!-- ================= SettingsActivity ================= -->
 
     <string name="activity_settings_server_on_off">Device Connect Manager</string>
@@ -32,6 +33,8 @@
     <string name="activity_settings_about">About</string>
     <string name="activity_settings_general">General</string>
     <string name="activity_settings_not_logged_in">Not logged in yet</string>
+    <string name="activity_settings_whitelist">Whitelist</string>
+    <string name="activity_settings_edit_origin_patterns">Edit</string>
     <string name="activity_settings_device_plugin">Device Plugin</string>
     <string name="activity_settings_restart_device_plugin">Restart</string>
     <string name="activity_settings_restart_device_plugin_title">Starting Device Plugin</string>
@@ -53,21 +56,29 @@
     <string name="key_settings_open_source_licenses">settings_open_source_licenses</string>
     <string name="key_settings_about_privacypolicy">settings_about_privacypolicy</string>
     <string name="key_settings_about_tos">settings_about_tos</string>
+    <string name="key_settings_whitelist">settings_whitelist</string>
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
 
     <!-- ================= WhitelistActivity ================= -->
-    <string name="activity_whitelist_title">許可する発行元</string>
-    <string name="no_origin_pattern">許可されている発行元はありません</string>
-    <string name="dialog_delete_origin_pattern_message">削除しますか？</string>
-    <string name="dialog_delete_origin_pattern_positive">削除する</string>
-    <string name="dialog_delete_origin_pattern_negative">キャンセル</string>
-    <string name="menu_add_origin_pattern">追加</string>
-    <string name="dialog_add_origin_pattern_title">許可する発行元を追加</string>
-    <string name="dialog_add_origin_pattern_positive">追加する</string>
-    <string name="dialog_add_origin_pattern_negative">キャンセル</string>
+    <string name="activity_whitelist_title">Whitelist of Origin</string>
+    <string name="no_origin_pattern">No allowed origin by user.</string>
+    <string name="dialog_delete_origin_pattern_message">Are you sure you want to remove this origin from whitelist?</string>
+    <string name="dialog_delete_origin_pattern_positive">Remove</string>
+    <string name="dialog_delete_origin_pattern_negative">Cancel</string>
+    <string name="menu_add_origin_pattern">Add</string>
+    <string name="dialog_add_origin_pattern_title">Add an origin to be allowed</string>
+    <string name="dialog_add_origin_pattern_positive">Add</string>
+    <string name="dialog_add_origin_pattern_negative">Cancel</string>
+    <string name="dialog_add_origin_pattern_error_message_invalid">Invalid origin pattern was entered.</string>
+    <string-array name="whitelist_menu_origin_pattern">
+        <item>from the bookmark of Chrome</item>
+        <item>from the installed app.</item>
+        <item>from manual entry</item>
+    </string-array>
 
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>
+    <string name="activity_keyword_ok">OK</string>
 
     <!-- ================= WarningDialogActivity ================= -->
     <string name="activity_warning">警告</string>
@@ -96,6 +107,9 @@
     <string name="content_description"></string>
     <string name="websocket_open">WebSocket Open</string>
     <string name="websocket_close">WebSocket Close</string>
+
+    <!-- ================= Chrome for Android ================= -->
+    <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>
 
     <!-- ================= API ================= -->
 

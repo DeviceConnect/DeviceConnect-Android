@@ -3,6 +3,7 @@
 
     <string name="app_name">Device Connect Manager</string>
     <string name="description"></string>
+
     <!-- ================= SettingsActivity ================= -->
 
     <string name="activity_settings_server_on_off">Device Connect Manager</string>
@@ -58,6 +59,23 @@
     <string name="key_settings_whitelist">settings_whitelist</string>
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
 
+    <!-- ================= WhitelistActivity ================= -->
+    <string name="activity_whitelist_title">Whitelist of Origin</string>
+    <string name="no_origin_pattern">No allowed origin by user.</string>
+    <string name="dialog_delete_origin_pattern_message">Are you sure you want to remove this origin from whitelist?</string>
+    <string name="dialog_delete_origin_pattern_positive">Remove</string>
+    <string name="dialog_delete_origin_pattern_negative">Cancel</string>
+    <string name="menu_add_origin_pattern">Add</string>
+    <string name="dialog_add_origin_pattern_title">Add an origin to be allowed</string>
+    <string name="dialog_add_origin_pattern_positive">Add</string>
+    <string name="dialog_add_origin_pattern_negative">Cancel</string>
+    <string name="dialog_add_origin_pattern_error_message_invalid">Invalid origin pattern was entered.</string>
+    <string-array name="whitelist_menu_origin_pattern">
+        <item>from the bookmark of Chrome</item>
+        <item>from the installed app.</item>
+        <item>from manual entry</item>
+    </string-array>
+
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>
     <string name="activity_keyword_ok">OK</string>
@@ -89,6 +107,9 @@
     <string name="content_description"></string>
     <string name="websocket_open">WebSocket Open</string>
     <string name="websocket_close">WebSocket Close</string>
+
+    <!-- ================= Chrome for Android ================= -->
+    <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>
 
     <!-- ================= API ================= -->
 

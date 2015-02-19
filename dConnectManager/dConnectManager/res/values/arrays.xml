@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string-array name="whitelist_menu_origin_pattern">
-        <item>ブックマークから追加</item>
-        <item>アプリ一覧から追加</item>
-        <item>手入力</item>
-    </string-array>
-</resources>

@@ -8,6 +8,7 @@ package org.deviceconnect.android.manager.policy;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Pattern of origin.
@@ -29,6 +30,20 @@ public class OriginPattern {
      * The string expression of origin pattern.
      */
     final String mPatternExpression;
+
+    /**
+     * Check the syntax of specified origin pattern.
+     * @param pattern origin pattern
+     * @return <code>true</code> if the syntax is valid, otherwise <code>false</code>
+     */
+    public static boolean checkSyntax(final String pattern) {
+        try {
+            Pattern.compile(convertGlobToRegEx(pattern));
+            return true;
+        } catch (PatternSyntaxException e) {
+            return false;
+        }
+    }
 
     /**
      * Constructor.
@@ -58,7 +73,7 @@ public class OriginPattern {
      * @param glob Glob
      * @return Regular expression
      */
-    private String convertGlobToRegEx(final String glob) {
+    private static String convertGlobToRegEx(final String glob) {
         String out = "^";
         for (int i = 0; i < glob.length(); i++) {
             final char c = glob.charAt(i);

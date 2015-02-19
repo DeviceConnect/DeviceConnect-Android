@@ -25,6 +25,7 @@
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/deviceplugin" />
+
             <intent-filter>
                 <action android:name="org.deviceconnect.action.GET" />
                 <action android:name="org.deviceconnect.action.PUT" />
@@ -32,6 +33,7 @@
                 <action android:name="org.deviceconnect.action.DELETE" />
             </intent-filter>
         </receiver>
+
         <service
             android:name="org.deviceconnect.android.deviceplugin.test.DeviceTestService"
             android:exported="false" >
@@ -49,15 +51,17 @@
             android:authorities="org.deviceconnect.android.deviceplugin.test.provider"
             android:exported="true" >
             <meta-data
-              android:name="filelocation"
-              android:resource="@xml/filelocation" />
+                android:name="filelocation"
+                android:resource="@xml/filelocation" />
         </provider>
 
         <!-- LocalOAuth -->
         <activity
             android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:theme="@style/AppTheme.Translucent" >
+            android:excludeFromRecents="true"
+            android:exported="false" >
         </activity>
+
         <service
             android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
             android:exported="false" >

@@ -54,59 +54,8 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     @Override
-    protected String getClientPackageName() {
+    protected String getOrigin() {
         return "abc";
-    }
-
-    /**
-     * packageが無い状態でクライアント作成を行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /authorization/create_client
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    public void testGetCreateClientNoPackage() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * packageが空状態でクライアント作成を行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /authorization/create_client?package=
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    public void testGetCreateClientEmptyPackage() {
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_PACKAGE, "");
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
     }
 
     /**
@@ -114,7 +63,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/create_client?package=xxxxx&abc=abc
+     * Path: /authorization/create_client
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -126,7 +75,6 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_PACKAGE, "abc");
         builder.addParameter("def", "def");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -142,7 +90,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /authorization/create_client?package=xxxx
+     * Path: /authorization/create_client
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -153,7 +101,6 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_PACKAGE, "abc");
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request, false);
@@ -168,7 +115,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /authorization/create_client?package=xxxx
+     * Path: /authorization/create_client
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -179,7 +126,6 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_PACKAGE, "abc");
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request, false);
@@ -194,7 +140,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /authorization/create_client?package=xxxx
+     * Path: /authorization/create_client
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -205,7 +151,6 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_PACKAGE, "abc");
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request, false);
@@ -327,7 +272,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenNoGrantType() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -361,7 +306,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenEmptyGrantType() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -397,7 +342,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenUndefinedGrantType() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -432,7 +377,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenNoScope() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -467,7 +412,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenEmptyScope() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -502,7 +447,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenNoApplicationName() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -536,7 +481,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenEmptyApplicationName() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -570,7 +515,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenNoSignature() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -605,7 +550,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenEmptySignature() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -640,7 +585,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenWrongSignature() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -677,7 +622,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenUndefinedAttribute() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -714,7 +659,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenInvalidMethodPost() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -749,7 +694,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenInvalidMethodPut() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -784,7 +729,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenInvalidMethodDelete() {
-        String[] client = createClient("abc");
+        String[] client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);

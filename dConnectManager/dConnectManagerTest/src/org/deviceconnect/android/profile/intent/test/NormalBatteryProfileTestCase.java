@@ -13,7 +13,6 @@ import org.deviceconnect.profile.BatteryProfileConstants;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 
 /**
@@ -50,7 +49,6 @@ public class NormalBatteryProfileTestCase extends IntentDConnectTestCase {
     public void testBattery() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         String serviceId = getServiceId();
-        Log.d("AAA", "serviceId: " + serviceId);
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, BatteryProfileConstants.PROFILE_NAME);

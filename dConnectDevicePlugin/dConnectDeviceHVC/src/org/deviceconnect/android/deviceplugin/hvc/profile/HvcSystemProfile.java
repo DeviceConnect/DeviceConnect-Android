@@ -24,12 +24,12 @@ import android.os.Bundle;
 public class HvcSystemProfile extends SystemProfile {
 
     /**
-     * 設定画面を設定.
+     * set setting activity.
      * 
-     * @param request リクエスト
-     * @param bundle バンドル
+     * @param request request
+     * @param bundle bundle
      * 
-     * @return 設定アクティビティ
+     * @return setting activity
      */
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle bundle) {
         return HvcSettingActivity.class;

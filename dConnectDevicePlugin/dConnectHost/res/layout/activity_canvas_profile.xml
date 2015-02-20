@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/FrameLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:background="@android:color/white" >
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center" >
-
-        <Button
-            android:id="@+id/buttonClose"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/canvas_profile_view_close_guidance" />
-
-    </LinearLayout>
-
-    <org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileView
+    <ImageView
         android:id="@+id/canvasProfileView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-</LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center|right" >
+
+        <Button
+            android:id="@+id/buttonClose"
+            android:layout_width="20dip"
+            android:layout_height="20dip"
+            android:background="@drawable/close_small_button"
+            android:minHeight="20dip"
+            android:minWidth="20dip" />
+    </LinearLayout>
+
+</FrameLayout>

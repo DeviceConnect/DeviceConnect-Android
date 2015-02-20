@@ -6,7 +6,15 @@
  */
 package org.deviceconnect.android.deviceplugin.host.canvas;
 
-import android.content.Intent;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import android.content.ContentResolver;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 
 /**
  * Canvas Draw Utility.
@@ -16,28 +24,67 @@ import android.content.Intent;
 public final class CanvasDrawUtils {
 
     /**
+     * Defined a size of buffer.
+     */
+    private static final int BUF_SIZE = 4096;
+
+    /**
      * Constructor.
      */
     private CanvasDrawUtils() {
-        
     }
-    
+
     /**
-     * get canvas draw object from intent.
-     * @param intent intent
-     * @return canvas draw object. if null, there is no draw objects that datakind matches.
+     * Gets a bitmap from uri.
+     * @param context context
+     * @param uri uri
+     * @return Bitmap or null on error
      */
-    public static CanvasDrawObjectInterface getCanvasDrawObjectFromIntent(final Intent intent) {
-        
-        String dataKind = intent.getStringExtra(CanvasDrawObjectInterface.EXTRA_DATAKIND);
-        
-        // CanvasDrawImageObject?
-        if (dataKind.equals(CanvasDrawImageObject.DATAKIND)) {
-            CanvasDrawImageObject parameter = new CanvasDrawImageObject();
-            parameter.getValueFromIntent(intent);
-            return parameter;
+    public static Bitmap getBitmap(final Context context, final String uri) {
+        byte[] buf = getContentData(context, uri);
+        if (buf != null) {
+            try {
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inMutable = true;
+                return BitmapFactory.decodeByteArray(buf, 0, buf.length, options);
+            } catch (OutOfMemoryError e) {
+                return null;
+            }
         }
-        
         return null;
+    }
+
+    /**
+     * Gets binary from uri.
+     * @param context context
+     * @param uri uri
+     * @return byte[] or null on error
+     */
+    public static byte[] getContentData(final Context context, final String uri) {
+        if (uri == null) {
+            return null;
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        InputStream in = null;
+        byte[] buf = new byte[BUF_SIZE];
+        int len;
+        try {
+            ContentResolver r = context.getContentResolver();
+            in = r.openInputStream(Uri.parse(uri));
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+            return out.toByteArray();
+        } catch (IOException e) {
+            return null;
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

@@ -8,23 +8,23 @@
 package org.deviceconnect.android.deviceplugin.host.activity;
 
 import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawObjectInterface;
+import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Paint.Style;
-import android.graphics.Rect;
+import android.graphics.Matrix;
+import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 
 /**
  * Canvas Profile Activity.
@@ -34,88 +34,126 @@ import android.widget.ImageView;
 public class CanvasProfileActivity extends Activity {
 
     /**
-     * background color.
+     * Defined a parameter name.
      */
-    private static final int CANVAS_BACKGROUND_COLOR = Color.WHITE; 
+    private static final String PARAM_INTENT = "param_intent";
 
-    /**
-     * Close button object.
-     */
-    private Button mCloseButton;
-    
     /**
      * Canvas view object.
      */
     private ImageView mCanvasView;
-    
+
     /**
-     * Canvas draw object.
+     * Argument that draw in canvas.
      */
-    private CanvasDrawObjectInterface mCanvasDraw;
-    
+    private Intent mIntent;
+
+    /**
+     * Bitmap that was sent from web application.
+     */
+    private Bitmap mBitmap;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_canvas_profile);
 
-        mCloseButton = (Button) findViewById(R.id.buttonClose);
         mCanvasView = (ImageView) findViewById(R.id.canvasProfileView);
+        ViewTreeObserver viewTreeObserver = mCanvasView.getViewTreeObserver();
+        viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                refreshImage(mIntent);
+            }
+        });
 
-        mCloseButton.setOnClickListener(new OnClickListener() {
+        Button btn = (Button) findViewById(R.id.buttonClose);
+        btn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(final View v) {
                 finish();
             }
         });
 
-        Intent intent = getIntent();
-        refreshImage(intent);
-    }
-
-    @Override
-    public void onWindowFocusChanged(final boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        refreshImageView();
+        Intent intent = mIntent;
+        if (savedInstanceState != null) {
+            intent = (Intent) savedInstanceState.get(PARAM_INTENT);
+        }
+        if (intent == null) {
+            intent = getIntent();
+        }
+        setDrawingArgument(intent);
     }
 
     @Override
     protected void onNewIntent(final Intent intent) {
         super.onNewIntent(intent);
+        setDrawingArgument(intent);
         refreshImage(intent);
     }
 
+    @Override
+    protected void onSaveInstanceState(final Bundle outState) {
+        if (mIntent != null) {
+            outState.putParcelable(PARAM_INTENT, mIntent);
+        }
+    }
+
     /**
-     * refresh image.
+     * Set a argument that draw in canvas.
+     * @param intent argument
+     */
+    private void setDrawingArgument(final Intent intent) {
+        if (intent == null) {
+            return;
+        }
+        mIntent = intent;
+    }
+
+    /**
+     * Refresh image.
      * @param intent Intent
      */
     private void refreshImage(final Intent intent) {
-        mCanvasDraw = CanvasDrawUtils.getCanvasDrawObjectFromIntent(intent);
-        if (mCanvasView.getWidth() > 0 && mCanvasView.getHeight() > 0) {
-            refreshImageView();
+        CanvasDrawImageObject drawObj = CanvasDrawImageObject.create(intent);
+        String uri = drawObj.getUri();
+
+        if (mBitmap != null) {
+            mBitmap.recycle();
+            mBitmap = null;
         }
-    }
-    
-    /**
-     * refresh image view.
-     */
-    private void refreshImageView() {
-        Bitmap viewBitmap = Bitmap.createBitmap(mCanvasView.getWidth(), mCanvasView.getHeight(), Bitmap.Config.RGB_565);
-        drawClearBackground(viewBitmap);
-        mCanvasDraw.draw(viewBitmap);
-        mCanvasView.setImageBitmap(viewBitmap);
-    }
-    
-    /**
-     * fill backbroundcolor to viewBitmap.
-     * @param viewBitmap viewBitmap
-     */
-    private void drawClearBackground(final Bitmap viewBitmap) {
-        Canvas canvas = new Canvas(viewBitmap);
-        Rect rect = new Rect(0, 0, viewBitmap.getWidth(), viewBitmap.getHeight());
-        Paint paint = new Paint();
-        paint.setColor(CANVAS_BACKGROUND_COLOR);
-        paint.setStyle(Style.FILL);
-        canvas.drawRect(rect, paint);
+
+        mBitmap = CanvasDrawUtils.getBitmap(this, uri);
+        if (mBitmap == null) {
+            // failed to load bitmap.
+            return;
+        }
+
+        switch (drawObj.getMode()) {
+        default:
+        case NONSCALE_MODE:
+            Matrix matrix = new Matrix();
+            matrix.postTranslate((float) drawObj.getX(), (float) drawObj.getY());
+            mCanvasView.setImageBitmap(mBitmap);
+            mCanvasView.setScaleType(ScaleType.MATRIX);
+            mCanvasView.setImageMatrix(matrix);
+            break;
+        case SCALE_MODE:
+            mCanvasView.setImageBitmap(mBitmap);
+            mCanvasView.setScaleType(ScaleType.FIT_START);
+            mCanvasView.setTranslationX((int) drawObj.getX());
+            mCanvasView.setTranslationY((int) drawObj.getY());
+            break;
+        case FILL_MODE:
+            BitmapDrawable bd = new BitmapDrawable(getResources(), mBitmap);
+            bd.setTileModeX(Shader.TileMode.REPEAT);
+            bd.setTileModeY(Shader.TileMode.REPEAT);
+            mCanvasView.setImageDrawable(bd);
+            mCanvasView.setScaleType(ScaleType.FIT_XY);
+            mCanvasView.setTranslationX((int) drawObj.getX());
+            mCanvasView.setTranslationY((int) drawObj.getY());
+            break;
+        }
     }
 }

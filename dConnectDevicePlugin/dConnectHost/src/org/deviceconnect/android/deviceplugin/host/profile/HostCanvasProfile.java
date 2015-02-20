@@ -13,9 +13,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.Context;
 import android.content.Intent;
-
 
 /**
  * Canvas Profile.
@@ -25,16 +23,46 @@ import android.content.Intent;
 public class HostCanvasProfile extends CanvasProfile {
 
     @Override
-    protected boolean onPostDrawImage(final Intent request, final Intent response,
-            final String deviceId, final String mimeType, final byte[] data, final double x, final double y,
-            final String mode) {
-        
-        if (data == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "data is not specied to update a file.");
+    protected boolean onPostRequest(final Intent request, final Intent response) {
+        String attribute = getAttribute(request);
+        boolean result = true;
+
+        if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
+            String serviceId = getServiceID(request);
+            String mimeType = getMIMEType(request);
+            String uri = request.getStringExtra(CanvasProfile.PARAM_URI);
+            double x = getX(request);
+            double y = getY(request);
+            String mode = getMode(request);
+            result = onPostDrawImageForHost(request, response, serviceId, mimeType, uri, x, y, mode);
+        } else {
+            MessageUtils.setUnknownAttributeError(response);
+        }
+
+        return result;
+    }
+
+    /**
+     * Execute a request.
+     * @param request request intent
+     * @param response response
+     * @param serviceId serviceId
+     * @param mimeType mime type
+     * @param uri uri of image
+     * @param x x coordinate for drawing
+     * @param y y coordinate for drawing
+     * @param mode mode of rendering
+     * @return true if send response immediately, false otherwise
+     */
+    private boolean onPostDrawImageForHost(final Intent request, final Intent response,
+            final String serviceId, final String mimeType, final String uri, 
+            final double x, final double y, final String mode) {
+        if (uri == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "uri is not specied to update a file.");
             return true;
         }
 
-        if (deviceId == null) {
+        if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
@@ -47,15 +75,14 @@ public class HostCanvasProfile extends CanvasProfile {
         }
 
         // storing parameter to draw object.
-        CanvasDrawImageObject sendDrawObject = new CanvasDrawImageObject(data, enumMode, x, y);
+        CanvasDrawImageObject drawObj = new CanvasDrawImageObject(uri, enumMode, x, y);
 
         // start CanvasProfileActivity
-        Context context = getContext();
         Intent intent = new Intent();
-        intent.setClass(context, CanvasProfileActivity.class);
+        intent.setClass(getContext(), CanvasProfileActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        sendDrawObject.setValueToIntent(intent);
-        context.startActivity(intent);
+        drawObj.setValueToIntent(intent);
+        getContext().startActivity(intent);
 
         // return result.
         setResult(response, DConnectMessage.RESULT_OK);

@@ -254,7 +254,7 @@ public abstract class DConnectMessageService extends Service
 
         // リクエストの発行元の確認
         String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-        if (origin == null || !mWhitelist.allows(origin)) {
+        if (origin == null || (mSettings.isBlockingOrigin() && !mWhitelist.allows(origin))) {
             MessageUtils.setInvalidOriginError(response);
             sendResponse(request, response);
             return;

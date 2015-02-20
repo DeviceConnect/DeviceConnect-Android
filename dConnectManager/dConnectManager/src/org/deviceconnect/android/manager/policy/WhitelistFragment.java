@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.deviceconnect.android.manager.R;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.ContentResolver;
@@ -27,7 +28,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Browser;
-import android.util.Log;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -42,9 +43,12 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Whitelist fragment.
+ * 
+ * @author NTT DOCOMO, INC.
  */
 public class WhitelistFragment extends Fragment {
 
@@ -147,8 +151,9 @@ public class WhitelistFragment extends Fragment {
                 view = mInflater.inflate(R.layout.item_whitelist_origin, (ViewGroup) null);
             }
 
+            TextView textViewTitle = (TextView) view.findViewById(R.id.text_origin_title);
+            textViewTitle.setText(origin.getTitle());
             TextView textViewOrigin = (TextView) view.findViewById(R.id.text_origin);
-            Log.d("AAA", " textViewOrigin=" + textViewOrigin + " origin=" + origin);
             textViewOrigin.setText(origin.getOrigin());
 
             Button buttonDelete = (Button) view.findViewById(R.id.button_delete_origin);
@@ -164,11 +169,28 @@ public class WhitelistFragment extends Fragment {
     }
 
     /**
-     * Deletes a origin.
+     * Shows a popup on the screen of Android device.
+     * @param text the text message.
+     */
+    private void showPopup(final String text) {
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(activity, text, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /**
+     * Deletes an origin.
      * @param origin an origin.
      * @throws WhitelistException if the origin can not be removed.
      */
-    private void delete(final OriginInfo origin) throws WhitelistException {
+    private void deleteOrigin(final OriginInfo origin) throws WhitelistException {
         mWhitelist.removeOrigin(origin);
         mListAdapter.remove(origin);
         mListAdapter.notifyDataSetChanged();
@@ -181,7 +203,7 @@ public class WhitelistFragment extends Fragment {
      * @param title the title of origin.
      * @throws WhitelistException if the origin can not be stored.
      */
-    private void add(final String origin, final String title) throws WhitelistException {
+    private void addOrigin(final String origin, final String title) throws WhitelistException {
         OriginInfo info = mWhitelist.addOrigin(origin, title); // TODO obtain title and icon from Web.
         mListAdapter.add(info);
         mListAdapter.notifyDataSetChanged();
@@ -198,16 +220,15 @@ public class WhitelistFragment extends Fragment {
         String strNegative = getString(R.string.dialog_delete_origin_negative);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(origin.getOrigin());
+        builder.setTitle(origin.getTitle());
         builder.setMessage(strGuidance)
                 .setPositiveButton(strPositive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(final DialogInterface dialog, final int which) {
                         try {
-                            delete(origin);
+                            deleteOrigin(origin);
                         } catch (WhitelistException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                            showPopup(e.getMessage());
                         }
                     }
                 }).setNegativeButton(strNegative, new DialogInterface.OnClickListener() {
@@ -236,7 +257,7 @@ public class WhitelistFragment extends Fragment {
                     openListDialog(getInstalledNativeApplications());
                     break;
                 case 2:
-                    openManualDialog("");
+                    openManualEntryDialog();
                     break;
                 default:
                     // nothing to do
@@ -261,10 +282,9 @@ public class WhitelistFragment extends Fragment {
             public void onClick(final DialogInterface dialog, final int which) {
                 try {
                     KnownApplicationInfo appInfo = list.get(which);
-                    add(appInfo.getOrigin(), appInfo.getName());
+                    addOrigin(appInfo.getOrigin(), appInfo.getName());
                 } catch (WhitelistException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    showPopup(e.getMessage());
                 } finally {
                     dialog.dismiss();
                 }
@@ -276,23 +296,36 @@ public class WhitelistFragment extends Fragment {
 
     /**
      * Opens a dialog for manual entry with specified origin.
-     * @param origin origin
      */
-    private void openManualDialog(final String origin) {
-        final EditText editText = new EditText(getActivity());
+    private void openManualEntryDialog() {
+        final Context context = getActivity();
+        if (context == null) {
+            return;
+        }
+        final int layoutId = R.layout.dialog_origin_manual_entry;
+        final View root = LayoutInflater.from(context).inflate(layoutId, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(R.string.dialog_add_origin_title);
-        builder.setView(editText);
+        builder.setView(root);
         builder.setPositiveButton(R.string.dialog_add_origin_positive,
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(final DialogInterface dialog, final int which) {
+                        EditText editOrigin = (EditText) root.findViewById(R.id.dialog_origin_manual_entry_edit_origin);
+                        EditText editTitle = (EditText) root.findViewById(R.id.dialog_origin_manual_entry_edit_title);
+                        String origin = editOrigin.getText().toString();
+                        String title = editTitle.getText().toString();
+                        if (TextUtils.isEmpty(origin)) {
+                            openManualEntryDialog();
+                            return;
+                        }
+                        if (TextUtils.isEmpty(title)) {
+                            title = origin;
+                        }
                         try {
-                            String origin = editText.getText().toString();
-                            add(origin, origin);
+                            addOrigin(origin, title);
                         } catch (WhitelistException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                            showPopup(e.getMessage());
                         }
                     }
                 });

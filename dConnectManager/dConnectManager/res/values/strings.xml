@@ -34,7 +34,8 @@
     <string name="activity_settings_general">General</string>
     <string name="activity_settings_not_logged_in">Not logged in yet</string>
     <string name="activity_settings_whitelist">Whitelist</string>
-    <string name="activity_settings_edit_origin_patterns">Edit</string>
+    <string name="activity_settings_whitelist_enable">Enable blocking origins</string>
+    <string name="activity_settings_manage_whitelist">Manage whitelist</string>
     <string name="activity_settings_device_plugin">Device Plugin</string>
     <string name="activity_settings_restart_device_plugin">Restart</string>
     <string name="activity_settings_restart_device_plugin_title">Starting Device Plugin</string>
@@ -47,7 +48,6 @@
     <string name="key_settings_dconn_observer_on_off">settings_dconn_observer_on_off</string>
     <string name="key_settings_dconn_keyword">settings_dconn_server_keyword</string>
     <string name="key_settings_dconn_allow_external_ip">settings_dconn_allow_external_ip</string>
-    <string name="key_settings_dconn_white_list">settings_dconn_ip_white_list</string>
     <string name="key_settings_dconn_ssl">settings_dconn_ssl</string>
     <string name="key_settings_dconn_host">settings_dconn_host</string>
     <string name="key_settings_dconn_port">settings_dconn_port</string>
@@ -56,7 +56,8 @@
     <string name="key_settings_open_source_licenses">settings_open_source_licenses</string>
     <string name="key_settings_about_privacypolicy">settings_about_privacypolicy</string>
     <string name="key_settings_about_tos">settings_about_tos</string>
-    <string name="key_settings_whitelist">settings_whitelist</string>
+    <string name="key_settings_dconn_whitelist">settings_whitelist</string>
+    <string name="key_settings_dconn_whitelist_origin_blocking">settings_whitelist_enable</string>
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
 
     <!-- ================= WhitelistActivity ================= -->
@@ -69,7 +70,9 @@
     <string name="dialog_add_origin_title">Add an origin to be allowed</string>
     <string name="dialog_add_origin_positive">Add</string>
     <string name="dialog_add_origin_negative">Cancel</string>
-    <string name="dialog_add_origin_error_message_invalid">Invalid origin pattern was entered.</string>
+    <string name="dialog_add_origin_manual_entry_item_title">Title</string>
+    <string name="dialog_add_origin_manual_entry_item_origin">Origin</string>
+    <string name="dialog_add_origin_manual_entry_message">Please enter an origin at least.</string>
     <string-array name="whitelist_menu_origin">
         <item>from the bookmark of Chrome</item>
         <item>from the installed app.</item>

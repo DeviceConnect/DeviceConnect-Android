@@ -6,5 +6,6 @@
  */
 /**
  * Security policy of Device Connect Manager.
+ * @author NTT DOCOMO, INC.
  */
 package org.deviceconnect.android.manager.policy;

@@ -9,6 +9,7 @@ package org.deviceconnect.android.manager.policy;
 
 /**
  * Information of origin.
+ * 
  * @author NTT DOCOMO, INC.
  */
 public class OriginInfo {
@@ -64,6 +65,14 @@ public class OriginInfo {
      */
     public String getOrigin() {
         return mOrigin;
+    }
+
+    /**
+     * Gets the title of origin.
+     * @return the title of origin
+     */
+    public String getTitle() {
+        return mTitle;
     }
 
     @Override

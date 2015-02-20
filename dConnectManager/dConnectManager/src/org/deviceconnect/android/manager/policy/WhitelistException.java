@@ -3,6 +3,8 @@ package org.deviceconnect.android.manager.policy;
 
 /**
  * Exception of whitelist management.
+ * 
+ * @author NTT DOCOMO, INC.
  */
 public class WhitelistException extends Exception {
 

@@ -61,16 +61,16 @@
 
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Whitelist of Origin</string>
-    <string name="no_origin_pattern">No allowed origin by user.</string>
-    <string name="dialog_delete_origin_pattern_message">Are you sure you want to remove this origin from whitelist?</string>
-    <string name="dialog_delete_origin_pattern_positive">Remove</string>
-    <string name="dialog_delete_origin_pattern_negative">Cancel</string>
-    <string name="menu_add_origin_pattern">Add</string>
-    <string name="dialog_add_origin_pattern_title">Add an origin to be allowed</string>
-    <string name="dialog_add_origin_pattern_positive">Add</string>
-    <string name="dialog_add_origin_pattern_negative">Cancel</string>
-    <string name="dialog_add_origin_pattern_error_message_invalid">Invalid origin pattern was entered.</string>
-    <string-array name="whitelist_menu_origin_pattern">
+    <string name="no_origin">No allowed origin by user.</string>
+    <string name="dialog_delete_origin_message">Are you sure you want to remove this origin from whitelist?</string>
+    <string name="dialog_delete_origin_positive">Remove</string>
+    <string name="dialog_delete_origin_negative">Cancel</string>
+    <string name="menu_add_origin">Add</string>
+    <string name="dialog_add_origin_title">Add an origin to be allowed</string>
+    <string name="dialog_add_origin_positive">Add</string>
+    <string name="dialog_add_origin_negative">Cancel</string>
+    <string name="dialog_add_origin_error_message_invalid">Invalid origin pattern was entered.</string>
+    <string-array name="whitelist_menu_origin">
         <item>from the bookmark of Chrome</item>
         <item>from the installed app.</item>
         <item>from manual entry</item>

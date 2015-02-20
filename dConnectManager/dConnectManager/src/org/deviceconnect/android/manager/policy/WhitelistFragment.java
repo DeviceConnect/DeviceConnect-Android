@@ -27,6 +27,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Browser;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -41,7 +42,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * Whitelist fragment.
@@ -54,8 +54,8 @@ public class WhitelistFragment extends Fragment {
     /** The root view. */
     private View mRootView;
 
-    /** The instance of {@link OriginPatternListAdapter}. */
-    private OriginPatternListAdapter mListAdapter;
+    /** The instance of {@link OriginListAdapter}. */
+    private OriginListAdapter mListAdapter;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -67,7 +67,7 @@ public class WhitelistFragment extends Fragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
             final Bundle savedInstanceState) {
-        mListAdapter = new OriginPatternListAdapter(getActivity(), mWhitelist.getPatterns());
+        mListAdapter = new OriginListAdapter(getActivity(), mWhitelist.getOrigins());
 
         mRootView = inflater.inflate(R.layout.fragment_whitelist, container, false);
         ListView listView = (ListView) mRootView.findViewById(R.id.listview_whitelist);
@@ -80,8 +80,8 @@ public class WhitelistFragment extends Fragment {
      * Refreshes views.
      */
     private void refreshView() {
-        View commentView = mRootView.findViewById(R.id.view_no_origin_pattern);
-        if (mWhitelist.getPatterns().size() == 0) {
+        View commentView = mRootView.findViewById(R.id.view_no_origin);
+        if (mWhitelist.getOrigins().size() == 0) {
             commentView.setVisibility(View.VISIBLE);
         } else {
             commentView.setVisibility(View.GONE);
@@ -100,7 +100,7 @@ public class WhitelistFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
         menu.clear();
-        final MenuItem menuItem = menu.add(R.string.menu_add_origin_pattern);
+        final MenuItem menuItem = menu.add(R.string.menu_add_origin);
         menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         menuItem.setOnMenuItemClickListener(new OnMenuItemClickListener() {
             @Override
@@ -116,21 +116,21 @@ public class WhitelistFragment extends Fragment {
     /**
      * Origin Pattern List Adapter.
      */
-    private class OriginPatternListAdapter extends ArrayAdapter<OriginPattern> {
+    private class OriginListAdapter extends ArrayAdapter<OriginInfo> {
         /** The instance of {@link LayoutInflater}. */
         LayoutInflater mInflater;
-        /** The list of origin patterns. */
-        List<OriginPattern> mPatternList;
+        /** The list of origins. */
+        List<OriginInfo> mPatternList;
 
         /**
          * Constructor.
          * @param context Context
-         * @param patterns The list of origin patterns.
+         * @param origins The list of origins.
          */
-        OriginPatternListAdapter(final Context context, final List<OriginPattern> patterns) {
-            super(context, 0, patterns);
+        OriginListAdapter(final Context context, final List<OriginInfo> origins) {
+            super(context, 0, origins);
             mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            mPatternList = patterns;
+            mPatternList = origins;
         }
 
         @Override
@@ -140,21 +140,22 @@ public class WhitelistFragment extends Fragment {
 
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
-            final OriginPattern pattern = (OriginPattern) getItem(position);
+            final OriginInfo origin = (OriginInfo) getItem(position);
 
             View view = convertView;
             if (view == null) {
-                view = mInflater.inflate(R.layout.item_whitelist_origin_pattern, (ViewGroup) null);
+                view = mInflater.inflate(R.layout.item_whitelist_origin, (ViewGroup) null);
             }
 
-            TextView textViewAccessToken = (TextView) view.findViewById(R.id.text_origin_pattern);
-            textViewAccessToken.setText(pattern.getGlob());
+            TextView textViewOrigin = (TextView) view.findViewById(R.id.text_origin);
+            Log.d("AAA", " textViewOrigin=" + textViewOrigin + " origin=" + origin);
+            textViewOrigin.setText(origin.getOrigin());
 
-            Button buttonDelete = (Button) view.findViewById(R.id.button_delete_origin_pattern);
+            Button buttonDelete = (Button) view.findViewById(R.id.button_delete_origin);
             buttonDelete.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(final View v) {
-                    openDeleteDialog(pattern);
+                    openDeleteDialog(origin);
                 }
             });
 
@@ -163,43 +164,51 @@ public class WhitelistFragment extends Fragment {
     }
 
     /**
-     * Deletes a origin pattern.
-     * @param pattern an origin pattern
+     * Deletes a origin.
+     * @param origin an origin.
+     * @throws WhitelistException if the origin can not be removed.
      */
-    private void delete(final OriginPattern pattern) {
-        mWhitelist.removePattern(pattern);
-        mListAdapter.remove(pattern);
+    private void delete(final OriginInfo origin) throws WhitelistException {
+        mWhitelist.removeOrigin(origin);
+        mListAdapter.remove(origin);
         mListAdapter.notifyDataSetChanged();
         refreshView();
     }
 
     /**
-     * Adds a origin pattern.
-     * @param patternExp a regular expression of an origin pattern
+     * Adds an origin to be allowed.
+     * @param origin an origin to be allowed.
+     * @param title the title of origin.
+     * @throws WhitelistException if the origin can not be stored.
      */
-    private void add(final String patternExp) {
-        OriginPattern pattern = mWhitelist.addPattern(patternExp);
-        mListAdapter.add(pattern);
+    private void add(final String origin, final String title) throws WhitelistException {
+        OriginInfo info = mWhitelist.addOrigin(origin, title); // TODO obtain title and icon from Web.
+        mListAdapter.add(info);
         mListAdapter.notifyDataSetChanged();
         refreshView();
     }
 
     /**
-     * Opens the origin pattern deletion dialog.
-     * @param pattern an origin pattern to be deleted.
+     * Opens the origin deletion dialog.
+     * @param origin an origin to be deleted.
      */
-    private void openDeleteDialog(final OriginPattern pattern) {
-        String strGuidance = getString(R.string.dialog_delete_origin_pattern_message);
-        String strPositive = getString(R.string.dialog_delete_origin_pattern_positive);
-        String strNegative = getString(R.string.dialog_delete_origin_pattern_negative);
+    private void openDeleteDialog(final OriginInfo origin) {
+        String strGuidance = getString(R.string.dialog_delete_origin_message);
+        String strPositive = getString(R.string.dialog_delete_origin_positive);
+        String strNegative = getString(R.string.dialog_delete_origin_negative);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(pattern.getGlob());
+        builder.setTitle(origin.getOrigin());
         builder.setMessage(strGuidance)
                 .setPositiveButton(strPositive, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(final DialogInterface dialog, final int which) {
-                        delete(pattern);
+                        try {
+                            delete(origin);
+                        } catch (WhitelistException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
                     }
                 }).setNegativeButton(strNegative, new DialogInterface.OnClickListener() {
                     @Override
@@ -210,13 +219,13 @@ public class WhitelistFragment extends Fragment {
     }
 
     /**
-     * Opens the origin pattern addition dialog.
+     * Opens the origin addition dialog.
      */
     private void openAddDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setCancelable(true);
-        builder.setTitle(R.string.dialog_add_origin_pattern_title);
-        builder.setItems(R.array.whitelist_menu_origin_pattern, new DialogInterface.OnClickListener() {
+        builder.setTitle(R.string.dialog_add_origin_title);
+        builder.setItems(R.array.whitelist_menu_origin, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, final int which) {
                 switch (which) {
@@ -246,13 +255,19 @@ public class WhitelistFragment extends Fragment {
     private void openListDialog(final List<KnownApplicationInfo> list) {
         ApplicationListAdapter adapter = new ApplicationListAdapter(getActivity(), list);
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(R.string.dialog_add_origin_pattern_title);
+        builder.setTitle(R.string.dialog_add_origin_title);
         builder.setSingleChoiceItems(adapter, 0, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, final int which) {
-                KnownApplicationInfo appInfo = list.get(which);
-                add(appInfo.getOrigin());
-                dialog.dismiss();
+                try {
+                    KnownApplicationInfo appInfo = list.get(which);
+                    add(appInfo.getOrigin(), appInfo.getName());
+                } catch (WhitelistException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } finally {
+                    dialog.dismiss();
+                }
             }
         });
         builder.setCancelable(true);
@@ -260,28 +275,28 @@ public class WhitelistFragment extends Fragment {
     };
 
     /**
-     * Opens a dialog for manual entry with specified origin pattern.
-     * @param pattern origin pattern
+     * Opens a dialog for manual entry with specified origin.
+     * @param origin origin
      */
-    private void openManualDialog(final String pattern) {
+    private void openManualDialog(final String origin) {
         final EditText editText = new EditText(getActivity());
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(R.string.dialog_add_origin_pattern_title);
+        builder.setTitle(R.string.dialog_add_origin_title);
         builder.setView(editText);
-        builder.setPositiveButton(R.string.dialog_add_origin_pattern_positive,
+        builder.setPositiveButton(R.string.dialog_add_origin_positive,
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(final DialogInterface dialog, final int which) {
-                        String enteredPattern = editText.getText().toString();
-                        add(enteredPattern);
-                        if (!OriginPattern.checkSyntax(enteredPattern)) {
-                            String errorMsg = getString(R.string.dialog_add_origin_pattern_error_message_invalid);
-                            Toast.makeText(getActivity(), errorMsg, Toast.LENGTH_LONG).show();
-                            openManualDialog(enteredPattern);
+                        try {
+                            String origin = editText.getText().toString();
+                            add(origin, origin);
+                        } catch (WhitelistException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
                         }
                     }
                 });
-        builder.setNegativeButton(R.string.dialog_add_origin_pattern_negative,
+        builder.setNegativeButton(R.string.dialog_add_origin_negative,
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(final DialogInterface dialog, final int which) {
@@ -343,19 +358,18 @@ public class WhitelistFragment extends Fragment {
      * Information of known application by the device.
      */
     private interface KnownApplicationInfo {
-        
+
         /**
          * Gets the name of the application.
          * @return the name of the application
          */
         String getName();
-        
+
         /**
          * Gets the origin of the application.
          * @return the origin of the application. if origin cannot be derived, returns <code>null</code>
          */
         String getOrigin();
-        
 
         /**
          * Gets binary data of the icon.

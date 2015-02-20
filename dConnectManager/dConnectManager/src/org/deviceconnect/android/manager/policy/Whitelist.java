@@ -7,7 +7,6 @@
 package org.deviceconnect.android.manager.policy;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import android.content.ContentValues;
@@ -25,8 +24,8 @@ import android.provider.BaseColumns;
  */
 public class Whitelist {
 
-    /** The origin pattern database. */
-    private final OriginPatternDB mCache;
+    /** The origin database. */
+    private final OriginDB mCache;
 
     /**
      * Constructor.
@@ -34,7 +33,7 @@ public class Whitelist {
      * @param context Context
      */
     public Whitelist(final Context context) {
-        mCache = new OriginPatternDB(context);
+        mCache = new OriginDB(context);
     }
 
     /**
@@ -45,8 +44,8 @@ public class Whitelist {
      *      otherwise <code>false</code>.
      */
     public boolean allows(final String origin) {
-        List<OriginPattern> patterns = getPatterns();
-        for (OriginPattern p : patterns) {
+        List<OriginInfo> patterns = getOrigins();
+        for (OriginInfo p : patterns) {
             if (p.matches(origin)) {
                 return true;
             }
@@ -55,56 +54,51 @@ public class Whitelist {
     }
 
     /**
-     * Returns origin patterns.
+     * Returns origin.
      * 
-     * @return Origin patterns
+     * @return Origin
      */
-    public synchronized List<OriginPattern> getPatterns() {
-        return mCache.getPatterns();
+    public synchronized List<OriginInfo> getOrigins() {
+        return mCache.getOrigins();
     }
 
     /**
-     * Adds an origin pattern to this whitelist.
+     * Adds an origin to this whitelist.
      * 
-     * @param pattern An origin pattern
-     * @return An instance of {@link OriginPattern}
+     * @param origin an origin to be added.
+     * @param title the title of origin.
+     * @return An instance of {@link OriginInfo}
+     * @throws WhitelistException if origin can not be stored.
      */
-    public synchronized OriginPattern addPattern(final String pattern) {
+    public synchronized OriginInfo addOrigin(final String origin, final String title)
+        throws WhitelistException {
         try {
-            long id = mCache.addPattern(pattern);
-            return new OriginPattern(id, pattern);
-        } catch (OriginPatternDBException e) {
-            return null;
+            long date = System.currentTimeMillis();
+            long id = mCache.addOrigin(origin, title, date);
+            return new OriginInfo(id, origin, title, date);
+        } catch (OriginDBException e) {
+            throw new WhitelistException("Failed to store origin: " + origin, e);
         }
     }
 
     /**
-     * Removes an origin pattern from this whitelist.
+     * Removes an origin from this whitelist.
      * 
-     * @param pattern An origin pattern
-     * @return <code>true</code> if the pattern is removed successfully,
-     *      otherwise <code>false</code>.
+     * @param info an origin to be removed.
+     * @throws WhitelistException if origin can not be removed.
      */
-    public synchronized boolean removePattern(final OriginPattern pattern) {
+    public synchronized void removeOrigin(final OriginInfo info) throws WhitelistException {
         try {
-            mCache.removePattern(pattern.mId);
-            for (Iterator<OriginPattern> it = getPatterns().iterator(); it.hasNext();) {
-                OriginPattern p = it.next();
-                if (p.equals(pattern)) {
-                    it.remove();
-                    return true;
-                }
-            }
-            return false;
-        } catch (OriginPatternDBException e) {
-            return false;
+            mCache.removeOrigin(info);
+        } catch (OriginDBException e) {
+            throw new WhitelistException("Failed to remove origin: " + info.mOrigin, e);
         }
     }
 
     /**
-     * Origin pattern database.
+     * Origin database.
      */
-    private static class OriginPatternDB extends SQLiteOpenHelper {
+    private static class OriginDB extends SQLiteOpenHelper {
 
         /** 
          * The DB file name.
@@ -119,7 +113,7 @@ public class Whitelist {
         /**
          * The table name.
          */
-        private static final String TABLE_NAME = "OriginPatterns";
+        private static final String TABLE_NAME = "Origins";
 
         /**
          * The unique ID for a row.
@@ -128,17 +122,31 @@ public class Whitelist {
         private static final String ID = BaseColumns._ID;
 
         /**
-         * The pattern of origin.
+         * The origin.
          * <p>Type: TEXT</p>
          */
-        private static final String PATTERN = "pattern";
+        private static final String ORIGIN = "origin";
+
+        /**
+         * The title of origin.
+         * <p>Type: TEXT</p>
+         */
+        private static final String TITLE = "title";
+
+        /**
+         * The registration date.
+         * <p>Type: INTEGER</p>
+         */
+        private static final String DATE = "date";
 
         /**
          * CREATE TABLE statement.
          */
         private static final String CREATE = "CREATE TABLE " + TABLE_NAME + " ("
                 + ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + PATTERN + " TEXT NOT NULL);";
+                + ORIGIN + " TEXT NOT NULL, "
+                + TITLE + " TEXT NOT NULL, "
+                + DATE + " INTEGER);";
 
         /**
          * DROP TABLE statement.
@@ -149,7 +157,7 @@ public class Whitelist {
          * Constructor.
          * @param context Context
          */
-        public OriginPatternDB(final Context context) {
+        public OriginDB(final Context context) {
             super(context, DB_NAME, null, DB_VERSION);
         }
 
@@ -164,19 +172,20 @@ public class Whitelist {
         }
 
         /**
-         * Gets all origin patterns in the database.
-         * @return Origin patterns
+         * Gets all origins in the database.
+         * @return Origin
          */
-        List<OriginPattern> getPatterns() {
+        List<OriginInfo> getOrigins() {
+            List<OriginInfo> patterns = new ArrayList<OriginInfo>();
             SQLiteDatabase db = openDB();
             if (db == null) {
-                return null;
+                return patterns;
             }
+
             Cursor c = db.query(TABLE_NAME, null, null, null, null, null, null);
-            List<OriginPattern> patterns = new ArrayList<OriginPattern>();
             if (c.moveToFirst()) {
                 do {
-                    patterns.add(new OriginPattern(c.getLong(0), c.getString(1)));
+                    patterns.add(new OriginInfo(c.getLong(0), c.getString(1), c.getString(2), c.getLong(3)));
                 } while (c.moveToNext());
             }
             c.close();
@@ -185,31 +194,31 @@ public class Whitelist {
         }
 
         /**
-         * Adds a origin pattern to this database.
-         * @param pattern Origin pattern
-         * @return row ID
-         * @throws OriginPatternDBException throws if database error occurred.
+         * Adds a origin to this database.
+         * @param origin the origin.
+         * @param title the title of origin
+         * @param date the registration date.
+         * @return row ID.
+         * @throws OriginDBException throws if database error occurred.
          */
-        long addPattern(final String pattern) throws OriginPatternDBException {
+        long addOrigin(final String origin, final String title, final long date) throws OriginDBException {
             SQLiteDatabase db = openDB();
             if (db == null) {
-                throw new OriginPatternDBException("Failed to open the database.");
+                throw new OriginDBException("Failed to open the database.");
             }
-            Cursor c = null;
             long id;
             try {
                 db.beginTransaction();
                 ContentValues values = new ContentValues();
-                values.put(PATTERN, pattern);
+                values.put(ORIGIN, origin);
+                values.put(TITLE, title);
+                values.put(DATE, date);
                 id = db.insert(TABLE_NAME, null, values);
                 if (id == -1) {
-                    throw new OriginPatternDBException("Failed to store origin pattern.");
+                    throw new OriginDBException("Failed to store origin.");
                 }
                 db.setTransactionSuccessful();
             } finally {
-                if (c != null) {
-                    c.close();
-                }
                 db.endTransaction();
                 db.close();
             }
@@ -217,26 +226,30 @@ public class Whitelist {
         }
 
         /**
-         * Removes a origin pattern from this database.
-         * @param id row ID
-         * @throws OriginPatternDBException throws if database error occurred.
+         * Removes a origin from this database.
+         * @param origin the origin to be removed.
+         * @throws OriginDBException if the origin cannot be removed.
+         * @throws IllegalArgumentException if <code>id</code> equals -1. 
          */
-        void removePattern(final long id) throws OriginPatternDBException {
-            if (id < 0) {
-                throw new IllegalArgumentException("id is a negative number.");
+        void removeOrigin(final OriginInfo origin) throws OriginDBException {
+            if (origin.mId == -1) {
+                throw new IllegalArgumentException("The row ID is illegal.");
             }
 
             SQLiteDatabase db = openDB();
             if (db == null) {
-                throw new OriginPatternDBException("Failed to open the database.");
+                throw new OriginDBException("Failed to open origin whitelist database.");
             }
             try {
-                int count = db.delete(TABLE_NAME, ID + "=" + id, null);
+                db = getWritableDatabase();
+                int count = db.delete(TABLE_NAME, ID + "=" + origin.mId, null);
                 if (count != 1) {
-                    throw new OriginPatternDBException("Failed to store origin pattern.");
+                    throw new OriginDBException("Failed to remove origin: " + origin.mOrigin);
                 }
             } finally {
-                db.close();
+                if (db != null) {
+                    db.close();
+                }
             }
         }
 
@@ -245,30 +258,31 @@ public class Whitelist {
          * 
          * @return An instance of the database
          */
-        SQLiteDatabase openDB() {
-            SQLiteDatabase db;
-            try {
-                db = getWritableDatabase();
-            } catch (SQLiteException e) {
-                db = null;
-            }
-            return db;
+         SQLiteDatabase openDB() {
+             SQLiteDatabase db;
+             try {
+                 db = getWritableDatabase();
+             } catch (SQLiteException e) {
+                 db = null;
+             }
+             return db;
         }
+
     }
 
     /**
-     * Exception of origin pattern database management.
+     * Exception of origin database management.
      */
-    private static class OriginPatternDBException extends Exception {
+    private static class OriginDBException extends Exception {
 
         /** Serial Version UID. */
         private static final long serialVersionUID = 1L;
-        
+
         /**
          * Constructor.
-         * @param message an error message
+         * @param message the detail message for this exception.
          */
-        public OriginPatternDBException(final String message) {
+        public OriginDBException(final String message) {
             super(message);
         }
     }

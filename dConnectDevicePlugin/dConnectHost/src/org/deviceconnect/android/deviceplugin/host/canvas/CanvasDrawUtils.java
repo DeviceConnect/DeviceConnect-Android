@@ -102,7 +102,7 @@ public final class CanvasDrawUtils {
                 options.inJustDecodeBounds = true;
                 BitmapFactory.decodeByteArray(buf, 0, buf.length, options);
                 return options.outWidth > 0 && options.outHeight > 0;
-            } catch (Exception e) {
+            } catch (Throwable t) {
                 // format error if an error has occurred
                 return false;
             }

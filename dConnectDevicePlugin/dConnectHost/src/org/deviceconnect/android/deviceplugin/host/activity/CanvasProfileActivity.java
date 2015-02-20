@@ -105,17 +105,16 @@ public class CanvasProfileActivity extends Activity {
      * @param intent argument
      */
     private void setDrawingArgument(final Intent intent) {
-        if (intent == null) {
-            return;
+        if (intent != null) {
+            mIntent = intent;
         }
-        mIntent = intent;
     }
 
     /**
      * Refresh image.
      * @param intent Intent
      */
-    private void refreshImage(final Intent intent) {
+    private synchronized void refreshImage(final Intent intent) {
         CanvasDrawImageObject drawObj = CanvasDrawImageObject.create(intent);
         String uri = drawObj.getUri();
 

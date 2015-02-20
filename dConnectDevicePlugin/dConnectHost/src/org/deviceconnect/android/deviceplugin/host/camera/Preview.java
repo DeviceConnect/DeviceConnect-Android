@@ -13,15 +13,17 @@ import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
 
 import android.content.Context;
-import android.content.Intent;
+import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 /**
@@ -94,6 +96,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         mCamera = camera;
         if (mCamera != null) {
             mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
+            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, 640, 480);
             requestLayout();
         }
     }
@@ -167,9 +170,9 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             if (mCamera != null) {
                 mCamera.setPreviewDisplay(holder);
             }
-        } catch (IOException exception) {
+        } catch (IOException e) {
             if (BuildConfig.DEBUG) {
-                Log.e(LOG_TAG, "IOException caused by setPreviewDisplay()", exception);
+                Log.e(LOG_TAG, "IOException caused by setPreviewDisplay()", e);
             }
         }
     }
@@ -182,21 +185,25 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         }
     }
 
-
     @Override
     public void surfaceChanged(final SurfaceHolder holder, final int format, final int w, final int h) {
         // Now that the size is known, set up the camera parameters and begin
         // the preview.
         if (mCamera != null) {
+            int rot = getCameraDisplayOrientation(getContext());
+
             Camera.Parameters parameters = mCamera.getParameters();
             parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
-            requestLayout();
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+            parameters.setRotation(rot);
 
+            mCamera.setDisplayOrientation(rot);
             mCamera.setParameters(parameters);
             mCamera.startPreview();
         }
     }
 
+    
     /**
      * 最適なプレビューサイズを取得する. 指定されたサイズに最適なものがない場合にはnullを返却する。
      * 
@@ -243,6 +250,42 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
     }
 
     /**
+     * カメラの向きを取得する.
+     * @param context コンテキスト
+     * @return カメラの向き
+     */
+    public int getCameraDisplayOrientation(final Context context) {
+        WindowManager mgr = (WindowManager) context
+                .getSystemService(Context.WINDOW_SERVICE);
+        int rot = mgr.getDefaultDisplay().getRotation();
+        int base = 90;
+
+        Configuration config = getContext().getResources().getConfiguration();
+        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE 
+                && (rot == Surface.ROTATION_0 || rot == Surface.ROTATION_180)) {
+            base = 0;
+        }
+
+        int degree = 0;
+        switch (rot) {
+        default:
+        case Surface.ROTATION_0:
+            degree = 0;
+            break;
+        case Surface.ROTATION_90:
+            degree = 90;
+            break;
+        case Surface.ROTATION_180:
+            degree = 180;
+            break;
+        case Surface.ROTATION_270:
+            degree = 270;
+            break;
+        }
+        return (base + 360 - degree) % 360;
+    }
+
+    /**
      * 写真撮影を開始する.
      * 
      * @param callback callback.
@@ -278,20 +321,6 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         String debugToast = getResources().getString(R.string.zoomin) + " requestid:" + mRequestid;
         Toast.makeText(getContext(), debugToast, Toast.LENGTH_SHORT).show();
 
-        /* リクエストIDが登録されていたら、撮影完了後にホストデバイスプラグインへズームイン完了通知を送信する */
-        if (mRequestid != null) {
-            Context context = getContext();
-            Intent intent = new Intent(CameraConst.SEND_CAMERA_TO_HOSTDP);
-            intent.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-            intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_ZOOMIN);
-            intent.putExtra(CameraConst.EXTRA_REQUESTID, mRequestid);
-            context.sendBroadcast(intent);
-            if (BuildConfig.DEBUG) {
-                Log.d(LOG_TAG, "sendBroadcast() - action:" + CameraConst.SEND_CAMERA_TO_HOSTDP + " name:"
-                        + CameraConst.EXTRA_NAME_ZOOMIN + " mRequestid:" + mRequestid);
-            }
-        }
-
         if (BuildConfig.DEBUG) {
             Log.d(LOG_TAG, "zoomIn() end");
         }
@@ -321,20 +350,6 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         String debugToast = getResources().getString(R.string.zoomout) + " requestid:" + mRequestid;
         Toast.makeText(getContext(), debugToast, Toast.LENGTH_SHORT).show();
 
-        /* リクエストIDが登録されていたら、撮影完了後にホストデバイスプラグインへズームアウト完了通知を送信する */
-        if (mRequestid != null) {
-            Context context = getContext();
-            Intent intent = new Intent(CameraConst.SEND_CAMERA_TO_HOSTDP);
-            intent.setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-            intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_ZOOMOUT);
-            intent.putExtra(CameraConst.EXTRA_REQUESTID, mRequestid);
-            context.sendBroadcast(intent);
-            if (BuildConfig.DEBUG) {
-                Log.d(LOG_TAG, "sendBroadcast() - action:" + CameraConst.SEND_CAMERA_TO_HOSTDP + " name:"
-                        + CameraConst.EXTRA_NAME_ZOOMOUT + " mRequestid:" + mRequestid);
-            }
-        }
-
         if (BuildConfig.DEBUG) {
             Log.d(LOG_TAG, "zoomOut() end");
         }
@@ -351,4 +366,6 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             // NOP
         }
     };
+    
+    
 }

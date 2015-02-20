@@ -12,21 +12,15 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.audio.AudioConst;
 import org.deviceconnect.android.deviceplugin.host.audio.AudioRecorder;
-import org.deviceconnect.android.deviceplugin.host.camera.CameraActivity;
-import org.deviceconnect.android.deviceplugin.host.camera.CameraConst;
+import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay.OnTakePhotoListener;
 import org.deviceconnect.android.deviceplugin.host.video.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.video.VideoRecorder;
-import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -79,22 +73,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat(
             "yyyyMMdd_kkmmss", Locale.JAPAN);
 
-    /**
-     * リクエストマップ.
-     * - Key: カメラリクエストID - Val: カメラ応答Broadcast 未受信ならnull /
-     * 受信済なら画像URI(画像ID)
-     */
-    private static Map<String, String> sRequestMap = new ConcurrentHashMap<String, String>();
-
-    /**
-     * リクエストマップを取得する.
-     * 
-     * @return リクエストマップ
-     */
-    public static Map<String, String> getRequestMap() {
-        return sRequestMap;
-    }
-
     @Override
     protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String serviceId) {
         if (serviceId == null) {
@@ -102,6 +80,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         } else if (!checkserviceId(serviceId)) {
             createNotFoundService(response);
         } else {
+            HostDeviceService c = ((HostDeviceService) getContext());
             String className = getClassnameOfTopActivity();
             List<Bundle> recorders = new LinkedList<Bundle>();
 
@@ -111,7 +90,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             setRecorderImageWidth(cameraRecorder, VideoConst.VIDEO_WIDTH);
             setRecorderImageHeight(cameraRecorder, VideoConst.VIDEO_HEIGHT);
             setRecorderMIMEType(cameraRecorder, "image/png");
-            if (CameraActivity.class.getName().equals(className)) {
+            if (c.isShowCamera()) {
                 setRecorderState(cameraRecorder, RecorderState.RECORDING);
             } else {
                 setRecorderState(cameraRecorder, RecorderState.INACTIVE);
@@ -179,9 +158,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     @Override
     protected boolean onPostTakePhoto(final Intent request, final Intent response, final String serviceId,
             final String target) {
-        // カメラアプリにシャッター通知
-        final String requestid = "" + UUID.randomUUID().hashCode();
-
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
@@ -189,78 +165,29 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundService(response);
             return true;
         } else {
-
             if (target != null && !PHOTO_TARGET_ID.equals(target)) {
                 MessageUtils.setInvalidRequestParameterError(response,
                         "target is invalid.");
                 return true;
             }
 
-            String className = getClassnameOfTopActivity();
-            if (CameraActivity.class.getName().equals(className)) {
-                // カメラアプリがすでに前にある
-                Intent intent = new Intent();
-                intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
-                intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
-                intent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
-                getContext().sendBroadcast(intent);
-            } else {
-                // カメラアプリを起動
-                Intent intent = new Intent();
-                intent.setClass(getContext(), CameraActivity.class);
-                intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_SHUTTER);
-                intent.putExtra(CameraConst.EXTRA_REQUESTID, requestid);
-                getContext().startActivity(intent);
-            }
-
-            new Thread(new Runnable() {
+            HostDeviceService c = ((HostDeviceService) getContext());
+            c.takePicture(new OnTakePhotoListener() {
                 @Override
-                public void run() {
-                    final long pollingWaitTimeout = 10000;
-                    final long pollingWaitTime = 500;
-                    long now = System.currentTimeMillis();
-                    try {
-                        do {
-                            Thread.sleep(pollingWaitTime);
-                        } while (sRequestMap.get(requestid) == null
-                                && System.currentTimeMillis() - now < pollingWaitTimeout);
-                    } catch (InterruptedException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    String pictureUri = sRequestMap.remove(requestid);
-                    if (pictureUri == null) {
-                        setResult(response, DConnectMessage.RESULT_ERROR);
-                        getContext().sendBroadcast(response);
-                        return;
-                    }
-
-                    // レスポンスを返す
+                public void onTakenPhoto(final String uri) {
                     setResult(response, DConnectMessage.RESULT_OK);
-                    setUri(response, pictureUri);
+                    setUri(response, uri);
                     getContext().sendBroadcast(response);
-
-                    List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                            PROFILE_NAME, null, ATTRIBUTE_ON_PHOTO);
-                    for (int i = 0; i < events.size(); i++) {
-                        Intent intent = EventManager.createEventMessage(events.get(i));
-                        Bundle photo = new Bundle();
-                        setPath(photo, pictureUri);
-                        setMIMEType(photo, "image/png");
-                        setPhoto(intent, photo);
-                        getContext().sendBroadcast(intent);
-                    }
                 }
-            }).start();
+                @Override
+                public void onFailedTakePhoto() {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to take a photo");
+                    getContext().sendBroadcast(response);
+                }
+            });
+            return false;
         }
-
-        mLogger.exiting(getClass().getName(), "onPostReceive", false);
-        return false;
-
     }
 
     @Override
@@ -277,24 +204,9 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 setResult(response, DConnectMessage.RESULT_OK);
                 setUri(response, uri);
             } else {
-                MessageUtils.setIllegalServerStateError(response, 
+                MessageUtils.setIllegalServerStateError(response,
                         "Failed to start web server.");
                 return true;
-            }
-
-            String className = getClassnameOfTopActivity();
-            if (CameraActivity.class.getName().equals(className)) {
-                Intent intent = new Intent();
-                intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
-                intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_PREVIEW);
-                getContext().sendBroadcast(intent);
-            } else {
-                Intent intent = new Intent();
-                intent.setClass(getContext(), CameraActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
-                intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_PREVIEW);
-                getContext().startActivity(intent);
             }
             return true;
         }
@@ -310,13 +222,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         } else {
             ((HostDeviceService) getContext()).stopWebServer();
-            String className = getClassnameOfTopActivity();
-            if (CameraActivity.class.getName().equals(className)) {
-                Intent intent = new Intent();
-                intent.setAction(CameraConst.SEND_HOSTDP_TO_CAMERA);
-                intent.putExtra(CameraConst.EXTRA_NAME, CameraConst.EXTRA_NAME_FINISH);
-                getContext().sendBroadcast(intent);
-            }
             setResult(response, DConnectMessage.RESULT_OK);
             return true;
         }

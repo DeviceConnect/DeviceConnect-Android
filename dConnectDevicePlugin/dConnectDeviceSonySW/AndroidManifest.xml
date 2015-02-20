@@ -24,14 +24,13 @@
         <!-- 設定画面 -->
         <activity android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity" >
         </activity>
-        
         <activity
             android:name="org.deviceconnect.android.deviceplugin.sw.setting.SWSettingMainActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
-            
         </activity>
-        <activity android:name="org.deviceconnect.android.deviceplugin.sw.setting.SWSettingStepsActivity"
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.sw.setting.SWSettingStepsActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" />
 
@@ -57,8 +56,11 @@
             </intent-filter>
         </receiver>
 
-        <service android:name="org.deviceconnect.android.deviceplugin.sw.SWService" >
+        <service
+            android:name="org.deviceconnect.android.deviceplugin.sw.SWService"
+            android:exported="false" >
         </service>
+
         <!-- 再起動用のServcie. -->
         <service
             android:name="org.deviceconnect.android.message.DConnectLaunchService"
@@ -67,10 +69,12 @@
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:value="enable" />
         </service>
-        
+
         <!-- LocalOAuth -->
-        <activity android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:theme="@style/AppTheme.Translucent">
+        <activity
+            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
+            android:excludeFromRecents="true"
+            android:exported="false" >
         </activity>
 
         <service

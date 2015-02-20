@@ -29,6 +29,11 @@ public final class CanvasDrawUtils {
     private static final int BUF_SIZE = 4096;
 
     /**
+     * Defined a size of size.
+     */
+    private static final int MAX_SIZE = 2048;
+
+    /**
      * Constructor.
      */
     private CanvasDrawUtils() {
@@ -101,7 +106,11 @@ public final class CanvasDrawUtils {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inJustDecodeBounds = true;
                 BitmapFactory.decodeByteArray(buf, 0, buf.length, options);
-                return options.outWidth > 0 && options.outHeight > 0;
+                if (options.outWidth > MAX_SIZE || options.outHeight > MAX_SIZE) {
+                    return false;
+                } else {
+                    return options.outWidth > 0 && options.outHeight > 0;
+                }
             } catch (Throwable t) {
                 // format error if an error has occurred
                 return false;

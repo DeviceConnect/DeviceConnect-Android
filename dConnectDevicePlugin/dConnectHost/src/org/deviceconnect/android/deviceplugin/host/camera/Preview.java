@@ -14,6 +14,7 @@ import org.deviceconnect.android.deviceplugin.host.R;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.util.AttributeSet;
@@ -34,6 +35,20 @@ import android.widget.Toast;
 class Preview extends ViewGroup implements SurfaceHolder.Callback {
     /** デバック用タグ. */
     public static final String LOG_TAG = "DeviceConnectCamera:Preview";
+
+    /**
+     * プレビューの横幅の閾値を定義する.
+     * <p>
+     * これ以上の横幅のプレビューは設定させない。
+     */
+    private static final int THRESHOLD_WIDTH = 500;
+
+    /**
+     * プレビューの縦幅の閾値を定義する.
+     * <p>
+     * これ以上の縦幅のプレビューは設定させない。
+     */
+    private static final int THRESHOLD_HEIGHT = 400;
 
     /** プレビューを表示するSurfaceView. */
     private SurfaceView mSurfaceView;
@@ -96,7 +111,8 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         mCamera = camera;
         if (mCamera != null) {
             mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
-            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, 640, 480);
+            Point size = getDisplaySize(getContext());
+            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, size.x, size.y);
             requestLayout();
         }
     }
@@ -130,9 +146,9 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(width, height);
-
         if (mSupportedPreviewSizes != null) {
-            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
+            Point size = getDisplaySize(getContext());
+            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, size.x, size.y);
         }
     }
 
@@ -203,7 +219,6 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         }
     }
 
-    
     /**
      * 最適なプレビューサイズを取得する. 指定されたサイズに最適なものがない場合にはnullを返却する。
      * 
@@ -247,6 +262,25 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             }
         }
         return optimalSize;
+    }
+
+    /**
+     * 画面サイズを取得する.
+     * @param context コンテキスト
+     * @return 画面サイズ
+     */
+    private Point getDisplaySize(final Context context) {
+        WindowManager mgr = (WindowManager) context
+                .getSystemService(Context.WINDOW_SERVICE);
+        Point size = new Point();
+        mgr.getDefaultDisplay().getSize(size);
+        if (size.x > THRESHOLD_WIDTH) {
+            size.x = THRESHOLD_WIDTH;
+        }
+        if (size.y > THRESHOLD_HEIGHT) {
+            size.y = THRESHOLD_HEIGHT;
+        }
+        return size;
     }
 
     /**
@@ -366,6 +400,4 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             // NOP
         }
     };
-    
-    
 }

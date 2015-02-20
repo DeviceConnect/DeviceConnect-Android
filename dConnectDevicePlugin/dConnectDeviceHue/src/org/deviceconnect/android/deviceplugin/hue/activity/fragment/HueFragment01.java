@@ -109,8 +109,8 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
     };
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-            final Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater,
+            final ViewGroup container, final Bundle savedInstanceState) {
 
         View mRootView = inflater.inflate(R.layout.hue_fragment_01, container, false);
 
@@ -175,7 +175,6 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
         sm.search(true, true);
     }
 
-
     @Override
     public void onClick(final View v) {
 
@@ -185,26 +184,20 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
     }
 
     @Override
-    public void onItemClick(final AdapterView<?> parent,
-            final View view, final int position, final long id) {
-        try {
+    public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+        FragmentManager manager = getFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
 
-            FragmentManager manager = getFragmentManager();
-            FragmentTransaction transaction = manager.beginTransaction();
+        transaction.setCustomAnimations(R.anim.fragment_slide_right_enter, R.anim.fragment_slide_left_exit,
+                R.anim.fragment_slide_left_enter, R.anim.fragment_slide_right_exit);
 
-            transaction.setCustomAnimations(R.anim.fragment_slide_right_enter, R.anim.fragment_slide_left_exit,
-                    R.anim.fragment_slide_left_enter, R.anim.fragment_slide_right_exit);
+        // 選択されたアクセスポイントからMacアドレス, IPアドレスを取得.
+        PHAccessPoint mAccessPoint = (PHAccessPoint) mAdapter.getItem(position);
 
-            // 選択されたアクセスポイントからMacアドレス, IPアドレスを取得.
-            PHAccessPoint mAccessPoint = (PHAccessPoint) mAdapter.getItem(position);
+        // 次のFragmentに遷移.
+        transaction.replace(R.id.fragment_frame, HueFragment02.newInstance(mAccessPoint));
+        transaction.commit();
 
-            // 次のFragmentに遷移.
-            transaction.replace(R.id.fragment_frame, HueFragment02.newInstance(mAccessPoint));
-            transaction.commit();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -218,6 +211,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
         /**
          * コンストラクタ.
+         * 
          * @param context コンテキスト
          * @param accessPoint Access Point
          */
@@ -228,6 +222,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
         /**
          * Access Pointリストのアップデートを行う.
+         * 
          * @param accessPoint Access Point
          */
         public void updateData(final List<PHAccessPoint> accessPoint) {
@@ -244,13 +239,9 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
             TextView mTextView = (TextView) rowView.findViewById(R.id.row_textview1);
 
-            try {
-                String listTitle = mAccessPoint.get(position).getMacAddress() + "("
-                        + mAccessPoint.get(position).getIpAddress() + ")";
-                mTextView.setText(listTitle);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            String listTitle = mAccessPoint.get(position).getMacAddress() + "("
+                    + mAccessPoint.get(position).getIpAddress() + ")";
+            mTextView.setText(listTitle);
 
             return rowView;
         }

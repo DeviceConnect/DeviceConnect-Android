@@ -87,4 +87,26 @@ public final class CanvasDrawUtils {
             }
         }
     }
+
+    /**
+     * Checks whether uri is valid.
+     * @param context context
+     * @param uri uri
+     * @return true if uri is valid, false otherwise
+     */
+    public static boolean checkBitmap(final Context context, final String uri) {
+        byte[] buf = getContentData(context, uri);
+        if (buf != null) {
+            try {
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeByteArray(buf, 0, buf.length, options);
+                return options.outWidth > 0 && options.outHeight > 0;
+            } catch (Exception e) {
+                // format error if an error has occurred
+                return false;
+            }
+        }
+        return false;
+    }
 }

@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 
 import org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
+import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -58,7 +59,7 @@ public class HostCanvasProfile extends CanvasProfile {
             final String serviceId, final String mimeType, final String uri, 
             final double x, final double y, final String mode) {
         if (uri == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "uri is not specied to update a file.");
+            MessageUtils.setInvalidRequestParameterError(response, "data is not specied to update a file.");
             return true;
         }
 
@@ -67,24 +68,25 @@ public class HostCanvasProfile extends CanvasProfile {
             return true;
         }
 
-        // convert mode (if null, invalid value)
         CanvasDrawImageObject.Mode enumMode = CanvasDrawImageObject.convertMode(mode);
         if (enumMode == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }
 
-        // storing parameter to draw object.
+        if (!CanvasDrawUtils.checkBitmap(getContext(), uri)) {
+            MessageUtils.setInvalidRequestParameterError(response, "Data format is invalid.");
+            return true;
+        }
+
         CanvasDrawImageObject drawObj = new CanvasDrawImageObject(uri, enumMode, x, y);
 
-        // start CanvasProfileActivity
         Intent intent = new Intent();
         intent.setClass(getContext(), CanvasProfileActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         drawObj.setValueToIntent(intent);
         getContext().startActivity(intent);
 
-        // return result.
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }

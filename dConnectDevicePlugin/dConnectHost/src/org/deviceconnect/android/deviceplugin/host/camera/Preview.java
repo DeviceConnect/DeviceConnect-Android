@@ -216,7 +216,38 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             mCamera.setDisplayOrientation(rot);
             mCamera.setParameters(parameters);
             mCamera.startPreview();
+
+            mPreviewFormat = parameters.getPreviewFormat();
         }
+    }
+
+    /**
+     * プレビューのフォーマット.
+     */
+    private int mPreviewFormat;
+    
+    /**
+     * プレビューのフォーマットを取得する.
+     * @return プレビューのフォーマット
+     */
+    public int getPreviewFormat() {
+        return mPreviewFormat;
+    }
+
+    /**
+     * プレビューの横幅を取得する.
+     * @return 横幅
+     */
+    public int getPreviewWidth() {
+        return mPreviewSize.width;
+    }
+
+    /**
+     * プレビューの縦幅を取得する.
+     * @return 縦幅
+     */
+    public int getPreviewHeight() {
+        return mPreviewSize.height;
     }
 
     /**

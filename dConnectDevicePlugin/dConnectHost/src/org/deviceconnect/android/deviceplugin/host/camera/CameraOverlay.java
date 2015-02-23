@@ -331,9 +331,9 @@ public class CameraOverlay implements Camera.PreviewCallback {
         camera.setPreviewCallback(null);
 
         if (mServer != null) {
-            int format = camera.getParameters().getPreviewFormat();
-            int width = camera.getParameters().getPreviewSize().width;
-            int height = camera.getParameters().getPreviewSize().height;
+            int format = mPreview.getPreviewFormat();
+            int width = mPreview.getPreviewWidth();
+            int height = mPreview.getPreviewHeight();
 
             YuvImage yuvimage = new YuvImage(data, format, width, height, null);
             Rect rect = new Rect(0, 0, width, height);

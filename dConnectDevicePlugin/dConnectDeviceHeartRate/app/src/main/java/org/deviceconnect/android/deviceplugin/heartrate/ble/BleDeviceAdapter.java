@@ -20,6 +20,7 @@ public abstract class BleDeviceAdapter {
     public abstract BluetoothDevice getDevice(String address);
     public abstract Set<BluetoothDevice> getBondedDevices();
     public abstract boolean isEnabled();
+    public abstract boolean checkBluetoothAddress(String address);
     public static interface BleDeviceScanCallback {
         void onLeScan(BluetoothDevice device, int rssi);
     }

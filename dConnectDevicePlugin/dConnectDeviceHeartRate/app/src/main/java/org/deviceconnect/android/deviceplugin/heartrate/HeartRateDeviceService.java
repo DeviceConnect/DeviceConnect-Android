@@ -25,11 +25,15 @@ import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
+import java.util.logging.Logger;
+
 /**
  * This service provide Health Profile.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateDeviceService extends DConnectMessageService {
+    /** Logger. */
+    private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
 
     /**
      * Received a event that Bluetooth has been changed.
@@ -59,9 +63,11 @@ public class HeartRateDeviceService extends DConnectMessageService {
         super.onCreate();
 
         if (!BleUtils.isBLESupported(this)) {
+            mLogger.warning("BLE not supported.");
             stopSelf();
             return;
         }
+        mLogger.fine("HeartRateDeviceService start.");
 
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
@@ -77,6 +83,7 @@ public class HeartRateDeviceService extends DConnectMessageService {
     public void onDestroy() {
         super.onDestroy();
         unregisterBlutoothFilter();
+        mLogger.fine("HeartRateDeviceService end.");
     }
 
     @Override

@@ -65,6 +65,11 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
         return mBluetoothAdapter.isEnabled();
     }
 
+    @Override
+    public boolean checkBluetoothAddress(final String address) {
+        return BluetoothAdapter.checkBluetoothAddress(address);
+    }
+
     private final ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(final int callbackType, final ScanResult result) {

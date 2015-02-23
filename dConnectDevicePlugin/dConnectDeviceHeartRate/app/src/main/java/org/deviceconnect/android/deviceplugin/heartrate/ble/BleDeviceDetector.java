@@ -10,7 +10,9 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
+import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.heartrate.BuildConfig;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.adapter.NewBleDeviceAdapterImpl;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.adapter.OldBleDeviceAdapterImpl;
 
@@ -24,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * This class to detect the BLE device.
+ *
  * @author NTT DOCOMO, INC.
  */
 public class BleDeviceDetector {
@@ -50,7 +53,7 @@ public class BleDeviceDetector {
     /**
      * Stops scanning after 1 second.
      */
-    private static final long SCAN_PERIOD = 1000;
+    private static final long SCAN_PERIOD = 2000;
 
     private Context mContext;
     private BleDeviceAdapter mBleAdapter;
@@ -64,6 +67,7 @@ public class BleDeviceDetector {
 
     /**
      * Constructor.
+     *
      * @param context context of this application
      */
     public BleDeviceDetector(final Context context) {
@@ -81,6 +85,7 @@ public class BleDeviceDetector {
 
     /**
      * Constructor.
+     *
      * @param context context of this application
      * @param factory factory class
      */
@@ -92,6 +97,7 @@ public class BleDeviceDetector {
 
     /**
      * Get a context.
+     *
      * @return context
      */
     public Context getContext() {
@@ -109,6 +115,7 @@ public class BleDeviceDetector {
 
     /**
      * Get a state of scan.
+     *
      * @return true if scanning a BLE
      */
     public boolean isScanning() {
@@ -117,6 +124,7 @@ public class BleDeviceDetector {
 
     /**
      * Return true if Bluetooth is currently enabled and ready for use.
+     *
      * @return true if the local adapter is turned on
      */
     public boolean isEnabled() {
@@ -128,6 +136,7 @@ public class BleDeviceDetector {
 
     /**
      * Sets a BluetoothDiscoveryListener.
+     *
      * @param listener Notify that discovered the bluetooth device
      */
     public void setListener(final BleDeviceDiscoveryListener listener) {
@@ -154,6 +163,7 @@ public class BleDeviceDetector {
 
     /**
      * Gets a BluetoothDevice from address.
+     *
      * @param address bluetooth address
      * @return instance of BluetoothDevice, null if not found device
      */
@@ -166,6 +176,7 @@ public class BleDeviceDetector {
 
     /**
      * Gets the set of BluetoothDevice that are bonded (paired) to the local adapter.
+     *
      * @return set of BluetoothDevice, or null on error
      */
     public Set<BluetoothDevice> getBondedDevices() {
@@ -175,8 +186,13 @@ public class BleDeviceDetector {
         return mBleAdapter.getBondedDevices();
     }
 
+    public boolean checkBluetoothAddress(String address) {
+        return mBleAdapter.checkBluetoothAddress(address);
+    }
+
     /**
      * Sets the scan state of BLE.
+     *
      * @param enable Start the scan if enable is true. Stop the scan if enable is false
      */
     private synchronized void scanLeDevice(final boolean enable) {
@@ -199,7 +215,7 @@ public class BleDeviceDetector {
                         @Override
                         public void run() {
                             if (mBleAdapter.isEnabled()) {
-                                mBleAdapter.stopScan(mScanCallback);
+                                stopBleScan();
                                 notifyBluetoothDevice();
                             } else {
                                 mScanTimerFuture.cancel(true);
@@ -216,10 +232,24 @@ public class BleDeviceDetector {
             }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);
         } else {
             mScanning = false;
-            mBleAdapter.stopScan(mScanCallback);
+            stopBleScan();
             if (mScanTimerFuture != null) {
                 mScanTimerFuture.cancel(true);
                 mScanTimerFuture = null;
+            }
+        }
+    }
+
+    /**
+     * Stops BLE scan.
+     */
+    private void stopBleScan() {
+        try {
+            mBleAdapter.stopScan(mScanCallback);
+        } catch (Exception e) {
+            // Exception occurred when the BLE state is invalid.
+            if (BuildConfig.DEBUG) {
+                Log.e("heartrate.dplugin", "", e);
             }
         }
     }
@@ -238,13 +268,13 @@ public class BleDeviceDetector {
      */
     private final BleDeviceAdapter.BleDeviceScanCallback mScanCallback =
             new BleDeviceAdapter.BleDeviceScanCallback() {
-        @Override
-        public void onLeScan(final BluetoothDevice device, final int rssi) {
-            if (!mDevices.contains(device)) {
-                mDevices.add(device);
-            }
-        }
-    };
+                @Override
+                public void onLeScan(final BluetoothDevice device, final int rssi) {
+                    if (!mDevices.contains(device)) {
+                        mDevices.add(device);
+                    }
+                }
+            };
 
     /**
      * This listener to be notified when discovered the BLE device.
@@ -252,6 +282,7 @@ public class BleDeviceDetector {
     public static interface BleDeviceDiscoveryListener {
         /**
          * Discovered the BLE device.
+         *
          * @param devices BLE device list
          */
         void onDiscovery(List<BluetoothDevice> devices);

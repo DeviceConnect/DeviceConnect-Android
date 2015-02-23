@@ -166,9 +166,11 @@ public class HeartRateConnector {
                 synchronized (mRegisterDevices) {
                     for (String address : mRegisterDevices) {
                         if (!containGattMap(address)) {
-                            BluetoothDevice device = mBleDeviceDetector.getDevice(address);
-                            if (device != null) {
-                                connectDevice(device);
+                            if (mBleDeviceDetector.checkBluetoothAddress(address)) {
+                                BluetoothDevice device = mBleDeviceDetector.getDevice(address);
+                                if (device != null) {
+                                    connectDevice(device);
+                                }
                             }
                         }
                     }

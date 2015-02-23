@@ -332,7 +332,7 @@ public class HeartRateConnector {
                 }
                 break;
             case CONNECTED:
-                mLogger.fine("GATT Service is connected.");
+                mLogger.fine("@@@@@@ GATT Service is connected.");
                 break;
             default:
                 mLogger.warning("Illegal state. state=" + state);
@@ -358,13 +358,13 @@ public class HeartRateConnector {
             if ((buf[0] & 0x80) != 0) {
                 Integer v = characteristic.getIntValue(FORMAT_UINT16, offset);
                 if (v != null) {
-                    heartRate = v.intValue();
+                    heartRate = v;
                 }
                 offset += 2;
             } else {
                 Integer v = characteristic.getIntValue(FORMAT_UINT8, offset);
                 if (v != null) {
-                    heartRate = v.intValue();
+                    heartRate = v;
                 }
                 offset += 1;
             }
@@ -378,7 +378,7 @@ public class HeartRateConnector {
             if ((buf[0] & 0x10) != 0) {
                 Integer v = characteristic.getIntValue(FORMAT_UINT16, offset);
                 if (v != null) {
-                    energyExpended = v.intValue();
+                    energyExpended = v;
                 }
                 offset += 2;
             }
@@ -387,7 +387,7 @@ public class HeartRateConnector {
             if ((buf[0] & 0x08) != 0) {
                 Integer v = characteristic.getIntValue(FORMAT_UINT16, offset);
                 if (v != null) {
-                    rrInterval = ((double) v.intValue() / 1024.0) * 1000.0;
+                    rrInterval = ((double) v / 1024.0) * 1000.0;
                 }
             }
         }

@@ -290,6 +290,17 @@ public class HeartRateManager {
         return false;
     }
 
+    public boolean containConnectedHertRateDevice(final String address) {
+        synchronized (mConnectedDevices) {
+            for (HeartRateDevice d : mConnectedDevices) {
+                if (d.getAddress().equalsIgnoreCase(address)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Implementation of BleDeviceDiscoveryListener.
      */

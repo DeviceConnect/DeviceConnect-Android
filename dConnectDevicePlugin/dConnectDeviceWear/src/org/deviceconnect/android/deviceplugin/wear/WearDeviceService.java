@@ -26,8 +26,7 @@ import org.deviceconnect.android.profile.SystemProfile;
 import android.content.Intent;
 
 /**
- * Service.
- * 
+ * WearService.
  * 
  * @author NTT DOCOMO, INC.
  */

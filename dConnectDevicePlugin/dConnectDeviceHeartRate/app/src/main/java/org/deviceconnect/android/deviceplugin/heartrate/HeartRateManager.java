@@ -8,6 +8,8 @@ package org.deviceconnect.android.deviceplugin.heartrate;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.os.Handler;
+import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateDBHelper;
@@ -29,14 +31,17 @@ import static org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDete
  * This class manages the HeartRate device.
  * <p>
  * This class provides the following functions:
- *     <li>Scan ble device</li>
- *     <li>Connect a GATT of Heart Rate Service</li>
- *     <li>Get heart rate</li>
+ * <li>Scan ble device</li>
+ * <li>Connect a GATT of Heart Rate Service</li>
+ * <li>Get heart rate</li>
  * </p>
+ *
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateManager {
-    /** Logger. */
+    /**
+     * Logger.
+     */
     private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
 
     /**
@@ -45,29 +50,35 @@ public class HeartRateManager {
     private Context mContext;
 
     /**
-     * Instance of BleDeviceDetector.
+     * Instance of {@link BleDeviceDetector}.
      */
     private BleDeviceDetector mDetector;
 
     /**
-     * Instance of HeartRateConnector.
+     * Instance of {@link HeartRateConnector}.
      */
     private HeartRateConnector mConnector;
 
+    /**
+     * Instance of {@link HeartRateDBHelper}.
+     */
     private HeartRateDBHelper mDBHelper;
 
     private OnHeartRateDiscoveryListener mHRDiscoveryListener;
     private OnHeartRateEventListener mHREvtListener;
 
     // TODO: consider synchronized
-    private List<HeartRateDevice> mConnectedDevices = Collections.synchronizedList(
+    private final List<HeartRateDevice> mConnectedDevices = Collections.synchronizedList(
             new ArrayList<HeartRateDevice>());
-    private List<HeartRateDevice> mRegisterDevices = Collections.synchronizedList(
+    private final List<HeartRateDevice> mRegisterDevices = Collections.synchronizedList(
             new ArrayList<HeartRateDevice>());
-    private Map<HeartRateDevice, HeartRateData> mHRData = new ConcurrentHashMap<>();
+    private final Map<HeartRateDevice, HeartRateData> mHRData = new ConcurrentHashMap<>();
+
+    private Handler mHandler = new Handler();
 
     /**
      * Constructor.
+     *
      * @param context application context
      */
     public HeartRateManager(final Context context) {
@@ -96,6 +107,7 @@ public class HeartRateManager {
 
     /**
      * Sets a OnHeartRateDiscoveryListener.
+     *
      * @param listener The listener to be told when found device or connected device
      */
     public void setOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
@@ -104,6 +116,7 @@ public class HeartRateManager {
 
     /**
      * Sets a OnHeartRateEventListener.
+     *
      * @param listener The listener to be told when get a data of heart rate
      */
     public void setOnHeartRateEventListener(OnHeartRateEventListener listener) {
@@ -150,6 +163,7 @@ public class HeartRateManager {
 
     /**
      * Register the {@link HeartRateDevice} to database from BluetoothDevice.
+     *
      * @param device Instance of BluetoothDevice
      * @return {@link HeartRateDevice}
      */
@@ -165,6 +179,7 @@ public class HeartRateManager {
 
     /**
      * Unregister the {@link HeartRateDevice} to database from BluetoothDevice.
+     *
      * @param address address of device
      */
     private void unregisterHeartRateDevice(final String address) {
@@ -177,6 +192,7 @@ public class HeartRateManager {
 
     /**
      * Connect to GATT Server by address.
+     *
      * @param address address for ble device
      */
     public void connectBleDevice(final String address) {
@@ -188,6 +204,7 @@ public class HeartRateManager {
 
     /**
      * Disconnect to GATT Server by address.
+     *
      * @param address address for ble device
      */
     public void disconnectBleDevice(final String address) {
@@ -200,6 +217,7 @@ public class HeartRateManager {
 
     /**
      * Gets the list of BLE device that connected.
+     *
      * @return list of BLE device
      */
     public List<HeartRateDevice> getConnectedDevices() {
@@ -208,6 +226,7 @@ public class HeartRateManager {
 
     /**
      * Gets the list of BLE device that was registered to automatic connection.
+     *
      * @return list of BLE device
      */
     public List<HeartRateDevice> getRegisterDevices() {
@@ -216,6 +235,7 @@ public class HeartRateManager {
 
     /**
      * Gets the set of BluetoothDevice that are bonded (paired) to the local adapter.
+     *
      * @return set of BluetoothDevice, or null on error
      */
     public Set<BluetoothDevice> getBondedDevices() {
@@ -224,6 +244,7 @@ public class HeartRateManager {
 
     /**
      * Gets the {@link HeartRateData} from address.
+     *
      * @param address address of ble device
      * @return {@link HeartRateData}, or null on error
      */
@@ -234,6 +255,7 @@ public class HeartRateManager {
 
     /**
      * Gets the {@link HeartRateData} from {@link HeartRateDevice}.
+     *
      * @param device Instance of {@link HeartRateDevice}
      * @return {@link HeartRateData}, or null on error
      */
@@ -243,6 +265,7 @@ public class HeartRateManager {
 
     /**
      * Find the {@link HeartRateDevice} from address.
+     *
      * @param address address of ble device
      * @return {@link HeartRateDevice}, or null
      */
@@ -259,6 +282,7 @@ public class HeartRateManager {
 
     /**
      * Find the {@link HeartRateDevice} from address.
+     *
      * @param address address of ble device
      * @return {@link HeartRateDevice}, or null
      */
@@ -275,9 +299,10 @@ public class HeartRateManager {
 
     /**
      * Tests whether this mRegisterDevices contains the BluetoothDevice.
+     *
      * @param device device will be checked
      * @return true if object is an element of mRegisterDevices, false
-     *         otherwise
+     * otherwise
      */
     private boolean containRegisteredHeartRateDevice(final BluetoothDevice device) {
         synchronized (mRegisterDevices) {
@@ -290,7 +315,12 @@ public class HeartRateManager {
         return false;
     }
 
-    public boolean containConnectedHertRateDevice(final String address) {
+    /**
+     * Tests whether this mConnectedDevices contains the address.
+     * @param address address will be checked
+     * @return true if address is an element of mConnectedDevices, false otherwise
+     */
+    public boolean containConnectedHeartRateDevice(final String address) {
         synchronized (mConnectedDevices) {
             for (HeartRateDevice d : mConnectedDevices) {
                 if (d.getAddress().equalsIgnoreCase(address)) {
@@ -331,18 +361,52 @@ public class HeartRateManager {
             if (mHRDiscoveryListener != null) {
                 mHRDiscoveryListener.onConnected(device);
             }
+
+            // DEBUG
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String name = device.getName();
+                        if (name == null) {
+                            name = device.getAddress();
+                        }
+                        Toast.makeText(mContext, "Connect to " + name,
+                                Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        mLogger.warning("Exception occurred.");
+                    }
+                }
+            });
         }
 
         @Override
         public void onDisconnected(final BluetoothDevice device) {
             mLogger.fine("HeartRateConnectEventListener#onDisconnected: [" + device + "]");
             HeartRateDevice hr = findConnectedHeartRateDeviceByAddress(device.getAddress());
-            if (hr == null && !containRegisteredHeartRateDevice(device)) {
+            if (hr == null || !containRegisteredHeartRateDevice(device)) {
                 if (mHRDiscoveryListener != null) {
                     mHRDiscoveryListener.onConnectFailed(device);
                 }
             } else {
                 mConnectedDevices.remove(hr);
+
+                // DEBUG
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            String name = device.getName();
+                            if (name == null) {
+                                name = device.getAddress();
+                            }
+                            Toast.makeText(mContext, "Disconnect to " + name,
+                                    Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            mLogger.warning("Exception occurred.");
+                        }
+                    }
+                });
             }
         }
 
@@ -367,7 +431,7 @@ public class HeartRateManager {
 
         @Override
         public void onReceivedData(final BluetoothDevice device, final int heartRate,
-                final int energyExpended, final double rrInterval) {
+                                   final int energyExpended, final double rrInterval) {
             mLogger.fine("HeartRateConnectEventListener#onReceivedData: [" + device + "]");
             HeartRateDevice hr = findRegisteredHeartRateDeviceByAddress(device.getAddress());
             if (hr == null) {
@@ -393,7 +457,9 @@ public class HeartRateManager {
      */
     public static interface OnHeartRateDiscoveryListener {
         void onDiscovery(List<BluetoothDevice> devices);
+
         void onConnected(BluetoothDevice device);
+
         void onConnectFailed(BluetoothDevice device);
     }
 

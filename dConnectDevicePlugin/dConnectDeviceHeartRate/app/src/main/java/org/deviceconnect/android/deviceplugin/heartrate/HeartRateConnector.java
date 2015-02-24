@@ -438,7 +438,7 @@ public class HeartRateConnector {
                 // connect error
                 gatt.close();
                 if (mListener != null) {
-                    mListener.onDisconnected(gatt.getDevice());
+                    mListener.onConnectFailed(gatt.getDevice());
                 }
             }
         }

@@ -10,7 +10,6 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -390,17 +389,20 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
             final DeviceContainer device = getItem(position);
 
+            String name = device.getName();
+            if (device.isRegisterFlag()) {
+                if (getManager().containConnectedHeartRateDevice(device.getAddress())) {
+                    name += " " + getResources().getString(R.string.heart_rate_setting_online);
+                } else {
+                    name += " " + getResources().getString(R.string.heart_rate_setting_offline);
+                }
+            }
+
             TextView nameView = (TextView) convertView.findViewById(R.id.device_name);
-            nameView.setText(device.getName());
+            nameView.setText(name);
 
             TextView addressView = (TextView) convertView.findViewById(R.id.device_address);
             addressView.setText(device.getAddress());
-
-            if (getManager().containConnectedHertRateDevice(device.getAddress())) {
-                convertView.setBackgroundColor(Color.WHITE);
-            } else {
-                convertView.setBackgroundColor(Color.rgb(230, 230, 230));
-            }
 
             Button btn = (Button) convertView.findViewById(R.id.btn_connect_device);
             if (device.isRegisterFlag()) {

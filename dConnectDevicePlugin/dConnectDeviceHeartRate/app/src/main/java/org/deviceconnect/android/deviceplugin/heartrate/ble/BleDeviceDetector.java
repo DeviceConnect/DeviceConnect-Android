@@ -224,7 +224,7 @@ public class BleDeviceDetector {
                     }, SCAN_PERIOD);
                     if (mBleAdapter.isEnabled()) {
                         mDevices.clear();
-                        mBleAdapter.startScan(mScanCallback);
+                        startBleScan();
                     } else {
                         mScanTimerFuture.cancel(true);
                     }
@@ -241,7 +241,21 @@ public class BleDeviceDetector {
     }
 
     /**
-     * Stops BLE scan.
+     * Starts a BLE scan.
+     */
+    private void startBleScan() {
+        try {
+            mBleAdapter.startScan(mScanCallback);
+        } catch (Exception e) {
+            // Exception occurred when the BLE state is invalid.
+            if (BuildConfig.DEBUG) {
+                Log.e("heartrate.dplugin", "", e);
+            }
+        }
+    }
+
+    /**
+     * Stops a BLE scan.
      */
     private void stopBleScan() {
         try {

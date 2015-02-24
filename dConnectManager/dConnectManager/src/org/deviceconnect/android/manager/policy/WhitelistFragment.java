@@ -450,7 +450,8 @@ public class WhitelistFragment extends Fragment {
                     origin.append(uri.getHost());
                 }
                 if (uri.getPort() > -1) {
-                    origin.append(uri.getHost());
+                    origin.append(":");
+                    origin.append(uri.getPort());
                 }
                 return origin.toString();
             } catch (URISyntaxException e) {

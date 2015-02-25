@@ -14,7 +14,10 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import android.app.ActivityManager;
+import android.app.Service;
 import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
 
 /**
  * Canvas Profile.
@@ -36,6 +39,21 @@ public class HostCanvasProfile extends CanvasProfile {
             double y = getY(request);
             String mode = getMode(request);
             result = onPostDrawImageForHost(request, response, serviceId, mimeType, uri, x, y, mode);
+        } else {
+            MessageUtils.setUnknownAttributeError(response);
+        }
+
+        return result;
+    }
+
+    @Override
+    protected boolean onDeleteRequest(final Intent request, final Intent response) {
+        String attribute = getAttribute(request);
+        boolean result = true;
+
+        if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
+            String serviceId = getServiceID(request);
+            result = onDeleteDrawImageForHost(request, response, serviceId);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -81,13 +99,57 @@ public class HostCanvasProfile extends CanvasProfile {
 
         CanvasDrawImageObject drawObj = new CanvasDrawImageObject(uri, enumMode, x, y);
 
-        Intent intent = new Intent();
-        intent.setClass(getContext(), CanvasProfileActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        drawObj.setValueToIntent(intent);
-        getContext().startActivity(intent);
+        String className = getClassnameOfTopActivity();
+        if (CanvasProfileActivity.class.getName().equals(className)) {
+            Intent intent = new Intent(CanvasDrawImageObject.ACTION_DRAW_CANVAS);
+            drawObj.setValueToIntent(intent);
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+        } else {
+            Intent intent = new Intent();
+            intent.setClass(getContext(), CanvasProfileActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            drawObj.setValueToIntent(intent);
+            getContext().startActivity(intent);
+        }
 
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
+    }
+
+    /**
+     * Execute a request.
+     * @param request request intent
+     * @param response response
+     * @param serviceId serviceId
+     * @return true if send response immediately, false otherwise
+     */
+    private boolean onDeleteDrawImageForHost(final Intent request, final Intent response,
+            final String serviceId) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+            return true;
+        }
+
+        String className = getClassnameOfTopActivity();
+        if (CanvasProfileActivity.class.getName().equals(className)) {
+            Intent intent = new Intent(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else {
+            MessageUtils.setIllegalDeviceStateError(response, "canvas not display");
+        }
+
+        return true;
+    }
+
+    /**
+     * 画面の一番上にでているActivityのクラス名を取得.
+     * 
+     * @return クラス名
+     */
+    private String getClassnameOfTopActivity() {
+        ActivityManager activitMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
+        String className = activitMgr.getRunningTasks(1).get(0).topActivity.getClassName();
+        return className;
     }
 }

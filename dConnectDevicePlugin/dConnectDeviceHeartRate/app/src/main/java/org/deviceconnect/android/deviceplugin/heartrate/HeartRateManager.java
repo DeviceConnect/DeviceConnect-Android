@@ -384,13 +384,15 @@ public class HeartRateManager {
         public void onDisconnected(final BluetoothDevice device) {
             mLogger.fine("HeartRateConnectEventListener#onDisconnected: [" + device + "]");
             HeartRateDevice hr = findConnectedHeartRateDeviceByAddress(device.getAddress());
-            if (hr == null || !containRegisteredHeartRateDevice(device)) {
+            if (hr != null) {
+                mConnectedDevices.remove(hr);
+            }
+
+            if (hr == null) {
                 if (mHRDiscoveryListener != null) {
                     mHRDiscoveryListener.onConnectFailed(device);
                 }
             } else {
-                mConnectedDevices.remove(hr);
-
                 // DEBUG
                 mHandler.post(new Runnable() {
                     @Override

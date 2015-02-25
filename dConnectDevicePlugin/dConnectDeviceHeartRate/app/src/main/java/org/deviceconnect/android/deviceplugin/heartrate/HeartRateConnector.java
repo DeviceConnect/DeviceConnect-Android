@@ -147,7 +147,6 @@ public class HeartRateConnector {
             for (BluetoothGatt gatt : mHRDevices.keySet()) {
                 if (gatt.getDevice().getAddress().equalsIgnoreCase(address)) {
                     gatt.disconnect();
-                    gatt.close();
                 }
             }
         }

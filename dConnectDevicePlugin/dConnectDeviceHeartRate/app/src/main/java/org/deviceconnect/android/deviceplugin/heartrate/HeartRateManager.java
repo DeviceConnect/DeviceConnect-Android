@@ -106,7 +106,7 @@ public class HeartRateManager {
     }
 
     /**
-     * Sets a OnHeartRateDiscoveryListener.
+     * Sets the OnHeartRateDiscoveryListener.
      *
      * @param listener The listener to be told when found device or connected device
      */
@@ -115,7 +115,7 @@ public class HeartRateManager {
     }
 
     /**
-     * Sets a OnHeartRateEventListener.
+     * Sets the OnHeartRateEventListener.
      *
      * @param listener The listener to be told when get a data of heart rate
      */
@@ -124,7 +124,7 @@ public class HeartRateManager {
     }
 
     /**
-     * Starts a HeartRateManager.
+     * Starts the HeartRateManager.
      */
     public void start() {
         mDetector.initialize();
@@ -140,7 +140,7 @@ public class HeartRateManager {
     }
 
     /**
-     * Stops a HeartRateManager.
+     * Stops the HeartRateManager.
      */
     public void stop() {
         mConnectedDevices.clear();
@@ -148,14 +148,14 @@ public class HeartRateManager {
     }
 
     /**
-     * Starts ble scan.
+     * Starts BLE scan.
      */
     public void startScanBle() {
         mDetector.startScan();
     }
 
     /**
-     * Stops ble scan.
+     * Stops BLE scan.
      */
     public void stopScanBle() {
         mDetector.stopScan();

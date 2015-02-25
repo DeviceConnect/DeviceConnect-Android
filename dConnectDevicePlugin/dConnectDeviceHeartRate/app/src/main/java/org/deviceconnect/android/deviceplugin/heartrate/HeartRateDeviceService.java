@@ -83,6 +83,7 @@ public class HeartRateDeviceService extends DConnectMessageService {
     public void onDestroy() {
         super.onDestroy();
         unregisterBlutoothFilter();
+        getManager().stop();
         mLogger.fine("HeartRateDeviceService end.");
     }
 

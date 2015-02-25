@@ -49,7 +49,7 @@ public class HeartRateConnector {
     /**
      * Define the period between successive executions.
      */
-    private static final int CHK_WAIT_PERIOD = 10 * 1000;
+    private static final int CHK_WAIT_PERIOD = 20 * 1000;
 
     /**
      * application context.
@@ -64,12 +64,12 @@ public class HeartRateConnector {
     /**
      * Map of Device state.
      */
-    private Map<BluetoothGatt, DeviceState> mHRDevices = new ConcurrentHashMap<>();
+    private final Map<BluetoothGatt, DeviceState> mHRDevices = new ConcurrentHashMap<>();
 
     /**
      * List of address of device that registered.
      */
-    private List<String> mRegisterDevices = Collections.synchronizedList(
+    private final List<String> mRegisterDevices = Collections.synchronizedList(
             new ArrayList<String>());
 
     /**
@@ -122,7 +122,15 @@ public class HeartRateConnector {
         if (device == null) {
             throw new IllegalArgumentException("device is null");
         }
-        device.connectGatt(mContext, false, mBluetoothGattCallback);
+        if (containGattMap(device.getAddress())) {
+            return;
+        }
+        try {
+            device.connectGatt(mContext, false, mBluetoothGattCallback);
+        } catch (Exception e) {
+            // Exception occurred when the BLE state is invalid.
+            mLogger.warning("Exception occurred.");
+        }
     }
 
     /**
@@ -139,6 +147,7 @@ public class HeartRateConnector {
             for (BluetoothGatt gatt : mHRDevices.keySet()) {
                 if (gatt.getDevice().getAddress().equalsIgnoreCase(address)) {
                     gatt.disconnect();
+                    gatt.close();
                 }
             }
         }
@@ -146,11 +155,32 @@ public class HeartRateConnector {
     }
 
     /**
-     * Start timer for automatic connection of BLE device.
+     * Tests whether address contains the BluetoothDevice List.
+     * @param list device list
+     * @param address address
+     * @return  true if address is an element of BluetoothDevice list, false
+     * otherwise
+     */
+    private boolean containAddressInDeviceList(
+            final List<BluetoothDevice> list, final String address) {
+        for (BluetoothDevice device : list) {
+            if (address.equalsIgnoreCase(device.getAddress())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Starts timer for automatic connection of BLE device.
      * <p>
      *     If timer has already started, this method do nothing.
      * </p>
-     * @throws IllegalStateException if BleDeviceDetector has not been set, this exception occur.
+     * <p>
+     *     NOTE: The automatic connection was implemented on one's own,
+     *           because the autoConnect flag of BluetoothDevice#connectGatt did not work as expected.
+     * </p>
+     * @throws IllegalStateException if {@link BleDeviceDetector} has not been set, this exception occur.
      */
     public synchronized void start() {
         if (mAutoConnectTimerFuture != null) {
@@ -163,32 +193,49 @@ public class HeartRateConnector {
         mAutoConnectTimerFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                synchronized (mRegisterDevices) {
-                    for (String address : mRegisterDevices) {
-                        if (!containGattMap(address)) {
-                            if (mBleDeviceDetector.checkBluetoothAddress(address)) {
-                                BluetoothDevice device = mBleDeviceDetector.getDevice(address);
-                                if (device != null) {
-                                    connectDevice(device);
+                boolean foundOfflineDevice = false;
+                for (String address : mRegisterDevices) {
+                    if (!containGattMap(address)) {
+                        // Found the offline device.
+                        foundOfflineDevice = true;
+                    }
+                }
+                if (foundOfflineDevice) {
+                    mBleDeviceDetector.scanLeDeviceOnce(new BleDeviceDetector.BleDeviceDiscoveryListener() {
+                        @Override
+                        public void onDiscovery(final List<BluetoothDevice> devices) {
+                            synchronized (mRegisterDevices) {
+                                for (String address : mRegisterDevices) {
+                                    if (!containGattMap(address)) {
+                                        if (containAddressInDeviceList(devices, address)) {
+                                            BluetoothDevice device = mBleDeviceDetector.getDevice(address);
+                                            if (device != null) {
+                                                connectDevice(device);
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
+                    });
                 }
             }
         }, CHK_FIRST_WAIT_PERIOD, CHK_WAIT_PERIOD, TimeUnit.MILLISECONDS);
     }
 
     /**
-     * Stop timer for automatic connection of BLE device.
+     * Stops timer for automatic connection of BLE device.
      */
     public synchronized void stop() {
-        mHRDevices.clear();
-        mRegisterDevices.clear();
         if (mAutoConnectTimerFuture != null) {
             mAutoConnectTimerFuture.cancel(true);
             mAutoConnectTimerFuture = null;
         }
+        for (BluetoothGatt gatt : mHRDevices.keySet()) {
+            gatt.close();
+        }
+        mHRDevices.clear();
+        mRegisterDevices.clear();
     }
 
     /**
@@ -371,7 +418,7 @@ public class HeartRateConnector {
 
             // Sensor Contact Status bits
             if ((buf[0] & 0x60) != 0) {
-                // MEMO no implements yet
+                // MEMO: not implements yet
             }
 
             // Energy Expended Status bit

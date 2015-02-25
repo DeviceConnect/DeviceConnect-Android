@@ -16,6 +16,7 @@ import org.deviceconnect.android.deviceplugin.heartrate.BuildConfig;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.adapter.NewBleDeviceAdapterImpl;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.adapter.OldBleDeviceAdapterImpl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -186,8 +187,33 @@ public class BleDeviceDetector {
         return mBleAdapter.getBondedDevices();
     }
 
-    public boolean checkBluetoothAddress(String address) {
+    public boolean checkBluetoothAddress(final String address) {
         return mBleAdapter.checkBluetoothAddress(address);
+    }
+
+    /**
+     * Scan a BLE only once.
+     * @param listener listener
+     */
+    public synchronized void scanLeDeviceOnce(final BleDeviceDiscoveryListener listener) {
+        final List<BluetoothDevice> devices = new ArrayList<>();
+        final BleDeviceAdapter.BleDeviceScanCallback callback =
+                new BleDeviceAdapter.BleDeviceScanCallback() {
+                    @Override
+                    public void onLeScan(final BluetoothDevice device, final int rssi) {
+                        devices.add(device);
+                    }
+                };
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (mBleAdapter.isEnabled()) {
+                    mBleAdapter.stopScan(callback);
+                    listener.onDiscovery(devices);
+                }
+            }
+        }, SCAN_PERIOD);
+        mBleAdapter.startScan(callback);
     }
 
     /**

@@ -155,20 +155,19 @@ public class HeartRateConnector {
     }
 
     /**
-     * Tests whether address contains the BluetoothDevice List.
-     * @param list device list
+     * Gets a BluetoothDevice from device list.
+     * @param list list
      * @param address address
-     * @return  true if address is an element of BluetoothDevice list, false
-     * otherwise
+     * @return Instance of BluetoothDevice, null if not found address
      */
-    private boolean containAddressInDeviceList(
+    private BluetoothDevice getBluetootDeviceFromDeviceList(
             final List<BluetoothDevice> list, final String address) {
         for (BluetoothDevice device : list) {
             if (address.equalsIgnoreCase(device.getAddress())) {
-                return true;
+                return device;
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -207,11 +206,9 @@ public class HeartRateConnector {
                             synchronized (mRegisterDevices) {
                                 for (String address : mRegisterDevices) {
                                     if (!containGattMap(address)) {
-                                        if (containAddressInDeviceList(devices, address)) {
-                                            BluetoothDevice device = mBleDeviceDetector.getDevice(address);
-                                            if (device != null) {
-                                                connectDevice(device);
-                                            }
+                                        BluetoothDevice device = getBluetootDeviceFromDeviceList(devices, address);
+                                        if (device != null) {
+                                            connectDevice(device);
                                         }
                                     }
                                 }

@@ -12,7 +12,7 @@ import android.content.Context;
  */
 public class HvcCommManager {
 
-    private HVCDeviceSearchThread deviceSearchThread = null;
+    private HvcDeviceSearchThread deviceSearchThread = null;
     private HvcDetectThread detectThread = null;
     
     /**
@@ -36,9 +36,9 @@ public class HvcCommManager {
      * @param listener callback listener.
      * @return result
      */
-    public DeviceSearchResult startDeviceSearchThread(final Context context, final HVCDeviceSearchListener listener) {
+    public DeviceSearchResult startDeviceSearchThread(final Context context, final HvcDeviceSearchListener listener) {
         if (deviceSearchThread == null || !deviceSearchThread.isAlive()) {
-            deviceSearchThread = new HVCDeviceSearchThread(context, listener); 
+            deviceSearchThread = new HvcDeviceSearchThread(context, listener); 
             deviceSearchThread.start();
             return DeviceSearchResult.RESULT_SUCCESS;
         } else {

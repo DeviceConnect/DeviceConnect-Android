@@ -86,49 +86,27 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     @Override
     protected boolean onGetBodyDetection(final Intent request, final Intent response, final String serviceId,
             final List<String> options) {
-
-        // get parameter.
-        HvcDetectRequestParams requestParams = getRequestParams(request, DetectKind.BODY);
-        if (requestParams == null) {
-            // invalid request parameter error
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        }
-
+        
         // start detection
-        boolean result = startGetDetectionProc(requestParams, response, serviceId, options, DetectKind.BODY);
+        boolean result = startGetDetectionProc(request, response, serviceId, options, DetectKind.BODY);
         return result;
     }
 
     @Override
     protected boolean onGetHandDetection(final Intent request, final Intent response, final String serviceId,
             final List<String> options) {
-        // get parameter.
-        HvcDetectRequestParams requestParams = getRequestParams(request, DetectKind.HAND);
-        if (requestParams == null) {
-            // invalid request parameter error
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        }
-
+        
         // start detection
-        boolean result = startGetDetectionProc(requestParams, response, serviceId, options, DetectKind.HAND);
+        boolean result = startGetDetectionProc(request, response, serviceId, options, DetectKind.HAND);
         return result;
     }
 
     @Override
     protected boolean onGetFaceDetection(final Intent request, final Intent response, final String serviceId,
             final List<String> options) {
-        // get parameter.
-        HvcDetectRequestParams requestParams = getRequestParams(request, DetectKind.FACE);
-        if (requestParams == null) {
-            // invalid request parameter error
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        }
-
+        
         // start detection
-        boolean result = startGetDetectionProc(requestParams, response, serviceId, options, DetectKind.FACE);
+        boolean result = startGetDetectionProc(request, response, serviceId, options, DetectKind.FACE);
         return result;
     }
 
@@ -257,7 +235,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     /**
      * Start Detection Process.
      * 
-     * @param requestParams request
+     * @param request request
      * @param response response
      * @param serviceId serviceId
      * @param options options
@@ -265,9 +243,17 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * @return send response flag.(true:sent / false: unsent (Send after the
      *         thread has been completed))
      */
-    protected boolean startGetDetectionProc(final HvcDetectRequestParams requestParams, final Intent response,
+    protected boolean startGetDetectionProc(final Intent request, final Intent response,
             final String serviceId, final List<String> options, final DetectKind detectKind) {
 
+        // get parameter.
+        final HvcDetectRequestParams requestParams = getRequestParams(request, DetectKind.BODY);
+        if (requestParams == null) {
+            // invalid request parameter error
+            MessageUtils.setInvalidRequestParameterError(response);
+            return true;
+        }
+        
         // convert useFunc
         int useFunc = convertUseFunc(detectKind, options);
         if (useFunc == ERROR_USEFINC_VALUE) {
@@ -289,17 +275,14 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             }
 
             @Override
-            public void onDetectFaceTimeout() {
-                // timeout
-                MessageUtils.setTimeoutError(response);
-                getContext().sendBroadcast(response);
+            public void onDetectFaceDisconnected() {
+                // disconnect
             }
 
             @Override
-            public void onDetectFaceDisconnected() {
-                // disconnect
-                // TODO: disconnectのエラーコードを再確認する
-                MessageUtils.setNotFoundServiceError(response);
+            public void onDetectError(final int status) {
+                // device error
+                MessageUtils.setUnknownError(response, "device error. status:" + status);
                 getContext().sendBroadcast(response);
             }
         });
@@ -307,14 +290,11 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             // serviceId not found
             MessageUtils.setNotFoundServiceError(response);
             return true;
-        }
-        else if (result == HvcCommManager.DetectionResult.RESULT_ERR_THREAD_ALIVE) {
+        } else if (result == HvcCommManager.DetectionResult.RESULT_ERR_THREAD_ALIVE) {
             // comm thread running
-            // TODO: 通信中にリクエストがきた場合のエラーコードを再確認する
-            MessageUtils.setIllegalDeviceStateError(response);
+            MessageUtils.setIllegalDeviceStateError(response, "device communication busy.");
             return true;
-        }
-        else if (result != HvcCommManager.DetectionResult.RESULT_SUCCESS) {
+        } else if (result != HvcCommManager.DetectionResult.RESULT_SUCCESS) {
             // BUG: result unknown value.
             MessageUtils.setUnknownError(response, "result unknown value. result:" +  result);
             return true;

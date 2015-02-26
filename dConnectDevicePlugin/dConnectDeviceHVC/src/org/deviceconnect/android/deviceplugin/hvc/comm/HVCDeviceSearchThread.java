@@ -6,12 +6,12 @@ import omron.HVC.BleDeviceSearch;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 
-public class HVCDeviceSearchThread extends Thread {
+public class HvcDeviceSearchThread extends Thread {
 	
 	private Context mContext;
-	private HVCDeviceSearchListener mListener;
+	private HvcDeviceSearchListener mListener;
 	
-    public HVCDeviceSearchThread(Context context, HVCDeviceSearchListener listener) {
+    public HvcDeviceSearchThread(Context context, HvcDeviceSearchListener listener) {
 		super();
 		mContext = context;
 		mListener = listener;

@@ -23,10 +23,10 @@ import android.content.Context;
 import android.util.Log;
 
 interface BleInterface {
-	abstract void connect(Context context, BluetoothDevice device);
-	abstract void disconnect();
-	abstract int setDeviceName(byte[] value);
-	abstract int getDeviceName(byte[] value);
+    abstract void connect(Context context, BluetoothDevice device);
+    abstract void disconnect();
+    abstract int setDeviceName(byte[] value);
+    abstract int getDeviceName(byte[] value);
 }
 
 /**
@@ -162,7 +162,7 @@ public class HVC_BLE extends HVC implements BleInterface
             return HVC_ERROR_DISCONNECTED;
         }
         if ( mStatus > STATE_CONNECTED ) {
-	        Log.d(TAG, "setParam() : HVC_ERROR_BUSY");
+            Log.d(TAG, "setParam() : HVC_ERROR_BUSY");
             return HVC_ERROR_BUSY;
         }
 

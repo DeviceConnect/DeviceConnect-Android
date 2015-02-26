@@ -1,11 +1,11 @@
 /*
- org.deviceconnect.android.deviceplugin.hvc.utils
+ org.deviceconnect.android.deviceplugin.hvc.comm
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
 
 /**
- * HVC device plugin utility.
+ * HVC device communication package.
  */
 package org.deviceconnect.android.deviceplugin.hvc.comm;

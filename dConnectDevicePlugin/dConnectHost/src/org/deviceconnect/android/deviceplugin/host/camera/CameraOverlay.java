@@ -1,3 +1,9 @@
+/*
+ CameraOverlay.java
+ Copyright (c) 2014 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.host.camera;
 
 import java.io.ByteArrayOutputStream;
@@ -147,7 +153,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
         mPreview = new Preview(mContext);
 
         Point size = getDisplaySize();
-        int pt = (int) (4 * getScaledDensity());
+        int pt = (int) (5 * getScaledDensity());
         WindowManager.LayoutParams l = new WindowManager.LayoutParams(
                 pt, pt,
                 WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
@@ -325,34 +331,38 @@ public class CameraOverlay implements Camera.PreviewCallback {
         camera.setPreviewCallback(null);
 
         if (mServer != null) {
-            int format = camera.getParameters().getPreviewFormat();
-            int width = camera.getParameters().getPreviewSize().width;
-            int height = camera.getParameters().getPreviewSize().height;
+            int format = mPreview.getPreviewFormat();
+            int width = mPreview.getPreviewWidth();
+            int height = mPreview.getPreviewHeight();
 
             YuvImage yuvimage = new YuvImage(data, format, width, height, null);
             Rect rect = new Rect(0, 0, width, height);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             if (yuvimage.compressToJpeg(rect, JPEG_COMPRESS_QUALITY, baos)) {
                 byte[] jdata = baos.toByteArray();
-                
+
                 int degree = mPreview.getCameraDisplayOrientation(mContext);
                 if (degree == 0) {
                     mServer.offerMedia(jdata);
                 } else {
                     BitmapFactory.Options bitmapFatoryOptions = new BitmapFactory.Options();
-                    bitmapFatoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
+                    bitmapFatoryOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
                     Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFatoryOptions);
+                    if (bmp != null) {
+                        Matrix m = new Matrix();
+                        m.setRotate(degree);
 
-                    Matrix m = new Matrix();
-                    m.setRotate(degree);
-
-                    Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, 
-                            bmp.getWidth(), bmp.getHeight(), m, true);
-
-                    baos.reset();
-                    if (rotatedBmp.compress(CompressFormat.JPEG,
-                            JPEG_COMPRESS_QUALITY, baos)) {
-                        mServer.offerMedia(baos.toByteArray());
+                        Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, 
+                                bmp.getWidth(), bmp.getHeight(), m, true);
+                        if (rotatedBmp != null) {
+                            baos.reset();
+                            if (rotatedBmp.compress(CompressFormat.JPEG,
+                                    JPEG_COMPRESS_QUALITY, baos)) {
+                                mServer.offerMedia(baos.toByteArray());
+                            }
+                            rotatedBmp.recycle();
+                        }
+                        bmp.recycle();
                     }
                 }
             }

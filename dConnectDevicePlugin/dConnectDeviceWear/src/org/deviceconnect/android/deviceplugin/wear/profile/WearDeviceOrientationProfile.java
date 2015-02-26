@@ -245,7 +245,6 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
 
                     Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
                             action, message.getBytes()).await();
-
                 }
             }
         } else if (status == EVENT_UNREGISTER) {

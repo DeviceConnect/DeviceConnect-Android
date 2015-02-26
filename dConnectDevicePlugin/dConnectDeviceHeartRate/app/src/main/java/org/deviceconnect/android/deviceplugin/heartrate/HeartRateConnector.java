@@ -34,7 +34,13 @@ import static android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT16;
 import static android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT8;
 
 /**
- * This class manage BLE device.
+ * This class manages a BLE device that have Heart Rate Service.
+ * <p>
+ * This class provides the following functions:
+ * <li>Connect a GATT of Heart Rate Service</li>
+ * <li>Disconnect a GATT of Heart Rate Service</li>
+ * <li>Get heart rate</li>
+ * </p>
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateConnector {

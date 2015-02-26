@@ -28,10 +28,10 @@ import static org.deviceconnect.android.deviceplugin.heartrate.HeartRateConnecto
 import static org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceDetector.BleDeviceDiscoveryListener;
 
 /**
- * This class manages the HeartRate device.
+ * This class manages a BLE device and GATT Service.
  * <p>
  * This class provides the following functions:
- * <li>Scan ble device</li>
+ * <li>Scan a BLE device</li>
  * <li>Connect a GATT of Heart Rate Service</li>
  * <li>Get heart rate</li>
  * </p>

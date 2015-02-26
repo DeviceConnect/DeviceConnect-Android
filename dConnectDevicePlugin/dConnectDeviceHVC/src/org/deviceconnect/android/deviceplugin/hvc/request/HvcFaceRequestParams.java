@@ -1,4 +1,7 @@
-package org.deviceconnect.android.deviceplugin.hvc.utils;
+package org.deviceconnect.android.deviceplugin.hvc.request;
+
+import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectFaceRequestParams;
 
 /**
  * HVC face detect request parameter class.

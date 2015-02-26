@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.hvc.utils;
+package org.deviceconnect.android.deviceplugin.hvc.comm;
 
 import omron.HVC.HVC;
 
@@ -10,7 +10,7 @@ import android.util.SparseArray;
  * HVC convert utility.
  *
  */
-public final class HvcConvertUtils  {
+public final class HvcConvertUtils {
 
     /**
      * Constructor.

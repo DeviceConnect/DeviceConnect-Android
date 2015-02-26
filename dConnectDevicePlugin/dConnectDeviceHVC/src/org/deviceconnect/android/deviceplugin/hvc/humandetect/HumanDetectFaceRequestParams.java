@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.hvc.utils;
+package org.deviceconnect.android.deviceplugin.hvc.humandetect;
 
 /**
  * face detect request parameter.

@@ -1,4 +1,6 @@
-package org.deviceconnect.android.deviceplugin.hvc.utils;
+package org.deviceconnect.android.deviceplugin.hvc.comm;
+
+import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
 
 import omron.HVC.HVC;
 import omron.HVC.HVC_PRM;
@@ -8,10 +10,10 @@ import android.content.Context;
 /**
  * HVC Communication Manager.
  */
-public class HVCCommunicationManager {
+public class HvcCommManager {
 
     private HVCDeviceSearchThread deviceSearchThread = null;
-    private HVCDetectThread detectThread = null;
+    private HvcDetectThread detectThread = null;
     
     /**
      * Device search process result.
@@ -72,9 +74,9 @@ public class HVCCommunicationManager {
      * @return result
      */
     public DetectionResult startDetectThread(final Context context, final BluetoothDevice device, final int useFunc,
-            final HvcDetectRequestParams params, final HVCDetectListener listener) {
+            final HvcDetectRequestParams params, final HvcDetectListener listener) {
        if (detectThread == null || !detectThread.isAlive()) {
-            detectThread = new HVCDetectThread(context, device, useFunc, params, listener);
+            detectThread = new HvcDetectThread(context, device, useFunc, params, listener);
             detectThread.start();
             return DetectionResult.RESULT_SUCCESS;
         } else {

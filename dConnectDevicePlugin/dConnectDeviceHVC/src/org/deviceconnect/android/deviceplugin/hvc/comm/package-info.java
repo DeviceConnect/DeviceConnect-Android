@@ -8,4 +8,4 @@
 /**
  * HVC device plugin utility.
  */
-package org.deviceconnect.android.deviceplugin.hvc.utils;
+package org.deviceconnect.android.deviceplugin.hvc.comm;

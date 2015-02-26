@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.hvc.utils;
+package org.deviceconnect.android.deviceplugin.hvc.humandetect;
 
 /**
  * body detect request parameter class.

@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.hvc.utils;
+package org.deviceconnect.android.deviceplugin.hvc.request;
 
 import omron.HVC.HVC_PRM;
 

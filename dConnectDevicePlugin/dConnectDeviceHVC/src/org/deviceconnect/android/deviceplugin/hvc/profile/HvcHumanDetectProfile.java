@@ -15,10 +15,10 @@ import omron.HVC.HVC_RES;
 import omron.HVC.HVC_RES.DetectionResult;
 import omron.HVC.HVC_RES.FaceResult;
 
-import org.deviceconnect.android.deviceplugin.hvc.utils.HVCCommunicationManager;
-import org.deviceconnect.android.deviceplugin.hvc.utils.HVCDetectListener;
-import org.deviceconnect.android.deviceplugin.hvc.utils.HvcConvertUtils;
-import org.deviceconnect.android.deviceplugin.hvc.utils.HvcDetectRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
+import org.deviceconnect.android.deviceplugin.hvc.comm.HvcDetectListener;
+import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
+import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.HumanDetectProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -81,7 +81,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     /**
      * HVC Communication Manager.
      */
-    private HVCCommunicationManager mCommManager = new HVCCommunicationManager();
+    private HvcCommManager mCommManager = new HvcCommManager();
 
     @Override
     protected boolean onGetBodyDetection(final Intent request, final Intent response, final String serviceId,
@@ -277,8 +277,8 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         }
 
         // start detect thread.
-        HVCCommunicationManager.DetectionResult result = mCommManager.startDetectThread(getContext(),
-        /* serviceId */null, useFunc, requestParams, new HVCDetectListener() {
+        HvcCommManager.DetectionResult result = mCommManager.startDetectThread(getContext(),
+        /* serviceId */null, useFunc, requestParams, new HvcDetectListener() {
             @Override
             public void onDetectFinished(final HVC_RES result) {
                 // set response
@@ -303,18 +303,18 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 getContext().sendBroadcast(response);
             }
         });
-        if (result == HVCCommunicationManager.DetectionResult.RESULT_ERR_SERVICEID_NOT_FOUND) {
+        if (result == HvcCommManager.DetectionResult.RESULT_ERR_SERVICEID_NOT_FOUND) {
             // serviceId not found
             MessageUtils.setNotFoundServiceError(response);
             return true;
         }
-        else if (result == HVCCommunicationManager.DetectionResult.RESULT_ERR_THREAD_ALIVE) {
+        else if (result == HvcCommManager.DetectionResult.RESULT_ERR_THREAD_ALIVE) {
             // comm thread running
             // TODO: 通信中にリクエストがきた場合のエラーコードを再確認する
             MessageUtils.setIllegalDeviceStateError(response);
             return true;
         }
-        else if (result != HVCCommunicationManager.DetectionResult.RESULT_SUCCESS) {
+        else if (result != HvcCommManager.DetectionResult.RESULT_SUCCESS) {
             // BUG: result unknown value.
             MessageUtils.setUnknownError(response, "result unknown value. result:" +  result);
             return true;

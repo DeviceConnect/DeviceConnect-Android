@@ -1,5 +1,7 @@
-package org.deviceconnect.android.deviceplugin.hvc.utils;
+package org.deviceconnect.android.deviceplugin.hvc.request;
 
+import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectBodyRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 
 /**

@@ -1,3 +1,9 @@
+/*
+ MixedReplaceMediaServer.java
+ Copyright (c) 2014 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.host.camera;
 
 import java.io.BufferedReader;
@@ -35,7 +41,7 @@ import android.net.Uri;
 public class MixedReplaceMediaServer {
 
     /** Logger. */
-    private Logger mLogger = Logger.getLogger("sonycamera.dplugin");
+    private Logger mLogger = Logger.getLogger("host.dplugin");
     
     /**
      * Max value of cache of media.

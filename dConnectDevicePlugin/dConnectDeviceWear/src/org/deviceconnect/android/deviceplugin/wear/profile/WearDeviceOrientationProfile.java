@@ -34,7 +34,7 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
 /**
- * DeviceOrientationプロファイル.
+ * DeviceOrientation Profile.
  * 
  * @author NTT DOCOMO, INC.
  */
@@ -59,7 +59,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     /** EVENT_UNREGISTER . */
     private static final int EVENT_UNREGISTER = 2;
 
-    /** 内部管理用iD. */
+    /** Internal management ID. */
     private static String sId = "";
 
     @Override
@@ -76,7 +76,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
             sId = getNodeId(serviceId);
             sStatusEvent = EVENT_REGISTER;
 
-            // イベントの登録
+            // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
@@ -130,7 +130,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
                 }.execute();
             }
 
-            // イベントの解除
+            // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -196,7 +196,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     }
 
     /**
-     * Wear nodeを取得.
+     * Get Wear node.
      * 
      * @return WearNode
      */
@@ -216,13 +216,13 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     }
 
     /**
-     * Wearにメッセージを送信.
+     * Send message to Wear.
      * 
-     * @param id データを送信するNode ID
-     * @param status ステータス
-     * @param nodes ノード一覧
-     * @param action アクション名
-     * @param message 送信する文字列
+     * @param id Node ID for send data.
+     * @param status status.
+     * @param nodes Node list.
+     * @param action Action Name.
+     * @param message Send strings.
      */
     public void sendMessageToWear(final String id, final int status, final Collection<String> nodes,
             final String action, final String message) {
@@ -230,10 +230,10 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
         if (status == EVENT_REGISTER) {
             for (String node : nodes) {
 
-                // 指定デバイスのノードに送信
+                // Send to select device node.
                 if (node.indexOf(id) != -1) {
                     Wearable.MessageApi.addListener(mGoogleApiClient,
-                    // データ受信用リスナーを登録
+                    // Register message receive listener.
                             new MessageApi.MessageListener() {
                                 @Override
                                 public void onMessageReceived(final MessageEvent messageEvent) {
@@ -250,7 +250,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
         } else if (status == EVENT_UNREGISTER) {
             for (String node : nodes) {
 
-                // 指定デバイスのノードに送信
+                // Send to select device node.
                 if (node.indexOf(id) != -1) {
                     Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
                             WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER, "".getBytes()).await();
@@ -260,9 +260,9 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     }
 
     /**
-     * 登録イベントにメッセージ送信.
+     * Send a message to the registration event.
      * 
-     * @param data 受信した文字列
+     * @param data Received Strings.
      */
     private void sendMessageToEvent(final String data) {
         if (BuildConfig.DEBUG) {
@@ -302,10 +302,10 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     }
 
     /**
-     * ServiceIDがらnodeを取得.
+     * Get node form Service ID.
      * 
-     * @param serviceId サービスID
-     * @return nodeId 内部管理用NodeID
+     * @param serviceId Service ID
+     * @return nodeId Internal management Node ID.
      */
     private String getNodeId(final String serviceId) {
 

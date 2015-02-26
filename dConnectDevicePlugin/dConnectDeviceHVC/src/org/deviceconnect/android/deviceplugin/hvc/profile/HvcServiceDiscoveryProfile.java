@@ -14,11 +14,13 @@ import java.util.regex.Pattern;
 
 import omron.HVC.BleDeviceSearch;
 
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 /**
@@ -30,6 +32,14 @@ public class HvcServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
     public boolean onGetServices(final Intent request, final Intent response) {
+        
+        // ble os available?
+        if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            // ble not available.(result=OK, service=0)
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
+        
         Thread hvcThread = new Thread() {
             @Override
             public void run() {
@@ -76,7 +86,7 @@ public class HvcServiceDiscoveryProfile extends ServiceDiscoveryProfile {
      * @param foundDevice Found device list
      * @return {@link Bundle}instance
      */
-    public static Bundle toBundle(final BluetoothDevice foundDevice) {
+    public Bundle toBundle(final BluetoothDevice foundDevice) {
 
         String address = foundDevice.getAddress();
         String serviceId = address.replace(":", "").toLowerCase(Locale.ENGLISH);

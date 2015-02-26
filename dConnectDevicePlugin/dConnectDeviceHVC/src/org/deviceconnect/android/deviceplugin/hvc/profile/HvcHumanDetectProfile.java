@@ -24,6 +24,7 @@ import org.deviceconnect.android.profile.HumanDetectProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 /**
@@ -33,6 +34,31 @@ import android.os.Bundle;
  */
 public class HvcHumanDetectProfile extends HumanDetectProfile {
 
+    /**
+     * error message. {@value}
+     */
+    protected static final String ERROR_BLE_NOT_AVAILABLE = "ble not available.";
+    
+    /**
+     * error message. {@value}
+     */
+    protected static final String ERROR_DETECTKIND_UNKNOWN_VALUE = "detectKind unknown value. detectKind:";
+    
+    /**
+     * error message. {@value}
+     */
+    protected static final String ERROR_DEVICE_ERROR_STATUS = "device error. status:";
+    
+    /**
+     * error message. {@value}
+     */
+    protected static final String ERROR_DEVICE_COMM_BUSY = "device communication busy.";
+    
+    /**
+     * error message. {@value}
+     */
+    protected static final String ERROR_RESULT_UNKNOWN_VALUE = "result unknown value. result:";
+    
     /**
      * userFunc get error value.
      */
@@ -113,12 +139,14 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     /**
      * get request parameter.
      * 
+     * @param requestParams requestParams
      * @param request request
+     * @param response response
      * @param detectKind detect kind
      * @return true: success / false: invalid request parameter error
      */
-    private HvcDetectRequestParams getRequestParams(final Intent request, final DetectKind detectKind) {
-        HvcDetectRequestParams requestParams = new HvcDetectRequestParams();
+    private boolean getRequestParams(final HvcDetectRequestParams requestParams, final Intent request,
+            final Intent response, final DetectKind detectKind) {
 
         try {
             // get parameters.(different type error, throw
@@ -221,15 +249,17 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 
             } else {
                 // BUG: detectKind unknown value.
-                return null;
+                MessageUtils.setUnknownError(response, ERROR_DETECTKIND_UNKNOWN_VALUE + detectKind.ordinal());
+                return false;
             }
         } catch (NumberFormatException e) {
             // invalid request parameter error
-            return null;
+            MessageUtils.setInvalidRequestParameterError(response);
+            return false;
         }
         
         // success
-        return requestParams;
+        return true;
     }
 
     /**
@@ -246,11 +276,17 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     protected boolean startGetDetectionProc(final Intent request, final Intent response,
             final String serviceId, final List<String> options, final DetectKind detectKind) {
 
+        // ble os available?
+        if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            // ble not available.
+            MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
+            return true;
+        }
+        
         // get parameter.
-        final HvcDetectRequestParams requestParams = getRequestParams(request, DetectKind.BODY);
-        if (requestParams == null) {
-            // invalid request parameter error
-            MessageUtils.setInvalidRequestParameterError(response);
+        final HvcDetectRequestParams requestParams = new HvcDetectRequestParams();
+        if (!getRequestParams(requestParams, request, response, DetectKind.BODY)) {
+            // error
             return true;
         }
         
@@ -282,7 +318,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             @Override
             public void onDetectError(final int status) {
                 // device error
-                MessageUtils.setUnknownError(response, "device error. status:" + status);
+                MessageUtils.setUnknownError(response, ERROR_DEVICE_ERROR_STATUS + status);
                 getContext().sendBroadcast(response);
             }
         });
@@ -292,11 +328,11 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             return true;
         } else if (result == HvcCommManager.DetectionResult.RESULT_ERR_THREAD_ALIVE) {
             // comm thread running
-            MessageUtils.setIllegalDeviceStateError(response, "device communication busy.");
+            MessageUtils.setIllegalDeviceStateError(response, ERROR_DEVICE_COMM_BUSY);
             return true;
         } else if (result != HvcCommManager.DetectionResult.RESULT_SUCCESS) {
             // BUG: result unknown value.
-            MessageUtils.setUnknownError(response, "result unknown value. result:" +  result);
+            MessageUtils.setUnknownError(response, ERROR_RESULT_UNKNOWN_VALUE +  result);
             return true;
         }
 

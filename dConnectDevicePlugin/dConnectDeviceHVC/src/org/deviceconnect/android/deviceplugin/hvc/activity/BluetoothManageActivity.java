@@ -15,6 +15,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 
+// TODO: 他のデバイスプラグインでは、Bluetoothの設定は、Android端末の設定画面から行うように、画面を飛ばしています。
+// TODO: なので、ここではダイアログを出すのではなく、Android端末の設定画面を開くだけで良いと思います。Activityはいらない。
+
 /**
  * Bluetooth 管理アクティビティ.
  * 

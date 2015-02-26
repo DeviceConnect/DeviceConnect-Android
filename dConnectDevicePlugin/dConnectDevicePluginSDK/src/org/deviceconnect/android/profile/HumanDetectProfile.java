@@ -9,7 +9,6 @@ package org.deviceconnect.android.profile;
 import java.util.List;
 
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.HumanDetectProfileConstants;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -36,9 +35,519 @@ import android.os.Bundle;
  * </ul>
  * @author NTT DOCOMO, INC.
  */
-public abstract class HumanDetectProfile extends DConnectProfile implements HumanDetectProfileConstants {
+public abstract class HumanDetectProfile extends DConnectProfile {
+    
+    /**
+     * HVC device name prefix.
+     */
+    protected final static String DEVICE_NAME_PREFIX = "OMRON_HVC.*|omron_hvc.*";
     
     
+    
+    
+    
+    /**
+     * profile nme: {@value} .
+     */
+    protected final static String PROFILE_NAME = "humandetect";
+
+    /**
+     * interface: {@value} .
+     */
+    protected final static String INTERFACE_DETECTION = "detection";
+
+    /**
+     * attribute: {@value} .
+     */
+    protected final static String ATTRIBUTE_BODY_DETECTION = "body";
+
+    /**
+     * attribute: {@value} .
+     */
+    protected final static String ATTRIBUTE_HAND_DETECTION = "hand";
+
+    /**
+     * attribute: {@value} .
+     */
+    protected final static String ATTRIBUTE_FACE_DETECTION = "face";
+
+    /**
+     * attribute: {@value} .
+     */
+    protected final static String ATTRIBUTE_ON_BODY_DETECTION = "onbodydetection";
+
+    /**
+     * attribute: {@value} .
+     */
+    protected final static String ATTRIBUTE_ON_HAND_DETECTION = "onhanddetection";
+
+    /**
+     * attribute: {@value} .
+     */
+    protected final static String ATTRIBUTE_ON_FACE_DETECTION = "onfacedetection";
+
+    /**
+     * path: {@value}.
+     */
+    protected final static String PATH_PROFILE = PATH_ROOT + SEPARATOR + PROFILE_NAME;
+    
+    /**
+     * path: {@value} .
+     */
+    protected final static String PATH_BODY_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_BODY_DETECTION;
+    
+    /**
+     * path: {@value} .
+     */
+    protected final static String PATH_HAND_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_HAND_DETECTION;
+    
+    /**
+     * path: {@value} .
+     */
+    protected final static String PATH_FACE_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_FACE_DETECTION;
+    
+    /**
+     * path: {@value} .
+     */
+    protected final static String PATH_ON_BODY_DETECTION = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_BODY_DETECTION;
+    
+    /**
+     * path: {@value} .
+     */
+    protected final static String PATH_ON_HAND_DETECTION = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_HAND_DETECTION;
+    
+    /**
+     * path: {@value} .
+     */
+    protected final static String PATH_ON_FACE_DETECTION = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_FACE_DETECTION;
+    
+    
+    
+    /*--- request ---*/
+    
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_THRESHOLD = "threshold";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_MINWIDTH = "minWidth";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_MINHEIGHT = "minHeight";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_MAXWIDTH = "maxWidth";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_MAXHEIGHT = "maxHeight";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_OPTIONS = "options";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_EYE_THRESHOLD = "eyeThreshold";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_NOSE_THRESHOLD = "noseThreshold";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_MOUTH_THRESHOLD = "mouthThreshold";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_BLINK_THRESHOLD = "blinkThreshold";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_AGE_THRESHOLD = "ageThreshold";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_GENDER_THRESHOLD = "genderThreshold";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_FACE_DIRECTION_THRESHOLD = "faceDirectionThreshold";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_GAZE_THRESHOLD = "gazeThreshold";
+    
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_EXPRESSION_THRESHOLD = "expressionThreshold";
+    
+    
+    
+    
+    
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_OPTION_EYE = "eye";
+    
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_OPTION_NOSE = "nose";
+    
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_OPTION_MOUTH = "mouth";
+    
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_OPTION_BLINK = "blink";
+    
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_OPTION_AGE = "age";
+    
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_OPTION_GENDER = "gender";
+    
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_OPTION_FACE_DIRECTION = "faceDirection";
+    
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_OPTION_GAZE = "gaze";
+    
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_OPTION_EXPRESSION = "expression";
+
+
+
+    /*--- response ---*/
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_BODYDETECTS = "bodyDetects";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_HANDDETECTS = "handDetects";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_FACEDETECTS = "faceDetects";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_X = "x";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_Y = "y";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_WIDTH = "width";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_HEIGHT = "height";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_CONFIDENCE = "confidence";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_EYEPOINTS = "eyePoints";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_LEFTEYE_X = "leftEyeX";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_LEFTEYE_Y = "leftEyeY";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_LEFTEYE_WIDTH = "leftEyeWidth";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_LEFTEYE_HEIGHT = "leftEyeHeight";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_RIGHTEYE_X = "rightEyeX";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_RIGHTEYE_Y = "rightEyeY";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_RIGHTEYE_WIDTH = "rightEyeWidth";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_RIGHTEYE_HEIGHT = "rightEyeHeight";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_NOSEPOINTS = "nosePoints";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_NOSE_X = "noseX";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_NOSE_Y = "noseY";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_NOSE_WIDTH = "noseWidth";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_NOSE_HEIGHT = "noseHeight";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_MOUTHPOINTS = "mouthPoints";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_MOUTH_X = "mouthX";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_MOUTH_Y = "mouthY";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_MOUTH_WIDTH = "mouthWidth";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_MOUTH_HEIGHT = "mouthHeight";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_BLINKRESULTS = "blinkResults";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_LEFTEYE = "leftEye";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_RIGHTEYE = "rightEye";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_AGERESULTS = "ageResults";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_AGE = "age";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_GENDERRESULTS = "genderResults";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_GENDER = "gender";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String VALUE_GENDER_MALE = "male";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String VALUE_GENDER_FEMALE = "female";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_FACEDIRECTIONRESULTS = "faceDirectionResults";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_YAW = "yaw";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_PITCH = "pitch";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_ROLL = "roll";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_GAZERESULTS = "gazeResults";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_GAZE_LR = "gazeLR";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_GAZE_UD = "gazeUD";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_EXPRESSIONRESULTS = "expressionResults";
+
+    /** 
+     * parameter: {@value} .
+     */
+    protected final static String PARAM_EXPRESSION = "expression";
+
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_EXPRESSION_UNKNOWN = "unknown";
+
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_EXPRESSION_SMILE = "smile";
+
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_EXPRESSION_SURPRISE = "surprise";
+
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_EXPRESSION_MAD = "mad";
+
+    /** 
+     * value: {@value} .
+     */
+    protected final static String VALUE_EXPRESSION_SAD = "sad";
+
+
+    /** 
+     * normalize max value.
+     */
+    protected final static double NORMALIZE_VALUE_MAX = 1.0;
+    
+
+
     /**
      * Constructor.
      */

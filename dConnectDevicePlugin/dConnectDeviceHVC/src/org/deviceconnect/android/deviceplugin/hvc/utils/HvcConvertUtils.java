@@ -1,11 +1,8 @@
 package org.deviceconnect.android.deviceplugin.hvc.utils;
 
-import java.security.spec.InvalidParameterSpecException;
-
 import omron.HVC.HVC;
 
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
-import org.deviceconnect.profile.HumanDetectProfileConstants;
 
 import android.util.SparseArray;
 
@@ -13,7 +10,7 @@ import android.util.SparseArray;
  * HVC convert utility.
  *
  */
-public final class HvcConvertUtils implements HumanDetectProfileConstants {
+public final class HvcConvertUtils  {
 
     /**
      * Constructor.

@@ -116,6 +116,10 @@ public class BleDeviceDetectorTest extends AndroidTestCase {
                             public boolean isEnabled() {
                                 return true;
                             }
+                            @Override
+                            public boolean checkBluetoothAddress(String address) {
+                                return false;
+                            }
                         };
                         return adapter;
                     }
@@ -164,6 +168,10 @@ public class BleDeviceDetectorTest extends AndroidTestCase {
                             @Override
                             public boolean isEnabled() {
                                 return true;
+                            }
+                            @Override
+                            public boolean checkBluetoothAddress(String address) {
+                                return false;
                             }
                         };
                         return adapter;
@@ -215,6 +223,10 @@ public class BleDeviceDetectorTest extends AndroidTestCase {
                             public boolean isEnabled() {
                                 return true;
                             }
+                            @Override
+                            public boolean checkBluetoothAddress(String address) {
+                                return false;
+                            }
                         };
                         return adapter;
                     }
@@ -261,6 +273,10 @@ public class BleDeviceDetectorTest extends AndroidTestCase {
                             @Override
                             public boolean isEnabled() {
                                 return true;
+                            }
+                            @Override
+                            public boolean checkBluetoothAddress(String address) {
+                                return false;
                             }
                         };
                         return adapter;

@@ -49,6 +49,37 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     /** ミリ秒 - 秒オーダー変換用. */
     private static final int UNIT_SEC = 1000;
 
+
+    /**
+     * AudioのContentProviderのキー一覧を定義する.
+     */
+    private static final String[] AUDIO_TABLE_KEYS = {
+        MediaStore.Audio.Media.ALBUM, 
+        MediaStore.Audio.Media.ARTIST,
+        MediaStore.Audio.Media.COMPOSER, 
+        MediaStore.Audio.Media.TITLE, 
+        MediaStore.Audio.Media.DURATION,
+        MediaStore.Audio.Media._ID, 
+        MediaStore.Audio.Media.MIME_TYPE,
+        MediaStore.Audio.Media.DATE_ADDED, 
+        MediaStore.Audio.Media.DISPLAY_NAME
+    };
+
+    /**
+     * VideoのContentProviderのキー一覧を定義する.
+     */
+    private static final String[] VIDEO_TABLE_KEYS = {
+        MediaStore.Video.Media.ALBUM, 
+        MediaStore.Video.Media.ARTIST,
+        MediaStore.Video.Media.LANGUAGE, 
+        MediaStore.Video.Media.TITLE, 
+        MediaStore.Video.Media.DURATION,
+        MediaStore.Video.Media._ID, 
+        MediaStore.Video.Media.MIME_TYPE,
+        MediaStore.Video.Media.DATE_ADDED, 
+        MediaStore.Video.Media.DISPLAY_NAME
+    };
+
     /** Mute Status. */
     private static Boolean sIsMute = false;
 
@@ -157,115 +188,111 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
             // Query table parameter.
-            String[] mParam = null;
-
+            String[] param = null;
             // URI
-            Uri mUriType = null;
-
+            Uri uriType = null;
             // Query filter.
-            String mFilter = "_display_name=?";
-
+            String filter = "_display_name=?";
             // Query cursor.
             Cursor cursor = null;
 
             // Get media path.
-            Uri mUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
-            String fileName = getDisplayNameFromUri(mUri);
+            Uri uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+            String fileName = getDisplayNameFromUri(uri);
             if (fileName == null) {
-                mUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
-                fileName = getDisplayNameFromUri(mUri);
+                uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+                fileName = getDisplayNameFromUri(uri);
                 if (fileName == null) {
                     MessageUtils.setInvalidRequestParameterError(response);
                     return true;
                 }
-                // Audio table key.
-                mParam = new String[] {MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.ARTIST,
-                        MediaStore.Audio.Media.COMPOSER, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DURATION,
-                        MediaStore.Audio.Media._ID, MediaStore.Audio.Media.MIME_TYPE,
-                        MediaStore.Audio.Media.DATE_ADDED, MediaStore.Audio.Media.DISPLAY_NAME};
-                mUriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                param = AUDIO_TABLE_KEYS;
+                uriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
             } else {
-                // Video table key.
-                mParam = new String[] {MediaStore.Video.Media.ALBUM, MediaStore.Video.Media.ARTIST,
-                        MediaStore.Video.Media.LANGUAGE, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DURATION,
-                        MediaStore.Video.Media._ID, MediaStore.Video.Media.MIME_TYPE,
-                        MediaStore.Video.Media.DATE_ADDED, MediaStore.Video.Media.DISPLAY_NAME};
-                mUriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                param = VIDEO_TABLE_KEYS;
+                uriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
             }
-            ContentResolver mContentResolver = this.getContext().getApplicationContext().getContentResolver();
+
+            ContentResolver cresolver = getContext()
+                    .getApplicationContext().getContentResolver();
             try {
-                cursor = mContentResolver.query(mUriType, mParam, mFilter, new String[] {fileName}, null);
-                cursor.moveToFirst();
-            } catch (NullPointerException e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
+                List<Bundle> list = new ArrayList<Bundle>();
+                cursor = cresolver.query(uriType, param, filter, new String[] {fileName}, null);
+                if (cursor.moveToFirst()) {
+                    Bundle medium = loadMediaData(uriType, cursor);
+                    list.add(medium);
                 }
-                MessageUtils.setInvalidRequestParameterError(response);
-                return true;
-            }
-
-            List<Bundle> list = new ArrayList<Bundle>();
-
-            if (cursor.getCount() > 0) {
-                Bundle medium = new Bundle();
-                String mId = null;
-                String mType = null;
-                String mTitle = null;
-                int mDuration = 0;
-                String mArtist = null;
-                String mComp = null;
-
-                if (mUriType == MediaStore.Audio.Media.EXTERNAL_CONTENT_URI) {
-                    mId = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
-                    mType = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE));
-                    mTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
-                    mDuration = (cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION))) / UNIT_SEC;
-                    mArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                    mComp = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.COMPOSER));
-
-                    setType(medium, "Music");
-
-                    // Make creator
-                    List<Bundle> dataList = new ArrayList<Bundle>();
-                    Bundle creator = new Bundle();
-                    setCreator(creator, mArtist);
-                    setRole(creator, "Artist");
-                    dataList.add((Bundle) creator.clone());
-                    setCreator(creator, mComp);
-                    setRole(creator, "Composer");
-                    dataList.add((Bundle) creator.clone());
-
-                    setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
-                } else {
-                    mId = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
-                    mType = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE));
-                    mTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.TITLE));
-                    mDuration = (cursor.getInt(cursor.getColumnIndex(MediaStore.Video.Media.DURATION))) / UNIT_SEC;
-                    mArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.ARTIST));
-                    String mLang = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.LANGUAGE));
-                    setLanguage(medium, mLang);
-
-                    setType(medium, "Video");
-
-                    // Make creator
-                    List<Bundle> dataList = new ArrayList<Bundle>();
-                    Bundle creatorVideo = new Bundle();
-                    setCreator(creatorVideo, mArtist);
-                    setRole(creatorVideo, "Artist");
-                    dataList.add((Bundle) creatorVideo.clone());
-                    setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
+                setMedia(response, list.toArray(new Bundle[list.size()]));
+                setResult(response, DConnectMessage.RESULT_OK);
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
                 }
-                setMediaId(medium, mId);
-                setMIMEType(medium, mType);
-                setTitle(medium, mTitle);
-                setDuration(medium, mDuration);
-                list.add(medium);
             }
-            setMedia(response, list.toArray(new Bundle[list.size()]));
-            setResult(response, DConnectMessage.RESULT_OK);
-            cursor.close();
         }
         return true;
+    }
+
+    /**
+     * cursorからMediaDataを読み込みBundleに格納して返却する.
+     * @param uriType メディアタイプ
+     * @param cursor データが格納されているCursor
+     * @return データを移し替えたBundle
+     */
+    private Bundle loadMediaData(final Uri uriType, final Cursor cursor) {
+        Bundle medium = new Bundle();
+        String mId = null;
+        String mType = null;
+        String mTitle = null;
+        int mDuration = 0;
+        String mArtist = null;
+        String mComp = null;
+
+        if (uriType == MediaStore.Audio.Media.EXTERNAL_CONTENT_URI) {
+            mId = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
+            mType = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE));
+            mTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+            mDuration = (cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION))) / UNIT_SEC;
+            mArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+            mComp = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.COMPOSER));
+
+            setType(medium, "Music");
+
+            // Make creator
+            List<Bundle> dataList = new ArrayList<Bundle>();
+            Bundle creator = new Bundle();
+            setCreator(creator, mArtist);
+            setRole(creator, "Artist");
+            dataList.add((Bundle) creator.clone());
+            setCreator(creator, mComp);
+            setRole(creator, "Composer");
+            dataList.add((Bundle) creator.clone());
+
+            setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
+        } else {
+            mId = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
+            mType = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE));
+            mTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.TITLE));
+            mDuration = (cursor.getInt(cursor.getColumnIndex(MediaStore.Video.Media.DURATION))) / UNIT_SEC;
+            mArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.ARTIST));
+            String mLang = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.LANGUAGE));
+            setLanguage(medium, mLang);
+
+            setType(medium, "Video");
+
+            // Make creator
+            List<Bundle> dataList = new ArrayList<Bundle>();
+            Bundle creatorVideo = new Bundle();
+            setCreator(creatorVideo, mArtist);
+            setRole(creatorVideo, "Artist");
+            dataList.add((Bundle) creatorVideo.clone());
+            setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
+        }
+        setMediaId(medium, mId);
+        setMIMEType(medium, mType);
+        setTitle(medium, mTitle);
+        setDuration(medium, mDuration);
+        return medium;
     }
 
     /**
@@ -275,16 +302,23 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
      * @return name display name.
      */
     private String getDisplayNameFromUri(final Uri mUri) {
+        Cursor c = null;
         try {
-            ContentResolver mContentResolver = this.getContext().getApplicationContext().getContentResolver();
-            Cursor c = mContentResolver.query(mUri, null, null, null, null);
-            c.moveToFirst();
-            String name = c.getString(c.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME));
-    
-            return name;
-        } catch (NullPointerException e) {
-            return null;
+            ContentResolver mContentResolver = getContext()
+                    .getApplicationContext().getContentResolver();
+            c = mContentResolver.query(mUri, null, null, null, null);
+            if (c.moveToFirst()) {
+                int index = c.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
+                if (index != -1) {
+                    return c.getString(index);
+                }
+            }
+        } finally {
+            if (c != null) {
+                c.close();
+            }
         }
+        return null;
     }
 
     @Override

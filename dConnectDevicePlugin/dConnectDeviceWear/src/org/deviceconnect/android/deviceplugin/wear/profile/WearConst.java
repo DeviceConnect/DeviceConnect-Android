@@ -14,13 +14,16 @@ package org.deviceconnect.android.deviceplugin.wear.profile;
 public final class WearConst {
 
     /** Vibration start. */
-    public static final String DEVICE_TO_WEAR_VIBRATION_RUN = "org.deviceconnect.wear.vibration.run";
+    public static final String DEVICE_TO_WEAR_VIBRATION_RUN
+            = "org.deviceconnect.wear.vibration.run";
 
     /** Vibration stop. */
-    public static final String DEVICE_TO_WEAR_VIBRATION_DEL = "org.deviceconnect.wear.vibration.del";
+    public static final String DEVICE_TO_WEAR_VIBRATION_DEL
+            = "org.deviceconnect.wear.vibration.del";
 
     /** When Action is opened. */
-    public static final String DEVICE_TO_WEAR_NOTIFICATION_OPEN = "org.deviceconnect.wear.notification.open";
+    public static final String DEVICE_TO_WEAR_NOTIFICATION_OPEN
+            = "org.deviceconnect.wear.notification.open";
 
     /** When DeviceOrientation register is opened. */
     public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER
@@ -31,13 +34,64 @@ public final class WearConst {
             = "org.deviceconnect.wear.deivceorienatation.unregist";
 
     /** Wear to Android. */
-    public static final String WEAR_TO_DEVICE_DEIVCEORIENTATION_DATA = "org.deviceconnect.wear.deivceorienatation.data";
+    public static final String WEAR_TO_DEVICE_DEIVCEORIENTATION_DATA
+            = "org.deviceconnect.wear.deivceorienatation.data";
 
     /** ServiceId. */
     public static final String PARAM_DEVICEID = "serviceId";
 
     /** NotificationId. */
     public static final String PARAM_NOTIFICATIONID = "notificationId";
+
+    /**
+     * サービスID.
+     */
+    public static final String SERVICE_ID = "Wear";
+
+    /**
+     * デバイス名: {@value}.
+     */
+    public static final String DEVICE_NAME = "Android Wear";
+
+    /**
+     * bitmapを受け渡しするためのキー.
+     */
+    public static final String PARAM_BITMAP = "bitmap";
+
+    /**
+     * x座標を受け渡しするためのキー.
+     */
+    public static final String PARAM_X = "x";
+
+    /**
+     * y座標を受け渡しするためのキー.
+     */
+    public static final String PARAM_Y = "y";
+
+    /**
+     * 描画モードを受け渡しするためのキー.
+     */
+    public static final String PARAM_MODE = "mode";
+
+    /**
+     * 画像を送信するためのパスを定義する.
+     */
+    public static final String PATH_CANVAS = "/canvas/profile";
+
+    /**
+     * 通常の描画モード.
+     */
+    public static final int MODE_NORMAL = 0;
+
+    /**
+     * 拡大の描画モード.
+     */
+    public static final int MODE_SCALES = 1;
+
+    /**
+     * リピート描画モード.
+     */
+    public static final int MODE_FILLS = 2;
 
     /**
      * Constructor.

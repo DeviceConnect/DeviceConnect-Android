@@ -41,10 +41,10 @@
         <description lang="en">Accesses device orientation. </description>
     </profile>
 
-     <profile name="deviceorientation" expireperiod="86400000">
-        <name lang="ja">加速度</name>
-        <description lang="ja">加速度機能にアクセスする </description>
-        <name lang="en">Device Orientation </name>
-        <description lang="en">Accesses device orientation. </description>
+     <profile name="notification" expireperiod="86400000">
+        <name lang="ja">ノーティフィケーション</name>
+        <description lang="ja">ノーティフィケーション機能にアクセスする </description>
+        <name lang="en">Notification</name>
+        <description lang="en">Accesses notification. </description>
     </profile>
 </deviceplugin-provider>

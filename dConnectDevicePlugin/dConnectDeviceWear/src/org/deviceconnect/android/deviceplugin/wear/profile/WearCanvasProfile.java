@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.wear.profile;
 
 import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
 import org.deviceconnect.android.deviceplugin.wear.WearManager;
+import org.deviceconnect.android.deviceplugin.wear.WearManager.OnDataItemResultListener;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -15,7 +16,8 @@ import org.deviceconnect.message.DConnectMessage;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
+
+import com.google.android.gms.wearable.DataApi.DataItemResult;
 
 /**
  * Android Wear用のCanvasプロファイル.
@@ -24,68 +26,71 @@ import android.util.Log;
  */
 public class WearCanvasProfile extends CanvasProfile {
 
+    /**
+     * Android wearは100KB以上の画像は送信できない.
+     */
+    private static final int LIMIT_DATA_SIZE = 1024 * 1024 * 100;
+
     @Override
     protected boolean onPostDrawImage(final Intent request, final Intent response, 
             final String serviceId, final String mimeType, final byte[] data,
             final double x, final double y, final String mode) {
-//        return super.onPostDrawImage(request, response, serviceId, mimeType, data, x, y, mode);
-        
-        
-//        if (uri == null) {
-//            MessageUtils.setInvalidRequestParameterError(response, "data is not specied to update a file.");
-//            return true;
-//        }
 
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
 
-//        CanvasDrawImageObject.Mode enumMode = CanvasDrawImageObject.convertMode(mode);
-//        if (enumMode == null) {
-//            MessageUtils.setInvalidRequestParameterError(response);
-//            return true;
-//        }
+        if (data == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "data is not empty");
+            return true;
+        }
 
-//        if (!CanvasDrawUtils.checkBitmap(getContext(), uri)) {
-//            MessageUtils.setInvalidRequestParameterError(response, "Data format is invalid.");
-//            return true;
-//        }
-//
-//        CanvasDrawImageObject drawObj = new CanvasDrawImageObject(uri, enumMode, x, y);
+        if (data.length > LIMIT_DATA_SIZE) {
+            MessageUtils.setInvalidRequestParameterError(response, "data size more than 100KB");
+            return true;
+        }
 
-//        Intent intent = new Intent();
-//        intent.setClass(getContext(), CanvasProfileActivity.class);
-//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        drawObj.setValueToIntent(intent);
-//        getContext().startActivity(intent);
+        Mode m = Mode.getInstance(mode);
+        if ((mode != null && mode.length() > 0) && m == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "mode is invalid");
+            return true;
+        }
 
-        new Thread(new Runnable() {
-            public void run() {
-                Log.e("ABC", "AAAAAAAAAAAAAAA");
-                Bitmap bitmap = getBitmap(data);
-                if (bitmap != null) {
-                    Log.e("ABC", "AAAAAAAAAAAAAAA22");
-                    if (getManager().sendImage(bitmap)) {
-                        Log.e("ABC", "AAAAAAAAAAAAAAA33");
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    }
+        Bitmap bitmap = getBitmap(data);
+        if (bitmap == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "format invalid");
+            return true;
+        }
+
+        int mm = WearUtils.convertMode(m);
+        getManager().sendImageData(bitmap, (int) x, (int) y, mm, new OnDataItemResultListener() {
+            @Override
+            public void onResult(final DataItemResult result) {
+                if (result.getStatus().isSuccess()) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response);
                 }
-                
                 getContext().sendBroadcast(response);
             }
-        }).start();
+            @Override
+            public void onError() {
+                MessageUtils.setIllegalDeviceStateError(response);
+                getContext().sendBroadcast(response);
+            }
+        });
         return false;
     }
-    
-    private Bitmap getBitmap(byte[] buf) {
-        if (buf == null) {
-            return null;
-        }
+
+    /**
+     * データを画像に変換します.
+     * @param data 画像データ
+     * @return Bitmap
+     */
+    private Bitmap getBitmap(final byte[] data) {
         try {
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inMutable = true;
-            return BitmapFactory.decodeByteArray(buf, 0, buf.length, options);
+            return BitmapFactory.decodeByteArray(data, 0, data.length);
         } catch (OutOfMemoryError e) {
             return null;
         }

@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.wear;
 
 import java.util.List;
 
-import org.deviceconnect.android.deviceplugin.wear.profile.WearCanvasProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearNotificationProfile;
@@ -17,7 +16,8 @@ import org.deviceconnect.android.deviceplugin.wear.profile.WearSystemProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearVibrationProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.MemoryCacheController;
+import org.deviceconnect.android.event.cache.db.DBCacheController;
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
@@ -26,31 +26,25 @@ import org.deviceconnect.android.profile.SystemProfile;
 import android.content.Intent;
 
 /**
- * Service.
+ * WearService.
  * 
  * @author NTT DOCOMO, INC.
  */
 public class WearDeviceService extends DConnectMessageService {
 
-    /**
-     * Android Wearを管理するクラス.
-     */
-    private WearManager mWearManager;
-
     @Override
     public void onCreate() {
         super.onCreate();
 
-        mWearManager = new WearManager(this);
-
         // initialize of the EventManager
-        EventManager.INSTANCE.setController(new MemoryCacheController());
+        EventManager.INSTANCE.setController(new DBCacheController(this));
+        LocalOAuth2Main.initialize(getApplicationContext());
 
         // add supported profiles
         addProfile(new WearNotificationProfile());
         addProfile(new WearVibrationProfile());
         addProfile(new WearDeviceOrientationProfile());
-        addProfile(new WearCanvasProfile());
+
     }
 
     @Override
@@ -94,9 +88,5 @@ public class WearDeviceService extends DConnectMessageService {
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
         return new WearServiceDiscoveryProfile();
-    }
-    
-    public WearManager getManager() {
-        return mWearManager;
     }
 }

@@ -19,7 +19,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 /**
- * 設定画面用Fragment.
+ * Setting screen Fragment.
  * 
  * @author NTT DOCOMO, INC.
  */
@@ -29,9 +29,9 @@ public class WearSettingFragment extends Fragment implements OnClickListener {
     private ImageView mImageView;
 
     @Override
-    public View onCreateView(final LayoutInflater inflater,
-           final ViewGroup container, final Bundle savedInstanceState) {
-        // Positionを取得
+    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
+            final Bundle savedInstanceState) {
+        // Get position.
         Bundle mBundle = getArguments();
         int mPagePosition = mBundle.getInt("position", 0);
 

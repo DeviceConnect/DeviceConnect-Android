@@ -29,7 +29,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
 /**
- * Notificationプロファイル.
+ * Notification Profile.
  * 
  * @author NTT DOCOMO, INC.
  */
@@ -91,7 +91,7 @@ public class WearNotificationProfile extends NotificationProfile {
                 MessageUtils.setInvalidRequestParameterError(response);
                 return true;
             }
-            // Notification を発行
+            // Send Notification.
             myNotificationManager = NotificationManagerCompat.from(this.getContext());
             myNotificationManager.notify(myNotificationId, myNotificationBuilder.build());
             response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
@@ -148,7 +148,7 @@ public class WearNotificationProfile extends NotificationProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            // イベントの登録
+            // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
@@ -174,7 +174,7 @@ public class WearNotificationProfile extends NotificationProfile {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
 
-            // イベントの登録
+            // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
@@ -199,7 +199,7 @@ public class WearNotificationProfile extends NotificationProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            // イベントの登録
+            // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
@@ -221,7 +221,7 @@ public class WearNotificationProfile extends NotificationProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            // イベントの解除
+            // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -242,7 +242,7 @@ public class WearNotificationProfile extends NotificationProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            // イベントの解除
+            // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -263,7 +263,7 @@ public class WearNotificationProfile extends NotificationProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            // イベントの解除
+            // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);

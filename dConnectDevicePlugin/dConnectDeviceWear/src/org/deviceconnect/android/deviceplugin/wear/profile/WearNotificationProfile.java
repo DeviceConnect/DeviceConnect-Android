@@ -104,11 +104,13 @@ public class WearNotificationProfile extends NotificationProfile {
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
                     null, WearNotificationProfile.ATTRIBUTE_ON_SHOW);
 
-            for (int i = 0; i < events.size(); i++) {
-                Event event = events.get(i);
-                Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
-                getContext().sendBroadcast(intent);
+            synchronized (events) {
+                for (int i = 0; i < events.size(); i++) {
+                    Event event = events.get(i);
+                    Intent intent = EventManager.createEventMessage(event);
+                    intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
+                    getContext().sendBroadcast(intent);
+                }
             }
         }
         return true;
@@ -131,12 +133,13 @@ public class WearNotificationProfile extends NotificationProfile {
 
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
                     null, WearNotificationProfile.ATTRIBUTE_ON_CLOSE);
-
-            for (int i = 0; i < events.size(); i++) {
-                Event event = events.get(i);
-                Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
-                getContext().sendBroadcast(intent);
+            synchronized (events) {
+                for (int i = 0; i < events.size(); i++) {
+                    Event event = events.get(i);
+                    Intent intent = EventManager.createEventMessage(event);
+                    intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
+                    getContext().sendBroadcast(intent);
+                }
             }
         }
         return true;

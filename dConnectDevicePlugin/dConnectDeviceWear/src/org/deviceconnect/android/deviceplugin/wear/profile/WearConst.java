@@ -33,6 +33,10 @@ public final class WearConst {
     public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER
             = "org.deviceconnect.wear.deivceorienatation.unregist";
 
+    /** When Canvas deleted. */
+    public static final String DEVICE_TO_WEAR_CANCAS_DELETE_IMAGE
+            = "org.deviceconnect.wear.canvas.delete";
+
     /** Wear to Android. */
     public static final String WEAR_TO_DEVICE_DEIVCEORIENTATION_DATA
             = "org.deviceconnect.wear.deivceorienatation.data";

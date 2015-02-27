@@ -85,22 +85,7 @@ public class WearCanvasProfile extends CanvasProfile {
         return false;
     }
 
-    
     @Override
-    protected boolean onDeleteRequest(Intent request, Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
-            String serviceId = getServiceID(request);
-            result = onDeleteDrawImage(request, response, serviceId);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-
     protected boolean onDeleteDrawImage(final Intent request, final Intent response,
             final String serviceId) {
         if (serviceId == null) {

@@ -1,19 +1,29 @@
 package org.deviceconnect.android.deviceplugin.hvc.comm;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
 
-import omron.HVC.HVC;
-import omron.HVC.HVC_PRM;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+
 
 /**
  * HVC Communication Manager.
  */
 public class HvcCommManager {
 
-    private HvcDeviceSearchThread deviceSearchThread = null;
-    private HvcDetectThread detectThread = null;
+    /**
+     * Device search thread.
+     */
+    private HvcDeviceSearchThread mDeviceSearchThread;
+    
+    /**
+     * Detect thread..
+     */
+    private HvcDetectThread mDetectThread;
     
     /**
      * Device search process result.
@@ -37,9 +47,9 @@ public class HvcCommManager {
      * @return result
      */
     public DeviceSearchResult startDeviceSearchThread(final Context context, final HvcDeviceSearchListener listener) {
-        if (deviceSearchThread == null || !deviceSearchThread.isAlive()) {
-            deviceSearchThread = new HvcDeviceSearchThread(context, listener); 
-            deviceSearchThread.start();
+        if (mDeviceSearchThread == null || !mDeviceSearchThread.isAlive()) {
+            mDeviceSearchThread = new HvcDeviceSearchThread(context, listener); 
+            mDeviceSearchThread.start();
             return DeviceSearchResult.RESULT_SUCCESS;
         } else {
             return DeviceSearchResult.RESULT_ERR_THREAD_ALIVE;
@@ -75,12 +85,57 @@ public class HvcCommManager {
      */
     public DetectionResult startDetectThread(final Context context, final BluetoothDevice device, final int useFunc,
             final HvcDetectRequestParams params, final HvcDetectListener listener) {
-       if (detectThread == null || !detectThread.isAlive()) {
-            detectThread = new HvcDetectThread(context, device, useFunc, params, listener);
-            detectThread.start();
+       if (mDetectThread == null || !mDetectThread.isAlive()) {
+            mDetectThread = new HvcDetectThread(context, device, useFunc, params, listener);
+            mDetectThread.start();
             return DetectionResult.RESULT_SUCCESS;
         } else {
             return DetectionResult.RESULT_ERR_THREAD_ALIVE;
         }
     }
+
+    /**
+     * BluetoothDevices(found by service discovery).
+     */
+    private static List<BluetoothDevice> sDevices = new ArrayList<BluetoothDevice>();
+    
+    /**
+     * Store BluetoothDevices(found by service discovery).
+     * @param devices BluetoothDevices
+     */
+    public static void storeDevices(final List<BluetoothDevice> devices) {
+        synchronized (sDevices) {
+            sDevices = devices;
+        }
+    }
+    
+    /**
+     * Search BluetoothDevice.
+     * @param serviceId serviceId
+     * @return not null: found BluetoothDevice / null:not found.
+     */
+    public static BluetoothDevice searchDevices(final String serviceId) {
+        
+        synchronized (sDevices) {
+            if (sDevices != null) {
+                for (BluetoothDevice device : sDevices) {
+                    if (serviceId.equals(getServiceId(device.getAddress()))) {
+                        return device;
+                    }
+                }
+            }
+            return null;
+        }
+    }
+    
+    /**
+     * Get serviceId from bluetoothAddress.
+     * @param address bluetoothAddress
+     * @return serviceId
+     */
+    public static String getServiceId(final String address) {
+        String serviceId = address.replace(":", "").toLowerCase(Locale.ENGLISH);
+        return serviceId;
+    }
+    
 }

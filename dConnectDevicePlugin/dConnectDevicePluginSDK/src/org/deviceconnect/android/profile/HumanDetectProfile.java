@@ -38,16 +38,7 @@ import android.os.Bundle;
 public abstract class HumanDetectProfile extends DConnectProfile {
     
     /**
-     * HVC device name prefix.
-     */
-    protected final static String DEVICE_NAME_PREFIX = "OMRON_HVC.*|omron_hvc.*";
-    
-    
-    
-    
-    
-    /**
-     * profile nme: {@value} .
+     * profile name: {@value} .
      */
     protected final static String PROFILE_NAME = "humandetect";
 

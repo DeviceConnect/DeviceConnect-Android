@@ -68,6 +68,18 @@ public class HvcDetectThread extends Thread {
         // BLE initialize (GATT)
         mHvcBle.setCallBack(new HVCBleCallback() {
             @Override
+            public void onConnected() {
+                super.onConnected();
+                
+                // send parameter command to HVC.(results return callback. : mCallback.onPostSetParam())
+                int result = mHvcBle.setParam(mHvcPrm);
+                if (result != HVC.HVC_NORMAL) {
+                    mListener.onConnectError(result);
+                    return;
+                }
+            }
+            
+            @Override
             public void onDisconnected() {
                 mListener.onDetectFaceDisconnected();
                 super.onDisconnected();
@@ -78,7 +90,11 @@ public class HvcDetectThread extends Thread {
                 super.onPostSetParam(nRet, outStatus);
                 
                 // send detect command to HVC.(results return callback. : mCallback.onPostExecute())
-                mHvcBle.execute(mUseFunc, mHvcRes);
+                int result = mHvcBle.execute(mUseFunc, mHvcRes);
+                if (result != HVC.HVC_NORMAL) {
+                    mListener.onRequestDetectError(result);
+                    return;
+                }
             }
             
             @Override
@@ -94,9 +110,8 @@ public class HvcDetectThread extends Thread {
                 mHvcBle.disconnect();
             }
         });
-        mHvcBle.connect(mContext/*getApplicationContext()*/, mDevice);
+        mHvcBle.connect(mContext, mDevice);
         
-        // send parameter command to HVC.(results return callback. : mCallback.onPostSetParam())
-        mHvcBle.setParam(mHvcPrm);
+        
     }
 }

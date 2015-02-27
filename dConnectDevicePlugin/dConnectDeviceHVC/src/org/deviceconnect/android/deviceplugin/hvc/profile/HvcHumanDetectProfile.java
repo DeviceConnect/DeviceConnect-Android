@@ -23,6 +23,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.HumanDetectProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -57,7 +58,24 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     /**
      * error message. {@value}
      */
-    protected static final String ERROR_RESULT_UNKNOWN_VALUE = "result unknown value. result:";
+    protected static final String ERROR_RESULT_UNKNOWN_VALUE = "result unknown value. status:";
+    
+    /**
+     * error message. {@value}
+     */
+    protected static final String ERROR_DETECT = "detect error. status:";
+    
+    /**
+     * error message. {@value}
+     */
+    protected static final String ERROR_DEVICE_CONNECT = "device connect error. status:";
+    
+    /**
+     * error message. {@value}
+     */
+    protected static final String ERROR_REQUEST_DETECT = "request detect error. status:";
+    
+// TODO: timeout error.
     
     /**
      * userFunc get error value.
@@ -276,6 +294,14 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     protected boolean startGetDetectionProc(final Intent request, final Intent response,
             final String serviceId, final List<String> options, final DetectKind detectKind) {
 
+        // get bluetooth device from serviceId.
+        BluetoothDevice device = HvcCommManager.searchDevices(serviceId);
+        if (device == null) {
+            // bluetooth device not found.
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+        
         // ble os available?
         if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             // ble not available.
@@ -299,8 +325,8 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         }
 
         // start detect thread.
-        HvcCommManager.DetectionResult result = mCommManager.startDetectThread(getContext(),
-        /* serviceId */null, useFunc, requestParams, new HvcDetectListener() {
+        HvcCommManager.DetectionResult result = mCommManager.startDetectThread(getContext(), device, useFunc,
+                requestParams, new HvcDetectListener() {
             @Override
             public void onDetectFinished(final HVC_RES result) {
                 // set response
@@ -318,7 +344,21 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             @Override
             public void onDetectError(final int status) {
                 // device error
-                MessageUtils.setUnknownError(response, ERROR_DEVICE_ERROR_STATUS + status);
+                MessageUtils.setUnknownError(response, ERROR_DETECT + status);
+                getContext().sendBroadcast(response);
+            }
+
+            @Override
+            public void onConnectError(final int status) {
+                // device error
+                MessageUtils.setUnknownError(response, ERROR_DEVICE_CONNECT + status);
+                getContext().sendBroadcast(response);
+            }
+
+            @Override
+            public void onRequestDetectError(final int status) {
+                // device error
+                MessageUtils.setUnknownError(response, ERROR_REQUEST_DETECT + status);
                 getContext().sendBroadcast(response);
             }
         });
@@ -354,12 +394,12 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         convertDetectKindArray.add(new OptionInfo(DetectKind.HAND.toString(), HVC.HVC_ACTIV_HAND_DETECTION));
         convertDetectKindArray.add(new OptionInfo(DetectKind.FACE.toString(), HVC.HVC_ACTIV_FACE_DETECTION));
 
-        int detectBitFlag = 0;
         OptionInfo convertDetectKind = OptionInfoUtils.search(convertDetectKindArray, detectKind.toString());
         if (convertDetectKind == null) {
             // not match
             return ERROR_USEFINC_VALUE;
         }
+        int detectBitFlag = convertDetectKind.mUseFuncBit;
 
         ArrayList<OptionInfo> convertOptionArray = new ArrayList<OptionInfo>();
         convertOptionArray.add(new OptionInfo(VALUE_OPTION_FACE_DIRECTION, HVC.HVC_ACTIV_FACE_DIRECTION));
@@ -370,13 +410,15 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         convertOptionArray.add(new OptionInfo(VALUE_OPTION_EXPRESSION, HVC.HVC_ACTIV_EXPRESSION_ESTIMATION));
 
         int optionBitFlag = 0;
-        for (String option : options) {
-            OptionInfo optionInfo = OptionInfoUtils.search(convertOptionArray, option);
-            if (optionInfo == null) {
-                // not match
-                return ERROR_USEFINC_VALUE;
+        if (options != null) {
+            for (String option : options) {
+                OptionInfo optionInfo = OptionInfoUtils.search(convertOptionArray, option);
+                if (optionInfo == null) {
+                    // not match
+                    return ERROR_USEFINC_VALUE;
+                }
+                optionBitFlag |= optionInfo.getUseFuncBit();
             }
-            optionBitFlag |= optionInfo.getUseFuncBit();
         }
 
         int useFunc = detectBitFlag | optionBitFlag;

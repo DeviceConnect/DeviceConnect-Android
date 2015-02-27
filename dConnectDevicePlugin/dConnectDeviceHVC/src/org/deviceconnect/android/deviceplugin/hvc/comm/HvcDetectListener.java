@@ -4,6 +4,8 @@ import omron.HVC.HVC_RES;
 
 public interface HvcDetectListener {
     void onDetectFinished(HVC_RES result);
-    void onDetectError(int status);
     void onDetectFaceDisconnected();
+    void onConnectError(int status);
+    void onRequestDetectError(int status);
+    void onDetectError(int status);
 }

@@ -133,15 +133,19 @@ public class HVC_BLE extends HVC implements BleInterface
 				 * ・outStatusとresに戻り値を返す
 				 */
 		        nRet = Execute(30000, inExec, outStatus, res);
-		        if ( mCallback != null ) {
+
+                /*
+                 * STATE_BUSYを解除する(本処理がコールバック後になっていたが、BUSY状態でコールバックが実行されてなにもできないので先に処理するように変更した)
+                 */
+                /* レスポンス受信またはタイムアウトしたら、BUSYからCONNECTEDに繊維 */
+                if ( mStatus == STATE_BUSY ) {
+                    mStatus = STATE_CONNECTED;
+                }
+
+                if ( mCallback != null ) {
 		        	/* 応答が帰ったらコールバックを実行 */
 		        	mCallback.onPostExecute(nRet, outStatus[0]);
 		        }
-
-		        /* レスポンス受信またはタイムアウトしたら、BUSYからCONNECTEDに繊維 */
-				if ( mStatus == STATE_BUSY ) {
-			        mStatus = STATE_CONNECTED;
-				}
 			}
     	};
 
@@ -154,11 +158,11 @@ public class HVC_BLE extends HVC implements BleInterface
     public int setParam(final HVC_PRM prm)
     {
         if ( mBtDevice == null ) {
-	        Log.d(TAG, "setParam() : HVC_ERROR_NODEVICES");
+            Log.d(TAG, "setParam() : HVC_ERROR_NODEVICES");
             return HVC_ERROR_NODEVICES;
         }
         if ( mService == null || mService.getmConnectionState() != BleDeviceService.STATE_CONNECTED ) {
-	        Log.d(TAG, "setParam() : HVC_ERROR_DISCONNECTED");
+            Log.d(TAG, "setParam() : HVC_ERROR_DISCONNECTED");
             return HVC_ERROR_DISCONNECTED;
         }
         if ( mStatus > STATE_CONNECTED ) {
@@ -198,16 +202,19 @@ public class HVC_BLE extends HVC implements BleInterface
 		        	/* HVC_COM_SET_DETECTION_ANGLE(0x09) */
 		            nRet = SetFaceDetectionAngle(10000, outStatus, prm);
 		        }
+
+		        /*
+		         * STATE_BUSYを解除する(本処理がコールバック後になっていたが、BUSY状態でコールバックが実行されてなにもできないので先に処理するように変更した)
+		         */
+                if ( mStatus == STATE_BUSY ) {
+                    mStatus = STATE_CONNECTED;
+                }
 		        /*
 		         * 結果をコールバックで返す
 		         */
 		        if ( mCallback != null ) {
 		        	mCallback.onPostSetParam(nRet, outStatus[0]);
 		        }
-
-				if ( mStatus == STATE_BUSY ) {
-			        mStatus = STATE_CONNECTED;
-				}
 			}
     	};
 

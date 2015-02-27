@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.wear.profile;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 
 import org.deviceconnect.android.message.MessageUtils;
@@ -18,6 +17,7 @@ import org.deviceconnect.message.DConnectMessage;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -37,31 +37,6 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
 
     /** Google Play Service. */
     private GoogleApiClient mGoogleApiClient;
-
-    /**
-     * サービスID.
-     */
-    public static final String SERVICE_ID = "Wear";
-
-    /**
-     * デバイス名: {@value}.
-     */
-    public static final String DEVICE_NAME = "Android Wear";
-
-    /**
-     * テスト用デバイスタイプ.
-     */
-    public static final String DEVICE_TYPE = "BLE";
-
-    /**
-     * テスト用オンライン状態.
-     */
-    public static final boolean DEVICE_ONLINE = true;
-
-    /**
-     * テスト用コンフィグ.
-     */
-    public static final String DEVICE_CONFIG = "myConfig";
 
     /**
      * StaticなResponse Intent.
@@ -96,11 +71,11 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
             setAttribute(message, ATTRIBUTE_ON_SERVICE_CHANGE);
 
             Bundle service = new Bundle();
-            setId(service, SERVICE_ID);
-            setName(service, DEVICE_NAME);
-            setType(service, DEVICE_TYPE);
-            setOnline(service, DEVICE_ONLINE);
-            setConfig(service, DEVICE_CONFIG);
+            setId(service, WearConst.SERVICE_ID);
+            setName(service, WearConst.DEVICE_NAME);
+            setType(service, NetworkType.BLE);
+            setOnline(service, true);
+            setConfig(service, "");
 
             setNetworkService(message, service);
 
@@ -121,7 +96,7 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
 
     @Override
     public void onConnected(final Bundle connectionHint) {
-        new AsyncTask<Void, Void, Void>() {
+        (new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(final Void... params) {
                 List<Bundle> services = new ArrayList<Bundle>();
@@ -134,11 +109,11 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
                     String[] mNodeArray = node.split("-");
 
                     Bundle service = new Bundle();
-                    setId(service, SERVICE_ID + "(" + mNodeArray[0] + ")");
-                    setName(service, DEVICE_NAME + "(" + mNodeArray[0] + ")");
-                    setType(service, DEVICE_TYPE);
-                    setOnline(service, DEVICE_ONLINE);
-                    setConfig(service, DEVICE_CONFIG);
+                    setId(service, WearConst.SERVICE_ID + "(" + mNodeArray[0] + ")");
+                    setName(service, WearConst.DEVICE_NAME + "(" + mNodeArray[0] + ")");
+                    setType(service, NetworkType.BLE);
+                    setOnline(service, true);
+                    setConfig(service, "");
                     services.add(service);
                 }
 
@@ -148,7 +123,7 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
 
                 return null;
             }
-        }.execute();
+        }).execute();
     }
 
     /**
@@ -157,14 +132,11 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile impleme
      * @return WearNode
      */
     private Collection<String> getNodes() {
-
-        HashSet<String> results = new HashSet<String>();
+        List<String> results = new ArrayList<String>();
         NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
-
         for (Node node : nodes.getNodes()) {
             results.add(node.getId());
         }
-
         return results;
     }
 

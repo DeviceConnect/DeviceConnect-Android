@@ -40,6 +40,16 @@ public final class WearConst {
     public static final String PARAM_NOTIFICATIONID = "norificationId";
 
     /**
+     * サービスID.
+     */
+    public static final String SERVICE_ID = "Wear";
+
+    /**
+     * デバイス名: {@value}.
+     */
+    public static final String DEVICE_NAME = "Android Wear";
+
+    /**
      * コンストラクタ.
      */
     private WearConst() {

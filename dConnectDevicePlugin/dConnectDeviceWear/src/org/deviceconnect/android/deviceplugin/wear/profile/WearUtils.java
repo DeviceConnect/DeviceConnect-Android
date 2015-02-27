@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
  * @author NTT DOCOMO, INC.
  */
 public final class WearUtils {
+
     /**
      * コンストラクタ.
      */
@@ -27,7 +28,7 @@ public final class WearUtils {
      * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
     public static boolean checkServiceId(final String serviceId) {
-        String regex = WearServiceDiscoveryProfile.SERVICE_ID;
+        String regex = WearConst.SERVICE_ID;
         Pattern mPattern = Pattern.compile(regex);
         Matcher match = mPattern.matcher(serviceId);
         return match.find();

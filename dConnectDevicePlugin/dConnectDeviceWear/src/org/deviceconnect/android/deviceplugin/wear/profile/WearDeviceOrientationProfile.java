@@ -41,9 +41,6 @@ import com.google.android.gms.wearable.Wearable;
 public class WearDeviceOrientationProfile extends DeviceOrientationProfile implements ConnectionCallbacks,
         OnConnectionFailedListener {
 
-    /** Google Play Service. */
-    private GoogleApiClient mGoogleApiClient;
-
     /** Tag. */
     private static final String TAG = "WEAR";
 
@@ -78,24 +75,13 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
 
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
-
             if (error == EventError.NONE) {
-
-                mGoogleApiClient = new GoogleApiClient.Builder(this.getContext()).addApi(Wearable.API)
-                        .addConnectionCallbacks(this).addOnConnectionFailedListener(this).build();
-
-                if (!mGoogleApiClient.isConnected()) {
-                    mGoogleApiClient.connect();
-                }
-
                 setResult(response, DConnectMessage.RESULT_OK);
-
                 return true;
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
                 return true;
             }
-
         }
         return true;
     }
@@ -112,23 +98,23 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
         } else {
             sId = getNodeId(serviceId);
             sStatusEvent = EVENT_UNREGISTER;
-            mGoogleApiClient = new GoogleApiClient.Builder(this.getContext()).addApi(Wearable.API)
-                    .addConnectionCallbacks(this).addOnConnectionFailedListener(this).build();
-
-            if (!mGoogleApiClient.isConnected()) {
-                mGoogleApiClient.connect();
-            } else {
-                new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(final Void... params) {
-                        Collection<String> nodes = getNodes();
-                        sendMessageToWear(sId, EVENT_UNREGISTER, nodes,
-                                WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER, "");
-                        return null;
-
-                    }
-                }.execute();
-            }
+//            mGoogleApiClient = new GoogleApiClient.Builder(this.getContext()).addApi(Wearable.API)
+//                    .addConnectionCallbacks(this).addOnConnectionFailedListener(this).build();
+//
+//            if (!mGoogleApiClient.isConnected()) {
+//                mGoogleApiClient.connect();
+//            } else {
+//                (new AsyncTask<Void, Void, Void>() {
+//                    @Override
+//                    protected Void doInBackground(final Void... params) {
+//                        Collection<String> nodes = getNodes();
+//                        sendMessageToWear(sId, EVENT_UNREGISTER, nodes,
+//                                WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER, "");
+//                        return null;
+//
+//                    }
+//                }).execute();
+//            }
 
             // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -152,8 +138,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
         }
 
         if (sStatusEvent == EVENT_REGISTER) {
-
-            new AsyncTask<Void, Void, Void>() {
+            (new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(final Void... params) {
                     Collection<String> nodes = getNodes();
@@ -161,14 +146,13 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
                             "");
                     return null;
                 }
-            }.execute();
-
+            }).execute();
         } else if (sStatusEvent == EVENT_UNREGISTER) {
             if (BuildConfig.DEBUG) {
                 Log.i(TAG, "onConnected:EVENT_UNREGISTER");
             }
 
-            new AsyncTask<Void, Void, Void>() {
+            (new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(final Void... params) {
                     Collection<String> nodes = getNodes();
@@ -176,7 +160,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
                             WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER, "");
                     return null;
                 }
-            }.execute();
+            }).execute();
         }
 
     }
@@ -203,14 +187,14 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
     private Collection<String> getNodes() {
 
         HashSet<String> results = new HashSet<String>();
-        NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
-
-        for (Node node : nodes.getNodes()) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "node.getId():" + node.getId());
-            }
-            results.add(node.getId());
-        }
+//        NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+//
+//        for (Node node : nodes.getNodes()) {
+//            if (BuildConfig.DEBUG) {
+//                Log.d(TAG, "node.getId():" + node.getId());
+//            }
+//            results.add(node.getId());
+//        }
 
         return results;
     }
@@ -229,33 +213,33 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile imple
 
         if (status == EVENT_REGISTER) {
             for (String node : nodes) {
-
-                // 指定デバイスのノードに送信
-                if (node.indexOf(id) != -1) {
-                    Wearable.MessageApi.addListener(mGoogleApiClient,
-                    // データ受信用リスナーを登録
-                            new MessageApi.MessageListener() {
-                                @Override
-                                public void onMessageReceived(final MessageEvent messageEvent) {
-                                    final String data = new String(messageEvent.getData());
-
-                                    sendMessageToEvent(data);
-                                }
-                            });
-
-                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
-                            action, message.getBytes()).await();
-                }
+//
+//                // 指定デバイスのノードに送信
+//                if (node.indexOf(id) != -1) {
+//                    Wearable.MessageApi.addListener(mGoogleApiClient,
+//                    // データ受信用リスナーを登録
+//                            new MessageApi.MessageListener() {
+//                                @Override
+//                                public void onMessageReceived(final MessageEvent messageEvent) {
+//                                    final String data = new String(messageEvent.getData());
+//
+//                                    sendMessageToEvent(data);
+//                                }
+//                            });
+//
+//                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
+//                            action, message.getBytes()).await();
+//                }
             }
         } else if (status == EVENT_UNREGISTER) {
-            for (String node : nodes) {
-
-                // 指定デバイスのノードに送信
-                if (node.indexOf(id) != -1) {
-                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
-                            WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER, "".getBytes()).await();
-                }
-            }
+//            for (String node : nodes) {
+//
+//                // 指定デバイスのノードに送信
+//                if (node.indexOf(id) != -1) {
+//                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node,
+//                            WearConst.DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER, "".getBytes()).await();
+//                }
+//            }
         }
     }
 

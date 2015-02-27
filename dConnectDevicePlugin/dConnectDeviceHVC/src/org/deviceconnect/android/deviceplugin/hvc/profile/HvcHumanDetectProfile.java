@@ -28,6 +28,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
+
 /**
  * HVC HumanDetectProfile.
  * 
@@ -329,8 +330,9 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 requestParams, new HvcDetectListener() {
             @Override
             public void onDetectFinished(final HVC_RES result) {
+                
                 // set response
-                setFaceDetectResultResponse(response, requestParams, result, detectKind);
+                setDetectResultResponse(response, requestParams, result, detectKind);
                 // success
                 setResult(response, DConnectMessage.RESULT_OK);
                 getContext().sendBroadcast(response);
@@ -433,7 +435,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * @param result result
      * @param detectKind detectKind
      */
-    private void setFaceDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
+    private void setDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
             final HVC_RES result, final DetectKind detectKind) {
 
         // body detects response.
@@ -450,6 +452,8 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                     setParamWidth(bodyDetect, convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
                     setParamHeight(bodyDetect, convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
                     setParamConfidence(bodyDetect, convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
+                    
+                    bodyDetects.add(bodyDetect);
                 }
             }
             if (bodyDetects.size() > 0) {
@@ -471,6 +475,8 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                     setParamWidth(handDetect, convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
                     setParamHeight(handDetect, convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
                     setParamConfidence(handDetect, convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
+                    
+                    handDetects.add(handDetect);
                 }
             }
             if (handDetects.size() > 0) {
@@ -564,6 +570,8 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                             setParamExpressionResult(faceDetect, expressionResult);
                         }
                     }
+                    
+                    faceDetects.add(faceDetect);
                 }
             }
             if (faceDetects.size() > 0) {

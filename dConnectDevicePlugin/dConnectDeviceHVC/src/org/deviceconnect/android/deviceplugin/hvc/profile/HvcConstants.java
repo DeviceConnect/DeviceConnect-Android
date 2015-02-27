@@ -13,6 +13,11 @@ public final class HvcConstants {
     }
     
     /**
+     * HVC device name prefix.
+     */
+    public static final String HVC_DEVICE_NAME_PREFIX = "OMRON_HVC.*|omron_hvc.*";
+    
+    /**
      * HVC-C detect camera width[pixels].
      */
     public static final int HVC_C_CAMERA_WIDTH = 640;

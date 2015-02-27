@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 import omron.HVC.BleDeviceSearch;
 
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
-import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -31,12 +30,6 @@ import android.os.Bundle;
  */
 public class HvcServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
-    /**
-     * HVC device name prefix.
-     */
-    protected final static String HVC_DEVICE_NAME_PREFIX = "OMRON_HVC.*|omron_hvc.*";
-    
-    
     @Override
     public boolean onGetServices(final Intent request, final Intent response) {
         
@@ -50,7 +43,7 @@ public class HvcServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         Thread hvcThread = new Thread() {
             @Override
             public void run() {
-                List<BluetoothDevice> devices = selectHvcDevices(HVC_DEVICE_NAME_PREFIX);
+                List<BluetoothDevice> devices = selectHvcDevices(HvcConstants.HVC_DEVICE_NAME_PREFIX);
                 
                 // store devices.
                 HvcCommManager.storeDevices(devices);

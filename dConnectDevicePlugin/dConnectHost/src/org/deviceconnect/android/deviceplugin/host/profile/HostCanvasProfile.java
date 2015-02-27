@@ -47,18 +47,23 @@ public class HostCanvasProfile extends CanvasProfile {
     }
 
     @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-
-        if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
-            String serviceId = getServiceID(request);
-            result = onDeleteDrawImageForHost(request, response, serviceId);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
+    protected boolean onDeleteDrawImage(final Intent request, final Intent response,
+            final String serviceId) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+            return true;
         }
 
-        return result;
+        String className = getClassnameOfTopActivity();
+        if (CanvasProfileActivity.class.getName().equals(className)) {
+            Intent intent = new Intent(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else {
+            MessageUtils.setIllegalDeviceStateError(response, "canvas not display");
+        }
+
+        return true;
     }
 
     /**
@@ -77,7 +82,8 @@ public class HostCanvasProfile extends CanvasProfile {
             final String serviceId, final String mimeType, final String uri, 
             final double x, final double y, final String mode) {
         if (uri == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "data is not specied to update a file.");
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "data is not specied to update a file.");
             return true;
         }
 
@@ -113,32 +119,6 @@ public class HostCanvasProfile extends CanvasProfile {
         }
 
         setResult(response, DConnectMessage.RESULT_OK);
-        return true;
-    }
-
-    /**
-     * Execute a request.
-     * @param request request intent
-     * @param response response
-     * @param serviceId serviceId
-     * @return true if send response immediately, false otherwise
-     */
-    private boolean onDeleteDrawImageForHost(final Intent request, final Intent response,
-            final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        String className = getClassnameOfTopActivity();
-        if (CanvasProfileActivity.class.getName().equals(className)) {
-            Intent intent = new Intent(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
-            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
-            setResult(response, DConnectMessage.RESULT_OK);
-        } else {
-            MessageUtils.setIllegalDeviceStateError(response, "canvas not display");
-        }
-
         return true;
     }
 

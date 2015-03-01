@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectEvent;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
 
 import android.bluetooth.BluetoothDevice;
@@ -14,7 +16,12 @@ import android.content.Context;
  * HVC Communication Manager.
  */
 public class HvcCommManager {
-
+    
+    /**
+     * ServiceId.
+     */
+    private String mServiceId;
+    
     /**
      * Device search thread.
      */
@@ -39,6 +46,91 @@ public class HvcCommManager {
     	RESULT_ERR_THREAD_ALIVE,
     	
     };
+    
+    /**
+     * Constructor.
+     * @param serviceId serviceId
+     */
+    public HvcCommManager(final String serviceId) {
+        mServiceId = serviceId;
+    }
+    
+    /**
+     * get serviceId.
+     * @return serviceId.
+     */
+    public String getServiceId() {
+        return mServiceId;
+    }
+    
+    
+    
+    //
+    // Register / Unregister Event.
+    //
+    
+    /**
+     * event array.
+     */
+    private List<HumanDetectEvent> mEventArray = new ArrayList<HumanDetectEvent>();
+
+    /**
+     * register detect event.
+     * @param detectKind detectKind
+     * @param sessionKey sessionKey
+     */
+    public void registerDetectEvent(final HumanDetectKind detectKind, final String sessionKey) {
+        HumanDetectEvent event = new HumanDetectEvent(detectKind, sessionKey);
+        mEventArray.add(event);
+    }
+    
+    /**
+     * unregister detect event.
+     * @param detectKind detectKind
+     * @param sessionKey sessionKey
+     */
+    public void unregisterDetectEvent(final HumanDetectKind detectKind, final String sessionKey) {
+        int count = mEventArray.size();
+        for (int index = (count - 1); index >= 0; index--) {
+            HumanDetectEvent event = mEventArray.get(index);
+            if (detectKind == event.getKind() && sessionKey.equals(event.getSessionKey())) {
+                mEventArray.remove(index);
+            }
+        }
+    }
+    
+    /**
+     * check register.
+     * @param detectKind detectKind
+     * @param sessionKey sessionKey
+     * @return if register, true. not register false.
+     */
+    public boolean checkRegisterDetectEvent(final HumanDetectKind detectKind, final String sessionKey) {
+        
+        for (HumanDetectEvent event : mEventArray) {
+            if (detectKind == event.getKind() && sessionKey.equals(event.getSessionKey())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * check event empty.
+     * @return true: empty, false: not empty.
+     */
+    public boolean isEmptyEvent() {
+        if (mEventArray.size() <= 0) {
+            return true;
+        }
+        return false;
+    }
+    
+
+    
+    //
+    // device comm process.
+    //
     
     /**
      * Start device search thread. 
@@ -94,6 +186,10 @@ public class HvcCommManager {
         }
     }
 
+    // 
+    // store bluetooth devices.
+    // 
+    
     /**
      * BluetoothDevices(found by service discovery).
      */
@@ -137,5 +233,26 @@ public class HvcCommManager {
         String serviceId = address.replace(":", "").toLowerCase(Locale.ENGLISH);
         return serviceId;
     }
+    
+    
+    
+    // 
+    // get data by event registers.
+    // 
+
+    /**
+     * get use func by event registers.
+     * @return useFunc useFunc
+     */
+    public int getUseFuncByEventRegisters() {
+        int useFunc = 0;
+        for (HumanDetectEvent event : mEventArray) {
+            useFunc |= HvcConvertUtils.convertToUseFuncByDetectKind(event.getKind());
+            // TODO: options
+//            useFunc |= HvcConvertUtils.convertToUseFuncByDetectKind(event.getOptions());
+        }
+        return useFunc;
+    }
+
     
 }

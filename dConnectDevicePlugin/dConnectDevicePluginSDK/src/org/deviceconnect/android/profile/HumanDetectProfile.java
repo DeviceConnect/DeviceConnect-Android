@@ -12,6 +12,7 @@ import org.deviceconnect.android.message.MessageUtils;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 //TODO: コメント修正する
 /**
@@ -40,77 +41,77 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /**
      * profile name: {@value} .
      */
-    protected final static String PROFILE_NAME = "humandetect";
+    public static final String PROFILE_NAME = "humandetect";
 
     /**
      * interface: {@value} .
      */
-    protected final static String INTERFACE_DETECTION = "detection";
+    public static final String INTERFACE_DETECTION = "detection";
 
     /**
      * attribute: {@value} .
      */
-    protected final static String ATTRIBUTE_BODY_DETECTION = "body";
+    public static final String ATTRIBUTE_BODY_DETECTION = "body";
 
     /**
      * attribute: {@value} .
      */
-    protected final static String ATTRIBUTE_HAND_DETECTION = "hand";
+    public static final String ATTRIBUTE_HAND_DETECTION = "hand";
 
     /**
      * attribute: {@value} .
      */
-    protected final static String ATTRIBUTE_FACE_DETECTION = "face";
+    public static final String ATTRIBUTE_FACE_DETECTION = "face";
 
     /**
      * attribute: {@value} .
      */
-    protected final static String ATTRIBUTE_ON_BODY_DETECTION = "onbodydetection";
+    public static final String ATTRIBUTE_ON_BODY_DETECTION = "onbodydetection";
 
     /**
      * attribute: {@value} .
      */
-    protected final static String ATTRIBUTE_ON_HAND_DETECTION = "onhanddetection";
+    public static final String ATTRIBUTE_ON_HAND_DETECTION = "onhanddetection";
 
     /**
      * attribute: {@value} .
      */
-    protected final static String ATTRIBUTE_ON_FACE_DETECTION = "onfacedetection";
+    public static final String ATTRIBUTE_ON_FACE_DETECTION = "onfacedetection";
 
     /**
      * path: {@value}.
      */
-    protected final static String PATH_PROFILE = PATH_ROOT + SEPARATOR + PROFILE_NAME;
+    public static final String PATH_PROFILE = PATH_ROOT + SEPARATOR + PROFILE_NAME;
     
     /**
      * path: {@value} .
      */
-    protected final static String PATH_BODY_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_BODY_DETECTION;
+    public static final String PATH_BODY_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_BODY_DETECTION;
     
     /**
      * path: {@value} .
      */
-    protected final static String PATH_HAND_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_HAND_DETECTION;
+    public static final String PATH_HAND_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_HAND_DETECTION;
     
     /**
      * path: {@value} .
      */
-    protected final static String PATH_FACE_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_FACE_DETECTION;
+    public static final String PATH_FACE_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_FACE_DETECTION;
     
     /**
      * path: {@value} .
      */
-    protected final static String PATH_ON_BODY_DETECTION = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_BODY_DETECTION;
+    public static final String PATH_ON_BODY_DETECTION = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_BODY_DETECTION;
     
     /**
      * path: {@value} .
      */
-    protected final static String PATH_ON_HAND_DETECTION = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_HAND_DETECTION;
+    public static final String PATH_ON_HAND_DETECTION = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_HAND_DETECTION;
     
     /**
      * path: {@value} .
      */
-    protected final static String PATH_ON_FACE_DETECTION = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_FACE_DETECTION;
+    public static final String PATH_ON_FACE_DETECTION = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_FACE_DETECTION;
     
     
     
@@ -120,77 +121,77 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_THRESHOLD = "threshold";
+    public static final String PARAM_THRESHOLD = "threshold";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_MINWIDTH = "minWidth";
+    public static final String PARAM_MINWIDTH = "minWidth";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_MINHEIGHT = "minHeight";
+    public static final String PARAM_MINHEIGHT = "minHeight";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_MAXWIDTH = "maxWidth";
+    public static final String PARAM_MAXWIDTH = "maxWidth";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_MAXHEIGHT = "maxHeight";
+    public static final String PARAM_MAXHEIGHT = "maxHeight";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_OPTIONS = "options";
+    public static final String PARAM_OPTIONS = "options";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_EYE_THRESHOLD = "eyeThreshold";
+    public static final String PARAM_EYE_THRESHOLD = "eyeThreshold";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_NOSE_THRESHOLD = "noseThreshold";
+    public static final String PARAM_NOSE_THRESHOLD = "noseThreshold";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_MOUTH_THRESHOLD = "mouthThreshold";
+    public static final String PARAM_MOUTH_THRESHOLD = "mouthThreshold";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_BLINK_THRESHOLD = "blinkThreshold";
+    public static final String PARAM_BLINK_THRESHOLD = "blinkThreshold";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_AGE_THRESHOLD = "ageThreshold";
+    public static final String PARAM_AGE_THRESHOLD = "ageThreshold";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_GENDER_THRESHOLD = "genderThreshold";
+    public static final String PARAM_GENDER_THRESHOLD = "genderThreshold";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_FACE_DIRECTION_THRESHOLD = "faceDirectionThreshold";
+    public static final String PARAM_FACE_DIRECTION_THRESHOLD = "faceDirectionThreshold";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_GAZE_THRESHOLD = "gazeThreshold";
+    public static final String PARAM_GAZE_THRESHOLD = "gazeThreshold";
     
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_EXPRESSION_THRESHOLD = "expressionThreshold";
+    public static final String PARAM_EXPRESSION_THRESHOLD = "expressionThreshold";
     
     
     
@@ -199,47 +200,47 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_OPTION_EYE = "eye";
+    public static final String VALUE_OPTION_EYE = "eye";
     
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_OPTION_NOSE = "nose";
+    public static final String VALUE_OPTION_NOSE = "nose";
     
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_OPTION_MOUTH = "mouth";
+    public static final String VALUE_OPTION_MOUTH = "mouth";
     
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_OPTION_BLINK = "blink";
+    public static final String VALUE_OPTION_BLINK = "blink";
     
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_OPTION_AGE = "age";
+    public static final String VALUE_OPTION_AGE = "age";
     
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_OPTION_GENDER = "gender";
+    public static final String VALUE_OPTION_GENDER = "gender";
     
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_OPTION_FACE_DIRECTION = "faceDirection";
+    public static final String VALUE_OPTION_FACE_DIRECTION = "faceDirection";
     
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_OPTION_GAZE = "gaze";
+    public static final String VALUE_OPTION_GAZE = "gaze";
     
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_OPTION_EXPRESSION = "expression";
+    public static final String VALUE_OPTION_EXPRESSION = "expression";
 
 
 
@@ -248,91 +249,42 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_BODYDETECTS = "bodyDetects";
+    public static final String PARAM_BODYDETECTS = "bodyDetects";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_HANDDETECTS = "handDetects";
+    public static final String PARAM_HANDDETECTS = "handDetects";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_FACEDETECTS = "faceDetects";
+    public static final String PARAM_FACEDETECTS = "faceDetects";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_X = "x";
+    public static final String PARAM_X = "x";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_Y = "y";
+    public static final String PARAM_Y = "y";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_WIDTH = "width";
+    public static final String PARAM_WIDTH = "width";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_HEIGHT = "height";
+    public static final String PARAM_HEIGHT = "height";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_CONFIDENCE = "confidence";
-
-
-
-
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_EYEPOINTS = "eyePoints";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_LEFTEYE_X = "leftEyeX";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_LEFTEYE_Y = "leftEyeY";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_LEFTEYE_WIDTH = "leftEyeWidth";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_LEFTEYE_HEIGHT = "leftEyeHeight";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_RIGHTEYE_X = "rightEyeX";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_RIGHTEYE_Y = "rightEyeY";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_RIGHTEYE_WIDTH = "rightEyeWidth";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_RIGHTEYE_HEIGHT = "rightEyeHeight";
+    public static final String PARAM_CONFIDENCE = "confidence";
 
 
 
@@ -341,56 +293,47 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_NOSEPOINTS = "nosePoints";
+    public static final String PARAM_EYEPOINTS = "eyePoints";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_NOSE_X = "noseX";
+    public static final String PARAM_LEFTEYE_X = "leftEyeX";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_NOSE_Y = "noseY";
+    public static final String PARAM_LEFTEYE_Y = "leftEyeY";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_NOSE_WIDTH = "noseWidth";
+    public static final String PARAM_LEFTEYE_WIDTH = "leftEyeWidth";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_NOSE_HEIGHT = "noseHeight";
-
-
-
-
+    public static final String PARAM_LEFTEYE_HEIGHT = "leftEyeHeight";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_MOUTHPOINTS = "mouthPoints";
+    public static final String PARAM_RIGHTEYE_X = "rightEyeX";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_MOUTH_X = "mouthX";
+    public static final String PARAM_RIGHTEYE_Y = "rightEyeY";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_MOUTH_Y = "mouthY";
+    public static final String PARAM_RIGHTEYE_WIDTH = "rightEyeWidth";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_MOUTH_WIDTH = "mouthWidth";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_MOUTH_HEIGHT = "mouthHeight";
+    public static final String PARAM_RIGHTEYE_HEIGHT = "rightEyeHeight";
 
 
 
@@ -399,31 +342,27 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_BLINKRESULTS = "blinkResults";
+    public static final String PARAM_NOSEPOINTS = "nosePoints";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_LEFTEYE = "leftEye";
+    public static final String PARAM_NOSE_X = "noseX";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_RIGHTEYE = "rightEye";
-
-
-
-
+    public static final String PARAM_NOSE_Y = "noseY";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_AGERESULTS = "ageResults";
+    public static final String PARAM_NOSE_WIDTH = "noseWidth";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_AGE = "age";
+    public static final String PARAM_NOSE_HEIGHT = "noseHeight";
 
 
 
@@ -432,46 +371,27 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_GENDERRESULTS = "genderResults";
+    public static final String PARAM_MOUTHPOINTS = "mouthPoints";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_GENDER = "gender";
+    public static final String PARAM_MOUTH_X = "mouthX";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String VALUE_GENDER_MALE = "male";
+    public static final String PARAM_MOUTH_Y = "mouthY";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String VALUE_GENDER_FEMALE = "female";
-
-
-
-
+    public static final String PARAM_MOUTH_WIDTH = "mouthWidth";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_FACEDIRECTIONRESULTS = "faceDirectionResults";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_YAW = "yaw";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_PITCH = "pitch";
-
-    /** 
-     * parameter: {@value} .
-     */
-    protected final static String PARAM_ROLL = "roll";
+    public static final String PARAM_MOUTH_HEIGHT = "mouthHeight";
 
 
 
@@ -480,17 +400,17 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_GAZERESULTS = "gazeResults";
+    public static final String PARAM_BLINKRESULTS = "blinkResults";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_GAZE_LR = "gazeLR";
+    public static final String PARAM_LEFTEYE = "leftEye";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_GAZE_UD = "gazeUD";
+    public static final String PARAM_RIGHTEYE = "rightEye";
 
 
 
@@ -499,43 +419,124 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_EXPRESSIONRESULTS = "expressionResults";
+    public static final String PARAM_AGERESULTS = "ageResults";
 
     /** 
      * parameter: {@value} .
      */
-    protected final static String PARAM_EXPRESSION = "expression";
+    public static final String PARAM_AGE = "age";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String PARAM_GENDERRESULTS = "genderResults";
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String PARAM_GENDER = "gender";
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String VALUE_GENDER_MALE = "male";
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String VALUE_GENDER_FEMALE = "female";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String PARAM_FACEDIRECTIONRESULTS = "faceDirectionResults";
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String PARAM_YAW = "yaw";
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String PARAM_PITCH = "pitch";
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String PARAM_ROLL = "roll";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String PARAM_GAZERESULTS = "gazeResults";
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String PARAM_GAZE_LR = "gazeLR";
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String PARAM_GAZE_UD = "gazeUD";
+
+
+
+
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String PARAM_EXPRESSIONRESULTS = "expressionResults";
+
+    /** 
+     * parameter: {@value} .
+     */
+    public static final String PARAM_EXPRESSION = "expression";
 
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_EXPRESSION_UNKNOWN = "unknown";
+    public static final String VALUE_EXPRESSION_UNKNOWN = "unknown";
 
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_EXPRESSION_SMILE = "smile";
+    public static final String VALUE_EXPRESSION_SMILE = "smile";
 
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_EXPRESSION_SURPRISE = "surprise";
+    public static final String VALUE_EXPRESSION_SURPRISE = "surprise";
 
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_EXPRESSION_MAD = "mad";
+    public static final String VALUE_EXPRESSION_MAD = "mad";
 
     /** 
      * value: {@value} .
      */
-    protected final static String VALUE_EXPRESSION_SAD = "sad";
+    public static final String VALUE_EXPRESSION_SAD = "sad";
 
 
     /** 
      * normalize max value.
      */
-    protected final static double NORMALIZE_VALUE_MAX = 1.0;
+    public static final double NORMALIZE_VALUE_MAX = 1.0;
     
 
 
@@ -597,6 +598,161 @@ public abstract class HumanDetectProfile extends DConnectProfile {
 
         return result;
     }
+    
+    @Override
+    protected boolean onPutRequest(Intent request, Intent response) {
+        boolean result = true;
+        String attribute = getAttribute(request);
+
+        if (ATTRIBUTE_ON_BODY_DETECTION.equals(attribute)) {
+            result = onPutOnBodyDetection(request, response, getServiceID(request), getSessionKey(request));
+        } else if (ATTRIBUTE_ON_HAND_DETECTION.equals(attribute)) {
+            result = onPutOnHandDetection(request, response, getServiceID(request), getSessionKey(request));
+        } else if (ATTRIBUTE_ON_FACE_DETECTION.equals(attribute)) {
+            result = onPutOnFaceDetection(request, response, getServiceID(request), getSessionKey(request));
+        } else {
+            MessageUtils.setUnknownAttributeError(response);
+        }
+
+        return result;
+    }
+
+    @Override
+    protected boolean onDeleteRequest(final Intent request, final Intent response) {
+        boolean result = true;
+        String attribute = getAttribute(request);
+        if (ATTRIBUTE_ON_BODY_DETECTION.equals(attribute)) {
+            result = onDeleteOnBodyDetection(request, response, getServiceID(request), getSessionKey(request));
+        } else if (ATTRIBUTE_ON_HAND_DETECTION.equals(attribute)) {
+            result = onDeleteOnHandDetection(request, response, getServiceID(request), getSessionKey(request));
+        } else if (ATTRIBUTE_ON_FACE_DETECTION.equals(attribute)) {
+            result = onDeleteOnFaceDetection(request, response, getServiceID(request), getSessionKey(request));
+        } else {
+            MessageUtils.setUnknownAttributeError(response);
+        }
+
+        return result;
+    }
+    // ------------------------------------
+    // PUT
+    // ------------------------------------
+
+    /**
+     * onbodydetectionコールバック登録リクエストハンドラー.<br/>
+     * onbodydetectionコールバックを登録し、その結果をレスポンスパラメータに格納する。
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * 
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param serviceId サービスID
+     * @param sessionKey セッションキー
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onPutOnBodyDetection(final Intent request, final Intent response, 
+            final String serviceId, final String sessionKey) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * onhanddetectionコールバック登録リクエストハンドラー.<br/>
+     * onhanddetectionコールバックを登録し、その結果をレスポンスパラメータに格納する。
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * 
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param serviceId サービスID
+     * @param sessionKey セッションキー
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onPutOnHandDetection(final Intent request, final Intent response, 
+            final String serviceId, final String sessionKey) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * onfacedetectionコールバック登録リクエストハンドラー.<br/>
+     * onfacedetectionコールバックを登録し、その結果をレスポンスパラメータに格納する。
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * 
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param serviceId サービスID
+     * @param sessionKey セッションキー
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onPutOnFaceDetection(final Intent request, final Intent response, 
+            final String serviceId, final String sessionKey) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    // ------------------------------------
+    // DELETE
+    // ------------------------------------
+
+    /**
+     * onbodydetectionコールバック解除リクエストハンドラー.<br/>
+     * onbodydetectionコールバックを解除し、その結果をレスポンスパラメータに格納する。
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * 
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param serviceId サービスID
+     * @param sessionKey セッションキー
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onDeleteOnBodyDetection(final Intent request, final Intent response,
+            final String serviceId, final String sessionKey) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * onhanddetectionコールバック解除リクエストハンドラー.<br/>
+     * onhanddetectionコールバックを解除し、その結果をレスポンスパラメータに格納する。
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * 
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param serviceId サービスID
+     * @param sessionKey セッションキー
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onDeleteOnHandDetection(final Intent request, final Intent response,
+            final String serviceId, final String sessionKey) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * onfacedetectionコールバック解除リクエストハンドラー.<br/>
+     * onfacedetectionコールバックを解除し、その結果をレスポンスパラメータに格納する。
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * 
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param serviceId サービスID
+     * @param sessionKey セッションキー
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onDeleteOnFaceDetection(final Intent request, final Intent response,
+            final String serviceId, final String sessionKey) {
+        setUnsupportedError(response);
+        return true;
+    }
+    
+    // ------------------------------------
+    // GET
+    // ------------------------------------
+
     /**
      * body detection attribute request handler.<br/>
      * And ask the human body detection, and the result is stored in the response parameters.
@@ -647,6 +803,10 @@ public abstract class HumanDetectProfile extends DConnectProfile {
         setUnsupportedError(response);
         return true;
     }
+
+    // ------------------------------------
+    // POST
+    // ------------------------------------
 
     /**
      * body detection attribute request handler.<br/>

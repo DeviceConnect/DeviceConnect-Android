@@ -15,10 +15,14 @@ import omron.HVC.HVC_RES;
 import omron.HVC.HVC_RES.DetectionResult;
 import omron.HVC.HVC_RES.FaceResult;
 
+import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcDetectListener;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectListener;
 import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.HumanDetectProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -35,6 +39,9 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class HvcHumanDetectProfile extends HumanDetectProfile {
+
+    /** Error. */
+    private static final int ERROR_VALUE_IS_NULL = 100;
 
     /**
      * error message. {@value}
@@ -126,14 +133,19 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     /**
      * HVC Communication Manager.
      */
-    private HvcCommManager mCommManager = new HvcCommManager();
-
+    private HvcCommManager mCommManager = new HvcCommManager(null);
+// TODO: mCommManagerを廃止してServiceのCommManagerを利用するよう変更する。
+    
+    //
+    // Get Detection API
+    //
+    
     @Override
     protected boolean onGetBodyDetection(final Intent request, final Intent response, final String serviceId,
             final List<String> options) {
         
         // start detection
-        boolean result = startGetDetectionProc(request, response, serviceId, options, DetectKind.BODY);
+        boolean result = doGetDetectionProc(request, response, serviceId, options, DetectKind.BODY);
         return result;
     }
 
@@ -142,7 +154,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             final List<String> options) {
         
         // start detection
-        boolean result = startGetDetectionProc(request, response, serviceId, options, DetectKind.HAND);
+        boolean result = doGetDetectionProc(request, response, serviceId, options, DetectKind.HAND);
         return result;
     }
 
@@ -151,8 +163,264 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             final List<String> options) {
         
         // start detection
-        boolean result = startGetDetectionProc(request, response, serviceId, options, DetectKind.FACE);
+        boolean result = doGetDetectionProc(request, response, serviceId, options, DetectKind.FACE);
         return result;
+    }
+
+    //
+    // Put Detection API
+    //
+    
+    @Override
+    protected boolean onPutOnBodyDetection(final Intent request, final Intent response, final String serviceId,
+            final String sessionKey) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (sessionKey == null) {
+            createEmptySessionKey(response);
+        } else {
+
+            // イベントの登録
+            EventError error = EventManager.INSTANCE.addEvent(request);
+
+            if (error == EventError.NONE) {
+                ((HvcDeviceService) getContext()).registerBodyDetectionEvent(response, serviceId, sessionKey);
+                return false;
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
+                return true;
+            }
+
+        }
+        return true;
+    }
+    
+    @Override
+    protected boolean onPutOnHandDetection(final Intent request, final Intent response, final String serviceId,
+            final String sessionKey) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (sessionKey == null) {
+            createEmptySessionKey(response);
+        } else {
+
+            // イベントの登録
+            EventError error = EventManager.INSTANCE.addEvent(request);
+
+            if (error == EventError.NONE) {
+                ((HvcDeviceService) getContext()).registerHandDetectionEvent(response, serviceId, sessionKey);
+                return false;
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
+                return true;
+            }
+
+        }
+        return true;
+    }
+    
+    @Override
+    protected boolean onPutOnFaceDetection(final Intent request, final Intent response, final String serviceId,
+            final String sessionKey) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (sessionKey == null) {
+            createEmptySessionKey(response);
+        } else {
+
+            // イベントの登録
+            EventError error = EventManager.INSTANCE.addEvent(request);
+
+            if (error == EventError.NONE) {
+                ((HvcDeviceService) getContext()).registerFaceDetectEvent(response, serviceId, sessionKey);
+                return false;
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
+                return true;
+            }
+
+        }
+        return true;
+    }
+    
+    @Override
+    protected boolean onDeleteOnBodyDetection(final Intent request, final Intent response, final String serviceId,
+            final String sessionKey) {
+
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (sessionKey == null) {
+            createEmptySessionKey(response);
+        } else {
+
+            // イベントの解除
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                ((HvcDeviceService) getContext()).unregisterBodyDetectionEvent(response, serviceId, sessionKey);
+                return false;
+
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
+                return true;
+
+            }
+        }
+        return true;
+    }
+    
+    @Override
+    protected boolean onDeleteOnHandDetection(final Intent request, final Intent response, final String serviceId,
+            final String sessionKey) {
+
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (sessionKey == null) {
+            createEmptySessionKey(response);
+        } else {
+
+            // イベントの解除
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                ((HvcDeviceService) getContext()).unregisterHandDetectionEvent(response, serviceId, sessionKey);
+                return false;
+
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
+                return true;
+
+            }
+        }
+        return true;
+    }
+    
+    @Override
+    protected boolean onDeleteOnFaceDetection(final Intent request, final Intent response, final String serviceId,
+            final String sessionKey) {
+
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (sessionKey == null) {
+            createEmptySessionKey(response);
+        } else {
+
+            // イベントの解除
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                ((HvcDeviceService) getContext()).unregisterFaceDetectionEvent(response, serviceId, sessionKey);
+                return false;
+
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
+                return true;
+
+            }
+        }
+        return true;
+    }
+    
+    
+    
+    
+    
+    /**
+     * Get Detection Process.
+     * 
+     * @param request request
+     * @param response response
+     * @param serviceId serviceId
+     * @param options options
+     * @param detectKind detectKind
+     * @return send response flag.(true:sent / false: unsent (Send after the
+     *         thread has been completed))
+     */
+    protected boolean doGetDetectionProc(final Intent request, final Intent response,
+            final String serviceId, final List<String> options, final DetectKind detectKind) {
+
+        // get bluetooth device from serviceId.
+        BluetoothDevice device = HvcCommManager.searchDevices(serviceId);
+        if (device == null) {
+            // bluetooth device not found.
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+        
+        // ble os available?
+        if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            // ble not available.
+            MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
+            return true;
+        }
+        
+        // get parameter.
+        final HvcDetectRequestParams requestParams = new HvcDetectRequestParams();
+        if (!getRequestParams(requestParams, request, response, DetectKind.BODY)) {
+            // error
+            return true;
+        }
+        
+        // convert useFunc
+        int useFunc = convertUseFunc(detectKind, options);
+        if (useFunc == ERROR_USEFINC_VALUE) {
+            // options unknown parameter.
+            MessageUtils.setInvalidRequestParameterError(response);
+            return true;
+        }
+
+        // start detect thread.
+        HvcCommManager.DetectionResult result = mCommManager.startDetectThread(getContext(), device, useFunc,
+                requestParams, new HvcDetectListener() {
+            @Override
+            public void onDetectFinished(final HVC_RES result) {
+                
+                // set response
+                setDetectResultResponse(response, requestParams, result, detectKind);
+                // success
+                setResult(response, DConnectMessage.RESULT_OK);
+                getContext().sendBroadcast(response);
+            }
+
+            @Override
+            public void onDetectFaceDisconnected() {
+                // disconnect
+            }
+
+            @Override
+            public void onDetectError(final int status) {
+                // device error
+                MessageUtils.setUnknownError(response, ERROR_DETECT + status);
+                getContext().sendBroadcast(response);
+            }
+
+            @Override
+            public void onConnectError(final int status) {
+                // device error
+                MessageUtils.setUnknownError(response, ERROR_DEVICE_CONNECT + status);
+                getContext().sendBroadcast(response);
+            }
+
+            @Override
+            public void onRequestDetectError(final int status) {
+                // device error
+                MessageUtils.setUnknownError(response, ERROR_REQUEST_DETECT + status);
+                getContext().sendBroadcast(response);
+            }
+        });
+        if (result == HvcCommManager.DetectionResult.RESULT_ERR_SERVICEID_NOT_FOUND) {
+            // serviceId not found
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        } else if (result == HvcCommManager.DetectionResult.RESULT_ERR_THREAD_ALIVE) {
+            // comm thread running
+            MessageUtils.setIllegalDeviceStateError(response, ERROR_DEVICE_COMM_BUSY);
+            return true;
+        } else if (result != HvcCommManager.DetectionResult.RESULT_SUCCESS) {
+            // BUG: result unknown value.
+            MessageUtils.setUnknownError(response, ERROR_RESULT_UNKNOWN_VALUE +  result);
+            return true;
+        }
+
+        // Since returning the response asynchronously, it returns false.
+        return false;
     }
 
     /**
@@ -282,107 +550,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     }
 
     /**
-     * Start Detection Process.
-     * 
-     * @param request request
-     * @param response response
-     * @param serviceId serviceId
-     * @param options options
-     * @param detectKind detectKind
-     * @return send response flag.(true:sent / false: unsent (Send after the
-     *         thread has been completed))
-     */
-    protected boolean startGetDetectionProc(final Intent request, final Intent response,
-            final String serviceId, final List<String> options, final DetectKind detectKind) {
-
-        // get bluetooth device from serviceId.
-        BluetoothDevice device = HvcCommManager.searchDevices(serviceId);
-        if (device == null) {
-            // bluetooth device not found.
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-        
-        // ble os available?
-        if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            // ble not available.
-            MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
-            return true;
-        }
-        
-        // get parameter.
-        final HvcDetectRequestParams requestParams = new HvcDetectRequestParams();
-        if (!getRequestParams(requestParams, request, response, DetectKind.BODY)) {
-            // error
-            return true;
-        }
-        
-        // convert useFunc
-        int useFunc = convertUseFunc(detectKind, options);
-        if (useFunc == ERROR_USEFINC_VALUE) {
-            // options unknown parameter.
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        }
-
-        // start detect thread.
-        HvcCommManager.DetectionResult result = mCommManager.startDetectThread(getContext(), device, useFunc,
-                requestParams, new HvcDetectListener() {
-            @Override
-            public void onDetectFinished(final HVC_RES result) {
-                
-                // set response
-                setDetectResultResponse(response, requestParams, result, detectKind);
-                // success
-                setResult(response, DConnectMessage.RESULT_OK);
-                getContext().sendBroadcast(response);
-            }
-
-            @Override
-            public void onDetectFaceDisconnected() {
-                // disconnect
-            }
-
-            @Override
-            public void onDetectError(final int status) {
-                // device error
-                MessageUtils.setUnknownError(response, ERROR_DETECT + status);
-                getContext().sendBroadcast(response);
-            }
-
-            @Override
-            public void onConnectError(final int status) {
-                // device error
-                MessageUtils.setUnknownError(response, ERROR_DEVICE_CONNECT + status);
-                getContext().sendBroadcast(response);
-            }
-
-            @Override
-            public void onRequestDetectError(final int status) {
-                // device error
-                MessageUtils.setUnknownError(response, ERROR_REQUEST_DETECT + status);
-                getContext().sendBroadcast(response);
-            }
-        });
-        if (result == HvcCommManager.DetectionResult.RESULT_ERR_SERVICEID_NOT_FOUND) {
-            // serviceId not found
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (result == HvcCommManager.DetectionResult.RESULT_ERR_THREAD_ALIVE) {
-            // comm thread running
-            MessageUtils.setIllegalDeviceStateError(response, ERROR_DEVICE_COMM_BUSY);
-            return true;
-        } else if (result != HvcCommManager.DetectionResult.RESULT_SUCCESS) {
-            // BUG: result unknown value.
-            MessageUtils.setUnknownError(response, ERROR_RESULT_UNKNOWN_VALUE +  result);
-            return true;
-        }
-
-        // Since returning the response asynchronously, it returns false.
-        return false;
-    }
-
-    /**
      * convert useFunc.
      * 
      * @param detectKind detectKind
@@ -447,11 +614,11 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 // threshold check
                 if (r.confidence >= requestParams.getFace().getHvcThreshold()) {
                     Bundle bodyDetect = new Bundle();
-                    setParamX(bodyDetect, convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamY(bodyDetect, convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamWidth(bodyDetect, convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamHeight(bodyDetect, convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamConfidence(bodyDetect, convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
+                    setParamX(bodyDetect, HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
+                    setParamY(bodyDetect, HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
+                    setParamWidth(bodyDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
+                    setParamHeight(bodyDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
+                    setParamConfidence(bodyDetect, HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
                     
                     bodyDetects.add(bodyDetect);
                 }
@@ -470,11 +637,11 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 // threshold check
                 if (r.confidence >= requestParams.getHand().getHvcThreshold()) {
                     Bundle handDetect = new Bundle();
-                    setParamX(handDetect, convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamY(handDetect, convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamWidth(handDetect, convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamHeight(handDetect, convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamConfidence(handDetect, convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
+                    setParamX(handDetect, HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
+                    setParamY(handDetect, HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
+                    setParamWidth(handDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
+                    setParamHeight(handDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
+                    setParamConfidence(handDetect, HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
                     
                     handDetects.add(handDetect);
                 }
@@ -493,11 +660,11 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 // threshold check
                 if (r.confidence >= requestParams.getFace().getHvcThreshold()) {
                     Bundle faceDetect = new Bundle();
-                    setParamX(faceDetect, convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamY(faceDetect, convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamWidth(faceDetect, convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamHeight(faceDetect, convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamConfidence(faceDetect, convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
+                    setParamX(faceDetect, HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
+                    setParamY(faceDetect, HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
+                    setParamWidth(faceDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
+                    setParamHeight(faceDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
+                    setParamConfidence(faceDetect, HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
 
                     // face direction.
                     if ((result.executedFunc & HVC.HVC_ACTIV_FACE_DIRECTION) != 0) {
@@ -550,8 +717,8 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                     // blink.
                     if ((result.executedFunc & HVC.HVC_ACTIV_BLINK_ESTIMATION) != 0) {
                         Bundle blinkResult = new Bundle();
-                        setParamLeftEye(blinkResult, convertToNormalize(r.blink.ratioL, HvcConstants.BLINK_MAX));
-                        setParamRightEye(blinkResult, convertToNormalize(r.blink.ratioR, HvcConstants.BLINK_MAX));
+                        setParamLeftEye(blinkResult, HvcConvertUtils.convertToNormalize(r.blink.ratioL, HvcConstants.BLINK_MAX));
+                        setParamRightEye(blinkResult, HvcConvertUtils.convertToNormalize(r.blink.ratioR, HvcConstants.BLINK_MAX));
                         setParamConfidence(blinkResult,
                                 HvcConvertUtils.convertToNormalizeConfidence(HvcConstants.CONFIDENCE_MAX));
                         setParamBlinkResult(faceDetect, blinkResult);
@@ -580,17 +747,48 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         }
     }
 
+
     /**
-     * convert to normalize value from device value.
+     * サービスIDが空の場合のエラーを作成する.
      * 
-     * @param deviceValue device value
-     * @param deviceMaxValue device value
-     * @return normalizeValue
+     * @param response レスポンスを格納するIntent
      */
-    private double convertToNormalize(final int deviceValue, final int deviceMaxValue) {
-        double normalizeValue = (double) deviceValue / (double) deviceMaxValue;
-        return normalizeValue;
+    private void createEmptyServiceId(final Intent response) {
+
+        MessageUtils.setEmptyServiceIdError(response);
     }
+
+    /**
+     * セッションキーが空の場合のエラーを作成する.
+     * 
+     * @param response レスポンスを格納するIntent
+     */
+    private void createEmptySessionKey(final Intent response) {
+
+        MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "SessionKey not found");
+    }
+
+    /**
+     * デバイスが発見できなかった場合のエラーを作成する.
+     * 
+     * @param response レスポンスを格納するIntent
+     */
+    private void createNotFoundService(final Intent response) {
+
+        MessageUtils.setNotFoundServiceError(response);
+    }
+    
+//    /**
+//     * convert to normalize value from device value.
+//     * 
+//     * @param deviceValue device value
+//     * @param deviceMaxValue device value
+//     * @return normalizeValue
+//     */
+//    private double convertToNormalize(final int deviceValue, final int deviceMaxValue) {
+//        double normalizeValue = (double) deviceValue / (double) deviceMaxValue;
+//        return normalizeValue;
+//    }
 
     /**
      * OptionInfo.

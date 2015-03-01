@@ -1,8 +1,13 @@
 package org.deviceconnect.android.deviceplugin.hvc.comm;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import omron.HVC.HVC;
 
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
+import org.deviceconnect.android.profile.HumanDetectProfile;
 
 import android.util.SparseArray;
 
@@ -136,4 +141,55 @@ public final class HvcConvertUtils {
         return normalizeExpression;
     }
 
+
+    /**
+     * convert to useFunc by detectKind.
+     * @param detectKind detectKind
+     * @return useFunc
+     */
+    public static int convertToUseFuncByDetectKind(final HumanDetectKind detectKind) {
+        
+        Map<HumanDetectKind, Integer> map = new HashMap<HumanDetectKind, Integer>();
+        map.put(HumanDetectKind.BODY, HVC.HVC_ACTIV_BODY_DETECTION);
+        map.put(HumanDetectKind.HAND, HVC.HVC_ACTIV_HAND_DETECTION);
+        map.put(HumanDetectKind.FACE, HVC.HVC_ACTIV_FACE_DETECTION);
+        
+        Integer useFunc = map.get(detectKind);
+        if (useFunc != null) {
+            return useFunc;
+        }
+        return 0;
+    }
+
+    
+    /**
+     * convert to normalize value by device value.
+     * 
+     * @param deviceValue device value
+     * @param deviceMaxValue device value
+     * @return normalizeValue
+     */
+    public static double convertToNormalize(final int deviceValue, final int deviceMaxValue) {
+        double normalizeValue = (double) deviceValue / (double) deviceMaxValue;
+        return normalizeValue;
+    }
+
+    /**
+     * convert to event attribute by detect kind.
+     * @param detectKind detectKind
+     * @return event attribute
+     */
+    public static String convertToEventAttribute(final HumanDetectKind detectKind) {
+        
+        Map<HumanDetectKind, String> map = new HashMap<HumanDetectKind, String>();
+        map.put(HumanDetectKind.BODY, HumanDetectProfile.ATTRIBUTE_ON_BODY_DETECTION);
+        map.put(HumanDetectKind.HAND, HumanDetectProfile.ATTRIBUTE_ON_HAND_DETECTION);
+        map.put(HumanDetectKind.FACE, HumanDetectProfile.ATTRIBUTE_ON_FACE_DETECTION);
+        
+        String attribute = map.get(detectKind);
+        if (attribute != null) {
+            return attribute;
+        }
+        return null;
+    }
 }

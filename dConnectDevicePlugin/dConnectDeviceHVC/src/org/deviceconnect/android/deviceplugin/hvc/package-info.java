@@ -7,6 +7,8 @@
 
 /**
  * HVC device plugin package.
+ * 
+ * @author NTT DOCOMO, INC.
  */
 package org.deviceconnect.android.deviceplugin.hvc;
 

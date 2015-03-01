@@ -7,5 +7,7 @@
 
 /**
  * HVC DevicePlugin Activity Package.
+ * 
+ * @author NTT DOCOMO, INC.
  */
 package org.deviceconnect.android.deviceplugin.hvc.activity;

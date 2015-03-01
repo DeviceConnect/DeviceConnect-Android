@@ -1,7 +1,15 @@
+/*
+ HumanDetectHandRequestParams.java
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.hvc.humandetect;
 
 /**
  * hand detect request parameter.
+ * 
+ * @author NTT DOCOMO, INC.
  */
 public class HumanDetectHandRequestParams extends HumanDetectBasicRequestParams {
     

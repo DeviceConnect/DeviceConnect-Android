@@ -7,5 +7,7 @@
 
 /**
  * Human Detect Profile package.
+ * 
+ * @author NTT DOCOMO, INC.
  */
 package org.deviceconnect.android.deviceplugin.hvc.humandetect;

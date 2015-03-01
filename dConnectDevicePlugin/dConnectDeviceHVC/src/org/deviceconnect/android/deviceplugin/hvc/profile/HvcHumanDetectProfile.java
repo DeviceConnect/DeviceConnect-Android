@@ -6,17 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.profile;
 
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
-import omron.HVC.HVC;
 import omron.HVC.HVC_RES;
-import omron.HVC.HVC_RES.DetectionResult;
-import omron.HVC.HVC_RES.FaceResult;
 
-import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcDetectListener;
@@ -32,8 +25,6 @@ import org.deviceconnect.message.DConnectMessage;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
-import android.util.Log;
 
 
 /**
@@ -131,7 +122,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             createEmptySessionKey(response);
         } else {
 
-            // イベントの登録
+            // register event.
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
@@ -155,7 +146,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             createEmptySessionKey(response);
         } else {
 
-            // イベントの登録
+            // register event.
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
@@ -179,11 +170,10 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             createEmptySessionKey(response);
         } else {
 
-            // イベントの登録
+            // register event.
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
-//dumpIntent(request, "AAA", "request ");
                 ((HvcDeviceService) getContext()).registerFaceDetectionEvent(request, response, serviceId, sessionKey);
                 return false;
             } else {
@@ -205,7 +195,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             createEmptySessionKey(response);
         } else {
 
-            // イベントの解除
+            // unregister event.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 ((HvcDeviceService) getContext()).unregisterBodyDetectionEvent(response, serviceId, sessionKey);
@@ -230,7 +220,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             createEmptySessionKey(response);
         } else {
 
-            // イベントの解除
+            // unregister event.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 ((HvcDeviceService) getContext()).unregisterHandDetectionEvent(response, serviceId, sessionKey);
@@ -255,7 +245,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             createEmptySessionKey(response);
         } else {
 
-            // イベントの解除
+            // unregister event.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 ((HvcDeviceService) getContext()).unregisterFaceDetectionEvent(response, serviceId, sessionKey);
@@ -327,7 +317,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             @Override
             public void onDetectFinished(final HVC_RES result) {
                 // set response
-                setDetectResultResponse(response, requestParams, result, detectKind);
+                HvcDeviceService.setDetectResultResponse(response, requestParams, result, detectKind);
                 // success
                 setResult(response, DConnectMessage.RESULT_OK);
                 getContext().sendBroadcast(response);
@@ -505,174 +495,9 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
 
 
     /**
-     * set response.
+     * create empty serviceId error response.
      * 
      * @param response response
-     * @param requestParams request
-     * @param result result
-     * @param detectKind detectKind
-     */
-    private void setDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
-            final HVC_RES result, final HumanDetectKind detectKind) {
-
-        // body detects response.
-        if (detectKind == HumanDetectKind.BODY && result.body.size() > 0) {
-
-            List<Bundle> bodyDetects = new LinkedList<Bundle>();
-            for (DetectionResult r : result.body) {
-
-                // threshold check
-                if (r.confidence >= requestParams.getFace().getHvcThreshold()) {
-                    Bundle bodyDetect = new Bundle();
-                    setParamX(bodyDetect, HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamY(bodyDetect, HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamWidth(bodyDetect,
-                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamHeight(bodyDetect,
-                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamConfidence(bodyDetect,
-                            HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
-                    
-                    bodyDetects.add(bodyDetect);
-                }
-            }
-            if (bodyDetects.size() > 0) {
-                setBodyDetects(response, bodyDetects.toArray(new Bundle[bodyDetects.size()]));
-            }
-        }
-
-        // hand detects response.
-        if (detectKind == HumanDetectKind.HAND && result.hand.size() > 0) {
-
-            List<Bundle> handDetects = new LinkedList<Bundle>();
-            for (DetectionResult r : result.hand) {
-
-                // threshold check
-                if (r.confidence >= requestParams.getHand().getHvcThreshold()) {
-                    Bundle handDetect = new Bundle();
-                    setParamX(handDetect, HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamY(handDetect, HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamWidth(handDetect,
-                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamHeight(handDetect,
-                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamConfidence(handDetect,
-                            HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
-                    
-                    handDetects.add(handDetect);
-                }
-            }
-            if (handDetects.size() > 0) {
-                setHandDetects(response, handDetects.toArray(new Bundle[handDetects.size()]));
-            }
-        }
-
-        // face detects response.
-        if (detectKind == HumanDetectKind.FACE && result.face.size() > 0) {
-
-            List<Bundle> faceDetects = new LinkedList<Bundle>();
-            for (FaceResult r : result.face) {
-
-                // threshold check
-                if (r.confidence >= requestParams.getFace().getHvcThreshold()) {
-                    Bundle faceDetect = new Bundle();
-                    setParamX(faceDetect, HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamY(faceDetect, HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamWidth(faceDetect,
-                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamHeight(faceDetect,
-                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamConfidence(faceDetect,
-                            HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
-
-                    // face direction.
-                    if ((result.executedFunc & HVC.HVC_ACTIV_FACE_DIRECTION) != 0) {
-
-                        // threshold check
-                        if (r.dir.confidence >= requestParams.getFace().getHvcFaceDirectionThreshold()) {
-                            Bundle faceDirectionResult = new Bundle();
-                            setParamYaw(faceDirectionResult, r.dir.yaw);
-                            setParamPitch(faceDirectionResult, r.dir.pitch);
-                            setParamRoll(faceDirectionResult, r.dir.roll);
-                            setParamConfidence(faceDirectionResult,
-                                    HvcConvertUtils.convertToNormalizeConfidence(r.dir.confidence));
-                            setParamFaceDirectionResult(faceDetect, faceDirectionResult);
-                        }
-                    }
-                    // age.
-                    if ((result.executedFunc & HVC.HVC_ACTIV_AGE_ESTIMATION) != 0) {
-
-                        // threshold check
-                        if (r.age.confidence >= requestParams.getFace().getHvcAgeThreshold()) {
-                            Bundle ageResult = new Bundle();
-                            setParamAge(ageResult, r.age.age);
-                            setParamConfidence(ageResult,
-                                    HvcConvertUtils.convertToNormalizeConfidence(r.age.confidence));
-                            setParamAgeResult(faceDetect, ageResult);
-                        }
-                    }
-                    // gender.
-                    if ((result.executedFunc & HVC.HVC_ACTIV_GENDER_ESTIMATION) != 0) {
-
-                        // threshold check
-                        if (r.gen.confidence >= requestParams.getFace().getHvcGenderThreshold()) {
-                            Bundle genderResult = new Bundle();
-                            setParamGender(genderResult, r.gen.gender == HVC.HVC_GEN_MALE ? VALUE_GENDER_MALE
-                                    : VALUE_GENDER_FEMALE);
-                            setParamConfidence(genderResult,
-                                    HvcConvertUtils.convertToNormalizeConfidence(r.gen.confidence));
-                            setParamGenderResult(faceDetect, genderResult);
-                        }
-                    }
-                    // gaze.
-                    if ((result.executedFunc & HVC.HVC_ACTIV_GAZE_ESTIMATION) != 0) {
-                        Bundle gazeResult = new Bundle();
-                        setParamGazeLR(gazeResult, r.gaze.gazeLR);
-                        setParamGazeUD(gazeResult, r.gaze.gazeUD);
-                        setParamConfidence(gazeResult,
-                                HvcConvertUtils.convertToNormalizeConfidence(HvcConstants.CONFIDENCE_MAX));
-                        setParamGazeResult(faceDetect, gazeResult);
-                    }
-                    // blink.
-                    if ((result.executedFunc & HVC.HVC_ACTIV_BLINK_ESTIMATION) != 0) {
-                        Bundle blinkResult = new Bundle();
-                        setParamLeftEye(blinkResult,
-                                HvcConvertUtils.convertToNormalize(r.blink.ratioL, HvcConstants.BLINK_MAX));
-                        setParamRightEye(blinkResult,
-                                HvcConvertUtils.convertToNormalize(r.blink.ratioR, HvcConstants.BLINK_MAX));
-                        setParamConfidence(blinkResult,
-                                HvcConvertUtils.convertToNormalizeConfidence(HvcConstants.CONFIDENCE_MAX));
-                        setParamBlinkResult(faceDetect, blinkResult);
-                    }
-                    // expression.
-                    if ((result.executedFunc & HVC.HVC_ACTIV_EXPRESSION_ESTIMATION) != 0) {
-
-                        // threshold check
-                        double normalizeExpressionScore = HvcConvertUtils
-                                .convertToNormalizeExpressionScore(r.exp.score);
-                        if (normalizeExpressionScore >= requestParams.getFace().getExpressionThreshold()) {
-                            Bundle expressionResult = new Bundle();
-                            setParamExpression(expressionResult,
-                                    HvcConvertUtils.convertToNormalizeExpression(r.exp.expression));
-                            setParamConfidence(expressionResult, normalizeExpressionScore);
-                            setParamExpressionResult(faceDetect, expressionResult);
-                        }
-                    }
-                    
-                    faceDetects.add(faceDetect);
-                }
-            }
-            if (faceDetects.size() > 0) {
-                setFaceDetects(response, faceDetects.toArray(new Bundle[faceDetects.size()]));
-            }
-        }
-    }
-
-
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
      */
     private void createEmptyServiceId(final Intent response) {
 
@@ -680,29 +505,13 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     }
 
     /**
-     * セッションキーが空の場合のエラーを作成する.
+     * create empty session key error response.
      * 
-     * @param response レスポンスを格納するIntent
+     * @param response response
      */
     private void createEmptySessionKey(final Intent response) {
 
         MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "SessionKey not found");
-    }
-    
-    public static void dumpIntent(Intent intent, String tag, String prefix){
-        if (BuildConfig.DEBUG) {
-            Bundle bundle = intent.getExtras();
-            if (bundle != null) {
-                Set<String> keys = bundle.keySet();
-                Iterator<String> it = keys.iterator();
-                Log.d(tag, prefix + " dump start");
-                while (it.hasNext()) {
-                    String key = it.next();
-                    Log.d(tag, prefix + " [" + key + "=" + bundle.get(key) + "]");
-                }
-                Log.d(tag, prefix + " dump end");
-            }
-        }
     }
 }
 

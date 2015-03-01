@@ -7,5 +7,7 @@
 
 /**
  * HVC request parameter package.
+ * 
+ * @author NTT DOCOMO, INC.
  */
 package org.deviceconnect.android.deviceplugin.hvc.request;

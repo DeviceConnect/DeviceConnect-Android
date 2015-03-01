@@ -33,6 +33,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /**
+ * setting fragment.
+ * 
  * @author NTT DOCOMO, INC.
  */
 public class HvcSettingFragment extends Fragment {

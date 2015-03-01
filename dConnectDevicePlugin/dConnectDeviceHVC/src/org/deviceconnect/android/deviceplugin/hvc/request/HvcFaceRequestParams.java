@@ -1,3 +1,9 @@
+/*
+ HvcFaceRequestParams.java
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.hvc.request;
 
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
@@ -5,6 +11,8 @@ import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectFaceReq
 
 /**
  * HVC face detect request parameter class.
+ * 
+ * @author NTT DOCOMO, INC.
  */
 public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
 

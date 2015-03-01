@@ -7,6 +7,8 @@
 
 /**
  * Device Connect HVC device plugin profile package.
+ * 
+ * @author NTT DOCOMO, INC.
  */
 package org.deviceconnect.android.deviceplugin.hvc.profile;
 

@@ -7,6 +7,8 @@
 
 /**
  * HVC device plugin setting activity.
+ * 
+ * @author NTT DOCOMO, INC.
  */
 package org.deviceconnect.android.deviceplugin.hvc.setting;
 

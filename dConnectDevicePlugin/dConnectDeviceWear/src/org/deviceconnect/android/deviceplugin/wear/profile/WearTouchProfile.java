@@ -24,7 +24,6 @@ import org.deviceconnect.message.DConnectMessage;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
 
 import com.google.android.gms.wearable.MessageApi.SendMessageResult;
 
@@ -518,45 +517,32 @@ public class WearTouchProfile extends TouchProfile {
         }
 
         String[] mDataArray = data.split(",", 0);
-        String[] attr = new String[2];
-        int action = Integer.parseInt(mDataArray[1]);
+        String attr = null;
+        String action = mDataArray[1];
 
-        switch (action) {
-        case MotionEvent.ACTION_DOWN:
-        case MotionEvent.ACTION_POINTER_DOWN:
-            attr[0] = ATTRIBUTE_ON_TOUCH;
-            attr[1] = ATTRIBUTE_ON_TOUCH_START;
-            break;
-        case MotionEvent.ACTION_UP:
-        case MotionEvent.ACTION_POINTER_UP:
-            attr[0] = ATTRIBUTE_ON_TOUCH_END;
-            attr[1] = null;
-            break;
-        case MotionEvent.ACTION_MOVE:
-            attr[0] = ATTRIBUTE_ON_TOUCH_MOVE;
-            attr[1] = null;
-            break;
-        case MotionEvent.ACTION_CANCEL:
-            attr[0] = ATTRIBUTE_ON_TOUCH_CANCEL;
-            attr[1] = null;
-            break;
-        default:
-            attr[0] = ATTRIBUTE_ON_DOUBLE_TAP;
-            attr[1] = null;
-            break;
+        if (action.equals(WearConst.PARAM_TOUCH_TOUCH)) {
+            attr = ATTRIBUTE_ON_TOUCH;
+        } else if (action.equals(WearConst.PARAM_TOUCH_TOUCHSTART)) {
+            attr = ATTRIBUTE_ON_TOUCH_START;
+        } else if (action.equals(WearConst.PARAM_TOUCH_TOUCHEND)) {
+            attr = ATTRIBUTE_ON_TOUCH_END;
+        } else if (action.equals(WearConst.PARAM_TOUCH_TOUCHMOVE)) {
+            attr = ATTRIBUTE_ON_TOUCH_MOVE;
+        } else if (action.equals(WearConst.PARAM_TOUCH_TOUCHCANCEL)) {
+            attr = ATTRIBUTE_ON_TOUCH_CANCEL;
+        } else if (action.equals(WearConst.PARAM_TOUCH_DOUBLETAP)) {
+            attr = ATTRIBUTE_ON_DOUBLE_TAP;
+        } else {
+            attr = null;
         }
 
         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "action: " + action + " attr[0]: " + attr[0] + ", attr[1]: " + attr[1]);
+            Log.i(TAG, "action: " + action + " attr: " + attr);
         }
 
-        for (int i = 0; i < 2; i++) {
-            if (attr[i] == null) {
-                break;
-            }
-
+        if (attr != null) {
             List<Event> events = EventManager.INSTANCE.getEventList(
-                    nodeId, PROFILE_NAME, null, attr[i]);
+                    nodeId, PROFILE_NAME, null, attr);
             synchronized (events) {
                 for (Event event : events) {
                     Bundle touchdata = new Bundle();

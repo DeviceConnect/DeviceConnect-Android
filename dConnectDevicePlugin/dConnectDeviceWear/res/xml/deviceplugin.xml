@@ -20,7 +20,6 @@
         <name lang="en">System</name>
         <description lang="en">Obtains system information. </description>
     </profile>
-    </profile>
     
      <profile name="vibration" expireperiod="86400000">
         <name lang="ja">バイブレーション</name>

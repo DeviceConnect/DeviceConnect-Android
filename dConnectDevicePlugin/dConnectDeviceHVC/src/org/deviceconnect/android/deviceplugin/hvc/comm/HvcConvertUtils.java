@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.hvc.comm;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import omron.HVC.HVC;
@@ -10,6 +11,7 @@ import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 import org.deviceconnect.android.profile.HumanDetectProfile;
 
 import android.util.SparseArray;
+
 
 /**
  * HVC convert utility.
@@ -191,5 +193,47 @@ public final class HvcConvertUtils {
             return attribute;
         }
         return null;
+    }
+
+    /**
+     * convert useFunc.
+     * 
+     * @param detectKind detectKind
+     * @param options options
+     * @return useFunc (if null error unknown parameter)
+     */
+    public static Integer convertUseFunc(final HumanDetectKind detectKind, final List<String> options) {
+
+        HashMap<HumanDetectKind, Integer> convertDetectKinds = new HashMap<HumanDetectKind, Integer>();
+        convertDetectKinds.put(HumanDetectKind.BODY, HVC.HVC_ACTIV_BODY_DETECTION);
+        convertDetectKinds.put(HumanDetectKind.HAND, HVC.HVC_ACTIV_HAND_DETECTION);
+        convertDetectKinds.put(HumanDetectKind.FACE, HVC.HVC_ACTIV_FACE_DETECTION);
+        Integer detectBitFlag = convertDetectKinds.get(detectKind);
+        if (detectBitFlag == null) {
+            // not match
+            return null;
+        }
+        
+        HashMap<String, Integer> convertOptions = new HashMap<String, Integer>();
+        convertOptions.put(HumanDetectProfile.VALUE_OPTION_FACE_DIRECTION, HVC.HVC_ACTIV_FACE_DIRECTION);
+        convertOptions.put(HumanDetectProfile.VALUE_OPTION_AGE, HVC.HVC_ACTIV_AGE_ESTIMATION);
+        convertOptions.put(HumanDetectProfile.VALUE_OPTION_GENDER, HVC.HVC_ACTIV_GENDER_ESTIMATION);
+        convertOptions.put(HumanDetectProfile.VALUE_OPTION_GAZE, HVC.HVC_ACTIV_GAZE_ESTIMATION);
+        convertOptions.put(HumanDetectProfile.VALUE_OPTION_BLINK, HVC.HVC_ACTIV_BLINK_ESTIMATION);
+        convertOptions.put(HumanDetectProfile.VALUE_OPTION_EXPRESSION, HVC.HVC_ACTIV_EXPRESSION_ESTIMATION);
+
+        int optionBitFlag = 0;
+        if (options != null) {
+            for (String option : options) {
+                Integer bitFlag = convertOptions.get(option);
+                if (bitFlag != null) {
+                    // match
+                    optionBitFlag |= bitFlag;
+                }
+            }
+        }
+
+        int useFunc = detectBitFlag | optionBitFlag;
+        return useFunc;
     }
 }

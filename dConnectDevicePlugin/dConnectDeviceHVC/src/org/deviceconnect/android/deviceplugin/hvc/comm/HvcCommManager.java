@@ -78,9 +78,11 @@ public class HvcCommManager {
      * register detect event.
      * @param detectKind detectKind
      * @param sessionKey sessionKey
+     * @param options options
      */
-    public void registerDetectEvent(final HumanDetectKind detectKind, final String sessionKey) {
-        HumanDetectEvent event = new HumanDetectEvent(detectKind, sessionKey);
+    public void registerDetectEvent(final HumanDetectKind detectKind, final String sessionKey,
+            final List<String> options) {
+        HumanDetectEvent event = new HumanDetectEvent(detectKind, sessionKey, options);
         mEventArray.add(event);
     }
     
@@ -247,9 +249,7 @@ public class HvcCommManager {
     public int getUseFuncByEventRegisters() {
         int useFunc = 0;
         for (HumanDetectEvent event : mEventArray) {
-            useFunc |= HvcConvertUtils.convertToUseFuncByDetectKind(event.getKind());
-            // TODO: options
-//            useFunc |= HvcConvertUtils.convertToUseFuncByDetectKind(event.getOptions());
+            useFunc |= HvcConvertUtils.convertUseFunc(event.getKind(), event.getOptions());
         }
         return useFunc;
     }

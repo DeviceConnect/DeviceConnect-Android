@@ -6,13 +6,13 @@
  */
 package org.deviceconnect.android.profile;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.deviceconnect.android.message.MessageUtils;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 //TODO: コメント修正する
 /**
@@ -870,9 +870,16 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @return options. if nothing, null.
      */
     public static List<String> getOptions(final Intent request) {
-        return request.getStringArrayListExtra(PARAM_OPTIONS);
+        List<String> optionList = null;
+        String strOptions = request.getStringExtra(PARAM_OPTIONS);
+        if (strOptions != null) {
+            String[] options = strOptions.split(",", 0);
+            if (options != null) {
+            optionList = Arrays.asList(options);
+            }
+        }
+        return optionList;
     }
-
     
     /**
      * get threshold from request.

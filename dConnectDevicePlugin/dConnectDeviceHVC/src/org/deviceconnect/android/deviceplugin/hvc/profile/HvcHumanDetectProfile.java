@@ -6,20 +6,22 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.profile;
 
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import omron.HVC.HVC;
 import omron.HVC.HVC_RES;
 import omron.HVC.HVC_RES.DetectionResult;
 import omron.HVC.HVC_RES.FaceResult;
 
+import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcDetectListener;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
-import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectListener;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -31,6 +33,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 
 
 /**
@@ -90,45 +93,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      */
     private static final int ERROR_USEFINC_VALUE = -1;
 
-    /**
-     * Detect kind.
-     */
-    enum DetectKind {
-
-        /**
-         * body detect.
-         */
-        BODY("DETECT_BODY"),
-
-        /**
-         * hand detect.
-         */
-        HAND("DETECT_HAND"),
-
-        /**
-         * face detect.
-         */
-        FACE("DETECT_FACE");
-
-        /**
-         * id.
-         */
-        private final String mId;
-
-        /**
-         * constructor.
-         * 
-         * @param id id
-         */
-        private DetectKind(final String id) {
-            mId = id;
-        }
-
-        @Override
-        public String toString() {
-            return mId;
-        }
-    };
 
     /**
      * HVC Communication Manager.
@@ -145,7 +109,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             final List<String> options) {
         
         // start detection
-        boolean result = doGetDetectionProc(request, response, serviceId, options, DetectKind.BODY);
+        boolean result = doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.BODY);
         return result;
     }
 
@@ -154,7 +118,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             final List<String> options) {
         
         // start detection
-        boolean result = doGetDetectionProc(request, response, serviceId, options, DetectKind.HAND);
+        boolean result = doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.HAND);
         return result;
     }
 
@@ -163,7 +127,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             final List<String> options) {
         
         // start detection
-        boolean result = doGetDetectionProc(request, response, serviceId, options, DetectKind.FACE);
+        boolean result = doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.FACE);
         return result;
     }
 
@@ -184,7 +148,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).registerBodyDetectionEvent(response, serviceId, sessionKey);
+                ((HvcDeviceService) getContext()).registerBodyDetectionEvent(request, response, serviceId, sessionKey);
                 return false;
             } else {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
@@ -208,7 +172,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).registerHandDetectionEvent(response, serviceId, sessionKey);
+                ((HvcDeviceService) getContext()).registerHandDetectionEvent(request, response, serviceId, sessionKey);
                 return false;
             } else {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
@@ -232,7 +196,8 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).registerFaceDetectEvent(response, serviceId, sessionKey);
+//dumpIntent(request, "AAA", "request ");
+                ((HvcDeviceService) getContext()).registerFaceDetectionEvent(request, response, serviceId, sessionKey);
                 return false;
             } else {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
@@ -334,7 +299,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      *         thread has been completed))
      */
     protected boolean doGetDetectionProc(final Intent request, final Intent response,
-            final String serviceId, final List<String> options, final DetectKind detectKind) {
+            final String serviceId, final List<String> options, final HumanDetectKind detectKind) {
 
         // get bluetooth device from serviceId.
         BluetoothDevice device = HvcCommManager.searchDevices(serviceId);
@@ -353,13 +318,13 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         
         // get parameter.
         final HvcDetectRequestParams requestParams = new HvcDetectRequestParams();
-        if (!getRequestParams(requestParams, request, response, DetectKind.BODY)) {
+        if (!getRequestParams(requestParams, request, response, HumanDetectKind.BODY)) {
             // error
             return true;
         }
         
         // convert useFunc
-        int useFunc = convertUseFunc(detectKind, options);
+        int useFunc = HvcConvertUtils.convertUseFunc(detectKind, options);
         if (useFunc == ERROR_USEFINC_VALUE) {
             // options unknown parameter.
             MessageUtils.setInvalidRequestParameterError(response);
@@ -433,7 +398,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * @return true: success / false: invalid request parameter error
      */
     private boolean getRequestParams(final HvcDetectRequestParams requestParams, final Intent request,
-            final Intent response, final DetectKind detectKind) {
+            final Intent response, final HumanDetectKind detectKind) {
 
         try {
             // get parameters.(different type error, throw
@@ -445,7 +410,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             Double maxHeight = getMaxHeight(request);
 
             // store parameter.(if data exist, to set. if data not exist, use default value.)
-            if (detectKind == DetectKind.BODY) {
+            if (detectKind == HumanDetectKind.BODY) {
                 if (threshold != null) {
                     requestParams.setBodyNormalizeThreshold(threshold);
                 }
@@ -461,7 +426,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 if (maxHeight != null) {
                     requestParams.setBodyNormalizeMaxHeight(maxHeight);
                 }
-            } else if (detectKind == DetectKind.HAND) {
+            } else if (detectKind == HumanDetectKind.HAND) {
                 if (threshold != null) {
                     requestParams.setHandNormalizeThreshold(threshold);
                 }
@@ -477,7 +442,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 if (maxHeight != null) {
                     requestParams.setHandNormalizeMaxHeight(maxHeight);
                 }
-            } else if (detectKind == DetectKind.FACE) {
+            } else if (detectKind == HumanDetectKind.FACE) {
                 if (threshold != null) {
                     requestParams.setFaceNormalizeThreshold(threshold);
                 }
@@ -549,50 +514,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         return true;
     }
 
-    /**
-     * convert useFunc.
-     * 
-     * @param detectKind detectKind
-     * @param options options
-     * @return useFunc (if ERROR_USEFINC_VALUE error unknown parameter)
-     */
-    private int convertUseFunc(final DetectKind detectKind, final List<String> options) {
-
-        ArrayList<OptionInfo> convertDetectKindArray = new ArrayList<OptionInfo>();
-        convertDetectKindArray.add(new OptionInfo(DetectKind.BODY.toString(), HVC.HVC_ACTIV_BODY_DETECTION));
-        convertDetectKindArray.add(new OptionInfo(DetectKind.HAND.toString(), HVC.HVC_ACTIV_HAND_DETECTION));
-        convertDetectKindArray.add(new OptionInfo(DetectKind.FACE.toString(), HVC.HVC_ACTIV_FACE_DETECTION));
-
-        OptionInfo convertDetectKind = OptionInfoUtils.search(convertDetectKindArray, detectKind.toString());
-        if (convertDetectKind == null) {
-            // not match
-            return ERROR_USEFINC_VALUE;
-        }
-        int detectBitFlag = convertDetectKind.mUseFuncBit;
-
-        ArrayList<OptionInfo> convertOptionArray = new ArrayList<OptionInfo>();
-        convertOptionArray.add(new OptionInfo(VALUE_OPTION_FACE_DIRECTION, HVC.HVC_ACTIV_FACE_DIRECTION));
-        convertOptionArray.add(new OptionInfo(VALUE_OPTION_AGE, HVC.HVC_ACTIV_AGE_ESTIMATION));
-        convertOptionArray.add(new OptionInfo(VALUE_OPTION_GENDER, HVC.HVC_ACTIV_GENDER_ESTIMATION));
-        convertOptionArray.add(new OptionInfo(VALUE_OPTION_GAZE, HVC.HVC_ACTIV_GAZE_ESTIMATION));
-        convertOptionArray.add(new OptionInfo(VALUE_OPTION_BLINK, HVC.HVC_ACTIV_BLINK_ESTIMATION));
-        convertOptionArray.add(new OptionInfo(VALUE_OPTION_EXPRESSION, HVC.HVC_ACTIV_EXPRESSION_ESTIMATION));
-
-        int optionBitFlag = 0;
-        if (options != null) {
-            for (String option : options) {
-                OptionInfo optionInfo = OptionInfoUtils.search(convertOptionArray, option);
-                if (optionInfo == null) {
-                    // not match
-                    return ERROR_USEFINC_VALUE;
-                }
-                optionBitFlag |= optionInfo.getUseFuncBit();
-            }
-        }
-
-        int useFunc = detectBitFlag | optionBitFlag;
-        return useFunc;
-    }
 
     /**
      * set response.
@@ -603,10 +524,10 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * @param detectKind detectKind
      */
     private void setDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
-            final HVC_RES result, final DetectKind detectKind) {
+            final HVC_RES result, final HumanDetectKind detectKind) {
 
         // body detects response.
-        if (detectKind == DetectKind.BODY && result.body.size() > 0) {
+        if (detectKind == HumanDetectKind.BODY && result.body.size() > 0) {
 
             List<Bundle> bodyDetects = new LinkedList<Bundle>();
             for (DetectionResult r : result.body) {
@@ -616,9 +537,12 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                     Bundle bodyDetect = new Bundle();
                     setParamX(bodyDetect, HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
                     setParamY(bodyDetect, HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamWidth(bodyDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamHeight(bodyDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamConfidence(bodyDetect, HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
+                    setParamWidth(bodyDetect,
+                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
+                    setParamHeight(bodyDetect,
+                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
+                    setParamConfidence(bodyDetect,
+                            HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
                     
                     bodyDetects.add(bodyDetect);
                 }
@@ -629,7 +553,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         }
 
         // hand detects response.
-        if (detectKind == DetectKind.HAND && result.hand.size() > 0) {
+        if (detectKind == HumanDetectKind.HAND && result.hand.size() > 0) {
 
             List<Bundle> handDetects = new LinkedList<Bundle>();
             for (DetectionResult r : result.hand) {
@@ -639,9 +563,12 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                     Bundle handDetect = new Bundle();
                     setParamX(handDetect, HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
                     setParamY(handDetect, HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamWidth(handDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamHeight(handDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamConfidence(handDetect, HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
+                    setParamWidth(handDetect,
+                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
+                    setParamHeight(handDetect,
+                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
+                    setParamConfidence(handDetect,
+                            HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
                     
                     handDetects.add(handDetect);
                 }
@@ -652,7 +579,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         }
 
         // face detects response.
-        if (detectKind == DetectKind.FACE && result.face.size() > 0) {
+        if (detectKind == HumanDetectKind.FACE && result.face.size() > 0) {
 
             List<Bundle> faceDetects = new LinkedList<Bundle>();
             for (FaceResult r : result.face) {
@@ -662,9 +589,12 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                     Bundle faceDetect = new Bundle();
                     setParamX(faceDetect, HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
                     setParamY(faceDetect, HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamWidth(faceDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                    setParamHeight(faceDetect, HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                    setParamConfidence(faceDetect, HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
+                    setParamWidth(faceDetect,
+                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
+                    setParamHeight(faceDetect,
+                            HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
+                    setParamConfidence(faceDetect,
+                            HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
 
                     // face direction.
                     if ((result.executedFunc & HVC.HVC_ACTIV_FACE_DIRECTION) != 0) {
@@ -717,8 +647,10 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                     // blink.
                     if ((result.executedFunc & HVC.HVC_ACTIV_BLINK_ESTIMATION) != 0) {
                         Bundle blinkResult = new Bundle();
-                        setParamLeftEye(blinkResult, HvcConvertUtils.convertToNormalize(r.blink.ratioL, HvcConstants.BLINK_MAX));
-                        setParamRightEye(blinkResult, HvcConvertUtils.convertToNormalize(r.blink.ratioR, HvcConstants.BLINK_MAX));
+                        setParamLeftEye(blinkResult,
+                                HvcConvertUtils.convertToNormalize(r.blink.ratioL, HvcConstants.BLINK_MAX));
+                        setParamRightEye(blinkResult,
+                                HvcConvertUtils.convertToNormalize(r.blink.ratioR, HvcConstants.BLINK_MAX));
                         setParamConfidence(blinkResult,
                                 HvcConvertUtils.convertToNormalizeConfidence(HvcConstants.CONFIDENCE_MAX));
                         setParamBlinkResult(faceDetect, blinkResult);
@@ -767,90 +699,21 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
 
         MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "SessionKey not found");
     }
-
-    /**
-     * デバイスが発見できなかった場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-
-        MessageUtils.setNotFoundServiceError(response);
-    }
     
-//    /**
-//     * convert to normalize value from device value.
-//     * 
-//     * @param deviceValue device value
-//     * @param deviceMaxValue device value
-//     * @return normalizeValue
-//     */
-//    private double convertToNormalize(final int deviceValue, final int deviceMaxValue) {
-//        double normalizeValue = (double) deviceValue / (double) deviceMaxValue;
-//        return normalizeValue;
-//    }
-
-    /**
-     * OptionInfo.
-     */
-    private class OptionInfo {
-        /**
-         * Option string.
-         */
-        private String mOptionString;
-        /**
-         * Use function bit flag.
-         */
-        private int mUseFuncBit;
-
-        /**
-         * Constructor.
-         * 
-         * @param optionString Option string
-         * @param useFuncBit Use function bit flag
-         */
-        public OptionInfo(final String optionString, final int useFuncBit) {
-            mOptionString = optionString;
-            mUseFuncBit = useFuncBit;
-        }
-
-        /**
-         * Get option string.
-         * 
-         * @return option string
-         */
-        public String getOptionString() {
-            return mOptionString;
-        }
-
-        /**
-         * Get use function bit flag.
-         * 
-         * @return use function bit flag
-         */
-        public int getUseFuncBit() {
-            return mUseFuncBit;
-        }
-    }
-
-    /**
-     * OptionInfo utility.
-     */
-    private static class OptionInfoUtils {
-        /**
-         * Search OptionInfo record.
-         * 
-         * @param optionInfoArray OptionInfo array.
-         * @param optionString option string(search key).
-         * @return OptionInfo record(if the search key match) / null (not match)
-         */
-        public static OptionInfo search(final List<OptionInfo> optionInfoArray, final String optionString) {
-            for (OptionInfo optionInfo : optionInfoArray) {
-                if (optionString.equals(optionInfo.getOptionString())) {
-                    return optionInfo;
+    public static void dumpIntent(Intent intent, String tag, String prefix){
+        if (BuildConfig.DEBUG) {
+            Bundle bundle = intent.getExtras();
+            if (bundle != null) {
+                Set<String> keys = bundle.keySet();
+                Iterator<String> it = keys.iterator();
+                Log.d(tag, prefix + " dump start");
+                while (it.hasNext()) {
+                    String key = it.next();
+                    Log.d(tag, prefix + " [" + key + "=" + bundle.get(key) + "]");
                 }
+                Log.d(tag, prefix + " dump end");
             }
-            return null;
         }
     }
 }
+

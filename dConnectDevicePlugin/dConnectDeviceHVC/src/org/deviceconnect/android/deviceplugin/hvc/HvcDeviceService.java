@@ -139,49 +139,53 @@ public class HvcDeviceService extends DConnectMessageService {
     /**
      * Human Detect Profile register body detection event.<br>
      * 
+     * @param request request
      * @param response response
      * @param serviceId serviceId
      * @param sessionKey sessionKey
      */
-    public void registerBodyDetectionEvent(final Intent response,
+    public void registerBodyDetectionEvent(final Intent request, final Intent response,
             final String serviceId, final String sessionKey) {
-        registerDetectionEvent(HumanDetectKind.BODY, response, serviceId, sessionKey);
+        registerDetectionEvent(HumanDetectKind.BODY, request, response, serviceId, sessionKey);
     }
     
     /**
      * Human Detect Profile register hand detection event.<br>
      * 
+     * @param request request
      * @param response response
      * @param serviceId serviceId
      * @param sessionKey sessionKey
      */
-    public void registerHandDetectionEvent(final Intent response,
+    public void registerHandDetectionEvent(final Intent request, final Intent response,
             final String serviceId, final String sessionKey) {
-        registerDetectionEvent(HumanDetectKind.HAND, response, serviceId, sessionKey);
+        registerDetectionEvent(HumanDetectKind.HAND, request, response, serviceId, sessionKey);
     }
     
     /**
      * Human Detect Profile register face detection event.<br>
      * 
+     * @param request request
      * @param response response
      * @param serviceId serviceId
      * @param sessionKey sessionKey
      */
-    public void registerFaceDetectEvent(final Intent response,
+    public void registerFaceDetectionEvent(final Intent request, final Intent response,
             final String serviceId, final String sessionKey) {
-        registerDetectionEvent(HumanDetectKind.FACE, response, serviceId, sessionKey);
+        registerDetectionEvent(HumanDetectKind.FACE, request, response, serviceId, sessionKey);
     }
     
     /**
      * Human Detect Profile register detection event.<br>
      * 
      * @param detectKind detectKind
+     * @param request request
      * @param response response
      * @param serviceId serviceId
      * @param sessionKey sessionKey
      */
-    private void registerDetectionEvent(final HumanDetectKind detectKind, final Intent response,
-            final String serviceId, final String sessionKey) {
+    private void registerDetectionEvent(final HumanDetectKind detectKind, final Intent request,
+            final Intent response, final String serviceId, final String sessionKey) {
         
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "registerDetectionEvent(). detectKind:" + detectKind.toString() + " serviceId:" + serviceId
@@ -199,12 +203,15 @@ public class HvcDeviceService extends DConnectMessageService {
             mHvcCommManagerArray.add(commManager);
         }
         
+        // options(if nothing, null)
+        List<String> options = HumanDetectProfile.getOptions(request);
+        
         // register
         if (!commManager.checkRegisterDetectEvent(detectKind, sessionKey)) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "registerDetectionEvent(). add registerDetectEvent");
             }
-            commManager.registerDetectEvent(detectKind, sessionKey);
+            commManager.registerDetectEvent(detectKind, sessionKey, options);
         }
         
         // if timer not start , start timer.

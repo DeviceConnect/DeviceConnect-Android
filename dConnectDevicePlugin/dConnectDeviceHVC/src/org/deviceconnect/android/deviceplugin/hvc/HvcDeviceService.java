@@ -131,6 +131,32 @@ public class HvcDeviceService extends DConnectMessageService {
     }
     
     
+    //
+    // for human detect profile
+    //
+    
+    /**
+     * get comm manager.
+     * @param serviceId serviceId
+     * @return comm manager
+     */
+    public HvcCommManager getCommManager(final String serviceId) {
+        
+        // search CommManager by serviceId.
+        HvcCommManager commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
+        if (commManager == null) {
+            // if null, add CommManager.
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "getCommManager(). add HvcCommManager");
+            }
+            commManager = new HvcCommManager(serviceId);
+            mHvcCommManagerArray.add(commManager);
+        }
+        
+        return commManager;
+    }
+    
+    
     
     // 
     // register detection event.
@@ -192,16 +218,8 @@ public class HvcDeviceService extends DConnectMessageService {
                     + " sessionKey:" + sessionKey);
         }
         
-        // search CommManager by serviceId.
-        HvcCommManager commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
-        if (commManager == null) {
-            // if null, add CommManager.
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "registerDetectionEvent(). add HvcCommManager");
-            }
-            commManager = new HvcCommManager(serviceId);
-            mHvcCommManagerArray.add(commManager);
-        }
+        // search CommManager by serviceId(if not found, add CommManager.).
+        HvcCommManager commManager = getCommManager(serviceId);
         
         // options(if nothing, null)
         List<String> options = HumanDetectProfile.getOptions(request);

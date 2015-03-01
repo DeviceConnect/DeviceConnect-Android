@@ -88,17 +88,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     
 // TODO: timeout error.
     
-    /**
-     * userFunc get error value.
-     */
-    private static final int ERROR_USEFINC_VALUE = -1;
-
-
-    /**
-     * HVC Communication Manager.
-     */
-    private HvcCommManager mCommManager = new HvcCommManager(null);
-// TODO: mCommManagerを廃止してServiceのCommManagerを利用するよう変更する。
+    
     
     //
     // Get Detection API
@@ -108,7 +98,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     protected boolean onGetBodyDetection(final Intent request, final Intent response, final String serviceId,
             final List<String> options) {
         
-        // start detection
         boolean result = doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.BODY);
         return result;
     }
@@ -117,7 +106,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     protected boolean onGetHandDetection(final Intent request, final Intent response, final String serviceId,
             final List<String> options) {
         
-        // start detection
         boolean result = doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.HAND);
         return result;
     }
@@ -126,7 +114,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     protected boolean onGetFaceDetection(final Intent request, final Intent response, final String serviceId,
             final List<String> options) {
         
-        // start detection
         boolean result = doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.FACE);
         return result;
     }
@@ -300,7 +287,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      */
     protected boolean doGetDetectionProc(final Intent request, final Intent response,
             final String serviceId, final List<String> options, final HumanDetectKind detectKind) {
-
+        
         // get bluetooth device from serviceId.
         BluetoothDevice device = HvcCommManager.searchDevices(serviceId);
         if (device == null) {
@@ -324,19 +311,21 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         }
         
         // convert useFunc
-        int useFunc = HvcConvertUtils.convertUseFunc(detectKind, options);
-        if (useFunc == ERROR_USEFINC_VALUE) {
+        Integer useFunc = HvcConvertUtils.convertUseFunc(detectKind, options);
+        if (useFunc == null) {
             // options unknown parameter.
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }
+        
+        // get comm manager.
+        HvcCommManager commManager = ((HvcDeviceService) getContext()).getCommManager(serviceId);
 
         // start detect thread.
-        HvcCommManager.DetectionResult result = mCommManager.startDetectThread(getContext(), device, useFunc,
+        HvcCommManager.DetectionResult result = commManager.startDetectThread(getContext(), device, useFunc,
                 requestParams, new HvcDetectListener() {
             @Override
             public void onDetectFinished(final HVC_RES result) {
-                
                 // set response
                 setDetectResultResponse(response, requestParams, result, detectKind);
                 // success

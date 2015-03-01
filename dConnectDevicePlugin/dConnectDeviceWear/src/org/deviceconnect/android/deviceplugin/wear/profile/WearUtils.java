@@ -6,9 +6,6 @@ http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.wear.profile;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * Wear Utils.
  * 
@@ -20,16 +17,37 @@ public final class WearUtils {
      */
     private WearUtils() {
     }
+
     /**
-     * Check serviceId.
-     * 
-     * @param serviceId Service ID
-     * @return If <code>serviceId</code> is equal to test for the service ID is true, if it is not false.
+     * サービスIDを確認する.
+     * @param serviceId サービスID
+     * @return 問題ない場合にはtrue、それ以外はfalse
      */
     public static boolean checkServiceId(final String serviceId) {
-        String regex = WearServiceDiscoveryProfile.SERVICE_ID;
-        Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(serviceId);
-        return match.find();
+        if (serviceId == null) {
+            return false;
+        }
+        return serviceId.startsWith(WearConst.SERVICE_ID);
+    }
+
+    /**
+     * nodeIdからサービスIDを作成する.
+     * @param nodeId ノードID
+     * @return サービスID
+     */
+    public static String createServiceId(final String nodeId) {
+        String[] id = nodeId.split("-");
+        return WearConst.SERVICE_ID + "-" + id[0];
+    }
+
+    /**
+     * Get node form Service ID.
+     * 
+     * @param serviceId Service ID.
+     * @return nodeId Internal management Node ID.
+     */
+    public static String getNodeId(final String serviceId) {
+        String[] mServiceIdArray = serviceId.split("-");
+        return mServiceIdArray[1];
     }
 }

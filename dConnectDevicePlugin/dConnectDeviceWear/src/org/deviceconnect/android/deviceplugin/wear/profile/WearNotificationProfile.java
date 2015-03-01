@@ -35,6 +35,11 @@ import android.support.v4.app.NotificationManagerCompat;
  */
 public class WearNotificationProfile extends NotificationProfile {
 
+    /**
+     * ランダムを生成するクラス.
+     */
+    private Random mRandom = new Random(System.currentTimeMillis());
+
     @Override
     protected boolean onPostNotify(final Intent request, final Intent response, final String serviceId,
             final NotificationType type, final Direction dir, final String lang, final String body, final String tag,
@@ -50,8 +55,7 @@ public class WearNotificationProfile extends NotificationProfile {
             Resources myRes = getContext().getResources();
             NotificationCompat.Builder myNotificationBuilder = null;
             NotificationManagerCompat myNotificationManager = null;
-            Random random = new Random();
-            int myNotificationId = random.nextInt(1000000);
+            int myNotificationId = mRandom.nextInt(Integer.MAX_VALUE);
 
             Intent mIntent = new Intent(getContext(),
                     org.deviceconnect.android.deviceplugin.wear.WearDeviceService.class);
@@ -99,12 +103,13 @@ public class WearNotificationProfile extends NotificationProfile {
             
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
                     null, WearNotificationProfile.ATTRIBUTE_ON_SHOW);
-
-            for (int i = 0; i < events.size(); i++) {
-                Event event = events.get(i);
-                Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
-                getContext().sendBroadcast(intent);
+            synchronized (events) {
+                for (int i = 0; i < events.size(); i++) {
+                    Event event = events.get(i);
+                    Intent intent = EventManager.createEventMessage(event);
+                    intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
+                    getContext().sendBroadcast(intent);
+                }
             }
         }
         return true;
@@ -120,19 +125,20 @@ public class WearNotificationProfile extends NotificationProfile {
         } else if (notificationId == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            NotificationManager mNotificationManager = (NotificationManager) this.getContext().getSystemService(
+            NotificationManager mNotificationManager = (NotificationManager) getContext().getSystemService(
                     Context.NOTIFICATION_SERVICE);
             mNotificationManager.cancel(Integer.parseInt(notificationId));
             setResult(response, IntentDConnectMessage.RESULT_OK);
 
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
                     null, WearNotificationProfile.ATTRIBUTE_ON_CLOSE);
-
-            for (int i = 0; i < events.size(); i++) {
-                Event event = events.get(i);
-                Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
-                getContext().sendBroadcast(intent);
+            synchronized (events) {
+                for (int i = 0; i < events.size(); i++) {
+                    Event event = events.get(i);
+                    Intent intent = EventManager.createEventMessage(event);
+                    intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
+                    getContext().sendBroadcast(intent);
+                }
             }
         }
         return true;
@@ -150,7 +156,6 @@ public class WearNotificationProfile extends NotificationProfile {
         } else {
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
-
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
@@ -158,7 +163,6 @@ public class WearNotificationProfile extends NotificationProfile {
                 setResult(response, DConnectMessage.RESULT_ERROR);
                 return true;
             }
-
         }
         return true;
     }
@@ -176,7 +180,6 @@ public class WearNotificationProfile extends NotificationProfile {
 
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
-
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
                 return true;
@@ -201,7 +204,6 @@ public class WearNotificationProfile extends NotificationProfile {
         } else {
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
-
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {

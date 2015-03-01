@@ -17,8 +17,7 @@ import org.deviceconnect.android.deviceplugin.wear.profile.WearTouchProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearVibrationProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.db.DBCacheController;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
@@ -33,19 +32,26 @@ import android.content.Intent;
  */
 public class WearDeviceService extends DConnectMessageService {
 
+    /**
+     * Android Wearとの通信を管理するクラス.
+     */
+    private WearManager mWearManager;
+
     @Override
     public void onCreate() {
         super.onCreate();
 
+        mWearManager = new WearManager(this);
+        mWearManager.init();
+
         // initialize of the EventManager
-        EventManager.INSTANCE.setController(new DBCacheController(this));
-        LocalOAuth2Main.initialize(getApplicationContext());
+        EventManager.INSTANCE.setController(new MemoryCacheController());
 
         // add supported profiles
         addProfile(new WearNotificationProfile());
         addProfile(new WearVibrationProfile());
-        addProfile(new WearDeviceOrientationProfile());
-        addProfile(new WearTouchProfile());
+        addProfile(new WearDeviceOrientationProfile(mWearManager));
+        addProfile(new WearTouchProfile(mWearManager));
 
     }
 
@@ -75,6 +81,10 @@ public class WearDeviceService extends DConnectMessageService {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (mWearManager != null) {
+            mWearManager.destory();
+            mWearManager = null;
+        }
     }
 
     @Override
@@ -90,5 +100,13 @@ public class WearDeviceService extends DConnectMessageService {
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
         return new WearServiceDiscoveryProfile();
+    }
+
+    /**
+     * Android Wear管理クラスを取得する.
+     * @return WearManagerのインスタンス
+     */
+    public WearManager getManager() {
+        return mWearManager;
     }
 }

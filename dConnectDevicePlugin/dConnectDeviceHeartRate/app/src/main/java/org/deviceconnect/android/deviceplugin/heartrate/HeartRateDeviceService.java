@@ -62,12 +62,12 @@ public class HeartRateDeviceService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
 
-        if (!BleUtils.isBLESupported(this)) {
-            mLogger.warning("BLE not supported.");
-            stopSelf();
+        mLogger.fine("HeartRateDeviceService start.");
+
+        if (!BleUtils.isBLESupported(getContext())) {
+            mLogger.warning("BLE is not support.");
             return;
         }
-        mLogger.fine("HeartRateDeviceService start.");
 
         EventManager.INSTANCE.setController(new MemoryCacheController());
 

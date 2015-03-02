@@ -12,6 +12,7 @@ import android.os.Bundle;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateApplication;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateDeviceService;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager;
+import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateDevice;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -27,6 +28,14 @@ public class HeartRateServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
+        if (!BleUtils.isBLESupported(getContext())) {
+            mLogger.warning("BLE not supported.");
+            List<Bundle> services = new ArrayList<>();
+            setResult(response, DConnectMessage.RESULT_OK);
+            setServices(response, services);
+            return true;
+        }
+
         List<Bundle> services = new ArrayList<>();
         List<HeartRateDevice> devices = getManager().getConnectedDevices();
         synchronized (devices) {

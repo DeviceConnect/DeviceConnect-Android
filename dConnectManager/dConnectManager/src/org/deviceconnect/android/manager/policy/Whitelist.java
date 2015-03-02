@@ -71,13 +71,27 @@ public class Whitelist {
      * @throws WhitelistException if origin can not be stored.
      */
     public synchronized OriginInfo addOrigin(final Origin origin, final String title)
-        throws WhitelistException {
+            throws WhitelistException {
         try {
             long date = System.currentTimeMillis();
             long id = mCache.addOrigin(origin, title, date);
             return new OriginInfo(id, origin, title, date);
         } catch (OriginDBException e) {
             throw new WhitelistException("Failed to store origin: " + origin, e);
+        }
+    }
+
+    /**
+     * Update an origin on this whitelist.
+     * 
+     * @param info an origin to be updated.
+     * @throws WhitelistException if origin can not be updated.
+     */
+    public synchronized void updateOrigin(final OriginInfo info) throws WhitelistException {
+        try {
+            mCache.updateOrigin(info);
+        } catch (OriginDBException e) {
+            throw new WhitelistException("Failed to store origin: " + info.mOrigin, e);
         }
     }
 
@@ -173,7 +187,7 @@ public class Whitelist {
 
         /**
          * Gets all origins in the database.
-         * @return Origin
+         * @return all origins in the database
          */
         List<OriginInfo> getOrigins() {
             List<OriginInfo> patterns = new ArrayList<OriginInfo>();
@@ -200,11 +214,11 @@ public class Whitelist {
 
         /**
          * Adds a origin to this database.
-         * @param origin the origin.
+         * @param origin the origin
          * @param title the title of origin
-         * @param date the registration date.
-         * @return row ID.
-         * @throws OriginDBException throws if database error occurred.
+         * @param date the registration date
+         * @return row ID
+         * @throws OriginDBException throws if database error occurred
          */
         long addOrigin(final Origin origin, final String title, final long date) throws OriginDBException {
             SQLiteDatabase db = openDB();
@@ -231,10 +245,36 @@ public class Whitelist {
         }
 
         /**
+         * Updates a origin to this database.
+         * @param origin the origin to be updated
+         * @throws OriginDBException throws if database error occurred
+         */
+        void updateOrigin(final OriginInfo origin) throws OriginDBException {
+            SQLiteDatabase db = openDB();
+            if (db == null) {
+                throw new OriginDBException("Failed to open the database.");
+            }
+            try {
+                db.beginTransaction();
+                ContentValues values = new ContentValues();
+                values.put(ORIGIN, origin.mOrigin.toString());
+                values.put(TITLE, origin.mTitle);
+                int count = db.update(TABLE_NAME, values, ID + "=" + origin.mId, null);
+                if (count != 1) {
+                    throw new OriginDBException("Failed to store origin.");
+                }
+                db.setTransactionSuccessful();
+            } finally {
+                db.endTransaction();
+                db.close();
+            }
+        }
+
+        /**
          * Removes a origin from this database.
-         * @param origin the origin to be removed.
-         * @throws OriginDBException if the origin cannot be removed.
-         * @throws IllegalArgumentException if <code>id</code> equals -1. 
+         * @param origin the origin to be removed
+         * @throws OriginDBException if the origin cannot be removed
+         * @throws IllegalArgumentException if <code>id</code> equals -1.
          */
         void removeOrigin(final OriginInfo origin) throws OriginDBException {
             if (origin.mId == -1) {
@@ -246,15 +286,15 @@ public class Whitelist {
                 throw new OriginDBException("Failed to open origin whitelist database.");
             }
             try {
-                db = getWritableDatabase();
+                db.beginTransaction();
                 int count = db.delete(TABLE_NAME, ID + "=" + origin.mId, null);
                 if (count != 1) {
                     throw new OriginDBException("Failed to remove origin: " + origin.mOrigin);
                 }
+                db.setTransactionSuccessful();
             } finally {
-                if (db != null) {
-                    db.close();
-                }
+                db.endTransaction();
+                db.close();
             }
         }
 

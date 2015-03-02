@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:text="@string/dialog_add_origin_manual_entry_item_title"
+        android:text="@string/dialog_origin_manual_entry_item_title"
         />
     <EditText
         android:id="@+id/dialog_origin_manual_entry_edit_title"
@@ -24,7 +24,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:text="@string/dialog_add_origin_manual_entry_item_origin"
+        android:text="@string/dialog_origin_manual_entry_item_origin"
         />
     <EditText
         android:id="@+id/dialog_origin_manual_entry_edit_origin"
@@ -38,5 +38,5 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
         android:textSize="14sp"
-        android:text="@string/dialog_add_origin_manual_entry_message" />
+        android:text="@string/dialog_origin_manual_entry_message" />
 </LinearLayout>

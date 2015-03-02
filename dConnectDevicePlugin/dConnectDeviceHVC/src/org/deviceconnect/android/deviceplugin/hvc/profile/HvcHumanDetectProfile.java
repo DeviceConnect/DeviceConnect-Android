@@ -55,7 +55,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     /**
      * error message. {@value}
      */
-    protected static final String ERROR_DEVICE_COMM_BUSY = "device communication busy.";
+    protected static final String ERROR_DEVICE_IS_BUSY = "device is busy.";
     
     /**
      * error message. {@value}
@@ -355,7 +355,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             return true;
         } else if (result == HvcCommManager.DetectionResult.RESULT_ERR_THREAD_ALIVE) {
             // comm thread running
-            MessageUtils.setIllegalDeviceStateError(response, ERROR_DEVICE_COMM_BUSY);
+            MessageUtils.setIllegalDeviceStateError(response, ERROR_DEVICE_IS_BUSY);
             return true;
         } else if (result != HvcCommManager.DetectionResult.RESULT_SUCCESS) {
             // BUG: result unknown value.

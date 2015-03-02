@@ -144,7 +144,7 @@ public class WhitelistFragment extends Fragment {
 
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
-            final OriginInfo origin = (OriginInfo) getItem(position);
+            final OriginInfo originInfo = (OriginInfo) getItem(position);
 
             View view = convertView;
             if (view == null) {
@@ -152,15 +152,15 @@ public class WhitelistFragment extends Fragment {
             }
 
             TextView textViewTitle = (TextView) view.findViewById(R.id.text_origin_title);
-            textViewTitle.setText(origin.getTitle());
+            textViewTitle.setText(originInfo.getTitle());
             TextView textViewOrigin = (TextView) view.findViewById(R.id.text_origin);
-            textViewOrigin.setText(origin.getOrigin());
+            textViewOrigin.setText(originInfo.getOrigin().toString());
 
             Button buttonDelete = (Button) view.findViewById(R.id.button_delete_origin);
             buttonDelete.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(final View v) {
-                    openDeleteDialog(origin);
+                    openDeleteDialog(originInfo);
                 }
             });
 
@@ -199,12 +199,13 @@ public class WhitelistFragment extends Fragment {
 
     /**
      * Adds an origin to be allowed.
-     * @param origin an origin to be allowed.
+     * @param originExp an string expression of an origin to be allowed.
      * @param title the title of origin.
      * @throws WhitelistException if the origin can not be stored.
      */
-    private void addOrigin(final String origin, final String title) throws WhitelistException {
-        OriginInfo info = mWhitelist.addOrigin(origin, title); // TODO obtain title and icon from Web.
+    private void addOrigin(final String originExp, final String title) throws WhitelistException {
+        Origin origin = OriginParser.parse(originExp);
+        OriginInfo info = mWhitelist.addOrigin(origin, title);
         mListAdapter.add(info);
         mListAdapter.notifyDataSetChanged();
         refreshView();

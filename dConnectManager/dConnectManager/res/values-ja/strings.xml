@@ -57,7 +57,7 @@
     <string name="key_settings_about_privacypolicy">settings_about_privacypolicy</string>
     <string name="key_settings_about_tos">settings_about_tos</string>
     <string name="key_settings_dconn_whitelist">settings_whitelist</string>
-    <string name="key_settings_dconn_whitelist_origin_blocking">settings_whitelist_enable</string>
+    <string name="key_settings_dconn_whitelist_origin_blocking">settings_whitelist_origin_blocking</string>
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
 
     <!-- ================= WhitelistActivity ================= -->

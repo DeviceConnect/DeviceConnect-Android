@@ -43,7 +43,7 @@ public class Whitelist {
      * @return <code>true</code> if requests from the specified origin are allowed, 
      *      otherwise <code>false</code>.
      */
-    public boolean allows(final String origin) {
+    public boolean allows(final Origin origin) {
         List<OriginInfo> patterns = getOrigins();
         for (OriginInfo p : patterns) {
             if (p.matches(origin)) {
@@ -70,7 +70,7 @@ public class Whitelist {
      * @return An instance of {@link OriginInfo}
      * @throws WhitelistException if origin can not be stored.
      */
-    public synchronized OriginInfo addOrigin(final String origin, final String title)
+    public synchronized OriginInfo addOrigin(final Origin origin, final String title)
         throws WhitelistException {
         try {
             long date = System.currentTimeMillis();
@@ -185,7 +185,12 @@ public class Whitelist {
             Cursor c = db.query(TABLE_NAME, null, null, null, null, null, null);
             if (c.moveToFirst()) {
                 do {
-                    patterns.add(new OriginInfo(c.getLong(0), c.getString(1), c.getString(2), c.getLong(3)));
+                    long id = c.getLong(0);
+                    String originExp = c.getString(1);
+                    Origin origin = OriginParser.parse(originExp);
+                    String title = c.getString(2);
+                    long date = c.getLong(3);
+                    patterns.add(new OriginInfo(id, origin, title, date));
                 } while (c.moveToNext());
             }
             c.close();
@@ -201,7 +206,7 @@ public class Whitelist {
          * @return row ID.
          * @throws OriginDBException throws if database error occurred.
          */
-        long addOrigin(final String origin, final String title, final long date) throws OriginDBException {
+        long addOrigin(final Origin origin, final String title, final long date) throws OriginDBException {
             SQLiteDatabase db = openDB();
             if (db == null) {
                 throw new OriginDBException("Failed to open the database.");
@@ -210,7 +215,7 @@ public class Whitelist {
             try {
                 db.beginTransaction();
                 ContentValues values = new ContentValues();
-                values.put(ORIGIN, origin);
+                values.put(ORIGIN, origin.toString());
                 values.put(TITLE, title);
                 values.put(DATE, date);
                 id = db.insert(TABLE_NAME, null, values);

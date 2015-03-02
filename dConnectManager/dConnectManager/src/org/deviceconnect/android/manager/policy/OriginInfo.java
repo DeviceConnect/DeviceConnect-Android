@@ -22,7 +22,7 @@ public class OriginInfo {
     /**
      * The origin.
      */
-    final String mOrigin;
+    final Origin mOrigin;
 
     /**
      * The title.
@@ -42,7 +42,7 @@ public class OriginInfo {
      * @param title the title of origin
      * @param date the date that the origin is added to whitelist.
      */
-    public OriginInfo(final long id, final String origin, final String title, final long date) {
+    public OriginInfo(final long id, final Origin origin, final String title, final long date) {
         mId = id;
         mOrigin = origin;
         mTitle = title;
@@ -55,15 +55,15 @@ public class OriginInfo {
      * @return <code>true</code> if the specified origin matches this origin,
      *      otherwise <code>false</code>
      */
-    public boolean matches(final String origin) {
-        return mOrigin.equals(origin);
+    public boolean matches(final Origin origin) {
+        return mOrigin.matches(origin);
     }
 
     /**
      * Gets origin.
      * @return origin
      */
-    public String getOrigin() {
+    public Origin getOrigin() {
         return mOrigin;
     }
 

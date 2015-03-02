@@ -24,6 +24,8 @@ import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.hmac.HmacManager;
+import org.deviceconnect.android.manager.policy.Origin;
+import org.deviceconnect.android.manager.policy.OriginParser;
 import org.deviceconnect.android.manager.policy.Whitelist;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
@@ -140,6 +142,7 @@ public abstract class DConnectMessageService extends Service
         mLogger.info("    Host: " + mSettings.getHost());
         mLogger.info("    Port: " + mSettings.getPort());
         mLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
+        mLogger.info("    OriginBlock: " + mSettings.isBlockingOrigin());
 
         // ファイル管理クラス
         mFileMgr = new FileManager(this);
@@ -253,7 +256,8 @@ public abstract class DConnectMessageService extends Service
         response.putExtra(DConnectMessage.EXTRA_REQUEST_CODE, requestCode);
 
         // リクエストの発行元の確認
-        String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        String originExp = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        Origin origin = OriginParser.parse(originExp);
         if (origin == null || (mSettings.isBlockingOrigin() && !mWhitelist.allows(origin))) {
             MessageUtils.setInvalidOriginError(response);
             sendResponse(request, response);

@@ -12,15 +12,20 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.os.Build;
+import android.os.ParcelUuid;
 
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleDeviceAdapter;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  *
@@ -32,6 +37,9 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBleScanner;
     private BleDeviceScanCallback mCallback;
+    private final UUID[] mServiceUuids = {
+            UUID.fromString(BleUtils.SERVICE_HEART_RATE_SERVICE)
+    };
 
     public NewBleDeviceAdapterImpl(final Context context) {
         BluetoothManager manager = BleUtils.getManager(context);
@@ -42,7 +50,18 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
     @Override
     public void startScan(final BleDeviceScanCallback callback) {
         mCallback = callback;
-        mBleScanner.startScan(mScanCallback);
+
+        List<ScanFilter> filters = new ArrayList<ScanFilter>();
+        if (mServiceUuids != null && mServiceUuids.length > 0) {
+            for (UUID uuid : mServiceUuids) {
+                ScanFilter filter = new ScanFilter.Builder().setServiceUuid(
+                        new ParcelUuid(uuid)).build();
+                filters.add(filter);
+            }
+        }
+        ScanSettings settings = new ScanSettings.Builder().build();
+
+        mBleScanner.startScan(filters, settings, mScanCallback);
     }
 
     @Override

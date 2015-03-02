@@ -12,12 +12,16 @@ import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewTreeObserver;
@@ -53,6 +57,22 @@ public class CanvasProfileActivity extends Activity {
      */
     private Bitmap mBitmap;
 
+    /**
+     * Implementation of BroadcastReceiver.
+     */
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            if (CanvasDrawImageObject.ACTION_DRAW_CANVAS.equals(action)) {
+                setDrawingArgument(intent);
+                refreshImage(intent);
+            } else if (CanvasDrawImageObject.ACTION_DELETE_CANVAS.equals(action)) {
+                finish();
+            }
+        }
+    };
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,10 +107,18 @@ public class CanvasProfileActivity extends Activity {
     }
 
     @Override
-    protected void onNewIntent(final Intent intent) {
-        super.onNewIntent(intent);
-        setDrawingArgument(intent);
-        refreshImage(intent);
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(CanvasDrawImageObject.ACTION_DRAW_CANVAS);
+        filter.addAction(CanvasDrawImageObject.ACTION_DELETE_CANVAS);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
     }
 
     @Override
@@ -116,13 +144,17 @@ public class CanvasProfileActivity extends Activity {
      */
     private synchronized void refreshImage(final Intent intent) {
         CanvasDrawImageObject drawObj = CanvasDrawImageObject.create(intent);
-        String uri = drawObj.getUri();
+        if (drawObj == null) {
+            finish();
+            return;
+        }
 
         if (mBitmap != null) {
             mBitmap.recycle();
             mBitmap = null;
         }
 
+        String uri = drawObj.getUri();
         mBitmap = CanvasDrawUtils.getBitmap(this, uri);
         if (mBitmap == null) {
             // failed to load bitmap.

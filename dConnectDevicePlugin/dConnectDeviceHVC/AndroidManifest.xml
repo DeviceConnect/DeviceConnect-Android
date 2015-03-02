@@ -83,6 +83,7 @@
         </service>
         
         <service android:enabled="true" android:name="omron.HVC.UartService" />
+        <activity android:name=".setting.HvcSettingStepsActivity"></activity>
         
     </application>
 

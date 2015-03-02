@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.profile;
 
-import org.deviceconnect.android.deviceplugin.hvc.setting.HvcSettingActivity;
+import org.deviceconnect.android.deviceplugin.hvc.setting.HvcSettingStepsActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -32,7 +32,7 @@ public class HvcSystemProfile extends SystemProfile {
      * @return setting activity
      */
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle bundle) {
-        return HvcSettingActivity.class;
+        return HvcSettingStepsActivity.class;
     }
 
     @Override

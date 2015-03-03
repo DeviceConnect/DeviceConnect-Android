@@ -25,6 +25,7 @@ import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcSystemProfile;
 import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
 import org.deviceconnect.android.event.Event;
@@ -122,7 +123,7 @@ public class HvcDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) { };
+        return new HvcServiceInformationProfile(this) { };
     }
 
     @Override

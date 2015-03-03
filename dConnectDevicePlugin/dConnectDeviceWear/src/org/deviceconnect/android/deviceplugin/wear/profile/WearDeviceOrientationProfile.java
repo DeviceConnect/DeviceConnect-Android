@@ -34,7 +34,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile {
     /**
      * Android Wearからのイベントを受け取るリスナー.
      */
-    private OnMessageEventListener listener = new OnMessageEventListener() {
+    private OnMessageEventListener mListener = new OnMessageEventListener() {
         @Override
         public void onEvent(final String nodeId, final String message) {
             sendMessageToEvent(WearUtils.createServiceId(nodeId), message);
@@ -46,7 +46,7 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile {
      * @param mgr Android Wear管理クラス
      */
     public WearDeviceOrientationProfile(final WearManager mgr) {
-        mgr.addMessageEventListener(WearConst.WEAR_TO_DEVICE_DEIVCEORIENTATION_DATA, listener);
+        mgr.addMessageEventListener(WearConst.WEAR_TO_DEVICE_DEIVCEORIENTATION_DATA, mListener);
     }
 
     @Override

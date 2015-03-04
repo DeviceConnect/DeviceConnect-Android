@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HeartRate(BLE)デバイスプラグイン</string>
+
+    <string name="summary_title">[1/4] デバイスプラグイン概要</string>
+    <string name="summary_body">このデバイスプラグインはBluetooth Low Energyの仕様であるHeart Rate Serviceに対応しているデバイスと接続し、心拍数を取得する機能を提供します。\n\n以下のデバイスと接続できることを確認しています。\n・Mio Alpha\n・H7\n・BLUEHR\n・PULSENSE</string>
+
+    <string name="summary_not_support_title">デバイスエラー</string>
+    <string name="summary_not_support_message">このデバイスはBluetooth Low Energyをサポートしていません</string>
+
+    <string name="mio_alpha_title">[2/4] Mio Alphaの準備</string>
+    <string name="mio_alpha_body">矢印の位置にあるボタンをFINDという文字列が点滅するまで、長押してください。\n画面に心拍数が表示されれば準備完了になります。\n\n※Mio Alpha以外のデバイスをご使用の場合には、それぞれの説明書をご確認ください。</string>
+
+    <string name="bluetooth_settings_title">[3/4] Bluetooth設定</string>
+    <string name="bluetooth_settings_body">このデバイスプラグインでは、Bluetooth Low Energyを使用しますので、端末のBluetooth設定画面より設定をONにしてください。\n\n既にBluetoothがONになっている場合には次のページにお進みください。\n</string>
+    <string name="bluetooth_settings_button">設定画面を開く</string>
+
+    <string name="heart_rate_setting_title">[4/4] デバイス接続</string>
+    <string name="heart_rate_setting_connect">接続</string>
+    <string name="heart_rate_setting_disconnect">解除</string>
+    <string name="heart_rate_setting_default_name">Unknown</string>
+    <string name="heart_rate_setting_default_address">Unknown</string>
+    <string name="heart_rate_setting_connecting_title">BLE接続</string>
+    <string name="heart_rate_setting_connecting_message">%1$sと接続中</string>
+    <string name="heart_rate_setting_dialog_positive">OK</string>
+    <string name="heart_rate_setting_dialog_error_title">BLE接続エラー</string>
+    <string name="heart_rate_setting_dialog_error_message">%1$sとの接続に失敗しました</string>
+    <string name="heart_rate_setting_online">[ONLINE]</string>
+    <string name="heart_rate_setting_offline">[OFFLINE]</string>
+</resources>

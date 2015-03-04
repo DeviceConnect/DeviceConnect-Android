@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.deviceconnect.android.deviceplugin.sw.smartconnect;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -46,11 +47,13 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
+import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
+import org.deviceconnect.profile.TouchProfileConstants;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -100,6 +103,16 @@ class SWControlExtension extends ControlExtension {
     private final long mInterval = SWConstants.DEFAULT_SENSOR_INTERVAL;
 
     /**
+     * Last press time for touch event.
+     */
+    private static long sLastPressTime = 0;
+
+    /**
+     * Threshold double tap time.
+     */
+    private static final long THRESHOLD_DOUBLE_TAP_TIME = 500;
+
+    /**
      * イベントの送信処理.
      * 
      * @param event イベント
@@ -145,7 +158,7 @@ class SWControlExtension extends ControlExtension {
      * LocalOAuthで無視するプロファイル群.
      */
     private static final String[] IGNORE_PROFILES = {AuthorizationProfileConstants.PROFILE_NAME,
-            SystemProfileConstants.PROFILE_NAME, ServiceDiscoveryProfileConstants.PROFILE_NAME };
+            SystemProfileConstants.PROFILE_NAME, ServiceDiscoveryProfileConstants.PROFILE_NAME};
 
     /**
      * Creates a control extension.
@@ -246,8 +259,60 @@ class SWControlExtension extends ControlExtension {
     }
 
     @Override
-    public void onTouch(final ControlTouchEvent event) {
-        super.onTouch(event);
+    public void onTouch(final ControlTouchEvent touchEvent) {
+        String[] attr = new String[2];
+        switch (touchEvent.getAction()) {
+        case Control.Intents.TOUCH_ACTION_PRESS:
+            long pressTime = touchEvent.getTimeStamp();
+            if (pressTime - sLastPressTime < THRESHOLD_DOUBLE_TAP_TIME) {
+                attr[0] = TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP;
+                attr[1] = null;
+            } else {
+                attr[0] = TouchProfile.ATTRIBUTE_ON_TOUCH;
+                attr[1] = TouchProfile.ATTRIBUTE_ON_TOUCH_START;
+            }
+            sLastPressTime = pressTime;
+            break;
+        case Control.Intents.TOUCH_ACTION_RELEASE:
+            attr[0] = TouchProfile.ATTRIBUTE_ON_TOUCH_END;
+            attr[1] = null;
+            break;
+        default:
+            super.onTouch(touchEvent);
+            return;
+        }
+
+        String serviceId = findServiceId(getDeviceName());
+        if (serviceId == null) {
+            super.onTouch(touchEvent);
+            return;
+        }
+
+        for (int i = 0; i < 2; i++) {
+            if (attr[i] == null) {
+                break;
+            }
+
+            List<Event> events = EventManager.INSTANCE.getEventList(serviceId, TouchProfileConstants.PROFILE_NAME,
+                    null, attr[i]);
+
+            for (Event event : events) {
+                Bundle touchdata = new Bundle();
+                List<Bundle> touchlist = new ArrayList<Bundle>();
+                Bundle touches = new Bundle();
+                touchdata.putInt(TouchProfile.PARAM_ID, 0);
+                touchdata.putFloat(TouchProfile.PARAM_X, touchEvent.getX());
+                touchdata.putFloat(TouchProfile.PARAM_Y, touchEvent.getY());
+                touchlist.add((Bundle) touchdata.clone());
+                touches.putParcelableArray(TouchProfile.PARAM_TOUCHES, touchlist.toArray(new Bundle[touchlist.size()]));
+
+                Intent message = EventManager.createEventMessage(event);
+                message.putExtra(TouchProfile.PARAM_TOUCH, touches);
+                sendEvent(message, event.getAccessToken());
+            }
+        }
+
+        super.onTouch(touchEvent);
     }
 
     /**
@@ -303,76 +368,90 @@ class SWControlExtension extends ControlExtension {
     /**
      * 加速度センサーイベントリスナー.
      */
-     private class AccelerometerEventListener implements AccessorySensorEventListener {
-         /**
-          * Interval Start Time.
-          */
-         long mStart = 0;
-         /**
-          * Device Name.
-          */
-         final String mDeviceName;
+    private class AccelerometerEventListener implements AccessorySensorEventListener {
+        /**
+         * Interval Start Time.
+         */
+        long mStart = 0;
+        /**
+         * Device Name.
+         */
+        final String mDeviceName;
 
-         /**
-          * Constructor.
-          */
-         AccelerometerEventListener() {
-             if (SWConstants.PACKAGE_SMART_WATCH_2.equals(mHostAppPackageName)) {
-                 mDeviceName = SWConstants.DEVICE_NAME_SMART_WATCH_2;
-             } else {
-                 mDeviceName = SWConstants.DEVICE_NAME_SMART_WATCH;
-             }
-         }
+        /**
+         * Constructor.
+         */
+        AccelerometerEventListener() {
+            if (SWConstants.PACKAGE_SMART_WATCH_2.equals(mHostAppPackageName)) {
+                mDeviceName = SWConstants.DEVICE_NAME_SMART_WATCH_2;
+            } else {
+                mDeviceName = SWConstants.DEVICE_NAME_SMART_WATCH;
+            }
+        }
 
-         @Override
-         public void onSensorEvent(final AccessorySensorEvent sensorEvent) {
-             if (mStart == 0 || System.currentTimeMillis() - mStart > mInterval) {
-                 float[] values = sensorEvent.getSensorValues();
-                 Bundle orientation = new Bundle();
-                 Bundle acceleration = new Bundle();
-                 orientation.putBundle(DeviceOrientationProfile.PARAM_ACCELERATION_INCLUDING_GRAVITY,
-                                           acceleration);
-                 orientation.putLong(DeviceOrientationProfile.PARAM_INTERVAL, mInterval);
-                 acceleration.putDouble(DeviceOrientationProfile.PARAM_X, values[0]);
-                 acceleration.putDouble(DeviceOrientationProfile.PARAM_Y, values[1]);
-                 acceleration.putDouble(DeviceOrientationProfile.PARAM_Z, values[2]);
+        @Override
+        public void onSensorEvent(final AccessorySensorEvent sensorEvent) {
+            if (mStart == 0 || System.currentTimeMillis() - mStart > mInterval) {
+                float[] values = sensorEvent.getSensorValues();
+                Bundle orientation = new Bundle();
+                Bundle acceleration = new Bundle();
+                orientation.putBundle(DeviceOrientationProfile.PARAM_ACCELERATION_INCLUDING_GRAVITY, acceleration);
+                orientation.putLong(DeviceOrientationProfile.PARAM_INTERVAL, mInterval);
+                acceleration.putDouble(DeviceOrientationProfile.PARAM_X, values[0]);
+                acceleration.putDouble(DeviceOrientationProfile.PARAM_Y, values[1]);
+                acceleration.putDouble(DeviceOrientationProfile.PARAM_Z, values[2]);
 
-                 String serviceId = findServiceId();
-                 if (serviceId == null) {
-                     return;
-                 }
-                 List<Event> events = EventManager.INSTANCE
-                          .getEventList(serviceId, DeviceOrientationProfileConstants.PROFILE_NAME,
-                         null, DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
+                String serviceId = findServiceId(mDeviceName);
+                if (serviceId == null) {
+                    return;
+                }
+                List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                        DeviceOrientationProfileConstants.PROFILE_NAME, null,
+                        DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
 
-                 for (Event event : events) {
-                     Intent message = EventManager.createEventMessage(event);
-                     message.putExtra(DeviceOrientationProfile.PARAM_ORIENTATION, orientation);
-                     sendEvent(message, event.getAccessToken());
-                 }
+                for (Event event : events) {
+                    Intent message = EventManager.createEventMessage(event);
+                    message.putExtra(DeviceOrientationProfile.PARAM_ORIENTATION, orientation);
+                    sendEvent(message, event.getAccessToken());
+                }
 
-                 mStart = System.currentTimeMillis();
-             }
-         }
+                mStart = System.currentTimeMillis();
+            }
+        }
+    }
 
-         /**
-          * Find Service ID.
-          * @return Service ID
-          */
-         private String findServiceId() {
-             BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-             if (adapter != null) {
-                 Set<BluetoothDevice> bondedDevices = adapter.getBondedDevices();
-                 if (bondedDevices != null) {
-                     for (BluetoothDevice device : bondedDevices) {
-                         if (mDeviceName.equals(device.getName())) {
-                             String address = device.getAddress();
-                             return address.replace(":", "").toLowerCase(Locale.ENGLISH);
-                         }
-                     }
-                 }
-             }
-             return null;
-         }
-     }
+    /**
+     * Find Service ID.
+     * 
+     * @param deviceName Device Name.
+     * @return Service ID.
+     */
+    private String findServiceId(final String deviceName) {
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if (adapter != null) {
+            Set<BluetoothDevice> bondedDevices = adapter.getBondedDevices();
+            if (bondedDevices != null) {
+                for (BluetoothDevice device : bondedDevices) {
+                    if (deviceName.equals(device.getName())) {
+                        String address = device.getAddress();
+                        return address.replace(":", "").toLowerCase(Locale.ENGLISH);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get Device Name.
+     * 
+     * @return Device Name.
+     */
+    private String getDeviceName() {
+        if (SWConstants.PACKAGE_SMART_WATCH_2.equals(mHostAppPackageName)) {
+            return SWConstants.DEVICE_NAME_SMART_WATCH_2;
+        } else {
+            return SWConstants.DEVICE_NAME_SMART_WATCH;
+        }
+    }
 }

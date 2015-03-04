@@ -11,6 +11,7 @@ import org.deviceconnect.android.deviceplugin.sw.profile.SWDeviceOrientationProf
 import org.deviceconnect.android.deviceplugin.sw.profile.SWServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWNotificationProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWSystemProfile;
+import org.deviceconnect.android.deviceplugin.sw.profile.SWTouchProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWVibrationProfile;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.db.DBCacheController;
@@ -34,6 +35,7 @@ public class SWService extends DConnectMessageService {
         addProfile(new SWNotificationProfile());
         addProfile(new SWVibrationProfile());
         addProfile(new SWCanvasProfile());
+        addProfile(new SWTouchProfile());
     }
 
     @Override

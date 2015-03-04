@@ -260,7 +260,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
         intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
         intent.putExtra(IntentDConnectMessage.EXTRA_KEY, getHMACString());
         intent.setData(Uri.parse("dconnect://start"));
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         getContext().startActivity(intent);
 
         boolean isLaunched = false;

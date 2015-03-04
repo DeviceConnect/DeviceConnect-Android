@@ -172,7 +172,7 @@ public class CanvasProfileActivity extends Activity {
             break;
         case SCALE_MODE:
             mCanvasView.setImageBitmap(mBitmap);
-            mCanvasView.setScaleType(ScaleType.FIT_START);
+            mCanvasView.setScaleType(ScaleType.FIT_CENTER);
             mCanvasView.setTranslationX((int) drawObj.getX());
             mCanvasView.setTranslationY((int) drawObj.getY());
             break;

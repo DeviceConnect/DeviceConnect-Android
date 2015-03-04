@@ -55,7 +55,7 @@ public final class CanvasProfileUtils {
         float scale;
         final int width = viewBitmap.getWidth();
         final int height = viewBitmap.getHeight();
-        if (getSizeW > getSizeH) {
+        if ((getSizeW / width) > (getSizeH / height)) {
             scale = width / getSizeW;
         } else {
             scale = height / getSizeH;
@@ -66,7 +66,7 @@ public final class CanvasProfileUtils {
         
         Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, targetW, targetH, false);
         
-        if (getSizeW > getSizeH) {
+        if ((getSizeW / width) > (getSizeH / height)) {
             startGridY = (height / 2 - targetH / 2);
         } else {
             startGridX = (width / 2 - targetW / 2);

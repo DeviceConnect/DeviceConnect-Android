@@ -31,8 +31,9 @@
             android:value="@integer/google_play_services_version" />
 
         <!-- Setting -->
-        <activity android:name="org.deviceconnect.android.deviceplugin.wear.setting.WearSettingActivity" >
-        </activity>
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.wear.setting.WearSettingActivity"
+            android:exported="false" />
 
         <!-- d-Connect Test Device Plugin Provider. -->
         <receiver
@@ -55,6 +56,7 @@
             android:name="org.deviceconnect.android.deviceplugin.wear.WearDeviceService"
             android:exported="false" >
         </service>
+
         <!-- 再起動用のServcie. -->
         <service
             android:name="org.deviceconnect.android.message.DConnectLaunchService"
@@ -63,10 +65,11 @@
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:value="enable" />
         </service>
-        
+
         <!-- LocalOAuth -->
         <activity
             android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
+            android:excludeFromRecents="true"
             android:exported="false" >
         </activity>
 

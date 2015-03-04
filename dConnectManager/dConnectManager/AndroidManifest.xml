@@ -22,11 +22,13 @@
         <activity
             android:name="org.deviceconnect.android.manager.DConnectLaunchActivity"
             android:label="@string/app_name"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data
                     android:host="start"
                     android:path="/"
@@ -102,15 +104,24 @@
         <provider
             android:name="org.deviceconnect.android.provider.FileProvider"
             android:authorities="org.deviceconnect.android.manager.provider"
-            android:exported="true" />
+            android:exported="true" >
+            <meta-data
+                android:name="filelocation"
+                android:resource="@xml/filelocation" />
+        </provider>
 
         <!-- LocalOAuth -->
         <!-- Local OAuth 認可ダイアログ用Activity. -->
-        <activity android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity">
+        <activity
+            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
+            android:excludeFromRecents="true"
+            android:exported="false" >
         </activity>
 
         <!-- Local OAuth アクセストークン管理用Activity. -->
-        <activity android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity" >
+        <activity
+            android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity"
+            android:exported="false" >
         </activity>
 
         <!-- Local OAuth 認可処理用サービス. -->

@@ -40,11 +40,6 @@
                 <action android:name="android.net.wifi.STATE_CHANGE" />
             </intent-filter>
         </receiver>
-        <receiver android:name="org.deviceconnect.message.intent.DConnectAndroidResponseReceiver" >
-            <intent-filter>
-                <action android:name="org.deviceconnect.android.intent.action.RESPONSE" />
-            </intent-filter>
-        </receiver>
 
         <!-- SonyCamera Device Plugin Provider. -->
         <receiver android:name="org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceProvider" >
@@ -64,6 +59,7 @@
             android:name="org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService"
             android:exported="false" >
         </service>
+
         <!-- 再起動用のServcie. -->
         <service
             android:name="org.deviceconnect.android.message.DConnectLaunchService"
@@ -72,13 +68,17 @@
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:value="enable" />
         </service>
-        
+
         <!-- Local OAuth -->
         <activity
             android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:excludeFromRecents="true" >
+            android:excludeFromRecents="true"
+            android:exported="false" >
         </activity>
-        <activity android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity" >
+
+        <activity
+            android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity"
+            android:exported="false" >
         </activity>
 
         <service

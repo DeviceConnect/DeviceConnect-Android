@@ -14,12 +14,6 @@
     
     <string name="application_version">Application version</string>
 
-    <string name="drawer_open">Open navigation drawer</string>
-    <string name="drawer_close">Close navigation drawer</string>
-    
-    <string name="running">running</string>
-    <string name="stopped">stopped</string>
-    
     <string name="switch_cam">Switch Camera</string>
     <string name="camera_alert">Device has only one camera!</string>
     <string name="shutter">Shutter</string>
@@ -32,4 +26,5 @@
     
     <string name="canvas_profile_view_close_guidance">tap to close.</string>
 
+    <string name="overlay_preview">●PREVIEW</string>
 </resources>

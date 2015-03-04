@@ -189,6 +189,79 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
     }
 
     /**
+     * BitmapからAssetを作成する.
+     * @param bitmap bitmap
+     * @return Asset
+     */
+    private static Asset createAssetFromBitmap(final Bitmap bitmap) {
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        if (bitmap.compress(Bitmap.CompressFormat.PNG, PNG_QUALTY, byteStream)) {
+            return Asset.createFromBytes(byteStream.toByteArray());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * PutDataRequestを作成する.
+     * @param bitmap requestに格納する画像
+     * @param x x座標
+     * @param y y座標
+     * @param mode 描画モード
+     * @return PutDataRequestのインスタンス
+     */
+    private PutDataRequest createPutDataRequest(final Bitmap bitmap,
+            final int x, final int y, final int mode) {
+        Asset asset = createAssetFromBitmap(bitmap);
+        if (asset == null) {
+            return null;
+        }
+        PutDataMapRequest dataMap = PutDataMapRequest.create(WearConst.PATH_CANVAS);
+        dataMap.getDataMap().putAsset(WearConst.PARAM_BITMAP, asset);
+        dataMap.getDataMap().putInt(WearConst.PARAM_X, x);
+        dataMap.getDataMap().putInt(WearConst.PARAM_Y, y);
+        dataMap.getDataMap().putInt(WearConst.PARAM_MODE, mode);
+        PutDataRequest request = dataMap.asPutDataRequest();
+        return request;
+    }
+
+    /**
+     * 画像データを送信する.
+     * @param bitmap 画像データ
+     * @param x x座標
+     * @param y y座標
+     * @param mode 描画モード
+     * @param listener 送信結果を通知するリスナー
+     */
+    public void sendImageData(final Bitmap bitmap, final int x, final int y,
+            final int mode, final OnDataItemResultListener listener) {
+        sendMessageToWear(new Runnable() {
+            @Override
+            public void run() {
+                final PutDataRequest request = createPutDataRequest(bitmap, x, y, mode);
+                if (request == null) {
+                    if (listener != null) {
+                        listener.onError();
+                    }
+                } else {
+                    PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi
+                            .putDataItem(mGoogleApiClient, request);
+                    DataItemResult result = pendingResult.await();
+                    if (result != null) {
+                        if (listener != null) {
+                            listener.onResult(result);
+                        }
+                    } else {
+                        if (listener != null) {
+                            listener.onError();
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /**
      * Wearにメッセージを送ります.
      * @param run 送るメッセージを実行するrunnable
      */

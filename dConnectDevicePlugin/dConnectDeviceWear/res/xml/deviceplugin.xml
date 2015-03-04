@@ -20,6 +20,12 @@
         <name lang="en">System</name>
         <description lang="en">Obtains system information. </description>
     </profile>
+    <profile name="canvas" expireperiod="86400000">
+        <name lang="ja">キャンバス</name>
+        <description lang="ja">キャンバスにアクセスする</description>
+        <name lang="en">Canvas </name>
+        <description lang="en">Accesses canvas feature. </description>
+    </profile>
     
      <profile name="vibration" expireperiod="86400000">
         <name lang="ja">バイブレーション</name>

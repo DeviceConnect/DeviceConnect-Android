@@ -33,6 +33,10 @@ public final class WearConst {
     public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_UNREGISTER
             = "org.deviceconnect.wear.deivceorienatation.unregist";
 
+    /** When Canvas deleted. */
+    public static final String DEVICE_TO_WEAR_CANCAS_DELETE_IMAGE
+            = "org.deviceconnect.wear.canvas.delete";
+
     /** Wear to Android. */
     public static final String WEAR_TO_DEVICE_DEIVCEORIENTATION_DATA
             = "org.deviceconnect.wear.deivceorienatation.data";
@@ -53,72 +57,112 @@ public final class WearConst {
      */
     public static final String DEVICE_NAME = "Android Wear";
 
+    /**
+     * bitmapを受け渡しするためのキー.
+     */
+    public static final String PARAM_BITMAP = "bitmap";
+
+    /**
+     * x座標を受け渡しするためのキー.
+     */
+    public static final String PARAM_X = "x";
+
+    /**
+     * y座標を受け渡しするためのキー.
+     */
+    public static final String PARAM_Y = "y";
+
+    /**
+     * 描画モードを受け渡しするためのキー.
+     */
+    public static final String PARAM_MODE = "mode";
+
+    /**
+     * 画像を送信するためのパスを定義する.
+     */
+    public static final String PATH_CANVAS = "/canvas/profile";
+
+    /**
+     * 通常の描画モード.
+     */
+    public static final int MODE_NORMAL = 0;
+
+    /**
+     * 拡大の描画モード.
+     */
+    public static final int MODE_SCALES = 1;
+
+    /**
+     * リピート描画モード.
+     */
+    public static final int MODE_FILLS = 2;
+
     /** Register Touch (ontouch). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCH_REGISTER
-            = "org.deviceconnect.wear.touch.ontouch.regist";
-
+    = "org.deviceconnect.wear.touch.ontouch.regist";
+    
     /** Register Touch (ontouchstart). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_REGISTER
-            = "org.deviceconnect.wear.touch.ontouchstart.regist";
-
+    = "org.deviceconnect.wear.touch.ontouchstart.regist";
+    
     /** Register Touch (ontouchend). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_REGISTER
-            = "org.deviceconnect.wear.touch.ontouchend.regist";
-
+    = "org.deviceconnect.wear.touch.ontouchend.regist";
+    
     /** Register Touch (ondoubletap). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_REGISTER
-            = "org.deviceconnect.wear.touch.ondoubletap.regist";
-
+    = "org.deviceconnect.wear.touch.ondoubletap.regist";
+    
     /** Register Touch (ontouchmove). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_REGISTER
-            = "org.deviceconnect.wear.touch.ontouchmove.regist";
-
+    = "org.deviceconnect.wear.touch.ontouchmove.regist";
+    
     /** Register Touch (ontouchcancel). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_REGISTER
-            = "org.deviceconnect.wear.touch.ontouchcancel.regist";
-
+    = "org.deviceconnect.wear.touch.ontouchcancel.regist";
+    
     /** Remove Touch (ontouch). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCH_UNREGISTER
-            = "org.deviceconnect.wear.touch.ontouch.unregist";
-
+    = "org.deviceconnect.wear.touch.ontouch.unregist";
+    
     /** Remove Touch (ontouchstart). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_UNREGISTER
-            = "org.deviceconnect.wear.touch.ontouchstart.unregist";
-
+    = "org.deviceconnect.wear.touch.ontouchstart.unregist";
+    
     /** Remove Touch (ontouchend). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_UNREGISTER
-            = "org.deviceconnect.wear.touch.ontouchend.unregist";
-
+    = "org.deviceconnect.wear.touch.ontouchend.unregist";
+    
     /** Remove Touch (ondoubletap). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_UNREGISTER
-            = "org.deviceconnect.wear.touch.ondoubletap.unregist";
-
+    = "org.deviceconnect.wear.touch.ondoubletap.unregist";
+    
     /** Remove Touch (ontouchmove). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_UNREGISTER
-            = "org.deviceconnect.wear.touch.ontouchmove.unregist";
-
+    = "org.deviceconnect.wear.touch.ontouchmove.unregist";
+    
     /** Remove Touch (ontouchcancel). */
     public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER
-            = "org.deviceconnect.wear.touch.ontouchcancel.unregist";
-
+    = "org.deviceconnect.wear.touch.ontouchcancel.unregist";
+    
     /** Wear to Android. */
     public static final String WEAR_TO_DEVICE_TOUCH_DATA = "org.deviceconnect.wear.touch.data";
-
+    
     /** Touch (touch). */
     public static final String PARAM_TOUCH_TOUCH = "touch";
-
+    
     /** Touch (touchstart). */
     public static final String PARAM_TOUCH_TOUCHSTART = "touchstart";
-
+    
     /** Touch (touchend). */
     public static final String PARAM_TOUCH_TOUCHEND = "touchend";
-
+    
     /** Touch (doubletap). */
     public static final String PARAM_TOUCH_DOUBLETAP = "doubletap";
-
+    
     /** Touch (touchmove). */
     public static final String PARAM_TOUCH_TOUCHMOVE = "touchmove";
-
+    
     /** Touch (touchcancel). */
     public static final String PARAM_TOUCH_TOUCHCANCEL = "touchcancel";
 

@@ -6,18 +6,38 @@ http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.wear.profile;
 
+import org.deviceconnect.profile.CanvasProfileConstants.Mode;
+
+
 /**
  * Wear Utils.
  * 
  * @author NTT DOCOMO, INC.
  */
 public final class WearUtils {
+
     /**
      * Constructor.
      */
     private WearUtils() {
     }
 
+    /**
+     * Android Wearに渡す描画モードに変換する.
+     * @param mode モード
+     * @return 変換後のモード
+     */
+    public static int convertMode(final Mode mode) {
+        int mm = WearConst.MODE_NORMAL;
+        if (Mode.SCALES.equals(mode)) {
+            mm = WearConst.MODE_SCALES;
+        } else if (Mode.FILLS.equals(mode)) {
+            mm = WearConst.MODE_FILLS;
+        } else {
+            mm = WearConst.MODE_NORMAL;
+        }
+        return mm;
+    }
     /**
      * サービスIDを確認する.
      * @param serviceId サービスID

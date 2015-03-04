@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.wear;
 
 import java.util.List;
 
+import org.deviceconnect.android.deviceplugin.wear.profile.WearCanvasProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearNotificationProfile;
@@ -51,6 +52,7 @@ public class WearDeviceService extends DConnectMessageService {
         addProfile(new WearNotificationProfile());
         addProfile(new WearVibrationProfile());
         addProfile(new WearDeviceOrientationProfile(mWearManager));
+        addProfile(new WearCanvasProfile());
         addProfile(new WearTouchProfile(mWearManager));
 
     }

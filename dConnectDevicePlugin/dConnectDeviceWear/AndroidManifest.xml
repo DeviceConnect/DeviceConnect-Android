@@ -31,8 +31,9 @@
             android:value="@integer/google_play_services_version" />
 
         <!-- Setting -->
-        <activity android:name="org.deviceconnect.android.deviceplugin.wear.setting.WearSettingActivity" >
-        </activity>
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.wear.setting.WearSettingActivity"
+            android:exported="false" />
 
         <!-- d-Connect Test Device Plugin Provider. -->
         <receiver

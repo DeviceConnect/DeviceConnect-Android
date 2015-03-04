@@ -40,11 +40,6 @@
                 <action android:name="android.net.wifi.STATE_CHANGE" />
             </intent-filter>
         </receiver>
-        <receiver android:name="org.deviceconnect.message.intent.DConnectAndroidResponseReceiver" >
-            <intent-filter>
-                <action android:name="org.deviceconnect.android.intent.action.RESPONSE" />
-            </intent-filter>
-        </receiver>
 
         <!-- SonyCamera Device Plugin Provider. -->
         <receiver android:name="org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceProvider" >

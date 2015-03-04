@@ -7,178 +7,71 @@
 package org.deviceconnect.android.deviceplugin.wear.profile;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 
+import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
+import org.deviceconnect.android.deviceplugin.wear.WearManager;
+import org.deviceconnect.android.deviceplugin.wear.WearManager.OnNodeResultListener;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.wearable.Node;
-import com.google.android.gms.wearable.NodeApi;
-import com.google.android.gms.wearable.Wearable;
+import com.google.android.gms.wearable.NodeApi.GetConnectedNodesResult;
 
 /**
- * ServiceDiscoveryProfile.
+ * NetworkServiceDiscoveryプロファイル.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile implements ConnectionCallbacks,
-        OnConnectionFailedListener {
-
-    /**
-     * Google Play Service.
-     */
-    private GoogleApiClient mGoogleApiClient;
-
-    /**
-     * Service ID.
-     */
-    public static final String SERVICE_ID = "Wear";
-
-    /**
-     * Device Name: {@value} .
-     */
-    public static final String DEVICE_NAME = "Android Wear";
-
-    /**
-     * Device type for test.
-     */
-    public static final String DEVICE_TYPE = "BLE";
-
-    /**
-     * Online state for test.
-     */
-    public static final boolean DEVICE_ONLINE = true;
-
-    /**
-     * Configure for test.
-     */
-    public static final String DEVICE_CONFIG = "myConfig";
-
-    /**
-     * Static Response Intent.
-     */
-    private static Intent sResponse;
+public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
-        mGoogleApiClient = new GoogleApiClient.Builder(getContext()).addApi(Wearable.API).addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this).build();
-        mGoogleApiClient.connect();
-
-        sResponse = response;
-
+        getManager().getNodes(new OnNodeResultListener() {
+            @Override
+            public void onResult(final GetConnectedNodesResult result) {
+                List<Bundle> services = new ArrayList<Bundle>();
+                for (Node node : result.getNodes()) {
+                    services.add(convertNodeToService(node.getId()));
+                }
+                setResult(response, DConnectMessage.RESULT_OK);
+                setServices(response, services);
+                getContext().sendBroadcast(response);
+            }
+            @Override
+            public void onError() {
+                MessageUtils.setUnknownError(response);
+                getContext().sendBroadcast(response);
+            }
+        });
         return false;
     }
 
-    @Override
-    protected boolean onPutOnServiceChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-
-        if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            setResult(response, DConnectMessage.RESULT_OK);
-
-            Intent message = MessageUtils.createEventIntent();
-            setSessionKey(message, sessionKey);
-            setServiceID(message, serviceId);
-            setProfile(message, getProfileName());
-            setAttribute(message, ATTRIBUTE_ON_SERVICE_CHANGE);
-
-            Bundle service = new Bundle();
-            setId(service, SERVICE_ID);
-            setName(service, DEVICE_NAME);
-            setType(service, DEVICE_TYPE);
-            setOnline(service, DEVICE_ONLINE);
-            setConfig(service, DEVICE_CONFIG);
-
-            setNetworkService(message, service);
-
-            return false;
-        }
-    }
-
-    @Override
-    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            setResult(response, DConnectMessage.RESULT_OK);
-        }
-        return true;
-    }
-
-    @Override
-    public void onConnected(final Bundle connectionHint) {
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(final Void... params) {
-                List<Bundle> services = new ArrayList<Bundle>();
-
-                Collection<String> mNodes = getNodes();
-
-                // Wear number of devices, reflected in the search results.
-                for (String node : mNodes) {
-                    // Take the first node in UniqueKey.
-                    String[] mNodeArray = node.split("-");
-
-                    Bundle service = new Bundle();
-                    setId(service, SERVICE_ID + "(" + mNodeArray[0] + ")");
-                    setName(service, DEVICE_NAME + "(" + mNodeArray[0] + ")");
-                    setType(service, DEVICE_TYPE);
-                    setOnline(service, DEVICE_ONLINE);
-                    setConfig(service, DEVICE_CONFIG);
-                    services.add(service);
-                }
-
-                setResult(sResponse, DConnectMessage.RESULT_OK);
-                setServices(sResponse, services);
-                getContext().sendBroadcast(sResponse);
-
-                return null;
-            }
-        }.execute();
+    /**
+     * nodeIdをサービス (Bundle)に変換する.
+     * @param nodeId Wear ノードID
+     * @return サービス(Bundle)
+     */
+    private Bundle convertNodeToService(final String nodeId) {
+        String[] serviceId = nodeId.split("-");
+        Bundle service = new Bundle();
+        setId(service, WearUtils.createServiceId(nodeId));
+        setName(service, WearConst.DEVICE_NAME + "(" + serviceId[0] + ")");
+        setType(service, NetworkType.BLE);
+        setOnline(service, true);
+        setConfig(service, "");
+        return service;
     }
 
     /**
-     * Get Wear node.
-     * 
-     * @return WearNode Wear node.
+     * Android Wear管理クラスを取得する.
+     * @return WearManager管理クラス
      */
-    private Collection<String> getNodes() {
-
-        HashSet<String> results = new HashSet<String>();
-        NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
-
-        for (Node node : nodes.getNodes()) {
-            results.add(node.getId());
-        }
-
-        return results;
-    }
-
-    @Override
-    public void onConnectionSuspended(final int cause) {
-        setResult(sResponse, DConnectMessage.RESULT_ERROR);
-        getContext().sendBroadcast(sResponse);
-    }
-
-    @Override
-    public void onConnectionFailed(final ConnectionResult result) {
-        setResult(sResponse, DConnectMessage.RESULT_ERROR);
-        getContext().sendBroadcast(sResponse);
+    private WearManager getManager() {
+        return ((WearDeviceService) getContext()).getManager();
     }
 }

@@ -20,25 +20,32 @@
         <name lang="en">System</name>
         <description lang="en">Obtains system information. </description>
     </profile>
-    <profile name="notification" expireperiod="86400000">
-        <name lang="ja">通知</name>
-        <description lang="ja">通知管理機能にアクセスする</description>
-        <name lang="en">Notification </name>
-        <description lang="en">Accesses notification feature. </description>
+    <profile name="canvas" expireperiod="86400000">
+        <name lang="ja">キャンバス</name>
+        <description lang="ja">キャンバスにアクセスする</description>
+        <name lang="en">Canvas </name>
+        <description lang="en">Accesses canvas feature. </description>
     </profile>
     
-     <profile name="vibration" expireperiod="86400000">
+    <profile name="vibration" expireperiod="86400000">
         <name lang="ja">バイブレーション</name>
         <description lang="ja">バイブレーション機能にアクセスする </description>
         <name lang="en">Vibrarion </name>
         <description lang="en">Accesses vibrarion feature. </description>
     </profile>
     
-     <profile name="deviceorientation" expireperiod="86400000">
+    <profile name="deviceorientation" expireperiod="86400000">
         <name lang="ja">加速度</name>
         <description lang="ja">加速度機能にアクセスする </description>
         <name lang="en">Device Orientation </name>
         <description lang="en">Accesses device orientation. </description>
+    </profile>
+
+    <profile name="notification" expireperiod="86400000">
+        <name lang="ja">ノーティフィケーション</name>
+        <description lang="ja">ノーティフィケーション機能にアクセスする </description>
+        <name lang="en">Notification</name>
+        <description lang="en">Accesses notification. </description>
     </profile>
 
     <profile name="keyevent" expireperiod="86400000">

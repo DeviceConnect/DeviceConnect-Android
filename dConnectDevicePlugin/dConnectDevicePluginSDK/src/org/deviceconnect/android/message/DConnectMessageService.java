@@ -55,8 +55,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
     /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
     private static final String PROFILE_NETWORK_SERVICE_DISCOVERY = "networkServiceDiscovery";
 
-    /** プラグイン側のService Discoveryのプロファイル名: {@value}. */
+    /** プラグイン側のService Discoveryのアトリビュート名: {@value}. */
     private static final String ATTRIBUTE_GET_NETWORK_SERVICES = "getNetworkServices";
+
+    /** プラグイン側のAuthorizationのプロファイル名: {@value}. */
+    private static final String ATTRIBUTE_CREATE_CLIENT = "createClient";
 
     /**
      * ロガー.
@@ -187,6 +190,14 @@ public abstract class DConnectMessageService extends Service implements DConnect
             if (ATTRIBUTE_GET_NETWORK_SERVICES.equals(attributeName)) {
                 request.putExtra(DConnectMessage.EXTRA_PROFILE, profileName);
                 request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, (String) null);
+            }
+        }
+        // Grant APIのパスを変換
+        if (AuthorizationProfileConstants.PROFILE_NAME.equals(profileName)) {
+            String attributeName = request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
+            if (ATTRIBUTE_CREATE_CLIENT.equals(attributeName)) {
+                request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
+                        AuthorizationProfileConstants.ATTRIBUTE_GRANT);
             }
         }
 

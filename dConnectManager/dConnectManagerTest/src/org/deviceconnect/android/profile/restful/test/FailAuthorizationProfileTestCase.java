@@ -74,7 +74,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetCreateClientUndefinedAttribute() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
         builder.addParameter("def", "def");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -100,7 +100,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetCreateClientInvalidMethodPost() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request, false);
@@ -125,7 +125,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetCreateClientInvalidMethodPut() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request, false);
@@ -150,7 +150,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     public void testGetCreateClientInvalidMethodDelete() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request, false);

@@ -139,7 +139,7 @@ public final class IntentAuthProcessor {
         builder.setScheme("http");
 
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
 
         HttpUriRequest request = null;
         try {

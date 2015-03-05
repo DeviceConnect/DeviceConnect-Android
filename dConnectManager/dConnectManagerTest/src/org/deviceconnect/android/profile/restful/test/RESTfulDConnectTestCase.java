@@ -91,7 +91,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     protected String[] createClient() {
         URIBuilder builder  = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
         try {
             HttpGet request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request, false);

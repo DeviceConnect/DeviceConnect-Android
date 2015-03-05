@@ -16,7 +16,7 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.restlet.ext.oauth.PackageInfoOAuth;
 
 /**
- * LocalOAuth2にClinetを作成するためのリクエスト.
+ * LocalOAuth2にクライアントを作成するためのリクエスト.
  * @author NTT DOCOMO, INC.
  */
 public class CreateClientRequest extends DConnectRequest {

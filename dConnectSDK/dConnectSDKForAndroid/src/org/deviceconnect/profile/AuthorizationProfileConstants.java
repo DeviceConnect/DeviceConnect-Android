@@ -23,7 +23,7 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /** 
      * 属性: {@value}.
      */
-    String ATTRIBUTE_CREATE_CLIENT = "create_client";
+    String ATTRIBUTE_GRANT = "grant";
 
     /** 
      * 属性: {@value}.
@@ -38,7 +38,7 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /**
      * パス: {@value}.
      */
-    String PATH_REQUEST_CREATE_CLIENT = PATH_PROFILE + SEPARATOR + ATTRIBUTE_CREATE_CLIENT;
+    String PATH_REQUEST_GRANT = PATH_PROFILE + SEPARATOR + ATTRIBUTE_GRANT;
 
     /**
      * パス: {@value}.

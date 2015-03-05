@@ -92,7 +92,7 @@ public class IntentDConnectTestCase extends DConnectTestCase {
     protected String[] createClient() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_GRANT);
         request.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
 
         Intent response = sendRequest(request, false);

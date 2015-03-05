@@ -57,7 +57,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
 
         boolean send = true;
         String attribute = getAttribute(request);
-        if (ATTRIBUTE_CREATE_CLIENT.equals(attribute)) {
+        if (ATTRIBUTE_GRANT.equals(attribute)) {
             send = onGetCreateClient(request, response);
         } else if (ATTRIBUTE_REQUEST_ACCESS_TOKEN.equals(attribute)) {
             send = onGetRequestAccessToken(request, response);

@@ -121,7 +121,7 @@ public final class AuthProcesser {
         builder.setPort(port);
         builder.setScheme(scheme);
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
 
         HttpUriRequest request = null;
         try {

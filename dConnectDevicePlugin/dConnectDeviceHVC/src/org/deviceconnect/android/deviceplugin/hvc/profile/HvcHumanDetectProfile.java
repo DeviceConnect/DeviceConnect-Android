@@ -15,7 +15,8 @@ import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcDetectListener;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
-import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestUtils;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -41,11 +42,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * error message. {@value}
      */
     protected static final String ERROR_BLE_NOT_AVAILABLE = "ble not available.";
-    
-    /**
-     * error message. {@value}
-     */
-    protected static final String ERROR_DETECTKIND_UNKNOWN_VALUE = "detectKind unknown value. detectKind:";
     
     /**
      * error message. {@value}
@@ -116,153 +112,51 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     @Override
     protected boolean onPutOnBodyDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
-
-            // register event.
-            EventError error = EventManager.INSTANCE.addEvent(request);
-
-            if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).registerBodyDetectionEvent(request, response, serviceId, sessionKey);
-                return false;
-            } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
-                return true;
-            }
-
-        }
-        return true;
+        
+        boolean result = doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.BODY);
+        return result;
     }
     
     @Override
     protected boolean onPutOnHandDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
-
-            // register event.
-            EventError error = EventManager.INSTANCE.addEvent(request);
-
-            if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).registerHandDetectionEvent(request, response, serviceId, sessionKey);
-                return false;
-            } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
-                return true;
-            }
-
-        }
-        return true;
+        
+        boolean result = doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.HAND);
+        return result;
     }
     
     @Override
     protected boolean onPutOnFaceDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
-
-            // register event.
-            EventError error = EventManager.INSTANCE.addEvent(request);
-
-            if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).registerFaceDetectionEvent(request, response, serviceId, sessionKey);
-                return false;
-            } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
-                return true;
-            }
-
-        }
-        return true;
+        
+        boolean result = doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.FACE);
+        return result;
     }
+    
+    //
+    // Delete Detection API
+    //
     
     @Override
     protected boolean onDeleteOnBodyDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
-
-            // unregister event.
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).unregisterBodyDetectionEvent(response, serviceId, sessionKey);
-                return false;
-
-            } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
-                return true;
-
-            }
-        }
-        return true;
+        boolean result = doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.BODY);
+        return result;
     }
     
     @Override
     protected boolean onDeleteOnHandDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
-
-            // unregister event.
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).unregisterHandDetectionEvent(response, serviceId, sessionKey);
-                return false;
-
-            } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
-                return true;
-
-            }
-        }
-        return true;
+        boolean result = doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.HAND);
+        return result;
     }
     
     @Override
     protected boolean onDeleteOnFaceDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (sessionKey == null) {
-            createEmptySessionKey(response);
-        } else {
-
-            // unregister event.
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).unregisterFaceDetectionEvent(response, serviceId, sessionKey);
-                return false;
-
-            } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
-                return true;
-
-            }
-        }
-        return true;
+        boolean result = doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.FACE);
+        return result;
     }
-    
-    
-    
-    
     
     /**
      * Get Detection Process.
@@ -294,11 +188,20 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         }
         
         // get parameter.
-        final HvcDetectRequestParams requestParams = new HvcDetectRequestParams();
-        if (!getRequestParams(requestParams, request, response, HumanDetectKind.BODY)) {
-            // error
+        HumanDetectRequestParams requestParams = null;
+        try {
+            requestParams = HvcDetectRequestUtils.getRequestParams(request, response, detectKind);
+        } catch (IllegalStateException e) {
+            // BUG: detectKind unknown value.
+            MessageUtils.setUnknownError(response, e.getMessage());
+            return true;
+        } catch (NumberFormatException e) {
+            // invalid request parameter error
+            MessageUtils
+                    .setInvalidRequestParameterError(response, HvcDetectRequestUtils.ERROR_PARAMETER_DIFFERENT_TYPE);
             return true;
         }
+        final HumanDetectRequestParams requestParamsFinal = requestParams;
         
         // convert useFunc
         Integer useFunc = HvcConvertUtils.convertUseFunc(detectKind, options);
@@ -313,11 +216,11 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
 
         // start detect thread.
         HvcCommManager.DetectionResult result = commManager.startDetectThread(getContext(), device, useFunc,
-                requestParams, new HvcDetectListener() {
+                requestParamsFinal, new HvcDetectListener() {
             @Override
             public void onDetectFinished(final HVC_RES result) {
                 // set response
-                HvcDeviceService.setDetectResultResponse(response, requestParams, result, detectKind);
+                HvcDeviceService.setDetectResultResponse(response, requestParamsFinal, result, detectKind);
                 // success
                 setResult(response, DConnectMessage.RESULT_OK);
                 getContext().sendBroadcast(response);
@@ -368,132 +271,89 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     }
 
     /**
-     * get request parameter.
-     * 
-     * @param requestParams requestParams
+     * do put detection process.
      * @param request request
      * @param response response
-     * @param detectKind detect kind
-     * @return true: success / false: invalid request parameter error
+     * @param serviceId serviceId
+     * @param sessionKey sessionKey
+     * @param detectKind detectKind
+     * @return send response flag.(true:sent / false: unsent (Send after the
+     *         thread has been completed))
      */
-    private boolean getRequestParams(final HvcDetectRequestParams requestParams, final Intent request,
-            final Intent response, final HumanDetectKind detectKind) {
-
-        try {
-            // get parameters.(different type error, throw
-            // NumberFormatException)
-            Double threshold = getThreshold(request);
-            Double minWidth = getMinWidth(request);
-            Double minHeight = getMinHeight(request);
-            Double maxWidth = getMaxWidth(request);
-            Double maxHeight = getMaxHeight(request);
-
-            // store parameter.(if data exist, to set. if data not exist, use default value.)
-            if (detectKind == HumanDetectKind.BODY) {
-                if (threshold != null) {
-                    requestParams.setBodyNormalizeThreshold(threshold);
-                }
-                if (minWidth != null) {
-                    requestParams.setBodyNormalizeMinWidth(minWidth);
-                }
-                if (minHeight != null) {
-                    requestParams.setBodyNormalizeMinHeight(minHeight);
-                }
-                if (maxWidth != null) {
-                    requestParams.setBodyNormalizeMaxWidth(maxWidth);
-                }
-                if (maxHeight != null) {
-                    requestParams.setBodyNormalizeMaxHeight(maxHeight);
-                }
-            } else if (detectKind == HumanDetectKind.HAND) {
-                if (threshold != null) {
-                    requestParams.setHandNormalizeThreshold(threshold);
-                }
-                if (minWidth != null) {
-                    requestParams.setHandNormalizeMinWidth(minWidth);
-                }
-                if (minHeight != null) {
-                    requestParams.setHandNormalizeMinHeight(minHeight);
-                }
-                if (maxWidth != null) {
-                    requestParams.setHandNormalizeMaxWidth(maxWidth);
-                }
-                if (maxHeight != null) {
-                    requestParams.setHandNormalizeMaxHeight(maxHeight);
-                }
-            } else if (detectKind == HumanDetectKind.FACE) {
-                if (threshold != null) {
-                    requestParams.setFaceNormalizeThreshold(threshold);
-                }
-                if (minWidth != null) {
-                    requestParams.setFaceNormalizeMinWidth(minWidth);
-                }
-                if (minHeight != null) {
-                    requestParams.setFaceNormalizeMinHeight(minHeight);
-                }
-                if (maxWidth != null) {
-                    requestParams.setFaceNormalizeMaxWidth(maxWidth);
-                }
-                if (maxHeight != null) {
-                    requestParams.setFaceNormalizeMaxHeight(maxHeight);
-                }
-
-                // get parameters.(different type error, throw
-                // NumberFormatException)
-                Double eyeThreshold = getEyeThreshold(request);
-                Double noseThreshold = getNoseThreshold(request);
-                Double mouthThreshold = getMouthThreshold(request);
-                Double blinkThreshold = getBlinkThreshold(request);
-                Double ageThreshold = getAgeThreshold(request);
-                Double genderThreshold = getGenderThreshold(request);
-                Double faceDirectionThreshold = getFaceDirectionThreshold(request);
-                Double gazeThreshold = getGazeThreshold(request);
-                Double expressionThreshold = getExpressionThreshold(request);
-
-                if (eyeThreshold != null) {
-                    requestParams.setFaceEyeNormalizeThreshold(eyeThreshold);
-                }
-                if (noseThreshold != null) {
-                    requestParams.setFaceNoseNormalizeThreshold(noseThreshold);
-                }
-                if (mouthThreshold != null) {
-                    requestParams.setFaceMouthNormalizeThreshold(mouthThreshold);
-                }
-                if (blinkThreshold != null) {
-                    requestParams.setFaceBlinkNormalizeThreshold(blinkThreshold);
-                }
-                if (ageThreshold != null) {
-                    requestParams.setFaceAgeNormalizeThreshold(ageThreshold);
-                }
-                if (genderThreshold != null) {
-                    requestParams.setFaceGenderNormalizeThreshold(genderThreshold);
-                }
-                if (faceDirectionThreshold != null) {
-                    requestParams.setFaceDirectionNormalizeThreshold(faceDirectionThreshold);
-                }
-                if (gazeThreshold != null) {
-                    requestParams.setFaceGazeNormalizeThreshold(gazeThreshold);
-                }
-                if (expressionThreshold != null) {
-                    requestParams.setFaceExpressionNormalizeThreshold(expressionThreshold);
-                }
-                
-            } else {
-                // BUG: detectKind unknown value.
-                MessageUtils.setUnknownError(response, ERROR_DETECTKIND_UNKNOWN_VALUE + detectKind.ordinal());
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            // invalid request parameter error
-            MessageUtils.setInvalidRequestParameterError(response);
-            return false;
-        }
+    protected boolean doPutDetectionProc(final Intent request, final Intent response,
+            final String serviceId, final String sessionKey, final HumanDetectKind detectKind) {
         
-        // success
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (sessionKey == null) {
+            createEmptySessionKey(response);
+        } else {
+            
+            // get parameter.
+            HumanDetectRequestParams requestParams = null;
+            try {
+                requestParams = HvcDetectRequestUtils.getRequestParams(request, response, detectKind);
+            } catch (IllegalStateException e) {
+                // BUG: detectKind unknown value.
+                MessageUtils.setUnknownError(response, e.getMessage());
+                return true;
+            } catch (NumberFormatException e) {
+                // invalid request parameter error
+                MessageUtils.setInvalidRequestParameterError(response,
+                        HvcDetectRequestUtils.ERROR_PARAMETER_DIFFERENT_TYPE);
+                return true;
+            }
+            
+            // register event.
+            EventError error = EventManager.INSTANCE.addEvent(request);
+
+            if (error == EventError.NONE) {
+                ((HvcDeviceService) getContext()).registerDetectionEvent(detectKind, requestParams, response, serviceId, sessionKey);
+                return false;
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
+                return true;
+            }
+
+        }
         return true;
     }
+    
+    /**
+     * do delete detection process.
+     * @param request request
+     * @param response response
+     * @param serviceId serviceId
+     * @param sessionKey sessionKey
+     * @param detectKind detectKind
+     * @return send response flag.(true:sent / false: unsent (Send after the
+     *         thread has been completed))
+     */
+    private boolean doDeleteDetectionProc(final Intent request, final Intent response, final String serviceId,
+            final String sessionKey, final HumanDetectKind detectKind) {
+        
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (sessionKey == null) {
+            createEmptySessionKey(response);
+        } else {
+// TODO: イベント削除しようとすると「Can not unregister event.」と表示される不具合を調査する。
+            // unregister event.
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                ((HvcDeviceService) getContext()).unregisterDetectionEvent(detectKind, response, serviceId, sessionKey);
+                return false;
 
+            } else {
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
+                return true;
 
+            }
+        }
+        return true;
+    }
+    
+    
     /**
      * create empty serviceId error response.
      * 

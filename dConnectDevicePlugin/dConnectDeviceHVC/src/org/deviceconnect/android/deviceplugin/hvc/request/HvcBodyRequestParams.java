@@ -14,19 +14,21 @@ import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectBodyReq
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HvcBodyRequestParams extends HumanDetectBodyRequestParams {
+public class HvcBodyRequestParams {
 
+    
     /**
-     * Constructor(with default value).
-     * @param normalizeThreshold threshold
-     * @param normalizeMinWidth minWidth
-     * @param normalizeMinHeight minHeight
-     * @param normalizeMaxWidth maxWidth
-     * @param normalizeMaxHeight maxHeight
+     * body request parameters.
      */
-    public HvcBodyRequestParams(final double normalizeThreshold, final double normalizeMinWidth,
-            final double normalizeMinHeight, final double normalizeMaxWidth, final double normalizeMaxHeight) {
-        super(normalizeThreshold, normalizeMinWidth, normalizeMinHeight, normalizeMaxWidth, normalizeMaxHeight);
+    private HumanDetectBodyRequestParams mBodyRequestParams;
+    
+    
+    /**
+     * Constructor(with HumanDetectBodyRequestParams).
+     * @param bodyRequestParams body request parameters.
+     */
+    public HvcBodyRequestParams(final HumanDetectBodyRequestParams bodyRequestParams) {
+        mBodyRequestParams = bodyRequestParams;
     }
     
     /**
@@ -34,7 +36,7 @@ public class HvcBodyRequestParams extends HumanDetectBodyRequestParams {
      * @return HVC threshold(HVC device value)
      */
     public int getHvcThreshold() {
-        int hvcThreshold = HvcConvertUtils.convertToHvcThreshold(getThreshold());
+        int hvcThreshold = HvcConvertUtils.convertToHvcThreshold(mBodyRequestParams.getThreshold());
         return hvcThreshold;
     }
     
@@ -43,7 +45,7 @@ public class HvcBodyRequestParams extends HumanDetectBodyRequestParams {
      * @return HVC min width value(HVC device value)
      */
     public int getHvcMinWidth() {
-        int hvcMinWidth = HvcConvertUtils.convertToHvcWidth(getMinWidth());
+        int hvcMinWidth = HvcConvertUtils.convertToHvcWidth(mBodyRequestParams.getMinWidth());
         return hvcMinWidth;
     }
     
@@ -52,7 +54,7 @@ public class HvcBodyRequestParams extends HumanDetectBodyRequestParams {
      * @return HVC min height value(HVC device value)
      */
     public int getHvcMinHeight() {
-        int hvcMinHeight = HvcConvertUtils.convertToHvcHeight(getMinHeight());
+        int hvcMinHeight = HvcConvertUtils.convertToHvcHeight(mBodyRequestParams.getMinHeight());
         return hvcMinHeight;
     }
     
@@ -61,7 +63,7 @@ public class HvcBodyRequestParams extends HumanDetectBodyRequestParams {
      * @return HVC max width value(HVC device value)
      */
     public int getHvcMaxWidth() {
-        int hvcMaxWidth = HvcConvertUtils.convertToHvcWidth(getMaxWidth());
+        int hvcMaxWidth = HvcConvertUtils.convertToHvcWidth(mBodyRequestParams.getMaxWidth());
         return hvcMaxWidth;
     }
     
@@ -70,7 +72,7 @@ public class HvcBodyRequestParams extends HumanDetectBodyRequestParams {
      * @return HVC max height value(HVC device value)
      */
     public int getHvcMaxHeight() {
-        int hvcMaxHeight = HvcConvertUtils.convertToHvcHeight(getMaxHeight());
+        int hvcMaxHeight = HvcConvertUtils.convertToHvcHeight(mBodyRequestParams.getMaxHeight());
         return hvcMaxHeight;
     }
     

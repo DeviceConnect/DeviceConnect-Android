@@ -14,20 +14,20 @@ import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectFaceReq
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
+public class HvcFaceRequestParams {
 
     /**
-     * Constructor(with default value).
-     * @param normalizeThreshold threshold
-     * @param normalizeMinWidth minWidth
-     * @param normalizeMinHeight minHeight
-     * @param normalizeMaxWidth maxWidth
-     * @param normalizeMaxHeight maxHeight
+     * human detect face request parameters.
      */
-    public HvcFaceRequestParams(final double normalizeThreshold, final double normalizeMinWidth,
-            final double normalizeMinHeight, final double normalizeMaxWidth, final double normalizeMaxHeight) {
-        super(normalizeThreshold, normalizeMinWidth, normalizeMinHeight, normalizeMaxWidth, normalizeMaxHeight);
-        // TODO Auto-generated constructor stub
+    private HumanDetectFaceRequestParams mFaceRequestParams;
+    
+    
+    /**
+     * Constructor(with HumanDetectFaceRequestParams).
+     * @param faceRequestParams face request parameters.
+     */
+    public HvcFaceRequestParams(final HumanDetectFaceRequestParams faceRequestParams) {
+        mFaceRequestParams = faceRequestParams;
     }
 
     
@@ -36,7 +36,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC threshold(HVC device value)
      */
     public int getHvcThreshold() {
-        int hvcThreshold = HvcConvertUtils.convertToHvcThreshold(getThreshold());
+        int hvcThreshold = HvcConvertUtils.convertToHvcThreshold(mFaceRequestParams.getThreshold());
         return hvcThreshold;
     }
     
@@ -45,7 +45,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC min width value(HVC device value)
      */
     public int getHvcMinWidth() {
-        int hvcMinWidth = HvcConvertUtils.convertToHvcWidth(getMinWidth());
+        int hvcMinWidth = HvcConvertUtils.convertToHvcWidth(mFaceRequestParams.getMinWidth());
         return hvcMinWidth;
     }
     
@@ -54,7 +54,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC min height value(HVC device value)
      */
     public int getHvcMinHeight() {
-        int hvcMinHeight = HvcConvertUtils.convertToHvcHeight(getMinHeight());
+        int hvcMinHeight = HvcConvertUtils.convertToHvcHeight(mFaceRequestParams.getMinHeight());
         return hvcMinHeight;
     }
     
@@ -63,7 +63,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC max width value(HVC device value)
      */
     public int getHvcMaxWidth() {
-        int hvcMaxWidth = HvcConvertUtils.convertToHvcWidth(getMaxWidth());
+        int hvcMaxWidth = HvcConvertUtils.convertToHvcWidth(mFaceRequestParams.getMaxWidth());
         return hvcMaxWidth;
     }
     
@@ -72,7 +72,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC max height value(HVC device value)
      */
     public int getHvcMaxHeight() {
-        int hvcMaxHeight = HvcConvertUtils.convertToHvcHeight(getMaxHeight());
+        int hvcMaxHeight = HvcConvertUtils.convertToHvcHeight(mFaceRequestParams.getMaxHeight());
         return hvcMaxHeight;
     }
     
@@ -81,7 +81,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC eye threshold(HVC device value)
      */
     public int getHvcEyeThreshold() {
-        int hvcEyeThreshold = HvcConvertUtils.convertToHvcThreshold(getEyeThreshold());
+        int hvcEyeThreshold = HvcConvertUtils.convertToHvcThreshold(mFaceRequestParams.getEyeThreshold());
         return hvcEyeThreshold;
     }
     
@@ -90,7 +90,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC nose threshold(HVC device value)
      */
     public int getHvcNoseThreshold() {
-        int hvcNoseThreshold = HvcConvertUtils.convertToHvcThreshold(getNoseThreshold());
+        int hvcNoseThreshold = HvcConvertUtils.convertToHvcThreshold(mFaceRequestParams.getNoseThreshold());
         return hvcNoseThreshold;
     }
     
@@ -99,7 +99,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC mouth threshold(HVC device value)
      */
     public int getHvcMouthThreshold() {
-        int hvcMouthThreshold = HvcConvertUtils.convertToHvcThreshold(getMouthThreshold());
+        int hvcMouthThreshold = HvcConvertUtils.convertToHvcThreshold(mFaceRequestParams.getMouthThreshold());
         return hvcMouthThreshold;
     }
     
@@ -108,7 +108,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC blink threshold(HVC device value)
      */
     public int getHvcBlinkThreshold() {
-        int hvcBlinkThreshold = HvcConvertUtils.convertToHvcThreshold(getBlinkThreshold());
+        int hvcBlinkThreshold = HvcConvertUtils.convertToHvcThreshold(mFaceRequestParams.getBlinkThreshold());
         return hvcBlinkThreshold;
     }
     
@@ -117,7 +117,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC age threshold(HVC device value)
      */
     public int getHvcAgeThreshold() {
-        int hvcAgeThreshold = HvcConvertUtils.convertToHvcThreshold(getAgeThreshold());
+        int hvcAgeThreshold = HvcConvertUtils.convertToHvcThreshold(mFaceRequestParams.getAgeThreshold());
         return hvcAgeThreshold;
     }
     
@@ -126,7 +126,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC gender threshold(HVC device value)
      */
     public int getHvcGenderThreshold() {
-        int hvcGenderThreshold = HvcConvertUtils.convertToHvcThreshold(getGenderThreshold());
+        int hvcGenderThreshold = HvcConvertUtils.convertToHvcThreshold(mFaceRequestParams.getGenderThreshold());
         return hvcGenderThreshold;
     }
     
@@ -135,7 +135,8 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC face direction threshold(HVC device value)
      */
     public int getHvcFaceDirectionThreshold() {
-        int hvcFaceDirectionThreshold = HvcConvertUtils.convertToHvcThreshold(getFaceDirectionThreshold());
+        int hvcFaceDirectionThreshold = HvcConvertUtils.convertToHvcThreshold(mFaceRequestParams
+                .getFaceDirectionThreshold());
         return hvcFaceDirectionThreshold;
     }
     
@@ -144,7 +145,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC gaze threshold(HVC device value)
      */
     public int getHvcGazeThreshold() {
-        int hvcGazeThreshold = HvcConvertUtils.convertToHvcThreshold(getGazeThreshold());
+        int hvcGazeThreshold = HvcConvertUtils.convertToHvcThreshold(mFaceRequestParams.getGazeThreshold());
         return hvcGazeThreshold;
     }
     
@@ -153,7 +154,7 @@ public class HvcFaceRequestParams extends HumanDetectFaceRequestParams {
      * @return HVC expression threshold(HVC device value)
      */
     public int getHvcExpressionThreshold() {
-        int hvcExpressionThreshold = HvcConvertUtils.convertToHvcThreshold(getExpressionThreshold());
+        int hvcExpressionThreshold = HvcConvertUtils.convertToHvcThreshold(mFaceRequestParams.getExpressionThreshold());
         return hvcExpressionThreshold;
     }
 }

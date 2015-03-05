@@ -11,9 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectBodyRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectEvent;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectFaceRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectHandRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
-import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -86,12 +89,12 @@ public class HvcCommManager {
     /**
      * register detect event.
      * @param detectKind detectKind
+     * @param requestParams request params.
      * @param sessionKey sessionKey
-     * @param options options
      */
-    public void registerDetectEvent(final HumanDetectKind detectKind, final String sessionKey,
-            final List<String> options) {
-        HumanDetectEvent event = new HumanDetectEvent(detectKind, sessionKey, options);
+    public void registerDetectEvent(final HumanDetectKind detectKind,
+            final HumanDetectRequestParams requestParams, final String sessionKey) {
+        HumanDetectEvent event = new HumanDetectEvent(detectKind, sessionKey, requestParams);
         mEventArray.add(event);
     }
     
@@ -187,7 +190,7 @@ public class HvcCommManager {
      * @return result
      */
     public DetectionResult startDetectThread(final Context context, final BluetoothDevice device, final int useFunc,
-            final HvcDetectRequestParams params, final HvcDetectListener listener) {
+            final HumanDetectRequestParams params, final HvcDetectListener listener) {
        if (mDetectThread == null || !mDetectThread.isAlive()) {
             mDetectThread = new HvcDetectThread(context, device, useFunc, params, listener);
             mDetectThread.start();
@@ -258,7 +261,38 @@ public class HvcCommManager {
     public int getUseFuncByEventRegisters() {
         int useFunc = 0;
         for (HumanDetectEvent event : mEventArray) {
-            useFunc |= HvcConvertUtils.convertUseFunc(event.getKind(), event.getOptions());
+            HumanDetectKind detectKind = event.getKind();
+            HumanDetectRequestParams params = event.getRequestParams();
+            
+            HumanDetectBodyRequestParams body = params.getBody();
+            HumanDetectHandRequestParams hand = params.getHand();
+            HumanDetectFaceRequestParams face = params.getFace();
+            
+            List<String> bodyOptions = null;
+            List<String> handOptions = null;
+            List<String> faceOptions = null;
+            if (body != null) {
+                bodyOptions = params.getBody().getOptions();
+            }
+            if (hand != null) {
+                handOptions = params.getHand().getOptions();
+            }
+            if (face != null) {
+                faceOptions = params.getFace().getOptions();
+            }
+            
+            List<String> options = new ArrayList<String>();
+            if (bodyOptions != null) {
+                options.addAll(bodyOptions);
+            }
+            if (handOptions != null) {
+                options.addAll(handOptions);
+            }
+            if (faceOptions != null) {
+                options.addAll(faceOptions);
+            }
+            
+            useFunc |= HvcConvertUtils.convertUseFunc(detectKind, options);
         }
         return useFunc;
     }

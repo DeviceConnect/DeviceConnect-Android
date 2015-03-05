@@ -6,12 +6,19 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.humandetect;
 
+import java.util.List;
+
 /**
  * detect request parameter.
  * 
  * @author NTT DOCOMO, INC.
  */
 public class HumanDetectBasicRequestParams {
+    
+    /**
+     * options.
+     */
+    private List<String> mOptions;
     
     /**
      * threshold value(normalized value).
@@ -34,24 +41,42 @@ public class HumanDetectBasicRequestParams {
      * max height value(normalized value).
      */
     private double mNormalizeMaxHeight;
+    
+    /**
+     * event interval[msec].
+     */
+    private long mEventInterval;
 
     /**
      * Constructor(with default value).
+     * @param options options
      * @param normalizeThreshold threshold
      * @param normalizeMinWidth minWidth
      * @param normalizeMinHeight minHeight
      * @param normalizeMaxWidth maxWidth
      * @param normalizeMaxHeight maxHeight
+     * @param eventInterval event interval[msec]
      */
-    public HumanDetectBasicRequestParams(final double normalizeThreshold, final double normalizeMinWidth,
-            final double normalizeMinHeight, final double normalizeMaxWidth, final double normalizeMaxHeight) {
+    public HumanDetectBasicRequestParams(final List<String> options, final double normalizeThreshold,
+            final double normalizeMinWidth, final double normalizeMinHeight, final double normalizeMaxWidth,
+            final double normalizeMaxHeight, final long eventInterval) {
+        mOptions = options;
         mNormalizeThreshold = normalizeThreshold;
         mNormalizeMinWidth = normalizeMinWidth;
         mNormalizeMinHeight = normalizeMinHeight;
         mNormalizeMaxWidth = normalizeMaxWidth;
         mNormalizeMaxHeight = normalizeMaxHeight;
+        mEventInterval = eventInterval;
     }
     
+    /**
+     * set options.
+     * @param options options.
+     */
+    public void setOptions(final List<String> options) {
+        mOptions = options;
+    }
+
     /**
      * set threshold.
      * @param threshold normalize threshold value.
@@ -92,7 +117,23 @@ public class HumanDetectBasicRequestParams {
         mNormalizeMaxHeight = maxHeight;
     }
     
-
+    /**
+     * set event interval.
+     * @param eventInterval event interval[msec].
+     */
+    public void setEventInterval(final long eventInterval) {
+        mEventInterval = eventInterval;
+    }
+    
+    
+    /**
+     * get options.
+     * @return options options.
+     */
+    public List<String> getOptions() {
+        return mOptions;
+    }
+    
     /**
      * get threshold.
      * @return normalize threshold value.
@@ -131,5 +172,13 @@ public class HumanDetectBasicRequestParams {
      */
     public double getMaxHeight() {
         return mNormalizeMaxHeight;
+    }
+    
+    /**
+     * get event interval.
+     * @return eventInterval event interval[msec].
+     */
+    public long getEventInterval() {
+        return mEventInterval;
     }
 }

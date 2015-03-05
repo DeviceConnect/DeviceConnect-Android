@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.humandetect;
 
+import java.util.List;
+
 /**
  * body detect request parameter class.
  * 
@@ -15,15 +17,19 @@ public class HumanDetectBodyRequestParams extends HumanDetectBasicRequestParams 
 
     /**
      * Constructor(with default value).
+     * @param options options
      * @param normalizeThreshold threshold
      * @param normalizeMinWidth minWidth
      * @param normalizeMinHeight minHeight
      * @param normalizeMaxWidth maxWidth
      * @param normalizeMaxHeight maxHeight
+     * @param eventInterval event interval[msec]
      */
-    public HumanDetectBodyRequestParams(final double normalizeThreshold, final double normalizeMinWidth,
-            final double normalizeMinHeight, final double normalizeMaxWidth, final double normalizeMaxHeight) {
-        super(normalizeThreshold, normalizeMinWidth, normalizeMinHeight, normalizeMaxWidth, normalizeMaxHeight);
+    public HumanDetectBodyRequestParams(final List<String> options, final double normalizeThreshold,
+            final double normalizeMinWidth, final double normalizeMinHeight, final double normalizeMaxWidth,
+            final double normalizeMaxHeight, final long eventInterval) {
+        super(options, normalizeThreshold, normalizeMinWidth, normalizeMinHeight, normalizeMaxWidth, normalizeMaxHeight,
+                eventInterval);
         
     }
 

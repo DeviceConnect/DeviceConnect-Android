@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.humandetect;
 
-import java.util.List;
 
 /** 
  * HVC Device Event.
@@ -23,20 +22,21 @@ public class HumanDetectEvent {
      */
     private String mSessionKey;
     /**
-     * options.
+     * request parameters.
      */
-    private List<String> mOptions;
+    private HumanDetectRequestParams mRequestParams; 
     
     /**
      * Constructor.
      * @param kind kind
      * @param sessionKey session key
-     * @param options options
+     * @param requestParams request params
      */
-    public HumanDetectEvent(final HumanDetectKind kind, final String sessionKey, final List<String> options) {
+    public HumanDetectEvent(final HumanDetectKind kind, final String sessionKey,
+            final HumanDetectRequestParams requestParams) {
         mKind = kind;
         mSessionKey = sessionKey;
-        mOptions = options;
+        mRequestParams = requestParams;
     }
 
     /**
@@ -56,10 +56,10 @@ public class HumanDetectEvent {
     }
     
     /**
-     * get options.
-     * @return options
+     * get request parameters.
+     * @return request parameters.
      */
-    public List<String> getOptions() {
-        return mOptions;
+    public HumanDetectRequestParams getRequestParams() {
+        return mRequestParams;
     }
 }

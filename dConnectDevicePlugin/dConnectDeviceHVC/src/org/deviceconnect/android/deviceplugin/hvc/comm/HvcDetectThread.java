@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.comm;
 
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
 
 import omron.HVC.HVC;
@@ -61,12 +62,12 @@ public class HvcDetectThread extends Thread {
      * @param listener listener
      */
     public HvcDetectThread(final Context context, final BluetoothDevice device, final int useFunc,
-            final HvcDetectRequestParams params, final HvcDetectListener listener) {
+            final HumanDetectRequestParams params, final HvcDetectListener listener) {
         super();
         mContext = context;
         mDevice = device;
         mUseFunc = useFunc;
-        mHvcPrm = params.getHvcParams();
+        mHvcPrm = (new HvcDetectRequestParams(params)).getHvcParams();
         mListener = listener;
     }
     

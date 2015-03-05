@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.request;
 
+import java.util.List;
+
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectHandRequestParams;
 
@@ -14,19 +16,20 @@ import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectHandReq
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HvcHandRequestParams extends HumanDetectHandRequestParams {
+public class HvcHandRequestParams {
 
     /**
-     * Constructor(with default value).
-     * @param normalizeThreshold threshold
-     * @param normalizeMinWidth minWidth
-     * @param normalizeMinHeight minHeight
-     * @param normalizeMaxWidth maxWidth
-     * @param normalizeMaxHeight maxHeight
+     * human detect hand request parameters.
      */
-    public HvcHandRequestParams(final double normalizeThreshold, final double normalizeMinWidth,
-            final double normalizeMinHeight, final double normalizeMaxWidth, final double normalizeMaxHeight) {
-        super(normalizeThreshold, normalizeMinWidth, normalizeMinHeight, normalizeMaxWidth, normalizeMaxHeight);
+    private HumanDetectHandRequestParams mHandRequestParams;
+    
+    
+    /**
+     * Constructor(with HumanDetectHandRequestParams).
+     * @param handRequestParams hand request parameters.
+     */
+    public HvcHandRequestParams(final HumanDetectHandRequestParams handRequestParams) {
+        mHandRequestParams = handRequestParams;
     }
 
     /**
@@ -34,7 +37,7 @@ public class HvcHandRequestParams extends HumanDetectHandRequestParams {
      * @return HVC threshold(HVC device value)
      */
     public int getHvcThreshold() {
-        int hvcThreshold = HvcConvertUtils.convertToHvcThreshold(getThreshold());
+        int hvcThreshold = HvcConvertUtils.convertToHvcThreshold(mHandRequestParams.getThreshold());
         return hvcThreshold;
     }
     
@@ -43,7 +46,7 @@ public class HvcHandRequestParams extends HumanDetectHandRequestParams {
      * @return HVC min width value(HVC device value)
      */
     public int getHvcMinWidth() {
-        int hvcMinWidth = HvcConvertUtils.convertToHvcWidth(getMinWidth());
+        int hvcMinWidth = HvcConvertUtils.convertToHvcWidth(mHandRequestParams.getMinWidth());
         return hvcMinWidth;
     }
     
@@ -52,7 +55,7 @@ public class HvcHandRequestParams extends HumanDetectHandRequestParams {
      * @return HVC min height value(HVC device value)
      */
     public int getHvcMinHeight() {
-        int hvcMinHeight = HvcConvertUtils.convertToHvcHeight(getMinHeight());
+        int hvcMinHeight = HvcConvertUtils.convertToHvcHeight(mHandRequestParams.getMinHeight());
         return hvcMinHeight;
     }
     
@@ -61,7 +64,7 @@ public class HvcHandRequestParams extends HumanDetectHandRequestParams {
      * @return HVC max width value(HVC device value)
      */
     public int getHvcMaxWidth() {
-        int hvcMaxWidth = HvcConvertUtils.convertToHvcWidth(getMaxWidth());
+        int hvcMaxWidth = HvcConvertUtils.convertToHvcWidth(mHandRequestParams.getMaxWidth());
         return hvcMaxWidth;
     }
     
@@ -70,7 +73,7 @@ public class HvcHandRequestParams extends HumanDetectHandRequestParams {
      * @return HVC max height value(HVC device value)
      */
     public int getHvcMaxHeight() {
-        int hvcMaxHeight = HvcConvertUtils.convertToHvcHeight(getMaxHeight());
+        int hvcMaxHeight = HvcConvertUtils.convertToHvcHeight(mHandRequestParams.getMaxHeight());
         return hvcMaxHeight;
     }
     

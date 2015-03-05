@@ -22,6 +22,7 @@ import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManagerUtils;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcDetectListener;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceDiscoveryProfile;
@@ -164,54 +165,15 @@ public class HvcDeviceService extends DConnectMessageService {
     // 
     
     /**
-     * Human Detect Profile register body detection event.<br>
-     * 
-     * @param request request
-     * @param response response
-     * @param serviceId serviceId
-     * @param sessionKey sessionKey
-     */
-    public void registerBodyDetectionEvent(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        registerDetectionEvent(HumanDetectKind.BODY, request, response, serviceId, sessionKey);
-    }
-    
-    /**
-     * Human Detect Profile register hand detection event.<br>
-     * 
-     * @param request request
-     * @param response response
-     * @param serviceId serviceId
-     * @param sessionKey sessionKey
-     */
-    public void registerHandDetectionEvent(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        registerDetectionEvent(HumanDetectKind.HAND, request, response, serviceId, sessionKey);
-    }
-    
-    /**
-     * Human Detect Profile register face detection event.<br>
-     * 
-     * @param request request
-     * @param response response
-     * @param serviceId serviceId
-     * @param sessionKey sessionKey
-     */
-    public void registerFaceDetectionEvent(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        registerDetectionEvent(HumanDetectKind.FACE, request, response, serviceId, sessionKey);
-    }
-    
-    /**
      * Human Detect Profile register detection event.<br>
      * 
      * @param detectKind detectKind
-     * @param request request
+     * @param requestParams request parameters.
      * @param response response
      * @param serviceId serviceId
      * @param sessionKey sessionKey
      */
-    private void registerDetectionEvent(final HumanDetectKind detectKind, final Intent request,
+    public void registerDetectionEvent(final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
             final Intent response, final String serviceId, final String sessionKey) {
         
         if (BuildConfig.DEBUG) {
@@ -222,15 +184,12 @@ public class HvcDeviceService extends DConnectMessageService {
         // search CommManager by serviceId(if not found, add CommManager.).
         HvcCommManager commManager = getCommManager(serviceId);
         
-        // options(if nothing, null)
-        List<String> options = HumanDetectProfile.getOptions(request);
-        
         // register
         if (!commManager.checkRegisterDetectEvent(detectKind, sessionKey)) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "registerDetectionEvent(). add registerDetectEvent");
             }
-            commManager.registerDetectEvent(detectKind, sessionKey, options);
+            commManager.registerDetectEvent(detectKind, requestParams, sessionKey);
         }
         
         // if timer not start , start timer.
@@ -261,50 +220,14 @@ public class HvcDeviceService extends DConnectMessageService {
     // 
     
     /**
-     * Human Detect Profile unregister body detection event.<br>
-     * 
-     * @param response response
-     * @param serviceId serviceId
-     * @param sessionKey sessionKey
-     */
-    public void unregisterBodyDetectionEvent(final Intent response,
-            final String serviceId, final String sessionKey) {
-        unregisterDetectionEvent(HumanDetectKind.BODY, response, serviceId, sessionKey);
-    }
-    
-    /**
-     * Human Detect Profile unregister hand detection event.<br>
-     * 
-     * @param response response
-     * @param serviceId serviceId
-     * @param sessionKey sessionKey
-     */
-    public void unregisterHandDetectionEvent(final Intent response,
-            final String serviceId, final String sessionKey) {
-        unregisterDetectionEvent(HumanDetectKind.HAND, response, serviceId, sessionKey);
-    }
-    
-    /**
-     * Human Detect Profile unregister face detection event.<br>
-     * 
-     * @param response response
-     * @param serviceId serviceId
-     * @param sessionKey sessionKey
-     */
-    public void unregisterFaceDetectionEvent(final Intent response,
-            final String serviceId, final String sessionKey) {
-        unregisterDetectionEvent(HumanDetectKind.FACE, response, serviceId, sessionKey);
-    }
-
-    /**
-     * Human Detect Profile unregister face detection event.<br>
+     * Human Detect Profile unregister detection event.<br>
      * 
      * @param detectKind detectKind
      * @param response response
      * @param serviceId serviceId
      * @param sessionKey sessionKey
      */
-    private void unregisterDetectionEvent(final HumanDetectKind detectKind, final Intent response,
+    public void unregisterDetectionEvent(final HumanDetectKind detectKind, final Intent response,
             final String serviceId, final String sessionKey) {
         
         if (BuildConfig.DEBUG) {
@@ -365,7 +288,7 @@ public class HvcDeviceService extends DConnectMessageService {
             final int useFunc = commManager.getUseFuncByEventRegisters();
             
             // get request params(use default value).
-            final HvcDetectRequestParams params = new HvcDetectRequestParams();
+            final HumanDetectRequestParams params = HvcDetectRequestParams.getDefaultRequestParameter();
             
             // start detection
             if (BuildConfig.DEBUG) {
@@ -428,7 +351,7 @@ public class HvcDeviceService extends DConnectMessageService {
      * @param result result
      */
     private void sendEvent(final String serviceId, final HumanDetectKind detectKind,
-            final HvcDetectRequestParams params, final HVC_RES result) {
+            final HumanDetectRequestParams params, final HVC_RES result) {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "sendEvent()");
         }
@@ -467,22 +390,22 @@ public class HvcDeviceService extends DConnectMessageService {
      * @param result result
      * @param detectKind detectKind
      */
-    public static void setDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
+    public static void setDetectResultResponse(final Intent response, final HumanDetectRequestParams requestParams,
             final HVC_RES result, final HumanDetectKind detectKind) {
 
         // body detects response.
         if (detectKind == HumanDetectKind.BODY && result.body.size() > 0) {
-            setBodyDetectResultResponse(response, requestParams, result);
+            setBodyDetectResultResponse(response, new HvcDetectRequestParams(requestParams), result);
         }
 
         // hand detects response.
         if (detectKind == HumanDetectKind.HAND && result.hand.size() > 0) {
-            setHandDetectResultResponse(response, requestParams, result);
+            setHandDetectResultResponse(response, new HvcDetectRequestParams(requestParams), result);
         }
 
         // face detects response.
         if (detectKind == HumanDetectKind.FACE && result.face.size() > 0) {
-            setFaceDetectResultResponse(response, requestParams, result);
+            setFaceDetectResultResponse(response, new HvcDetectRequestParams(requestParams), result);
         }
     }
     
@@ -649,7 +572,8 @@ public class HvcDeviceService extends DConnectMessageService {
                     // threshold check
                     double normalizeExpressionScore = HvcConvertUtils
                             .convertToNormalizeExpressionScore(r.exp.score);
-                    if (normalizeExpressionScore >= requestParams.getFace().getExpressionThreshold()) {
+                    HumanDetectRequestParams humanDetectRequestParams = requestParams.getHumanDetectRequestParams();
+                    if (normalizeExpressionScore >= humanDetectRequestParams.getFace().getExpressionThreshold()) {
                         Bundle expressionResult = new Bundle();
                         HumanDetectProfile.setParamExpression(expressionResult,
                                 HvcConvertUtils.convertToNormalizeExpression(r.exp.expression));

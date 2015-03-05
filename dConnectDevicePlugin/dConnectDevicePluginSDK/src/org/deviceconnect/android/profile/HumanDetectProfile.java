@@ -151,6 +151,11 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /** 
      * parameter: {@value} .
      */
+    public static final String PARAM_INTERVAL = "interval";
+    
+    /** 
+     * parameter: {@value} .
+     */
     public static final String PARAM_EYE_THRESHOLD = "eyeThreshold";
     
     /** 
@@ -939,6 +944,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     public static Double getMaxHeight(final Intent request) {
         Double maxHeight = parseDouble(request, PARAM_MAXHEIGHT);
         return maxHeight;
+    }
+    
+    /**
+     * get interval from request.
+     * 
+     * @param request request parameter.
+     * @return interval[msec]. if nothing, null.
+     * @throw NumberFormatException
+     */
+    public static Long getInterval(final Intent request) {
+        Long interval = parseLong(request, PARAM_INTERVAL);
+        return interval;
     }
 
     /**

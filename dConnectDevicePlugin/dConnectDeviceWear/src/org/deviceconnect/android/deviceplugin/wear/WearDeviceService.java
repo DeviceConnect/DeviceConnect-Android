@@ -53,7 +53,7 @@ public class WearDeviceService extends DConnectMessageService {
         addProfile(new WearVibrationProfile());
         addProfile(new WearDeviceOrientationProfile(mWearManager));
         addProfile(new WearCanvasProfile());
-        addProfile(new WearKeyEventProfile());
+        addProfile(new WearKeyEventProfile(mWearManager));
 
     }
 

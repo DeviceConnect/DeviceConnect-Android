@@ -6,17 +6,17 @@
  */
 package org.deviceconnect.android.ui.activity;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.deviceconnect.android.ui.adapter.DConnectFragmentPagerAdapter;
-import org.deviceconnect.android.ui.adapter.DConnectPageCreater;
-
 import android.app.ActionBar;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.view.MenuItem;
+
+import org.deviceconnect.android.ui.adapter.DConnectFragmentPagerAdapter;
+import org.deviceconnect.android.ui.adapter.DConnectPageCreater;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * デバイスプラグイン設定画面用 ベースフラグメントアクティビティ.
@@ -55,7 +55,7 @@ public abstract class DConnectSettingPageFragmentActivity extends FragmentActivi
         DConnectFragmentPagerAdapter adapter = new DConnectFragmentPagerAdapter(getSupportFragmentManager(), this);
         mViewPager.setAdapter(adapter);
         setContentView(mViewPager);
-        
+
         getActionBar().setDisplayHomeAsUpEnabled(true);
         getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
         getActionBar().setTitle(DEFAULT_TITLE);

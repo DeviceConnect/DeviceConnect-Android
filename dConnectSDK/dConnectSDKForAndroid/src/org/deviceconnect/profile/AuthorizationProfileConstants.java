@@ -28,7 +28,7 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /** 
      * 属性: {@value}.
      */
-    String ATTRIBUTE_REQUEST_ACCESS_TOKEN = "request_accesstoken";
+    String ATTRIBUTE_ACCESS_TOKEN = "accesstoken";
 
     /**
      * パス: {@value}.
@@ -43,7 +43,7 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /**
      * パス: {@value}.
      */
-    String PATH_REQUEST_ACCESS_TOKEN = PATH_PROFILE + SEPARATOR + ATTRIBUTE_REQUEST_ACCESS_TOKEN;
+    String PATH_ACCESS_TOKEN = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ACCESS_TOKEN;
 
     /**
      * パラメータ: {@value}.
@@ -64,11 +64,6 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
      * パラメータ: {@value}.
      */
     String PARAM_CLIENT_SECRET = "clientSecret";
-
-    /**
-     * パラメータ: {@value}.
-     */
-    String PARAM_GRANT_TYPE = "grantType";
 
     /**
      * パラメータ: {@value}.

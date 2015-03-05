@@ -46,7 +46,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         String attribute = getAttribute(request);
         if (ATTRIBUTE_GRANT.equals(attribute)) {
             onGetCreateClient(request, response);
-        } else if (ATTRIBUTE_REQUEST_ACCESS_TOKEN.equals(attribute)) {
+        } else if (ATTRIBUTE_ACCESS_TOKEN.equals(attribute)) {
             onGetRequestAccessToken(request, response);
         } else {
             sendUnknownAttributeError(request, response);

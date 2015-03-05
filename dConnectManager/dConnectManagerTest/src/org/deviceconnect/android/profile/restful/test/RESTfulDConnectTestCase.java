@@ -111,9 +111,8 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     protected String requestAccessToken(final String clientId, final String clientSecret, final String[] scopes) {
         URIBuilder builder  = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_REQUEST_ACCESS_TOKEN);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_GRANT_TYPE, "authorization_code");
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, createScopeParameter(scopes));
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, "dConnectManagerTest");
         builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE,

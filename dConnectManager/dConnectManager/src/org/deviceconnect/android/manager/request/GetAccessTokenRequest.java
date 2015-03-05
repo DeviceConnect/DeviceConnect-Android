@@ -62,7 +62,6 @@ public class GetAccessTokenRequest extends DConnectRequest {
     private void getAccessToken() throws AuthorizatonException, UnsupportedEncodingException {
         String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String clientId = mRequest.getStringExtra(AuthorizationProfile.PARAM_CLIENT_ID);
-        String grantType = mRequest.getStringExtra(AuthorizationProfile.PARAM_GRANT_TYPE);
         String[] scopes = parseScopes(mRequest.getStringExtra(AuthorizationProfile.PARAM_SCOPE));
         String applicationName = mRequest.getStringExtra(AuthorizationProfile.PARAM_APPLICATION_NAME);
         String signature = mRequest.getStringExtra(AuthorizationProfile.PARAM_SIGNATURE);
@@ -71,6 +70,7 @@ public class GetAccessTokenRequest extends DConnectRequest {
         }
 
         // シグネイチャの確認
+        final String grantType = AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue();
         if (LocalOAuth2Main.checkSignature(signature, clientId, grantType, serviceId, scopes)) {
             // TODO _typeからアプリorデバイスプラグインかを判別できる？
             ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(mContext).serviceId(serviceId)

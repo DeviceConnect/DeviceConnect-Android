@@ -171,11 +171,9 @@ public final class IntentAuthProcessor {
                         AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue(), null, scopes,
                         clientSecret);
                 // アクセストークンの取得処理
-                builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_REQUEST_ACCESS_TOKEN);
+                builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
                 builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
                 builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(scopes));
-                builder.addParameter(AuthorizationProfileConstants.PARAM_GRANT_TYPE,
-                        AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue());
                 builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
                 builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, appName);
                 try {

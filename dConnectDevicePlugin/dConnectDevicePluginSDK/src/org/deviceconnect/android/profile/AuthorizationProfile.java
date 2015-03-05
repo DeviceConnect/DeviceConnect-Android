@@ -59,7 +59,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         String attribute = getAttribute(request);
         if (ATTRIBUTE_GRANT.equals(attribute)) {
             send = onGetCreateClient(request, response);
-        } else if (ATTRIBUTE_REQUEST_ACCESS_TOKEN.equals(attribute)) {
+        } else if (ATTRIBUTE_ACCESS_TOKEN.equals(attribute)) {
             send = onGetRequestAccessToken(request, response);
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -166,7 +166,6 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             throws AuthorizatonException, UnsupportedEncodingException {
         String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String clientId = request.getStringExtra(AuthorizationProfile.PARAM_CLIENT_ID);
-        String grantType = request.getStringExtra(AuthorizationProfile.PARAM_GRANT_TYPE);
         String[] scopes = parseScopes(request.getStringExtra(AuthorizationProfile.PARAM_SCOPE));
         String applicationName = request.getStringExtra(AuthorizationProfile.PARAM_APPLICATION_NAME);
         String signature = request.getStringExtra(AuthorizationProfile.PARAM_SIGNATURE);
@@ -175,6 +174,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         }
 
         // シグネイチャの確認
+        final String grantType = AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue();
         if (LocalOAuth2Main.checkSignature(signature, clientId, grantType, serviceId, scopes)) {
             // TODO _typeからアプリorデバイスプラグインかを判別できる？
             ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(getContext()).serviceId(serviceId)

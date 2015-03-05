@@ -28,8 +28,11 @@ import android.content.Intent;
  * @author NTT DOCOMO, INC.
  */
 public class LocalOAuthRequest extends DConnectRequest {
-    /** プラグイン側のAuthorizationのプロファイル名: {@value}. */
+    /** プラグイン側のAuthorizationのアトリビュート名: {@value}. */
     private static final String ATTRIBUTE_CREATE_CLIENT = "createClient";
+
+    /** プラグイン側のAuthorizationのアトリビュート名: {@value}. */
+    private static final String ATTRIBUTE_REQUEST_ACCESS_TOKEN = "requestAccessToken";
 
     /** リトライ回数の最大値を定義. */
     protected static final int MAX_RETRY_COUNT = 3;
@@ -216,10 +219,8 @@ public class LocalOAuthRequest extends DConnectRequest {
         request.setComponent(mDevicePlugin.getComponentName());
         request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_REQUEST_ACCESS_TOKEN);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_REQUEST_ACCESS_TOKEN);
         request.putExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
-        request.putExtra(AuthorizationProfileConstants.PARAM_GRANT_TYPE,
-                AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue());
         request.putExtra(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, mDevicePlugin.getDeviceName());
         request.putExtra(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(getScope()));
 

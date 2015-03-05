@@ -585,12 +585,10 @@ public class ReqResDebugActivity extends Activity implements
 
         URIBuilder builder = createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_REQUEST_ACCESS_TOKEN);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(mScopes));
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, getPackageName());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_GRANT_TYPE,
-                AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue());
         builder.addParameter(AuthorizationProfile.PARAM_SIGNATURE, signature);
 
         executeHttpRequest(HttpGet.METHOD_NAME, builder, new HttpListener() {

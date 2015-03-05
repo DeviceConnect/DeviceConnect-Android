@@ -124,11 +124,10 @@ public class IntentDConnectTestCase extends DConnectTestCase {
 
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_REQUEST_ACCESS_TOKEN);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         request.putExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
         request.putExtra(AuthorizationProfileConstants.PARAM_SCOPE, paramScope.toString());
         request.putExtra(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, "dConnectManagerTest");
-        request.putExtra(AuthorizationProfileConstants.PARAM_GRANT_TYPE, LocalOAuth2Main.AUTHORIZATION_CODE);
         request.putExtra(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
 
         Intent response = sendRequest(request, false);

@@ -383,14 +383,6 @@ public class LocalOAuthRequest extends DConnectRequest {
     }
 
     /**
-     * シグネイチャの作成に失敗した場合のレスポンスを返却する.
-     */
-    private void sendCannotCreateSignature() {
-        Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
-        MessageUtils.setAuthorizationError(response, "Cannot create signature.");
-        sendResponse(response);
-    }
-    /**
      * クライアントの作成に失敗した場合のレスポンスを返却する.
      */
     private void sendCannotCreateClient() {

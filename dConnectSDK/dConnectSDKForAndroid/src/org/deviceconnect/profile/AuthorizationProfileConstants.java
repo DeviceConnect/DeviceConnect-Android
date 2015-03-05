@@ -85,4 +85,12 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
      */
     String PARAM_EXPIRE_PERIOD = "expirePeriod";
 
+    /**
+     * パラメータ: {@value}.
+     * <p>
+     * NOTE: GotAPI 1.0上で定義されているレスポンスパラメータ.
+     * </p>
+     */
+    String PARAM_EXPIRE = "expire";
+
 }

@@ -204,13 +204,24 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             AccessTokenScope[] atScopes = token[0].getScopes();
             if (atScopes != null) {
                 List<Bundle> s = new ArrayList<Bundle>();
+                Long expire = null;
                 for (int i = 0; i < atScopes.length; i++) {
+                    long scopePeriod = atScopes[i].getExpirePeriod();
                     Bundle b = new Bundle();
                     b.putString(PARAM_SCOPE, atScopes[i].getScope());
-                    b.putLong(PARAM_EXPIRE_PERIOD, atScopes[i].getExpirePeriod());
+                    b.putLong(PARAM_EXPIRE_PERIOD, scopePeriod);
                     s.add(b);
+                    
+                    if (expire == null || (expire.longValue() > scopePeriod)) {
+                        expire = new Long(scopePeriod);
+                    }
                 }
                 response.putExtra(PARAM_SCOPES, s.toArray(new Bundle[s.size()]));
+                
+                // NOTE: GotAPI 1.0対応
+                if (expire != null) {
+                    response.putExtra(PARAM_EXPIRE, expire.longValue());
+                }
             }
         } else {
             MessageUtils.setAuthorizationError(response, "Cannot create a access token.");

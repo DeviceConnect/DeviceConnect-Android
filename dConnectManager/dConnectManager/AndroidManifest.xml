@@ -18,16 +18,12 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
 
-        <!-- Device Connect Manager設定画面用Activity. -->
+        <!-- Device Connect Manager起動用Activity. -->
         <activity
-            android:name="org.deviceconnect.android.manager.setting.SettingActivity"
+            android:name="org.deviceconnect.android.manager.DConnectLaunchActivity"
             android:label="@string/app_name"
+            android:excludeFromRecents="true"
             android:launchMode="singleTop" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -38,6 +34,17 @@
                     android:host="start"
                     android:path="/"
                     android:scheme="dconnect" />
+            </intent-filter>
+        </activity>
+
+        <!-- Device Connect Manager設定画面用Activity. -->
+        <activity
+            android:name="org.deviceconnect.android.manager.setting.SettingActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 

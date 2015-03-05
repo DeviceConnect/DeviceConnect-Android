@@ -11,7 +11,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
@@ -160,7 +159,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?grantType=xxxx&scope=xxxx&applicationName=xxxx&signature=xxxx
+     * Path: /authorization/request_accesstoken?scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -174,7 +173,6 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, "");
 
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -190,7 +188,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?clintId=&grantType=xxxx&scope=xxxx&applicationName=xxxx&signature=xxxx
+     * Path: /authorization/request_accesstoken?clintId=&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -205,7 +203,6 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, "");
 
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -221,7 +218,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?grantType=xxxx&scope=xxxx&applicationName=xxxx&signature=xxxx
+     * Path: /authorization/request_accesstoken?scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -230,7 +227,6 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      */
     public void testGetRequestAccessTokenNotRegisteredClientId() {
         final String clientId = "not_registered_client_id";
-        final String clientSecret = "dummy_client_secret";
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
@@ -239,8 +235,6 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        String signature = createSignature(clientId, new String[] {"battery"}, clientSecret);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
 
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -256,7 +250,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?clientId=xxxx&grantType=xxxx&applicationName=xxxx&signature=xxxx
+     * Path: /authorization/request_accesstoken?clientId=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -264,16 +258,14 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenNoScope() {
-        String[] client = createClient();
+        String client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client[0]);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        String signature = createSignature(client[0], new String[] {"battery"}, client[1]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
 
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -290,7 +282,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * 【HTTP通信】
      * Method: GET
      * Path: /authorization/request_accesstoken?
-     *           clientId=xxxx&grantType=authorization_code&scope=&applicationName=xxxx&signature=xxxx
+     *           clientId=xxxx&grantType=authorization_code&scope=&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -298,17 +290,15 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenEmptyScope() {
-        String[] client = createClient();
+        String client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client[0]);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        String signature = createSignature(client[0], new String[] {"battery"}, client[1]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
 
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -324,7 +314,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?clientId=xxxx&grantType=xxxx&scope=xxxx&signature=xxxx
+     * Path: /authorization/request_accesstoken?clientId=xxxx&scope=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -332,15 +322,13 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenNoApplicationName() {
-        String[] client = createClient();
+        String client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client[0]);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        String signature = createSignature(client[0], new String[] {"battery"}, client[1]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
 
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -357,7 +345,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * 【HTTP通信】
      * Method: GET
      * Path: /authorization/request_accesstoken?
-     *           clientId=xxxx&grantType=authorization_code&scope=&applicationName=&signature=xxxx
+     *           clientId=xxxx&grantType=authorization_code&scope=&applicationName
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -365,16 +353,14 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenEmptyApplicationName() {
-        String[] client = createClient();
+        String client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client[0]);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, "");
-        String signature = createSignature(client[0], new String[] {"battery"}, client[1]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
 
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -386,114 +372,12 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
     }
 
     /**
-     * signatureが無い状態でアクセストークン作成を行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /authorization/request_accesstoken?clientId=xxxx&grantType=xxxx&scope=xxxx&applicationName=xxxx
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    public void testGetRequestAccessTokenNoSignature() {
-        String[] client = createClient();
-
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client[0]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
-
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(root);
-            assertEquals(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root.getInt(DConnectMessage.EXTRA_ERROR_CODE));
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * signatureに空文字を指定した状態でアクセストークン作成を行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /authorization/request_accesstoken?
-     *           clientId=xxxx&grantType=authorization_code&scope=xxxx&applicationName=xxxx&signature=
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    public void testGetRequestAccessTokenEmptySignature() {
-        String[] client = createClient();
-
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client[0]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, "");
-
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.AUTHORIZATION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * 空文字でない不正なsignatureを指定した状態でアクセストークン作成を行う.
-     * <pre>
-     * 【HTTP通信】
-     * Method: GET
-     * Path: /authorization/request_accesstoken?
-     *           clientId=xxxx&grantType=authorization_code&scope=xxxx&applicationName=xxxx&signature=
-     * </pre>
-     * <pre>
-     * 【期待する動作】
-     * ・resultに1が返ってくること。
-     * </pre>
-     */
-    public void testGetRequestAccessTokenWrongSignature() {
-        String[] client = createClient();
-
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client[0]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
-                TEST_APPLICATION_NAME);
-        String wrongSignature = "wrong" + createSignature(client[0], new String[] {"battery"}, client[1]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, wrongSignature);
-
-        try {
-            HttpUriRequest request = new HttpGet(builder.toString());
-            JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.AUTHORIZATION.getCode(), root);
-        } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
      * 定義にない属性を指定してアクセストークン作成を行う.
      * <pre>
      * 【HTTP通信】
      * Method: GET
      * Path: /authorization/request_accesstoken?
-     *           clientId=xxxx&grantType=xxxx&scope=xxxx&applicationName=xxxxsignature=xxxx&abc=abc
+     *           clientId=xxxx&scope=xxxx&applicationName=xxxx&abc=abc
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -502,17 +386,15 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenUndefinedAttribute() {
-        String[] client = createClient();
+        String client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client[0]);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        String signature = createSignature(client[0], new String[] {"battery"}, client[1]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
         builder.addParameter("abc", "abc");
 
         try {
@@ -530,7 +412,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * 【HTTP通信】
      * Method: POST
      * Path: /authorization/request_accesstoken?
-     *           clientId=xxxx&grantType=xxxx&scope=xxxx&applicationName=xxxxsignature=xxxx
+     *           clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -538,17 +420,15 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenInvalidMethodPost() {
-        String[] client = createClient();
+        String client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client[0]);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        String signature = createSignature(client[0], new String[] {"battery"}, client[1]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request, false);
@@ -564,7 +444,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * 【HTTP通信】
      * Method: PUT
      * Path: /authorization/request_accesstoken?
-     *           clientId=xxxx&grantType=xxxx&scope=xxxx&applicationName=xxxxsignature=xxxx
+     *           clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -572,17 +452,15 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenInvalidMethodPut() {
-        String[] client = createClient();
+        String client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client[0]);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        String signature = createSignature(client[0], new String[] {"battery"}, client[1]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request, false);
@@ -598,7 +476,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * 【HTTP通信】
      * Method: DELETE
      * Path: /authorization/request_accesstoken?
-     *           clientId=xxxx&grantType=xxxx&scope=xxxx&applicationName=xxxxsignature=xxxx
+     *           clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -606,17 +484,15 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * </pre>
      */
     public void testGetRequestAccessTokenInvalidMethodDelete() {
-        String[] client = createClient();
+        String client = createClient();
 
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
         builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client[0]);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, client);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, "battery");
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME,
                 TEST_APPLICATION_NAME);
-        String signature = createSignature(client[0], new String[] {"battery"}, client[1]);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request, false);

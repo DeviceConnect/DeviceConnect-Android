@@ -39,7 +39,6 @@ public class CreateClientRequest extends DConnectRequest {
                 if (client != null) {
                     mResponse.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                     mResponse.putExtra(AuthorizationProfile.PARAM_CLIENT_ID, client.getClientId());
-                    mResponse.putExtra(AuthorizationProfile.PARAM_CLIENT_SECRET, client.getClientSecret());
                 } else {
                     MessageUtils.setAuthorizationError(mResponse);
                 }

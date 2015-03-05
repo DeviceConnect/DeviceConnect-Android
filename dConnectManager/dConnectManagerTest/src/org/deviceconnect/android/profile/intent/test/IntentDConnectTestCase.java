@@ -16,8 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import junit.framework.Assert;
 
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.localoauth.exception.AuthorizatonException;
 import org.deviceconnect.android.test.DConnectTestCase;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -89,7 +87,7 @@ public class IntentDConnectTestCase extends DConnectTestCase {
     }
 
     @Override
-    protected String[] createClient() {
+    protected String createClient() {
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_GRANT);
@@ -98,13 +96,12 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         Intent response = sendRequest(request, false);
         assertResultOK(response);
         String clientId = response.getStringExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID);
-        String clientSecret = response.getStringExtra(AuthorizationProfileConstants.PARAM_CLIENT_SECRET);
-        return new String[] {clientId, clientSecret};
+        return clientId;
     }
 
 
     @Override
-    protected String requestAccessToken(final String clientId, final String clientSecret, final String[] scopes) {
+    protected String requestAccessToken(final String clientId, final String[] scopes) {
         StringBuilder paramScope = new StringBuilder();
         for (int i = 0; i < scopes.length; i++) {
             if (i > 0) {
@@ -113,22 +110,12 @@ public class IntentDConnectTestCase extends DConnectTestCase {
             paramScope.append(scopes[i]);
         }
 
-        /* Signatureを生成して添付する */
-        String signature = "";
-        try {
-            signature = LocalOAuth2Main.createSignature(clientId,
-                    LocalOAuth2Main.AUTHORIZATION_CODE, null, scopes, clientSecret);
-        } catch (AuthorizatonException e) {
-            fail("Failed to create a signature.");
-        }
-
         Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         request.putExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
         request.putExtra(AuthorizationProfileConstants.PARAM_SCOPE, paramScope.toString());
         request.putExtra(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, "dConnectManagerTest");
-        request.putExtra(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
 
         Intent response = sendRequest(request, false);
         return response.getStringExtra(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN);

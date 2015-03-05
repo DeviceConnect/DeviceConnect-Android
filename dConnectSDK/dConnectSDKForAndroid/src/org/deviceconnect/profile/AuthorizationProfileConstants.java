@@ -63,11 +63,6 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /**
      * パラメータ: {@value}.
      */
-    String PARAM_CLIENT_SECRET = "clientSecret";
-
-    /**
-     * パラメータ: {@value}.
-     */
     String PARAM_SCOPE = "scope";
 
     /**
@@ -83,11 +78,6 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /**
      * パラメータ: {@value}.
      */
-    String PARAM_SIGNATURE = "signature";
-
-    /**
-     * パラメータ: {@value}.
-     */
     String PARAM_ACCESS_TOKEN = "accessToken";
 
     /**
@@ -95,51 +85,4 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
      */
     String PARAM_EXPIRE_PERIOD = "expirePeriod";
 
-    /**
-     * grantType.
-     */
-    enum GrantType {
-        /**
-         * Defined in 4.1 Authorization Code Grant.
-         */
-        AUTHORIZATION_CODE("authorization_code"),
-
-        /**
-         * Defined in 4.3 Resource Owner Password Credentials Grant.
-         */
-        PASSWORD("password"),
-
-        /**
-         * Defined in 4.4 Client Credentials Grant.
-         */
-        CLIENT_CREDENTIALS("client_credentials"),
-
-        /**
-         * Defined in 6 Refreshing an Access Token.
-         */
-        REFRESH_TOKE("refresh_token");
-
-        /**
-         * 定義値.
-         */
-        private String mValue;
-
-        /**
-         * 指定された定義値をもつ定数を宣言します.
-         * 
-         * @param value 定義値
-         */
-        private GrantType(final String value) {
-            this.mValue = value;
-        }
-
-        /**
-         * 定義値を取得する.
-         * 
-         * @return 定義値
-         */
-        public String getValue() {
-            return mValue;
-        }
-    };
 }

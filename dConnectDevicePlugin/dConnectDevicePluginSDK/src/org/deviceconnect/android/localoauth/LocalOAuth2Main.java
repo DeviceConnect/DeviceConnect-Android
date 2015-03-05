@@ -567,8 +567,6 @@ public final class LocalOAuth2Main {
             throw new IllegalArgumentException("ApplicationName is null.");
         } else if (params.getClientId() == null || params.getClientId().isEmpty()) {
             throw new IllegalArgumentException("ClientId is null.");
-        } else if (params.getGrantType() == null || params.getGrantType().isEmpty()) {
-            throw new IllegalArgumentException("GrantType is null.");
         } else if (params.getScopes() == null || params.getScopes().length <= 0) {
             throw new IllegalArgumentException("Scope is null.");
         }

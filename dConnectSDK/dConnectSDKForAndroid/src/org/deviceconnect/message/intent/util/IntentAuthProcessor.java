@@ -17,7 +17,6 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
-import org.deviceconnect.android.cipher.signature.AuthSignature;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.message.HttpHeaders;
@@ -46,7 +45,7 @@ import android.content.Context;
  *              new String[] {"battery", "system", "servicediscovery"}, 
  *              new AuthorizationHandler() {
  *          
- *          public void onAuthorized(String clientId, String clientSecret, String accessToken) {
+ *          public void onAuthorized(String clientId, String accessToken) {
  *              // 認証完了時の処理
  *          }
  *          
@@ -166,15 +165,11 @@ public final class IntentAuthProcessor {
                 }
 
                 String clientId = json.getString(AuthorizationProfileConstants.PARAM_CLIENT_ID);
-                String clientSecret = json.getString(AuthorizationProfileConstants.PARAM_CLIENT_SECRET);
-                String signature = AuthSignature.generateSignature(clientId,
-                        AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue(), null, scopes,
-                        clientSecret);
+
                 // アクセストークンの取得処理
                 builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
                 builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
                 builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(scopes));
-                builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
                 builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, appName);
                 try {
                     request = new HttpGet(builder.build());
@@ -192,7 +187,7 @@ public final class IntentAuthProcessor {
                     break;
                 }
                 String accessToken = json.getString(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN);
-                callback.onAuthorized(clientId, clientSecret, accessToken);
+                callback.onAuthorized(clientId, accessToken);
             } catch (JSONException e) {
                 error = ErrorCode.UNKNOWN;
                 e.printStackTrace();

@@ -109,6 +109,21 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
     private SpheroDeviceService mService;
 
     /**
+     * 一時的にDeviceInfoをキャッシュする変数.
+     */
+    private DeviceInfo mCacheDeviceInfo;
+
+    /**
+     * 一時的にDeviceSensorsDataをキャッシュする変数.
+     */
+    private DeviceSensorsData mCacheDeviceSensorsData;
+
+    /**
+     * 一時的にインターバルをキャッシュする変数.
+     */
+    private long mCacheInterval;
+
+    /**
      * SpheroManagerを生成する.
      */
     private SpheroManager() {
@@ -301,6 +316,33 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
     }
 
     /**
+     * 指定されたデバイスのセンサーを1回だけ監視する.
+     * @param device デバイス
+     * @param listener 監視結果を通知するリスナー
+     */
+    public void startSensor(final DeviceInfo device, final DeviceSensorListener listener) {
+        synchronized (device) {
+            if (!device.isSensorStarted()) {
+                device.startSensor(new DeviceSensorListener() {
+                    @Override
+                    public void sensorUpdated(final DeviceInfo info,
+                            final DeviceSensorsData data, final long interval) {
+                        if (listener != null) {
+                            listener.sensorUpdated(info, data, interval);
+                        }
+                        stopSensor(device);
+                    }
+                });
+            } else {
+                if (listener != null) {
+                    listener.sensorUpdated(mCacheDeviceInfo,
+                            mCacheDeviceSensorsData, mCacheInterval);
+                }
+            }
+        }
+    }
+
+    /**
      * 指定されたデバイスのセンサー監視を開始する.
      * 
      * @param device デバイス
@@ -422,6 +464,33 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
             m.addCommand(new Delay((int) pattern[i]));
         }
         info.getDevice().executeMacro(m);
+    }
+
+    /**
+     * 指定されたデータからOrientationデータを作成する.
+     * @param data データ
+     * @param interval インターバル
+     * @return Orientationデータ
+     */
+    public static Bundle createOrientation(final DeviceSensorsData data, final long interval)  {
+        Acceleration accData = data.getAccelerometerData().getFilteredAcceleration();
+        Bundle accelerationIncludingGravity = new Bundle();
+        // Spheroでは単位がG(1G=9.81m/s^2)で正規化しているので、Device Connectの単位(m/s^2)に変換する。
+        DeviceOrientationProfile.setX(accelerationIncludingGravity, accData.x * G);
+        DeviceOrientationProfile.setY(accelerationIncludingGravity, accData.y * G);
+        DeviceOrientationProfile.setZ(accelerationIncludingGravity, accData.z * G);
+
+        AttitudeSensor att = data.getAttitudeData();
+        Bundle rotationRate = new Bundle();
+        DeviceOrientationProfile.setAlpha(rotationRate, att.yaw);
+        DeviceOrientationProfile.setBeta(rotationRate, att.roll);
+        DeviceOrientationProfile.setGamma(rotationRate, att.pitch);
+
+        Bundle orientation = new Bundle();
+        DeviceOrientationProfile.setAccelerationIncludingGravity(orientation, accelerationIncludingGravity);
+        DeviceOrientationProfile.setRotationRate(orientation, rotationRate);
+        DeviceOrientationProfile.setInterval(orientation, interval);
+        return orientation;
     }
 
     /**
@@ -617,28 +686,15 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
             return;
         }
 
+        mCacheDeviceInfo = info;
+        mCacheDeviceSensorsData = data;
+        mCacheInterval = interval;
+
         List<Event> events = EventManager.INSTANCE.getEventList(info.getDevice().getUniqueId(),
                 DeviceOrientationProfile.PROFILE_NAME, null, DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
 
         if (events.size() != 0) {
-            Acceleration accData = data.getAccelerometerData().getFilteredAcceleration();
-            Bundle accelerationIncludingGravity = new Bundle();
-            // Spheroでは単位がG(1G=9.81m/s^2)で正規化しているので、Device Connectの単位(m/s^2)に変換する。
-            DeviceOrientationProfile.setX(accelerationIncludingGravity, accData.x * G);
-            DeviceOrientationProfile.setY(accelerationIncludingGravity, accData.y * G);
-            DeviceOrientationProfile.setZ(accelerationIncludingGravity, accData.z * G);
-
-            AttitudeSensor att = data.getAttitudeData();
-            Bundle rotationRate = new Bundle();
-            DeviceOrientationProfile.setAlpha(rotationRate, att.yaw);
-            DeviceOrientationProfile.setBeta(rotationRate, att.roll);
-            DeviceOrientationProfile.setGamma(rotationRate, att.pitch);
-
-            Bundle orientation = new Bundle();
-            DeviceOrientationProfile.setAccelerationIncludingGravity(orientation, accelerationIncludingGravity);
-            DeviceOrientationProfile.setRotationRate(orientation, rotationRate);
-            DeviceOrientationProfile.setInterval(orientation, interval);
-
+            Bundle orientation = createOrientation(data, interval);
             for (Event e : events) {
                 Intent event = EventManager.createEventMessage(e);
                 DeviceOrientationProfile.setOrientation(event, orientation);

@@ -98,8 +98,8 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetOnDeviceOrientation(final Intent request, final Intent respose, final String serviceId) {
-        setUnsupportedError(respose);
+    protected boolean onGetOnDeviceOrientation(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
         return true;
     }
 

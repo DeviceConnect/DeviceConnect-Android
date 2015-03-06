@@ -44,6 +44,7 @@ import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.android.profile.FileDescriptorProfile;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
@@ -428,6 +429,76 @@ public class HostDeviceService extends DConnectMessageService implements
     private long mAccelStartTime;
 
     /**
+     * Device Orientationのキャッシュを残す時間を定義する.
+     */
+    private static final long DEVICE_ORIENTATION_CACHE_TIME = 100;
+
+    /**
+     * Device Orientationのデータを取得する.
+     * @param response データを格納するレスポンス
+     * @return trueの場合には即座に値を返却する、falseの場合には返さない
+     */
+    public boolean getDeviceOrientationEvent(final Intent response) {
+        long t = System.currentTimeMillis() - mAccelStartTime;
+        if (t > DEVICE_ORIENTATION_CACHE_TIME) {
+            List<Sensor> sensors;
+            final SensorEventListener l = new SensorEventListener() {
+                @Override
+                public void onSensorChanged(final SensorEvent event) {
+                    if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                        mAccellX = event.values[0];
+                        mAccellY = event.values[1];
+                        mAccellZ = event.values[2];
+
+                        Bundle orientation = createOrientation();
+                        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                        DeviceOrientationProfile.setOrientation(response, orientation);
+                        sendResponse(response);
+
+                        mSensorManager.unregisterListener(this);
+                    } else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                        mGyroX = event.values[0];
+                        mGyroY = event.values[1];
+                        mGyroZ = event.values[2];
+                    }
+                }
+                @Override
+                public void onAccuracyChanged(final Sensor sensor, final int accuracy) {
+                }
+            }; 
+
+            mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+            sensors = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+            if (sensors.size() > 0) {
+                Sensor sensor = sensors.get(0);
+                mSensorManager.registerListener(l, sensor,
+                        SensorManager.SENSOR_DELAY_NORMAL);
+                mAccelStartTime = System.currentTimeMillis();
+            } else {
+                MessageUtils.setNotSupportAttributeError(response);
+                return true;
+            }
+
+            sensors = mSensorManager.getSensorList(Sensor.TYPE_GYROSCOPE);
+            if (sensors.size() > 0) {
+                Sensor sensor = sensors.get(0);
+                mSensorManager.registerListener(l, sensor,
+                        SensorManager.SENSOR_DELAY_NORMAL);
+            } else {
+                MessageUtils.setNotSupportAttributeError(response);
+                return true;
+            }
+
+            return false;
+        } else {
+            Bundle orientation = createOrientation();
+            DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+            DeviceOrientationProfile.setOrientation(response, orientation);
+            return true;
+        }
+    }
+
+    /**
      * Device Orientation Profile<br>
      * イベントの登録.
      * 
@@ -443,29 +514,32 @@ public class HostDeviceService extends DConnectMessageService implements
 
         mServiceId = serviceId;
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+
         List<Sensor> sensors = mSensorManager
                 .getSensorList(Sensor.TYPE_ACCELEROMETER);
-
         if (sensors.size() > 0) {
             Sensor sensor = sensors.get(0);
             mSensorManager.registerListener(this, sensor,
                     SensorManager.SENSOR_DELAY_NORMAL);
             mAccelStartTime = System.currentTimeMillis();
+        } else {
+            MessageUtils.setNotSupportAttributeError(response);
+            return;
         }
 
         sensors = mSensorManager.getSensorList(Sensor.TYPE_GYROSCOPE);
-
         if (sensors.size() > 0) {
             Sensor sensor = sensors.get(0);
             mSensorManager.registerListener(this, sensor,
                     SensorManager.SENSOR_DELAY_NORMAL);
+        } else {
+            MessageUtils.setNotSupportAttributeError(response);
+            return;
         }
 
-        response.putExtra(DConnectMessage.EXTRA_RESULT,
-                DConnectMessage.RESULT_OK);
+        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE,
                 "Register OnDeviceOrientation event");
-        sendBroadcast(response);
     }
 
     /**
@@ -501,11 +575,8 @@ public class HostDeviceService extends DConnectMessageService implements
     }
 
     /**
-     * Promity Profile<br>
-     * イベントの解除.
-     * 
-     * @param response
-     *            レスポンス
+     * Promity Profile イベントの解除.
+     * @param response レスポンス
      */
     public void unregisterPromityEvent(final Intent response) {
         mSensorManagerProximity.unregisterListener(this);
@@ -517,11 +588,8 @@ public class HostDeviceService extends DConnectMessageService implements
     }
 
     /**
-     * Device Orientation Profile<br>
-     * イベントの解除.
-     * 
-     * @param response
-     *            レスポンス
+     * Device Orientation Profile イベントの解除.
+     * @param response レスポンス
      */
     public void unregisterDeviceOrientationEvent(final Intent response) {
         mSensorManager.unregisterListener(this);
@@ -529,7 +597,36 @@ public class HostDeviceService extends DConnectMessageService implements
                 DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE,
                 "Unregister OnDeviceOrientation event");
-        sendBroadcast(response);
+    }
+
+    /**
+     * Orientationのデータを作成する.
+     * @return Orientationのデータ
+     */
+    private Bundle createOrientation() {
+        long interval = System.currentTimeMillis() - mAccelStartTime;
+
+        Bundle orientation = new Bundle();
+        Bundle a1 = new Bundle();
+        DeviceOrientationProfile.setX(a1, 0.0);
+        DeviceOrientationProfile.setY(a1, 0.0);
+        DeviceOrientationProfile.setZ(a1, 0.0);
+
+        Bundle a2 = new Bundle();
+        DeviceOrientationProfile.setX(a2, mAccellX);
+        DeviceOrientationProfile.setY(a2, mAccellY);
+        DeviceOrientationProfile.setZ(a2, mAccellZ);
+
+        Bundle r = new Bundle();
+        DeviceOrientationProfile.setAlpha(r, mGyroX);
+        DeviceOrientationProfile.setBeta(r, mGyroY);
+        DeviceOrientationProfile.setGamma(r, mGyroZ);
+
+        DeviceOrientationProfile.setAcceleration(orientation, a1);
+        DeviceOrientationProfile.setAccelerationIncludingGravity(orientation, a2);
+        DeviceOrientationProfile.setRotationRate(orientation, r);
+        DeviceOrientationProfile.setInterval(orientation, interval);
+        return orientation;
     }
 
     @Override
@@ -540,31 +637,7 @@ public class HostDeviceService extends DConnectMessageService implements
             mAccellY = sensorEvent.values[1];
             mAccellZ = sensorEvent.values[2];
 
-            long interval = System.currentTimeMillis() - mAccelStartTime;
-
-            Bundle orientation = new Bundle();
-            Bundle a1 = new Bundle();
-            a1.putDouble(DeviceOrientationProfile.PARAM_X, 0.0);
-            a1.putDouble(DeviceOrientationProfile.PARAM_Y, 0.0);
-            a1.putDouble(DeviceOrientationProfile.PARAM_Z, 0.0);
-            Bundle a2 = new Bundle();
-            a2.putDouble(DeviceOrientationProfile.PARAM_X, mAccellX);
-            a2.putDouble(DeviceOrientationProfile.PARAM_Y, mAccellY);
-            a2.putDouble(DeviceOrientationProfile.PARAM_Z, mAccellZ);
-            Bundle r = new Bundle();
-            r.putDouble(DeviceOrientationProfile.PARAM_ALPHA, mGyroX);
-            r.putDouble(DeviceOrientationProfile.PARAM_BETA, mGyroY);
-            r.putDouble(DeviceOrientationProfile.PARAM_GAMMA, mGyroZ);
-            orientation.putBundle(DeviceOrientationProfile.PARAM_ACCELERATION,
-                    a1);
-            orientation
-                    .putBundle(
-                            DeviceOrientationProfile.PARAM_ACCELERATION_INCLUDING_GRAVITY,
-                            a2);
-            orientation.putBundle(DeviceOrientationProfile.PARAM_ROTATION_RATE,
-                    r);
-            orientation.putLong(DeviceOrientationProfile.PARAM_INTERVAL, 0);
-            DeviceOrientationProfile.setInterval(orientation, interval);
+            Bundle orientation = createOrientation();
 
             List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
                     DeviceOrientationProfile.PROFILE_NAME, null,

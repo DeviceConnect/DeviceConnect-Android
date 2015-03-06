@@ -19,18 +19,27 @@ import android.content.Intent;
 
 /**
  * DeviceOrientation Profile.
- * 
  * @author NTT DOCOMO, INC.
  */
 public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
 
-    /** Error. */
-    private static final int ERROR_VALUE_IS_NULL = 100;
+    @Override
+    protected boolean onGetOnDeviceOrientation(final Intent request, final Intent response, final String serviceId) {
+        boolean result = true;
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+        } else {
+            HostDeviceService service = (HostDeviceService) getContext();
+            result = service.getDeviceOrientationEvent(response);
+        }
+        return result;
+    }
 
     @Override
     protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
@@ -38,27 +47,21 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
-
             // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
-
             if (error == EventError.NONE) {
-                ((HostDeviceService) getContext()).registerDeviceOrientationEvent(response, serviceId, sessionKey);
-                return false;
+                HostDeviceService service = (HostDeviceService) getContext();
+                service.registerDeviceOrientationEvent(response, serviceId, sessionKey);
             } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
-                return true;
+                MessageUtils.setUnknownError(response, "Can not register event.");
             }
-
         }
         return true;
-
     }
 
     @Override
     protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
@@ -66,18 +69,13 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
-
             // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
-
-                ((HostDeviceService) getContext()).unregisterDeviceOrientationEvent(response);
-                return false;
-
+                HostDeviceService service = (HostDeviceService) getContext();
+                service.unregisterDeviceOrientationEvent(response);
             } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
-                return true;
-
+                MessageUtils.setUnknownError(response, "Can not unregister event.");
             }
         }
         return true;
@@ -93,7 +91,6 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
         String regex = HostServiceDiscoveryProfile.SERVICE_ID;
         Pattern mPattern = Pattern.compile(regex);
         Matcher match = mPattern.matcher(serviceId);
-
         return match.find();
     }
 
@@ -103,7 +100,6 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
      * @param response レスポンスを格納するIntent
      */
     private void createEmptyServiceId(final Intent response) {
-
         MessageUtils.setEmptyServiceIdError(response);
     }
 
@@ -113,8 +109,7 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
      * @param response レスポンスを格納するIntent
      */
     private void createEmptySessionKey(final Intent response) {
-
-        MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "SessionKey not found");
+        MessageUtils.setInvalidRequestParameterError(response, "sessionKey is invalid.");
     }
 
     /**
@@ -123,7 +118,6 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile {
      * @param response レスポンスを格納するIntent
      */
     private void createNotFoundService(final Intent response) {
-
         MessageUtils.setNotFoundServiceError(response);
     }
 }

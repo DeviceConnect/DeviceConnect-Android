@@ -34,6 +34,42 @@ public class PebbleKeyEventProfile extends KeyEventProfile {
     /** Error message for not setting sessionKey. */
     private static final String ERROR_MESSAGE = "sessionKey must be specified.";
 
+    /** KeyEvent profile onDown cache. */
+    Bundle mOnDownCache = null;
+
+    /** KeyEvent profile onUp cache. */
+    Bundle mOnUpCache = null;
+
+    /**
+     * Get KeyEvent cache data.
+     * 
+     * @param attr Attribute.
+     * @return KeyEvent cache data.
+     */
+    public Bundle getKeyEventCache(final String attr) {
+        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
+            return mOnDownCache;
+        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
+            return mOnUpCache;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Set KeyEvent data to cache.
+     * 
+     * @param attr Attribute.
+     * @param keyeventData Touch data.
+     */
+    public void setKeyEventCache(final String attr, final Bundle keyeventData) {
+        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
+            mOnDownCache = keyeventData;
+        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
+            mOnUpCache = keyeventData;
+        }
+    }
+
     /**
      * Constructor.
      * 
@@ -66,13 +102,53 @@ public class PebbleKeyEventProfile extends KeyEventProfile {
                 }
 
                 for (Event evt : evts) {
+                    String attr = evt.getAttribute();
                     // Notify each to the event listener.
                     Intent intent = EventManager.createEventMessage(evt);
                     intent.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
                     ((PebbleDeviceService) getContext()).sendEvent(intent, evt.getAccessToken());
+                    setKeyEventCache(attr, keyevent);
                 }
             }
         });
+    }
+
+    @Override
+    protected boolean onGetOnDown(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else {
+            Bundle keyevent = getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
+            if (keyevent == null) {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+            } else {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnUp(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!PebbleUtil.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else {
+            Bundle keyevent = getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
+            if (keyevent == null) {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+            } else {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+        }
+        return true;
     }
 
     @Override

@@ -357,7 +357,7 @@ public class HostDeviceService extends DConnectMessageService implements
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HostServiceDiscoveryProfile();
+        return new HostServiceDiscoveryProfile(this);
     }
 
     /**

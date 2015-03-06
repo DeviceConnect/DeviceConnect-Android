@@ -17,6 +17,7 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -44,8 +45,11 @@ public class PebbleServceDiscoveryProfile extends ServiceDiscoveryProfile {
     /**
      * コンストラクタ.
      * @param service サービス
+     * @param provider プロファイルプロバイダ
      */
-    public PebbleServceDiscoveryProfile(final PebbleDeviceService service) {
+    public PebbleServceDiscoveryProfile(final PebbleDeviceService service,
+            final DConnectProfileProvider provider) {
+        super(provider);
         service.getPebbleManager().addConnectStatusListener(new OnConnectionStatusListener() {
             @Override
             public void onConnect() {
@@ -53,6 +57,7 @@ public class PebbleServceDiscoveryProfile extends ServiceDiscoveryProfile {
                 setName(service, DEVICE_NAME);
                 setType(service, NetworkType.BLUETOOTH);
                 setOnline(service, true);
+                setScopes(service, getProfileProvider());
 
                 List<Event> evts = EventManager.INSTANCE.getEventList(
                         PROFILE_NAME, null, ATTRIBUTE_ON_SERVICE_CHANGE);

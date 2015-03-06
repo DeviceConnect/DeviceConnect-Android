@@ -71,7 +71,7 @@ public class HueDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HueServceDiscoveryProfile();
+        return new HueServceDiscoveryProfile(this);
     }
 
     /**

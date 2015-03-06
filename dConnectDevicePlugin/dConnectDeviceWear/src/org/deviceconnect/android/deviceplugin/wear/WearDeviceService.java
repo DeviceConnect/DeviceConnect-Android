@@ -98,7 +98,7 @@ public class WearDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new WearServiceDiscoveryProfile();
+        return new WearServiceDiscoveryProfile(this);
     }
 
     /**

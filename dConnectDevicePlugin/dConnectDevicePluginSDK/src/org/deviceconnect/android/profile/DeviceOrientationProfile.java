@@ -43,6 +43,19 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
     }
 
     @Override
+    protected boolean onGetRequest(final Intent request, final Intent response) {
+        boolean result = true;
+        String attribute = getAttribute(request);
+
+        if (ATTRIBUTE_ON_DEVICE_ORIENTATION.equals(attribute)) {
+            result = onGetOnDeviceOrientation(request, response, getServiceID(request));
+        } else {
+            MessageUtils.setUnknownAttributeError(response);
+        }
+        return result;
+    }
+
+    @Override
     protected boolean onPutRequest(final Intent request, final Intent response) {
         boolean result = true;
         String attribute = getAttribute(request);
@@ -68,6 +81,26 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
         }
 
         return result;
+    }
+
+    // ------------------------------------
+    // GET
+    // ------------------------------------
+
+    /**
+     * ondeviceorientation属性取得リクエストハンドラー.<br/>
+     * スマートフォンまたは周辺機器上の加速度センサーなどのデータを取得し、その結果をレスポンスパラメータに格納する。
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * 
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param serviceId サービスID
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onGetOnDeviceOrientation(final Intent request, final Intent respose, final String serviceId) {
+        setUnsupportedError(respose);
+        return true;
     }
 
     // ------------------------------------

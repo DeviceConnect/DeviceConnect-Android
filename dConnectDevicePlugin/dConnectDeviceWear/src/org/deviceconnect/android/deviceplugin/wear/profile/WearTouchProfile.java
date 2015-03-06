@@ -20,6 +20,7 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -37,6 +38,70 @@ public class WearTouchProfile extends TouchProfile {
     /** Tag. */
     private static final String TAG = "WEAR";
 
+    /** Touch profile onTouch cache. */
+    Bundle mOnTouchCache = null;
+    
+    /** Touch profile onTouchStart cache. */
+    Bundle mOnTouchStartCache = null;
+    
+    /** Touch profile onTouchEnd cache. */
+    Bundle mOnTouchEndCache = null;
+    
+    /** Touch profile onDoubleTap cache. */
+    Bundle mOnDoubleTapCache = null;
+    
+    /** Touch profile onTouchMove cache. */
+    Bundle mOnTouchMoveCache = null;
+    
+    /** Touch profile onTouchCancel cache. */
+    Bundle mOnTouchCancelCache = null;
+    
+    /**
+     * Get Touch cache data.
+     * 
+     * @param attr Attribute.
+     * @return Touch cache data.
+     */
+    public Bundle getTouchCache(final String attr) {
+        if (attr.equals(ATTRIBUTE_ON_TOUCH)) {
+            return mOnTouchCache;
+        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_START)) {
+            return mOnTouchStartCache;
+        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_END)) {
+            return mOnTouchEndCache;
+        } else if (attr.equals(ATTRIBUTE_ON_DOUBLE_TAP)) {
+            return mOnDoubleTapCache;
+        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_MOVE)) {
+            return mOnTouchMoveCache;
+        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_CANCEL)) {
+            return mOnTouchCancelCache;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Set Touch data to cache.
+     * 
+     * @param attr Attribute.
+     * @param touchData Touch data.
+     */
+    public void setTouchCache(final String attr, final Bundle touchData) {
+        if (attr.equals(ATTRIBUTE_ON_TOUCH)) {
+            mOnTouchCache = touchData;
+        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_START)) {
+            mOnTouchStartCache = touchData;
+        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_END)) {
+            mOnTouchEndCache = touchData;
+        } else if (attr.equals(ATTRIBUTE_ON_DOUBLE_TAP)) {
+            mOnDoubleTapCache = touchData;
+        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_MOVE)) {
+            mOnTouchMoveCache = touchData;
+        } else if (attr.equals(ATTRIBUTE_ON_TOUCH_CANCEL)) {
+            mOnTouchCancelCache = touchData;
+        }
+    }
+
     /**
      * Event receive listener from Android Wear.
      */
@@ -53,6 +118,120 @@ public class WearTouchProfile extends TouchProfile {
      */
     public WearTouchProfile(final WearManager mgr) {
         mgr.addMessageEventListener(WearConst.WEAR_TO_DEVICE_TOUCH_DATA, mListener);
+    }
+
+    @Override
+    protected boolean onGetOnTouch(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else {
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchStart(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else {
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_START);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchEnd(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else {
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_END);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnDoubleTap(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else {
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchMove(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else {
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchCancel(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else {
+            Bundle touches = getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
     }
 
     @Override
@@ -558,9 +737,11 @@ public class WearTouchProfile extends TouchProfile {
                     }
                     touches.putParcelableArray(TouchProfile.PARAM_TOUCHES,
                             touchlist.toArray(new Bundle[touchlist.size()]));
+                    String eventAttr = event.getAttribute();
                     Intent intent = EventManager.createEventMessage(event);
                     intent.putExtra(TouchProfile.PARAM_TOUCH, touches);
                     ((WearDeviceService) getContext()).sendEvent(intent, event.getAccessToken());
+                    setTouchCache(eventAttr, touches);
                     if (BuildConfig.DEBUG) {
                         Log.i(TAG, "event: " + event);
                         Log.i(TAG, "touches: " + touches);

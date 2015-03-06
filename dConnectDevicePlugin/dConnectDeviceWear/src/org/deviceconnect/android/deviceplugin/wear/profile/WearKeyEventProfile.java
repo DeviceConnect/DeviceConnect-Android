@@ -36,6 +36,42 @@ public class WearKeyEventProfile extends KeyEventProfile {
     /** Tag. */
     private static final String TAG = "WEAR";
 
+    /** KeyEvent profile onDown cache. */
+    Bundle mOnDownCache = null;
+
+    /** KeyEvent profile onDown cache. */
+    Bundle mOnUpCache = null;
+
+    /**
+     * Get KeyEvent cache data.
+     * 
+     * @param attr Attribute.
+     * @return KeyEvent cache data.
+     */
+    public Bundle getKeyEventCache(final String attr) {
+        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
+            return mOnDownCache;
+        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
+            return mOnUpCache;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Set KeyEvent data to cache.
+     * 
+     * @param attr Attribute.
+     * @param keyeventData Touch data.
+     */
+    public void setKeyEventCache(final String attr, final Bundle keyeventData) {
+        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
+            mOnDownCache = keyeventData;
+        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
+            mOnUpCache = keyeventData;
+        }
+    }
+
     /**
      * Receive event listener for Android Wear.
      */
@@ -53,6 +89,42 @@ public class WearKeyEventProfile extends KeyEventProfile {
      */
     public WearKeyEventProfile(final WearManager mgr) {
         mgr.addMessageEventListener(WearConst.WEAR_TO_DEVICE_KEYEVENT_DATA, mListener);
+    }
+
+    @Override
+    protected boolean onGetOnDown(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else {
+            Bundle keyevent = getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
+            if (keyevent == null) {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+            } else {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnUp(final Intent request, final Intent response, final String serviceId) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (!WearUtils.checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else {
+            Bundle keyevent = getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
+            if (keyevent == null) {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+            } else {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+        }
+        return true;
     }
 
     @Override
@@ -232,9 +304,11 @@ public class WearKeyEventProfile extends KeyEventProfile {
                 keyevent.putInt(KeyEventProfile.PARAM_ID, Integer.parseInt(mDataArray[1]));
                 keyevent.putString(KeyEventProfile.PARAM_CONFIG, mDataArray[2]);
 
+                String eventAttr = event.getAttribute();
                 Intent intent = EventManager.createEventMessage(event);
                 intent.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
                 ((WearDeviceService) getContext()).sendEvent(intent, event.getAccessToken());
+                setKeyEventCache(eventAttr, keyevent);
             }
         }
     }

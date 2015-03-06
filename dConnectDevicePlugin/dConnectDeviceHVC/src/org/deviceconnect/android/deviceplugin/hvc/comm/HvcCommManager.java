@@ -50,7 +50,7 @@ public class HvcCommManager {
     /**
      * log tag.
      */
-    private static final String TAG = HvcDeviceApplication.class.getSimpleName();
+    private static final String TAG = HvcCommManager.class.getSimpleName();
 
     /**
      * comm status.
@@ -153,7 +153,10 @@ public class HvcCommManager {
      * process flag.
      */
     private static final int PROCESS_POST_DETECT_REQUEST_BITFLAG = 0x0008;
-
+    /**
+     * process flag.
+     */
+    private static final int PROCESS_SEND_SUCCESS_RESPONSE_BITFLAG = 0x8000;
     
     
     /**
@@ -192,6 +195,7 @@ public class HvcCommManager {
         }
         processFlag |= PROCESS_POST_SET_PARAM_BITFLAG;
         processFlag |= PROCESS_POST_DETECT_REQUEST_BITFLAG;
+        processFlag |= PROCESS_SEND_SUCCESS_RESPONSE_BITFLAG;
         
         /* start comm process.(Recursive) */
         mProcessFlag = processFlag;
@@ -245,13 +249,8 @@ public class HvcCommManager {
         }
         
         if (mProcessFlag == 0) {
-            // success (all process finished and no error)
-            
-            // response(success)
-            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK); 
-            response.putExtra(DConnectMessage.EXTRA_VALUE, "Register OnDetection event");
-            mContext.sendBroadcast(response);
-            
+            // all process finished.
+            return;
         } else if ((mProcessFlag & PROCESS_START_THERAD_BITFLAG) != 0) {
             
             // reset bit.
@@ -436,6 +435,19 @@ public class HvcCommManager {
             
             // post detect(if success, call onPost , if error, call mListener.onSetParamError(result)).
             mDetectThread.postDetect();
+            
+        } else if ((mProcessFlag & PROCESS_SEND_SUCCESS_RESPONSE_BITFLAG) != 0) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "commProc() - send success response.");
+            }
+            
+            // reset bit.
+            mProcessFlag ^= PROCESS_SEND_SUCCESS_RESPONSE_BITFLAG;
+            
+            // response(success)
+            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK); 
+            response.putExtra(DConnectMessage.EXTRA_VALUE, "Register OnDetection event");
+            mContext.sendBroadcast(response);
             
         } else {
             if (BuildConfig.DEBUG) {

@@ -7,10 +7,7 @@
 package org.deviceconnect.android.deviceplugin.hvc.comm;
 
 import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
-import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceApplication;
-import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager.CommDetectionResult;
 
-import omron.HVC.BleDeviceService;
 import omron.HVC.HVC;
 import omron.HVC.HVCBleCallback;
 import omron.HVC.HVC_BLE;
@@ -30,7 +27,7 @@ public class HvcDetectThread extends Thread {
     /**
      * log tag.
      */
-    private static final String TAG = HvcDeviceApplication.class.getSimpleName();
+    private static final String TAG = HvcDetectThread.class.getSimpleName();
 
     /**
      * Constructor.
@@ -113,7 +110,9 @@ public class HvcDetectThread extends Thread {
      * thread halt process.
      */
     public void halt() {
-Log.d("AAA", "halt()");
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "HvcDetectThread - halt()");
+        }
         mIsRunning = false;
         mHvcBle.disconnect();
         interrupt();
@@ -145,29 +144,6 @@ Log.d("AAA", "halt()");
             return false;
         }
         return true;
-//        
-//        
-//        if (result == HVC.HVC_ERROR_NODEVICES) {
-//            if (BuildConfig.DEBUG) {
-//                Log.d(TAG, "setParam() : HVC_ERROR_NODEVICES");
-//            }
-//            return false;
-//        } else if (result == HVC.HVC_ERROR_DISCONNECTED) {
-//            if (BuildConfig.DEBUG) {
-//                Log.d(TAG, "setParam() : HVC_ERROR_DISCONNECTED");
-//            }
-//            return false;
-//        } else if (result == HVC.HVC_ERROR_BUSY) {
-//            if (BuildConfig.DEBUG) {
-//                Log.d(TAG, "setParam() : HVC_ERROR_BUSY");
-//            }
-//            return false;
-//        } else if (result != HVC.HVC_NORMAL) {
-//            if (BuildConfig.DEBUG) {
-//                Log.d(TAG, "setParam() : unknown result:" + result);
-//            }
-//            return false;
-//        }
     }
     
     /**
@@ -192,22 +168,24 @@ Log.d("AAA", "halt()");
     
     @Override
     public void run() {
-Log.d("AAA", "run() start");
         
         // BLE initialize (GATT)
         mHvcBle.setCallBack(new HVCBleCallback() {
             @Override
             public void onConnected() {
                 super.onConnected();
-                
-                Log.d("AAA", "mHvcBle.setCallBack() - onConnected()");
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "HvcDetectThread - onConnected()");
+                }
                 mListener.onConnected();
                 
             }
             
             @Override
             public void onDisconnected() {
-                Log.d("AAA", "mHvcBle.setCallBack() - onDisconnected()");
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "HvcDetectThread - onDisconnected()");
+                }
                 mListener.onDisconnected();
                 super.onDisconnected();
             }
@@ -215,13 +193,17 @@ Log.d("AAA", "run() start");
             @Override
             public void onPostSetParam(final int nRet, final byte outStatus) {
                 super.onPostSetParam(nRet, outStatus);
-                Log.d("AAA", "mHvcBle.setCallBack() - onPostSetParam()");
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "HvcDetectThread - onPostSetParam()");
+                }
                 mListener.onPostSetParam();
             }
             
             @Override
             public void onPostExecute(final int nRet, final byte outStatus) {
-                Log.d("AAA", "mHvcBle.setCallBack() - onPostExecute()");
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "HvcDetectThread - onPostExecute() nRet:" + nRet + " outStatus:" + outStatus);
+                }
                 if (nRet != HVC.HVC_NORMAL || outStatus != 0) {
                     // Error processing
                     mListener.onDetectError(nRet);
@@ -229,15 +211,11 @@ Log.d("AAA", "run() start");
                     mListener.onDetectFinished(mHvcRes);
                 }
                 
-//                // disconnect
-//                mHvcBle.disconnect();
             }
         });
         
         mIsRunning = true;
         while (mIsRunning) {
-Log.d("AAA", "run() loop - mIsConnecting:" + mIsConnecting + " mIsWaitPostSetParameter:" + mIsWaitPostSetParameter + " mIsWaitPostDetect:" + mIsWaitPostDetect);
-Log.d("AAA", "run() loop - mHvcBle.getStatus():" + mHvcBle.getStatus());
 
             int commStatus = mHvcBle.getStatus();
             if (mIsConnecting && commStatus == HVC.HVC_ERROR_NODEVICES) {
@@ -246,14 +224,6 @@ Log.d("AAA", "run() loop - mHvcBle.getStatus():" + mHvcBle.getStatus());
                 }
                 mHvcBle.connect(mContext, mDevice);
                 
-//// sleep.
-//try {
-//    sleep(5000);
-//} catch (InterruptedException e) {
-//    if (BuildConfig.DEBUG) {
-//        e.printStackTrace();
-//    }
-//}
             }
             
             if (mHvcBle != null && mIsWaitPostSetParameter) {
@@ -292,8 +262,6 @@ Log.d("AAA", "run() loop - mHvcBle.getStatus():" + mHvcBle.getStatus());
         }
         
         mHvcBle.disconnect();
-        
-        Log.d("AAA", "run() finish");
     }
     
     /**

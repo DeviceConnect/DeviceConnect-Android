@@ -57,7 +57,7 @@ public class HvcDeviceService extends DConnectMessageService {
     /**
      * log tag.
      */
-    private static final String TAG = HvcDeviceApplication.class.getSimpleName();
+    private static final String TAG = HvcDeviceService.class.getSimpleName();
     
     /**
      * timeout judge timer interval[msec].
@@ -319,7 +319,6 @@ public class HvcDeviceService extends DConnectMessageService {
      * @param interval interval[msec]
      */
     private void startIntervalTimer(final long interval) {
-Log.d("AAA", "startIntervalTimer() - interval:" + interval);
         
         // search timer, if interval to match.
         HvcTimerInfo timerInfo = HvcTimerInfoUtils.search(mIntervalTimerInfoArray, interval);

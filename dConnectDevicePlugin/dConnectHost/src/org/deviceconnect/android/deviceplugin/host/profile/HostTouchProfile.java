@@ -9,16 +9,19 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.activity.TouchActivity;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 
 /**
  * Touch Profile.
@@ -29,6 +32,120 @@ public class HostTouchProfile extends TouchProfile {
 
     /** Error. */
     private static final int ERROR_PROCESSING_ERROR = 100;
+    
+    @Override
+    protected boolean onGetOnTouch(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+        } else {
+            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchStart(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+        } else {
+            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_START);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchEnd(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+        } else {
+            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_END);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnDoubleTap(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+        } else {
+            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchMove(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+        } else {
+            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_MOVE);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchCancel(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+        } else {
+            Bundle touches = ((HostDeviceService) getContext()).getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL);
+            if (touches == null) {
+                response.putExtra(TouchProfile.PARAM_TOUCH, "");
+            } else {
+                response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
 
     @Override
     protected boolean onPutOnTouch(final Intent request, final Intent response, final String serviceId,

@@ -89,6 +89,9 @@ import android.webkit.MimeTypeMap;
  */
 public class HostDeviceService extends DConnectMessageService implements
         SensorEventListener {
+    /** Application class instance. */
+    private HostDeviceApplication mApp;
+    
     /** マルチキャスト用のタグ. */
     private static final String HOST_MULTICAST = "deviceplugin.host";
 
@@ -129,6 +132,9 @@ public class HostDeviceService extends DConnectMessageService implements
     public void onCreate() {
 
         super.onCreate();
+        
+        // Get application class instance.
+        mApp = (HostDeviceApplication) this.getApplication();
 
         // EventManagerの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
@@ -1708,5 +1714,15 @@ public class HostDeviceService extends DConnectMessageService implements
         String mClassName = mActivityManager.getRunningTasks(1).get(0).topActivity
                 .getClassName();
         return mClassName;
+    }
+    
+    /**
+     * Get touch cache.
+     * 
+     * @param attr Attribute.
+     * @return Touch cache data.
+     */
+    public Bundle getTouchCache(final String attr) {
+        return mApp.getTouchCache(attr);
     }
 }

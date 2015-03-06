@@ -31,6 +31,18 @@ import android.os.Bundle;
  * non-compliant API.
  * </p>
  * <ul>
+ * <li>Touch API [GET] :
+ * {@link TouchProfile#onGetOnTouch(Intent, Intent, String)}</li>
+ * <li>Touch Start API [GET] :
+ * {@link TouchProfile#onGetOnTouchStart(Intent, Intent, String)}</li>
+ * <li>Touch End API [GET] :
+ * {@link TouchProfile#onGetOnTouchEnd(Intent, Intent, String)}</li>
+ * <li>Double Tap API [GET] :
+ * {@link TouchProfile#onGetOnDoubleTap(Intent, Intent, String)}</li>
+ * <li>Touch Move API [GET] :
+ * {@link TouchProfile#onGetOnTouchMove(Intent, Intent, String)}</li>
+ * <li>Touch Cancel API [GET] :
+ * {@link TouchProfile#onGetOnTouchCancel(Intent, Intent, String)}</li>
  * <li>Touch Event API [Register] :
  * {@link TouchProfile#onPutOnTouch(Intent, Intent, String, String)}</li>
  * <li>Touch API [Unregister] :
@@ -64,6 +76,30 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
+    }
+
+    @Override
+    protected boolean onGetRequest(final Intent request, final Intent response) {
+        boolean result = true;
+        String attribute = getAttribute(request);
+
+        if (ATTRIBUTE_ON_TOUCH.equals(attribute)) {
+            result = onGetOnTouch(request, response, getServiceID(request));
+        } else if (ATTRIBUTE_ON_TOUCH_START.equals(attribute)) {
+            result = onGetOnTouchStart(request, response, getServiceID(request));
+        } else if (ATTRIBUTE_ON_TOUCH_END.equals(attribute)) {
+            result = onGetOnTouchEnd(request, response, getServiceID(request));
+        } else if (ATTRIBUTE_ON_DOUBLE_TAP.equals(attribute)) {
+            result = onGetOnDoubleTap(request, response, getServiceID(request));
+        } else if (ATTRIBUTE_ON_TOUCH_MOVE.equals(attribute)) {
+            result = onGetOnTouchMove(request, response, getServiceID(request));
+        } else if (ATTRIBUTE_ON_TOUCH_CANCEL.equals(attribute)) {
+            result = onGetOnTouchCancel(request, response, getServiceID(request));
+        } else {
+            MessageUtils.setUnknownAttributeError(response);
+        }
+
+        return result;
     }
 
     @Override
@@ -112,6 +148,123 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
         }
 
         return result;
+    }
+
+    // ------------------------------------
+    // GET
+    // ------------------------------------
+    /**
+     * ontouch get request handler.<br/>
+     * Get the ontouch result and store in the response parameter.
+     * If you have ready to transmit the response parameter that you
+     * specify the true return value. If you are not ready to be submitted
+     * response parameters, be false for the return value. Then, in the thread
+     * to launch the threads eventually doing the transmission of response
+     * parameters.
+     * 
+     * @param request request parameter.
+     * @param response response parameter.
+     * @param serviceId service ID.
+     * @return Whether or not to send the response parameters.
+     */
+    protected boolean onGetOnTouch(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * ontouchstart get request handler.<br/>
+     * Get the ontouchstart result and store in the response parameter.
+     * If you have ready to transmit the response parameter
+     * that you specify the true return value. If you are not ready to be
+     * submitted response parameters, be false for the return value. Then, in
+     * the thread to launch the threads eventually doing the transmission of
+     * response parameters.
+     * 
+     * @param request request parameter.
+     * @param response response parameter.
+     * @param serviceId service ID.
+     * @return Whether or not to send the response parameters.
+     */
+    protected boolean onGetOnTouchStart(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * ontouchend get request handler.<br/>
+     * Get the ontouchend result and store in the response parameter.
+     * If you have ready to transmit the response parameter
+     * that you specify the true return value. If you are not ready to be
+     * submitted response parameters, be false for the return value. Then, in
+     * the thread to launch the threads eventually doing the transmission of
+     * response parameters.
+     * 
+     * @param request request parameter.
+     * @param response response parameter.
+     * @param serviceId service ID.
+     * @return Whether or not to send the response parameters.
+     */
+    protected boolean onGetOnTouchEnd(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * ondoubletap get request handler.<br/>
+     * Get the ondoubletap result and store in the response parameter.
+     * If you have ready to transmit the response parameter
+     * that you specify the true return value. If you are not ready to be
+     * submitted response parameters, be false for the return value. Then, in
+     * the thread to launch the threads eventually doing the transmission of
+     * response parameters.
+     * 
+     * @param request request parameter.
+     * @param response response parameter.
+     * @param serviceId service ID.
+     * @return Whether or not to send the response parameters.
+     */
+    protected boolean onGetOnDoubleTap(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * ontouchmove get request handler.<br/>
+     * Get the ontouchmove result and store in the response parameter.
+     * If you have ready to transmit the response parameter
+     * that you specify the true return value. If you are not ready to be
+     * submitted response parameters, be false for the return value. Then, in
+     * the thread to launch the threads eventually doing the transmission of
+     * response parameters.
+     * 
+     * @param request request parameter.
+     * @param response response parameter.
+     * @param serviceId service ID.
+     * @return Whether or not to send the response parameters.
+     */
+    protected boolean onGetOnTouchMove(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * ontouchcancel get request handler.<br/>
+     * Get the ontouchcancel result and store in the response parameter.
+     * If you have ready to transmit the response parameter
+     * that you specify the true return value. If you are not ready to be
+     * submitted response parameters, be false for the return value. Then, in
+     * the thread to launch the threads eventually doing the transmission of
+     * response parameters.
+     * 
+     * @param request request parameter.
+     * @param response response parameter.
+     * @param serviceId service ID.
+     * @return Whether or not to send the response parameters.
+     */
+    protected boolean onGetOnTouchCancel(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
     }
 
     // ------------------------------------

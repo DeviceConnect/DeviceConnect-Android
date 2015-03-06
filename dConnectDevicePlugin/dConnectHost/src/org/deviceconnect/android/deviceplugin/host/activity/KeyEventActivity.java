@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.host.activity;
 
 import java.util.List;
 
+import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -33,6 +34,8 @@ import android.widget.RadioGroup.OnCheckedChangeListener;
  */
 public class KeyEventActivity extends Activity implements OnTouchListener, OnCheckedChangeListener {
 
+    /** Application class instance. */
+    private HostDeviceApplication mApp;
     /** Service Id. */
     String mServiceId;
     /** Key Mode. */
@@ -63,6 +66,9 @@ public class KeyEventActivity extends Activity implements OnTouchListener, OnChe
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.keyevent_main);
+
+        // Get Application class instance.
+        mApp = (HostDeviceApplication) this.getApplication();
 
         // Set button touchlistener. (Ten Key Emulated)
         findViewById(R.id.button_0).setOnTouchListener(this);
@@ -248,9 +254,11 @@ public class KeyEventActivity extends Activity implements OnTouchListener, OnChe
             keyevent.putString(KeyEventProfile.PARAM_CONFIG, keyConfig);
 
             Event eventdata = events.get(i);
+            String attr = eventdata.getAttribute();
             Intent intent = EventManager.createEventMessage(eventdata);
             intent.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
             getBaseContext().sendBroadcast(intent);
+            mApp.setKeyEventCache(attr, keyevent);
         }
     }
 

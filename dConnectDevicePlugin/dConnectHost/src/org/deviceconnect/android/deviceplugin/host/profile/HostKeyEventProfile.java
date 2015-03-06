@@ -9,16 +9,19 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.activity.KeyEventActivity;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 
 /**
  * Key Event Profile.
@@ -29,6 +32,44 @@ public class HostKeyEventProfile extends KeyEventProfile {
 
     /** Error. */
     private static final int ERROR_PROCESSING_ERROR = 100;
+
+    @Override
+    protected boolean onGetOnDown(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+        } else {
+            Bundle keyevent = ((HostDeviceService) getContext()).getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
+            if (keyevent == null) {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+            } else {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnUp(final Intent request, final Intent response, final String serviceId) {
+
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+        } else {
+            Bundle keyevent = ((HostDeviceService) getContext()).getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
+            if (keyevent == null) {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+            } else {
+                response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+            }
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
 
     @Override
     protected boolean onPutOnDown(final Intent request, final Intent response, final String serviceId,

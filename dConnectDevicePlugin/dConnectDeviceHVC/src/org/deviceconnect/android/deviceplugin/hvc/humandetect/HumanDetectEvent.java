@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.humandetect;
 
+import android.content.Intent;
+
 
 /** 
  * HVC Device Event.
@@ -16,7 +18,7 @@ public class HumanDetectEvent {
     /**
      * detect kind.
      */
-    private HumanDetectKind mKind;
+    private HumanDetectKind mDetectKind;
     /**
      * session key.
      */
@@ -27,16 +29,23 @@ public class HumanDetectEvent {
     private HumanDetectRequestParams mRequestParams; 
     
     /**
+     * response.
+     */
+    private Intent mResponse;
+    
+    /**
      * Constructor.
-     * @param kind kind
+     * @param detectKind detect kind
      * @param sessionKey session key
      * @param requestParams request params
+     * @param response response
      */
-    public HumanDetectEvent(final HumanDetectKind kind, final String sessionKey,
-            final HumanDetectRequestParams requestParams) {
-        mKind = kind;
+    public HumanDetectEvent(final HumanDetectKind detectKind, final String sessionKey,
+            final HumanDetectRequestParams requestParams, final Intent response) {
+        mDetectKind = detectKind;
         mSessionKey = sessionKey;
         mRequestParams = requestParams;
+        mResponse = response;
     }
 
     /**
@@ -44,7 +53,7 @@ public class HumanDetectEvent {
      * @return kind
      */
     public HumanDetectKind getKind() {
-        return mKind;
+        return mDetectKind;
     }
     
     /**
@@ -61,5 +70,13 @@ public class HumanDetectEvent {
      */
     public HumanDetectRequestParams getRequestParams() {
         return mRequestParams;
+    }
+    
+    /**
+     * get response.
+     * @return response
+     */
+    public Intent getResponse() {
+        return mResponse;
     }
 }

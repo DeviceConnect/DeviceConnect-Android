@@ -32,6 +32,14 @@ public class HvcBodyRequestParams {
     }
     
     /**
+     * get request parameters.
+     * @return request parameters.
+     */
+    public HumanDetectBodyRequestParams getRequestParams() {
+        return mBodyRequestParams;
+    }
+    
+    /**
      * Get threshold value(HVC device value).
      * @return HVC threshold(HVC device value)
      */

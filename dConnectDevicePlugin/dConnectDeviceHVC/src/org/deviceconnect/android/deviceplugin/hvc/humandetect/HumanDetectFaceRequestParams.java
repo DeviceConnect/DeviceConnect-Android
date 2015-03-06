@@ -13,7 +13,7 @@ import java.util.List;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HumanDetectFaceRequestParams extends HumanDetectBasicRequestParams {
+public class HumanDetectFaceRequestParams extends HumanDetectBasicRequestParams implements Cloneable {
     
     /**
      * eye threshold.

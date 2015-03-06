@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.profile;
 
+import java.security.InvalidParameterException;
 import java.util.List;
 
 import omron.HVC.HVC_RES;
@@ -25,6 +26,7 @@ import org.deviceconnect.message.DConnectMessage;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.content.IntentSender.SendIntentException;
 import android.content.pm.PackageManager;
 
 
@@ -36,7 +38,7 @@ import android.content.pm.PackageManager;
 public class HvcHumanDetectProfile extends HumanDetectProfile {
 
     /** Error. */
-    private static final int ERROR_VALUE_IS_NULL = 100;
+    public static final int ERROR_VALUE_IS_NULL = 100;
 
     /**
      * error message. {@value}
@@ -214,57 +216,76 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         // get comm manager.
         HvcCommManager commManager = ((HvcDeviceService) getContext()).getCommManager(serviceId);
 
-        // start detect thread.
-        HvcCommManager.DetectionResult result = commManager.startDetectThread(getContext(), device, useFunc,
-                requestParamsFinal, new HvcDetectListener() {
-            @Override
-            public void onDetectFinished(final HVC_RES result) {
-                // set response
-                HvcDeviceService.setDetectResultResponse(response, requestParamsFinal, result, detectKind);
-                // success
-                setResult(response, DConnectMessage.RESULT_OK);
-                getContext().sendBroadcast(response);
-            }
-
-            @Override
-            public void onDetectFaceDisconnected() {
-                // disconnect
-            }
-
-            @Override
-            public void onDetectError(final int status) {
-                // device error
-                MessageUtils.setUnknownError(response, ERROR_DETECT + status);
-                getContext().sendBroadcast(response);
-            }
-
-            @Override
-            public void onConnectError(final int status) {
-                // device error
-                MessageUtils.setUnknownError(response, ERROR_DEVICE_CONNECT + status);
-                getContext().sendBroadcast(response);
-            }
-
-            @Override
-            public void onRequestDetectError(final int status) {
-                // device error
-                MessageUtils.setUnknownError(response, ERROR_REQUEST_DETECT + status);
-                getContext().sendBroadcast(response);
-            }
-        });
-        if (result == HvcCommManager.DetectionResult.RESULT_ERR_SERVICEID_NOT_FOUND) {
-            // serviceId not found
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        } else if (result == HvcCommManager.DetectionResult.RESULT_ERR_THREAD_ALIVE) {
-            // comm thread running
-            MessageUtils.setIllegalDeviceStateError(response, ERROR_DEVICE_IS_BUSY);
-            return true;
-        } else if (result != HvcCommManager.DetectionResult.RESULT_SUCCESS) {
-            // BUG: result unknown value.
-            MessageUtils.setUnknownError(response, ERROR_RESULT_UNKNOWN_VALUE +  result);
-            return true;
-        }
+//        // start detect thread.
+//        HvcCommManager.CommDetectionResult result = commManager.startDetectThread(getContext(), device, useFunc,
+//                requestParamsFinal, new HvcDetectListener() {
+//
+//            @Override
+//            public void onConnected() {
+//                // TODO Auto-generated method stub
+//                
+//            }
+//
+//            @Override
+//            public void onPostSetParam() {
+//                // TODO Auto-generated method stub
+//                
+//            }
+//
+//            @Override
+//            public void onSetParamError(final int status) {
+//                // TODO Auto-generated method stub
+//                
+//            }
+//            
+//            @Override
+//            public void onDetectFinished(final HVC_RES result) {
+//                // set response
+//                HvcCommManager.setDetectResultResponse(response, requestParamsFinal, result, detectKind);
+//                // success
+//                setResult(response, DConnectMessage.RESULT_OK);
+//                getContext().sendBroadcast(response);
+//            }
+//
+//            @Override
+//            public void onDisconnected() {
+//                // disconnect
+//            }
+//
+//            @Override
+//            public void onDetectError(final int status) {
+//                // device error
+//                MessageUtils.setUnknownError(response, ERROR_DETECT + status);
+//                getContext().sendBroadcast(response);
+//            }
+//
+//            @Override
+//            public void onConnectError(final int status) {
+//                // device error
+//                MessageUtils.setUnknownError(response, ERROR_DEVICE_CONNECT + status);
+//                getContext().sendBroadcast(response);
+//            }
+//
+//            @Override
+//            public void onRequestDetectError(final int status) {
+//                // device error
+//                MessageUtils.setUnknownError(response, ERROR_REQUEST_DETECT + status);
+//                getContext().sendBroadcast(response);
+//            }
+//        });
+//        if (result == HvcCommManager.DetectionResult.RESULT_ERR_SERVICEID_NOT_FOUND) {
+//            // serviceId not found
+//            MessageUtils.setNotFoundServiceError(response);
+//            return true;
+//        } else if (result == HvcCommManager.DetectionResult.RESULT_ERR_THREAD_ALIVE) {
+//            // comm thread running
+//            MessageUtils.setIllegalDeviceStateError(response, ERROR_DEVICE_IS_BUSY);
+//            return true;
+//        } else if (result != HvcCommManager.DetectionResult.RESULT_SUCCESS) {
+//            // BUG: result unknown value.
+//            MessageUtils.setUnknownError(response, ERROR_RESULT_UNKNOWN_VALUE +  result);
+//            return true;
+//        }
 
         // Since returning the response asynchronously, it returns false.
         return false;
@@ -308,7 +329,8 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
 
             if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).registerDetectionEvent(detectKind, requestParams, response, serviceId, sessionKey);
+                ((HvcDeviceService) getContext()).registerDetectionEvent(detectKind, requestParams, response,
+                        serviceId, sessionKey);
                 return false;
             } else {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
@@ -341,9 +363,14 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             // unregister event.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
-                ((HvcDeviceService) getContext()).unregisterDetectionEvent(detectKind, response, serviceId, sessionKey);
+                try {
+                    ((HvcDeviceService) getContext()).unregisterDetectionEvent(detectKind, response, serviceId,
+                            sessionKey);
+                } catch (final InvalidParameterException e) {
+                    MessageUtils.setError(response, ERROR_VALUE_IS_NULL, e.getMessage());
+                    return true;
+                }
                 return false;
-
             } else {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
                 return true;

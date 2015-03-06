@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.hvc.request;
 import java.util.List;
 
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectBodyRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectEventRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectFaceRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectHandRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
@@ -56,7 +57,7 @@ public final class HvcDetectRequestUtils {
     public static HumanDetectRequestParams getRequestParams(final Intent request, final Intent response,
             final HumanDetectKind detectKind) throws NumberFormatException, IllegalStateException {
 
-        HumanDetectRequestParams requestParams = HvcDetectRequestParams.getDefaultRequestParameter();
+        HumanDetectRequestParams requestParams = new HumanDetectRequestParams();
         
         // get options parameter.
         List<String> options = HumanDetectProfile.getOptions(request);
@@ -72,10 +73,14 @@ public final class HvcDetectRequestUtils {
         
         // get event interval.
         Long eventInterval = HumanDetectProfile.getInterval(request);
-
+        
         // store parameter.(if data exist, to set. if data not exist, use default value.)
         if (detectKind == HumanDetectKind.BODY) {
-            HumanDetectBodyRequestParams bodyRequestParams = requestParams.getBody();
+            
+            // default value.
+            HumanDetectBodyRequestParams bodyRequestParams = HvcDetectRequestParams.getDefaultBodyRequestParameter();
+            
+            // set value.
             if (options != null) {
                 bodyRequestParams.setOptions(options);
             }
@@ -97,8 +102,16 @@ public final class HvcDetectRequestUtils {
             if (eventInterval != null) {
                 bodyRequestParams.setEventInterval(eventInterval);
             }
+            
+            // store.
+            requestParams.setBody(bodyRequestParams);
+            
         } else if (detectKind == HumanDetectKind.HAND) {
-            HumanDetectHandRequestParams handRequestParams = requestParams.getHand();
+            
+            // default value.
+            HumanDetectHandRequestParams handRequestParams = HvcDetectRequestParams.getDefaultHandRequestParameter();
+            
+            // set value.
             if (options != null) {
                 handRequestParams.setOptions(options);
             }
@@ -120,8 +133,16 @@ public final class HvcDetectRequestUtils {
             if (eventInterval != null) {
                 handRequestParams.setEventInterval(eventInterval);
             }
+            
+            // store.
+            requestParams.setHand(handRequestParams);
+            
         } else if (detectKind == HumanDetectKind.FACE) {
-            HumanDetectFaceRequestParams faceRequestParams = requestParams.getFace();
+            
+            // default value.
+            HumanDetectFaceRequestParams faceRequestParams = HvcDetectRequestParams.getDefaultFaceRequestParameter();
+            
+            // set value.
             if (options != null) {
                 faceRequestParams.setOptions(options);
             }
@@ -184,9 +205,21 @@ public final class HvcDetectRequestUtils {
                 faceRequestParams.setExpressionThreshold(expressionThreshold);
             }
             
+            // store.
+            requestParams.setFace(faceRequestParams);
+            
         } else {
             // BUG: detectKind unknown value.
             throw new IllegalStateException(ERROR_DETECTKIND_UNKNOWN_VALUE + detectKind.ordinal());
+        }
+        
+        // event parameter
+        if (requestParams.getEvent() == null) {
+            requestParams.setEvent(HvcDetectRequestParams.getDefaultEventRequestParameter());
+        }
+        if (eventInterval != null) {
+            HumanDetectEventRequestParams event = requestParams.getEvent();
+            event.setInterval(eventInterval);
         }
         
         // success

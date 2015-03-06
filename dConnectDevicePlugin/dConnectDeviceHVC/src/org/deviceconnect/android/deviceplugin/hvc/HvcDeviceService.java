@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc;
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,10 +30,12 @@ import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceDiscoveryPro
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcSystemProfile;
 import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestUtils;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.HumanDetectProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
@@ -57,24 +60,31 @@ public class HvcDeviceService extends DConnectMessageService {
     private static final String TAG = HvcDeviceApplication.class.getSimpleName();
     
     /**
-     * HVC comm managers(1serviceId,1record).
+     * timeout judge timer interval[msec].
+     */
+    private static final long TIMEOUT_JUDGE_MSEC = 1 * 60 * 1000;
+    
+    /**
+     * HVC comm managers(1serviceId,1record).<br>
+     * - if first serviceId, add record.<br>
+     * - if no access long time, remove record. by timer process.<br>
      */
     private List<HvcCommManager> mHvcCommManagerArray = new ArrayList<HvcCommManager>();
     
     /**
-     * timer interval time[msec].
+     * event interval timer information array.<br>
+     * - not exist record : stop timer.<br>
+     * - exist record : running timer.<br>
      */
-    private static final long TIMER_INTERVAL = 1 * 60 * 1000;
+    private List<HvcTimerInfo> mIntervalTimerInfoArray = new ArrayList<HvcTimerInfo>();
     
     /**
-     * timer running flag.
+     * timeout judget timer information.<br>
+     * - null: stop timer.
+     * - not null: running timer.
      */
-    private boolean mIsTimerRunning = false;
+    private HvcTimerInfo mTimeoutJudgeTimer;
     
-    /**
-     * timer.
-     */
-    private Timer mTimer;
     
     
     @Override
@@ -151,7 +161,7 @@ public class HvcDeviceService extends DConnectMessageService {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "getCommManager(). add HvcCommManager");
             }
-            commManager = new HvcCommManager(serviceId);
+            commManager = new HvcCommManager(this, serviceId);
             mHvcCommManagerArray.add(commManager);
         }
         
@@ -184,35 +194,38 @@ public class HvcDeviceService extends DConnectMessageService {
         // search CommManager by serviceId(if not found, add CommManager.).
         HvcCommManager commManager = getCommManager(serviceId);
         
-        // register
-        if (!commManager.checkRegisterDetectEvent(detectKind, sessionKey)) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "registerDetectionEvent(). add registerDetectEvent");
-            }
-            commManager.registerDetectEvent(detectKind, requestParams, sessionKey);
-        }
+        // start interval timer. (if no event with same interval.)
+        startIntervalTimer(requestParams.getEvent().getInterval());
         
-        // if timer not start , start timer.
-        if (!mIsTimerRunning) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "registerDetectionEvent(). start timer");
-            }
-            mTimer = new Timer();
-            mTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    requestDetectAllServices();
-                }
-            }, 0, TIMER_INTERVAL);
-            mIsTimerRunning = true;
-        }
+        // start timeout judget timer.
+        startTimeoutJudgetTimer();
         
-        // response.
-        response.putExtra(DConnectMessage.EXTRA_RESULT,
-                DConnectMessage.RESULT_OK);
-        response.putExtra(DConnectMessage.EXTRA_VALUE,
-                "Register OnFaceDetection event");
-        sendBroadcast(response);
+        // add event data to commManager.
+        commManager.registerDetectEvent(detectKind, requestParams, response, sessionKey);
+        
+//        // register
+//        if (!commManager.checkRegisterDetectEvent(detectKind, sessionKey)) {
+//            if (BuildConfig.DEBUG) {
+//                Log.d(TAG, "registerDetectionEvent(). add registerDetectEvent");
+//            }
+//            commManager.registerDetectEvent(detectKind, requestParams, sessionKey);
+//        }
+//        
+//        // if timer not start , start timer.
+//        if (!mIsIntervalTimerRunning) {
+//            if (BuildConfig.DEBUG) {
+//                Log.d(TAG, "registerDetectionEvent(). start timer");
+//            }
+//            mIntervalTimer = new Timer();
+//            mIntervalTimer.scheduleAtFixedRate(new TimerTask() {
+//                @Override
+//                public void run() {
+//                    requestDetectAllServices();
+//                }
+//            }, 0, TIMER_INTERVAL);
+//            mIsIntervalTimerRunning = true;
+//        }
+//        
     }
     
     // 
@@ -226,9 +239,10 @@ public class HvcDeviceService extends DConnectMessageService {
      * @param response response
      * @param serviceId serviceId
      * @param sessionKey sessionKey
+     * @throws InvalidParameterException comm manager not found by serviceId.
      */
     public void unregisterDetectionEvent(final HumanDetectKind detectKind, final Intent response,
-            final String serviceId, final String sessionKey) {
+            final String serviceId, final String sessionKey) throws InvalidParameterException {
         
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "unregisterDetectionEvent(). detectKind:" + detectKind.toString() + " serviceId:" + serviceId
@@ -240,353 +254,204 @@ public class HvcDeviceService extends DConnectMessageService {
         if (commManager == null) {
             // no register.
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "unregisterDetectionEvent(). no register.");
+                Log.d(TAG, "unregisterDetectionEvent(). commManager not found.");
             }
+            MessageUtils.setError(response, HvcHumanDetectProfile.ERROR_VALUE_IS_NULL, "no register event.");
+            return;
+        }
+        // get event interval.
+        Long interval = commManager.getEventInterval(detectKind, sessionKey);
+        if (interval == null) {
+            // event not found.
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "unregisterDetectionEvent(). event not found.");
+            }
+            MessageUtils.setError(response, HvcHumanDetectProfile.ERROR_VALUE_IS_NULL, "no register event.");
             return;
         }
         
         // unregister
         commManager.unregisterDetectEvent(detectKind, sessionKey);
         
-        // if no register, stop timer.
-        if (commManager.isEmptyEvent()) {
-            mTimer.cancel();
-            mTimer = null;
-            mIsTimerRunning = false;
+        // if has no event commManager, remove commManager.
+        if (commManager.getEventCount() <= 0) {
+            commManager.destroy();
+            HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
         }
         
-        // set response.
+        // if no event with same interval, stop interval timer (and remove interval timer info record).
+        if (!HvcCommManagerUtils.checkExistEventByInterval(mHvcCommManagerArray, interval)) {
+            stopIntervalTimer(interval);
+        }
+        
+        // if no event, stop timeout judge timer.
+        if (!HvcCommManagerUtils.checkExistEvent(mHvcCommManagerArray)) {
+            if (mTimeoutJudgeTimer != null) {
+                mTimeoutJudgeTimer.stopTimer();
+                mTimeoutJudgeTimer = null;
+            }
+        }
+        
         response.putExtra(DConnectMessage.EXTRA_RESULT,
                 DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE,
-                "unregister Detection event");
+                "Unregister OnDetection event");
         sendBroadcast(response);
     }
-    
+
     /**
-     * request detect to all services.
+     * stop interval timer(and remove record).
+     * @param interval interval
      */
-    private void requestDetectAllServices() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "requestDetectAllServices()");
+    private void stopIntervalTimer(final long interval) {
+        int count = mIntervalTimerInfoArray.size();
+        for (int index = (count - 1); index >= 0; index--) {
+            HvcTimerInfo timerInfo = mIntervalTimerInfoArray.get(index);
+            if (timerInfo.getInterval() == interval) {
+                timerInfo.stopTimer();
+                mIntervalTimerInfoArray.remove(index);
+            }
         }
+    }
+
+    /**
+     * start interval timer(if no event with same interval.).
+     * @param interval interval[msec]
+     */
+    private void startIntervalTimer(final long interval) {
+Log.d("AAA", "startIntervalTimer() - interval:" + interval);
         
-        for (HvcCommManager commManager : mHvcCommManagerArray) {
-            
-            // get bluetooth device by serviceId.
-            final String serviceId = commManager.getServiceId();
-            BluetoothDevice device = HvcCommManager.searchDevices(serviceId);
-            if (device == null) {
-                // serviceId not found. (erase? disconnect?)
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "requestDetectAllServices() serviceId not found. serviceId:" + serviceId);
-                }
-                continue;
-            }
-            
-            // get register detect event kinds.
-            final int useFunc = commManager.getUseFuncByEventRegisters();
-            
-            // get request params(use default value).
-            final HumanDetectRequestParams params = HvcDetectRequestParams.getDefaultRequestParameter();
-            
-            // start detection
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "requestDetectAllServices() commManager.startDetectThread() useFunc:" + useFunc);
-            }
-            commManager.startDetectThread(this, device, useFunc, params, new HvcDetectListener() {
+        // search timer, if interval to match.
+        HvcTimerInfo timerInfo = HvcTimerInfoUtils.search(mIntervalTimerInfoArray, interval);
+        if (timerInfo == null) {
+            // if no match, start interval timer.
+            timerInfo = new HvcTimerInfo(interval);
+            timerInfo.startTimer(new TimerTask() {
                 @Override
-                public void onRequestDetectError(final int status) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "onRequestDetectError. status:" + status);
-                    }
-                }
-                
-                @Override
-                public void onDetectFinished(final HVC_RES result) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "onDetectFinished() body:" + result.body.size() + " hand:" + result.hand.size()
-                                + " face:" + result.face.size());
-                    }
-                    if (result.body.size() > 0) {
-                        sendEvent(serviceId, HumanDetectKind.BODY, params, result);
-                    }
-                    if (result.hand.size() > 0) {
-                        sendEvent(serviceId, HumanDetectKind.HAND, params, result);
-                    }
-                    if (result.face.size() > 0) {
-                        sendEvent(serviceId, HumanDetectKind.FACE, params, result);
-                    }
-                }
-                
-                @Override
-                public void onDetectFaceDisconnected() {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "onDetectFaceDisconnected(). serviceId:" + serviceId);
-                    }
-                }
-                
-                @Override
-                public void onDetectError(final int status) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "onDetectError(). serviceId:" + serviceId + " status:" + status);
-                    }
-                }
-                
-                @Override
-                public void onConnectError(final int status) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "onConnectError(). serviceId:" + serviceId + " status:" + status);
+                public void run() {
+                    // call event process.
+                    for (HvcCommManager commManager : mHvcCommManagerArray) {
+                        commManager.onEventProc(getContext(), interval);
                     }
                 }
             });
+            mIntervalTimerInfoArray.add(timerInfo);
         }
     }
     
     /**
-     * send event.
-     * @param serviceId serviceId
-     * @param detectKind detectKind
-     * @param params params
-     * @param result result
+     * start timeout judget timer.
      */
-    private void sendEvent(final String serviceId, final HumanDetectKind detectKind,
-            final HumanDetectRequestParams params, final HVC_RES result) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "sendEvent()");
+    private void startTimeoutJudgetTimer() {
+        
+        mTimeoutJudgeTimer = new HvcTimerInfo(TIMEOUT_JUDGE_MSEC);
+        mTimeoutJudgeTimer.startTimer(new TimerTask() {
+            @Override
+            public void run() {
+                // call timeout judge process.
+                for (HvcCommManager commManager : mHvcCommManagerArray) {
+                    commManager.onTimeoutJudgeProc();
+                }
+            }
+        });
+    }
+    
+    
+    /**
+     * timer information.
+     * 
+     * @author NTT DOCOMO, INC.
+     */
+    private class HvcTimerInfo {
+        
+        /**
+         * Interval[msec].
+         */
+        private long mInterval;
+        
+        /**
+         * Timer.
+         */
+        private Timer mTimer;
+        
+        /**
+         * Timer running flag.
+         */
+        private boolean mIsTimerRunning;
+        
+        /**
+         * Constructor.
+         * @param interval interval[msec]
+         */
+        public HvcTimerInfo(final long interval) {
+            mInterval = interval;
+            mTimer = new Timer();
+            mIsTimerRunning = false;
         }
         
-        String attribute = HvcConvertUtils.convertToEventAttribute(detectKind);
-        if (attribute == null) {
-            // BUG: not exist event attribute.
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "sendEvent() not exist event attribute. detectKind:" + detectKind.toString());
-            }
-            return;
+        /**
+         * get interval.
+         * @return interval[msec]
+         */
+        public long getInterval() {
+            return mInterval;
         }
         
-        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                HumanDetectProfile.PROFILE_NAME, null,
-                attribute);
-        for (int i = 0; i < events.size(); i++) {
-            Event event = events.get(i);
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG,
-                        "sendEvent() sendBroadcast - serviceId:" + event.getServiceId() + " attribute:"
-                                + event.getAttribute() + "sessionKey:" + event.getSessionKey());
-            }
-            Intent intent = EventManager.createEventMessage(event);
-            // set response
-            setDetectResultResponse(intent, params, result, detectKind);
-            getContext().sendBroadcast(intent);
+        /**
+         * set interval.
+         * @param interval interval[msec]
+         */
+        public void setInterval(final long interval) {
+            mInterval = interval;
         }
-    }
-    
-    /**
-     * set response.
-     * 
-     * @param response response
-     * @param requestParams request
-     * @param result result
-     * @param detectKind detectKind
-     */
-    public static void setDetectResultResponse(final Intent response, final HumanDetectRequestParams requestParams,
-            final HVC_RES result, final HumanDetectKind detectKind) {
-
-        // body detects response.
-        if (detectKind == HumanDetectKind.BODY && result.body.size() > 0) {
-            setBodyDetectResultResponse(response, new HvcDetectRequestParams(requestParams), result);
-        }
-
-        // hand detects response.
-        if (detectKind == HumanDetectKind.HAND && result.hand.size() > 0) {
-            setHandDetectResultResponse(response, new HvcDetectRequestParams(requestParams), result);
-        }
-
-        // face detects response.
-        if (detectKind == HumanDetectKind.FACE && result.face.size() > 0) {
-            setFaceDetectResultResponse(response, new HvcDetectRequestParams(requestParams), result);
-        }
-    }
-    
-    /**
-     * set body detect result response.
-     * 
-     * @param response response
-     * @param requestParams request
-     * @param result result
-     */
-    public static void setBodyDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
-            final HVC_RES result) {
-    
-        List<Bundle> bodyDetects = new LinkedList<Bundle>();
-        for (DetectionResult r : result.body) {
-    
-            // threshold check
-            if (r.confidence >= requestParams.getFace().getHvcThreshold()) {
-                Bundle bodyDetect = new Bundle();
-                HumanDetectProfile.setParamX(bodyDetect,
-                        HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamY(bodyDetect,
-                        HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamWidth(bodyDetect,
-                        HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamHeight(bodyDetect,
-                        HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamConfidence(bodyDetect,
-                        HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
-                
-                bodyDetects.add(bodyDetect);
+        
+        /**
+         * start timer.
+         * @param intervalTimerTtask interval timer task
+         */
+        public void startTimer(final TimerTask intervalTimerTtask) {
+            if (!mIsTimerRunning) {
+                // add timertask.
+                mTimer.scheduleAtFixedRate(intervalTimerTtask, 0, mInterval);
+                mIsTimerRunning = true;
+            } else {
+                // change timertask.
+                mTimer.cancel();
+                mTimer.scheduleAtFixedRate(intervalTimerTtask, 0, mInterval);
             }
         }
-        if (bodyDetects.size() > 0) {
-            HumanDetectProfile.setBodyDetects(response, bodyDetects.toArray(new Bundle[bodyDetects.size()]));
-        }
-    }
-    
-    /**
-     * set hand detect result response.
-     * 
-     * @param response response
-     * @param requestParams request
-     * @param result result
-     */
-    public static void setHandDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
-            final HVC_RES result) {
-
-        List<Bundle> handDetects = new LinkedList<Bundle>();
-        for (DetectionResult r : result.hand) {
-
-            // threshold check
-            if (r.confidence >= requestParams.getHand().getHvcThreshold()) {
-                Bundle handDetect = new Bundle();
-                HumanDetectProfile.setParamX(handDetect,
-                        HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamY(handDetect,
-                        HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamWidth(handDetect,
-                        HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamHeight(handDetect,
-                        HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamConfidence(handDetect,
-                        HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
-                
-                handDetects.add(handDetect);
+        
+        /**
+         * stop timer.
+         */
+        public void stopTimer() {
+            if (mIsTimerRunning) {
+                mTimer.cancel();
             }
         }
-        if (handDetects.size() > 0) {
-            HumanDetectProfile.setHandDetects(response, handDetects.toArray(new Bundle[handDetects.size()]));
-        }
-    }
+    };
     
     /**
-     * set face detect result response.
+     * timer information utility.
      * 
-     * @param response response
-     * @param requestParams request
-     * @param result result
+     * @author NTT DOCOMO, INC.
      */
-    public static void setFaceDetectResultResponse(final Intent response, final HvcDetectRequestParams requestParams,
-            final HVC_RES result) {
-
-        List<Bundle> faceDetects = new LinkedList<Bundle>();
-        for (FaceResult r : result.face) {
-
-            // threshold check
-            if (r.confidence >= requestParams.getFace().getHvcThreshold()) {
-                Bundle faceDetect = new Bundle();
-                HumanDetectProfile.setParamX(faceDetect,
-                        HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamY(faceDetect,
-                        HvcConvertUtils.convertToNormalize(r.posY, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamWidth(faceDetect,
-                        HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_WIDTH));
-                HumanDetectProfile.setParamHeight(faceDetect,
-                        HvcConvertUtils.convertToNormalize(r.size, HvcConstants.HVC_C_CAMERA_HEIGHT));
-                HumanDetectProfile.setParamConfidence(faceDetect,
-                        HvcConvertUtils.convertToNormalize(r.confidence, HvcConstants.CONFIDENCE_MAX));
-
-                // face direction.
-                if ((result.executedFunc & HVC.HVC_ACTIV_FACE_DIRECTION) != 0) {
-
-                    // threshold check
-                    if (r.dir.confidence >= requestParams.getFace().getHvcFaceDirectionThreshold()) {
-                        Bundle faceDirectionResult = new Bundle();
-                        HumanDetectProfile.setParamYaw(faceDirectionResult, r.dir.yaw);
-                        HumanDetectProfile.setParamPitch(faceDirectionResult, r.dir.pitch);
-                        HumanDetectProfile.setParamRoll(faceDirectionResult, r.dir.roll);
-                        HumanDetectProfile.setParamConfidence(faceDirectionResult,
-                                HvcConvertUtils.convertToNormalizeConfidence(r.dir.confidence));
-                        HumanDetectProfile.setParamFaceDirectionResult(faceDetect, faceDirectionResult);
-                    }
+    private static class HvcTimerInfoUtils {
+        
+        /**
+         * search data by interval.
+         * @param hvcTimerInfoArray array
+         * @param interval interval(search key)
+         * @return not null: found data. / null: not found.
+         */
+        public static HvcTimerInfo search(final List<HvcTimerInfo> hvcTimerInfoArray, final long interval) {
+            for (HvcTimerInfo hvcTimerInfo : hvcTimerInfoArray) {
+                if (hvcTimerInfo.getInterval() == interval) {
+                    return hvcTimerInfo;
                 }
-                // age.
-                if ((result.executedFunc & HVC.HVC_ACTIV_AGE_ESTIMATION) != 0) {
-
-                    // threshold check
-                    if (r.age.confidence >= requestParams.getFace().getHvcAgeThreshold()) {
-                        Bundle ageResult = new Bundle();
-                        HumanDetectProfile.setParamAge(ageResult, r.age.age);
-                        HumanDetectProfile.setParamConfidence(ageResult,
-                                HvcConvertUtils.convertToNormalizeConfidence(r.age.confidence));
-                        HumanDetectProfile.setParamAgeResult(faceDetect, ageResult);
-                    }
-                }
-                // gender.
-                if ((result.executedFunc & HVC.HVC_ACTIV_GENDER_ESTIMATION) != 0) {
-
-                    // threshold check
-                    if (r.gen.confidence >= requestParams.getFace().getHvcGenderThreshold()) {
-                        Bundle genderResult = new Bundle();
-                        HumanDetectProfile.setParamGender(genderResult,
-                                (r.gen.gender == HVC.HVC_GEN_MALE ? HumanDetectProfile.VALUE_GENDER_MALE
-                                        : HumanDetectProfile.VALUE_GENDER_FEMALE));
-                        HumanDetectProfile.setParamConfidence(genderResult,
-                                HvcConvertUtils.convertToNormalizeConfidence(r.gen.confidence));
-                        HumanDetectProfile.setParamGenderResult(faceDetect, genderResult);
-                    }
-                }
-                // gaze.
-                if ((result.executedFunc & HVC.HVC_ACTIV_GAZE_ESTIMATION) != 0) {
-                    Bundle gazeResult = new Bundle();
-                    HumanDetectProfile.setParamGazeLR(gazeResult, r.gaze.gazeLR);
-                    HumanDetectProfile.setParamGazeUD(gazeResult, r.gaze.gazeUD);
-                    HumanDetectProfile.setParamConfidence(gazeResult,
-                            HvcConvertUtils.convertToNormalizeConfidence(HvcConstants.CONFIDENCE_MAX));
-                    HumanDetectProfile.setParamGazeResult(faceDetect, gazeResult);
-                }
-                // blink.
-                if ((result.executedFunc & HVC.HVC_ACTIV_BLINK_ESTIMATION) != 0) {
-                    Bundle blinkResult = new Bundle();
-                    HumanDetectProfile.setParamLeftEye(blinkResult,
-                            HvcConvertUtils.convertToNormalize(r.blink.ratioL, HvcConstants.BLINK_MAX));
-                    HumanDetectProfile.setParamRightEye(blinkResult,
-                            HvcConvertUtils.convertToNormalize(r.blink.ratioR, HvcConstants.BLINK_MAX));
-                    HumanDetectProfile.setParamConfidence(blinkResult,
-                            HvcConvertUtils.convertToNormalizeConfidence(HvcConstants.CONFIDENCE_MAX));
-                    HumanDetectProfile.setParamBlinkResult(faceDetect, blinkResult);
-                }
-                // expression.
-                if ((result.executedFunc & HVC.HVC_ACTIV_EXPRESSION_ESTIMATION) != 0) {
-
-                    // threshold check
-                    double normalizeExpressionScore = HvcConvertUtils
-                            .convertToNormalizeExpressionScore(r.exp.score);
-                    HumanDetectRequestParams humanDetectRequestParams = requestParams.getHumanDetectRequestParams();
-                    if (normalizeExpressionScore >= humanDetectRequestParams.getFace().getExpressionThreshold()) {
-                        Bundle expressionResult = new Bundle();
-                        HumanDetectProfile.setParamExpression(expressionResult,
-                                HvcConvertUtils.convertToNormalizeExpression(r.exp.expression));
-                        HumanDetectProfile.setParamConfidence(expressionResult, normalizeExpressionScore);
-                        HumanDetectProfile.setParamExpressionResult(faceDetect, expressionResult);
-                    }
-                }
-                
-                faceDetects.add(faceDetect);
             }
+            return null;
         }
-        if (faceDetects.size() > 0) {
-            HumanDetectProfile.setFaceDetects(response, faceDetects.toArray(new Bundle[faceDetects.size()]));
-        }
-    }
+        
+    };
 }

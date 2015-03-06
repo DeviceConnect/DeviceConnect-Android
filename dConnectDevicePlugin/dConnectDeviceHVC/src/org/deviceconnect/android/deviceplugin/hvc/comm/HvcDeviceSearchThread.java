@@ -64,5 +64,12 @@ public class HvcDeviceSearchThread extends Thread {
         }
         return null;
     }
+
+    /**
+     * thread halt process.
+     */
+    public void halt() {
+        interrupt();
+    }
 }
 

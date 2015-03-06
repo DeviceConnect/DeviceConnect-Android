@@ -15,31 +15,22 @@ package org.deviceconnect.android.deviceplugin.hvc.humandetect;
 public class HumanDetectRequestParams {
 
     /**
-     * body parameter.
+     * body parameter(if null, no use).
      */
     private HumanDetectBodyRequestParams mBody;
     /**
-     * hand parameter.
+     * hand parameter(if null, no use).
      */
     private HumanDetectHandRequestParams mHand;
     /**
-     * face parameter.
+     * face parameter(if null, no use).
      */
     private HumanDetectFaceRequestParams mFace;
-    
-    
     /**
-     * Constructor(with body, hand, face).
-     * @param body default body request parameters.
-     * @param hand default hand request parameters.
-     * @param face default face request parameters.
+     * event parameter(if null, not event (GET/POST API)).
      */
-    public HumanDetectRequestParams(final HumanDetectBodyRequestParams body, final HumanDetectHandRequestParams hand,
-            final HumanDetectFaceRequestParams face) {
-        mBody = body;
-        mHand = hand;
-        mFace = face;
-    }
+    private HumanDetectEventRequestParams mEvent;
+    
     
     /**
      * set body request parameters.
@@ -66,6 +57,14 @@ public class HumanDetectRequestParams {
     }
     
     /**
+     * set event request parameters.
+     * @param event event request parameters
+     */
+    public void setEvent(final HumanDetectEventRequestParams event) {
+        mEvent = event;
+    }
+    
+    /**
      * get body request parameters.
      * @return body request parameters
      */
@@ -87,5 +86,13 @@ public class HumanDetectRequestParams {
      */
     public HumanDetectFaceRequestParams getFace() {
         return mFace;
+    }
+    
+    /**
+     * get event request parameters.
+     * @return event request parameters
+     */
+    public HumanDetectEventRequestParams getEvent() {
+        return mEvent;
     }
 }

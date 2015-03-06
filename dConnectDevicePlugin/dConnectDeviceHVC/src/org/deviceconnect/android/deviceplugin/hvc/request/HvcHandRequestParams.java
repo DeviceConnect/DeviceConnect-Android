@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.hvc.request;
 import java.util.List;
 
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectBasicRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectHandRequestParams;
 
 /**
@@ -31,7 +32,15 @@ public class HvcHandRequestParams {
     public HvcHandRequestParams(final HumanDetectHandRequestParams handRequestParams) {
         mHandRequestParams = handRequestParams;
     }
-
+    
+    /**
+     * get request parameters.
+     * @return request parameters
+     */
+    public HumanDetectHandRequestParams getRequestParams() {
+        return mHandRequestParams;
+    }
+    
     /**
      * Get threshold value(HVC device value).
      * @return HVC threshold(HVC device value)
@@ -76,5 +85,6 @@ public class HvcHandRequestParams {
         int hvcMaxHeight = HvcConvertUtils.convertToHvcHeight(mHandRequestParams.getMaxHeight());
         return hvcMaxHeight;
     }
+
     
 }

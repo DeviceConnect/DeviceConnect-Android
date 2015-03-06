@@ -14,6 +14,16 @@ import omron.HVC.HVC_RES;
  * @author NTT DOCOMO, INC.
  */
 public interface HvcDetectListener {
+    
+    /**
+     * Device Connected.
+     */
+    void onConnected();
+    
+    /**
+     * Send Parameter finished.
+     */
+    void onPostSetParam();
     /**
      * Detect finished.
      * @param result result
@@ -22,12 +32,18 @@ public interface HvcDetectListener {
     /**
      * Disconnected.
      */
-    void onDetectFaceDisconnected();
+    void onDisconnected();
+    
     /**
      * Error.
      * @param status error status.
      */
     void onConnectError(final int status);
+    /**
+     * Set parameter error.
+     * @param status error status.
+     */
+    void onSetParamError(final int status);
     /**
      * Request error.
      * @param status error status.

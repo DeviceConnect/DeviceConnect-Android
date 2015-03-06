@@ -18,6 +18,8 @@ package omron.HVC;
 
 import java.util.ArrayList;
 
+import org.deviceconnect.android.deviceplugin.hvc.HvcDebugUtils;
+
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.util.Log;
@@ -472,7 +474,9 @@ public class HVC_BLE extends HVC implements BleInterface
         // TODO Auto-generated method stub
         mStatus = STATE_DISCONNECTED;
         if ( mService != null ) {
-	        Log.d(TAG, "DisConnect Device = " + mBtDevice.getName() + " (" + mBtDevice.getAddress() + ")");
+
+HvcDebugUtils.stackTraceLog("HVC_BLE::connect()");
+            Log.d(TAG, "DisConnect Device = " + mBtDevice.getName() + " (" + mBtDevice.getAddress() + ")");
             mService.close();
         }
 
@@ -497,6 +501,7 @@ public class HVC_BLE extends HVC implements BleInterface
         // TODO Auto-generated method stub
         mStatus = STATE_DISCONNECTED;
         if ( mService != null ) {
+HvcDebugUtils.stackTraceLog("HVC_BLE::disconnect()");
 	        Log.d(TAG, "DisConnect Device = " + mBtDevice.getName() + " (" + mBtDevice.getAddress() + ")");
             mService.close();
         }
@@ -548,4 +553,25 @@ public class HVC_BLE extends HVC implements BleInterface
 		Log.d(TAG, "getDeviceName() : HVC_NORMAL");
 		return HVC_NORMAL;
 	}
+	
+	/**
+	 * get status.
+	 * @return status.
+	 */
+    public int getStatus() {
+        if ( mBtDevice == null ) {
+            Log.d(TAG, "getStatus() : HVC_ERROR_NODEVICES");
+            return HVC_ERROR_NODEVICES;
+        }
+        if ( mService == null || mService.getmConnectionState() != BleDeviceService.STATE_CONNECTED ) {
+            Log.d(TAG, "getStatus() : HVC_ERROR_DISCONNECTED");
+            return HVC_ERROR_DISCONNECTED;
+        }
+        if ( mStatus > STATE_CONNECTED ) {
+            Log.d(TAG, "getStatus() : HVC_ERROR_BUSY");
+            return HVC_ERROR_BUSY;
+        }
+        Log.d(TAG, "getStatus() : HVC_NORMAL - mStatus:" + mStatus);
+        return HVC_NORMAL;
+    }
 }

@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.humandetect;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,7 +14,7 @@ import java.util.List;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HumanDetectBasicRequestParams {
+public class HumanDetectBasicRequestParams implements Cloneable {
     
     /**
      * options.
@@ -67,6 +68,16 @@ public class HumanDetectBasicRequestParams {
         mNormalizeMaxWidth = normalizeMaxWidth;
         mNormalizeMaxHeight = normalizeMaxHeight;
         mEventInterval = eventInterval;
+    }
+    
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        
+        // deep copy
+        HumanDetectBasicRequestParams params = (HumanDetectBasicRequestParams) this.clone();
+        params.setOptions(new ArrayList<String>(mOptions));
+        
+        return params;
     }
     
     /**

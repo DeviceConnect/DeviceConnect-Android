@@ -39,4 +39,34 @@ public final class HvcCommManagerUtils {
         return null;
     }
 
+    /**
+     * check exist event by interval.
+     * @param commManagerArray array.
+     * @param interval interval.
+     * @return true: exist / false: not exist
+     */
+    public static boolean checkExistEventByInterval(final List<HvcCommManager> commManagerArray, final long interval) {
+        
+        for (HvcCommManager commManager : commManagerArray) {
+            if (commManager.checkExistEventByInterval(interval)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * check exist event by interval.
+     * @param commManagerArray array.
+     * @return true: exist / false: not exist
+     */
+    public static boolean checkExistEvent(final List<HvcCommManager> commManagerArray) {
+        for (HvcCommManager commManager : commManagerArray) {
+            if (commManager.getEventCount() > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

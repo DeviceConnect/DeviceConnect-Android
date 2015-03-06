@@ -13,7 +13,7 @@ import java.util.List;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HumanDetectBodyRequestParams extends HumanDetectBasicRequestParams {
+public class HumanDetectBodyRequestParams extends HumanDetectBasicRequestParams implements Cloneable {
 
     /**
      * Constructor(with default value).

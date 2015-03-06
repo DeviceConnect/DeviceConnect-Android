@@ -10,11 +10,16 @@ import java.util.ArrayList;
 
 import omron.HVC.HVC_PRM;
 
+import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectBodyRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectEventRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectFaceRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectHandRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
+
+import android.util.Log;
 
 /**
  * HVC request parameter class.
@@ -108,28 +113,52 @@ public class HvcDetectRequestParams {
     
 
     /**
-     * get HVC default request parameters.
-     * @return HVC default request parameters.
+     * get HVC default body request parameters.
+     * @return HVC default body request parameters.
      */
-    public static HumanDetectRequestParams getDefaultRequestParameter() {
+    public static HumanDetectBodyRequestParams getDefaultBodyRequestParameter() {
         
         HumanDetectBodyRequestParams body = new HumanDetectBodyRequestParams(new ArrayList<String>(),
                 DEFAULT_NORMALIZE_THRESHOLD, DEFAULT_NORMALIZE_BODY_MIN_WIDTH, DEFAULT_NORMALIZE_BODY_MIN_HEIGHT,
                 DEFAULT_NORMALIZE_BODY_MAX_WIDTH, DEFAULT_NORMALIZE_BODY_MAX_HEIGHT, DEFAULT_EVENT_INTERVAL);
+        return body;
+    }
+    
+    /**
+     * get HVC default hand request parameters.
+     * @return HVC default hand request parameters.
+     */
+    public static HumanDetectHandRequestParams getDefaultHandRequestParameter() {
         
         HumanDetectHandRequestParams hand = new HumanDetectHandRequestParams(new ArrayList<String>(),
                 DEFAULT_NORMALIZE_THRESHOLD, DEFAULT_NORMALIZE_HAND_MIN_WIDTH, DEFAULT_NORMALIZE_HAND_MIN_HEIGHT,
                 DEFAULT_NORMALIZE_HAND_MAX_WIDTH, DEFAULT_NORMALIZE_HAND_MAX_HEIGHT, DEFAULT_EVENT_INTERVAL);
+        return hand;
+    }
+    
+    
+    /**
+     * get HVC default face request parameters.
+     * @return HVC default face request parameters.
+     */
+    public static HumanDetectFaceRequestParams getDefaultFaceRequestParameter() {
         
         HumanDetectFaceRequestParams face = new HumanDetectFaceRequestParams(new ArrayList<String>(),
                 DEFAULT_NORMALIZE_THRESHOLD, DEFAULT_NORMALIZE_FACE_MIN_WIDTH, DEFAULT_NORMALIZE_FACE_MIN_HEIGHT,
                 DEFAULT_NORMALIZE_FACE_MAX_WIDTH, DEFAULT_NORMALIZE_FACE_MAX_HEIGHT, DEFAULT_EVENT_INTERVAL);
+        return face;
+    }
+    
+    /**
+     * get HVC default event request parameters.
+     * @return HVC default event request parameters.
+     */
+    public static HumanDetectEventRequestParams getDefaultEventRequestParameter() {
         
-        HumanDetectRequestParams requestParams = new HumanDetectRequestParams(body, hand, face);
-        return requestParams;
+        HumanDetectEventRequestParams event = new HumanDetectEventRequestParams(DEFAULT_EVENT_INTERVAL);
+        return event;
     }
 
-    
     /**
      * Human detect request parameters.
      */
@@ -157,8 +186,12 @@ public class HvcDetectRequestParams {
      * @return HVC body request parameters.
      */
     public HvcBodyRequestParams getBody() {
-        HvcBodyRequestParams bodyRequestParams = new HvcBodyRequestParams(mRequestParams.getBody());
-        return bodyRequestParams;
+        if (mRequestParams.getBody() != null) {
+            HvcBodyRequestParams bodyRequestParams = new HvcBodyRequestParams(mRequestParams.getBody());
+            return bodyRequestParams;
+        } else {
+            return null;
+        }
     }
     
     /**
@@ -166,8 +199,12 @@ public class HvcDetectRequestParams {
      * @return HVC hand request parameters.
      */
     public HvcHandRequestParams getHand() {
-        HvcHandRequestParams handRequestParams = new HvcHandRequestParams(mRequestParams.getHand());
-        return handRequestParams;
+        if (mRequestParams.getHand() != null) {
+            HvcHandRequestParams handRequestParams = new HvcHandRequestParams(mRequestParams.getHand());
+            return handRequestParams;
+        } else {
+            return null;
+        }
     }
     
     /**
@@ -175,8 +212,12 @@ public class HvcDetectRequestParams {
      * @return HVC face request parameters.
      */
     public HvcFaceRequestParams getFace() {
-        HvcFaceRequestParams faceRequestParams = new HvcFaceRequestParams(mRequestParams.getFace());
-        return faceRequestParams;
+        if (mRequestParams.getFace() != null) {
+            HvcFaceRequestParams faceRequestParams = new HvcFaceRequestParams(mRequestParams.getFace());
+            return faceRequestParams;
+        } else {
+            return null;
+        }
     }
     
     
@@ -189,26 +230,57 @@ public class HvcDetectRequestParams {
      * @return HVC_PRM value
      */
     public HVC_PRM getHvcParams() {
-        
+Log.d("AAA", "getHvcParams() - start");
         HvcBodyRequestParams body = getBody();
         HvcHandRequestParams hand = getHand();
         HvcFaceRequestParams face = getFace();
+Log.d("AAA", "getHvcParams() - body:" + (body != null ? "not null" : "null"));
+Log.d("AAA", "getHvcParams() - hand:" + (hand != null ? "not null" : "null"));
+Log.d("AAA", "getHvcParams() - face:" + (face != null ? "not null" : "null"));
         
         HVC_PRM hvcPrm = new HVC_PRM();
         
-        hvcPrm.body.Threshold = body.getHvcThreshold();
-        hvcPrm.body.MinSize = body.getHvcMinWidth();
-        hvcPrm.body.MaxSize = body.getHvcMaxWidth();
+        if (body != null) {
+Log.d("AAA", "getHvcParams() - body.getHvcThreshold() - start");
+            hvcPrm.body.Threshold = body.getHvcThreshold();
+Log.d("AAA", "getHvcParams() - body.getHvcThreshold() - finish");
+            hvcPrm.body.MinSize = body.getHvcMinWidth();
+            hvcPrm.body.MaxSize = body.getHvcMaxWidth();
+        }
         
-        hvcPrm.hand.Threshold = hand.getHvcThreshold();
-        hvcPrm.hand.MinSize = hand.getHvcMinWidth();
-        hvcPrm.hand.MaxSize = hand.getHvcMaxWidth();
+        if (hand != null) {
+            hvcPrm.hand.Threshold = hand.getHvcThreshold();
+            hvcPrm.hand.MinSize = hand.getHvcMinWidth();
+            hvcPrm.hand.MaxSize = hand.getHvcMaxWidth();
+        }
         
-        hvcPrm.face.Threshold = face.getHvcThreshold();
-        hvcPrm.face.MinSize = face.getHvcMinWidth();
-        hvcPrm.face.MaxSize = face.getHvcMaxWidth();
+        if (face != null) {
+            hvcPrm.face.Threshold = face.getHvcThreshold();
+            hvcPrm.face.MinSize = face.getHvcMinWidth();
+            hvcPrm.face.MaxSize = face.getHvcMaxWidth();
+        }
+Log.d("AAA", "getHvcParams() - finish");
         
         return hvcPrm;
     }
     
+    /**
+     * get useFunc.
+     * @return useFunc
+     */
+    public int getUseFunc() {
+Log.d("AAA", "getUseFunc() - start");
+        int useFunc = 0;
+        if (mRequestParams.getBody() != null) {
+            useFunc |= HvcConvertUtils.convertUseFunc(HumanDetectKind.BODY, mRequestParams.getBody().getOptions());
+        }
+        if (mRequestParams.getHand() != null) {
+            useFunc |= HvcConvertUtils.convertUseFunc(HumanDetectKind.HAND, mRequestParams.getHand().getOptions());
+        }
+        if (mRequestParams.getFace() != null) {
+            useFunc |= HvcConvertUtils.convertUseFunc(HumanDetectKind.FACE, mRequestParams.getFace().getOptions());
+        }
+Log.d("AAA", "getUseFunc() - finish  useFunc:" + String.format("%04x", useFunc));
+        return useFunc;
+    }
 }

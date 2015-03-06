@@ -12,10 +12,13 @@ import java.util.Map;
 
 import omron.HVC.HVC;
 
+import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceApplication;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 import org.deviceconnect.android.profile.HumanDetectProfile;
 
+import android.util.Log;
 import android.util.SparseArray;
 
 
@@ -27,6 +30,11 @@ import android.util.SparseArray;
  */
 public final class HvcConvertUtils {
 
+    /**
+     * log tag.
+     */
+    private static final String TAG = HvcDeviceApplication.class.getSimpleName();
+    
     /**
      * Constructor.
      */
@@ -208,9 +216,9 @@ public final class HvcConvertUtils {
      * 
      * @param detectKind detectKind
      * @param options options
-     * @return useFunc (if null error unknown parameter)
+     * @return useFunc
      */
-    public static Integer convertUseFunc(final HumanDetectKind detectKind, final List<String> options) {
+    public static int convertUseFunc(final HumanDetectKind detectKind, final List<String> options) {
 
         HashMap<HumanDetectKind, Integer> convertDetectKinds = new HashMap<HumanDetectKind, Integer>();
         convertDetectKinds.put(HumanDetectKind.BODY, HVC.HVC_ACTIV_BODY_DETECTION);
@@ -219,7 +227,10 @@ public final class HvcConvertUtils {
         Integer detectBitFlag = convertDetectKinds.get(detectKind);
         if (detectBitFlag == null) {
             // not match
-            return null;
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "unknown detect kind. value: " + detectKind);
+            }
+            return 0;
         }
         
         HashMap<String, Integer> convertOptions = new HashMap<String, Integer>();

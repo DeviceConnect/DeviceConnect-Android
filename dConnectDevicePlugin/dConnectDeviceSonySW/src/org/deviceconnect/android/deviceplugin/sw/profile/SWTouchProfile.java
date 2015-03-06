@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.sw.profile;
 
 import org.deviceconnect.android.deviceplugin.sw.R;
+import org.deviceconnect.android.deviceplugin.sw.SWApplication;
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -18,6 +19,7 @@ import com.sonyericsson.extras.liveware.aef.control.Control;
 import com.sonyericsson.extras.liveware.aef.registration.Registration;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.os.Bundle;
 
 /**
  * SonySW device plug-in {@link KeyEventProfile} implementation.
@@ -25,6 +27,92 @@ import android.content.Intent;
  * @author NTT DOCOMO, INC.
  */
 public class SWTouchProfile extends TouchProfile {
+
+    @Override
+    protected boolean onGetOnTouch(final Intent request, final Intent response, final String serviceId) {
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
+        if (device == null) {
+            MessageUtils.setNotFoundServiceError(response, "No service is found: " + serviceId);
+            return true;
+        }
+
+        Bundle touches = SWApplication.getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH);
+        if (touches == null) {
+            response.putExtra(TouchProfile.PARAM_TOUCH, "");
+        } else {
+            response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+        }
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchStart(final Intent request, final Intent response, final String serviceId) {
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
+        if (device == null) {
+            MessageUtils.setNotFoundServiceError(response, "No service is found: " + serviceId);
+            return true;
+        }
+
+        Bundle touches = SWApplication.getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_START);
+        if (touches == null) {
+            response.putExtra(TouchProfile.PARAM_TOUCH, "");
+        } else {
+            response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+        }
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchEnd(final Intent request, final Intent response, final String serviceId) {
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
+        if (device == null) {
+            MessageUtils.setNotFoundServiceError(response, "No service is found: " + serviceId);
+            return true;
+        }
+
+        Bundle touches = SWApplication.getTouchCache(TouchProfile.ATTRIBUTE_ON_TOUCH_END);
+        if (touches == null) {
+            response.putExtra(TouchProfile.PARAM_TOUCH, "");
+        } else {
+            response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+        }
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnDoubleTap(final Intent request, final Intent response, final String serviceId) {
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
+        if (device == null) {
+            MessageUtils.setNotFoundServiceError(response, "No service is found: " + serviceId);
+            return true;
+        }
+
+        Bundle touches = SWApplication.getTouchCache(TouchProfile.ATTRIBUTE_ON_DOUBLE_TAP);
+        if (touches == null) {
+            response.putExtra(TouchProfile.PARAM_TOUCH, "");
+        } else {
+            response.putExtra(TouchProfile.PARAM_TOUCH, touches);
+        }
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchMove(final Intent request, final Intent response, final String serviceId) {
+        // SW not support "TouchMove".
+        MessageUtils.setNotSupportAttributeError(response);
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnTouchCancel(final Intent request, final Intent response, final String serviceId) {
+        // SW not support "TouchCancel".
+        MessageUtils.setNotSupportAttributeError(response);
+        return true;
+    }
 
     @Override
     protected boolean onPutOnTouch(final Intent request, final Intent response, final String serviceId,

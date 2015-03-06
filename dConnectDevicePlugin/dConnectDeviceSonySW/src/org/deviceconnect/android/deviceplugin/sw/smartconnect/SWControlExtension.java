@@ -41,6 +41,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.deviceconnect.android.deviceplugin.sw.R;
+import org.deviceconnect.android.deviceplugin.sw.SWApplication;
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -306,9 +307,11 @@ class SWControlExtension extends ControlExtension {
                 touchlist.add((Bundle) touchdata.clone());
                 touches.putParcelableArray(TouchProfile.PARAM_TOUCHES, touchlist.toArray(new Bundle[touchlist.size()]));
 
+                String eventAttr = event.getAttribute();
                 Intent message = EventManager.createEventMessage(event);
                 message.putExtra(TouchProfile.PARAM_TOUCH, touches);
                 sendEvent(message, event.getAccessToken());
+                SWApplication.setTouchCache(eventAttr, touches);
             }
         }
 

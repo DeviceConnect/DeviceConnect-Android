@@ -104,9 +104,6 @@ public class HostDeviceService extends DConnectMessageService implements
     /** SensorManager. */
     private SensorManager mSensorManager;
 
-    /** SensorManager. */
-    private SensorManager mSensorManagerProximity;
-
     /** ServiceID. */
     private String mServiceId;
 
@@ -540,51 +537,6 @@ public class HostDeviceService extends DConnectMessageService implements
         DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE,
                 "Register OnDeviceOrientation event");
-    }
-
-    /**
-     * Promity Profile<br>
-     * イベントの登録.
-     * 
-     * @param response
-     *            レスポンス
-     * @param serviceId
-     *            サービスID
-     * @param sessionKey
-     *            セッションキー
-     */
-    public void registerPromityEvent(final Intent response,
-            final String serviceId, final String sessionKey) {
-
-        mServiceId = serviceId;
-        mSensorManagerProximity = (SensorManager) getSystemService(SENSOR_SERVICE);
-        List<Sensor> sensors = mSensorManagerProximity
-                .getSensorList(Sensor.TYPE_PROXIMITY);
-
-        if (sensors.size() > 0) {
-            Sensor sensor = sensors.get(0);
-            mSensorManagerProximity.registerListener(this, sensor,
-                    SensorManager.SENSOR_DELAY_NORMAL);
-        }
-
-        response.putExtra(DConnectMessage.EXTRA_RESULT,
-                DConnectMessage.RESULT_OK);
-        response.putExtra(DConnectMessage.EXTRA_VALUE,
-                "Register onuserproximity event");
-        sendBroadcast(response);
-    }
-
-    /**
-     * Promity Profile イベントの解除.
-     * @param response レスポンス
-     */
-    public void unregisterPromityEvent(final Intent response) {
-        mSensorManagerProximity.unregisterListener(this);
-        response.putExtra(DConnectMessage.EXTRA_RESULT,
-                DConnectMessage.RESULT_OK);
-        response.putExtra(DConnectMessage.EXTRA_VALUE,
-                "Unregister onuserproximity event");
-        sendBroadcast(response);
     }
 
     /**

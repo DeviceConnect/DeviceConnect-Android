@@ -201,7 +201,9 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
                 setOrientation(response, orientation);
                 service.sendResponse(response);
                 mgr.removeEventListener(PebbleManager.PROFILE_DEVICE_ORIENTATION, this);
-                stopSensor();
+                if (!isStartSensor()) {
+                    stopSensor();
+                }
             }
         };
         mgr.addEventListener(PebbleManager.PROFILE_DEVICE_ORIENTATION, l);

@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.sw.profile;
 
 import org.deviceconnect.android.deviceplugin.sw.R;
+import org.deviceconnect.android.deviceplugin.sw.SWApplication;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -18,6 +19,7 @@ import com.sonyericsson.extras.liveware.aef.registration.Registration;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.os.Bundle;
 
 /**
  * SonySW device plugin {@link KeyEventProfile} implementation.
@@ -25,6 +27,42 @@ import android.content.Intent;
  * @author NTT DOCOMO, INC.
  */
 public class SWKeyEventProfile extends KeyEventProfile {
+
+    @Override
+    protected boolean onGetOnDown(final Intent request, final Intent response, final String serviceId) {
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
+        if (device == null) {
+            MessageUtils.setNotFoundServiceError(response, "No service is found: " + serviceId);
+            return true;
+        }
+        
+        Bundle keyevent = SWApplication.getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
+        if (keyevent == null) {
+            response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+        } else {
+            response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+        }
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    @Override
+    protected boolean onGetOnUp(final Intent request, final Intent response, final String serviceId) {
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
+        if (device == null) {
+            MessageUtils.setNotFoundServiceError(response, "No service is found: " + serviceId);
+            return true;
+        }
+        
+        Bundle keyevent = SWApplication.getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
+        if (keyevent == null) {
+            response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
+        } else {
+            response.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
+        }
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
 
     @Override
     protected boolean onPutOnDown(final Intent request, final Intent response, final String serviceId,

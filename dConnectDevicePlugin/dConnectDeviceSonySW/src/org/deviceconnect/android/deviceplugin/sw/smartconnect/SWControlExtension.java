@@ -40,6 +40,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.deviceconnect.android.deviceplugin.sw.R;
+import org.deviceconnect.android.deviceplugin.sw.SWApplication;
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -478,10 +479,12 @@ class SWControlExtension extends ControlExtension {
                 KeyEventProfile.ATTRIBUTE_ON_DOWN);
         for (Event event : events) {
             Bundle keyevent = new Bundle();
+            String eventAttr = event.getAttribute();
             Intent message = EventManager.createEventMessage(event);
             setKeyEventData(keyevent, keyCode + mKeyType, config);
             message.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
             sendEvent(message, event.getAccessToken());
+            SWApplication.setKeyEventCache(eventAttr, keyevent);
         }
     }
 
@@ -587,10 +590,12 @@ class SWControlExtension extends ControlExtension {
 
             for (Event event : events) {
                 Bundle keyevent = new Bundle();
+                String eventAttr = event.getAttribute();
                 Intent message = EventManager.createEventMessage(event);
                 setKeyEventData(keyevent, keyCode, config);
                 message.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
                 sendEvent(message, event.getAccessToken());
+                SWApplication.setKeyEventCache(eventAttr, keyevent);
             }
         } else if (action == Control.Intents.KEY_ACTION_RELEASE) {
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId, KeyEventProfileConstants.PROFILE_NAME,
@@ -598,10 +603,12 @@ class SWControlExtension extends ControlExtension {
 
             for (Event event : events) {
                 Bundle keyevent = new Bundle();
+                String eventAttr = event.getAttribute();
                 Intent message = EventManager.createEventMessage(event);
                 setKeyEventData(keyevent, keyCode, config);
                 message.putExtra(KeyEventProfile.PARAM_KEYEVENT, keyevent);
                 sendEvent(message, event.getAccessToken());
+                SWApplication.setKeyEventCache(eventAttr, keyevent);
             }
         }
 
@@ -617,8 +624,6 @@ class SWControlExtension extends ControlExtension {
 
     @Override
     public void onMenuItemSelected(final int menuItem) {
-        Log.d("ABC", "onMenuItemSelected() - menu item " + menuItem);
-
         switch (menuItem) {
         case MENU_ITEM_1:
             mKeyType = KEYTYPE_MEDIA;

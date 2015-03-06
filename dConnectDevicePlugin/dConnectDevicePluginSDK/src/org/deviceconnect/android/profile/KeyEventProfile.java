@@ -31,6 +31,10 @@ import android.os.Bundle;
  * non-compliant API.
  * </p>
  * <ul>
+ * <li>Key Down API [GET] :
+ * {@link KeyEventProfile#onGetOnDown(Intent, Intent, String)}</li>
+ * <li>Key Up API [GET] :
+ * {@link KeyEventProfile#onGetOnUp(Intent, Intent, String)}</li>
  * <li>Key Down Event API [Register] :
  * {@link KeyEventProfile#onPutOnDown(Intent, Intent, String, String)}</li>
  * <li>Key Up Event API [Register] :
@@ -48,6 +52,22 @@ public class KeyEventProfile extends DConnectProfile implements KeyEventProfileC
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
+    }
+
+    @Override
+    protected boolean onGetRequest(final Intent request, final Intent response) {
+        boolean result = true;
+        String attribute = getAttribute(request);
+
+        if (ATTRIBUTE_ON_DOWN.equals(attribute)) {
+            result = onGetOnDown(request, response, getServiceID(request));
+        } else if (ATTRIBUTE_ON_UP.equals(attribute)) {
+            result = onGetOnUp(request, response, getServiceID(request));
+        } else {
+            MessageUtils.setUnknownAttributeError(response);
+        }
+
+        return result;
     }
 
     @Override
@@ -80,6 +100,45 @@ public class KeyEventProfile extends DConnectProfile implements KeyEventProfileC
         }
 
         return result;
+    }
+
+    // ------------------------------------
+    // GET
+    // ------------------------------------
+    /**
+     * ondown get request handler.<br/>
+     * Get the ondown result and store in the response parameter. If you have
+     * ready to transmit the response parameter that you specify the true return
+     * value. If you are not ready to be submitted response parameters, be false
+     * for the return value. Then, in the thread to launch the threads
+     * eventually doing the transmission of response parameters.
+     * 
+     * @param request request parameter.
+     * @param response response parameter.
+     * @param serviceId service ID.
+     * @return Whether or not to send the response parameters.
+     */
+    protected boolean onGetOnDown(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * onup get request handler.<br/>
+     * Get the onup result and store in the response parameter. If you have
+     * ready to transmit the response parameter that you specify the true return
+     * value. If you are not ready to be submitted response parameters, be false
+     * for the return value. Then, in the thread to launch the threads
+     * eventually doing the transmission of response parameters.
+     * 
+     * @param request request parameter.
+     * @param response response parameter.
+     * @param serviceId service ID.
+     * @return Whether or not to send the response parameters.
+     */
+    protected boolean onGetOnUp(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
     }
 
     // ------------------------------------

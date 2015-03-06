@@ -726,8 +726,9 @@ public final class LocalOAuth2Main {
                     Token token = sqliteTokenManager.findToken(client, SampleUser.USERNAME);
                     if (token != null) {
                         String accessToken = token.getAccessToken();
+                        long date = token.getRegistrationDate();
                         AccessTokenScope[] accessTokenScopes = scopesToAccessTokenScopes(token.getScope());
-                        acccessTokenData = new AccessTokenData(accessToken, accessTokenScopes);
+                        acccessTokenData = new AccessTokenData(accessToken, date, accessTokenScopes);
                     }
                 }
             } catch (SQLiteException e) {
@@ -1541,7 +1542,8 @@ public final class LocalOAuth2Main {
                                 
                                 /* アクセストークンデータを返す */
                                 AccessTokenScope[] accessTokenScopes = scopesToAccessTokenScopes(token.getScope());
-                                AccessTokenData acccessTokenData = new AccessTokenData(accessToken, accessTokenScopes);
+                                AccessTokenData acccessTokenData = new AccessTokenData(accessToken,
+                                        token.getRegistrationDate(), accessTokenScopes);
                                 return acccessTokenData;
                             }
                         }

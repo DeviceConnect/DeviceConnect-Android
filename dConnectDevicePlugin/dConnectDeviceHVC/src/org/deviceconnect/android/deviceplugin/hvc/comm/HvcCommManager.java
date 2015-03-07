@@ -19,6 +19,7 @@ import omron.HVC.HVC_RES.DetectionResult;
 import omron.HVC.HVC_RES.FaceResult;
 
 import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hvc.HvcDebugUtils;
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceApplication;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectBodyRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectEvent;
@@ -74,7 +75,7 @@ public class HvcCommManager {
      * Context.
      */
     private Context mContext;
-    
+
     /**
      * ServiceId.
      */
@@ -105,12 +106,9 @@ public class HvcCommManager {
     //
     // };
 
-    
-    
-    
-    
     /**
      * Constructor.
+     * 
      * @param context context
      * @param serviceId serviceId
      */
@@ -157,10 +155,10 @@ public class HvcCommManager {
      * process flag.
      */
     private static final int PROCESS_SEND_SUCCESS_RESPONSE_BITFLAG = 0x8000;
-    
-    
+
     /**
      * register detect event.
+     * 
      * @param detectKind detectKind
      * @param requestParams request parameters.
      * @param response response
@@ -171,7 +169,7 @@ public class HvcCommManager {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "registerDetectEvent() detectKind:" + detectKind.toString() + " sessionKey:" + sessionKey);
         }
-        
+
         // get bluetooth device by serviceId.
         BluetoothDevice device = HvcCommManager.searchDevices(mServiceId);
         if (device == null) {
@@ -180,11 +178,11 @@ public class HvcCommManager {
             mContext.sendBroadcast(response);
             return;
         }
-        
+
         // store event register info.
         HumanDetectEvent event = new HumanDetectEvent(detectKind, sessionKey, requestParams, response);
         mEventArray.add(event);
-        
+
         // set process flag.
         int processFlag = 0;
         if (mDetectThread == null || mDetectThread.isAlive()) {
@@ -196,7 +194,7 @@ public class HvcCommManager {
         processFlag |= PROCESS_POST_SET_PARAM_BITFLAG;
         processFlag |= PROCESS_POST_DETECT_REQUEST_BITFLAG;
         processFlag |= PROCESS_SEND_SUCCESS_RESPONSE_BITFLAG;
-        
+
         /* start comm process.(Recursive) */
         mProcessFlag = processFlag;
         commProc(response, detectKind, requestParams, sessionKey, device, null);
@@ -212,7 +210,7 @@ public class HvcCommManager {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "unregisterDetectEvent() detectKind:" + detectKind.toString() + " sessionKey:" + sessionKey);
         }
-        
+
         int count = mEventArray.size();
         for (int index = (count - 1); index >= 0; index--) {
             HumanDetectEvent event = mEventArray.get(index);
@@ -222,17 +220,16 @@ public class HvcCommManager {
         }
     }
 
-    
     /**
-     * detect process flag. 
+     * detect process flag.
      */
     private int mProcessFlag = 0;
-    
-    
+
     /**
      * comm process(Recursive).<br>
      * 
-     * - The process is recursive run off the flag when finished. if zero, send success response.<br>
+     * - The process is recursive run off the flag when finished. if zero, send
+     * success response.<br>
      * - If error, send error response and no call this function.<br>
      * 
      * @param response response
@@ -242,223 +239,243 @@ public class HvcCommManager {
      * @param bluetoothDevice bluetoothDevice
      * @param hvcRes HVC response
      */
-    public void commProc(final Intent response, final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
-            final String sessionKey, final BluetoothDevice bluetoothDevice, final HVC_RES hvcRes) {
+    public void commProc(final Intent response, final HumanDetectKind detectKind,
+            final HumanDetectRequestParams requestParams, final String sessionKey,
+            final BluetoothDevice bluetoothDevice, final HVC_RES hvcRes) {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "commProc() - mProcessFlag:0x" + String.format("%04x", mProcessFlag));
         }
-        
+
         if (mProcessFlag == 0) {
             // all process finished.
             return;
         } else if ((mProcessFlag & PROCESS_START_THERAD_BITFLAG) != 0) {
-            
+
             // reset bit.
             mProcessFlag ^= PROCESS_START_THERAD_BITFLAG;
-            
-            // start thread
-            CommDetectionResult result = startDetectThread(mContext, bluetoothDevice, new HvcDetectListener() {
+
+            // not busy.
+            if (getCommStatus() != CommStatus.WAITREQUEST) {
                 
-                @Override
-                public void onConnected() {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "commProc() - onConnected()");
+                // start thread
+                CommDetectionResult result = startDetectThread(mContext, bluetoothDevice, new HvcDetectListener() {
+    
+                    @Override
+                    public void onConnected() {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "commProc() - onConnected()");
+                        }
+                        
+                        // Remove cache.
+                        mCacheHvcPrm = null;
+                        
+                        commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, null);
                     }
-                    commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, null);
-                }
-                @Override
-                public void onPostSetParam() {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "commProc() - onPostSetParam()");
-                    }
-                    commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, null);
-                };
-                
-                @Override
-                public void onDetectFinished(final HVC_RES result) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "commProc() - onDetectFinished()");
-                    }
-                    
-                    // send response.
-                    setDetectResultResponse(response, requestParams, result, detectKind);
-                    if (sessionKey == null) {
-                        // get,post API response(success).
-                        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK); 
-                        mContext.sendBroadcast(response);
-                    } else {
-                        // event API response.
-                        for (HumanDetectEvent humanDetectEvent : mEventArray) {
-                            String attribute = HvcConvertUtils.convertToEventAttribute(humanDetectEvent.getKind());
-                            if (humanDetectEvent.getRequestParams().getEvent().getInterval() == requestParams
-                                    .getEvent().getInterval()) {
-                                List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
-                                        HumanDetectProfile.PROFILE_NAME, null, attribute);
-                                for (Event event : events) {
-                                    Intent intent = EventManager.createEventMessage(event);
-                                    setDetectResultResponse(intent, requestParams, result, detectKind);
-                                    mContext.sendBroadcast(intent);
-                                    if (BuildConfig.DEBUG) {
-                                        Log.d(TAG, "commProc() - send event.");
+    
+                    @Override
+                    public void onPostSetParam(final HVC_PRM hvcPrm) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "commProc() - onPostSetParam()");
+                        }
+                        
+                        // Replace cache.
+                        mCacheHvcPrm = hvcPrm;
+                        
+                        commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, null);
+                    };
+    
+                    @Override
+                    public void onDetectFinished(final HVC_RES result) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "commProc() - onDetectFinished()");
+                        }
+    
+                        // send response.
+                        setDetectResultResponse(response, requestParams, result, detectKind);
+                        if (sessionKey == null) {
+                            // get,post API response(success).
+                            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+HvcDebugUtils.intentDump("AAA", response, "send intent");
+                            mContext.sendBroadcast(response);
+                        } else {
+                            // event API response.
+                            for (HumanDetectEvent humanDetectEvent : mEventArray) {
+                                String attribute = HvcConvertUtils.convertToEventAttribute(humanDetectEvent.getKind());
+                                if (humanDetectEvent.getRequestParams().getEvent().getInterval() == requestParams
+                                        .getEvent().getInterval()) {
+                                    List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
+                                            HumanDetectProfile.PROFILE_NAME, null, attribute);
+                                    for (Event event : events) {
+                                        Intent intent = EventManager.createEventMessage(event);
+                                        setDetectResultResponse(intent, requestParams, result, detectKind);
+                                        mContext.sendBroadcast(intent);
+                                        if (BuildConfig.DEBUG) {
+                                            Log.d(TAG, "commProc() - send event.");
+                                        }
                                     }
                                 }
                             }
                         }
+    
+                        commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, result);
                     }
-                    
-                    commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, result);
-                }
-                
-                @Override
-                public void onSetParamError(final int status) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "commProc() - onSetParamError()");
-                    }
-                    // set parameter error.
-                    MessageUtils.setTimeoutError(response, "set parameter error. status:" + status);
-                    mContext.sendBroadcast(response);
-                }
-                
-                @Override
-                public void onRequestDetectError(final int status) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "commProc() - onRequestDetectError()");
-                    }
-                    // request detect error.
-                    MessageUtils.setTimeoutError(response, "request detect error. status:" + status);
-                    mContext.sendBroadcast(response);
-                }
-                
-                @Override
-                public void onDisconnected() {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "commProc() - onDisconnected()");
-                    }
-                    if (getCommStatus() == CommStatus.WAITRESPONSE) {
-                        // disconnect error (waitng response).
-                        MessageUtils.setIllegalDeviceStateError(response, "device disconnected.");
+    
+                    @Override
+                    public void onSetParamError(final int status) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "commProc() - onSetParamError()");
+                        }
+                        // set parameter error.
+                        MessageUtils.setTimeoutError(response, "set parameter error. status:" + status);
                         mContext.sendBroadcast(response);
-                        return;
-                    } else {
-                        // no problem.
                     }
-                }
-                
-                @Override
-                public void onDetectError(final int status) {
+    
+                    @Override
+                    public void onRequestDetectError(final int status) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "commProc() - onRequestDetectError()");
+                        }
+                        // request detect error.
+                        MessageUtils.setTimeoutError(response, "request detect error. status:" + status);
+                        mContext.sendBroadcast(response);
+                    }
+    
+                    @Override
+                    public void onDisconnected() {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "commProc() - onDisconnected()");
+                        }
+                        if (getCommStatus() == CommStatus.WAITRESPONSE) {
+                            // disconnect error (waitng response).
+                            MessageUtils.setIllegalDeviceStateError(response, "device disconnected.");
+                            mContext.sendBroadcast(response);
+                            return;
+                        } else {
+                            // no problem.
+                        }
+                    }
+    
+                    @Override
+                    public void onDetectError(final int status) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "commProc() - onDetectError() status:" + status);
+                        }
+                        // request detect error.
+                        MessageUtils.setIllegalDeviceStateError(response, "request detect error. status:" + status);
+                        mContext.sendBroadcast(response);
+                    }
+    
+                    @Override
+                    public void onConnectError(final int status) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "commProc() - onConnectError() status:" + status);
+                        }
+                        MessageUtils.setIllegalDeviceStateError(response, "error. status:" + status);
+                        mContext.sendBroadcast(response);
+                    }
+                });
+                if (result == CommDetectionResult.RESULT_SUCCESS
+                ||  result == CommDetectionResult.RESULT_ERR_THREAD_ALIVE) {
+                    
+                    // next command
+                    commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, null);
+                    
+                } else {
                     if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "commProc() - onDetectError() status:" + status);
+                        Log.d(TAG, "commProc() - startDetectThread() result:" + result.ordinal());
                     }
-                    // request detect error.
-                    MessageUtils.setIllegalDeviceStateError(response, "request detect error. status:" + status);
+                    // response(error) unknown value.
+                    MessageUtils
+                            .setIllegalServerStateError(response, "detection result unknown value. " + result.ordinal());
                     mContext.sendBroadcast(response);
+                    return;
                 }
-                
-                @Override
-                public void onConnectError(final int status) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "commProc() - onConnectError() status:" + status);
-                    }
-                    MessageUtils.setIllegalDeviceStateError(response, "error. status:" + status);
-                    mContext.sendBroadcast(response);
-                }
-            });
-            if (result == CommDetectionResult.RESULT_ERR_THREAD_ALIVE) {
+            } else {
+                // busy
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "commProc() - startDetectThread() result:RESULT_ERR_THREAD_ALIVE");
                 }
                 // TODO: sleepできないのでコメントアウトしている
-//                // busy
-//                final int CONNECT_RETRY_COUNT = 3;
-//                final int CONNECT_RETRY_INTERVAL = 1000;
-//                for (int retryIndex = 0; retryIndex < CONNECT_RETRY_COUNT; retryIndex ++) {
-//                    sleep(CONNECT_RETRY_INTERVAL);      // TODO: sleepできないので確認する
-//                    CommStatus commStatus = getCommStatus();
-//                    if (commStatus == CommStatus.WAITREQUEST) {
-//                        // set bit.(Recursive)
-//                        mProcessFlag |= PROCESS_START_THERAD_BITFLAG;
-//                        // comm process.(Recursive)
-//                        commProc(response, useFunc, prm, sessionKey, bluetoothDevice, null);
-//                        return;
-//                    }
-//                }
+                // // busy
+                // final int CONNECT_RETRY_COUNT = 3;
+                // final int CONNECT_RETRY_INTERVAL = 1000;
+                // for (int retryIndex = 0; retryIndex < CONNECT_RETRY_COUNT;
+                // retryIndex ++) {
+                // sleep(CONNECT_RETRY_INTERVAL); // TODO: sleepできないので確認する
+                // CommStatus commStatus = getCommStatus();
+                // if (commStatus == CommStatus.WAITREQUEST) {
+                // // set bit.(Recursive)
+                // mProcessFlag |= PROCESS_START_THERAD_BITFLAG;
+                // // comm process.(Recursive)
+                // commProc(response, useFunc, prm, sessionKey, bluetoothDevice,
+                // null);
+                // return;
+                // }
+                // }
                 // busy error.
                 MessageUtils.setTimeoutError(response, "device busy.");
                 mContext.sendBroadcast(response);
                 return;
-                
-            } else if (result != CommDetectionResult.RESULT_SUCCESS) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "commProc() - startDetectThread() result:" + result.ordinal());
-                }
-                // response(error) unknown value.
-                MessageUtils
-                        .setIllegalServerStateError(response, "detection result unknown value. " + result.ordinal());
-                mContext.sendBroadcast(response);
-                return;
             }
-            
-            // next command
-            commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, null);
             
         } else if ((mProcessFlag & PROCESS_COMM_CONNECT_BITFLAG) != 0) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "commProc() - comm connect");
             }
-            
+
             // reset bit.
             mProcessFlag ^= PROCESS_COMM_CONNECT_BITFLAG;
-            
+
             // connect HVC.
             mDetectThread.connectProc();
-            
+
         } else if ((mProcessFlag & PROCESS_POST_SET_PARAM_BITFLAG) != 0) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "commProc() - post set param");
             }
-            
+
             // reset bit.
             mProcessFlag ^= PROCESS_POST_SET_PARAM_BITFLAG;
-            
-            // post parameter(if success, call onPost , if error, call mListener.onSetParamError(result)).
+
+            // post parameter(if success, call onPost , if error, call
+            // mListener.onSetParamError(result)).
             int useFunc = (new HvcDetectRequestParams(requestParams)).getUseFunc();
             HVC_PRM hvcPrm = (new HvcDetectRequestParams(requestParams)).getHvcParams();
             mDetectThread.postSetParameter(useFunc, hvcPrm);
-            
+
         } else if ((mProcessFlag & PROCESS_POST_DETECT_REQUEST_BITFLAG) != 0) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "commProc() - post detect request");
             }
-            
+
             // reset bit.
             mProcessFlag ^= PROCESS_POST_DETECT_REQUEST_BITFLAG;
-            
-            // post detect(if success, call onPost , if error, call mListener.onSetParamError(result)).
+
+            // post detect(if success, call onPost , if error, call
+            // mListener.onSetParamError(result)).
             mDetectThread.postDetect();
-            
+
         } else if ((mProcessFlag & PROCESS_SEND_SUCCESS_RESPONSE_BITFLAG) != 0) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "commProc() - send success response.");
             }
-            
+
             // reset bit.
             mProcessFlag ^= PROCESS_SEND_SUCCESS_RESPONSE_BITFLAG;
-            
+
             // response(success)
-            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK); 
+            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             response.putExtra(DConnectMessage.EXTRA_VALUE, "Register OnDetection event");
             mContext.sendBroadcast(response);
-            
+
         } else {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "commProc() - no process. mProcessFlag:" + mProcessFlag);
             }
         }
-        
+
     }
-    
-    
-    
+
     // /**
     // * check register.
     // * @param detectKind detectKind
@@ -645,85 +662,93 @@ public class HvcCommManager {
         return useFunc;
     }
 
-//    /**
-//     * request detect to all services.
-//     */
-//    private void requestDetectAllServices() {
-//        if (BuildConfig.DEBUG) {
-//            Log.d(TAG, "requestDetectAllServices()");
-//        }
-//
-//        for (HvcCommManager commManager : mHvcCommManagerArray) {
-//
-//            // get bluetooth device by serviceId.
-//            final String serviceId = commManager.getServiceId();
-//            BluetoothDevice device = HvcCommManager.searchDevices(serviceId);
-//            if (device == null) {
-//                // serviceId not found. (erase? disconnect?)
-//                if (BuildConfig.DEBUG) {
-//                    Log.d(TAG, "requestDetectAllServices() serviceId not found. serviceId:" + serviceId);
-//                }
-//                continue;
-//            }
-//
-//            // get register detect event kinds.
-//            final int useFunc = commManager.getUseFuncByEventRegisters();
-//
-//            // get request params(use default value).
-//            final HumanDetectRequestParams params = HvcDetectRequestParams.getDefaultRequestParameter();
-//
-//            // start detection
-//            if (BuildConfig.DEBUG) {
-//                Log.d(TAG, "requestDetectAllServices() commManager.startDetectThread() useFunc:" + useFunc);
-//            }
-//            commManager.startDetectThread(this, device, useFunc, params, new HvcDetectListener() {
-//                @Override
-//                public void onRequestDetectError(final int status) {
-//                    if (BuildConfig.DEBUG) {
-//                        Log.d(TAG, "onRequestDetectError. status:" + status);
-//                    }
-//                }
-//
-//                @Override
-//                public void onDetectFinished(final HVC_RES result) {
-//                    if (BuildConfig.DEBUG) {
-//                        Log.d(TAG, "onDetectFinished() body:" + result.body.size() + " hand:" + result.hand.size()
-//                                + " face:" + result.face.size());
-//                    }
-//                    if (result.body.size() > 0) {
-//                        sendEvent(serviceId, HumanDetectKind.BODY, params, result);
-//                    }
-//                    if (result.hand.size() > 0) {
-//                        sendEvent(serviceId, HumanDetectKind.HAND, params, result);
-//                    }
-//                    if (result.face.size() > 0) {
-//                        sendEvent(serviceId, HumanDetectKind.FACE, params, result);
-//                    }
-//                }
-//
-//                @Override
-//                public void onDisconnected() {
-//                    if (BuildConfig.DEBUG) {
-//                        Log.d(TAG, "onDetectFaceDisconnected(). serviceId:" + serviceId);
-//                    }
-//                }
-//
-//                @Override
-//                public void onDetectError(final int status) {
-//                    if (BuildConfig.DEBUG) {
-//                        Log.d(TAG, "onDetectError(). serviceId:" + serviceId + " status:" + status);
-//                    }
-//                }
-//
-//                @Override
-//                public void onConnectError(final int status) {
-//                    if (BuildConfig.DEBUG) {
-//                        Log.d(TAG, "onConnectError(). serviceId:" + serviceId + " status:" + status);
-//                    }
-//                }
-//            });
-//        }
-//    }
+    // /**
+    // * request detect to all services.
+    // */
+    // private void requestDetectAllServices() {
+    // if (BuildConfig.DEBUG) {
+    // Log.d(TAG, "requestDetectAllServices()");
+    // }
+    //
+    // for (HvcCommManager commManager : mHvcCommManagerArray) {
+    //
+    // // get bluetooth device by serviceId.
+    // final String serviceId = commManager.getServiceId();
+    // BluetoothDevice device = HvcCommManager.searchDevices(serviceId);
+    // if (device == null) {
+    // // serviceId not found. (erase? disconnect?)
+    // if (BuildConfig.DEBUG) {
+    // Log.d(TAG, "requestDetectAllServices() serviceId not found. serviceId:" +
+    // serviceId);
+    // }
+    // continue;
+    // }
+    //
+    // // get register detect event kinds.
+    // final int useFunc = commManager.getUseFuncByEventRegisters();
+    //
+    // // get request params(use default value).
+    // final HumanDetectRequestParams params =
+    // HvcDetectRequestParams.getDefaultRequestParameter();
+    //
+    // // start detection
+    // if (BuildConfig.DEBUG) {
+    // Log.d(TAG,
+    // "requestDetectAllServices() commManager.startDetectThread() useFunc:" +
+    // useFunc);
+    // }
+    // commManager.startDetectThread(this, device, useFunc, params, new
+    // HvcDetectListener() {
+    // @Override
+    // public void onRequestDetectError(final int status) {
+    // if (BuildConfig.DEBUG) {
+    // Log.d(TAG, "onRequestDetectError. status:" + status);
+    // }
+    // }
+    //
+    // @Override
+    // public void onDetectFinished(final HVC_RES result) {
+    // if (BuildConfig.DEBUG) {
+    // Log.d(TAG, "onDetectFinished() body:" + result.body.size() + " hand:" +
+    // result.hand.size()
+    // + " face:" + result.face.size());
+    // }
+    // if (result.body.size() > 0) {
+    // sendEvent(serviceId, HumanDetectKind.BODY, params, result);
+    // }
+    // if (result.hand.size() > 0) {
+    // sendEvent(serviceId, HumanDetectKind.HAND, params, result);
+    // }
+    // if (result.face.size() > 0) {
+    // sendEvent(serviceId, HumanDetectKind.FACE, params, result);
+    // }
+    // }
+    //
+    // @Override
+    // public void onDisconnected() {
+    // if (BuildConfig.DEBUG) {
+    // Log.d(TAG, "onDetectFaceDisconnected(). serviceId:" + serviceId);
+    // }
+    // }
+    //
+    // @Override
+    // public void onDetectError(final int status) {
+    // if (BuildConfig.DEBUG) {
+    // Log.d(TAG, "onDetectError(). serviceId:" + serviceId + " status:" +
+    // status);
+    // }
+    // }
+    //
+    // @Override
+    // public void onConnectError(final int status) {
+    // if (BuildConfig.DEBUG) {
+    // Log.d(TAG, "onConnectError(). serviceId:" + serviceId + " status:" +
+    // status);
+    // }
+    // }
+    // });
+    // }
+    // }
 
     /**
      * send event.
@@ -1001,9 +1026,9 @@ public class HvcCommManager {
      */
     public void destroy() {
 
-//        if (mDeviceSearchThread.isAlive()) {
-//            mDeviceSearchThread.halt();
-//        }
+        // if (mDeviceSearchThread.isAlive()) {
+        // mDeviceSearchThread.halt();
+        // }
         if (mDetectThread.isAlive()) {
             mDetectThread.halt();
         }
@@ -1040,110 +1065,115 @@ public class HvcCommManager {
         }
     }
 
-//    /**
-//     * start comm.
-//     * 
-//     * @param interval if interval not zero, event API. if interval zero,
-//     *            get/post API.
-//     */
-//    private boolean startComm(final Context context, final Intent response, final long interval) {
-//
-//        
-//        
-//        CommStatus commStatus = getCommStatus();
-//        if (commStatus == CommStatus.DISCONNECT) {
-//            boolean result = startCommDuringDisconnect(context, response, interval);
-//            return result;
-//        }
-//        
-//        return true;
-//    }
-    
-    
-//    private boolean startCommDuringDisconnect(final Context context, final Intent response, final long interval) {
-//        
-//        // get parameter from match interval events.
-//        HumanDetectRequestParams requestParams = new HumanDetectRequestParams();
-//        for (HumanDetectEvent event : mEventArray) {
-//            HumanDetectRequestParams requestParam = event.getRequestParams();
-//            if (interval == requestParam.getEvent().getInterval()) {
-//                HumanDetectKind detectKind = event.getKind();
-//                if (detectKind == HumanDetectKind.BODY) {
-//                    requestParams.setBody((HumanDetectBodyRequestParams) requestParam.getBody());
-//                }
-//                if (detectKind == HumanDetectKind.HAND) {
-//                    requestParams.setHand((HumanDetectHandRequestParams) requestParam.getHand());
-//                }
-//                if (detectKind == HumanDetectKind.FACE) {
-//                    requestParams.setFace((HumanDetectFaceRequestParams) requestParam.getFace());
-//                }
-//            }
-//        }
-//
-//        // get useFunc
-//        int useFunc = getUseFuncByRequestParams(requestParams);
-//        final HumanDetectRequestParams requestParamsFinal = requestParams;
-//        final int useFuncFinal = useFunc;
-//
-//        // start thread
-//        DetectionResult result = startDetectThread(context, device, new HvcDetectListener() {
-//
-//            @Override
-//            public void onConnected() {
-//                
-//            }
-//            
-//            @Override
-//            public void onRequestDetectError(int status) {
-//                // TODO Auto-generated method stub
-//                
-//            }
-//            
-//            @Override
-//            public void onDetectFinished(HVC_RES result) {
-//                // TODO Auto-generated method stub
-//                
-//            }
-//            
-//            @Override
-//            public void onDisconnected() {
-//                // TODO Auto-generated method stub
-//                
-//            }
-//            
-//            @Override
-//            public void onDetectError(int status) {
-//                // TODO Auto-generated method stub
-//                
-//            }
-//            
-//            @Override
-//            public void onConnectError(int status) {
-//                // TODO Auto-generated method stub
-//                
-//            }
-//
-//            @Override
-//            public void onSetParamError(int status) {
-//                // TODO Auto-generated method stub
-//                
-//            }
-//        });
-//        
-//        if (result == DetectionResult.RESULT_ERR_SERVICEID_NOT_FOUND) {
-//            
-//        } else if (result == DetectionResult.RESULT_ERR_THREAD_ALIVE) {
-//            
-//        } else if (result != DetectionResult.RESULT_SUCCESS) {
-//            
-//        }
-//        
-//        return true;
-//    }
+    // /**
+    // * start comm.
+    // *
+    // * @param interval if interval not zero, event API. if interval zero,
+    // * get/post API.
+    // */
+    // private boolean startComm(final Context context, final Intent response,
+    // final long interval) {
+    //
+    //
+    //
+    // CommStatus commStatus = getCommStatus();
+    // if (commStatus == CommStatus.DISCONNECT) {
+    // boolean result = startCommDuringDisconnect(context, response, interval);
+    // return result;
+    // }
+    //
+    // return true;
+    // }
 
-    
+    // private boolean startCommDuringDisconnect(final Context context, final
+    // Intent response, final long interval) {
+    //
+    // // get parameter from match interval events.
+    // HumanDetectRequestParams requestParams = new HumanDetectRequestParams();
+    // for (HumanDetectEvent event : mEventArray) {
+    // HumanDetectRequestParams requestParam = event.getRequestParams();
+    // if (interval == requestParam.getEvent().getInterval()) {
+    // HumanDetectKind detectKind = event.getKind();
+    // if (detectKind == HumanDetectKind.BODY) {
+    // requestParams.setBody((HumanDetectBodyRequestParams)
+    // requestParam.getBody());
+    // }
+    // if (detectKind == HumanDetectKind.HAND) {
+    // requestParams.setHand((HumanDetectHandRequestParams)
+    // requestParam.getHand());
+    // }
+    // if (detectKind == HumanDetectKind.FACE) {
+    // requestParams.setFace((HumanDetectFaceRequestParams)
+    // requestParam.getFace());
+    // }
+    // }
+    // }
+    //
+    // // get useFunc
+    // int useFunc = getUseFuncByRequestParams(requestParams);
+    // final HumanDetectRequestParams requestParamsFinal = requestParams;
+    // final int useFuncFinal = useFunc;
+    //
+    // // start thread
+    // DetectionResult result = startDetectThread(context, device, new
+    // HvcDetectListener() {
+    //
+    // @Override
+    // public void onConnected() {
+    //
+    // }
+    //
+    // @Override
+    // public void onRequestDetectError(int status) {
+    // // TODO Auto-generated method stub
+    //
+    // }
+    //
+    // @Override
+    // public void onDetectFinished(HVC_RES result) {
+    // // TODO Auto-generated method stub
+    //
+    // }
+    //
+    // @Override
+    // public void onDisconnected() {
+    // // TODO Auto-generated method stub
+    //
+    // }
+    //
+    // @Override
+    // public void onDetectError(int status) {
+    // // TODO Auto-generated method stub
+    //
+    // }
+    //
+    // @Override
+    // public void onConnectError(int status) {
+    // // TODO Auto-generated method stub
+    //
+    // }
+    //
+    // @Override
+    // public void onSetParamError(int status) {
+    // // TODO Auto-generated method stub
+    //
+    // }
+    // });
+    //
+    // if (result == DetectionResult.RESULT_ERR_SERVICEID_NOT_FOUND) {
+    //
+    // } else if (result == DetectionResult.RESULT_ERR_THREAD_ALIVE) {
+    //
+    // } else if (result != DetectionResult.RESULT_SUCCESS) {
+    //
+    // }
+    //
+    // return true;
+    // }
+
     /**
      * get HVC comm status.
+     * 
      * @return HVC comm status
      */
     private CommStatus getCommStatus() {
@@ -1168,28 +1198,114 @@ public class HvcCommManager {
      * timeout judge process.
      */
     public void onTimeoutJudgeProc() {
-        // TODO: 実装する。
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "onTimeoutJudgeProc()");
+            
+            // TODO: 実装する。
+        }
     }
 
-//    /**
-//     * get useFunc
-//     * @param requestParams request parameters.
-//     * @return useFunc
-//     */
-//    private int getUseFuncByRequestParams(final HvcDetectRequestParams requestParams) {
-//        int useFunc = 0;
-//        if (requestParams.getBody() != null) {
-//            useFunc |= HvcConvertUtils.convertUseFunc(HumanDetectKind.BODY, requestParams.getBody().getRequestParams()
-//                    .getOptions());
-//        }
-//        if (requestParams.getHand() != null) {
-//            useFunc |= HvcConvertUtils.convertUseFunc(HumanDetectKind.HAND, requestParams.getHand().getRequestParams()
-//                    .getOptions());
-//        }
-//        if (requestParams.getFace() != null) {
-//            useFunc |= HvcConvertUtils.convertUseFunc(HumanDetectKind.FACE, requestParams.getFace().getRequestParams()
-//                    .getOptions());
-//        }
-//        return useFunc;
-//    }
+    // /**
+    // * get useFunc
+    // * @param requestParams request parameters.
+    // * @return useFunc
+    // */
+    // private int getUseFuncByRequestParams(final HvcDetectRequestParams
+    // requestParams) {
+    // int useFunc = 0;
+    // if (requestParams.getBody() != null) {
+    // useFunc |= HvcConvertUtils.convertUseFunc(HumanDetectKind.BODY,
+    // requestParams.getBody().getRequestParams()
+    // .getOptions());
+    // }
+    // if (requestParams.getHand() != null) {
+    // useFunc |= HvcConvertUtils.convertUseFunc(HumanDetectKind.HAND,
+    // requestParams.getHand().getRequestParams()
+    // .getOptions());
+    // }
+    // if (requestParams.getFace() != null) {
+    // useFunc |= HvcConvertUtils.convertUseFunc(HumanDetectKind.FACE,
+    // requestParams.getFace().getRequestParams()
+    // .getOptions());
+    // }
+    // return useFunc;
+    // }
+
+    /**
+     * get detection process.
+     * 
+     * @param detectKind detectKind
+     * @param requestParams requestParams
+     * @param response response
+     */
+    public void doGetDetectionProc(final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
+            final Intent response) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "doGetDetectionProc() detectKind:" + detectKind.toString());
+        }
+
+        // get bluetooth device by serviceId.
+        BluetoothDevice device = HvcCommManager.searchDevices(mServiceId);
+        if (device == null) {
+            // bluetooth device not found.
+            MessageUtils.setNotFoundServiceError(response);
+            mContext.sendBroadcast(response);
+            return;
+        }
+
+        // set process flag.
+        int processFlag = 0;
+        if (mDetectThread == null || mDetectThread.isAlive()) {
+            processFlag |= PROCESS_START_THERAD_BITFLAG;
+        }
+        if (getCommStatus() == CommStatus.DISCONNECT) {
+            processFlag |= PROCESS_COMM_CONNECT_BITFLAG;
+        }
+        if (!compareHvcCacheParameter(detectKind, requestParams)) {
+            processFlag |= PROCESS_POST_SET_PARAM_BITFLAG;
+        }
+        processFlag |= PROCESS_POST_DETECT_REQUEST_BITFLAG;
+        processFlag |= PROCESS_SEND_SUCCESS_RESPONSE_BITFLAG;
+
+        /* start comm process.(Recursive) */
+        mProcessFlag = processFlag;
+        commProc(response, detectKind, requestParams, null, device, null);
+    }
+    
+    /**
+     * HVC_PRM cache.
+     */
+    private HVC_PRM mCacheHvcPrm = null;
+    
+    /**
+     * Compare cache HVC parameters.
+     * @param detectKind detectKind
+     * @param requestParams request parameters.
+     * @return true: equal / false: not equal
+     */
+    private boolean compareHvcCacheParameter(final HumanDetectKind detectKind,
+            final HumanDetectRequestParams requestParams) {
+        
+        HVC_PRM hvcPrm = (new HvcDetectRequestParams(requestParams)).getHvcParams();
+        if (mCacheHvcPrm != null) {
+            if (detectKind == HumanDetectKind.BODY) {
+                if (mCacheHvcPrm.body.equals(hvcPrm.body)) {
+                    return true;
+                }
+            } else if (detectKind == HumanDetectKind.HAND) {
+                if (mCacheHvcPrm.hand.equals(hvcPrm.hand)) {
+                    return true;
+                }
+            } else if (detectKind == HumanDetectKind.FACE) {
+                if (mCacheHvcPrm.face.equals(hvcPrm.face)) {
+                    return true;
+                }
+            } else {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "compareHvcCacheParameter() - invalid value. detectKind:" + detectKind.ordinal());
+                }
+            }
+        }
+        return false;
+    }
 }

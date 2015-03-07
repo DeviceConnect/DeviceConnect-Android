@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.comm;
 
+import omron.HVC.HVC_PRM;
 import omron.HVC.HVC_RES;
 
 /**
@@ -22,8 +23,9 @@ public interface HvcDetectListener {
     
     /**
      * Send Parameter finished.
+     * @param hvcPrm send HVC parameter.
      */
-    void onPostSetParam();
+    void onPostSetParam(final HVC_PRM hvcPrm);
     /**
      * Detect finished.
      * @param result result

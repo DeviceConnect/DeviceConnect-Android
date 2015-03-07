@@ -51,6 +51,18 @@ public class HVC_PRM
             MaxSize = 480;
             Threshold = 500;
         }
+        
+        @Override
+        public boolean equals(final Object o) {
+            DetectionParam compare = (DetectionParam) o;
+            
+            if (MinSize == compare.MinSize
+            &&  MaxSize == compare.MaxSize
+            &&  Threshold == compare.Threshold) {
+                return true;
+            }
+            return false;
+        }
     }
 
     /**
@@ -77,6 +89,17 @@ public class HVC_PRM
         {
             Pose = 40;
             Angle = 480;
+        }
+        
+        @Override
+        public boolean equals(Object o) {
+            FaceParam compare = (FaceParam) o;
+            if (super.equals(compare)
+            &&  Pose == compare.Pose
+            &&  Angle == compare.Angle) {
+                return true;
+            }
+            return false;
         }
     }
 
@@ -109,5 +132,18 @@ public class HVC_PRM
         body = new DetectionParam();
         hand = new DetectionParam();
         face = new FaceParam();
+    }
+    
+    
+    @Override
+    public boolean equals(Object o) {
+        HVC_PRM compare = (HVC_PRM) o;
+        if (CameraAngle == compare.CameraAngle
+        &&  body.equals(compare.body)
+        &&  hand.equals(compare.hand)
+        &&  face.equals(compare.face)) {
+            return true;
+        }
+        return false;
     }
 }

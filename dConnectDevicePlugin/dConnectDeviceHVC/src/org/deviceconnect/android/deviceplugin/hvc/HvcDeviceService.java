@@ -239,10 +239,9 @@ public class HvcDeviceService extends DConnectMessageService {
      * @param response response
      * @param serviceId serviceId
      * @param sessionKey sessionKey
-     * @throws InvalidParameterException comm manager not found by serviceId.
      */
     public void unregisterDetectionEvent(final HumanDetectKind detectKind, final Intent response,
-            final String serviceId, final String sessionKey) throws InvalidParameterException {
+            final String serviceId, final String sessionKey) {
         
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "unregisterDetectionEvent(). detectKind:" + detectKind.toString() + " serviceId:" + serviceId
@@ -298,6 +297,29 @@ public class HvcDeviceService extends DConnectMessageService {
                 "Unregister OnDetection event");
         sendBroadcast(response);
     }
+    
+    /**
+     * Human Detect Profile get detection.<br>
+     * 
+     * @param detectKind detectKind
+     * @param requestParams request parameters.
+     * @param response response
+     * @param serviceId serviceId
+     */
+    public void doGetDetectionProc(final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
+            final Intent response, final String serviceId) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "doGetDetectionProc(). detectKind:" + detectKind.toString() + " serviceId:" + serviceId);
+        }
+        
+        // search CommManager by serviceId(if not found, add CommManager.).
+        HvcCommManager commManager = getCommManager(serviceId);
+        
+        // get detection process.
+        commManager.doGetDetectionProc(detectKind, requestParams, response);
+    }
+    
+    
 
     /**
      * stop interval timer(and remove record).

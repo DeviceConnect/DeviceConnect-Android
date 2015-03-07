@@ -174,48 +174,55 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     protected boolean doGetDetectionProc(final Intent request, final Intent response,
             final String serviceId, final List<String> options, final HumanDetectKind detectKind) {
         
-        // get bluetooth device from serviceId.
-        BluetoothDevice device = HvcCommManager.searchDevices(serviceId);
-        if (device == null) {
-            // bluetooth device not found.
-            MessageUtils.setNotFoundServiceError(response);
+        if (serviceId == null) {
+            createEmptyServiceId(response);
             return true;
-        }
-        
-        // ble os available?
-        if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            // ble not available.
-            MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
-            return true;
-        }
-        
-        // get parameter.
-        HumanDetectRequestParams requestParams = null;
-        try {
-            requestParams = HvcDetectRequestUtils.getRequestParams(request, response, detectKind);
-        } catch (IllegalStateException e) {
-            // BUG: detectKind unknown value.
-            MessageUtils.setUnknownError(response, e.getMessage());
-            return true;
-        } catch (NumberFormatException e) {
-            // invalid request parameter error
-            MessageUtils
-                    .setInvalidRequestParameterError(response, HvcDetectRequestUtils.ERROR_PARAMETER_DIFFERENT_TYPE);
-            return true;
-        }
-        final HumanDetectRequestParams requestParamsFinal = requestParams;
-        
-        // convert useFunc
-        Integer useFunc = HvcConvertUtils.convertUseFunc(detectKind, options);
-        if (useFunc == null) {
-            // options unknown parameter.
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        }
-        
-        // get comm manager.
-        HvcCommManager commManager = ((HvcDeviceService) getContext()).getCommManager(serviceId);
-
+        } else {
+            
+            // ble os available?
+            if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+                // ble not available.
+                MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
+                return true;
+            }
+            
+            // get parameter.
+            HumanDetectRequestParams requestParams = null;
+            try {
+                requestParams = HvcDetectRequestUtils.getRequestParams(request, response, detectKind);
+            } catch (IllegalStateException e) {
+                // BUG: detectKind unknown value.
+                MessageUtils.setUnknownError(response, e.getMessage());
+                return true;
+            } catch (NumberFormatException e) {
+                // invalid request parameter error
+                MessageUtils.setInvalidRequestParameterError(response,
+                        HvcDetectRequestUtils.ERROR_PARAMETER_DIFFERENT_TYPE);
+                return true;
+            }
+            
+            // GET API.
+            ((HvcDeviceService) getContext()).doGetDetectionProc(detectKind, requestParams, response,
+                    serviceId);
+            
+            // Since returning the response asynchronously, it returns false.
+            return false;
+            
+            /*****************/
+            
+//            final HumanDetectRequestParams requestParamsFinal = requestParams;
+//            
+//            // convert useFunc
+//            Integer useFunc = HvcConvertUtils.convertUseFunc(detectKind, options);
+//            if (useFunc == null) {
+//                // options unknown parameter.
+//                MessageUtils.setInvalidRequestParameterError(response);
+//                return true;
+//            }
+//            
+//            // get comm manager.
+//            HvcCommManager commManager = ((HvcDeviceService) getContext()).getCommManager(serviceId);
+    
 //        // start detect thread.
 //        HvcCommManager.CommDetectionResult result = commManager.startDetectThread(getContext(), device, useFunc,
 //                requestParamsFinal, new HvcDetectListener() {
@@ -286,9 +293,10 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
 //            MessageUtils.setUnknownError(response, ERROR_RESULT_UNKNOWN_VALUE +  result);
 //            return true;
 //        }
-
-        // Since returning the response asynchronously, it returns false.
-        return false;
+//
+//            // Since returning the response asynchronously, it returns false.
+//            return false;
+        }
     }
 
     /**
@@ -309,6 +317,13 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
+            
+            // ble os available?
+            if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+                // ble not available.
+                MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
+                return true;
+            }
             
             // get parameter.
             HumanDetectRequestParams requestParams = null;

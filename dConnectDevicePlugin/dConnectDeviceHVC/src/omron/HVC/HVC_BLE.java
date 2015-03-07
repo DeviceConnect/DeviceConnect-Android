@@ -18,8 +18,6 @@ package omron.HVC;
 
 import java.util.ArrayList;
 
-import org.deviceconnect.android.deviceplugin.hvc.HvcDebugUtils;
-
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.util.Log;
@@ -475,7 +473,6 @@ public class HVC_BLE extends HVC implements BleInterface
         mStatus = STATE_DISCONNECTED;
         if ( mService != null ) {
 
-HvcDebugUtils.stackTraceLog("HVC_BLE::connect()");
             Log.d(TAG, "DisConnect Device = " + mBtDevice.getName() + " (" + mBtDevice.getAddress() + ")");
             mService.close();
         }
@@ -501,7 +498,6 @@ HvcDebugUtils.stackTraceLog("HVC_BLE::connect()");
         // TODO Auto-generated method stub
         mStatus = STATE_DISCONNECTED;
         if ( mService != null ) {
-HvcDebugUtils.stackTraceLog("HVC_BLE::disconnect()");
 	        Log.d(TAG, "DisConnect Device = " + mBtDevice.getName() + " (" + mBtDevice.getAddress() + ")");
             mService.close();
         }

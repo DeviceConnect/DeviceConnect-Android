@@ -196,7 +196,7 @@ public class HvcDetectThread extends Thread {
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "HvcDetectThread - onPostSetParam()");
                 }
-                mListener.onPostSetParam();
+                mListener.onPostSetParam(mHvcPrm);
             }
             
             @Override

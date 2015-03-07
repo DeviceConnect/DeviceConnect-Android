@@ -230,20 +230,14 @@ public class HvcDetectRequestParams {
      * @return HVC_PRM value
      */
     public HVC_PRM getHvcParams() {
-Log.d("AAA", "getHvcParams() - start");
         HvcBodyRequestParams body = getBody();
         HvcHandRequestParams hand = getHand();
         HvcFaceRequestParams face = getFace();
-Log.d("AAA", "getHvcParams() - body:" + (body != null ? "not null" : "null"));
-Log.d("AAA", "getHvcParams() - hand:" + (hand != null ? "not null" : "null"));
-Log.d("AAA", "getHvcParams() - face:" + (face != null ? "not null" : "null"));
         
         HVC_PRM hvcPrm = new HVC_PRM();
         
         if (body != null) {
-Log.d("AAA", "getHvcParams() - body.getHvcThreshold() - start");
             hvcPrm.body.Threshold = body.getHvcThreshold();
-Log.d("AAA", "getHvcParams() - body.getHvcThreshold() - finish");
             hvcPrm.body.MinSize = body.getHvcMinWidth();
             hvcPrm.body.MaxSize = body.getHvcMaxWidth();
         }
@@ -259,7 +253,6 @@ Log.d("AAA", "getHvcParams() - body.getHvcThreshold() - finish");
             hvcPrm.face.MinSize = face.getHvcMinWidth();
             hvcPrm.face.MaxSize = face.getHvcMaxWidth();
         }
-Log.d("AAA", "getHvcParams() - finish");
         
         return hvcPrm;
     }

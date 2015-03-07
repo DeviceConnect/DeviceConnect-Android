@@ -6,45 +6,29 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc;
 
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import omron.HVC.HVC;
-import omron.HVC.HVC_RES;
-import omron.HVC.HVC_RES.DetectionResult;
-import omron.HVC.HVC_RES.FaceResult;
-
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManagerUtils;
-import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
-import org.deviceconnect.android.deviceplugin.hvc.comm.HvcDetectListener;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
-import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcSystemProfile;
-import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
-import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestUtils;
-import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.HumanDetectProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.os.Bundle;
 import android.util.Log;
 
 /** 

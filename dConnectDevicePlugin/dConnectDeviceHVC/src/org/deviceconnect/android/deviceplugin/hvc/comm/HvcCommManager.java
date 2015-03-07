@@ -107,6 +107,18 @@ public class HvcCommManager {
     // };
 
     /**
+     * HVC_PRM cache.
+     */
+    private HVC_PRM mCacheHvcPrm = null;
+    
+    /**
+     * HVC_RES cache.
+     */
+    private List<HvcResponseCache> mCacheHvcRes = new ArrayList<HvcResponseCache>();
+    
+    
+    
+    /**
      * Constructor.
      * 
      * @param context context
@@ -267,7 +279,7 @@ public class HvcCommManager {
                         }
                         
                         // Remove cache.
-                        mCacheHvcPrm = null;
+                        removeCache();
                         
                         commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, null);
                     }
@@ -278,46 +290,26 @@ public class HvcCommManager {
                             Log.d(TAG, "commProc() - onPostSetParam()");
                         }
                         
-                        // Replace cache.
+                        // Store cache.
                         mCacheHvcPrm = hvcPrm;
                         
                         commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, null);
                     };
     
                     @Override
-                    public void onDetectFinished(final HVC_RES result) {
+                    public void onDetectFinished(final HVC_PRM hvcPrm, final HVC_RES hvcRes) {
                         if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "commProc() - onDetectFinished()");
+                            Log.d(TAG, "commProc() - onDetectFinished() - face:" + hvcRes.body.size() + " hand:"
+                                    + hvcRes.hand.size() + " face:" + hvcRes.face.size());
                         }
-    
+                        
+                        // Store cache.
+                        storeHvcResCache(hvcPrm, hvcRes);
+                        
                         // send response.
-                        setDetectResultResponse(response, requestParams, result, detectKind);
-                        if (sessionKey == null) {
-                            // get,post API response(success).
-                            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-HvcDebugUtils.intentDump("AAA", response, "send intent");
-                            mContext.sendBroadcast(response);
-                        } else {
-                            // event API response.
-                            for (HumanDetectEvent humanDetectEvent : mEventArray) {
-                                String attribute = HvcConvertUtils.convertToEventAttribute(humanDetectEvent.getKind());
-                                if (humanDetectEvent.getRequestParams().getEvent().getInterval() == requestParams
-                                        .getEvent().getInterval()) {
-                                    List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
-                                            HumanDetectProfile.PROFILE_NAME, null, attribute);
-                                    for (Event event : events) {
-                                        Intent intent = EventManager.createEventMessage(event);
-                                        setDetectResultResponse(intent, requestParams, result, detectKind);
-                                        mContext.sendBroadcast(intent);
-                                        if (BuildConfig.DEBUG) {
-                                            Log.d(TAG, "commProc() - send event.");
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        sendResponse(response, requestParams, hvcRes, detectKind, sessionKey);
     
-                        commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, result);
+                        commProc(response, detectKind, requestParams, sessionKey, bluetoothDevice, hvcRes);
                     }
     
                     @Override
@@ -373,6 +365,7 @@ HvcDebugUtils.intentDump("AAA", response, "send intent");
                         MessageUtils.setIllegalDeviceStateError(response, "error. status:" + status);
                         mContext.sendBroadcast(response);
                     }
+                    
                 });
                 if (result == CommDetectionResult.RESULT_SUCCESS
                 ||  result == CommDetectionResult.RESULT_ERR_THREAD_ALIVE) {
@@ -385,16 +378,30 @@ HvcDebugUtils.intentDump("AAA", response, "send intent");
                         Log.d(TAG, "commProc() - startDetectThread() result:" + result.ordinal());
                     }
                     // response(error) unknown value.
-                    MessageUtils
-                            .setIllegalServerStateError(response, "detection result unknown value. " + result.ordinal());
+                    MessageUtils.setIllegalServerStateError(response,
+                            "detection result unknown value. " + result.ordinal());
                     mContext.sendBroadcast(response);
                     return;
                 }
             } else {
                 // busy
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "commProc() - startDetectThread() result:RESULT_ERR_THREAD_ALIVE");
+                    Log.d(TAG, "commProc() - busy");
                 }
+                
+                // if cache hit, return cache response.
+                HVC_PRM hvcPrm = new HvcDetectRequestParams(requestParams).getHvcParams();
+                HVC_RES cacheHvcRes = searchCacheHvcRes(hvcPrm);
+                if (cacheHvcRes != null) {
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "commProc() - SUCCESS(cache hit)");
+                    }
+                    
+                    // success(cache hit)
+                    sendResponse(response, requestParams, hvcRes, detectKind, sessionKey);
+                    return;
+                }
+                
                 // TODO: sleepできないのでコメントアウトしている
                 // // busy
                 // final int CONNECT_RETRY_COUNT = 3;
@@ -474,6 +481,45 @@ HvcDebugUtils.intentDump("AAA", response, "send intent");
             }
         }
 
+    }
+    
+    /**
+     * send response.
+     * @param response response
+     * @param requestParams request parameters
+     * @param hvcRes HVC response
+     * @param detectKind detect kind
+     * @param sessionKey sessionKey
+     */
+    private void sendResponse(final Intent response, final HumanDetectRequestParams requestParams,
+            final HVC_RES hvcRes, final HumanDetectKind detectKind, final String sessionKey) {
+        
+        setDetectResultResponse(response, requestParams, hvcRes, detectKind);
+        if (sessionKey == null) {
+            // get,post API response(success).
+            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+HvcDebugUtils.intentDump("AAA", response, "send intent");
+            setDetectResultResponse(response, requestParams, hvcRes, detectKind);
+            mContext.sendBroadcast(response);
+        } else {
+            // event API response.
+            for (HumanDetectEvent humanDetectEvent : mEventArray) {
+                String attribute = HvcConvertUtils.convertToEventAttribute(humanDetectEvent.getKind());
+                if (humanDetectEvent.getRequestParams().getEvent().getInterval() == requestParams
+                        .getEvent().getInterval()) {
+                    List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
+                            HumanDetectProfile.PROFILE_NAME, null, attribute);
+                    for (Event event : events) {
+                        Intent intent = EventManager.createEventMessage(event);
+                        setDetectResultResponse(intent, requestParams, hvcRes, detectKind);
+                        mContext.sendBroadcast(intent);
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "commProc() - send event.");
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // /**
@@ -1273,11 +1319,6 @@ HvcDebugUtils.intentDump("AAA", response, "send intent");
     }
     
     /**
-     * HVC_PRM cache.
-     */
-    private HVC_PRM mCacheHvcPrm = null;
-    
-    /**
      * Compare cache HVC parameters.
      * @param detectKind detectKind
      * @param requestParams request parameters.
@@ -1307,5 +1348,46 @@ HvcDebugUtils.intentDump("AAA", response, "send intent");
             }
         }
         return false;
+    }
+    
+    /**
+     * Remove cache.
+     */
+    private void removeCache() {
+        mCacheHvcPrm = null;
+        mCacheHvcRes.clear();
+    }
+    
+    /**
+     * Store HVC response cache.
+     * @param hvcPrm HVC parameter.
+     * @param hvcRes HVC response.
+     */
+    private void storeHvcResCache(final HVC_PRM hvcPrm, final HVC_RES hvcRes) {
+        
+        // if found same parameter, replace cache response.
+        for (HvcResponseCache cache : mCacheHvcRes) {
+            if (cache.compareHvcPrm(hvcPrm)) {
+                cache.setHvcRes(hvcRes);
+                return;
+            }
+        }
+        
+        // if not found same parameter, add cache data.
+        mCacheHvcRes.add(new HvcResponseCache(hvcPrm, hvcRes));
+    }
+    
+    /**
+     * search HVC response cache data.
+     * @param hvcPrm HVC parameter.(search key)
+     * @return if match parameter, return cache response. no match, return null.
+     */
+    private HVC_RES searchCacheHvcRes(final HVC_PRM hvcPrm) {
+        for (HvcResponseCache cache : mCacheHvcRes) {
+            if (cache.compareHvcPrm(hvcPrm)) {
+                return cache.getHvcRes();
+            }
+        }
+        return null;
     }
 }

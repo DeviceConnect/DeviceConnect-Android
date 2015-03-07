@@ -28,9 +28,10 @@ public interface HvcDetectListener {
     void onPostSetParam(final HVC_PRM hvcPrm);
     /**
      * Detect finished.
-     * @param result result
+     * @param hvcPrm send HVC parameter.
+     * @param hvcRes send HVC response.
      */
-    void onDetectFinished(final HVC_RES result);
+    void onDetectFinished(final HVC_PRM hvcPrm, final HVC_RES hvcRes);
     /**
      * Disconnected.
      */

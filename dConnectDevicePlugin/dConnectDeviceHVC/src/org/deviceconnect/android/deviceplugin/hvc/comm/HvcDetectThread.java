@@ -208,7 +208,7 @@ public class HvcDetectThread extends Thread {
                     // Error processing
                     mListener.onDetectError(nRet);
                 } else {
-                    mListener.onDetectFinished(mHvcRes);
+                    mListener.onDetectFinished(mHvcPrm, mHvcRes);
                 }
                 
             }
@@ -261,6 +261,9 @@ public class HvcDetectThread extends Thread {
             }
         }
         
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "run() finish. disconnected.");
+        }
         mHvcBle.disconnect();
     }
     

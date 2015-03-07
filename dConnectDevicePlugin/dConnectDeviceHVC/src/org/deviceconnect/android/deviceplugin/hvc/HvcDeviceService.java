@@ -15,6 +15,7 @@ import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManagerUtils;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcHumanDetectProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcServiceInformationProfile;
@@ -43,10 +44,6 @@ public class HvcDeviceService extends DConnectMessageService {
      */
     private static final String TAG = HvcDeviceService.class.getSimpleName();
     
-    /**
-     * timeout judge timer interval[msec].
-     */
-    private static final long TIMEOUT_JUDGE_MSEC = 1 * 60 * 1000;
     
     /**
      * HVC comm managers(1serviceId,1record).<br>
@@ -76,7 +73,7 @@ public class HvcDeviceService extends DConnectMessageService {
 
         super.onCreate();
 
-        // EventManagerの初期化
+        // Initialize EventManager
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
         // add supported profiles
@@ -187,29 +184,6 @@ public class HvcDeviceService extends DConnectMessageService {
         // add event data to commManager.
         commManager.registerDetectEvent(detectKind, requestParams, response, sessionKey);
         
-//        // register
-//        if (!commManager.checkRegisterDetectEvent(detectKind, sessionKey)) {
-//            if (BuildConfig.DEBUG) {
-//                Log.d(TAG, "registerDetectionEvent(). add registerDetectEvent");
-//            }
-//            commManager.registerDetectEvent(detectKind, requestParams, sessionKey);
-//        }
-//        
-//        // if timer not start , start timer.
-//        if (!mIsIntervalTimerRunning) {
-//            if (BuildConfig.DEBUG) {
-//                Log.d(TAG, "registerDetectionEvent(). start timer");
-//            }
-//            mIntervalTimer = new Timer();
-//            mIntervalTimer.scheduleAtFixedRate(new TimerTask() {
-//                @Override
-//                public void run() {
-//                    requestDetectAllServices();
-//                }
-//            }, 0, TIMER_INTERVAL);
-//            mIsIntervalTimerRunning = true;
-//        }
-//        
     }
     
     // 
@@ -325,28 +299,26 @@ public class HvcDeviceService extends DConnectMessageService {
      * @param interval interval[msec]
      */
     private void startIntervalTimer(final long interval) {
-Log.d("AAA", "startIntervalTimer() - <1> interval:" + interval);
         
         // search timer, if interval to match.
         HvcTimerInfo timerInfo = HvcTimerInfoUtils.search(mIntervalTimerInfoArray, interval);
         if (timerInfo == null) {
-Log.d("AAA", "startIntervalTimer() - <2>");
             // if no match, start interval timer.
             timerInfo = new HvcTimerInfo(interval);
             timerInfo.startTimer(new TimerTask() {
                 @Override
                 public void run() {
-Log.d("AAA", "startIntervalTimer() - <3> mHvcCommManagerArray.size():" + mHvcCommManagerArray.size());
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "event interval timer proc.");
+                    }
                     // call event process.
                     for (HvcCommManager commManager : mHvcCommManagerArray) {
                         commManager.onEventProc(interval);
                     }
                 }
             });
-Log.d("AAA", "startIntervalTimer() - <4> .mIntervalTimerInfoArray.size():" + mIntervalTimerInfoArray.size());
             mIntervalTimerInfoArray.add(timerInfo);
         }
-Log.d("AAA", "startIntervalTimer() - <5>");
     }
     
     /**
@@ -354,10 +326,13 @@ Log.d("AAA", "startIntervalTimer() - <5>");
      */
     private void startTimeoutJudgetTimer() {
         
-        mTimeoutJudgeTimer = new HvcTimerInfo(TIMEOUT_JUDGE_MSEC);
+        mTimeoutJudgeTimer = new HvcTimerInfo(HvcConstants.TIMEOUT_JUDGE_MSEC);
         mTimeoutJudgeTimer.startTimer(new TimerTask() {
             @Override
             public void run() {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "timeout judge timer proc.");
+                }
                 // call timeout judge process.
                 for (HvcCommManager commManager : mHvcCommManagerArray) {
                     commManager.onTimeoutJudgeProc();

@@ -147,6 +147,17 @@ public final class HvcConstants {
      * HVC-C face max height default value.
      */
     public static final int FACE_MAX_HEIGHT_DEFAULT = HVC_C_CAMERA_HEIGHT;
+
+    /**
+     * timeout judge timer interval[msec].
+     */
+    public static final long TIMEOUT_JUDGE_MSEC = 1 * 60 * 1000;
+    
+    /**
+     * HVC connect timeout time[msec].
+     */
+    public static final long HVC_CONNECT_TIMEOUT_TIME = 2 * 60 * 1000;
+    
     
 
 }

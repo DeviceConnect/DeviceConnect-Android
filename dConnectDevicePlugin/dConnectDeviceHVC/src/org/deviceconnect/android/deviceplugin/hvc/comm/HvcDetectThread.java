@@ -104,6 +104,11 @@ public class HvcDetectThread extends Thread {
      */
     private Object mLockWaitDetect = new Object();
     
+    /**
+     * last process time(System.currentTimeMillis()).
+     */
+    private long mLastAccessTime;
+    
     
     /**
      * Constructor.
@@ -126,21 +131,19 @@ public class HvcDetectThread extends Thread {
         mHvcPrm = new HvcDetectRequestParams(requestParams).getHvcParams();
         mListener = listener;
         
-Log.d("AAA", "HvcDetectThread() - request() <1>");
+        // Replace last access time.
+        mLastAccessTime = System.currentTimeMillis();
+        
         // if not alive, thread start.
         if (!isAlive()) {
-            Log.d("AAA", "HvcDetectThread() - request() <2>");
             start();
-            Log.d("AAA", "HvcDetectThread() - request() <3>");
             
             // wait start thread
             waitForStartThread();
-            Log.d("AAA", "HvcDetectThread() - request() <4>");
             
             // first request, no need unlock.
             
         } else {
-            Log.d("AAA", "HvcDetectThread() - request() <5>");
             
             // not connect process, unlock wait request.
             synchronized (mLockWaitRequest) {
@@ -148,7 +151,6 @@ Log.d("AAA", "HvcDetectThread() - request() <1>");
             }
             
         }
-        Log.d("AAA", "HvcDetectThread() - request() <6>");
         
     }
 
@@ -165,13 +167,11 @@ Log.d("AAA", "HvcDetectThread() - request() <1>");
     
     @Override
     public void run() {
-Log.d("AAA", "HvcDetectThread - run() <1>");
         
         // unlock wait.
         synchronized (mLockWaitStartThread) {
             mLockWaitStartThread.notifyAll();
         }
-Log.d("AAA", "HvcDetectThread - run() <2>");
         
         // BLE initialize (GATT)
         mHvcBle.setCallBack(new HVCBleCallback() {
@@ -236,18 +236,14 @@ Log.d("AAA", "HvcDetectThread - run() <2>");
         
         // loop
         while (true) {
-Log.d("AAA", "HvcDetectThread - run() <3>");
             
             // request process.
             mIsProcessing = true;
             requestProcessOnThread();
             mIsProcessing = false;
             
-Log.d("AAA", "HvcDetectThread - run() <4>");
-
             // success (wait next request)
             waitForRequest();
-            Log.d("AAA", "HvcDetectThread - run() <5>");
         }
         
     }
@@ -388,4 +384,13 @@ Log.d("AAA", "HvcDetectThread - run() <4>");
     public boolean checkBusy() {
         return mIsProcessing;
     }
+    
+    /**
+     * get last access time.
+     * @return last access time
+     */
+    public long getLastAccessTime() {
+        return mLastAccessTime;
+    }
+    
 }

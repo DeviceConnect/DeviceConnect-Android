@@ -19,7 +19,6 @@ import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 
-import android.util.Log;
 
 /**
  * HVC request parameter class.
@@ -262,7 +261,6 @@ public class HvcDetectRequestParams {
      * @return useFunc
      */
     public int getUseFunc() {
-Log.d("AAA", "getUseFunc() - start");
         int useFunc = 0;
         if (mRequestParams.getBody() != null) {
             useFunc |= HvcConvertUtils.convertUseFunc(HumanDetectKind.BODY, mRequestParams.getBody().getOptions());
@@ -273,7 +271,6 @@ Log.d("AAA", "getUseFunc() - start");
         if (mRequestParams.getFace() != null) {
             useFunc |= HvcConvertUtils.convertUseFunc(HumanDetectKind.FACE, mRequestParams.getFace().getOptions());
         }
-Log.d("AAA", "getUseFunc() - finish  useFunc:" + String.format("%04x", useFunc));
         return useFunc;
     }
 }

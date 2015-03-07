@@ -7,6 +7,8 @@
 package org.deviceconnect.android.deviceplugin.hvc.comm;
 
 import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
 
 import omron.HVC.HVC;
 import omron.HVC.HVCBleCallback;
@@ -39,13 +41,17 @@ public class HvcDetectThread extends Thread {
     private BluetoothDevice mDevice;
     
     /**
-     * Use function bit flag.
+     * Request parameters.
      */
-    private int mUseFunc;
+    private HumanDetectRequestParams mRequestParams = null;
+    
+    
     /**
      * HVC detect listener.
      */
     private HvcDetectListener mListener;
+    
+    
     
     /**
      * HVC BLE class.
@@ -61,49 +67,89 @@ public class HvcDetectThread extends Thread {
     HVC_RES mHvcRes = new HVC_RES();
     
     /**
-     * HVC parameter class lock object.
+     * Cache parameter.
      */
-    private Object mHvcParameterLock = new Object();
+    HVC_PRM mCacheHvcPrm = null;
     
     /**
-     * thread running flag.
+     * Processing flag.
      */
-    private boolean mIsRunning = false;
+    boolean mIsProcessing = false;
     
-    /**
-     * connecting flag.
-     */
-    private boolean mIsConnecting = false;
+    
     
     
     /**
-     * post set parameter command wait flag.
+     * Wait start thread lock object.
      */
-    private boolean mIsWaitPostSetParameter = false;
+    private Object mLockWaitStartThread = new Object();
     
     /**
-     * post detect wait flag.
+     * Wait request lock object.
      */
-    private boolean mIsWaitPostDetect = false;
-
-    /**
-     * thread sleep time[msec].
-     */
-    private static final long THREAD_SLEEP_TIME = 500;
+    private Object mLockWaitRequest = new Object();
     
+    /**
+     * Connect lock object.
+     */
+    private Object mLockWaitConnect = new Object();
+    
+    /**
+     * Set parameter lock object.
+     */
+    private Object mLockWaitSetParameter = new Object();
+    
+    /**
+     * Detect lock object.
+     */
+    private Object mLockWaitDetect = new Object();
     
     
     /**
      * Constructor.
      * @param context Context
      * @param device bluetooth device
-     * @param listener listener
      */
-    public HvcDetectThread(final Context context, final BluetoothDevice device, final HvcDetectListener listener) {
+    public HvcDetectThread(final Context context, final BluetoothDevice device) {
         super();
         mContext = context;
         mDevice = device;
+    }
+
+    /**
+     * thread start process.
+     * @param requestParams request parameters
+     * @param listener callback listener
+     */
+    public void request(final HumanDetectRequestParams requestParams, final HvcDetectListener listener) {
+        mRequestParams = requestParams;
+        mHvcPrm = new HvcDetectRequestParams(requestParams).getHvcParams();
         mListener = listener;
+        
+Log.d("AAA", "HvcDetectThread() - request() <1>");
+        // if not alive, thread start.
+        if (!isAlive()) {
+            Log.d("AAA", "HvcDetectThread() - request() <2>");
+            start();
+            Log.d("AAA", "HvcDetectThread() - request() <3>");
+            
+            // wait start thread
+            waitForStartThread();
+            Log.d("AAA", "HvcDetectThread() - request() <4>");
+            
+            // first request, no need unlock.
+            
+        } else {
+            Log.d("AAA", "HvcDetectThread() - request() <5>");
+            
+            // not connect process, unlock wait request.
+            synchronized (mLockWaitRequest) {
+                mLockWaitRequest.notifyAll();
+            }
+            
+        }
+        Log.d("AAA", "HvcDetectThread() - request() <6>");
+        
     }
 
     /**
@@ -113,61 +159,19 @@ public class HvcDetectThread extends Thread {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "HvcDetectThread - halt()");
         }
-        mIsRunning = false;
         mHvcBle.disconnect();
         interrupt();
     }
     
-    
-    /**
-     * connect process.
-     */
-    public void connectProc() {
-        mIsConnecting = true;
-    }
-    
-    /**
-     * send request.
-     * @param useFunc use function bit flag
-     * @param param parameter
-     * @return true: success / false: error(call mListener.onSetParamError(result))
-     */
-    public boolean sendRequest(final int useFunc, final HVC_PRM param) {
-        
-        // send parameter command to HVC.(results return callback. : mCallback.onPostSetParam())
-        mUseFunc = useFunc;
-        mHvcPrm = param;
-        int result = mHvcBle.setParam(mHvcPrm);
-        if (result != HVC.HVC_NORMAL) {
-            // error (device not found, disconnected, busy ...)
-            mListener.onSetParamError(result);
-            return false;
-        }
-        return true;
-    }
-    
-    /**
-     * post parameter.
-     * @param useFunc useFunc.
-     * @param hvcPrm HVC parameters.
-     */
-    public void postSetParameter(final int useFunc, final HVC_PRM hvcPrm) {
-        synchronized (mHvcParameterLock) {
-            mUseFunc = useFunc;
-            mHvcPrm = hvcPrm;
-            mIsWaitPostSetParameter = true;
-        }
-    }
-
-    /**
-     * post detect.
-     */
-    public void postDetect() {
-        mIsWaitPostDetect = true;
-    }
-    
     @Override
     public void run() {
+Log.d("AAA", "HvcDetectThread - run() <1>");
+        
+        // unlock wait.
+        synchronized (mLockWaitStartThread) {
+            mLockWaitStartThread.notifyAll();
+        }
+Log.d("AAA", "HvcDetectThread - run() <2>");
         
         // BLE initialize (GATT)
         mHvcBle.setCallBack(new HVCBleCallback() {
@@ -179,6 +183,10 @@ public class HvcDetectThread extends Thread {
                 }
                 mListener.onConnected();
                 
+                // unlock wait.
+                synchronized (mLockWaitConnect) {
+                    mLockWaitConnect.notifyAll();
+                }
             }
             
             @Override
@@ -197,6 +205,14 @@ public class HvcDetectThread extends Thread {
                     Log.d(TAG, "HvcDetectThread - onPostSetParam()");
                 }
                 mListener.onPostSetParam(mHvcPrm);
+                
+                // Replace cache.
+                mCacheHvcPrm = mHvcPrm;
+                
+                // unlock wait.
+                synchronized (mLockWaitSetParameter) {
+                    mLockWaitSetParameter.notifyAll();
+                }
             }
             
             @Override
@@ -211,62 +227,85 @@ public class HvcDetectThread extends Thread {
                     mListener.onDetectFinished(mHvcPrm, mHvcRes);
                 }
                 
+                // unlock wait.
+                synchronized (mLockWaitDetect) {
+                    mLockWaitDetect.notifyAll();
+                }
             }
         });
         
-        mIsRunning = true;
-        while (mIsRunning) {
+        // loop
+        while (true) {
+Log.d("AAA", "HvcDetectThread - run() <3>");
+            
+            // request process.
+            mIsProcessing = true;
+            requestProcessOnThread();
+            mIsProcessing = false;
+            
+Log.d("AAA", "HvcDetectThread - run() <4>");
 
-            int commStatus = mHvcBle.getStatus();
-            if (mIsConnecting && commStatus == HVC.HVC_ERROR_NODEVICES) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "mHvcBle.connect()");
-                }
-                mHvcBle.connect(mContext, mDevice);
-                
-            }
-            
-            if (mHvcBle != null && mIsWaitPostSetParameter) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "mHvcBle.setParam()");
-                }
-                int result = mHvcBle.setParam(mHvcPrm);
-                if (result != HVC.HVC_NORMAL) {
-                    mListener.onSetParamError(result);
-                    return;
-                }
-                mIsWaitPostSetParameter = false;
-            }
-            
-            if (mHvcBle != null && mIsWaitPostDetect) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "mHvcBle.execute()");
-                }
-                int result = mHvcBle.execute(mUseFunc, mHvcRes);
-                if (result != HVC.HVC_NORMAL) {
-                    mListener.onRequestDetectError(result);
-                    return;
-                }
-                mIsWaitPostDetect = false;
-            }
-            
-            
-            // sleep.
-            try {
-                sleep(THREAD_SLEEP_TIME);
-            } catch (InterruptedException e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-            }
+            // success (wait next request)
+            waitForRequest();
+            Log.d("AAA", "HvcDetectThread - run() <5>");
         }
         
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "run() finish. disconnected.");
-        }
-        mHvcBle.disconnect();
     }
-    
+
+    /**
+     * request process on thread.
+     */
+    private void requestProcessOnThread() {
+        // connect
+        int commStatus = mHvcBle.getStatus();
+        if (commStatus == HVC.HVC_ERROR_NODEVICES) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "mHvcBle.connect()");
+            }
+            
+            // clear cache.
+            mCacheHvcPrm = null;
+            
+            // connect
+            mHvcBle.connect(mContext, mDevice);
+            
+            // wait.
+            waitForConnect();
+        }
+        
+        // send parameter.
+        if (mCacheHvcPrm == null || !mCacheHvcPrm.equals(mHvcPrm)) {
+            
+            // no hit cache, send parameter.
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "mHvcBle.setParam()");
+            }
+            int result = mHvcBle.setParam(mHvcPrm);
+            if (result != HVC.HVC_NORMAL) {
+                mListener.onSetParamError(result);
+                return;
+            } else {
+                // wait.
+                waitForSendParameter();
+            }
+            
+        }
+        
+        // send detect request.
+        int useFunc = (new HvcDetectRequestParams(mRequestParams)).getUseFunc();
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "mHvcBle.execute() useFunc:" + useFunc);
+        }
+        int result = mHvcBle.execute(useFunc, mHvcRes);
+        if (result != HVC.HVC_NORMAL) {
+            mListener.onRequestDetectError(result);
+            return;
+        } else {
+            // wait.
+            waitForDetect();
+        }
+    }
+
     /**
      * get comm status.
      * @return comm status.
@@ -274,5 +313,79 @@ public class HvcDetectThread extends Thread {
     public int getHvcCommStatus() {
         int commStatus = mHvcBle.getStatus();
         return commStatus;
+    }
+    
+    
+    /**
+     * wait start thread.
+     */
+    private void waitForStartThread() {
+        synchronized (mLockWaitStartThread) {
+            try {
+                mLockWaitStartThread.wait();
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+    }
+    
+    /**
+     * wait for request.
+     */
+    private void waitForRequest() {
+        synchronized (mLockWaitRequest) {
+            try {
+                mLockWaitRequest.wait();
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+    }
+    
+    /**
+     * wait for connect.
+     */
+    private void waitForConnect() {
+        synchronized (mLockWaitConnect) {
+            try {
+                mLockWaitConnect.wait();
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+    }
+
+    /**
+     * wait for send parameter.
+     */
+    private void waitForSendParameter() {
+        synchronized (mLockWaitSetParameter) {
+            try {
+                mLockWaitSetParameter.wait();
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+    }
+
+    /**
+     * wait for detect.
+     */
+    private void waitForDetect() {
+        synchronized (mLockWaitDetect) {
+            try {
+                mLockWaitDetect.wait();
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+    }
+
+    /**
+     * check busy.
+     * @return true: busy / false: not busy
+     */
+    public boolean checkBusy() {
+        return mIsProcessing;
     }
 }

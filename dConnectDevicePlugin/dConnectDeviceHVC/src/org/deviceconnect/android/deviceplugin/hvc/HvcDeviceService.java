@@ -325,23 +325,28 @@ public class HvcDeviceService extends DConnectMessageService {
      * @param interval interval[msec]
      */
     private void startIntervalTimer(final long interval) {
+Log.d("AAA", "startIntervalTimer() - <1> interval:" + interval);
         
         // search timer, if interval to match.
         HvcTimerInfo timerInfo = HvcTimerInfoUtils.search(mIntervalTimerInfoArray, interval);
         if (timerInfo == null) {
+Log.d("AAA", "startIntervalTimer() - <2>");
             // if no match, start interval timer.
             timerInfo = new HvcTimerInfo(interval);
             timerInfo.startTimer(new TimerTask() {
                 @Override
                 public void run() {
+Log.d("AAA", "startIntervalTimer() - <3> mHvcCommManagerArray.size():" + mHvcCommManagerArray.size());
                     // call event process.
                     for (HvcCommManager commManager : mHvcCommManagerArray) {
-                        commManager.onEventProc(getContext(), interval);
+                        commManager.onEventProc(interval);
                     }
                 }
             });
+Log.d("AAA", "startIntervalTimer() - <4> .mIntervalTimerInfoArray.size():" + mIntervalTimerInfoArray.size());
             mIntervalTimerInfoArray.add(timerInfo);
         }
+Log.d("AAA", "startIntervalTimer() - <5>");
     }
     
     /**

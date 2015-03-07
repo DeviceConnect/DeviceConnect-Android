@@ -109,7 +109,7 @@ public class HvcDetectRequestParams {
     /**
      * HVC default event interval[msec].
      */
-    private static final long DEFAULT_EVENT_INTERVAL = 10 * 1000;
+    private static final long DEFAULT_EVENT_INTERVAL = 5 * 1000;
     
 
     /**

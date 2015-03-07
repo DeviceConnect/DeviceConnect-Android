@@ -9,12 +9,7 @@ package org.deviceconnect.android.deviceplugin.hvc.profile;
 import java.security.InvalidParameterException;
 import java.util.List;
 
-import omron.HVC.HVC_RES;
-
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
-import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
-import org.deviceconnect.android.deviceplugin.hvc.comm.HvcDetectListener;
-import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestUtils;
@@ -22,11 +17,8 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.HumanDetectProfile;
-import org.deviceconnect.message.DConnectMessage;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.content.IntentSender.SendIntentException;
 import android.content.pm.PackageManager;
 
 

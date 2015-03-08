@@ -10,10 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import omron.HVC.BleDeviceSearch;
+
+import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceDetector;
+import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceDetector.BleDeviceDiscoveryListener;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManagerUtils;
-import org.deviceconnect.android.deviceplugin.hvc.devicesearch.HvcDeviceSearchUtils;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
@@ -30,8 +35,11 @@ import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 
 /** 
@@ -70,11 +78,9 @@ public class HvcDeviceService extends DConnectMessageService {
     
     
     /**
-     * device search timer information.<br>
-     * - null: stop timer.
-     * - not null: running timer.
+     * Instance of {@link BleDeviceDetector}.
      */
-    private Timer mDeviceSearchTimer;
+    private BleDeviceDetector mDetector;
     
     /**
      * HVC found device list.
@@ -85,16 +91,26 @@ public class HvcDeviceService extends DConnectMessageService {
      * Lock object for {@link mDeviceList}.
      */
     private Object mLockDeviceListObj = new Object();
-    
+
+
     
     
     @Override
     public void onCreate() {
 
         super.onCreate();
-
-        // start HVC device search timer.
-        startDeviceSearchTimer(HvcConstants.DEVICE_SEARCH_INTERVAL);
+        
+        Context context = getContext();
+        
+        // initialize ble device detector.
+        mDetector = new BleDeviceDetector(context);
+        mDetector.setListener(mDiscoveryListener);
+        if (mDetector.isEnabled()) {
+            mDetector.startScan();
+        }
+        
+//        // start HVC device search timer.
+//        startDeviceSearchTimer(HvcConstants.DEVICE_SEARCH_INTERVAL);
         
         // Initialize EventManager
         EventManager.INSTANCE.setController(new MemoryCacheController());
@@ -110,6 +126,28 @@ public class HvcDeviceService extends DConnectMessageService {
             return START_STICKY;
         }
         String action = intent.getAction();
+        if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "bluetooth state change.");
+                Bundle extras = intent.getExtras();
+                int state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
+                int prevState = extras.getInt(BluetoothAdapter.EXTRA_PREVIOUS_STATE);
+                
+                Log.d(TAG, "state:" + (
+                          state == BluetoothAdapter.STATE_ON ? "STATE_ON" 
+                        : state == BluetoothAdapter.STATE_OFF ? "STATE_OFF"
+                        : state == BluetoothAdapter.STATE_TURNING_OFF ? "STATE_TURNING_OFF"
+                        : state == BluetoothAdapter.STATE_TURNING_ON ? "STATE_TURNING_ON"
+                        : "other"));
+                Log.d(TAG, "prevState:" + (
+                        prevState == BluetoothAdapter.STATE_ON ? "STATE_ON"
+                        : prevState == BluetoothAdapter.STATE_OFF ? "STATE_OFF"
+                        : prevState == BluetoothAdapter.STATE_TURNING_OFF ? "STATE_TURNING_OFF"
+                        : prevState == BluetoothAdapter.STATE_TURNING_ON ? "STATE_TURNING_ON"
+                        : "other"));
+            }
+        }
+        
 //        if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
 //                    HvcConnectProfile.PROFILE_NAME,
 //                    List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
@@ -145,6 +183,49 @@ public class HvcDeviceService extends DConnectMessageService {
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
         return new HvcServiceDiscoveryProfile();
     }
+    
+    //
+    // service discovery profile
+    //
+    
+    /**
+     * discovery listener.
+     */
+    private BleDeviceDiscoveryListener mDiscoveryListener = new BleDeviceDiscoveryListener() {
+        
+        @Override
+        public void onDiscovery(final List<BluetoothDevice> devices) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "--- found all ble devices---");
+                if (devices != null) {
+                    for (BluetoothDevice device : devices) {
+                        Log.d(TAG, " - name:" + device.getName() + " address:" + device.getAddress());
+                    }
+                }
+            }
+            List<BluetoothDevice> hvcDeviceList = new ArrayList<BluetoothDevice>();
+            Pattern p = Pattern.compile(HvcConstants.HVC_DEVICE_NAME_PREFIX);
+            for (BluetoothDevice device : devices) {
+                // Generate pattern to determine
+                Matcher m = p.matcher(device.getName());
+                if (m.find()) {
+                    hvcDeviceList.add(device);
+                }
+            }
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "--- found HVC ble devices---");
+                if (hvcDeviceList != null) {
+                    for (BluetoothDevice device : hvcDeviceList) {
+                        Log.d(TAG, " - name:" + device.getName() + " address:" + device.getAddress());
+                    }
+                }
+            }
+            
+            synchronized (mLockDeviceListObj) {
+                mDeviceList = hvcDeviceList;
+            }
+        }
+    };
     
     
     //
@@ -310,44 +391,6 @@ public class HvcDeviceService extends DConnectMessageService {
         }
     }
     
-    
-    
-
-    /**
-     * start HVC device search timer.
-     * @param deviceSearchInterval device search interval[msec]
-     */
-    private void startDeviceSearchTimer(final long deviceSearchInterval) {
-        
-        if (mDeviceSearchTimer != null) {
-            return;
-        }
-        
-        // timer start.
-        mDeviceSearchTimer = new Timer();
-        mDeviceSearchTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "device search timer proc.");
-                }
-                
-                // device search.
-                List<BluetoothDevice> deviceList = HvcDeviceSearchUtils.selectHvcDevices(getContext());
-                if (BuildConfig.DEBUG) {
-                    for (BluetoothDevice device : deviceList) {
-                        Log.d(TAG, "found device -  name:" + device.getName() + " address:" + device.getAddress());
-                    }
-                }
-                
-                // store.
-                synchronized (mLockDeviceListObj) {
-                    mDeviceList = deviceList;
-                }
-            }
-        }, 0, HvcConstants.DEVICE_SEARCH_INTERVAL);
-    }
-
     /**
      * start interval timer(if no event with same interval.).
      * @param interval interval[msec]
@@ -449,14 +492,6 @@ public class HvcDeviceService extends DConnectMessageService {
          */
         public long getInterval() {
             return mInterval;
-        }
-        
-        /**
-         * set interval.
-         * @param interval interval[msec]
-         */
-        public void setInterval(final long interval) {
-            mInterval = interval;
         }
         
         /**

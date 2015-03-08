@@ -19,7 +19,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.hvc.R;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
@@ -29,15 +28,16 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity
  */
 public class HvcSettingStepsActivity extends DConnectSettingPageFragmentActivity {
     
+    /**
+     * Page count.
+     */
     private static final int TUTORIAL_PAGE_NNMBER = 3;
     
+    /**
+     * Logger name.
+     */
     private static final String LOGGER_NAME = "HvcSettingStepsActivity";
     
-    /**
-     * ホストアプリケーションタイトルテキスト.
-     */
-    private static TextView sHostApplicationTitleText;
-
     /** フラグメント一覧. */
     private List<Fragment> mFragments = new ArrayList<Fragment>();
 

@@ -35,7 +35,7 @@ public class BleDeviceSearch {
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothReceiver mBluetoothReceiver = null;
 
-    public BleDeviceSearch(Context context) {
+    public BleDeviceSearch(Context context, final int searchTime) {
     	deviceList = new ArrayList<BluetoothDevice>();
 
     	// Step 1: Enable Bluetooth
@@ -43,19 +43,19 @@ public class BleDeviceSearch {
         if (mBluetoothAdapter != null) {
             // Bluetooth supported
             if (mBluetoothAdapter.isEnabled()) {
-            	discoverDevices(context);
+            	discoverDevices(context, searchTime);
             }
         }
     }
 
-    private void discoverDevices(Context context) {
+    private void discoverDevices(Context context, final int searchTime) {
         // Step 4: Scan for Bluetooth device
         mBluetoothReceiver = new BluetoothReceiver();
         context.registerReceiver(mBluetoothReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
         mBluetoothAdapter.startDiscovery();
 
 //        sleep(10000);
-        sleep(3000);
+        sleep(searchTime);
 
     	mBluetoothAdapter.cancelDiscovery();
         context.unregisterReceiver(mBluetoothReceiver);
@@ -79,8 +79,8 @@ public class BleDeviceSearch {
         } catch(InterruptedException e){}
     }
 
-	public List<BluetoothDevice> getDevices() {
-		// TODO Auto-generated method stub
-		return deviceList;
-	}
+    public List<BluetoothDevice> getDevices() {
+        // TODO Auto-generated method stub
+        return deviceList;
+    }
 }

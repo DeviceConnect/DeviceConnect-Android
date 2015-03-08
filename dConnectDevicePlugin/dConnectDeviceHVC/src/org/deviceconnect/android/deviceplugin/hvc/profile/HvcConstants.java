@@ -36,53 +36,53 @@ public final class HvcConstants {
     public static final int HVC_C_CAMERA_HEIGHT = 480;
     
     /**
-     * HVC-C threshold max value.しきい値
+     * HVC-C threshold max value.
      */
     public static final int THRESHOLD_MAX = 1000;
     
     /**
-     * HVC-C confidence max value.信頼度
+     * HVC-C confidence max value.
      */
     public static final int CONFIDENCE_MAX = 1000;
     
     /**
-     * HVC-C blink max value(large: eye closed).目つむり度
+     * HVC-C blink max value(large value: eye closed).
      */
     public static final int BLINK_MAX = 1000;
     
     
     /**
-     * HVC-C expression unknown.無表情
+     * HVC-C expression unknown.
      */
     public static final String EXPRESSION_UNKNOWN = "unknown";
     
     /**
-     * HVC-C expression smile.喜び
+     * HVC-C expression smile.
      */
     public static final String EXPRESSION_SMILE = "smile";
     
     /**
-     * HVC-C expression surprise.驚き
+     * HVC-C expression surprise.
      */
     public static final String EXPRESSION_SURPRISE = "surprise";
     
     /**
-     * HVC-C expression mad.怒り
+     * HVC-C expression mad.
      */
     public static final String EXPRESSION_MAD = "mad";
     
     /**
-     * HVC-C expression sad.悲しみ
+     * HVC-C expression sad.
      */
     public static final String EXPRESSION_SAD = "sad";
     
     /**
-     * HVC-C expression score max.表情推定のスコア最大値
+     * HVC-C expression score max.
      */
     public static final int EXPRESSION_SCORE_MAX = 100;
     
     /**
-     * HVC-C threshold default value.しきい値
+     * HVC-C threshold default value.
      */
     public static final int THRESHOLD_DEFAULT = 500;
     
@@ -151,13 +151,22 @@ public final class HvcConstants {
     /**
      * timeout judge timer interval[msec].
      */
-    public static final long TIMEOUT_JUDGE_MSEC = 1 * 60 * 1000;
+    public static final long TIMEOUT_JUDGE_INTERVAL = 1 * 60 * 1000;
     
     /**
      * HVC connect timeout time[msec].
      */
     public static final long HVC_CONNECT_TIMEOUT_TIME = 2 * 60 * 1000;
     
+    /**
+     * HVC device search interval[msec].
+     */
+    public static final long DEVICE_SEARCH_INTERVAL = 3 * 60 * 1000;
+
+    /**
+     * HVC device search wait time[msec].
+     */
+    public static final int DEVICE_SEARCH_WAIT_TIME = 5000;
     
 
 }

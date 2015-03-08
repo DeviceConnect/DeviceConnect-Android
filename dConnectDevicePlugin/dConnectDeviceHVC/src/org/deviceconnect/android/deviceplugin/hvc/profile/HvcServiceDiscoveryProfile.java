@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 import omron.HVC.BleDeviceSearch;
 
+import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -40,49 +41,19 @@ public class HvcServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             return true;
         }
         
-        Thread hvcThread = new Thread() {
-            @Override
-            public void run() {
-                List<BluetoothDevice> devices = selectHvcDevices(HvcConstants.HVC_DEVICE_NAME_PREFIX);
-                
-                // store devices.
-                HvcCommManager.storeDevices(devices);
-                
-                // set response.
-                List<Bundle> services = new ArrayList<Bundle>();
-                for (BluetoothDevice device : devices) {
-                    services.add(toBundle(device));
-                }
-                setResult(response, DConnectMessage.RESULT_OK);
-                setServices(response, services);
-                getContext().sendBroadcast(response);
-            }
-        };
-        hvcThread.start();
+        // get device list.
+        List<BluetoothDevice> devices = ((HvcDeviceService) getContext()).getHvcDeviceList();
         
-        // Since returning the response asynchronously, it returns false.
-        return false;
+        // set response.
+        List<Bundle> services = new ArrayList<Bundle>();
+        for (BluetoothDevice device : devices) {
+            services.add(toBundle(device));
+        }
+        setResult(response, DConnectMessage.RESULT_OK);
+        setServices(response, services);
+        return true;
     }
 
-    /**
-     * Search HVC Device.
-     * @param regStr HVC device name matching string.
-     * @return BluetoothDevice List.
-     */
-    private List<BluetoothDevice> selectHvcDevices(final String regStr) {
-        List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
-        Pattern p = Pattern.compile(regStr);
-        BleDeviceSearch bleSearch = new BleDeviceSearch(getContext());
-        List<BluetoothDevice> deviceList  = bleSearch.getDevices();
-        for (BluetoothDevice bluetoothDevice : deviceList) {
-            // Generate pattern to determine
-            Matcher m = p.matcher(bluetoothDevice.getName());
-            if (m.find()) {
-                devices.add(bluetoothDevice);
-            }
-        }
-        return devices;
-    }
 
     /**
      * Returns by storing the {@link Bundle} status of HVC. 

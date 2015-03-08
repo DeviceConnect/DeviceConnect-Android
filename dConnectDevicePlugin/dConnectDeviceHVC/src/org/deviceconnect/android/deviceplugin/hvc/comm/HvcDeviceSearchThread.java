@@ -57,11 +57,11 @@ public class HvcDeviceSearchThread extends Thread {
      * @return found devices.
      */
     private List<BluetoothDevice> selectHVCDevice(final String regStr) {
-        BleDeviceSearch bleSearch = new BleDeviceSearch(mContext);
-        List<BluetoothDevice> deviceList = bleSearch.getDevices();
-        if (deviceList != null && deviceList.size() > 0) {
-            return deviceList;
-        }
+//        BleDeviceSearch bleSearch = new BleDeviceSearch(mContext);
+//        List<BluetoothDevice> deviceList = bleSearch.getDevices();
+//        if (deviceList != null && deviceList.size() > 0) {
+//            return deviceList;
+//        }
         return null;
     }
 

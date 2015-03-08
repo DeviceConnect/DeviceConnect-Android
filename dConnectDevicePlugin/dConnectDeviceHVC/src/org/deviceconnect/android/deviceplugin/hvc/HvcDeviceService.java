@@ -13,6 +13,7 @@ import java.util.TimerTask;
 
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManagerUtils;
+import org.deviceconnect.android.deviceplugin.hvc.devicesearch.HvcDeviceSearchUtils;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
@@ -29,6 +30,7 @@ import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.util.Log;
 
@@ -67,12 +69,33 @@ public class HvcDeviceService extends DConnectMessageService {
     private HvcTimerInfo mTimeoutJudgeTimer;
     
     
+    /**
+     * device search timer information.<br>
+     * - null: stop timer.
+     * - not null: running timer.
+     */
+    private Timer mDeviceSearchTimer;
+    
+    /**
+     * HVC found device list.
+     */
+    private List<BluetoothDevice> mDeviceList = new ArrayList<BluetoothDevice>();
+    
+    /**
+     * Lock object for {@link mDeviceList}.
+     */
+    private Object mLockDeviceListObj = new Object();
+    
+    
     
     @Override
     public void onCreate() {
 
         super.onCreate();
 
+        // start HVC device search timer.
+        startDeviceSearchTimer(HvcConstants.DEVICE_SEARCH_INTERVAL);
+        
         // Initialize EventManager
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
@@ -277,21 +300,52 @@ public class HvcDeviceService extends DConnectMessageService {
         commManager.doGetDetectionProc(detectKind, requestParams, response);
     }
     
+    /**
+     * get HVC device list.
+     * @return HVC device list
+     */
+    public List<BluetoothDevice> getHvcDeviceList() {
+        synchronized (mLockDeviceListObj) {
+            return mDeviceList;
+        }
+    }
+    
+    
     
 
     /**
-     * stop interval timer(and remove record).
-     * @param interval interval
+     * start HVC device search timer.
+     * @param deviceSearchInterval device search interval[msec]
      */
-    private void stopIntervalTimer(final long interval) {
-        int count = mIntervalTimerInfoArray.size();
-        for (int index = (count - 1); index >= 0; index--) {
-            HvcTimerInfo timerInfo = mIntervalTimerInfoArray.get(index);
-            if (timerInfo.getInterval() == interval) {
-                timerInfo.stopTimer();
-                mIntervalTimerInfoArray.remove(index);
-            }
+    private void startDeviceSearchTimer(final long deviceSearchInterval) {
+        
+        if (mDeviceSearchTimer != null) {
+            return;
         }
+        
+        // timer start.
+        mDeviceSearchTimer = new Timer();
+        mDeviceSearchTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "device search timer proc.");
+                }
+                
+                // device search.
+                List<BluetoothDevice> deviceList = HvcDeviceSearchUtils.selectHvcDevices(getContext());
+                if (BuildConfig.DEBUG) {
+                    for (BluetoothDevice device : deviceList) {
+                        Log.d(TAG, "found device -  name:" + device.getName() + " address:" + device.getAddress());
+                    }
+                }
+                
+                // store.
+                synchronized (mLockDeviceListObj) {
+                    mDeviceList = deviceList;
+                }
+            }
+        }, 0, HvcConstants.DEVICE_SEARCH_INTERVAL);
     }
 
     /**
@@ -322,11 +376,26 @@ public class HvcDeviceService extends DConnectMessageService {
     }
     
     /**
+     * stop interval timer(and remove record).
+     * @param interval interval
+     */
+    private void stopIntervalTimer(final long interval) {
+        int count = mIntervalTimerInfoArray.size();
+        for (int index = (count - 1); index >= 0; index--) {
+            HvcTimerInfo timerInfo = mIntervalTimerInfoArray.get(index);
+            if (timerInfo.getInterval() == interval) {
+                timerInfo.stopTimer();
+                mIntervalTimerInfoArray.remove(index);
+            }
+        }
+    }
+    
+    /**
      * start timeout judget timer.
      */
     private void startTimeoutJudgetTimer() {
         
-        mTimeoutJudgeTimer = new HvcTimerInfo(HvcConstants.TIMEOUT_JUDGE_MSEC);
+        mTimeoutJudgeTimer = new HvcTimerInfo(HvcConstants.TIMEOUT_JUDGE_INTERVAL);
         mTimeoutJudgeTimer.startTimer(new TimerTask() {
             @Override
             public void run() {

@@ -24,7 +24,6 @@ import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.hmac.HmacManager;
-import org.deviceconnect.android.manager.policy.Origin;
 import org.deviceconnect.android.manager.policy.OriginParser;
 import org.deviceconnect.android.manager.policy.Whitelist;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
@@ -255,17 +254,19 @@ public abstract class DConnectMessageService extends Service
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
         response.putExtra(DConnectMessage.EXTRA_REQUEST_CODE, requestCode);
 
-        // リクエストの発行元の確認
-        String originExp = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-        Origin origin = OriginParser.parse(originExp);
-        if (origin == null || (mSettings.isBlockingOrigin() && !mWhitelist.allows(origin))) {
+        // オリジンの確認
+        String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        if (!allowsOrigin(request)) {
             MessageUtils.setInvalidOriginError(response);
-            sendResponse(request, response);
+            DConnectProfile profile = getProfile(profileName);
+            if (profile != null && profile instanceof AuthorizationProfile) {
+                ((AuthorizationProfile) profile).onInvalidOrigin(request, response);
+            } else {
+                sendResponse(request, response);
+            }
             return;
         }
 
-        // プロファイル名の取得
-        String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         if (profileName == null) {
             MessageUtils.setNotSupportProfileError(response);
             sendResponse(request, response);
@@ -489,6 +490,9 @@ public abstract class DConnectMessageService extends Service
      * @return DConnectProfileのインスタンス
      */
     public DConnectProfile getProfile(final String name) {
+        if (name == null) {
+            return null;
+        }
         return mProfileMap.get(name);
     }
 
@@ -632,6 +636,26 @@ public abstract class DConnectMessageService extends Service
         }
         // Origin is a package name of LocalOAuth client.
         return packageInfo.getPackageInfo().getPackageName();
+    }
+
+    /**
+     * 指定されたリクエストのオリジンが許可されるかどうかを返す.
+     * 
+     * @param request 受信したリクエスト
+     * @return 指定されたリクエストのオリジンが許可される場合は<code>true</code>、
+     *      そうでない場合は<code>false</code>
+     */
+    private boolean allowsOrigin(final Intent request) {
+        String originExp = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        if (originExp == null) {
+            // NOTE: クライアント作成のためにオリジンが必要のため、
+            // ホワイトリストが無効の場合でもオリジン指定のない場合はリクエストを許可しない.
+            return false;
+        }
+        if (!mSettings.isBlockingOrigin()) {
+            return true;
+        }
+        return mWhitelist.allows(OriginParser.parse(originExp));
     }
 
     /**

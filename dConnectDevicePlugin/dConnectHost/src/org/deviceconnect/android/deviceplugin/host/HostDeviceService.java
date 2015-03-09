@@ -80,6 +80,7 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 /**
@@ -1310,7 +1311,9 @@ public class HostDeviceService extends DConnectMessageService implements
      * @return セッションID
      */
     public int pauseMedia() {
-        if (mSetMediaType == MEDIA_TYPE_MUSIC) {
+        if (mSetMediaType == MEDIA_TYPE_MUSIC
+                && mMediaStatus != MEDIA_PLAYER_STOP
+                && mMediaStatus != MEDIA_PLAYER_SET) {
             try {
                 mMediaStatus = MEDIA_PLAYER_PAUSE;
                 mMediaPlayer.pause();

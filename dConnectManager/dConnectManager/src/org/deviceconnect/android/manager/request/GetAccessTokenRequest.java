@@ -115,6 +115,7 @@ public class GetAccessTokenRequest extends DConnectRequest {
         } else {
             setAuthorizationError(mResponse, "Cannot create a access token.");
         }
+        sendResponse(mResponse);
     }
 
     /**

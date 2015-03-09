@@ -49,6 +49,7 @@ public class CreateClientRequest extends DConnectRequest {
         } catch (IllegalArgumentException e) {
             setInvalidRequestParameterError(mResponse, e.getMessage());
         }
+        sendResponse(mResponse);
     }
 
     /**

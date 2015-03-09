@@ -75,7 +75,7 @@ public class PebbleDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new PebbleServceDiscoveryProfile(this);
+        return new PebbleServceDiscoveryProfile(this, this);
     }
 
     /**

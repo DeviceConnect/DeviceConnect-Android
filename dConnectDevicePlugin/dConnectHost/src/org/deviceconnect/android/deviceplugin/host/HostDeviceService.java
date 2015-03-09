@@ -69,11 +69,13 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 /**
@@ -345,7 +347,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HostServiceDiscoveryProfile();
+        return new HostServiceDiscoveryProfile(this);
     }
 
     /**
@@ -773,6 +775,8 @@ public class HostDeviceService extends DConnectMessageService {
     private String mMyCurrentFileMIMEType = "";
     /** 現在再生中のPosition. */
     private int mMyCurrentMediaPosition = 0;
+    /** Backup MediaId. (Used in KITKAT more). */
+    String mBackupMediaId;
 
     /**
      * サポートしているaudioのタイプ一覧.
@@ -797,6 +801,11 @@ public class HostDeviceService extends DConnectMessageService {
      *            MediaID
      */
     public void putMediaId(final Intent response, final String mediaId) {
+        // Backup MediaId.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            mBackupMediaId = mediaId;
+        }
+
         // Videoとしてパスを取得
         Uri mUri = ContentUris.withAppendedId(
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
@@ -839,18 +848,22 @@ public class HostDeviceService extends DConnectMessageService {
                     }
                 });
 
-                response.putExtra(DConnectMessage.EXTRA_RESULT,
-                        DConnectMessage.RESULT_OK);
-                response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:"
-                        + filePath);
-                sendOnStatusChangeEvent("media");
-                sendBroadcast(response);
+                if (response != null) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT,
+                            DConnectMessage.RESULT_OK);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:"
+                            + filePath);
+                    sendOnStatusChangeEvent("media");
+                    sendBroadcast(response);
+                }
             } catch (IOException e) {
-                response.putExtra(DConnectMessage.EXTRA_RESULT,
-                        DConnectMessage.EXTRA_ERROR_CODE);
-                response.putExtra(DConnectMessage.EXTRA_VALUE,
-                        "can't not regist:" + filePath);
-                sendBroadcast(response);
+                if (response != null) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT,
+                            DConnectMessage.EXTRA_ERROR_CODE);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE,
+                            "can't not mount:" + filePath);
+                    sendBroadcast(response);
+                }
             }
         } else if (VIDEO_TYPE_LIST.contains(mMineType)) {
             try {
@@ -871,37 +884,47 @@ public class HostDeviceService extends DConnectMessageService {
                 mMediaPlayer.release();
                 fis.close();
 
-                response.putExtra(DConnectMessage.EXTRA_RESULT,
-                        DConnectMessage.RESULT_OK);
-                response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:"
-                        + filePath);
-                sendOnStatusChangeEvent("media");
-                sendBroadcast(response);
+                if (response != null) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT,
+                            DConnectMessage.RESULT_OK);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:"
+                            + filePath);
+                    sendOnStatusChangeEvent("media");
+                    sendBroadcast(response);
+                }
             } catch (IllegalArgumentException e) {
-                response.putExtra(DConnectMessage.EXTRA_RESULT,
-                        DConnectMessage.EXTRA_ERROR_CODE);
-                response.putExtra(DConnectMessage.EXTRA_VALUE,
-                        "can't not mount:" + filePath);
-                sendBroadcast(response);
+                if (response != null) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT,
+                            DConnectMessage.EXTRA_ERROR_CODE);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE,
+                            "can't not mount:" + filePath);
+                    sendBroadcast(response);
+                }
             } catch (IllegalStateException e) {
-                response.putExtra(DConnectMessage.EXTRA_RESULT,
-                        DConnectMessage.EXTRA_ERROR_CODE);
-                response.putExtra(DConnectMessage.EXTRA_VALUE,
-                        "can't not mount:" + filePath);
-                sendBroadcast(response);
+                if (response != null) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT,
+                            DConnectMessage.EXTRA_ERROR_CODE);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE,
+                            "can't not mount:" + filePath);
+                    sendBroadcast(response);
+                }
             } catch (IOException e) {
-                response.putExtra(DConnectMessage.EXTRA_RESULT,
-                        DConnectMessage.EXTRA_ERROR_CODE);
-                response.putExtra(DConnectMessage.EXTRA_VALUE,
-                        "can't not mount:" + filePath);
-                sendBroadcast(response);
+                if (response != null) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT,
+                            DConnectMessage.EXTRA_ERROR_CODE);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE,
+                            "can't not mount:" + filePath);
+                    sendBroadcast(response);
+                }
             }
         } else {
-            response.putExtra(DConnectMessage.EXTRA_RESULT,
-                    DConnectMessage.EXTRA_ERROR_CODE);
-            response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not open:"
-                    + filePath);
-            sendBroadcast(response);
+            if (response != null) {
+                response.putExtra(DConnectMessage.EXTRA_RESULT,
+                        DConnectMessage.EXTRA_ERROR_CODE);
+                response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not open:"
+                        + filePath);
+                sendBroadcast(response);
+            }
         }
     }
 
@@ -1098,7 +1121,9 @@ public class HostDeviceService extends DConnectMessageService {
      * @return セッションID
      */
     public int pauseMedia() {
-        if (mSetMediaType == MEDIA_TYPE_MUSIC) {
+        if (mSetMediaType == MEDIA_TYPE_MUSIC
+                && mMediaStatus != MEDIA_PLAYER_STOP
+                && mMediaStatus != MEDIA_PLAYER_SET) {
             try {
                 mMediaStatus = MEDIA_PLAYER_PAUSE;
                 mMediaPlayer.pause();
@@ -1228,6 +1253,10 @@ public class HostDeviceService extends DConnectMessageService {
                 mMediaPlayer.stop();
                 mMediaStatus = MEDIA_PLAYER_STOP;
                 sendOnStatusChangeEvent("stop");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    mMediaPlayer.reset();
+                    putMediaId(null, mBackupMediaId);
+                }
             } catch (IllegalStateException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();

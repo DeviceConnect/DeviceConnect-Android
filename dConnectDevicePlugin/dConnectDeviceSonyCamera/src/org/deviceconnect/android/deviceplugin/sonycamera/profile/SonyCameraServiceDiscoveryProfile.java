@@ -12,6 +12,7 @@ import org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService
 import android.content.Intent;
 
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.android.event.EventError;
@@ -23,6 +24,14 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
  * @author NTT DOCOMO, INC.
  */
 public class SonyCameraServiceDiscoveryProfile extends ServiceDiscoveryProfile {
+
+    /**
+     * コンストラクタ.
+     * @param provider プロファイルプロバイダ
+     */
+    public SonyCameraServiceDiscoveryProfile(final DConnectProfileProvider provider) {
+        super(provider);
+    }
 
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {

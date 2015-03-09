@@ -99,6 +99,7 @@ public class DConnectRequestManager {
                 try {
                     request.run();
                 } catch (Throwable e) {
+                    e.printStackTrace();
                     request.sendRuntimeException(e.getMessage());
                     if (BuildConfig.DEBUG) {
                         Log.e("dConnectManager", "runtime", e);

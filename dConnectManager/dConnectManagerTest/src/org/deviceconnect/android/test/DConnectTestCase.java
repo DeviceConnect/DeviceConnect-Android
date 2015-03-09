@@ -9,8 +9,6 @@ package org.deviceconnect.android.test;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -21,10 +19,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 
-import org.deviceconnect.android.cipher.signature.AuthSignature;
 import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.ConnectProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
@@ -74,7 +70,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
 
     /** HMACの生成キー. */
     private static final SecretKey HMAC_KEY;
-    
+
     static {
         RANDOM = new Random();
         try {
@@ -138,9 +134,6 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     /** クライアントIDのキー. */
     private static final String KEY_CLIENT_ID = "clientId";
 
-    /** クライアントシークレットのキー. */
-    private static final String KEY_CLIENT_SECRET = "clientSecret";
-
     /** アクセストークンのキー. */
     private static final String KEY_ACCESS_TOKEN = "accessToken";
 
@@ -161,9 +154,6 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
 
     /** クライアントID. */
     protected String mClientId;
-
-    /** クライアントシークレット. */
-    protected String mClientSecret;
 
     /** アクセストークン. */
     protected String mAccessToken;
@@ -208,12 +198,12 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     /**
      * dConnectManagerに対してクライアント作成リクエストを送信する.
      * <p>
-     * レスポンスとしてクライアントIDまたはクライアントシークレットのいずれかを受信できなかった場合はnullを返すこと.
+     * レスポンスとしてクライアントIDを受信できなかった場合はnullを返すこと.
      * </p>
      * 
-     * @return クライアントIDおよびクライアントシークレットを格納した配列
+     * @return クライアントID
      */
-    protected abstract String[] createClient();
+    protected abstract String createClient();
 
     /**
      * dConnectManagerに対してアクセストークン取得リクエストを送信する.
@@ -222,12 +212,10 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
      * </p>
      * 
      * @param clientId クライアントID
-     * @param clientSecret クライアントシークレット
      * @param scopes スコープ指定
      * @return アクセストークン
      */
-    protected abstract String requestAccessToken(String clientId, String clientSecret,
-            String[] scopes);
+    protected abstract String requestAccessToken(String clientId, String[] scopes);
 
     /**
      * dConnectManagerから最新のデバイス一覧を取得する.
@@ -337,15 +325,6 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     }
 
     /**
-     * クライアントシークレットのオンメモリ上のキャッシュを取得する.
-     * 
-     * @return クライアントシークレットのオンメモリ上のキャッシュ
-     */
-    protected String getClientSecret() {
-        return mClientSecret;
-    }
-
-    /**
      * アクセストークンのオンメモリ上のキャッシュを取得する.
      * 
      * @return アクセストークンのオンメモリ上のキャッシュ
@@ -365,16 +344,6 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     }
 
     /**
-     * クライアントシークレットのキャッシュを取得する.
-     * 
-     * @return クライアントシークレットのキャッシュ
-     */
-    protected String getClientSecretCache() {
-        SharedPreferences pref = getContext().getSharedPreferences(FILE_NAME_OAUTH, Context.MODE_PRIVATE);
-        return pref.getString(KEY_CLIENT_SECRET, null);
-    }
-
-    /**
      * アクセストークンのキャッシュを取得する.
      * 
      * @return アクセストークンのキャッシュ
@@ -388,14 +357,12 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
      * 認証情報をキャッシュする.
      * 
      * @param clientId クライアントID
-     * @param clientSecret クライアントシークレット
      * @param accessToken アクセストークン
      */
-    protected void storeOAuthInfo(final String clientId, final String clientSecret, final String accessToken) {
+    protected void storeOAuthInfo(final String clientId, final String accessToken) {
         SharedPreferences pref = getContext().getSharedPreferences(FILE_NAME_OAUTH, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(KEY_CLIENT_ID, clientId);
-        editor.putString(KEY_CLIENT_SECRET, clientSecret);
         editor.putString(KEY_ACCESS_TOKEN, accessToken);
         boolean edited = editor.commit();
         if (!edited) {
@@ -413,50 +380,26 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
         waitForManager();
         if (isLocalOAuth()) {
             mClientId = getClientIdCache();
-            mClientSecret = getClientSecretCache();
             mAccessToken = getAccessTokenCache();
-            // クライアントID、クライアントシークレット取得
-            if (mClientId == null || mClientSecret == null) {
-                String[] client = createClient();
-                assertNotNull(client);
-                assertNotNull(client[0]);
-                assertNotNull(client[1]);
-                mClientId = client[0];
-                mClientSecret = client[1];
+            // クライアントID取得
+            if (mClientId == null) {
+                String clientId = createClient();
+                assertNotNull(clientId);
+                mClientId = clientId;
             }
             // アクセストークン取得
             if (mAccessToken == null) {
-                mAccessToken = requestAccessToken(mClientId, mClientSecret, PROFILES);
+                mAccessToken = requestAccessToken(mClientId, PROFILES);
                 assertNotNull(mAccessToken);
             }
             // 認証情報をキャッシュする
-            storeOAuthInfo(mClientId, mClientSecret, mAccessToken);
+            storeOAuthInfo(mClientId, mAccessToken);
         }
         if (isSearchDevices()) {
             // テストデバイスプラグインを探す
             setDevices(searchDevices());
             setPlugins(searchPlugins());
         }
-    }
-
-    /**
-     * accessTokenをリクエストするためのシグネイチャを作成する.
-     * @param clientId クライアントID
-     * @param scopes スコープ
-     * @param clientSecret クライアントシークレット
-     * @return シグネイチャ
-     */
-    protected String createSignature(final String clientId, final String[] scopes, final String clientSecret) {
-        String signature = null;
-        try {
-            signature = AuthSignature.generateSignature(clientId,
-                    AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue(), 
-                    null, scopes, clientSecret);
-            signature = URLEncoder.encode(signature, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            return null;
-        }
-        return signature;
     }
 
     /**

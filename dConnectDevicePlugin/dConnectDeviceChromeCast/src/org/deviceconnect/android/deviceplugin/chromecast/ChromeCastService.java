@@ -103,7 +103,6 @@ public class ChromeCastService extends DConnectMessageService implements
         mMessage.setCallbacks(this);
 
         EventManager.INSTANCE.setController(new DBCacheController(this));
-        addProfile(new ChromeCastServiceDiscoveryProfile());
         addProfile(new ChromeCastNotificationProfile());
         mMediaPlayerProfile = new ChromeCastMediaPlayerProfile();
         addProfile(mMediaPlayerProfile);
@@ -127,7 +126,7 @@ public class ChromeCastService extends DConnectMessageService implements
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new ChromeCastServiceDiscoveryProfile();
+        return new ChromeCastServiceDiscoveryProfile(this);
     }
 
     @Override

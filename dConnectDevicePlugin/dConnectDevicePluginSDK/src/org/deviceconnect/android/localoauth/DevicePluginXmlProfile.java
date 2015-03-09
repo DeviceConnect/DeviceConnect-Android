@@ -32,7 +32,7 @@ public class DevicePluginXmlProfile {
      */
     public DevicePluginXmlProfile(final String profile, final long expirePeriod) {
         mProfile = profile;
-        mExpirePeriod = expirePeriod;        
+        mExpirePeriod = expirePeriod;
         mProfileLocales = new HashMap<String, DevicePluginXmlProfileLocale>(); 
     }
     

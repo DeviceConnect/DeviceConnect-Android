@@ -116,7 +116,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
         LocalOAuth2Main.initialize(this);
 
         // 認証プロファイルの追加
-        addProfile(new AuthorizationProfile());
+        addProfile(new AuthorizationProfile(this));
         // 必須プロファイルの追加
         addProfile(getSystemProfile());
         addProfile(getServiceInformationProfile());

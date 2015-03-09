@@ -50,7 +50,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
     /**
      * プロファイルプロバイダー.
      */
-    private DConnectProfileProvider mProvider;
+    private final DConnectProfileProvider mProvider;
 
     /**
      * 指定されたプロファイルプロバイダーをもつSystemプロファイルを生成する.

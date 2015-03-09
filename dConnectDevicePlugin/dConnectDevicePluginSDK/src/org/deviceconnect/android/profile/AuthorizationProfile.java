@@ -40,6 +40,33 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
     /** ロックオブジェクト. */
     private final Object mLockObj = new Object();
 
+    /**
+     * プロファイルプロバイダー.
+     */
+    private final DConnectProfileProvider mProvider;
+
+    /**
+     * 指定されたプロファイルプロバイダーをもつAuthorizationプロファイルを生成する.
+     * 
+     * @param provider プロファイルプロバイダー
+     */
+    public AuthorizationProfile(final DConnectProfileProvider provider) {
+        this.mProvider = provider;
+    }
+
+    /**
+     * デバイスプラグインのサポートするすべてのプロファイル名の配列を取得する.
+     * @return プロファイル名の配列
+     */
+    private String[] getAllProfileNames() {
+        List<DConnectProfile> profiles = mProvider.getProfileList();
+        String[] names = new String[profiles.size()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = profiles.get(i).getProfileName();
+        }
+        return names;
+    }
+
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
@@ -165,6 +192,9 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String clientId = request.getStringExtra(AuthorizationProfile.PARAM_CLIENT_ID);
         String[] scopes = parseScopes(request.getStringExtra(AuthorizationProfile.PARAM_SCOPE));
+        if (scopes == null) {
+            scopes = getAllProfileNames();
+        }
         String applicationName = request.getStringExtra(AuthorizationProfile.PARAM_APPLICATION_NAME);
 
         // TODO _typeからアプリorデバイスプラグインかを判別できる？

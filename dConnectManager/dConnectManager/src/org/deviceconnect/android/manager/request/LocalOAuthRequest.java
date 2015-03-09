@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -216,7 +217,7 @@ public class LocalOAuthRequest extends DConnectRequest {
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_REQUEST_ACCESS_TOKEN);
         request.putExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
-        request.putExtra(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, mDevicePlugin.getDeviceName());
+        request.putExtra(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, mContext.getString(R.string.app_name));
         request.putExtra(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(getScope()));
 
         // トークン取得を行う

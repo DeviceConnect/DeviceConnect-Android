@@ -73,6 +73,7 @@ public class PebbleServceDiscoveryProfile extends ServiceDiscoveryProfile {
                 setName(service, DEVICE_NAME);
                 setType(service, NetworkType.BLUETOOTH);
                 setOnline(service, false);
+                setScopes(service, getProfileProvider());
 
                 List<Event> evts = EventManager.INSTANCE.getEventList(
                         PROFILE_NAME, null, ATTRIBUTE_ON_SERVICE_CHANGE);
@@ -105,6 +106,7 @@ public class PebbleServceDiscoveryProfile extends ServiceDiscoveryProfile {
                         setName(service, deviceName);
                         setType(service, NetworkType.BLUETOOTH);
                         setOnline(service, true);
+                        setScopes(service, getProfileProvider());
                         services.add(service);
                     }
                 }

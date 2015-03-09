@@ -17,10 +17,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 /**
- * dConnectManager設定管理用Activity.
+ * Device Connect Manager設定管理用Activity.
  * @author NTT DOCOMO, INC.
  */
 public class SettingActivity extends Activity {
+
     /**
      * {@inheritDoc}
      */

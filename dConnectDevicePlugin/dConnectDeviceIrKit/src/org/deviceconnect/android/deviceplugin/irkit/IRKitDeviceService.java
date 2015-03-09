@@ -143,7 +143,7 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new IRKitServceDiscoveryProfile();
+        return new IRKitServceDiscoveryProfile(this);
     }
 
     @Override
@@ -207,6 +207,7 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         ServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
         ServiceDiscoveryProfile.setState(service, online);
         ServiceDiscoveryProfile.setOnline(service, online);
+        ServiceDiscoveryProfile.setScopes(service, this);
         return service;
     }
 

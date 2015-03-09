@@ -20,19 +20,16 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.CHANGE_CONFIGURATION" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
     <uses-feature android:name="android.hardware.camera.flash" />
-
-    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceApplication"
@@ -81,6 +78,7 @@
             android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
             android:exported="false" >
         </service>
+
         <service
             android:name="org.deviceconnect.android.message.DConnectLaunchService"
             android:exported="true" >
@@ -95,12 +93,6 @@
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" >
         </activity>
-
-        <receiver android:name="org.deviceconnect.android.deviceplugin.host.camera.CameraReceiver" >
-            <intent-filter>
-                <action android:name="org.deviceconnect.android.intent.action.SEND_CAMERA_TO_HOSTDP" />
-            </intent-filter>
-        </receiver>
 
         <service
             android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceNotificationService"
@@ -123,16 +115,6 @@
             android:launchMode="singleInstance"
             android:screenOrientation="landscape" >
         </activity>
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.camera.CameraActivity"
-            android:screenOrientation="landscape" >
-        </activity>
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.video.PhotoActivity"
-            android:finishOnCloseSystemDialogs="true"
-            android:launchMode="singleInstance"
-            android:screenOrientation="landscape" >
-        </activity>
         <activity android:name="org.deviceconnect.android.deviceplugin.host.audio.AudioRecorder" >
         </activity>
 
@@ -151,18 +133,19 @@
         <!-- LocalOAuth -->
         <activity
             android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:theme="@style/AppTheme.Translucent" >
+            android:excludeFromRecents="true"
+            android:exported="false" >
         </activity>
 
         <service
             android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
             android:exported="false" >
         </service>
-        
+
         <!-- Canvas Profile -->
-        <activity android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
-            android:launchMode="singleTop" >
-            
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
+            android:launchMode="singleTask" >
         </activity>
     </application>
 

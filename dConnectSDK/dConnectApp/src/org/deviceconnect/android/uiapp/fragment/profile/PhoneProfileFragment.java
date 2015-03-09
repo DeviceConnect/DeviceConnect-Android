@@ -126,8 +126,7 @@ public class PhoneProfileFragment extends SmartDeviceFragment {
                     builder.addParameter(PhoneProfileConstants.PARAM_PHONE_NUMBER, number);
                     builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-                    HttpResponse response = getDConnectClient().execute(
-                            getDefaultHost(), new HttpPost(builder.build()));
+                    HttpResponse response = sendHttpRequest(new HttpPost(builder.build()));
                     return (new HttpMessageFactory()).newDConnectMessage(response);
                 } catch (URISyntaxException e) {
                     e.printStackTrace();

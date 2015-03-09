@@ -12,10 +12,11 @@ import org.deviceconnect.android.localoauth.exception.AuthorizatonException;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.restlet.ext.oauth.PackageInfoOAuth;
 
 /**
- * LocalOAuth2にClinetを作成するためのリクエスト.
+ * LocalOAuth2にクライアントを作成するためのリクエスト.
  * @author NTT DOCOMO, INC.
  */
 public class CreateClientRequest extends DConnectRequest {
@@ -27,18 +28,17 @@ public class CreateClientRequest extends DConnectRequest {
 
     @Override
     public void run() {
-        String packageName = mRequest.getStringExtra(AuthorizationProfile.PARAM_PACKAGE);
-        if (packageName == null) {
+        String origin = mRequest.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        if (origin == null) {
             MessageUtils.setInvalidRequestParameterError(mResponse);
         } else {
             // Local OAuthでクライアント作成
-            PackageInfoOAuth packageInfo = new PackageInfoOAuth(packageName);
+            PackageInfoOAuth packageInfo = new PackageInfoOAuth(origin);
             try {
                 ClientData client = LocalOAuth2Main.createClient(packageInfo);
                 if (client != null) {
                     mResponse.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                     mResponse.putExtra(AuthorizationProfile.PARAM_CLIENT_ID, client.getClientId());
-                    mResponse.putExtra(AuthorizationProfile.PARAM_CLIENT_SECRET, client.getClientSecret());
                 } else {
                     MessageUtils.setAuthorizationError(mResponse);
                 }

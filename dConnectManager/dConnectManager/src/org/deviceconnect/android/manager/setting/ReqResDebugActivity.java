@@ -13,7 +13,6 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,11 +31,9 @@ import org.apache.http.entity.mime.content.AbstractContentBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.deviceconnect.android.cipher.signature.AuthSignature;
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DConnectSettings;
 import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
@@ -48,10 +45,11 @@ import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
@@ -142,8 +140,6 @@ public class ReqResDebugActivity extends Activity implements
     private static final String PREF_KEY = "debug_localoauth.txt";
     /** クライアントIDのキー. */
     private static final String KEY_CLIENT_ID = "client_id";
-    /** クライアントシークレットのキー. */
-    private static final String KEY_CLIENT_SECRET = "client_secret";
     /** アクセストークンのキー. */
     private static final String KEY_ACCESS_TOKEN = "access_token";
 
@@ -164,10 +160,11 @@ public class ReqResDebugActivity extends Activity implements
         FileProfileConstants.PROFILE_NAME,
         MediaPlayerProfileConstants.PROFILE_NAME,
         MediaStreamRecordingProfileConstants.PROFILE_NAME,
-        ServiceDiscoveryProfileConstants.PROFILE_NAME,
         NotificationProfileConstants.PROFILE_NAME,
         PhoneProfileConstants.PROFILE_NAME,
         ProximityProfileConstants.PROFILE_NAME,
+        ServiceDiscoveryProfileConstants.PROFILE_NAME,
+        ServiceInformationProfileConstants.PROFILE_NAME,
         SettingsProfileConstants.PROFILE_NAME,
         SystemProfileConstants.PROFILE_NAME,
         VibrationProfileConstants.PROFILE_NAME,
@@ -230,11 +227,10 @@ public class ReqResDebugActivity extends Activity implements
             executeNetworkServiceDiscovery();
         } else if (id == R.id.action_access_token) {
             String clientId = mPref.getString(KEY_CLIENT_ID, null);
-            String clientSecret = mPref.getString(KEY_CLIENT_SECRET, null);
-            if (clientId == null || clientSecret == null) {
+            if (clientId == null) {
                 checkAuthorization(null);
             } else {
-                requestAccessToken(clientId, clientSecret, null);
+                requestAccessToken(clientId, null);
             }
         } else if (id == R.id.action_session_key) {
             inputSessionKey();
@@ -499,12 +495,17 @@ public class ReqResDebugActivity extends Activity implements
         if (mProgressDialog != null) {
             return false;
         }
-        mProgressDialog = new ProgressDialog(this);
-        mProgressDialog.setTitle("dConnectと通信中");
-        mProgressDialog.setMessage("少しお待ちください.");
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.show();
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mProgressDialog = new ProgressDialog(ReqResDebugActivity.this);
+                mProgressDialog.setTitle("DeviceConnectと通信中");
+                mProgressDialog.setMessage("少しお待ちください.");
+                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                mProgressDialog.setCancelable(false);
+                mProgressDialog.show();
+            }
+        });
         return true;
     }
 
@@ -536,14 +537,11 @@ public class ReqResDebugActivity extends Activity implements
      */
     private boolean checkAuthorization(final Runnable run) {
         String clientId = mPref.getString(KEY_CLIENT_ID, null);
-        String clientSecret = mPref.getString(KEY_CLIENT_SECRET, null);
-        if (clientId == null || clientSecret == null) {
+        if (clientId == null) {
             authorizateLocalOAuth(new AuthorizationHandler() {
                 @Override
-                public void onAuthorized(final String clientId, 
-                        final String clientSecret, final String accessToken) {
+                public void onAuthorized(final String clientId, final String accessToken) {
                     mEditor.putString(KEY_CLIENT_ID, clientId);
-                    mEditor.putString(KEY_CLIENT_SECRET, clientSecret);
                     mEditor.putString(KEY_ACCESS_TOKEN, accessToken);
                     mEditor.commit();
                     if (run != null) {
@@ -569,22 +567,16 @@ public class ReqResDebugActivity extends Activity implements
     /**
      * アクセストークンを取得する.
      * @param clientId クライアントID
-     * @param clientSecret クライアントシークレット
      * @param listener リスナー
      */
-    private void requestAccessToken(final String clientId, 
-            final String clientSecret, final AccessTokenListener listener) {
-        String signature = createSignature(clientId, mScopes, clientSecret);
+    private void requestAccessToken(final String clientId, final AccessTokenListener listener) {
 
         URIBuilder builder = createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_REQUEST_ACCESS_TOKEN);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(mScopes));
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, getPackageName());
-        builder.addParameter(AuthorizationProfileConstants.PARAM_GRANT_TYPE,
-                AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue());
-        builder.addParameter(AuthorizationProfile.PARAM_SIGNATURE, signature);
 
         executeHttpRequest(HttpGet.METHOD_NAME, builder, new HttpListener() {
             @Override
@@ -616,8 +608,7 @@ public class ReqResDebugActivity extends Activity implements
             return;
         }
         String accessToken = root.getString(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN);
-        String signature = root.getString(AuthorizationProfileConstants.PARAM_SIGNATURE);
-        if (checkSignature(signature, accessToken, mPref.getString(KEY_CLIENT_SECRET, null))) {
+        if (accessToken != null) {
             if (listener != null) {
                 listener.onReceivedAccessToken(accessToken);
             }
@@ -628,41 +619,6 @@ public class ReqResDebugActivity extends Activity implements
                 listener.onReceivedError();
             }
         }
-    }
-
-    /**
-     * 送られてきたシグネイチャをチェックする.
-     * @param signature シグネイチャ
-     * @param accessToken アクセストークン
-     * @param clinetSecret クライアントシークレット
-     * @return シグネイチャが有効の場合はtrue、それ以外はfalse
-     */
-    private boolean checkSignature(final String signature, final String accessToken, final String clinetSecret) {
-        if (signature == null || accessToken == null) {
-            return false;
-        }
-        String sig = AuthSignature.generateSignature(accessToken, clinetSecret);
-        return signature.equals(sig);
-    }
-
-    /**
-     * accessTokenをリクエストするためのシグネイチャを作成する.
-     * @param clientId クライアントID
-     * @param scopes スコープ
-     * @param clientSecret クライアントシークレット
-     * @return シグネイチャ
-     */
-    private String createSignature(final String clientId, final String[] scopes, final String clientSecret) {
-        String signature = null;
-        try {
-            signature = AuthSignature.generateSignature(clientId,
-                    AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue(), 
-                    null, scopes, clientSecret);
-            signature = URLEncoder.encode(signature, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            return null;
-        }
-        return signature;
     }
 
     /**
@@ -867,6 +823,7 @@ public class ReqResDebugActivity extends Activity implements
                 }
 
                 HttpUriRequest request = params[0];
+                request.setHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getPackageName());
                 DefaultHttpClient client = new DefaultHttpClient();
                 try {
                     HttpResponse response = client.execute(request);

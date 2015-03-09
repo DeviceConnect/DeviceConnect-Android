@@ -13,9 +13,12 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.deviceconnect.android.uiapp.DConnectActivity;
 import org.deviceconnect.android.uiapp.R;
 import org.deviceconnect.android.uiapp.device.DevicePlugin;
 import org.deviceconnect.message.DConnectMessage;
@@ -23,6 +26,7 @@ import org.deviceconnect.message.basic.message.DConnectResponseMessage;
 import org.deviceconnect.message.client.DConnectClient;
 import org.deviceconnect.message.http.impl.client.HttpDConnectClient;
 import org.deviceconnect.message.http.impl.factory.HttpMessageFactory;
+import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 
@@ -108,6 +112,30 @@ public class PluginListFragment extends ListFragment {
     }
 
     /**
+     * アクセストークンを取得する.
+     * アクセストークンがない場合にはnullを返却する。
+     * @return アクセストークン
+     */
+    private String getAccessToken() {
+        return ((DConnectActivity) getActivity()).getAccessToken();
+    }
+
+    /**
+     * HTTPリクエストを同期的に送信する.
+     * <p>
+     * 送信する前に送信元のAndroidアプリのオリジンをHTTPリクエストヘッダに追加する.
+     * </p>
+     * @param request HTTPリクエスト
+     * @return 受信したHTTPレスポンス
+     * @throws ClientProtocolException プロトコルでエラーが発生した場合
+     * @throws IOException HTTP通信に失敗した場合
+     */
+    public HttpResponse sendHttpRequest(final HttpRequest request) throws ClientProtocolException, IOException {
+        request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getActivity().getPackageName());
+        return mDConnectClient.execute(getDefaultHost(), request);
+    }
+
+    /**
      * システムローダー.
      */
     private class SystemWakeupLoader extends AsyncTask<String, Void, DConnectMessage> {
@@ -125,9 +153,9 @@ public class PluginListFragment extends ListFragment {
                 uriBuilder.setInterface(SystemProfileConstants.INTERFACE_DEVICE);
                 uriBuilder.setAttribute(SystemProfileConstants.ATTRIBUTE_WAKEUP);
                 uriBuilder.addParameter(SystemProfileConstants.PARAM_PLUGIN_ID, id);
+                uriBuilder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
-                HttpResponse response = mDConnectClient.execute(
-                        getDefaultHost(), new HttpPut(uriBuilder.build()));
+                HttpResponse response = sendHttpRequest(new HttpPut(uriBuilder.build()));
 
                 message = (new HttpMessageFactory()).newDConnectMessage(response);
             } catch (IOException e) {
@@ -164,9 +192,9 @@ public class PluginListFragment extends ListFragment {
             try {
                 URIBuilder uriBuilder = new URIBuilder();
                 uriBuilder.setProfile(SystemProfileConstants.PROFILE_NAME);
+                uriBuilder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
 
-                HttpResponse response = mDConnectClient.execute(
-                        getDefaultHost(), new HttpGet(uriBuilder.build()));
+                HttpResponse response = sendHttpRequest(new HttpGet(uriBuilder.build()));
 
                 message = (new HttpMessageFactory()).newDConnectMessage(response);
             } catch (IOException e) {
@@ -177,9 +205,9 @@ public class PluginListFragment extends ListFragment {
 
             URIBuilder uriBuilder = new URIBuilder();
             uriBuilder.setProfile(SystemProfileConstants.PROFILE_NAME);
+            uriBuilder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
             try {
-                HttpResponse response = mDConnectClient.execute(
-                        getDefaultHost(), new HttpGet(uriBuilder.build()));
+                HttpResponse response = sendHttpRequest(new HttpGet(uriBuilder.build()));
                 message = (new HttpMessageFactory()).newDConnectMessage(response);
             } catch (IOException e) {
                 message = new DConnectResponseMessage(DConnectMessage.RESULT_ERROR);

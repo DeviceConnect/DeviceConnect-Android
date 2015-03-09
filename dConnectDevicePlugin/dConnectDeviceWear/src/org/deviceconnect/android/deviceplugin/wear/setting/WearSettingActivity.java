@@ -12,16 +12,16 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
 /**
- * 設定用Activity.
+ * Setting Activity.
  * 
  * @author NTT DOCOMO, INC.
  */
 public class WearSettingActivity extends DConnectSettingPageFragmentActivity {
 
-    /** サービスID. */
+    /** Service ID. */
     private String mServiceId;
 
-    /** ページ数. */
+    /** Page count. */
     private static final int PAGE_COUNT = 1;
 
     @Override
@@ -34,18 +34,18 @@ public class WearSettingActivity extends DConnectSettingPageFragmentActivity {
     }
 
     /**
-     * サービスIDを取得する.
+     * Get Service ID.
      * 
-     * @return サービスID
+     * @return Service ID
      */
     public String getServiceId() {
         return mServiceId;
     }
 
     /**
-     * サービスIDを設定する.
+     * Set Service ID.
      * 
-     * @param serviceId サービスID
+     * @param serviceId Service ID
      */
     public void setServiceId(final String serviceId) {
         mServiceId = serviceId;

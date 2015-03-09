@@ -15,8 +15,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.crypto.KeyGenerator;
@@ -43,11 +41,10 @@ import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
 
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
@@ -68,10 +65,6 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
 
     /** DeviceConnectManagerのバージョン名. */
     protected static final String DCONNECT_MANAGER_VERSION_NAME = "1.0";
-
-    /** 起動用インテントを受信するクラスのコンポーネント名. */
-    private static final String LAUNCH_RECEIVER
-        = "org.deviceconnect.android.manager/.setting.SettingActivity";
 
     /** HMACアルゴリズム. */
     private static final String HMAC_ALGORITHM = "HmacSHA256";
@@ -259,32 +252,56 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
      * @throws InterruptedException スレッドが割り込まれた場合
      */
     protected void waitForManager() throws InterruptedException {
-        final CountDownLatch lockObj = new CountDownLatch(1);
-        BroadcastReceiver receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(final Context context, final Intent intent) {
-                lockObj.countDown();
-            }
-        };
-        getContext().registerReceiver(receiver, new IntentFilter(TEST_ACTION_MANAGER_LAUNCHED));
-
         Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setClassName("org.deviceconnect.android.manager",
+                "org.deviceconnect.android.manager.DConnectLaunchActivity");
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
-        intent.setComponent(ComponentName.unflattenFromString(LAUNCH_RECEIVER));
         intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
         intent.putExtra(IntentDConnectMessage.EXTRA_KEY, getHMACString());
-        intent.putExtra(IntentDConnectMessage.EXTRA_RECEIVER,
-                new ComponentName(getContext(), TestCaseBroadcastReceiver.class));
         intent.setData(Uri.parse("dconnect://start"));
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         getContext().startActivity(intent);
 
-        // 起動通知を受信するまでプロック
-        if (!lockObj.await(20, TimeUnit.SECONDS)) {
+        boolean isLaunched = false;
+        long timeout = 20 * 1000;
+        final long interval = 200;
+        do {
+            Thread.sleep(interval);
+            if (isDConnectServiceRunning()) {
+                isLaunched = true;
+                break;
+            }
+            timeout -= interval;
+        } while (timeout > 0);
+        if (!isLaunched) {
             fail("Manager launching timeout.");
         }
-        getContext().unregisterReceiver(receiver);
+    }
+
+    /**
+     * DConnectServiceが動作しているか確認する.
+     * @return 起動中の場合はtrue、それ以外はfalse
+     */
+    private boolean isDConnectServiceRunning() {
+        return isServiceRunning(getContext(), "org.deviceconnect.android.manager.DConnectService");
+    }
+
+    /**
+     * サービスに起動確認を行う.
+     * @param c コンテキスト
+     * @param className クラス名
+     * @return 起動中の場合はtrue、それ以外はfalse
+     */
+    private boolean isServiceRunning(final Context c, final String className) {
+        ActivityManager am = (ActivityManager) c.getSystemService(Context.ACTIVITY_SERVICE);
+        List<RunningServiceInfo> runningService = am.getRunningServices(Integer.MAX_VALUE);
+        for (RunningServiceInfo i : runningService) {
+            if (className.equals(i.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

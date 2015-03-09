@@ -19,13 +19,13 @@ import android.content.Context;
 import android.os.Build;
 import android.os.ParcelUuid;
 
+import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceAdapter;
+import org.deviceconnect.android.deviceplugin.hvc.ble.BleUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
-import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceAdapter;
-import org.deviceconnect.android.deviceplugin.hvc.ble.BleUtils;
 
 /**
  *
@@ -52,6 +52,7 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
         mCallback = callback;
 
         List<ScanFilter> filters = new ArrayList<ScanFilter>();
+/*
         if (mServiceUuids != null && mServiceUuids.length > 0) {
             for (UUID uuid : mServiceUuids) {
                 ScanFilter filter = new ScanFilter.Builder().setServiceUuid(
@@ -59,6 +60,7 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
                 filters.add(filter);
             }
         }
+*/
         ScanSettings settings = new ScanSettings.Builder().build();
 
         mBleScanner.startScan(filters, settings, mScanCallback);

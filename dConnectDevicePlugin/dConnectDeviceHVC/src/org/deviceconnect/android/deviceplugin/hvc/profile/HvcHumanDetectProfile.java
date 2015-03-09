@@ -67,7 +67,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      */
     protected static final String ERROR_REQUEST_DETECT = "request detect error. status:";
     
-// TODO: timeout error.
     
     
     
@@ -277,7 +276,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
-// TODO: イベント削除しようとすると「Can not unregister event.」と表示される不具合を調査する。
             // unregister event.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {

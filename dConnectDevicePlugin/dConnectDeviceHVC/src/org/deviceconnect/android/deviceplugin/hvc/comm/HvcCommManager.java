@@ -15,6 +15,7 @@ import omron.HVC.HVC_PRM;
 import omron.HVC.HVC_RES;
 
 import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectEvent;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
@@ -63,21 +64,6 @@ public class HvcCommManager {
      * Detect thread..
      */
     private HvcDetectThread mDetectThread;
-
-    // /**
-    // * Device search process result.
-    // */
-    // public enum DeviceSearchResult {
-    // /**
-    // * Success.
-    // */
-    // RESULT_SUCCESS,
-    // /**
-    // * ERROR Thread alived.
-    // */
-    // RESULT_ERR_THREAD_ALIVE,
-    //
-    // };
     
     
     
@@ -125,8 +111,8 @@ public class HvcCommManager {
             Log.d(TAG, "registerDetectEvent() detectKind:" + detectKind.toString() + " sessionKey:" + sessionKey);
         }
 
-        // get bluetooth device by serviceId.
-        BluetoothDevice device = HvcCommManager.searchDevices(mServiceId);
+        // search bluetooth device by serviceId.
+        BluetoothDevice device = ((HvcDeviceService) mContext).searchCacheHvcDevice(mServiceId);
         if (device == null) {
             // bluetooth device not found.
             MessageUtils.setNotFoundServiceError(response);
@@ -140,9 +126,6 @@ public class HvcCommManager {
         
         // get interval
         long interval = requestParams.getEvent().getInterval();
-        
-        // event process.
-        onEventProc(interval);
         
         // response(success)
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
@@ -172,27 +155,6 @@ public class HvcCommManager {
     
 
 
-    // //
-    // // device comm process.
-    // //
-    //
-    // /**
-    // * Start device search thread.
-    // * @param context Context
-    // * @param listener callback listener.
-    // * @return result
-    // */
-    // public DeviceSearchResult startDeviceSearchThread(final Context context,
-    // final HvcDeviceSearchListener listener) {
-    // if (mDeviceSearchThread == null || !mDeviceSearchThread.isAlive()) {
-    // mDeviceSearchThread = new HvcDeviceSearchThread(context, listener);
-    // mDeviceSearchThread.start();
-    // return DeviceSearchResult.RESULT_SUCCESS;
-    // } else {
-    // return DeviceSearchResult.RESULT_ERR_THREAD_ALIVE;
-    // }
-    // }
-
     /**
      * Detection process result.
      */
@@ -210,65 +172,6 @@ public class HvcCommManager {
          */
         RESULT_ERR_THREAD_ALIVE,
     };
-
-//    /**
-//     * Start detect thread.
-//     * 
-//     * @param context Context
-//     * @param device device
-//     * @param listener listener
-//     * @return result
-//     */
-//    public CommDetectionResult startDetectThread(final Context context, final BluetoothDevice device,
-//            final HvcDetectListener listener) {
-//        if (mDetectThread == null || !mDetectThread.isAlive()) {
-//            mDetectThread = new HvcDetectThread(context, device, listener);
-//            mDetectThread.start();
-//            return CommDetectionResult.RESULT_SUCCESS;
-//        } else {
-//            return CommDetectionResult.RESULT_ERR_THREAD_ALIVE;
-//        }
-//    }
-
-    //
-    // store bluetooth devices.
-    //
-
-    /**
-     * BluetoothDevices(found by service discovery).
-     */
-    private static List<BluetoothDevice> sDevices = new ArrayList<BluetoothDevice>();
-
-    /**
-     * Store BluetoothDevices(found by service discovery).
-     * 
-     * @param devices BluetoothDevices
-     */
-    public static void storeDevices(final List<BluetoothDevice> devices) {
-        synchronized (sDevices) {
-            sDevices = devices;
-        }
-    }
-
-    /**
-     * Search BluetoothDevice.
-     * 
-     * @param serviceId serviceId
-     * @return not null: found BluetoothDevice / null:not found.
-     */
-    public static BluetoothDevice searchDevices(final String serviceId) {
-
-        synchronized (sDevices) {
-            if (sDevices != null) {
-                for (BluetoothDevice device : sDevices) {
-                    if (serviceId.equals(getServiceId(device.getAddress()))) {
-                        return device;
-                    }
-                }
-            }
-            return null;
-        }
-    }
 
     /**
      * Get serviceId from bluetoothAddress.
@@ -346,20 +249,23 @@ public class HvcCommManager {
     public void doGetDetectionProc(final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
             final Intent response) {
         
-        // get bluetooth device by serviceId.
-        BluetoothDevice bluetoothDevice = HvcCommManager.searchDevices(mServiceId);
+        // search bluetooth device by serviceId.
+        BluetoothDevice bluetoothDevice = ((HvcDeviceService) mContext).searchCacheHvcDevice(mServiceId);
         if (bluetoothDevice == null) {
             // bluetooth device not found.
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "onEventProc() - bluetooth device not found.");
-            }
+//            if (BuildConfig.DEBUG) {
+//                Log.d(TAG, "doGetDetectionProc() - bluetooth device not found.");
+//            }
+            // send response.
+            MessageUtils.setNotFoundServiceError(response, "bluetooth device not found.");
+            mContext.sendBroadcast(response);
             return;
         }
         
-        // comm busy.
-        if (mDetectThread != null && mDetectThread.checkBusy()) {
+        // check comm busy.
+        if (checkCommBusy()) {
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "onEventProc() - skip event process.(busy)");
+                Log.d(TAG, "doGetDetectionProc() - skip event process.(busy)");
             }
             return;
         }
@@ -372,6 +278,7 @@ public class HvcCommManager {
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "<GET> detect finished. body:" + hvcRes.body.size() + " hand:" + hvcRes.hand.size()
                             + " face:" + hvcRes.face.size());
+                    HvcResponseUtils.debugLogHvcRes(hvcRes, TAG);
                 }
                 // send response.
                 response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
@@ -440,15 +347,37 @@ public class HvcCommManager {
         mDetectThread.request(requestParams, listener);
     }
     
-     /**
+    /**
+     * check comm busy.
+     * @return true: busy / false: not busy.
+     */
+    public boolean checkCommBusy() {
+         if (mDetectThread != null && mDetectThread.checkBusy()) {
+             return true;
+         }
+        return false;
+    }
+    
+    /**
+     * check device connect.
+     * @return true: busy / false: not busy.
+     */
+    public boolean checkConnect() {
+         if (mDetectThread != null && mDetectThread.checkBusy()) {
+             return true;
+         }
+        return false;
+    }
+
+    /**
      * on event process (send event, only events that interval matches.).
      * 
      * @param interval interval. match interval 
      */
     public void onEventProc(final long interval) {
         
-        // get bluetooth device by serviceId.
-        BluetoothDevice bluetoothDevice = HvcCommManager.searchDevices(mServiceId);
+        // search bluetooth device by serviceId.
+        BluetoothDevice bluetoothDevice = ((HvcDeviceService) mContext).searchCacheHvcDevice(mServiceId);
         if (bluetoothDevice == null) {
             // bluetooth device not found.
             if (BuildConfig.DEBUG) {

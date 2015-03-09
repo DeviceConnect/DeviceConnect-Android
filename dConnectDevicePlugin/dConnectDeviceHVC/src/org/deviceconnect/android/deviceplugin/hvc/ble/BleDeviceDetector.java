@@ -12,6 +12,10 @@ import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hvc.ble.adapter.NewBleDeviceAdapterImpl;
+import org.deviceconnect.android.deviceplugin.hvc.ble.adapter.OldBleDeviceAdapterImpl;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -20,10 +24,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
-import org.deviceconnect.android.deviceplugin.hvc.ble.adapter.NewBleDeviceAdapterImpl;
-import org.deviceconnect.android.deviceplugin.hvc.ble.adapter.OldBleDeviceAdapterImpl;
 
 /**
  * This class to detect the BLE device.
@@ -275,7 +275,7 @@ public class BleDeviceDetector {
         } catch (Exception e) {
             // Exception occurred when the BLE state is invalid.
             if (BuildConfig.DEBUG) {
-                Log.e("hvc.dplugin", "", e);
+                Log.e("heartrate.dplugin", "", e);
             }
         }
     }
@@ -289,7 +289,7 @@ public class BleDeviceDetector {
         } catch (Exception e) {
             // Exception occurred when the BLE state is invalid.
             if (BuildConfig.DEBUG) {
-                Log.e("hvc.dplugin", "", e);
+                Log.e("heartrate.dplugin", "", e);
             }
         }
     }

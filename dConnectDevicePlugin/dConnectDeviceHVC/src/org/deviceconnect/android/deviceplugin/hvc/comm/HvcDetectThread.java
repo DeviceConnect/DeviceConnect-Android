@@ -386,6 +386,20 @@ public class HvcDetectThread extends Thread {
     }
     
     /**
+     * check connect.
+     * @return true: in connect / false: disconnect
+     */
+    public boolean checkConnect() {
+        int commStatus = mHvcBle.getStatus();
+        if (commStatus == HVC.HVC_ERROR_NODEVICES) {
+            return false;
+        }
+        return true;
+    }
+    
+    
+    
+    /**
      * get last access time.
      * @return last access time
      */

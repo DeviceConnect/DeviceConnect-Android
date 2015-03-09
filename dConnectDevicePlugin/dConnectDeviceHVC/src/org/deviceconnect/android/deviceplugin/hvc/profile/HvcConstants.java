@@ -167,6 +167,16 @@ public final class HvcConstants {
      * HVC device search wait time[msec].
      */
     public static final int DEVICE_SEARCH_WAIT_TIME = 5000;
+
+    /**
+     * number of times to retry, If HVC communication is busy.
+     */
+    public static final int HVC_COMM_RETRY_COUNT = 3;
+
+    /**
+     * interval to retry, If HVC communication is busy[msec].
+     */
+    public static final int HVC_COMM_RETRY_INTERVAL = 1000;
     
 
 }

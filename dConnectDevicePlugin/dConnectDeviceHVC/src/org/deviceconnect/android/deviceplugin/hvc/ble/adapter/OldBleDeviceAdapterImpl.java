@@ -11,11 +11,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 
-
-import java.util.Set;
-
 import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceAdapter;
 import org.deviceconnect.android.deviceplugin.hvc.ble.BleUtils;
+
+import java.util.Set;
 
 /**
  *

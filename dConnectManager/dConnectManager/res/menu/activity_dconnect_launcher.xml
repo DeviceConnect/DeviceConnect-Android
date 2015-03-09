@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/dconnect_launcher_menu_item_settings"
+        android:showAsAction="always"
+        android:title="@string/activity_launch_button_settings"/>
+
+</menu>

@@ -44,9 +44,9 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         }
 
         String attribute = getAttribute(request);
-        if (ATTRIBUTE_CREATE_CLIENT.equals(attribute)) {
+        if (ATTRIBUTE_GRANT.equals(attribute)) {
             onGetCreateClient(request, response);
-        } else if (ATTRIBUTE_REQUEST_ACCESS_TOKEN.equals(attribute)) {
+        } else if (ATTRIBUTE_ACCESS_TOKEN.equals(attribute)) {
             onGetRequestAccessToken(request, response);
         } else {
             sendUnknownAttributeError(request, response);
@@ -90,10 +90,10 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
      */
     public void onInvalidOrigin(final Intent request, final Intent response) {
         String attribute = getAttribute(request);
-        if (ATTRIBUTE_CREATE_CLIENT.equals(attribute)) {
+        if (ATTRIBUTE_GRANT.equals(attribute)) {
             // GotAPI対応: エラーの場合は、空文字のクライアントIDを返す
             response.putExtra(AuthorizationProfile.PARAM_CLIENT_ID, "");
-        } else if (ATTRIBUTE_REQUEST_ACCESS_TOKEN.equals(attribute)) {
+        } else if (ATTRIBUTE_ACCESS_TOKEN.equals(attribute)) {
             // GotAPI対応: エラーの場合は、空文字のアクセストークンIDを返す
             response.putExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN, "");
         }

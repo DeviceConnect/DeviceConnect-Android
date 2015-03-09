@@ -18,7 +18,7 @@ import org.restlet.ext.oauth.PackageInfoOAuth;
 import android.content.Intent;
 
 /**
- * LocalOAuth2にClinetを作成するためのリクエスト.
+ * LocalOAuth2にクライアントを作成するためのリクエスト.
  * @author NTT DOCOMO, INC.
  */
 public class CreateClientRequest extends DConnectRequest {
@@ -41,7 +41,6 @@ public class CreateClientRequest extends DConnectRequest {
                 mResponse.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 0);
                 mResponse.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "");
                 mResponse.putExtra(AuthorizationProfile.PARAM_CLIENT_ID, client.getClientId());
-                mResponse.putExtra(AuthorizationProfile.PARAM_CLIENT_SECRET, client.getClientSecret());
             } else {
                 setAuthorizationError(mResponse, null);
             }

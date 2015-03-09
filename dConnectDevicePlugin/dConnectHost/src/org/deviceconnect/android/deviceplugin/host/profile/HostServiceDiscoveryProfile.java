@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -22,6 +23,7 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class HostServiceDiscoveryProfile extends ServiceDiscoveryProfile {
+
     /**
      * デバイスプラグインID.
      */
@@ -47,6 +49,15 @@ public class HostServiceDiscoveryProfile extends ServiceDiscoveryProfile {
      */
     public static final String DEVICE_CONFIG = "HostConfig";
 
+    /**
+     * コンストラクタ.
+     * 
+     * @param provider プロファイルプロバイダ
+     */
+    public HostServiceDiscoveryProfile(final DConnectProfileProvider provider) {
+        super(provider);
+    }
+
     @Override
     public boolean onGetServices(final Intent request, final Intent response) {
 
@@ -58,6 +69,7 @@ public class HostServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         setType(service, DEVICE_TYPE);
         setOnline(service, DEVICE_ONLINE);
         setConfig(service, DEVICE_CONFIG);
+        setScopes(service, getProfileProvider());
         services.add(service);
 
         setResult(response, DConnectMessage.RESULT_OK);

@@ -28,7 +28,7 @@
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:value="enable" />
         </service>
-        
+
         <!-- 設定画面 -->
         <activity android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity" >
         </activity>
@@ -60,11 +60,14 @@
         <service
             android:name="org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService"
             android:enabled="true"
-            android:exported="false">
+            android:exported="false" >
         </service>
 
         <!-- LocalOAuth -->
-        <activity android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity" >
+        <activity
+            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
+            android:excludeFromRecents="true"
+            android:exported="false" >
         </activity>
 
         <service

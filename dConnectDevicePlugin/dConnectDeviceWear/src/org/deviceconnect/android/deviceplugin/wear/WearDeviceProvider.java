@@ -13,7 +13,7 @@ import org.deviceconnect.android.message.DConnectMessageServiceProvider;
 /**
  * Provider.
  * 
- * @param <T> DeviceTestService
+ * @param <T> Service class.
  * @author NTT DOCOMO, INC.
  */
 public class WearDeviceProvider<T extends Service> extends DConnectMessageServiceProvider<Service> {

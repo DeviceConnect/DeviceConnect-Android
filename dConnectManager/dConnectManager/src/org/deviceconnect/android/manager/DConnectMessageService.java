@@ -169,7 +169,7 @@ public abstract class DConnectMessageService extends Service
         // プロファイルの追加
         addProfile(new AuthorizationProfile());
         addProfile(new DConnectAvailabilityProfile());
-        addProfile(new DConnectServiceDiscoveryProfile(mPluginMgr));
+        addProfile(new DConnectServiceDiscoveryProfile(this, mPluginMgr));
         addProfile(new DConnectFilesProfile(this));
         addProfile(new DConnectSystemProfile(this, mPluginMgr));
 

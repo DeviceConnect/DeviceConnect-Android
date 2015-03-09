@@ -19,27 +19,27 @@ public class TestServiceInformationProfile extends ServiceInformationProfile {
      * コンストラクタ.
      * @param provider プロファイルプロバイダ
      */
-    public TestServiceInformationProfile(DConnectProfileProvider provider) {
+    public TestServiceInformationProfile(final DConnectProfileProvider provider) {
         super(provider);
     }
 
     @Override
-    protected ConnectState getWifiState(String serviceId) {
+    protected ConnectState getWifiState(final String serviceId) {
         return ConnectState.OFF;
     }
 
     @Override
-    protected ConnectState getBluetoothState(String serviceId) {
+    protected ConnectState getBluetoothState(final String serviceId) {
         return ConnectState.OFF;
     }
 
     @Override
-    protected ConnectState getNFCState(String serviceId) {
+    protected ConnectState getNFCState(final String serviceId) {
         return ConnectState.OFF;
     }
 
     @Override
-    protected ConnectState getBLEState(String serviceId) {
+    protected ConnectState getBLEState(final String serviceId) {
         return ConnectState.OFF;
     }
 }

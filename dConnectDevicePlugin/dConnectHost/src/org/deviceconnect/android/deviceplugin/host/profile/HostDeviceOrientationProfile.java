@@ -169,6 +169,17 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
     }
 
     /**
+     * イベント登録が空か確認する.
+     * @return 空の場合はtrue、それ以外はfalse
+     */
+    private boolean isEmptyEventList() {
+        List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
+                DeviceOrientationProfile.PROFILE_NAME, null,
+                DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
+        return events == null || events.size() == 0;
+    }
+
+    /**
      * Device Orientationのデータを取得する.
      * @param response データを格納するレスポンス
      * @return trueの場合には即座に値を返却する、falseの場合には返さない
@@ -186,12 +197,14 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
                         mAccellZ = event.values[2];
 
                         Bundle orientation = createOrientation();
-                        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-                        DeviceOrientationProfile.setOrientation(response, orientation);
+                        setResult(response, DConnectMessage.RESULT_OK);
+                        setOrientation(response, orientation);
                         HostDeviceService service = (HostDeviceService) getContext();
                         service.sendResponse(response);
 
-                        mSensorManager.unregisterListener(this);
+                        if (isEmptyEventList()) {
+                            mSensorManager.unregisterListener(this);
+                        }
                     } else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
                         mGyroX = event.values[0];
                         mGyroY = event.values[1];
@@ -228,8 +241,8 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
             return false;
         } else {
             Bundle orientation = createOrientation();
-            DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-            DeviceOrientationProfile.setOrientation(response, orientation);
+            setResult(response, DConnectMessage.RESULT_OK);
+            setOrientation(response, orientation);
             return true;
         }
     }

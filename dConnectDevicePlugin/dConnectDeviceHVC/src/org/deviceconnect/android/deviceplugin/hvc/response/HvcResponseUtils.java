@@ -24,6 +24,7 @@ import org.deviceconnect.android.profile.HumanDetectProfile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 /**
  * HVC response utility.
@@ -166,7 +167,7 @@ public final class HvcResponseUtils {
 
                 // face direction.
                 if ((result.executedFunc & HVC.HVC_ACTIV_FACE_DIRECTION) != 0) {
-
+                    List<Bundle> faceDirectionResults = new LinkedList<Bundle>();
                     // threshold check
                     if (r.dir.confidence >= requestParams.getFace().getHvcFaceDirectionThreshold()) {
                         Bundle faceDirectionResult = new Bundle();
@@ -175,24 +176,28 @@ public final class HvcResponseUtils {
                         HumanDetectProfile.setParamRoll(faceDirectionResult, r.dir.roll);
                         HumanDetectProfile.setParamConfidence(faceDirectionResult,
                                 HvcConvertUtils.convertToNormalizeConfidence(r.dir.confidence));
-                        HumanDetectProfile.setParamFaceDirectionResult(faceDetect, faceDirectionResult);
+                        faceDirectionResults.add(faceDirectionResult);
                     }
+                    HumanDetectProfile.setParamFaceDirectionResults(faceDetect,
+                            faceDirectionResults.toArray(new Bundle[faceDirectionResults.size()]));
                 }
                 // age.
                 if ((result.executedFunc & HVC.HVC_ACTIV_AGE_ESTIMATION) != 0) {
-
+                    List<Bundle> ageResults = new LinkedList<Bundle>();
                     // threshold check
                     if (r.age.confidence >= requestParams.getFace().getHvcAgeThreshold()) {
                         Bundle ageResult = new Bundle();
                         HumanDetectProfile.setParamAge(ageResult, r.age.age);
                         HumanDetectProfile.setParamConfidence(ageResult,
                                 HvcConvertUtils.convertToNormalizeConfidence(r.age.confidence));
-                        HumanDetectProfile.setParamAgeResult(faceDetect, ageResult);
+                        ageResults.add(ageResult);
                     }
+                    HumanDetectProfile
+                            .setParamAgeResults(faceDetect, ageResults.toArray(new Bundle[ageResults.size()]));
                 }
                 // gender.
                 if ((result.executedFunc & HVC.HVC_ACTIV_GENDER_ESTIMATION) != 0) {
-
+                    List<Bundle> genderResults = new LinkedList<Bundle>();
                     // threshold check
                     if (r.gen.confidence >= requestParams.getFace().getHvcGenderThreshold()) {
                         Bundle genderResult = new Bundle();
@@ -201,20 +206,26 @@ public final class HvcResponseUtils {
                                         : HumanDetectProfile.VALUE_GENDER_FEMALE));
                         HumanDetectProfile.setParamConfidence(genderResult,
                                 HvcConvertUtils.convertToNormalizeConfidence(r.gen.confidence));
-                        HumanDetectProfile.setParamGenderResult(faceDetect, genderResult);
+                        genderResults.add(genderResult);
                     }
+                    HumanDetectProfile.setParamGenderResults(faceDetect,
+                            genderResults.toArray(new Bundle[genderResults.size()]));
                 }
                 // gaze.
                 if ((result.executedFunc & HVC.HVC_ACTIV_GAZE_ESTIMATION) != 0) {
+                    List<Bundle> gazeResults = new LinkedList<Bundle>();
                     Bundle gazeResult = new Bundle();
                     HumanDetectProfile.setParamGazeLR(gazeResult, r.gaze.gazeLR);
                     HumanDetectProfile.setParamGazeUD(gazeResult, r.gaze.gazeUD);
                     HumanDetectProfile.setParamConfidence(gazeResult,
                             HvcConvertUtils.convertToNormalizeConfidence(HvcConstants.CONFIDENCE_MAX));
-                    HumanDetectProfile.setParamGazeResult(faceDetect, gazeResult);
+                    gazeResults.add(gazeResult);
+                    HumanDetectProfile.setParamGazeResults(faceDetect,
+                            gazeResults.toArray(new Bundle[gazeResults.size()]));
                 }
                 // blink.
                 if ((result.executedFunc & HVC.HVC_ACTIV_BLINK_ESTIMATION) != 0) {
+                    List<Bundle> blinkResults = new LinkedList<Bundle>();
                     Bundle blinkResult = new Bundle();
                     HumanDetectProfile.setParamLeftEye(blinkResult,
                             HvcConvertUtils.convertToNormalize(r.blink.ratioL, HvcConstants.BLINK_MAX));
@@ -222,11 +233,13 @@ public final class HvcResponseUtils {
                             HvcConvertUtils.convertToNormalize(r.blink.ratioR, HvcConstants.BLINK_MAX));
                     HumanDetectProfile.setParamConfidence(blinkResult,
                             HvcConvertUtils.convertToNormalizeConfidence(HvcConstants.CONFIDENCE_MAX));
-                    HumanDetectProfile.setParamBlinkResult(faceDetect, blinkResult);
+                    blinkResults.add(blinkResult);
+                    HumanDetectProfile.setParamBlinkResults(faceDetect,
+                            blinkResults.toArray(new Bundle[blinkResults.size()]));
                 }
                 // expression.
                 if ((result.executedFunc & HVC.HVC_ACTIV_EXPRESSION_ESTIMATION) != 0) {
-
+                    List<Bundle> expressionResults = new LinkedList<Bundle>();
                     // threshold check
                     double normalizeExpressionScore = HvcConvertUtils.convertToNormalizeExpressionScore(r.exp.score);
                     HumanDetectRequestParams humanDetectRequestParams = requestParams.getHumanDetectRequestParams();
@@ -235,7 +248,9 @@ public final class HvcResponseUtils {
                         HumanDetectProfile.setParamExpression(expressionResult,
                                 HvcConvertUtils.convertToNormalizeExpression(r.exp.expression));
                         HumanDetectProfile.setParamConfidence(expressionResult, normalizeExpressionScore);
-                        HumanDetectProfile.setParamExpressionResult(faceDetect, expressionResult);
+                        expressionResults.add(expressionResult);
+                        HumanDetectProfile.setParamExpressionResults(faceDetect,
+                                expressionResults.toArray(new Bundle[expressionResults.size()]));
                     }
                 }
 
@@ -244,6 +259,47 @@ public final class HvcResponseUtils {
         }
         if (faceDetects.size() > 0) {
             HumanDetectProfile.setFaceDetects(response, faceDetects.toArray(new Bundle[faceDetects.size()]));
+        }
+    }
+
+
+    /**
+     * debug log.
+     * @param hvcRes HVC response
+     * @param tag tag
+     */
+    public static void debugLogHvcRes(final HVC_RES hvcRes, final String tag) {
+        
+        Log.d(tag, "--- [HVC_RES] ---");
+        
+        // bodyDetects.
+        for (omron.HVC.HVC_RES.DetectionResult r : hvcRes.body) {
+            Log.d(tag, "[body] posX:" + r.posX + " posY:" + r.posY + " size" + r.size + " confidence:" + r.confidence);
+        }
+        
+        // handDetects.
+        for (omron.HVC.HVC_RES.DetectionResult r : hvcRes.hand) {
+            Log.d(tag, "[hand] posX:" + r.posX + " posY:" + r.posY + " size" + r.size + " confidence:" + r.confidence);
+        }
+        
+        // faceDetects.
+        for (omron.HVC.HVC_RES.FaceResult r : hvcRes.face) {
+            Log.d(tag, "[face] posX:" + r.posX + " posY:" + r.posY + " size" + r.size + " confidence:" + r.confidence);
+            
+            // face direction.
+            Log.d(tag, "  [faceDirection] yaw:" + r.dir.yaw + " pitch:" + r.dir.pitch + " roll" + r.dir.roll
+                    + " confidence:" + r.dir.confidence);
+            // age.
+            Log.d(tag, "  [age] age:" + r.age + " confidence:" + r.age.confidence);
+            // gender.
+            Log.d(tag, "  [gender] gender:" + r.gen.gender + " confidence:" + r.gen.confidence);
+            // gaze.
+            Log.d(tag, "  [gaze] gazeLR:" + r.gaze.gazeLR + " gazeUD:" + r.gaze.gazeUD);
+            // blink.
+            Log.d(tag, "  [blink] ratioL:" + r.blink.ratioL + " ratioR:" + r.blink.ratioR);
+            // expression.
+            Log.d(tag, "  [expression] r.exp.expression:" + r.exp.expression);
+            
         }
     }
 }

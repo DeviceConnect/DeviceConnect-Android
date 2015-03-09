@@ -1242,54 +1242,54 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /**
      * set face direction result to bundle.
      * @param bundle bundle
-     * @param faceDirectionResult face direction result.
+     * @param faceDirectionResults face direction results.
      */
-    public static void setParamFaceDirectionResult(final Bundle bundle, final Bundle faceDirectionResult) {
-        bundle.putBundle(PARAM_FACEDIRECTIONRESULTS, faceDirectionResult);
+    public static void setParamFaceDirectionResults(final Bundle bundle, final Bundle[] faceDirectionResults) {
+        bundle.putParcelableArray(PARAM_FACEDIRECTIONRESULTS, faceDirectionResults);
     }
     
     /**
      * set age value to bundle.
      * @param bundle bundle
-     * @param ageResult age result.
+     * @param ageResults age results.
      */
-    public static void setParamAgeResult(final Bundle bundle, final Bundle ageResult) {
-        bundle.putBundle(PARAM_AGERESULTS, ageResult);
+    public static void setParamAgeResults(final Bundle bundle, final Bundle[] ageResults) {
+        bundle.putParcelableArray(PARAM_AGERESULTS, ageResults);
     }
     
     /**
      * set gender value to bundle.
      * @param bundle bundle
-     * @param genderResult gender result.
+     * @param genderResults gender results.
      */
-    public static void setParamGenderResult(final Bundle bundle, final Bundle genderResult) {
-        bundle.putBundle(PARAM_GENDERRESULTS, genderResult);
+    public static void setParamGenderResults(final Bundle bundle, final Bundle[] genderResults) {
+        bundle.putParcelableArray(PARAM_GENDERRESULTS, genderResults);
     }
     
     /**
      * set gaze value to bundle.
      * @param bundle bundle
-     * @param gazeResult gaze result.
+     * @param gazeResults gaze results.
      */
-    public static void setParamGazeResult(final Bundle bundle, final Bundle gazeResult) {
-        bundle.putBundle(PARAM_GAZERESULTS, gazeResult);
+    public static void setParamGazeResults(final Bundle bundle, final Bundle[] gazeResults) {
+        bundle.putParcelableArray(PARAM_GAZERESULTS, gazeResults);
     }
     
     /**
      * set blink value to bundle.
      * @param bundle bundle
-     * @param blinkResult blink result.
+     * @param blinkResults blink results.
      */
-    public static void setParamBlinkResult(final Bundle bundle, final Bundle blinkResult) {
-        bundle.putBundle(PARAM_BLINKRESULTS, blinkResult);
+    public static void setParamBlinkResults(final Bundle bundle, final Bundle[] blinkResults) {
+        bundle.putParcelableArray(PARAM_BLINKRESULTS, blinkResults);
     }
     
     /**
      * set expression value to bundle.
      * @param bundle bundle
-     * @param expressionResult expression result.
+     * @param expressionResults expression result.
      */
-    public static void setParamExpressionResult(final Bundle bundle, final Bundle expressionResult) {
-        bundle.putBundle(PARAM_EXPRESSIONRESULTS, expressionResult);
+    public static void setParamExpressionResults(final Bundle bundle, final Bundle[] expressionResults) {
+        bundle.putParcelableArray(PARAM_EXPRESSIONRESULTS, expressionResults);
     }
 }

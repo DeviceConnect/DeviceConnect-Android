@@ -14,6 +14,7 @@ import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
 import android.content.Intent;
 import android.os.Bundle;
 
+import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -22,6 +23,15 @@ import org.deviceconnect.message.DConnectMessage;
  * @author NTT DOCOMO, INC.
  */
 public class SpheroServceDiscoveryProfile extends ServiceDiscoveryProfile {
+
+    /**
+     * Constructor.
+     * 
+     * @param provider an instance of {@link DConnectProfileProvider}
+     */
+    public SpheroServceDiscoveryProfile(final DConnectProfileProvider provider) {
+        super(provider);
+    }
 
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
@@ -37,6 +47,7 @@ public class SpheroServceDiscoveryProfile extends ServiceDiscoveryProfile {
             ServiceDiscoveryProfile.setName(service, info.getDevice().getName());
             ServiceDiscoveryProfile.setType(service, NetworkType.BLUETOOTH);
             ServiceDiscoveryProfile.setOnline(service, true);
+            ServiceDiscoveryProfile.setScopes(service, getProfileProvider());
 
             services[index++] = service;
         }

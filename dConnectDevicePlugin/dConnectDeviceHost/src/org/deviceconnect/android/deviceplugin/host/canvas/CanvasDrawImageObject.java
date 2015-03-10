@@ -33,7 +33,13 @@ public class CanvasDrawImageObject {
         FILL_MODE,
     };
 
+    /**
+     * Draw Canvas Action.
+     */
     public static final String ACTION_DRAW_CANVAS = "org.deviceconnect.android.deviceplugin.host.canvas.DRAW";
+    /**
+     * Delete Canvas Action.
+     */
     public static final String ACTION_DELETE_CANVAS = "org.deviceconnect.android.deviceplugin.host.canvas.DELETE";
 
     /**

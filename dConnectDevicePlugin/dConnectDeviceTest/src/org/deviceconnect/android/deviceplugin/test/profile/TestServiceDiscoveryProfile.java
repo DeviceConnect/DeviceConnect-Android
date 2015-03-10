@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -21,6 +22,15 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class TestServiceDiscoveryProfile extends ServiceDiscoveryProfile {
+
+    /**
+     * コンストラクタ.
+     * 
+     * @param provider プロファイルプロバイダ
+     */
+    public TestServiceDiscoveryProfile(final DConnectProfileProvider provider) {
+        super(provider);
+    }
 
     /**
      * テスト用サービスID.
@@ -76,6 +86,7 @@ public class TestServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         setType(service, DEVICE_TYPE);
         setOnline(service, DEVICE_ONLINE);
         setConfig(service, DEVICE_CONFIG);
+        setScopes(service, getProfileProvider());
         services.add(service);
 
         // サービスIDが特殊なサービス
@@ -85,6 +96,7 @@ public class TestServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         setType(service, DEVICE_TYPE);
         setOnline(service, DEVICE_ONLINE);
         setConfig(service, DEVICE_CONFIG);
+        setScopes(service, getProfileProvider());
         services.add(service);
 
         setResult(response, DConnectMessage.RESULT_OK);

@@ -51,15 +51,11 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * 【期待する動作】
      * ・resultに0が返ってくること。
      * ・clientIdにstring型の値が返ること。
-     * ・clientSecretにstring型の値が返ること。
      * </pre>
      */
     public void testCreateClient() {
-        String[] clientInfo = createClient();
-        String clientId = clientInfo[0];
-        String clientSecret = clientInfo[1];
+        String clientId = createClient();
         assertNotNull(clientId);
-        assertNotNull(clientSecret);
     }
 
     /**
@@ -67,26 +63,20 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/create_client?packageName=xxxx
+     * Path: /authorization/create_client
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
      * ・異なるclientIdが返ること。
-     * ・異なるclientSecretが返ること。
      * </pre>
      */
     public void testCreateClientOverwrite() {
-        String[] clientInfo = createClient();
-        assertNotNull(clientInfo);
-        assertNotNull(clientInfo[0]);
-        assertNotNull(clientInfo[1]);
-        String[] newClientInfo = createClient();
-        assertNotNull(newClientInfo);
-        assertNotNull(newClientInfo[0]);
-        assertNotNull(newClientInfo[1]);
-        assertFalse(newClientInfo[0].equals(clientInfo[0]));
-        assertFalse(newClientInfo[1].equals(clientInfo[1]));
+        String clientId = createClient();
+        assertNotNull(clientId);
+        String newClientId = createClient();
+        assertNotNull(newClientId);
+        assertFalse(newClientId.equals(clientId));
     }
 
     /**
@@ -95,7 +85,7 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * 【HTTP通信】
      * Method: GET
      * Path: /authorization/request_accesstoken?
-     *           clientId=xxxx&grantType=authorization_code&scope=notification&applicationName=xxxx&signature=xxxx
+     *           clientId=xxxx&scope=notification&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -105,13 +95,10 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * </pre>
      */
     public void testRequestAccessToken() {
-        String[] clientInfo = createClient();
-        String clientId = clientInfo[0];
-        String clientSecret = clientInfo[1];
+        String clientId = createClient();
         assertNotNull(clientId);
-        assertNotNull(clientSecret);
         
-        String accessToken = requestAccessToken(clientId, clientSecret,
+        String accessToken = requestAccessToken(clientId,
                 new String[] {NotificationProfileConstants.PROFILE_NAME});
         assertNotNull(accessToken);
     }
@@ -122,8 +109,7 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * 【HTTP通信】
      * Method: GET
      * Path: /authorization/request_accesstoken?
-     *           clientId=xxxx&grantType=authorization_code
-     *           &scope=battery,connect,deviceorientation&applicationName=xxxx&signature=xxxx
+     *           clientId=xxxx&scope=battery,connect,deviceorientation&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -133,13 +119,10 @@ public class NormalAuthorizationProfileTestCase extends IntentDConnectTestCase {
      * </pre>
      */
     public void testRequestAccessTokenMultiScope() {
-        String[] clientInfo = createClient();
-        String clientId = clientInfo[0];
-        String clientSecret = clientInfo[1];
+        String clientId = createClient();
         assertNotNull(clientId);
-        assertNotNull(clientSecret);
         
-        String accessToken = requestAccessToken(clientId, clientSecret, new String[] {
+        String accessToken = requestAccessToken(clientId, new String[] {
                 BatteryProfileConstants.PROFILE_NAME,
                 ConnectProfileConstants.PROFILE_NAME,
                 DeviceOrientationProfileConstants.PROFILE_NAME,

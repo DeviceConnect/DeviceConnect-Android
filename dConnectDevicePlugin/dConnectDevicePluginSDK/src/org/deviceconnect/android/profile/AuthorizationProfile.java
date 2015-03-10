@@ -7,7 +7,6 @@
 package org.deviceconnect.android.profile;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +40,33 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
     /** ロックオブジェクト. */
     private final Object mLockObj = new Object();
 
+    /**
+     * プロファイルプロバイダー.
+     */
+    private final DConnectProfileProvider mProvider;
+
+    /**
+     * 指定されたプロファイルプロバイダーをもつAuthorizationプロファイルを生成する.
+     * 
+     * @param provider プロファイルプロバイダー
+     */
+    public AuthorizationProfile(final DConnectProfileProvider provider) {
+        this.mProvider = provider;
+    }
+
+    /**
+     * デバイスプラグインのサポートするすべてのプロファイル名の配列を取得する.
+     * @return プロファイル名の配列
+     */
+    private String[] getAllProfileNames() {
+        List<DConnectProfile> profiles = mProvider.getProfileList();
+        String[] names = new String[profiles.size()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = profiles.get(i).getProfileName();
+        }
+        return names;
+    }
+
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
@@ -57,9 +83,9 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
 
         boolean send = true;
         String attribute = getAttribute(request);
-        if (ATTRIBUTE_CREATE_CLIENT.equals(attribute)) {
+        if (ATTRIBUTE_GRANT.equals(attribute)) {
             send = onGetCreateClient(request, response);
-        } else if (ATTRIBUTE_REQUEST_ACCESS_TOKEN.equals(attribute)) {
+        } else if (ATTRIBUTE_ACCESS_TOKEN.equals(attribute)) {
             send = onGetRequestAccessToken(request, response);
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -141,7 +167,6 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
                 if (client != null) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                     response.putExtra(AuthorizationProfile.PARAM_CLIENT_ID, client.getClientId());
-                    response.putExtra(AuthorizationProfile.PARAM_CLIENT_SECRET, client.getClientSecret());
                 } else {
                     MessageUtils.setAuthorizationError(response, "Cannot create a client.");
                 }
@@ -166,72 +191,69 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             throws AuthorizatonException, UnsupportedEncodingException {
         String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String clientId = request.getStringExtra(AuthorizationProfile.PARAM_CLIENT_ID);
-        String grantType = request.getStringExtra(AuthorizationProfile.PARAM_GRANT_TYPE);
         String[] scopes = parseScopes(request.getStringExtra(AuthorizationProfile.PARAM_SCOPE));
+        if (scopes == null) {
+            scopes = getAllProfileNames();
+        }
         String applicationName = request.getStringExtra(AuthorizationProfile.PARAM_APPLICATION_NAME);
-        String signature = request.getStringExtra(AuthorizationProfile.PARAM_SIGNATURE);
-        if (signature != null) {
-            signature = URLDecoder.decode(signature, "UTF-8");
+
+        // TODO _typeからアプリorデバイスプラグインかを判別できる？
+        ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(getContext()).serviceId(serviceId)
+                .clientId(clientId).scopes(scopes).applicationName(applicationName)
+                .isForDevicePlugin(true) 
+                .build();
+
+        // Local OAuthでAccessTokenを作成する。
+        final AccessTokenData[] token = new AccessTokenData[1];
+        LocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
+            @Override
+            public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
+                token[0] = accessTokenData;
+                synchronized (mLockObj) {
+                    mLockObj.notifyAll();
+                }
+            }
+            @Override
+            public void onReceiveException(final Exception exception) {
+                token[0] = null;
+                synchronized (mLockObj) {
+                    mLockObj.notifyAll();
+                }
+            }
+        });
+
+        // ユーザからのレスポンスを待つ
+        if (token[0] == null) {
+            waitForResponse();
         }
 
-        // シグネイチャの確認
-        if (LocalOAuth2Main.checkSignature(signature, clientId, grantType, serviceId, scopes)) {
-            // TODO _typeからアプリorデバイスプラグインかを判別できる？
-            ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(getContext()).serviceId(serviceId)
-                    .clientId(clientId).grantType(grantType).scopes(scopes).applicationName(applicationName)
-                    .isForDevicePlugin(true) 
-                    .build();
-
-            // Local OAuthでAccessTokenを作成する。
-            final AccessTokenData[] token = new AccessTokenData[1];
-            LocalOAuth2Main.confirmPublishAccessToken(params, new PublishAccessTokenListener() {
-                @Override
-                public void onReceiveAccessToken(final AccessTokenData accessTokenData) {
-                    token[0] = accessTokenData;
-                    synchronized (mLockObj) {
-                        mLockObj.notifyAll();
+        // アクセストークンの確認
+        if (token[0] != null && token[0].getAccessToken() != null) {
+            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+            response.putExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN, token[0].getAccessToken());
+            AccessTokenScope[] atScopes = token[0].getScopes();
+            if (atScopes != null) {
+                List<Bundle> s = new ArrayList<Bundle>();
+                AccessTokenScope minScope = null;
+                for (int i = 0; i < atScopes.length; i++) {
+                    Bundle b = new Bundle();
+                    b.putString(PARAM_SCOPE, atScopes[i].getScope());
+                    b.putLong(PARAM_EXPIRE_PERIOD, atScopes[i].getExpirePeriod());
+                    s.add(b);
+                    
+                    if (minScope == null || (minScope.getExpirePeriod() > atScopes[i].getExpirePeriod())) {
+                        minScope = atScopes[i];
                     }
                 }
-                @Override
-                public void onReceiveException(final Exception exception) {
-                    token[0] = null;
-                    synchronized (mLockObj) {
-                        mLockObj.notifyAll();
-                    }
+                response.putExtra(PARAM_SCOPES, s.toArray(new Bundle[s.size()]));
+                
+                // NOTE: GotAPI 1.0対応
+                if (minScope != null) {
+                    response.putExtra(PARAM_EXPIRE, token[0].getTimestamp() + minScope.getExpirePeriod());
                 }
-            });
-
-            // ユーザからのレスポンスを待つ
-            if (token[0] == null) {
-                waitForResponse();
-            }
-
-            // アクセストークンの確認
-            if (token[0] != null && token[0].getAccessToken() != null) {
-                String chkSignature = createSignature(token[0].getAccessToken(), clientId);
-                if (chkSignature != null) {
-                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-                    response.putExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN, token[0].getAccessToken());
-                    response.putExtra(AuthorizationProfile.PARAM_SIGNATURE, chkSignature);
-                    AccessTokenScope[] atScopes = token[0].getScopes();
-                    if (atScopes != null) {
-                        List<Bundle> s = new ArrayList<Bundle>();
-                        for (int i = 0; i < atScopes.length; i++) {
-                            Bundle b = new Bundle();
-                            b.putString(PARAM_SCOPE, atScopes[i].getScope());
-                            b.putLong(PARAM_EXPIRE_PERIOD, atScopes[i].getExpirePeriod());
-                            s.add(b);
-                        }
-                        response.putExtra(PARAM_SCOPES, s.toArray(new Bundle[s.size()]));
-                    }
-                } else {
-                    MessageUtils.setAuthorizationError(response, "Cannot create a signature.");
-                }
-            } else {
-                MessageUtils.setAuthorizationError(response, "Cannot create a access token.");
             }
         } else {
-            MessageUtils.setAuthorizationError(response, "signature does not match.");
+            MessageUtils.setAuthorizationError(response, "Cannot create a access token.");
         }
     }
 
@@ -263,22 +285,5 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             scopes[i] = scopes[i].trim();
         }
         return scopes;
-    }
-
-    /**
-     * レスポンス用のシグネイチャを作成する.
-     * 
-     * 作成に失敗した場合にはnullを返却する.
-     * 
-     * @param accessToken アクセストークン
-     * @param clientId クライアントID
-     * @return シグネイチャ
-     */
-    private String createSignature(final String accessToken, final String clientId) {
-        try {
-            return LocalOAuth2Main.createSignature(accessToken, clientId);
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

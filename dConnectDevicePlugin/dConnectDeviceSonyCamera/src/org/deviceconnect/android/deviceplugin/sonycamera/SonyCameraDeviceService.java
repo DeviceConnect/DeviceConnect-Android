@@ -32,6 +32,7 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
@@ -274,6 +275,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                     ServiceDiscoveryProfile.NetworkType.WIFI.getValue());
             service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
             service.putString(ServiceDiscoveryProfile.PARAM_CONFIG, wifiInfo.getSSID());
+            setScopes(service);
             services.add(service);
 
             // SonyCameraを見つけたので、SSIDを保存しておく
@@ -285,6 +287,20 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
         mLogger.exiting(this.getClass().getName(), "createSearchResponse");
         return true;
+    }
+
+    /**
+     * デバイスプラグインのサポートするプロファイル一覧を設定する.
+     * 
+     * @param service デバイスパラメータ
+     */
+    private void setScopes(final Bundle service) {
+        ArrayList<String> scopes = new ArrayList<String>();
+        for (DConnectProfile profile : getProfileList()) {
+            scopes.add(profile.getProfileName());
+        }
+        service.putStringArray(ServiceDiscoveryProfileConstants.PARAM_SCOPES, 
+                scopes.toArray(new String[scopes.size()]));
     }
 
     /**
@@ -1198,7 +1214,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new SonyCameraServiceDiscoveryProfile();
+        return new SonyCameraServiceDiscoveryProfile(this);
     }
 
     /**

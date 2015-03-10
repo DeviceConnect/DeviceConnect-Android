@@ -30,11 +30,6 @@ package org.deviceconnect.android.localoauth;
  * <td>○設定必要</td>
  * </tr>
  * <tr>
- * <td>mGrantType</td>
- * <td>○設定必要</td>
- * <td>○設定必要</td>
- * </tr>
- * <tr>
  * <td>mServiceId</td>
  * <td>○設定必要</td>
  * <td>×設定不要</td>
@@ -73,9 +68,6 @@ public class ConfirmAuthParams {
     /** クライアントID. */
     private String mClientId;
 
-    /** グラントタイプ. */
-    private String mGrantType;
-
     /** サービスID(デバイスプラグイン用の場合のみ設定する). */
     private String mServiceId;
 
@@ -92,7 +84,6 @@ public class ConfirmAuthParams {
         mContext = null;
         mApplicationName = null;
         mClientId = null;
-        mGrantType = null;
         mServiceId = null;
         mScope = null;
         mIsForDevicePlugin = true;
@@ -108,7 +99,6 @@ public class ConfirmAuthParams {
         this.mContext = builder.mContext;
         this.mApplicationName = builder.mApplicationName;
         this.mClientId = builder.mClientId;
-        this.mGrantType = builder.mGrantType;
         this.mServiceId = builder.mServiceId;
         this.mScope = builder.mScope;
         this.mIsForDevicePlugin = builder.mIsForDevicePlugin;
@@ -166,24 +156,6 @@ public class ConfirmAuthParams {
      */
     public void setClientId(final String clientId) {
         this.mClientId = clientId;
-    }
-
-    /**
-     * グラントタイプを取得.
-     * 
-     * @return グラントタイプ
-     */
-    public String getGrantType() {
-        return mGrantType;
-    }
-
-    /**
-     * グラントタイプを設定.
-     * 
-     * @param grantType グラントタイプ
-     */
-    public void setGrantType(final String grantType) {
-        this.mGrantType = grantType;
     }
 
     /**
@@ -254,9 +226,6 @@ public class ConfirmAuthParams {
         /** クライアントID. */
         private String mClientId;
 
-        /** グラントタイプ. */
-        private String mGrantType;
-
         /** サービスID(デバイスプラグイン用の場合のみ設定する). */
         private String mServiceId;
 
@@ -279,8 +248,6 @@ public class ConfirmAuthParams {
                 throw new IllegalArgumentException("mApplicationName must be not null.");
             } else if (mClientId == null) {
                 throw new IllegalArgumentException("mClientId must be not null.");
-            } else if (mGrantType == null) {
-                throw new IllegalArgumentException("mGrantType must be not null.");
             } else if (mScope == null) {
                 throw new IllegalArgumentException("mScopes must be not null.");
             }
@@ -315,16 +282,6 @@ public class ConfirmAuthParams {
          */
         public Builder clientId(final String clientId) {
             mClientId = clientId;
-            return this;
-        }
-
-        /**
-         * グラントタイプを設定する.
-         * @param grantType グラントタイプ
-         * @return ビルダー。
-         */
-        public Builder grantType(final String grantType) {
-            mGrantType = grantType;
             return this;
         }
 

@@ -50,6 +50,6 @@ public class SWService extends DConnectMessageService {
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new SWServiceDiscoveryProfile();
+        return new SWServiceDiscoveryProfile(this);
     }
 }

@@ -19,6 +19,8 @@ import org.deviceconnect.android.deviceplugin.hvc.ble.adapter.OldBleDeviceAdapte
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -56,14 +58,38 @@ public class BleDeviceDetector {
      */
     private static final long SCAN_PERIOD = 2000;
 
+    /**
+     * Context.
+     */
     private Context mContext;
+    
+    /**
+     * Ble adapter.
+     */
     private BleDeviceAdapter mBleAdapter;
 
-    private Handler mHandler = new Handler();
+    /**
+     * Handler.
+     */
+    private Handler mHandler;
+    
+    /**
+     * Scanning flag.
+     */
     private boolean mScanning;
+    
+    /**
+     * Ble device disconvery listener.
+     */
     private BleDeviceDiscoveryListener mListener;
+    /**
+     * devices.
+     */
     private List<BluetoothDevice> mDevices = new CopyOnWriteArrayList<>();
 
+    /**
+     * Factory.
+     */
     private BleDeviceAdapterFactory mFactory;
 
     /**
@@ -74,7 +100,7 @@ public class BleDeviceDetector {
     public BleDeviceDetector(final Context context) {
         this(context, new BleDeviceAdapterFactory() {
             @Override
-            public BleDeviceAdapter createAdapter(Context context) {
+            public BleDeviceAdapter createAdapter(final Context context) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     return new NewBleDeviceAdapterImpl(context);
                 } else {
@@ -187,6 +213,11 @@ public class BleDeviceDetector {
         return mBleAdapter.getBondedDevices();
     }
 
+    /**
+     * Check bluetooth address.
+     * @param address address
+     * @return check result. 
+     */
     public boolean checkBluetoothAddress(final String address) {
         return mBleAdapter.checkBluetoothAddress(address);
     }
@@ -204,7 +235,9 @@ public class BleDeviceDetector {
                         devices.add(device);
                     }
                 };
-        mHandler.postDelayed(new Runnable() {
+        
+        final Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 if (mBleAdapter.isEnabled()) {
@@ -228,6 +261,9 @@ public class BleDeviceDetector {
         }
 
         if (enable) {
+            
+            mHandler = new Handler();
+            
             if (mScanning || mScanTimerFuture != null) {
                 // scan have already started.
                 return;
@@ -319,7 +355,7 @@ public class BleDeviceDetector {
     /**
      * This listener to be notified when discovered the BLE device.
      */
-    public static interface BleDeviceDiscoveryListener {
+    public interface BleDeviceDiscoveryListener {
         /**
          * Discovered the BLE device.
          *

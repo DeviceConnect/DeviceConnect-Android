@@ -74,11 +74,6 @@ public class HvcDeviceService extends DConnectMessageService {
     private HvcTimerInfo mTimeoutJudgeTimer;
 
     /**
-     * Instance of {@link BleDeviceDetector}.
-     */
-    private BleDeviceDetector mDetector;
-
-    /**
      * - * device search timer information.<br>
      * - * - null: stop timer. - * - not null: running timer.
      */
@@ -94,8 +89,10 @@ public class HvcDeviceService extends DConnectMessageService {
      */
     private Object mLockDeviceListObj = new Object();
 
-    // TODO:
-    private final boolean USE_OMROM_DEVICE_SEARCH_API = true;
+    /**
+     * use omron sdk flag.
+     */
+    private static final boolean USE_OMROM_DEVICE_SEARCH_API = false;
 
     /**
      * Device search busy flag.
@@ -105,24 +102,18 @@ public class HvcDeviceService extends DConnectMessageService {
      * Lock object for {@link mIsDeviceSearchBusy}.
      */
     private Object mLockDeviceSearchBusy = new Object();
-
+    
     @Override
     public void onCreate() {
 
         super.onCreate();
 
-        Context context = getContext();
-
         if (USE_OMROM_DEVICE_SEARCH_API) {
             // start HVC device search timer.
-            startDeviceSearchTimer(HvcConstants.DEVICE_SEARCH_INTERVAL);
+            startOmronDeviceSearchTimer(HvcConstants.DEVICE_SEARCH_INTERVAL);
         } else {
-            // initialize ble device detector.
-            mDetector = new BleDeviceDetector(context);
-            mDetector.setListener(mDiscoveryListener);
-            if (mDetector.isEnabled()) {
-                mDetector.startScan();
-            }
+            // start HVC device search timer.
+            startDeviceSearchTimer(HvcConstants.DEVICE_SEARCH_INTERVAL);
         }
 
         // Initialize EventManager
@@ -215,45 +206,6 @@ public class HvcDeviceService extends DConnectMessageService {
             return mCacheDeviceList;
         }
     }
-
-    /**
-     * discovery listener.
-     */
-    private BleDeviceDiscoveryListener mDiscoveryListener = new BleDeviceDiscoveryListener() {
-
-        @Override
-        public void onDiscovery(final List<BluetoothDevice> devices) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "--- found all ble devices---");
-                if (devices != null) {
-                    for (BluetoothDevice device : devices) {
-                        Log.d(TAG, " - name:" + device.getName() + " address:" + device.getAddress());
-                    }
-                }
-            }
-            List<BluetoothDevice> hvcDeviceList = new ArrayList<BluetoothDevice>();
-            Pattern p = Pattern.compile(HvcConstants.HVC_DEVICE_NAME_PREFIX);
-            for (BluetoothDevice device : devices) {
-                // Generate pattern to determine
-                Matcher m = p.matcher(device.getName());
-                if (m.find()) {
-                    hvcDeviceList.add(device);
-                }
-            }
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "--- found HVC ble devices---");
-                if (hvcDeviceList != null) {
-                    for (BluetoothDevice device : hvcDeviceList) {
-                        Log.d(TAG, " - name:" + device.getName() + " address:" + device.getAddress());
-                    }
-                }
-            }
-
-            synchronized (mLockDeviceListObj) {
-                mCacheDeviceList = hvcDeviceList;
-            }
-        }
-    };
 
     //
     // for human detect profile
@@ -617,7 +569,7 @@ public class HvcDeviceService extends DConnectMessageService {
      * 
      * @param deviceSearchInterval device search interval[msec]
      */
-    private void startDeviceSearchTimer(final long deviceSearchInterval) {
+    private void startOmronDeviceSearchTimer(final long deviceSearchInterval) {
 
         // already started.
         if (mDeviceSearchTimer != null) {
@@ -652,14 +604,92 @@ public class HvcDeviceService extends DConnectMessageService {
                         Log.d(TAG, "found device -  name:" + device.getName() + " address:" + device.getAddress());
                     }
                 }
-                synchronized (mLockDeviceSearchBusy) {
-                    mIsDeviceSearchBusy = false;
-                }
 
                 // store.
                 synchronized (mLockDeviceListObj) {
                     mCacheDeviceList = deviceList;
                 }
+                
+                // finish.
+                synchronized (mLockDeviceSearchBusy) {
+                    mIsDeviceSearchBusy = false;
+                }
+            }
+        }, 0, HvcConstants.DEVICE_SEARCH_INTERVAL);
+    }
+
+
+    /**
+     * start HVC device search timer.
+     * 
+     * @param deviceSearchInterval device search interval[msec]
+     */
+    private void startDeviceSearchTimer(final long deviceSearchInterval) {
+
+        // already started.
+        if (mDeviceSearchTimer != null) {
+            return;
+        }
+
+        // timer start.
+        mDeviceSearchTimer = new Timer();
+        mDeviceSearchTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "device search timer proc.");
+                }
+
+                Thread thread = new Thread() {
+                    @Override
+                    public void run() {
+                        // if connect, skip.
+                        if (checkConnect()) {
+                            if (BuildConfig.DEBUG) {
+                                Log.d(TAG, "device search - skip.");
+                            }
+                            return;
+                        }
+
+                        // device search.
+                        synchronized (mLockDeviceSearchBusy) {
+                            mIsDeviceSearchBusy = true;
+                        }
+                        
+                        // initialize ble device detector.
+                        final BleDeviceDetector detector = new BleDeviceDetector(getContext());
+                        if (detector.isEnabled()) {
+                            detector.scanLeDeviceOnce(new BleDeviceDiscoveryListener() {
+                                @Override
+                                public void onDiscovery(final List<BluetoothDevice> devices) {
+                                    
+                                    // remove duplicate data or non HVC data.
+                                    removeDuplicateOrNonHvcData(devices);
+                                    
+                                    if (BuildConfig.DEBUG) {
+                                        Log.d(TAG, "device search - finish.");
+                                        for (BluetoothDevice device : devices) {
+                                            Log.d(TAG, "found device -  name:" + device.getName() 
+                                                    + " address:" + device.getAddress());
+                                        }
+                                    }
+                                    // store.
+                                    synchronized (mLockDeviceListObj) {
+                                        mCacheDeviceList = devices;
+                                    }
+                                    
+                                    // finish
+                                    synchronized (mLockDeviceSearchBusy) {
+                                        mIsDeviceSearchBusy = false;
+                                    }
+                                    
+                                }
+                            });
+                        }
+                    }
+                };
+                thread.start();
+                
             }
         }, 0, HvcConstants.DEVICE_SEARCH_INTERVAL);
     }
@@ -682,6 +712,36 @@ public class HvcDeviceService extends DConnectMessageService {
         return false;
     }
 
+    /**
+     * remove duplicate data.
+     * @param devices found devices.
+     */
+    private void removeDuplicateOrNonHvcData(final List<BluetoothDevice> devices) {
+        Pattern p = Pattern.compile(HvcConstants.HVC_DEVICE_NAME_PREFIX);
+        int deviceCount = devices.size();
+        for (int deviceIndex = (deviceCount - 1); deviceIndex >= 0; deviceIndex--) {
+            
+            // remove if non HVC device name.
+            Matcher m = p.matcher(devices.get(deviceIndex).getName());
+            if (!m.find()) {
+                devices.remove(deviceIndex);
+                continue;
+            }
+            
+            // remove if duplicate.
+            boolean isFoundDuplicate = false;
+            for (int compareIndex = 0; compareIndex < deviceIndex; compareIndex++) {
+                if (devices.get(deviceIndex).equals(devices.get(compareIndex))) {
+                    isFoundDuplicate = true;
+                    break;
+                }
+            }
+            if (isFoundDuplicate) {
+                devices.remove(deviceIndex);
+            }
+        }
+    }
+    
     /**
      * timer information.
      * 

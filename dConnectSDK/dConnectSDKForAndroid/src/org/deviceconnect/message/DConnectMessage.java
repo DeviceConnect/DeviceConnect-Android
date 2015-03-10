@@ -282,7 +282,11 @@ public interface DConnectMessage extends Map<String, Object> {
         /**
          * デバイスの状態異常エラー.
          */
-        ILLEGAL_SERVER_STATE(17, "State of server is illegality.");
+        ILLEGAL_SERVER_STATE(17, "State of server is illegality."),
+        /**
+         * リクエストの発行元が不正.
+         */
+        INVALID_ORIGIN(18, "Origin of request is invalid.");
 
         /**
          * エラーコード.

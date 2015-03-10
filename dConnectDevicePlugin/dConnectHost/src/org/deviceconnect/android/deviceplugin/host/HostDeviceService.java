@@ -9,17 +9,14 @@ package org.deviceconnect.android.deviceplugin.host;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay;
 import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.manager.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostCanvasProfile;
@@ -41,17 +38,13 @@ import org.deviceconnect.android.deviceplugin.host.video.VideoPlayer;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.FileDescriptorProfile;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.FileDescriptorProfileConstants.Flag;
 import org.deviceconnect.profile.PhoneProfileConstants.CallState;
 
 import android.app.ActivityManager;
@@ -71,11 +64,9 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 /**
@@ -114,6 +105,8 @@ public class HostDeviceService extends DConnectMessageService {
     /** Intent filter for battery connect event. */
     private IntentFilter mIfBatteryConnect;
 
+    private FileDataManager mFileDataManager;
+
     @Override
     public void onCreate() {
 
@@ -122,11 +115,9 @@ public class HostDeviceService extends DConnectMessageService {
         // EventManagerの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
-        // LocalOAuthの処理
-        LocalOAuth2Main.initialize(getApplicationContext());
-
         // ファイル管理クラスの作成
         mFileMgr = new FileManager(this);
+        mFileDataManager = new FileDataManager(mFileMgr);
 
         // add supported profiles
         addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
@@ -394,350 +385,15 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     //
-    // Device Orientation Profile
-    //
-
-
-    //
     // File Descriptor Profile
     //
 
-    /** File Output Stream. */
-    private FileOutputStream mFos;
-
-    /** File Input Stream. */
-    private FileInputStream mFis;
-
     /**
-     * FileがオープンかどうかのFlag.<br>
-     * 開いている:true, 開いていない: false
+     * ファイル操作管理クラスを取得する.
+     * @return FileDataManager
      */
-    private Boolean mFileOpenFlag = false;
-
-    /** Fileネームを保持する変数. */
-    private String mFileName = "";
-
-    /** EventのFlag. */
-    private boolean mOnWatchfileEventFlag = false;
-
-    /**
-     * 現在の更新時間.<br>
-     * 更新時間の定義は、open, write, readが実施されたタイミング
-     */
-    private long mFileDescriptorCurrentSystemTime;
-
-    /** 現在の更新時間. */
-    private String mFileDescriptorCurrentTime = "";
-
-    /** FileDescriptorの開いているファイルのPath. */
-    private String mFileDescriptorPath = "";
-
-    /** FileDescripor管理用ServiceId. */
-    private String mFileDescriptorServiceId = "";
-
-    /** File mode. */
-    private Flag mFlag = null;
-
-    /** 更新可能間隔(1分). */
-    private static final int AVAILABLE_REWRITE_TIME = 60000;
-
-    /**
-     * 更新可能かどうかの判定.
-     * 
-     * @return 更新可能な場合はtrue
-     */
-    private boolean checkUpdate() {
-        return System.currentTimeMillis() - mFileDescriptorCurrentSystemTime > AVAILABLE_REWRITE_TIME;
-    }
-
-    /**
-     * ファイルを開く.
-     * 
-     * @param response
-     *            レスポンス
-     * @param serviceId
-     *            サービスID
-     * @param path
-     *            パス
-     * @param flag
-     *            ファイルが開かれているかどうかのフラグ
-     */
-    public void openFile(final Intent response, final String serviceId,
-            final String path, final Flag flag) {
-
-        if (!mFileOpenFlag || checkUpdate()) {
-            try {
-                mFileDescriptorCurrentSystemTime = System.currentTimeMillis();
-                mFileOpenFlag = true;
-                File mBaseDir = mFileMgr.getBasePath();
-                mFileDescriptorPath = path;
-                if (!mFileDescriptorPath.startsWith("/")) {
-                    mFileDescriptorPath = "/" + path;
-                }
-
-                mFos = new FileOutputStream(new File(mBaseDir
-                        + mFileDescriptorPath), true);
-                mFis = new FileInputStream(new File(mBaseDir
-                        + mFileDescriptorPath));
-
-                mFlag = flag;
-                response.putExtra(DConnectMessage.EXTRA_RESULT,
-                        DConnectMessage.RESULT_OK);
-                response.putExtra(DConnectMessage.EXTRA_VALUE, "Open file:"
-                        + Environment.getExternalStorageDirectory() + path);
-                sendBroadcast(response);
-
-                mFileName = path;
-            } catch (FileNotFoundException e) {
-                mFileOpenFlag = false;
-                MessageUtils.setUnknownError(response, "Can not open file:"
-                        + path + ":" + e);
-                sendBroadcast(response);
-
-                mFileName = "";
-            }
-        } else {
-            MessageUtils.setError(response, UNIQUE_ERROR_CODE,
-                    "Opening another file");
-            sendBroadcast(response);
-            if (mFos != null) {
-                try {
-                    mFos.close();
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
-                }
-                mFos = null;
-            }
-            if (mFis != null) {
-                try {
-                    mFis.close();
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
-                }
-                mFis = null;
-            }
-        }
-    }
-
-    /**
-     * ファイルに書き込みする.
-     * 
-     * @param response
-     *            レスポンス
-     * @param serviceId
-     *            サービスID
-     * @param path
-     *            パス
-     * @param data
-     *            データ
-     * @param position
-     *            書き込みポイント
-     */
-    public void writeDataToFile(final Intent response, final String serviceId,
-            final String path, final byte[] data, final Long position) {
-        int pos = 0;
-        if (position != null) {
-            pos = (int) position.longValue();
-        }
-        if (pos < 0 || data.length < pos) {
-            MessageUtils.setInvalidRequestParameterError(response,
-                    "invalid position");
-            sendBroadcast(response);
-            return;
-        }
-        if (mFileOpenFlag && mFileName.equals(path)) {
-            try {
-                if (mFlag.equals(Flag.RW)) {
-                    // 現在の時刻を取得
-                    mFileDescriptorCurrentSystemTime = System
-                            .currentTimeMillis();
-                    Date date = new Date();
-                    SimpleDateFormat mDateFormat = new SimpleDateFormat(
-                            "yyyy'-'MM'-'dd' 'kk':'mm':'ss'+0900'",
-                            Locale.getDefault());
-                    mFileDescriptorCurrentTime = mDateFormat.format(date);
-                    mFos.write(data, pos, data.length - pos);
-                    response.putExtra(DConnectMessage.EXTRA_RESULT,
-                            DConnectMessage.RESULT_OK);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE,
-                            "Write data:" + path);
-                    sendBroadcast(response);
-                    sendFileDescriptorOnWatchfileEvent();
-                } else {
-                    MessageUtils.setIllegalDeviceStateError(response,
-                            "Read mode only");
-                    sendBroadcast(response);
-                }
-
-            } catch (IOException e) {
-                MessageUtils.setUnknownError(response, "Can not write data:"
-                        + path + e);
-                sendBroadcast(response);
-            }
-        } else {
-            response.putExtra(DConnectMessage.EXTRA_RESULT,
-                    DConnectMessage.RESULT_ERROR);
-            response.putExtra(DConnectMessage.EXTRA_VALUE,
-                    "Can not write data:" + path);
-            sendBroadcast(response);
-        }
-    }
-
-    /**
-     * File Descriptor Profile<br>
-     * ファイルを読む.
-     * 
-     * @param response
-     *            レスポンス
-     * @param serviceId
-     *            サービスID
-     * @param path
-     *            パス
-     * @param position
-     *            書き込みポジション
-     * @param length
-     *            長さ
-     */
-    public void readFile(final Intent response, final String serviceId,
-            final String path, final long position, final long length) {
-        if (position < 0) {
-            MessageUtils.setInvalidRequestParameterError(response,
-                    "invalid position");
-            sendBroadcast(response);
-            return;
-        }
-
-        File mBaseDir = mFileMgr.getBasePath();
-        if (mFileOpenFlag && mFileName.equals(path)) {
-            try {
-                mFileDescriptorCurrentSystemTime = System.currentTimeMillis();
-                StringBuffer fileContent = new StringBuffer("");
-                byte[] buffer = new byte[BUFFER_SIZE];
-                int nCount = 0;
-                String paths = path;
-                if (!path.startsWith("/")) {
-                    paths = "/" + path;
-                }
-                FileInputStream fis = new FileInputStream(mBaseDir + paths);
-                while (((fis.read(buffer, 0, 1)) != -1)
-                        && nCount < position + length) {
-                    if (nCount >= position) {
-                        fileContent.append(new String(buffer, 0, 1));
-                    }
-                    nCount++;
-                }
-                fis.close();
-
-                response.putExtra(DConnectMessage.EXTRA_RESULT,
-                        DConnectMessage.RESULT_OK);
-                response.putExtra(FileDescriptorProfile.PARAM_SIZE, length);
-                response.putExtra(FileDescriptorProfile.PARAM_FILE_DATA,
-                        fileContent.toString());
-                sendBroadcast(response);
-
-            } catch (IOException e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-            }
-        } else {
-            MessageUtils.setUnknownError(response, "Can not read data:" + path);
-            sendBroadcast(response);
-        }
-    }
-
-    /**
-     * Fileを閉じる.
-     * 
-     * @param response
-     *            レスポンス
-     * @param serviceId
-     *            サービスID
-     * @param path
-     *            パス
-     */
-    public void closeFile(final Intent response, final String serviceId,
-            final String path) {
-
-        // fileNameが一致した場合のみ閉じる
-        if (mFileOpenFlag && mFileName.equals(path)) {
-            try {
-                mFileDescriptorCurrentSystemTime = 0;
-                mFos.close();
-                mFileOpenFlag = false;
-
-                response.putExtra(DConnectMessage.EXTRA_RESULT,
-                        DConnectMessage.RESULT_OK);
-                response.putExtra(DConnectMessage.EXTRA_VALUE, "Close file:"
-                        + path);
-                sendBroadcast(response);
-                mFileName = "";
-
-            } catch (IOException e) {
-                mFileOpenFlag = false;
-                MessageUtils.setUnknownError(response, "Can not close file:"
-                        + path + e);
-                sendBroadcast(response);
-            }
-        } else {
-            mFileOpenFlag = false;
-            MessageUtils
-                    .setUnknownError(response, "Can not close file:" + path);
-            sendBroadcast(response);
-        }
-    }
-
-    /**
-     * OnWatchFileEventの登録.
-     * 
-     * @param serviceId
-     *            サービスID
-     */
-    public void registerFileDescriptorOnWatchfileEvent(final String serviceId) {
-        mOnWatchfileEventFlag = true;
-        mFileDescriptorServiceId = serviceId;
-    }
-
-    /**
-     * OnWatchFileEventの削除.
-     */
-    public void unregisterFileDescriptorOnWatchfileEvent() {
-        mOnWatchfileEventFlag = false;
-    }
-
-    /**
-     * 状態変化のイベントを通知.
-     */
-    public void sendFileDescriptorOnWatchfileEvent() {
-        if (mOnWatchfileEventFlag) {
-            List<Event> events = EventManager.INSTANCE.getEventList(
-                    mFileDescriptorServiceId,
-                    HostFileDescriptorProfile.PROFILE_NAME, null,
-                    HostFileDescriptorProfile.ATTRIBUTE_ON_WATCH_FILE);
-
-            for (int i = 0; i < events.size(); i++) {
-                Event event = events.get(i);
-                Intent intent = EventManager.createEventMessage(event);
-
-                HostFileDescriptorProfile.setAttribute(intent,
-                        FileDescriptorProfile.ATTRIBUTE_ON_WATCH_FILE);
-                Bundle fileDescriptor = new Bundle();
-                FileDescriptorProfile.setPath(fileDescriptor,
-                        mFileDescriptorPath);
-                FileDescriptorProfile.setCurr(fileDescriptor,
-                        mFileDescriptorCurrentTime);
-                FileDescriptorProfile.setPrev(fileDescriptor, "");
-                intent.putExtra(FileDescriptorProfile.PARAM_FILE_DATA,
-                        fileDescriptor);
-                intent.putExtra(FileDescriptorProfile.PARAM_PROFILE,
-                        FileDescriptorProfile.PROFILE_NAME);
-                getContext().sendBroadcast(intent);
-            }
-        }
+    public FileDataManager getFileDataManager() {
+        return mFileDataManager;
     }
 
     // ----------------------------------------------

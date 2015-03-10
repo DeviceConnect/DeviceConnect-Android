@@ -29,6 +29,35 @@ public class FileDataManager {
     private static final int BUFFER_SIZE = 1024;
 
     /**
+     * ファイル更新チェックの間隔を定義する.
+     * <p>
+     * ここの時間を短くすることで監視時間が早まる。
+     */
+    private static final int PERIOD = 10;
+
+    /**
+     * ファイル更新タイマー.
+     */
+    private ScheduledExecutorService mExecutor = 
+            Executors.newSingleThreadScheduledExecutor();
+
+    /**
+     * ファイル更新タイマーキャンセル用Future.
+     */
+    private ScheduledFuture<?> mFuture;
+
+    /**
+     * 前回更新確認した時間.
+     */
+    private long mLastModifiedDate;
+
+    /**
+     * ファイルの更新通知用リスナー.
+     */
+    private FileModifiedListener mModifiedListener;
+    
+
+    /**
      * ファイルマネージャー.
      */
     private FileManager mFileManager;
@@ -37,16 +66,30 @@ public class FileDataManager {
      * 開いたファイルを保持するマップ.
      */
     private Map<String, FileData> mFiles = new HashMap<String, FileData>();
-    
+
     /**
      * コンストラクタ.
      * @param mgr ファイルマネージャー
      */
     public FileDataManager(final FileManager mgr) {
         mFileManager = mgr;
-        startTimer();
     }
-    
+
+    /**
+     * パスを変換する.
+     * @param file パス変換するファイル
+     * @return ファイル名
+     */
+    public String getPath(final File file) {
+        File mBaseDir = mFileManager.getBasePath();
+        String path = file.getAbsolutePath();
+        String base = mBaseDir.getAbsolutePath();
+        if (path.startsWith(base)) {
+            return path.substring(base.length() + 1);
+        } 
+        return null;
+    }
+
     /**
      * ファイルを開く.
      * @param path 開くファイルのパス
@@ -214,57 +257,89 @@ public class FileDataManager {
         file.setFlag(flag);
         return file;
     }
-    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
-    private ScheduledFuture mFuture;
+
+    /**
+     * ファイル監視タイマーを開始する.
+     */
     public void startTimer() {
+        if (mFuture != null) {
+            return;
+        }
+
+        mLastModifiedDate = System.currentTimeMillis();
         mFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                List<File> files = new ArrayList<File>();
-                File mBaseDir = mFileManager.getBasePath();
-                test(mBaseDir, files);
+                List<File> files = checkUpdateFile();
                 if (files.size() > 0) {
                     if (mModifiedListener != null) {
                         mModifiedListener.onWatchFile(files);
                     }
                 }
             }
-        }, 5, 3, TimeUnit.SECONDS);
+        }, PERIOD, PERIOD, TimeUnit.SECONDS);
     }
-    
+
+    /**
+     * ファイル監視タイマーを停止する.
+     */
     public void stopTimer() {
         if (mFuture != null) {
             mFuture.cancel(true);
             mFuture = null;
         }
     }
-    
-    private Map<String, Long> mLastModified = new HashMap<String, Long>();
-    
-    private void test(File file, List<File> modifyFiles) {
+
+    /**
+     * ファイルの更新チェックを行う.
+     * @return 更新されたファイル一覧
+     */
+    public synchronized List<File> checkUpdateFile() {
+        List<File> files = new ArrayList<File>();
+        File mBaseDir = mFileManager.getBasePath();
+        checkUpdateFile(mBaseDir, files);
+        mLastModifiedDate = System.currentTimeMillis();
+        return files;
+    }
+
+    /**
+     * ファイルが更新されている場合には、リストに追加する.
+     * <p>
+     * ファイルがディレクトリの場合には、中のファイルも再起的に行う。
+     * @param file 更新確認を行うファイル
+     * @param modifyFiles 更新されたファイルを追加するリスト
+     */
+    private void checkUpdateFile(final File file, final List<File> modifyFiles) {
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             for (File f : files) {
-                test(f, modifyFiles);
+                checkUpdateFile(f, modifyFiles);
             }
         }
+
+        // ファイルの更新時間が前回チェック時よりも新しい場合
         long date = file.lastModified();
-        Long last = mLastModified.get(file.getAbsolutePath());
-        if (last == null) {
-            mLastModified.put(file.getAbsolutePath(), date);
-        } else if (last < date) {
+        if (mLastModifiedDate < date) {
             modifyFiles.add(file);
-            mLastModified.put(file.getAbsolutePath(), date);
         }
     }
-    
-    private FileModifiedListener mModifiedListener;
-    
-    public void setFileModifiedListener(FileModifiedListener listener) {
+
+    /**
+     * ファイル更新通知リスナーを設定する.
+     * @param listener リスナー
+     */
+    public void setFileModifiedListener(final FileModifiedListener listener) {
         mModifiedListener = listener;
     }
-    
+
+    /**
+     * ファイルの更新通知用リスナー.
+     */
     public interface FileModifiedListener {
+        /**
+         * ファイルの更新が発見された場合に通知される.
+         * @param files 更新されたファイル
+         */
         void onWatchFile(List<File> files);
     }
 }

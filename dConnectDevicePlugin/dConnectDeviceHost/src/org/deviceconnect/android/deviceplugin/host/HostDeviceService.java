@@ -81,12 +81,6 @@ public class HostDeviceService extends DConnectMessageService {
     /** ファイル管理クラス. */
     private FileManager mFileMgr;
 
-    /** 独自エラーコード. */
-    private static final int UNIQUE_ERROR_CODE = 101;
-
-    /** バッファーサイズ. */
-    private static final int BUFFER_SIZE = 1024;
-
     /** ServiceID. */
     private String mServiceId;
 
@@ -105,6 +99,7 @@ public class HostDeviceService extends DConnectMessageService {
     /** Intent filter for battery connect event. */
     private IntentFilter mIfBatteryConnect;
 
+    /** ファイルデータ管理クラス. */
     private FileDataManager mFileDataManager;
 
     @Override
@@ -118,6 +113,7 @@ public class HostDeviceService extends DConnectMessageService {
         // ファイル管理クラスの作成
         mFileMgr = new FileManager(this);
         mFileDataManager = new FileDataManager(mFileMgr);
+        mFileDataManager.startTimer();
 
         // add supported profiles
         addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
@@ -129,7 +125,7 @@ public class HostDeviceService extends DConnectMessageService {
         addProfile(new HostSettingsProfile());
         addProfile(new HostMediaPlayerProfile());
         addProfile(new HostFileProfile(mFileMgr));
-        addProfile(new HostFileDescriptorProfile());
+        addProfile(new HostFileDescriptorProfile(mFileDataManager));
         addProfile(new HostVibrationProfile());
         addProfile(new HostProximityProfile());
         addProfile(new HostCanvasProfile());
@@ -222,6 +218,12 @@ public class HostDeviceService extends DConnectMessageService {
             return START_STICKY;
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mFileDataManager.stopTimer();
     }
 
     /**

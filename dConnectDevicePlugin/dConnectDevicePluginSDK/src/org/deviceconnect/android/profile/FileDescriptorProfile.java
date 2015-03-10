@@ -72,6 +72,8 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
                 Long length = getLength(request);
                 Long position = getPosition(request);
                 result = onGetRead(request, response, serviceId, path, length, position);
+            } else if (attribute.equals(ATTRIBUTE_ON_WATCH_FILE)) {
+                result = onGetOnWatchFile(request, response, serviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -217,7 +219,7 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
      * @param sessionKey セッションキー
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onGetWatchFile(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onGetOnWatchFile(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }

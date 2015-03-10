@@ -261,9 +261,8 @@ public abstract class DConnectMessageService extends Service
             DConnectProfile profile = getProfile(profileName);
             if (profile != null && profile instanceof AuthorizationProfile) {
                 ((AuthorizationProfile) profile).onInvalidOrigin(request, response);
-            } else {
-                sendResponse(request, response);
             }
+            sendResponse(request, response);
             return;
         }
 

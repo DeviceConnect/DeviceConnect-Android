@@ -98,6 +98,8 @@ public class GetAccessTokenRequest extends DConnectRequest {
         if (token[0] != null && token[0].getAccessToken() != null) {
             mResponse.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             mResponse.putExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN, token[0].getAccessToken());
+            mResponse.putExtra(DConnectMessage.EXTRA_ERROR_CODE, 0);
+            mResponse.putExtra(DConnectMessage.EXTRA_ERROR_MESSAGE, "");
             AccessTokenScope[] atScopes = token[0].getScopes();
             if (atScopes != null) {
                 List<Bundle> s = new ArrayList<Bundle>();

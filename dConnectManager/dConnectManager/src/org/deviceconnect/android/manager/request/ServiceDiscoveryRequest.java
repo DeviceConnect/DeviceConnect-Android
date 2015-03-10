@@ -11,10 +11,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -68,7 +70,7 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
         if (result == IntentDConnectMessage.RESULT_OK) {
             // 送られてきたサービスIDにデバイスプラグインのIDを付加して保存
             Parcelable[] services = response.getParcelableArrayExtra(
-                    ServiceDiscoveryProfile.PARAM_SERVICES);
+                    ServiceDiscoveryProfileConstants.PARAM_SERVICES);
             if (services != null) {
                 DevicePlugin plugin = mRequestCodeArray.get(requestCode);
                 for (Parcelable p : services) {
@@ -77,6 +79,16 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
                     b.putString(ServiceDiscoveryProfile.PARAM_ID, 
                             mPluginMgr.appendServiceId(plugin, id));
                     mServices.add(b);
+
+                    if (BuildConfig.DEBUG) {
+                        Object scopes = b.getStringArray(ServiceDiscoveryProfileConstants.PARAM_SCOPES);
+                        if (scopes != null && scopes instanceof String[]) {
+                            mLogger.info("Scopes of device: serviceId=" + id + ", scopes="
+                                    + toString((String[]) scopes));
+                        } else {
+                            mLogger.warning("Scopes param is illegal type: " + scopes);
+                        }
+                    }
                 }
                 mRequestCodeArray.remove(requestCode);
             }
@@ -87,6 +99,24 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
         synchronized (mLockObj) {
             mLockObj.notifyAll();
         }
+    }
+
+    /**
+     * 文字列配列を直列化する.
+     * @param array 文字列配列
+     * @return 文字列
+     */
+    private static String toString(final String[] array) {
+        StringBuilder sb = new StringBuilder();
+        if (array != null) {
+            for (int i = 0; i < array.length; i++) {
+                sb.append(array[i]);
+                if (i < array.length - 1) {
+                    sb.append(", ");
+                }
+            }
+        }
+        return sb.toString();
     }
 
     @Override

@@ -7,7 +7,7 @@
 package org.deviceconnect.android.localoauth;
 
 /**
- * アクセストークン有効期限データ.
+ * アクセストークンのスコープ.
  * @author NTT DOCOMO, INC.
  */
 public class AccessTokenScope {

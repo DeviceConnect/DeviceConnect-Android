@@ -180,7 +180,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new SpheroServceDiscoveryProfile();
+        return new SpheroServceDiscoveryProfile(this);
     }
 
     @Override

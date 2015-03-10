@@ -88,18 +88,17 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     }
 
     @Override
-    protected String[] createClient() {
+    protected String createClient() {
         URIBuilder builder  = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_GRANT);
         try {
             HttpGet request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request, false);
             assertResultOK(root);
             String clientId = root.getString(AuthorizationProfileConstants.PARAM_CLIENT_ID);
-            String clientSecret = root.getString(AuthorizationProfileConstants.PARAM_CLIENT_SECRET);
-            if (clientId != null && clientSecret != null) {
-                return new String[] {clientId, clientSecret};
+            if (clientId != null) {
+                return clientId;
             }
         } catch (JSONException e) {
             fail();
@@ -108,16 +107,13 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     }
 
     @Override
-    protected String requestAccessToken(final String clientId, final String clientSecret, final String[] scopes) {
+    protected String requestAccessToken(final String clientId, final String[] scopes) {
         URIBuilder builder  = TestURIBuilder.createURIBuilder();
         builder.setProfile(AuthorizationProfileConstants.PROFILE_NAME);
-        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_REQUEST_ACCESS_TOKEN);
+        builder.setAttribute(AuthorizationProfileConstants.ATTRIBUTE_ACCESS_TOKEN);
         builder.addParameter(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_GRANT_TYPE, "authorization_code");
         builder.addParameter(AuthorizationProfileConstants.PARAM_SCOPE, createScopeParameter(scopes));
         builder.addParameter(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, "dConnectManagerTest");
-        builder.addParameter(AuthorizationProfileConstants.PARAM_SIGNATURE,
-                createSignature(clientId, scopes, clientSecret));
         try {
             HttpGet request = new HttpGet(builder.toString());
             JSONObject root = sendRequestInternal(request, false);
@@ -314,9 +310,9 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
                 }
                 int errorCode = response.getInt(DConnectMessage.EXTRA_ERROR_CODE);
                 if (errorCode == DConnectMessage.ErrorCode.EXPIRED_ACCESS_TOKEN.getCode()) {
-                    mAccessToken = requestAccessToken(mClientId, mClientSecret, PROFILES);
+                    mAccessToken = requestAccessToken(mClientId, PROFILES);
                     assertNotNull(mAccessToken);
-                    storeOAuthInfo(mClientId, mClientSecret, mAccessToken);
+                    storeOAuthInfo(mClientId, mAccessToken);
                     
                     URI uri = request.getURI();
                     URIBuilder builder = new URIBuilder(uri);

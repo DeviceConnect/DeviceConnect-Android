@@ -13,7 +13,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.deviceconnect.android.uiapp.DConnectActivity;
 import org.deviceconnect.android.uiapp.DConnectApplication;
 import org.deviceconnect.android.uiapp.R;
 import org.deviceconnect.android.uiapp.device.SmartDevice;

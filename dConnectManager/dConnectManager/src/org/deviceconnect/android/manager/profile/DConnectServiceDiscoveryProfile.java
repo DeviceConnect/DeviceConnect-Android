@@ -13,6 +13,7 @@ import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.request.ServiceDiscoveryRequest;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -34,9 +35,12 @@ public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     /**
      * コンストラクタ.
+     * @param provider プロファイルプロバイダ
      * @param mgr デバイスプラグイン管理クラス
      */
-    public DConnectServiceDiscoveryProfile(final DevicePluginManager mgr) {
+    public DConnectServiceDiscoveryProfile(final DConnectProfileProvider provider,
+            final DevicePluginManager mgr) {
+        super(provider);
         mDevicePluginManager = mgr;
     }
 

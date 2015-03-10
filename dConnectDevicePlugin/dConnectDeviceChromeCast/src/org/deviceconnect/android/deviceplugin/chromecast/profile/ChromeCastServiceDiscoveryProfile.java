@@ -15,6 +15,7 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscover
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -31,6 +32,15 @@ import android.os.Bundle;
  */
 public class ChromeCastServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
+    /**
+     * コンストラクタ.
+     * 
+     * @param provider プロファイルプロバイダ
+     */
+    public ChromeCastServiceDiscoveryProfile(final DConnectProfileProvider provider) {
+        super(provider);
+    }
+
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
         NetworkType deviceType = NetworkType.WIFI;
@@ -44,6 +54,7 @@ public class ChromeCastServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             setName(service, deviceName + " (" + discovery.getDeviceNames().get(i) + ")");
             setType(service, deviceType);
             setOnline(service, true);
+            setScopes(service, getProfileProvider());
             services.add(service);
         }
         setServices(response, services);

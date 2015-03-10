@@ -85,8 +85,7 @@ public class SystemProfileFragment extends SmartDevicePreferenceFragment {
 
             try {
                 mLogger.fine("request: " + uriBuilder.build().toString());
-                HttpResponse response = getDConnectClient().execute(
-                        getDefaultHost(), new HttpGet(uriBuilder.build()));
+                HttpResponse response = sendHttpRequest(new HttpGet(uriBuilder.build()));
                 mLogger.fine("response: " + response.toString());
 
                 message = (new HttpMessageFactory()).newDConnectMessage(response);

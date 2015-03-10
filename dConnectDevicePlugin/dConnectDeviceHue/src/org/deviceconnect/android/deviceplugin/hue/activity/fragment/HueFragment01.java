@@ -238,6 +238,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
             View rowView = inflater.inflate(R.layout.hue_list, parent, false);
 
             TextView mTextView = (TextView) rowView.findViewById(R.id.row_textview1);
+
             String listTitle = mAccessPoint.get(position).getMacAddress() + "("
                     + mAccessPoint.get(position).getIpAddress() + ")";
             mTextView.setText(listTitle);

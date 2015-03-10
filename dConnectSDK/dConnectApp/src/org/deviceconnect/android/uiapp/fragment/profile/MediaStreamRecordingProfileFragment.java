@@ -147,8 +147,7 @@ public class MediaStreamRecordingProfileFragment extends SmartDeviceFragment {
 
             DConnectMessage message;
             try {
-                HttpResponse response = getDConnectClient().execute(
-                        getDefaultHost(), new HttpPost(uriBuilder.build()));
+                HttpResponse response = sendHttpRequest(new HttpPost(uriBuilder.build()));
                 message = (new HttpMessageFactory()).newDConnectMessage(response);
 
                 if (message.getInt(DConnectMessage.EXTRA_RESULT) == DConnectMessage.RESULT_OK) {

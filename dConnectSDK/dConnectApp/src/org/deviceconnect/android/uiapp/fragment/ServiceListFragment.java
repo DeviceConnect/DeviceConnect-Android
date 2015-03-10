@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.deviceconnect.android.uiapp.DConnectActivity;
 import org.deviceconnect.android.uiapp.R;
@@ -247,6 +249,21 @@ public class ServiceListFragment extends ListFragment {
     }
 
     /**
+     * HTTPリクエストを同期的に送信する.
+     * <p>
+     * 送信する前に送信元のAndroidアプリのオリジンをHTTPリクエストヘッダに追加する.
+     * </p>
+     * @param request HTTPリクエスト
+     * @return 受信したHTTPレスポンス
+     * @throws ClientProtocolException プロトコルでエラーが発生した場合
+     * @throws IOException HTTP通信に失敗した場合
+     */
+    public HttpResponse sendHttpRequest(final HttpRequest request) throws ClientProtocolException, IOException {
+        request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getActivity().getPackageName());
+        return mDConnectClient.execute(getDefaultHost(), request);
+    }
+
+    /**
      * サービス選択リスナー.
      */
     public interface ServiceListSelectedListener {
@@ -293,8 +310,7 @@ public class ServiceListFragment extends ListFragment {
                 uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                 mLogger.fine("request: " + uriBuilder.build().toString());
-                HttpResponse response = mDConnectClient.execute(
-                        getDefaultHost(), new HttpGet(uriBuilder.build()));
+                HttpResponse response = sendHttpRequest(new HttpGet(uriBuilder.build()));
                 mLogger.fine("response: " + message.toString());
 
                 message = (new HttpMessageFactory()).newDConnectMessage(response);

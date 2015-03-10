@@ -6,11 +6,6 @@
  */
 package org.deviceconnect.android.profile.intent.test;
 
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.AvailabilityProfileConstants;
-
-import android.content.Intent;
 
 /**
  * Availabilityプロファイルの正常系テスト.
@@ -50,10 +45,7 @@ public class NormalAvailabilityProfileTestCase extends IntentDConnectTestCase {
      * </pre>
      */
     public void testGetAvailability() {
-        Intent request = new Intent(IntentDConnectMessage.ACTION_GET);
-        request.putExtra(DConnectMessage.EXTRA_PROFILE, AvailabilityProfileConstants.PROFILE_NAME);
-        Intent response = sendRequest(request);
-        assertResultOK(response);
+        assertTrue(isManagerAvailable());
     }
 
 }

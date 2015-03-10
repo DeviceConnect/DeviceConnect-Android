@@ -73,8 +73,7 @@ public class VibrationProfileFragment extends SmartDeviceFragment {
                     }
                     builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
-                    HttpResponse response = getDConnectClient().execute(
-                            getDefaultHost(), new HttpPut(builder.build()));
+                    HttpResponse response = sendHttpRequest(new HttpPut(builder.build()));
                     return (new HttpMessageFactory()).newDConnectMessage(response);
                 } catch (URISyntaxException e) {
                     e.printStackTrace();

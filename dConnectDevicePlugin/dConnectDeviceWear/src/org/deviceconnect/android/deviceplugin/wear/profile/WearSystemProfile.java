@@ -14,7 +14,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 /**
- * Systemプロファイル.
+ * System Profile.
  * 
  * @author NTT DOCOMO, INC.
  */

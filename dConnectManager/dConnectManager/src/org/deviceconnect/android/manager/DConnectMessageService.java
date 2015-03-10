@@ -63,6 +63,10 @@ public abstract class DConnectMessageService extends Service
     private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
     /** ローカルのドメイン名. */
     private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
+    /** fileスキームのオリジン. */
+    private static final String ORIGIN_FILE = "file://";
+    /** 常に許可するオリジン一覧. */
+    private static final String[] IGNORED_ORIGINS = {ORIGIN_FILE};
 
     /** サービスIDやセッションキーを分割するセパレータ. */
     public static final String SEPARATOR = ".";
@@ -650,6 +654,11 @@ public abstract class DConnectMessageService extends Service
             // NOTE: クライアント作成のためにオリジンが必要のため、
             // ホワイトリストが無効の場合でもオリジン指定のない場合はリクエストを許可しない.
             return false;
+        }
+        for (int i = 0; i < IGNORED_ORIGINS.length; i++) {
+            if (originExp.equals(IGNORED_ORIGINS[i])) {
+                return true;
+            }
         }
         if (!mSettings.isBlockingOrigin()) {
             return true;

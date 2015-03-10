@@ -233,18 +233,6 @@ public class DConnectActivity extends FragmentPagerActivity {
     }
 
     /**
-     * クライアントシークレットを取得する.
-     * @return クライアントシークレット
-     */
-    public String getClientSecret() {
-        SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        String clientSecret = prefs.getString(
-                getString(R.string.key_settings_dconn_client_secret), null);
-        return clientSecret;
-    }
-
-    /**
      * SSLフラグを取得する.
      * @return SSLを使用する場合はtrue、それ以外はfalse
      */
@@ -292,9 +280,9 @@ public class DConnectActivity extends FragmentPagerActivity {
         int port = getPort();
         String appName = getResources().getString(R.string.app_name);
         String clientId = getClientId();
-        String clientSecret = getClientSecret();
-        if (!isStringEmpty(clientId) && !isStringEmpty(clientSecret)) {
-            AuthProcesser.asyncRefreshToken(host, port, isSSL, clientId, clientSecret, appName, mScopes, mAuthHandler);
+        if (!isStringEmpty(clientId)) {
+            AuthProcesser.asyncRefreshToken(host, port, isSSL, clientId,
+                    getPackageName(), appName, mScopes, mAuthHandler);
         } else {
             AuthProcesser.asyncAuthorize(host, port, isSSL, getPackageName(), appName, mScopes, mAuthHandler);
         }
@@ -355,12 +343,11 @@ public class DConnectActivity extends FragmentPagerActivity {
      */
     private AuthorizationHandler mAuthHandler =  new AuthorizationHandler() {
         @Override
-        public void onAuthorized(final String clientId, final String clientSecret, final String accessToken) {
+        public void onAuthorized(final String clientId, final String accessToken) {
             SharedPreferences prefs = PreferenceManager
                     .getDefaultSharedPreferences(getApplicationContext());
             SharedPreferences.Editor edit = prefs.edit();
             edit.putString(getString(R.string.key_settings_dconn_client_id), clientId);
-            edit.putString(getString(R.string.key_settings_dconn_client_secret), clientSecret);
             edit.putString(getString(R.string.key_settings_dconn_access_token), accessToken);
             edit.commit();
             mError = null;
@@ -379,7 +366,6 @@ public class DConnectActivity extends FragmentPagerActivity {
                     .getDefaultSharedPreferences(getApplicationContext());
             SharedPreferences.Editor edit = prefs.edit();
             edit.remove(getString(R.string.key_settings_dconn_client_id));
-            edit.remove(getString(R.string.key_settings_dconn_client_secret));
             edit.remove(getString(R.string.key_settings_dconn_access_token));
             edit.commit();
 

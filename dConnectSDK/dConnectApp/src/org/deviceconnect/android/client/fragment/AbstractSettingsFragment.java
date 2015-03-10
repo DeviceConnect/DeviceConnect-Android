@@ -97,10 +97,6 @@ public abstract class AbstractSettingsFragment extends PreferenceFragment
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_client_id));
         editClientIdPreferences.setSummary(activity.getClientId());
 
-        EditTextPreference editClientSecretPreferences = (EditTextPreference)
-                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_client_secret));
-        editClientSecretPreferences.setSummary(activity.getClientSecret());
-
         EditTextPreference editAccessTokenPreferences = (EditTextPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_access_token));
         editAccessTokenPreferences.setSummary(activity.getAccessToken());

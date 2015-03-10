@@ -63,6 +63,20 @@ public class Whitelist {
     }
 
     /**
+     * Returns whether the specified origin is included in this whitelist.
+     * @param originExp a string expression of origin
+     * @return <code>true</code> if origin is included, otherwise <code>false</code>
+     */
+    public synchronized boolean hasOrigin(final String originExp) {
+        for (OriginInfo info : mCache.getOrigins()) {
+            if (info.matches(OriginParser.parse(originExp))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Adds an origin to this whitelist.
      * 
      * @param origin an origin to be added.

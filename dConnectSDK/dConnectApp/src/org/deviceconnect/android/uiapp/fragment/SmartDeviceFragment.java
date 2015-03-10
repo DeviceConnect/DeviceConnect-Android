@@ -14,6 +14,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.deviceconnect.android.uiapp.DConnectActivity;
+import org.deviceconnect.android.uiapp.DConnectApplication;
 import org.deviceconnect.android.uiapp.R;
 import org.deviceconnect.android.uiapp.device.SmartDevice;
 import org.deviceconnect.message.DConnectMessage;
@@ -119,7 +120,7 @@ public abstract class SmartDeviceFragment extends Fragment {
      * @return アクセストークン
      */
     public String getAccessToken() {
-        return ((DConnectActivity) getActivity()).getAccessToken();
+        return ((DConnectApplication) getActivity().getApplication()).getAccessToken();
     }
 
     /**
@@ -127,7 +128,7 @@ public abstract class SmartDeviceFragment extends Fragment {
      * @return クライアントシークレット
      */
     public String getClientId() {
-        return ((DConnectActivity) getActivity()).getClientId();
+        return ((DConnectApplication) getActivity().getApplication()).getClientId();
     }
 
     /**
@@ -135,7 +136,7 @@ public abstract class SmartDeviceFragment extends Fragment {
      * @return ホスト名
      */
     public String getHost() {
-        return ((DConnectActivity) getActivity()).getHost();
+        return ((DConnectApplication) getActivity().getApplication()).getHost();
     }
 
     /**
@@ -143,7 +144,7 @@ public abstract class SmartDeviceFragment extends Fragment {
      * @return ポート番号
      */
     public int getPort() {
-        return ((DConnectActivity) getActivity()).getPort();
+        return ((DConnectApplication) getActivity().getApplication()).getPort();
     }
 
     /**
@@ -151,7 +152,7 @@ public abstract class SmartDeviceFragment extends Fragment {
      * @return SSLフラグ
      */
     public boolean isSSL() {
-        return ((DConnectActivity) getActivity()).isSSL();
+        return ((DConnectApplication) getActivity().getApplication()).isSSL();
     }
 
     /**

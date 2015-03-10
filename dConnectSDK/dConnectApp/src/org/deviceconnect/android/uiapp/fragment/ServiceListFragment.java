@@ -17,6 +17,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.deviceconnect.android.uiapp.DConnectActivity;
+import org.deviceconnect.android.uiapp.DConnectApplication;
 import org.deviceconnect.android.uiapp.R;
 import org.deviceconnect.android.uiapp.device.SmartDevice;
 import org.deviceconnect.android.uiapp.device.SmartService;
@@ -245,7 +246,7 @@ public class ServiceListFragment extends ListFragment {
      * @return アクセストークン
      */
     public String getAccessToken() {
-        return ((DConnectActivity) getActivity()).getAccessToken();
+        return ((DConnectApplication) getActivity().getApplication()).getAccessToken();
     }
 
     /**

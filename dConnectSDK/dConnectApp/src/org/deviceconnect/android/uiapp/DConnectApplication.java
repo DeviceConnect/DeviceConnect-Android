@@ -13,6 +13,8 @@ import java.util.logging.SimpleFormatter;
 import org.deviceconnect.android.logger.AndroidHandler;
 
 import android.app.Application;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 /**
  * Bluetooth Device Application.
@@ -37,5 +39,69 @@ public class DConnectApplication extends Application {
         } else {
             mLogger.setLevel(Level.OFF);
         }
+    }
+
+    /**
+     * アクセストークンを取得する.
+     * アクセストークンがない場合にはnullを返却する。
+     * @return アクセストークン
+     */
+    public String getAccessToken() {
+        SharedPreferences prefs = PreferenceManager
+            .getDefaultSharedPreferences(getApplicationContext());
+        String accessToken = prefs.getString(
+            getString(R.string.key_settings_dconn_access_token), null);
+        return accessToken;
+    }
+
+    /**
+     * クライアントIDを取得する.
+     * @return クライアントID
+     */
+    public String getClientId() {
+        SharedPreferences prefs = PreferenceManager
+            .getDefaultSharedPreferences(getApplicationContext());
+        String clientId = prefs.getString(
+            getString(R.string.key_settings_dconn_client_id), null);
+        return clientId;
+    }
+
+    /**
+     * SSLフラグを取得する.
+     * @return SSLを使用する場合はtrue、それ以外はfalse
+     */
+    public boolean isSSL() {
+        final SharedPreferences prefs = PreferenceManager
+            .getDefaultSharedPreferences(getApplicationContext());
+        boolean isSSL = prefs.getBoolean(
+            getString(R.string.key_settings_dconn_ssl), false);
+        return isSSL;
+    }
+
+    /**
+     * ホスト名を取得する.
+     * @return ホスト名
+     */
+    public String getHost() {
+        final SharedPreferences prefs = PreferenceManager
+            .getDefaultSharedPreferences(getApplicationContext());
+        String host = prefs.getString(
+            getString(R.string.key_settings_dconn_host),
+            getString(R.string.default_host));
+        return host;
+    }
+
+    /**
+     * ホートを取得する.
+     * @return ポート番号
+     */
+    public int getPort() {
+        final SharedPreferences prefs = PreferenceManager
+            .getDefaultSharedPreferences(getApplicationContext());
+
+        int port = Integer.parseInt(prefs.getString(
+            getString(R.string.key_settings_dconn_port),
+            getString(R.string.default_port)));
+        return port;
     }
 }

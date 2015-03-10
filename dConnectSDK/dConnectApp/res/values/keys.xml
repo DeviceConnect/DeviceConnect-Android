@@ -10,7 +10,6 @@
     <string name="key_settings_dconn_port">settings_dconn_port</string>
 
     <string name="key_settings_dconn_client_id">settings_client_id</string>
-    <string name="key_settings_dconn_client_secret">settings_client_secret</string>
     <string name="key_settings_dconn_access_token">settings_access_token</string>
 
     <string name="key_connection_service_wifi">connection_service_wifi</string>

@@ -3,6 +3,15 @@
 
     <string name="app_name">Device Connect Manager</string>
     <string name="description"></string>
+
+    <!-- ================= DConnectLaunchActivity ================= -->
+    <string name="activity_launch_button_launch">Launch</string>
+    <string name="activity_launch_button_stop">Stop</string>
+    <string name="activity_launch_button_cancel">Cancel</string>
+    <string name="activity_launch_button_settings">Settings</string>
+    <string name="activity_launch_message_launch">Please click the below button\nto launch Device Connect Manager.</string>
+    <string name="activity_launch_message_stop">Please click the below button\nto stop Device Connect Manager.</string>
+
     <!-- ================= SettingsActivity ================= -->
 
     <string name="activity_settings_server_on_off">Device Connect Manager</string>

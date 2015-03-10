@@ -111,7 +111,7 @@ public class DeviceTestService extends DConnectMessageService {
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new TestServiceDiscoveryProfile();
+        return new TestServiceDiscoveryProfile(this);
     }
 
 }

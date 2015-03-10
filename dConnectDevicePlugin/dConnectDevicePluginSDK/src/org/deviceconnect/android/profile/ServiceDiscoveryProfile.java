@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -45,6 +45,29 @@ import android.os.Bundle;
  */
 public abstract class ServiceDiscoveryProfile extends DConnectProfile implements
         ServiceDiscoveryProfileConstants {
+
+    /**
+     * プロファイルプロバイダー.
+     */
+    private final DConnectProfileProvider mProvider;
+
+    /**
+     * 指定されたプロファイルプロバイダーをもつSystemプロファイルを生成する.
+     * 
+     * @param provider プロファイルプロバイダー
+     */
+    public ServiceDiscoveryProfile(final DConnectProfileProvider provider) {
+        this.mProvider = provider;
+    }
+
+    /**
+     * プロファイルプロバイダーを取得する.
+     * 
+     * @return プロファイルプロバイダー
+     */
+    protected DConnectProfileProvider getProfileProvider() {
+        return mProvider;
+    }
 
     @Override
     public final String getProfileName() {
@@ -162,7 +185,7 @@ public abstract class ServiceDiscoveryProfile extends DConnectProfile implements
         setUnsupportedError(response);
         return true;
     }
-    
+
     // ------------------------------------
     // レスポンスセッターメソッド群
     // ------------------------------------
@@ -272,4 +295,18 @@ public abstract class ServiceDiscoveryProfile extends DConnectProfile implements
     public static void setState(final Bundle service, final boolean state) {
         service.putBoolean(PARAM_STATE, state);
     }
+
+    /**
+     * デバイスプラグインのサポートするプロファイル一覧を設定する.
+     * 
+     * @param service デバイスパラメータ
+     */
+    public static void setScopes(final Bundle service, final DConnectProfileProvider provider) {
+        ArrayList<String> scopes = new ArrayList<String>();
+        for (DConnectProfile profile : provider.getProfileList()) {
+            scopes.add(profile.getProfileName());
+        }
+        service.putStringArray(PARAM_SCOPES, scopes.toArray(new String[scopes.size()]));
+    }
+
 }

@@ -31,7 +31,7 @@ public class DConnectLocalOAuth {
     /** DBのファイル名を定義. */
     private static final String DATABASE_NAME = "local_oauth_deviceplugin.db";
     /** DBのバージョンを定義. */
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     /** OAuthデータ用のテーブル名を定義. */
     private static final String OAUTH_DATA_TABLE_NAME = "oauth_data_tbl";
     /** アクセストークン用のテーブル名を定義. */
@@ -107,7 +107,6 @@ public class DConnectLocalOAuth {
         ContentValues values = new ContentValues();
         values.put(OAuthDataColumns.SERVICE_ID, serviceId);
         values.put(OAuthDataColumns.CLIENT_ID, clientId);
-        values.put(OAuthDataColumns.CLIENT_SECRET, clientSecret);
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             db.insertOrThrow(OAUTH_DATA_TABLE_NAME, null, values);
@@ -209,7 +208,6 @@ public class DConnectLocalOAuth {
                     client.mId = cs.getInt(cs.getColumnIndex(OAuthDataColumns._ID));
                     client.mServiceId = cs.getString(cs.getColumnIndex(OAuthDataColumns.SERVICE_ID));
                     client.mClientId = cs.getString(cs.getColumnIndex(OAuthDataColumns.CLIENT_ID));
-                    client.mClientSecret = cs.getString(cs.getColumnIndex(OAuthDataColumns.CLIENT_SECRET));
                     datas.add(client);
                 } while (cs.moveToNext());
             }
@@ -335,7 +333,6 @@ public class DConnectLocalOAuth {
         cd.mId = cs.getInt(cs.getColumnIndex(OAuthDataColumns._ID));
         cd.mServiceId = cs.getString(cs.getColumnIndex(OAuthDataColumns.SERVICE_ID));
         cd.mClientId = cs.getString(cs.getColumnIndex(OAuthDataColumns.CLIENT_ID));
-        cd.mClientSecret = cs.getString(cs.getColumnIndex(OAuthDataColumns.CLIENT_SECRET));
         return cd;
     }
     /**
@@ -454,8 +451,7 @@ public class DConnectLocalOAuth {
             sql.append("CREATE TABLE " + OAUTH_DATA_TABLE_NAME);
             sql.append("(_id INTEGER PRIMARY KEY, ");
             sql.append(OAuthDataColumns.SERVICE_ID + " TEXT NOT NULL,");
-            sql.append(OAuthDataColumns.CLIENT_ID + " TEXT NOT NULL,");
-            sql.append(OAuthDataColumns.CLIENT_SECRET + " TEXT NOT NULL");
+            sql.append(OAuthDataColumns.CLIENT_ID + " TEXT NOT NULL");
             sql.append(");");
             db.execSQL(sql.toString());
         }
@@ -490,11 +486,6 @@ public class DConnectLocalOAuth {
          * クライアントID.
          */
         public static final String CLIENT_ID = "client_id";
-        
-        /**
-         * クライアントシークレット.
-         */
-        public static final String CLIENT_SECRET = "client_secret";
         
         /**
          * サービスID.

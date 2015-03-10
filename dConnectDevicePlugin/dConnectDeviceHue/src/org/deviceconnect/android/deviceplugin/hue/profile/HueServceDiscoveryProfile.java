@@ -10,6 +10,7 @@ package org.deviceconnect.android.deviceplugin.hue.profile;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
@@ -26,6 +27,15 @@ import com.philips.lighting.hue.sdk.PHHueSDK;
  */
 public class HueServceDiscoveryProfile extends ServiceDiscoveryProfile {
 
+    /**
+     * コンストラクタ.
+     * 
+     * @param provider プロファイルプロバイダ
+     */
+    public HueServceDiscoveryProfile(final DConnectProfileProvider provider) {
+        super(provider);
+    }
+
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
         PHHueSDK hueSDK = PHHueSDK.getInstance();
@@ -40,6 +50,7 @@ public class HueServceDiscoveryProfile extends ServiceDiscoveryProfile {
             service.putString(ServiceDiscoveryProfileConstants.PARAM_NAME, "hue " + accessPoint.getMacAddress());
             service.putString(ServiceDiscoveryProfileConstants.PARAM_TYPE, "wifi");
             service.putBoolean(ServiceDiscoveryProfileConstants.PARAM_ONLINE, true);
+            setScopes(service, getProfileProvider());
             services.add(service);
         }
         // レスポンスを設定

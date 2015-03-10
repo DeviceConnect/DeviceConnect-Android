@@ -70,4 +70,10 @@ public interface Token {
      */
     public Scope[] getScope();
 
+    /**
+     * The registration date (UNIX time). 
+     * 
+     * @return
+     */
+    public long getRegistrationDate();
 }

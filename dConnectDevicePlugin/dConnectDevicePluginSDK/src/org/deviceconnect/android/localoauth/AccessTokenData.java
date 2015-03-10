@@ -18,14 +18,18 @@ public class AccessTokenData {
     /** スコープ配列. */
     private AccessTokenScope[] mScopes;
 
+    /** タイムスタンプ. */
+    private long mTimestamp;
 
     /**
      * コンストラクタ.
      * @param accessToken アクセストークン
+     * @param timestamp タイムスタンプ
      * @param scopes スコープ毎の有効期限の配列
      */
-    public AccessTokenData(final String accessToken, final AccessTokenScope[] scopes) {
+    public AccessTokenData(final String accessToken, final long timestamp, final AccessTokenScope[] scopes) {
         mAccessToken = accessToken;
+        mTimestamp = timestamp;
         mScopes = scopes;
     }
 
@@ -44,5 +48,13 @@ public class AccessTokenData {
      */
     public AccessTokenScope[] getScopes() {
         return mScopes;
+    }
+    
+    /**
+     * 更新日時取得.
+     * @return 更新日時
+     */
+    public long getTimestamp() {
+        return mTimestamp;
     }
 }

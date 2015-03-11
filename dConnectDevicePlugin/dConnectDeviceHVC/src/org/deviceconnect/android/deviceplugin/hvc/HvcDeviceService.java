@@ -550,8 +550,9 @@ public class HvcDeviceService extends DConnectMessageService {
         for (int deviceIndex = (deviceCount - 1); deviceIndex >= 0; deviceIndex--) {
             
             // remove if non HVC device name.
-            Matcher m = p.matcher(devices.get(deviceIndex).getName());
-            if (!m.find()) {
+            if (devices.get(deviceIndex) == null
+            || devices.get(deviceIndex).getName() == null
+            || !p.matcher(devices.get(deviceIndex).getName()).find()) {
                 devices.remove(deviceIndex);
                 continue;
             }

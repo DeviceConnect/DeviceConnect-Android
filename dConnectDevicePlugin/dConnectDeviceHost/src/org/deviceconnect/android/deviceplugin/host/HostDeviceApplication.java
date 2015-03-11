@@ -25,8 +25,17 @@ public class HostDeviceApplication extends Application {
     /** KeyEvent profile onDown cache. */
     Bundle mOnDownCache = null;
 
+    /** KeyEvent profile onDown cache time. */
+    static long mOnDownCacheTime = 0;
+
     /** KeyEvent profile onUp cache. */
     Bundle mOnUpCache = null;
+
+    /** KeyEvent profile onUp cache time. */
+    static long mOnUpCacheTime = 0;
+
+    /** KeyEvent profile cache retention time (mSec). */
+    static final long CACHE_RETENTION_TIME = 10000;
 
     /**
      * Get KeyEvent cache data.
@@ -35,10 +44,19 @@ public class HostDeviceApplication extends Application {
      * @return KeyEvent cache data.
      */
     public Bundle getKeyEventCache(final String attr) {
+        long lCurrentTime = System.currentTimeMillis();
         if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
-            return mOnDownCache;
+            if (lCurrentTime - mOnDownCacheTime <= CACHE_RETENTION_TIME) {
+                return mOnDownCache;
+            } else {
+                return null;
+            }
         } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
-            return mOnUpCache;
+            if (lCurrentTime - mOnUpCacheTime <= CACHE_RETENTION_TIME) {
+                return mOnUpCache;
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -51,10 +69,13 @@ public class HostDeviceApplication extends Application {
      * @param keyeventData Touch data.
      */
     public void setKeyEventCache(final String attr, final Bundle keyeventData) {
+        long lCurrentTime = System.currentTimeMillis();
         if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
             mOnDownCache = keyeventData;
+            mOnDownCacheTime = lCurrentTime;
         } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
             mOnUpCache = keyeventData;
+            mOnUpCacheTime = lCurrentTime;
         }
     }
 

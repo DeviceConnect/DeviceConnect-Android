@@ -567,8 +567,6 @@ public final class LocalOAuth2Main {
             throw new IllegalArgumentException("ApplicationName is null.");
         } else if (params.getClientId() == null || params.getClientId().isEmpty()) {
             throw new IllegalArgumentException("ClientId is null.");
-        } else if (params.getGrantType() == null || params.getGrantType().isEmpty()) {
-            throw new IllegalArgumentException("GrantType is null.");
         } else if (params.getScopes() == null || params.getScopes().length <= 0) {
             throw new IllegalArgumentException("Scope is null.");
         }
@@ -728,8 +726,9 @@ public final class LocalOAuth2Main {
                     Token token = sqliteTokenManager.findToken(client, SampleUser.USERNAME);
                     if (token != null) {
                         String accessToken = token.getAccessToken();
+                        long date = token.getRegistrationDate();
                         AccessTokenScope[] accessTokenScopes = scopesToAccessTokenScopes(token.getScope());
-                        acccessTokenData = new AccessTokenData(accessToken, accessTokenScopes);
+                        acccessTokenData = new AccessTokenData(accessToken, date, accessTokenScopes);
                     }
                 }
             } catch (SQLiteException e) {
@@ -1543,7 +1542,8 @@ public final class LocalOAuth2Main {
                                 
                                 /* アクセストークンデータを返す */
                                 AccessTokenScope[] accessTokenScopes = scopesToAccessTokenScopes(token.getScope());
-                                AccessTokenData acccessTokenData = new AccessTokenData(accessToken, accessTokenScopes);
+                                AccessTokenData acccessTokenData = new AccessTokenData(accessToken,
+                                        token.getRegistrationDate(), accessTokenScopes);
                                 return acccessTokenData;
                             }
                         }

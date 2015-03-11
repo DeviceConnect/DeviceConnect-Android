@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="com.android.browser.permission.READ_HISTORY_BOOKMARKS" />
 
     <application
         android:allowBackup="true"
@@ -18,25 +19,37 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
 
-        <!-- dConnect Manager設定画面用Activity. -->
+        <!-- Device Connect Manager起動用Activity. -->
         <activity
-            android:name="org.deviceconnect.android.manager.setting.SettingActivity"
-            android:label="@string/app_name">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:name="org.deviceconnect.android.manager.DConnectLaunchActivity"
+            android:label="@string/app_name"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="start"
                     android:path="/"
                     android:scheme="dconnect" />
+            </intent-filter>
+        </activity>
+
+        <!-- ホワイトリスト管理用Activity. -->
+        <activity
+            android:name="org.deviceconnect.android.manager.policy.WhitelistActivity"
+            android:label="@string/app_name" >
+        </activity>
+
+        <!-- Device Connect Manager設定画面用Activity. -->
+        <activity
+            android:name="org.deviceconnect.android.manager.setting.SettingActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
@@ -47,7 +60,7 @@
             android:theme="@style/AppTheme.Translucent" >
         </activity>
 
-        <!-- dConnect Managerデバック用Activity. -->
+        <!-- Device Connect Managerデバック用Activity. -->
         <activity
             android:name="org.deviceconnect.android.manager.setting.ReqResDebugActivity"
             android:label="@string/app_name"
@@ -85,7 +98,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- dConnect Manager本体のサービス. -->
+        <!-- Device Connect Manager本体のサービス. -->
         <!-- Activityとは別プロセスで動作させるために、:dconnect_process上で動作させている。 -->
         <service
             android:name="org.deviceconnect.android.manager.DConnectService"
@@ -93,19 +106,28 @@
             android:process=":dconnect_process" >
         </service>
 
-        <!-- dConnectのファイルを管理するProvider. -->
+        <!-- Device Connectのファイルを管理するProvider. -->
         <provider
             android:name="org.deviceconnect.android.provider.FileProvider"
             android:authorities="org.deviceconnect.android.manager.provider"
-            android:exported="true" />
+            android:exported="true" >
+            <meta-data
+                android:name="filelocation"
+                android:resource="@xml/filelocation" />
+        </provider>
 
         <!-- LocalOAuth -->
         <!-- Local OAuth 認可ダイアログ用Activity. -->
-        <activity android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity">
+        <activity
+            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
+            android:excludeFromRecents="true"
+            android:exported="false" >
         </activity>
 
         <!-- Local OAuth アクセストークン管理用Activity. -->
-        <activity android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity" >
+        <activity
+            android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity"
+            android:exported="false" >
         </activity>
 
         <!-- Local OAuth 認可処理用サービス. -->
@@ -116,7 +138,7 @@
         </service>
 
         <!-- Device Connect監視サービス. -->
-        <!-- dConnectManagerの生存確認を行うため、dConnectManagerとは別プロセスで動作する。 -->
+        <!-- Device ConnectManagerの生存確認を行うため、Device Connect Managerとは別プロセスで動作する。 -->
         <service
             android:name="org.deviceconnect.android.observer.DConnectObservationService"
             android:exported="false"

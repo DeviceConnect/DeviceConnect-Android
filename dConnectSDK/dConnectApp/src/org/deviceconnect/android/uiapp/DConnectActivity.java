@@ -11,12 +11,15 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.client.activity.FragmentPagerActivity;
+import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.uiapp.activity.PluginListActivity;
 import org.deviceconnect.android.uiapp.device.SmartDevice;
 import org.deviceconnect.android.uiapp.fragment.ServiceListFragment;
@@ -35,10 +38,11 @@ import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.profile.PhoneProfileConstants;
 import org.deviceconnect.profile.ProximityProfileConstants;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
@@ -99,6 +103,7 @@ public class DConnectActivity extends FragmentPagerActivity {
         MediaPlayerProfileConstants.PROFILE_NAME,
         MediaStreamRecordingProfileConstants.PROFILE_NAME,
         ServiceDiscoveryProfileConstants.PROFILE_NAME,
+        ServiceInformationProfileConstants.PROFILE_NAME,
         NotificationProfileConstants.PROFILE_NAME,
         PhoneProfileConstants.PROFILE_NAME,
         ProximityProfileConstants.PROFILE_NAME,
@@ -122,10 +127,21 @@ public class DConnectActivity extends FragmentPagerActivity {
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler("deviceconnect.uiapp");
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            mLogger.addHandler(handler);
+            mLogger.setLevel(Level.ALL);
+        } else {
+            mLogger.setLevel(Level.OFF);
+        }
+
         mLogger.entering(getClass().getName(), "onCreate", savedInstanceState);
         super.onCreate(savedInstanceState);
 
         mDConnectClient = new HttpDConnectClient();
+        HttpEventManager.INSTANCE.setOrigin(getPackageName());
 
         (new ServiceDiscoveryTask()).execute();
 
@@ -196,75 +212,40 @@ public class DConnectActivity extends FragmentPagerActivity {
      * アクセストークンがない場合にはnullを返却する。
      * @return アクセストークン
      */
-    public String getAccessToken() {
-        SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        String accessToken = prefs.getString(
-                getString(R.string.key_settings_dconn_access_token), null);
-        return accessToken;
+    private String getAccessToken() {
+        return ((DConnectApplication) getApplication()).getAccessToken();
     }
 
     /**
      * クライアントIDを取得する.
      * @return クライアントID
      */
-    public String getClientId() {
-        SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        String clientId = prefs.getString(
-                getString(R.string.key_settings_dconn_client_id), null);
-        return clientId;
-    }
-
-    /**
-     * クライアントシークレットを取得する.
-     * @return クライアントシークレット
-     */
-    public String getClientSecret() {
-        SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        String clientSecret = prefs.getString(
-                getString(R.string.key_settings_dconn_client_secret), null);
-        return clientSecret;
+    private String getClientId() {
+        return ((DConnectApplication) getApplication()).getClientId();
     }
 
     /**
      * SSLフラグを取得する.
      * @return SSLを使用する場合はtrue、それ以外はfalse
      */
-    public boolean isSSL() {
-        final SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        boolean isSSL = prefs.getBoolean(
-                getString(R.string.key_settings_dconn_ssl), false);
-        return isSSL;
+    private boolean isSSL() {
+        return ((DConnectApplication) getApplication()).isSSL();
     }
 
     /**
      * ホスト名を取得する.
      * @return ホスト名
      */
-    public String getHost() {
-        final SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        String host = prefs.getString(
-                getString(R.string.key_settings_dconn_host),
-                getString(R.string.default_host));
-        return host;
+    private String getHost() {
+        return ((DConnectApplication) getApplication()).getHost();
     }
 
     /**
      * ホートを取得する.
      * @return ポート番号
      */
-    public int getPort() {
-        final SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-
-        int port = Integer.parseInt(prefs.getString(
-                getString(R.string.key_settings_dconn_port),
-                getString(R.string.default_port)));
-        return port;
+    private int getPort() {
+        return ((DConnectApplication) getApplication()).getPort();
     }
 
     /**
@@ -276,9 +257,9 @@ public class DConnectActivity extends FragmentPagerActivity {
         int port = getPort();
         String appName = getResources().getString(R.string.app_name);
         String clientId = getClientId();
-        String clientSecret = getClientSecret();
-        if (!isStringEmpty(clientId) && !isStringEmpty(clientSecret)) {
-            AuthProcesser.asyncRefreshToken(host, port, isSSL, clientId, clientSecret, appName, mScopes, mAuthHandler);
+        if (!isStringEmpty(clientId)) {
+            AuthProcesser.asyncRefreshToken(host, port, isSSL, clientId,
+                    getPackageName(), appName, mScopes, mAuthHandler);
         } else {
             AuthProcesser.asyncAuthorize(host, port, isSSL, getPackageName(), appName, mScopes, mAuthHandler);
         }
@@ -315,8 +296,13 @@ public class DConnectActivity extends FragmentPagerActivity {
         boolean isSSL = isSSL();
         String host = getHost();
         int port = getPort();
-        
-        boolean result = HttpEventManager.INSTANCE.connect(host, port, isSSL, getClientId(), new CloseHandler() {
+
+        String sessionKey = getClientId();
+        if (sessionKey == null) {
+            Toast.makeText(DConnectActivity.this, "Client is not created.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        boolean result = HttpEventManager.INSTANCE.connect(host, port, isSSL, sessionKey, new CloseHandler() {
             @Override
             public void onClosed() {
                 runOnUiThread(new Runnable() {
@@ -339,12 +325,11 @@ public class DConnectActivity extends FragmentPagerActivity {
      */
     private AuthorizationHandler mAuthHandler =  new AuthorizationHandler() {
         @Override
-        public void onAuthorized(final String clientId, final String clientSecret, final String accessToken) {
+        public void onAuthorized(final String clientId, final String accessToken) {
             SharedPreferences prefs = PreferenceManager
                     .getDefaultSharedPreferences(getApplicationContext());
             SharedPreferences.Editor edit = prefs.edit();
             edit.putString(getString(R.string.key_settings_dconn_client_id), clientId);
-            edit.putString(getString(R.string.key_settings_dconn_client_secret), clientSecret);
             edit.putString(getString(R.string.key_settings_dconn_access_token), accessToken);
             edit.commit();
             mError = null;
@@ -363,7 +348,6 @@ public class DConnectActivity extends FragmentPagerActivity {
                     .getDefaultSharedPreferences(getApplicationContext());
             SharedPreferences.Editor edit = prefs.edit();
             edit.remove(getString(R.string.key_settings_dconn_client_id));
-            edit.remove(getString(R.string.key_settings_dconn_client_secret));
             edit.remove(getString(R.string.key_settings_dconn_access_token));
             edit.commit();
 
@@ -426,6 +410,8 @@ public class DConnectActivity extends FragmentPagerActivity {
                 builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
                 HttpUriRequest request = new HttpGet(builder.build());
+                request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getPackageName());
+                mLogger.info(request.getMethod() + " " + request.getURI());
                 HttpResponse response = mDConnectClient.execute(request);
                 message = (new HttpMessageFactory()).newDConnectMessage(response);
             } catch (URISyntaxException e) {
@@ -461,6 +447,7 @@ public class DConnectActivity extends FragmentPagerActivity {
                         service.get(ServiceDiscoveryProfileConstants.PARAM_ID).toString(),
                         service.get(ServiceDiscoveryProfileConstants.PARAM_NAME).toString());
                     devices.add(device);
+                    mLogger.info("Found smart device: " + device.getId());
                 }
             }
 

@@ -10,11 +10,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.localoauth.exception.AuthorizatonException;
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -28,6 +27,12 @@ import android.content.Intent;
  * @author NTT DOCOMO, INC.
  */
 public class LocalOAuthRequest extends DConnectRequest {
+    /** プラグイン側のAuthorizationのアトリビュート名: {@value}. */
+    private static final String ATTRIBUTE_CREATE_CLIENT = "createClient";
+
+    /** プラグイン側のAuthorizationのアトリビュート名: {@value}. */
+    private static final String ATTRIBUTE_REQUEST_ACCESS_TOKEN = "requestAccessToken";
+
     /** リトライ回数の最大値を定義. */
     protected static final int MAX_RETRY_COUNT = 3;
 
@@ -141,9 +146,10 @@ public class LocalOAuthRequest extends DConnectRequest {
         request.setComponent(mDevicePlugin.getComponentName());
         request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_CREATE_CLIENT);
-        request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, getContext().getPackageName());
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_CREATE_CLIENT);
         request.putExtra(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId);
+        String origin = mRequest.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, origin);
 
         // デバイスプラグインに送信
         mContext.sendBroadcast(request);
@@ -158,15 +164,14 @@ public class LocalOAuthRequest extends DConnectRequest {
             int result = getResult(mResponse);
             if (result == DConnectMessage.RESULT_OK) {
                 String clientId = mResponse.getStringExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID);
-                String clientSecret = mResponse.getStringExtra(AuthorizationProfileConstants.PARAM_CLIENT_SECRET);
-                if (clientId == null || clientSecret == null) {
+                if (clientId == null) {
                     // クライアントの作成にエラー
                     sendCannotCreateClient();
                 } else {
                     // クライアントデータを
                     ClientData client = new ClientData();
                     client.mClientId = clientId;
-                    client.mClientSecret = clientSecret;
+                    client.mClientSecret = null;
                     return client;
                 }
             } else {
@@ -196,15 +201,13 @@ public class LocalOAuthRequest extends DConnectRequest {
      * 
      * @param serviceId サービスID
      * @param clientId クライアントID
-     * @param clientSecret クライアントシークレット
      * @return アクセストークン
      */
-    protected String executeAccessToken(final String serviceId, final String clientId, final String clientSecret) {
+    protected String executeAccessToken(final String serviceId, final String clientId) {
         // 命令を実行する前にレスポンスを初期化しておく
         mResponse = null;
 
-        mLogger.info("executeAccessToken: {serviceId: " + serviceId + ", clientId: " + clientId
-                + ", clientSecret: " + clientSecret + "}");
+        mLogger.info("executeAccessToken: {serviceId: " + serviceId + ", clientId: " + clientId + "}");
 
         // 各デバイスに送信するリクエストを作成
         Intent request = createRequestMessage(mRequest, mDevicePlugin);
@@ -212,24 +215,10 @@ public class LocalOAuthRequest extends DConnectRequest {
         request.setComponent(mDevicePlugin.getComponentName());
         request.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, mRequestCode);
         request.putExtra(DConnectMessage.EXTRA_PROFILE, AuthorizationProfileConstants.PROFILE_NAME);
-        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, AuthorizationProfileConstants.ATTRIBUTE_REQUEST_ACCESS_TOKEN);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_REQUEST_ACCESS_TOKEN);
         request.putExtra(AuthorizationProfileConstants.PARAM_CLIENT_ID, clientId);
-        request.putExtra(AuthorizationProfileConstants.PARAM_GRANT_TYPE,
-                AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue());
-        request.putExtra(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, mDevicePlugin.getDeviceName());
+        request.putExtra(AuthorizationProfileConstants.PARAM_APPLICATION_NAME, mContext.getString(R.string.app_name));
         request.putExtra(AuthorizationProfileConstants.PARAM_SCOPE, combineStr(getScope()));
-
-        // シグネイチャ作成
-        String signature = createSignature(clientId, clientSecret,
-                AuthorizationProfileConstants.GrantType.AUTHORIZATION_CODE.getValue(), 
-                request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID), getScope());
-        if (signature != null) {
-            request.putExtra(AuthorizationProfileConstants.PARAM_SIGNATURE, signature);
-        } else {
-            // シグネイチャの作成に失敗
-            sendCannotCreateSignature();
-            return null;
-        }
 
         // トークン取得を行う
         mContext.sendBroadcast(request);
@@ -370,28 +359,6 @@ public class LocalOAuthRequest extends DConnectRequest {
     }
 
     /**
-     * アクセストークン取得用のシグネイチャを作成する.
-     * 
-     * 作成に失敗した場合にはnullを返却する.
-     * 
-     * @param clientId クライアントID
-     * @param clientSecret クライアントシークレット
-     * @param grantType グラントタイプ
-     * @param serviceId サービスID
-     * @param scopes スコープ
-     * @return 作成されたシグネイチャ
-     */
-    private String createSignature(final String clientId, final String clientSecret, final String grantType,
-            final String serviceId, final String[] scopes) {
-        try {
-            return LocalOAuth2Main.createSignature(clientId, grantType, serviceId,
-                    scopes, clientSecret);
-        } catch (AuthorizatonException e) {
-            return null;
-        }
-    }
-
-    /**
      * スコープを一つの文字列に連結する.
      * @param scopes スコープ一覧
      * @return 連結された文字列
@@ -416,14 +383,6 @@ public class LocalOAuthRequest extends DConnectRequest {
         return list.toArray(new String[list.size()]);
     }
 
-    /**
-     * シグネイチャの作成に失敗した場合のレスポンスを返却する.
-     */
-    private void sendCannotCreateSignature() {
-        Intent response = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
-        MessageUtils.setAuthorizationError(response, "Cannot create signature.");
-        sendResponse(response);
-    }
     /**
      * クライアントの作成に失敗した場合のレスポンスを返却する.
      */
@@ -507,7 +466,7 @@ public class LocalOAuthRequest extends DConnectRequest {
             String accessToken = mLocalOAuth.getAccessToken(oauth.getId());
             if (accessToken == null) {
                 // 再度アクセストークンを取得してから再度実行
-                accessToken = executeAccessToken(mServiceId, clientId, clientSecret);
+                accessToken = executeAccessToken(mServiceId, clientId);
                 if (accessToken == null) {
                     // MEMO executeAccessTokenの中でレスポンスは返しているので
                     // ここでは何も処理を行わない。

@@ -3,6 +3,15 @@
 
     <string name="app_name">Device Connect Manager</string>
     <string name="description"></string>
+
+    <!-- ================= DConnectLaunchActivity ================= -->
+    <string name="activity_launch_button_launch">Launch</string>
+    <string name="activity_launch_button_stop">Stop</string>
+    <string name="activity_launch_button_cancel">Cancel</string>
+    <string name="activity_launch_button_settings">Settings</string>
+    <string name="activity_launch_message_launch">Please click the below button\nto launch Device Connect Manager.</string>
+    <string name="activity_launch_message_stop">Please click the below button\nto stop Device Connect Manager.</string>
+
     <!-- ================= SettingsActivity ================= -->
 
     <string name="activity_settings_server_on_off">Device Connect Manager</string>
@@ -32,7 +41,14 @@
     <string name="activity_settings_about">About</string>
     <string name="activity_settings_general">General</string>
     <string name="activity_settings_not_logged_in">Not logged in yet</string>
-
+    <string name="activity_settings_whitelist">Whitelist</string>
+    <string name="activity_settings_whitelist_enable">Enable origin blocking</string>
+    <string name="activity_settings_manage_whitelist">Manage whitelist</string>
+    <string name="activity_settings_device_plugin">Device Plugin</string>
+    <string name="activity_settings_restart_device_plugin">Restart</string>
+    <string name="activity_settings_restart_device_plugin_title">Starting Device Plugin</string>
+    <string name="activity_settings_restart_device_plugin_message">Processing</string>
+    
     <!-- ================= SharedPreferences ================= -->
 
     <string name="key_settings_about_appinfo">settings_about_appinfo</string>
@@ -40,7 +56,6 @@
     <string name="key_settings_dconn_observer_on_off">settings_dconn_observer_on_off</string>
     <string name="key_settings_dconn_keyword">settings_dconn_server_keyword</string>
     <string name="key_settings_dconn_allow_external_ip">settings_dconn_allow_external_ip</string>
-    <string name="key_settings_dconn_white_list">settings_dconn_ip_white_list</string>
     <string name="key_settings_dconn_ssl">settings_dconn_ssl</string>
     <string name="key_settings_dconn_host">settings_dconn_host</string>
     <string name="key_settings_dconn_port">settings_dconn_port</string>
@@ -49,6 +64,31 @@
     <string name="key_settings_open_source_licenses">settings_open_source_licenses</string>
     <string name="key_settings_about_privacypolicy">settings_about_privacypolicy</string>
     <string name="key_settings_about_tos">settings_about_tos</string>
+    <string name="key_settings_dconn_whitelist">settings_whitelist</string>
+    <string name="key_settings_dconn_whitelist_origin_blocking">settings_whitelist_origin_blocking</string>
+    <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
+
+    <!-- ================= WhitelistActivity ================= -->
+    <string name="activity_whitelist_title">Whitelist of Origin</string>
+    <string name="no_origin">No allowed origin by user.</string>
+    <string name="dialog_delete_origin_message">Are you sure you want to remove this origin from whitelist?</string>
+    <string name="dialog_delete_origin_positive">Remove</string>
+    <string name="dialog_delete_origin_negative">Cancel</string>
+    <string name="menu_add_origin">Add</string>
+    <string name="dialog_add_origin_title">Add an origin to be allowed</string>
+    <string name="dialog_add_origin_positive">Add</string>
+    <string name="dialog_add_origin_negative">Cancel</string>
+    <string name="dialog_update_origin_title">Update this origin</string>
+    <string name="dialog_update_origin_positive">Update</string>
+    <string name="dialog_update_origin_negative">Cancel</string>
+    <string name="dialog_origin_manual_entry_item_title">Title</string>
+    <string name="dialog_origin_manual_entry_item_origin">Origin</string>
+    <string name="dialog_origin_manual_entry_message">Please enter an origin at least.</string>
+    <string-array name="whitelist_menu_origin">
+        <item>from the bookmark of Chrome</item>
+        <item>from the installed app.</item>
+        <item>from manual entry</item>
+    </string-array>
 
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>
@@ -56,7 +96,7 @@
 
     <!-- ================= WarningDialogActivity ================= -->
     <string name="activity_warning">警告</string>
-    <string name="activity_warning_mess">d-Connect以外のアプリケーションがポートを利用しているため、d-Connectを起動することができません。</string>
+    <string name="activity_warning_mess">DeviceConnect以外のアプリケーションがポートを利用しているため、d-Connectを起動することができません。</string>
     <string name="activity_warning_ok">OK</string>
     <string name="activity_warning_disable">次から表示しない</string>
 
@@ -82,6 +122,9 @@
     <string name="websocket_open">WebSocket Open</string>
     <string name="websocket_close">WebSocket Close</string>
 
+    <!-- ================= Chrome for Android ================= -->
+    <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>
+
     <!-- ================= API ================= -->
 
     <string name="authorization_profile">/authorization</string>
@@ -95,15 +138,25 @@
         <item>request_accesstoken</item>
     </string-array>
 
-    <!-- NetworkServiceDiscovery API -->
-    <string name="service_discovery_profile">/servicediscovery</string>
+    <!-- ServiceDiscovery API -->
+    <string name="servicediscovery_profile">servicediscovery</string>
 
-    <string-array name="service_discovery_interface_list">
+    <string-array name="servicediscovery_interface_list">
         <item></item>
     </string-array>
-    <string-array name="service_discovery_attrib_list">
+    <string-array name="servicediscovery_attrib_list">
         <item></item>
         <item>onservicechange</item>
+    </string-array>
+
+    <!-- ServiceInformation API -->
+    <string name="serviceinformation_profile">serviceinformation</string>
+
+    <string-array name="serviceinformation_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="serviceinformation_attrib_list">
+        <item></item>
     </string-array>
 
     <!-- System API -->
@@ -111,7 +164,6 @@
 
     <string-array name="system_interface_list">
         <item></item>
-        <item>device</item>
     </string-array>
     <string-array name="system_attrib_list">
         <item></item>
@@ -424,6 +476,7 @@
         <item>system</item>
         <item>vibration</item>
         <item>servicediscovery</item>
+        <item>serviceinformation</item>
         <item>light</item>
         <item>camera</item>
         <item>mhealth</item>

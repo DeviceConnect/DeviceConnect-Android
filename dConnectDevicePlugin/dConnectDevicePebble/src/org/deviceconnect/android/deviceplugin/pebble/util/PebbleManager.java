@@ -21,10 +21,10 @@ import java.util.concurrent.Executors;
 import org.deviceconnect.android.profile.util.CanvasProfileUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.BatteryProfileConstants;
+import org.deviceconnect.profile.CanvasProfileConstants.Mode;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
-import org.deviceconnect.profile.CanvasProfileConstants.Mode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -35,6 +35,10 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.util.Log;
 
 import com.getpebble.android.kit.BuildConfig;
 import com.getpebble.android.kit.PebbleKit;
@@ -130,6 +134,8 @@ public final class PebbleManager {
     public static final int PROFILE_SETTING = 4;
     /** system profile を表す数値 system/events 用. */
     public static final int PROFILE_SYSTEM = 5;
+    /** canvas profile を表す数値 canvas 用. */
+    public static final int PROFILE_CANVAS = 6;
     /** binary転送 profile を表す数値. */
     public static final int PROFILE_BINARY = 255;
 
@@ -157,7 +163,10 @@ public final class PebbleManager {
 
     /** system attribute events を表す数値. */
     public static final int SYSTEM_ATTRIBUTE_EVENTS = 1;
-    
+
+    /** canvas attribute drawImage を表す数値. */
+    public static final int CANVAS_ATTRBIUTE_DRAW_IMAGE = 1;
+
     /** pebble の横ドット数. */
     public static final int PEBBLE_SCREEN_WIDTH = 144;
     /** pebble の縦ドット数. */
@@ -184,14 +193,14 @@ public final class PebbleManager {
     /**
      * イベント用のリスナー管理マップ.
      */
-    private final Map<Integer, OnReceivedEventListener> mEvtListeners 
-    = new ConcurrentHashMap<Integer, OnReceivedEventListener>();
+    private final Map<Integer, List<OnReceivedEventListener>> mEvtListeners 
+        = new ConcurrentHashMap<Integer, List<OnReceivedEventListener>>();
 
     /**
      * 接続状態通知リスナー一覧.
      */
     private final List<OnConnectionStatusListener> mConnectStatusListeners 
-    = new ArrayList<OnConnectionStatusListener>();
+        = new ArrayList<OnConnectionStatusListener>();
 
     /**
      * ロックオブジェクト.
@@ -232,27 +241,11 @@ public final class PebbleManager {
         public void receiveData(final Context context, final int transactionId, final PebbleDictionary data) {
             // Pebble に対して、可能な限り素早くACKを返す
             PebbleKit.sendAckToPebble(getContext(), transactionId);
-
-            // アクションを取得する
-            Long action = data.getInteger(KEY_ACTION);
-            if (action != null && action.intValue() == ACTION_EVENT) {
-                // イベント処理の場合は、各リスナーに通知を行う
-                Long profile = data.getInteger(KEY_PROFILE);
-                if (profile != null) {
-                    OnReceivedEventListener l = mEvtListeners.get(profile.intValue());
-                    if (l != null) {
-                        l.onReceivedEvent(data);
-                    }
-                }
-            } else {
-                // リクエストコードを取得
-                Long requestCode = data.getInteger(KEY_PARAM_REQUEST_CODE);
-                if (requestCode != null) {
-                    // 結果をマップに保持しておく
-                    mResponseDataMap.put(requestCode.intValue(), data);
-                    synchronized (mLockObj) {
-                        mLockObj.notifyAll();
-                    }
+            try {
+                executeReceivedData(data);
+            } catch (Exception e) {
+                if (BuildConfig.DEBUG) {
+                    Log.e("Pebble", "error", e);
                 }
             }
         }
@@ -383,7 +376,25 @@ public final class PebbleManager {
      * @param listener リスナー
      */
     public void addEventListener(final int profile, final OnReceivedEventListener listener) {
-        mEvtListeners.put(profile, listener);
+        List<OnReceivedEventListener> listeners = mEvtListeners.get(profile);
+        if (listeners == null) {
+            listeners = new ArrayList<OnReceivedEventListener>();
+            mEvtListeners.put(profile, listeners);
+        }
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
+    }
+
+    /**
+     * イベント受信用のリスナーを削除する.
+     * @param profile 削除するリスナーのプロファイル
+     */
+    public void removeEventListener(final int profile, final OnReceivedEventListener listener) {
+        List<OnReceivedEventListener> listeners = mEvtListeners.get(profile);
+        if (listeners != null) {
+            listeners.remove(listener);
+        }
     }
 
     /**
@@ -684,6 +695,39 @@ public final class PebbleManager {
     }
 
     /**
+     * 受信したデータを解析します.
+     * @param data 受信したデータ
+     */
+    private void executeReceivedData(final PebbleDictionary data) {
+        // アクションを取得する
+        Long action = data.getInteger(KEY_ACTION);
+        if (action != null && action.intValue() == ACTION_EVENT) {
+            // イベント処理の場合は、各リスナーに通知を行う
+            Long profile = data.getInteger(KEY_PROFILE);
+            if (profile != null) {
+                int p = profile.intValue();
+                List<OnReceivedEventListener> listeners = mEvtListeners.get(p);
+                if (listeners != null) {
+                    synchronized (listeners) {
+                        for (OnReceivedEventListener l : listeners) {
+                            l.onReceivedEvent(data);
+                        }
+                    }
+                }
+            }
+        } else {
+            // リクエストコードを取得
+            Long requestCode = data.getInteger(KEY_PARAM_REQUEST_CODE);
+            if (requestCode != null) {
+                // 結果をマップに保持しておく
+                mResponseDataMap.put(requestCode.intValue(), data);
+                synchronized (mLockObj) {
+                    mLockObj.notifyAll();
+                }
+            }
+        }
+    }
+    /**
      * ActionをPebble用のアクションに変換する.
      * @param action Dconnectのアクション
      * @return Pebble用のアクション
@@ -857,10 +901,11 @@ public final class PebbleManager {
      */
     public static byte[] convertImage(final byte[] data, final String mode, final double x, final double y) {
         final int width = 144;
-        final int height = 120;
+        final int height = 168;
         return convertImage(data, width, height, mode, x, y);
     }
 
+    private static Paint mPaint = new Paint();
     /**
      * Pebbleで読み込めるような画像に変換する.
      * 
@@ -878,31 +923,33 @@ public final class PebbleManager {
                                   final String mode, final double x, final double y) {
         Bitmap b = BitmapFactory.decodeByteArray(data, 0, data.length);
         Bitmap b2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        
+
+        // 背景を白で塗りつぶす
+        mPaint.setColor(Color.WHITE);
+        Canvas canvas = new Canvas(b2);
+        canvas.drawRect(0, 0, width, height, mPaint);
+
         boolean isDraw = false;
-        if (mode == null || mode.equals("")) {
-            // 等倍描画モード 
-        	CanvasProfileUtils.drawImageForNonScalesMode(b2, b, x, y);
-        	isDraw = true;
-        } else if (mode.equals(Mode.SCALES.getValue())) {
-            // スケールモード 
-        	CanvasProfileUtils.drawImageForScalesMode(b2, b);
-        	isDraw = true;
-        } else if (mode.equals(Mode.FILLS.getValue())) {
-            // フィルモード 
-        	CanvasProfileUtils.drawImageForFillsMode(b2, b);
-        	isDraw = true;
+        if (mode == null || mode.equals("")) { // 等倍描画モード 
+            CanvasProfileUtils.drawImageForNonScalesMode(b2, b, x, y);
+            isDraw = true;
+        } else if (mode.equals(Mode.SCALES.getValue())) { // スケールモード 
+            CanvasProfileUtils.drawImageForScalesMode(b2, b);
+            isDraw = true;
+        } else if (mode.equals(Mode.FILLS.getValue())) { // フィルモード 
+            CanvasProfileUtils.drawImageForFillsMode(b2, b);
+            isDraw = true;
         } else {
-        	isDraw = false;
+            isDraw = false;
         }
-        
+
         if (isDraw) {
-        	byte[] buf = PebbleBitmapUtil.convertImageThresholding(b2);
+            byte[] buf = PebbleBitmapUtil.convertImageThresholding(b2);
             b.recycle();
             b2.recycle();
             return buf;
         } else {
-        	return null;
+            return null;
         }
     }
 

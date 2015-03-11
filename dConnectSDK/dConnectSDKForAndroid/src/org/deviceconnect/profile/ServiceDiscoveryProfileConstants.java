@@ -74,6 +74,16 @@ public interface ServiceDiscoveryProfileConstants extends DConnectProfileConstan
     String PARAM_CONFIG = "config";
 
     /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_SCOPES = "scopes";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_MANUFACTURER = "manufacturer";
+
+    /**
      * ネットワークタイプ.
      */
     enum NetworkType {

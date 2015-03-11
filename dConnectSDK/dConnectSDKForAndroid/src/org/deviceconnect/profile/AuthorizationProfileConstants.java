@@ -23,12 +23,12 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /** 
      * 属性: {@value}.
      */
-    String ATTRIBUTE_CREATE_CLIENT = "create_client";
+    String ATTRIBUTE_GRANT = "grant";
 
     /** 
      * 属性: {@value}.
      */
-    String ATTRIBUTE_REQUEST_ACCESS_TOKEN = "request_accesstoken";
+    String ATTRIBUTE_ACCESS_TOKEN = "accesstoken";
 
     /**
      * パス: {@value}.
@@ -38,12 +38,12 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /**
      * パス: {@value}.
      */
-    String PATH_REQUEST_CREATE_CLIENT = PATH_PROFILE + SEPARATOR + ATTRIBUTE_CREATE_CLIENT;
+    String PATH_REQUEST_GRANT = PATH_PROFILE + SEPARATOR + ATTRIBUTE_GRANT;
 
     /**
      * パス: {@value}.
      */
-    String PATH_REQUEST_ACCESS_TOKEN = PATH_PROFILE + SEPARATOR + ATTRIBUTE_REQUEST_ACCESS_TOKEN;
+    String PATH_ACCESS_TOKEN = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ACCESS_TOKEN;
 
     /**
      * パラメータ: {@value}.
@@ -53,17 +53,12 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /**
      * パラメータ: {@value}.
      */
+    String PARAM_ORIGIN = "origin";
+
+    /**
+     * パラメータ: {@value}.
+     */
     String PARAM_CLIENT_ID = "clientId";
-
-    /**
-     * パラメータ: {@value}.
-     */
-    String PARAM_CLIENT_SECRET = "clientSecret";
-
-    /**
-     * パラメータ: {@value}.
-     */
-    String PARAM_GRANT_TYPE = "grantType";
 
     /**
      * パラメータ: {@value}.
@@ -83,11 +78,6 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     /**
      * パラメータ: {@value}.
      */
-    String PARAM_SIGNATURE = "signature";
-
-    /**
-     * パラメータ: {@value}.
-     */
     String PARAM_ACCESS_TOKEN = "accessToken";
 
     /**
@@ -96,50 +86,11 @@ public interface AuthorizationProfileConstants extends DConnectProfileConstants 
     String PARAM_EXPIRE_PERIOD = "expirePeriod";
 
     /**
-     * grantType.
+     * パラメータ: {@value}.
+     * <p>
+     * NOTE: GotAPI 1.0上で定義されているレスポンスパラメータ.
+     * </p>
      */
-    enum GrantType {
-        /**
-         * Defined in 4.1 Authorization Code Grant.
-         */
-        AUTHORIZATION_CODE("authorization_code"),
+    String PARAM_EXPIRE = "expire";
 
-        /**
-         * Defined in 4.3 Resource Owner Password Credentials Grant.
-         */
-        PASSWORD("password"),
-
-        /**
-         * Defined in 4.4 Client Credentials Grant.
-         */
-        CLIENT_CREDENTIALS("client_credentials"),
-
-        /**
-         * Defined in 6 Refreshing an Access Token.
-         */
-        REFRESH_TOKE("refresh_token");
-
-        /**
-         * 定義値.
-         */
-        private String mValue;
-
-        /**
-         * 指定された定義値をもつ定数を宣言します.
-         * 
-         * @param value 定義値
-         */
-        private GrantType(final String value) {
-            this.mValue = value;
-        }
-
-        /**
-         * 定義値を取得する.
-         * 
-         * @return 定義値
-         */
-        public String getValue() {
-            return mValue;
-        }
-    };
 }

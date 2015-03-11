@@ -108,8 +108,7 @@ public class NetworkServiceDiscoveryProfileFragment extends SmartDeviceFragment 
             uriBuilder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
 
             try {
-                HttpResponse response = getDConnectClient().execute(
-                        getDefaultHost(), new HttpGet(uriBuilder.build()));
+                HttpResponse response = sendHttpRequest(new HttpGet(uriBuilder.build()));
                 message = (new HttpMessageFactory()).newDConnectMessage(response);
             } catch (URISyntaxException e) {
                 e.printStackTrace();

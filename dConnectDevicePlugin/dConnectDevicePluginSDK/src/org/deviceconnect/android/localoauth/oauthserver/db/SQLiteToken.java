@@ -238,6 +238,7 @@ public class SQLiteToken implements ServerToken {
      * 登録日時取得.
      * @return  登録日時
      */
+    @Override
     public long getRegistrationDate() {
         return mRegistrationDate;
     }

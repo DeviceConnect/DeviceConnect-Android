@@ -159,7 +159,13 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
             FileDataManager mgr = getFileDataManager();
             FileData file = mgr.getFileData(path);
             if (file != null) {
-                mgr.closeFileData(path);
+                boolean isSuccess = mgr.closeFileData(path);
+                if (isSuccess) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setIllegalServerStateError(
+                            response, "file is not opened.");
+                }
             } else {
                 MessageUtils.setIllegalServerStateError(
                         response, "file is not opened.");

@@ -6,7 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.comm;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+
+import android.bluetooth.BluetoothDevice;
 
 /**
  * HVC comm manager utility.
@@ -68,5 +72,36 @@ public final class HvcCommManagerUtils {
         }
         return false;
     }
+
+    /**
+     * get connected bluetooth devices.
+     * @param commManagerArray comm manager array
+     * @return connected bluetooth device array
+     */
+    public static List<BluetoothDevice> getConnectedBluetoothDevices(final List<HvcCommManager> commManagerArray) {
+        List<BluetoothDevice> deviceList = new ArrayList<BluetoothDevice>();
+        for (HvcCommManager commManager : commManagerArray) {
+            if (commManager.checkConnect()) {
+                deviceList.add(commManager.getBluetoothDevice());
+            }
+        }
+        return deviceList;
+    }
+
+    /**
+     * remove comm manager by service id.
+     * @param commManagerArray comm manager array
+     * @param serviceId service id
+     */
+    public static void remove(final List<HvcCommManager> commManagerArray, final String serviceId) {
+        
+        int count = commManagerArray.size();
+        for (int index = (count - 1); index >= 0; index--) {
+            if (commManagerArray.get(index).getServiceId() == serviceId) {
+                commManagerArray.remove(index);
+            }
+        }
+    }
+    
 
 }

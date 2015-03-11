@@ -177,6 +177,20 @@ public final class HvcConstants {
      * interval to retry, If HVC communication is busy[msec].
      */
     public static final int HVC_COMM_RETRY_INTERVAL = 1000;
-    
+
+    /**
+     * HVC interval parameter minimum value.
+     */
+    public static final long PARAM_INTERVAL_MIN = 3 * 1000;
+
+    /**
+     * HVC interval parameter maximum value.
+     */
+    public static final long PARAM_INTERVAL_MAX = 999999 * 1000;
+
+    /**
+     * HVC interval parameter default value.
+     */
+    public static final long PARAM_INTERVAL_DEFAULT = PARAM_INTERVAL_MIN;
 
 }

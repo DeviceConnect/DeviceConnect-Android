@@ -17,7 +17,6 @@ import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceDetector;
 import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceDetector.BleDeviceDiscoveryListener;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManagerUtils;
-import org.deviceconnect.android.deviceplugin.hvc.devicesearch.HvcDeviceSearchUtils;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
@@ -36,7 +35,6 @@ import org.deviceconnect.message.DConnectMessage;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -74,48 +72,43 @@ public class HvcDeviceService extends DConnectMessageService {
     private HvcTimerInfo mTimeoutJudgeTimer;
 
     /**
-     * - * device search timer information.<br>
-     * - * - null: stop timer. - * - not null: running timer.
-     */
-    private Timer mDeviceSearchTimer;
-
-    /**
      * HVC found device list.
      */
     private List<BluetoothDevice> mCacheDeviceList = new ArrayList<BluetoothDevice>();
 
     /**
-     * Lock object for {@link mDeviceList}.
+     * BLE device detector.
      */
-    private Object mLockDeviceListObj = new Object();
-
-    /**
-     * use omron sdk flag.
-     */
-    private static final boolean USE_OMROM_DEVICE_SEARCH_API = false;
-
-    /**
-     * Device search busy flag.
-     */
-    private boolean mIsDeviceSearchBusy = false;
-    /**
-     * Lock object for {@link mIsDeviceSearchBusy}.
-     */
-    private Object mLockDeviceSearchBusy = new Object();
+    private BleDeviceDetector mDetector;
+    
     
     @Override
     public void onCreate() {
 
         super.onCreate();
 
-        if (USE_OMROM_DEVICE_SEARCH_API) {
-            // start HVC device search timer.
-            startOmronDeviceSearchTimer(HvcConstants.DEVICE_SEARCH_INTERVAL);
-        } else {
-            // start HVC device search timer.
-            startDeviceSearchTimer(HvcConstants.DEVICE_SEARCH_INTERVAL);
+        // start HVC device search.
+        mDetector = new BleDeviceDetector(getContext());
+        if (mDetector.isEnabled()) {
+            mDetector.initialize();
+            mDetector.setListener(new BleDeviceDiscoveryListener() {
+                
+                @Override
+                public void onDiscovery(final List<BluetoothDevice> devices) {
+                    
+                    // remove duplicate data or non HVC data.
+                    removeDuplicateOrNonHvcData(devices);
+                    
+                    // store.
+                    synchronized (mCacheDeviceList) {
+                        mCacheDeviceList.clear();
+                        mCacheDeviceList.addAll(devices);
+                    }
+                }
+            });
+            mDetector.startScan();
         }
-
+        
         // Initialize EventManager
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
@@ -202,36 +195,21 @@ public class HvcDeviceService extends DConnectMessageService {
      * @return HVC device list
      */
     public List<BluetoothDevice> getHvcDeviceList() {
-        synchronized (mLockDeviceListObj) {
-            return mCacheDeviceList;
+        List<BluetoothDevice> deviceList = new ArrayList<BluetoothDevice>();
+        synchronized (mCacheDeviceList) {
+            deviceList.addAll(mCacheDeviceList);
         }
+        synchronized (mHvcCommManagerArray) {
+            deviceList.addAll(HvcCommManagerUtils.getConnectedBluetoothDevices(mHvcCommManagerArray));
+        }
+        removeDuplicateOrNonHvcData(deviceList);
+        return deviceList;
     }
 
     //
     // for human detect profile
     //
 
-    /**
-     * get comm manager.
-     * 
-     * @param serviceId serviceId
-     * @return comm manager
-     */
-    public HvcCommManager getCommManager(final String serviceId) {
-
-        // search CommManager by serviceId.
-        HvcCommManager commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
-        if (commManager == null) {
-            // if null, add CommManager.
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "getCommManager(). add HvcCommManager");
-            }
-            commManager = new HvcCommManager(this, serviceId);
-            mHvcCommManagerArray.add(commManager);
-        }
-
-        return commManager;
-    }
 
     //
     // register detection event.
@@ -255,7 +233,21 @@ public class HvcDeviceService extends DConnectMessageService {
         }
 
         // search CommManager by serviceId(if not found, add CommManager.).
-        final HvcCommManager commManager = getCommManager(serviceId);
+        HvcCommManager commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
+        if (commManager == null) {
+            
+            // search cache bluetooth device.(if not found, not found service error)
+            BluetoothDevice bluetoothDevice = searchCacheHvcDevice(serviceId);
+            if (bluetoothDevice == null) {
+                MessageUtils.setNotFoundServiceError(response);
+                return;
+            }
+            
+            // add comm manager.
+            commManager = new HvcCommManager(this, serviceId, bluetoothDevice);
+            mHvcCommManagerArray.add(commManager);
+            
+        }
 
         // start interval timer. (if no event with same interval.)
         startIntervalTimer(requestParams.getEvent().getInterval());
@@ -290,45 +282,26 @@ public class HvcDeviceService extends DConnectMessageService {
         // search CommManager by serviceId.
         HvcCommManager commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
         if (commManager == null) {
-            // no register.
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "unregisterDetectionEvent(). commManager not found.");
-            }
-            MessageUtils.setError(response, HvcHumanDetectProfile.ERROR_VALUE_IS_NULL, "no register event.");
+            MessageUtils.setNotFoundServiceError(response, "service id not found");
             return;
         }
         // get event interval.
         Long interval = commManager.getEventInterval(detectKind, sessionKey);
         if (interval == null) {
-            // event not found.
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "unregisterDetectionEvent(). event not found.");
-            }
-            MessageUtils.setError(response, HvcHumanDetectProfile.ERROR_VALUE_IS_NULL, "no register event.");
+            MessageUtils.setInvalidRequestParameterError(response, "detectKind and sessionKey pair not found.");
             return;
         }
-
+        
         // unregister
         commManager.unregisterDetectEvent(detectKind, sessionKey);
-
-        // if has no event commManager, remove commManager.
-        if (commManager.getEventCount() <= 0) {
-            commManager.destroy();
-            HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
-        }
 
         // if no event with same interval, stop interval timer (and remove
         // interval timer info record).
         if (!HvcCommManagerUtils.checkExistEventByInterval(mHvcCommManagerArray, interval)) {
-            stopIntervalTimer(interval);
-        }
-
-        // if no event, stop timeout judge timer.
-        if (!HvcCommManagerUtils.checkExistEvent(mHvcCommManagerArray)) {
-            if (mTimeoutJudgeTimer != null) {
-                mTimeoutJudgeTimer.stopTimer();
-                mTimeoutJudgeTimer = null;
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "stop interval timer. interval:" + interval);
             }
+            stopIntervalTimer(interval);
         }
 
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
@@ -351,7 +324,22 @@ public class HvcDeviceService extends DConnectMessageService {
         }
 
         // search CommManager by serviceId(if not found, add CommManager.).
-        final HvcCommManager commManager = getCommManager(serviceId);
+        HvcCommManager commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
+        if (commManager == null) {
+            
+            // search cache bluetooth device.(if not found, not found service error)
+            BluetoothDevice bluetoothDevice = searchCacheHvcDevice(serviceId);
+            if (bluetoothDevice == null) {
+                MessageUtils.setNotFoundServiceError(response);
+                return;
+            }
+            
+            // add comm manager.
+            commManager = new HvcCommManager(this, serviceId, bluetoothDevice);
+            mHvcCommManagerArray.add(commManager);
+            
+        }
+        final HvcCommManager commManagerFinal = commManager;
 
         // get detection process. (if in communication, wait and retry)
         retryProcInNewThread(HvcConstants.HVC_COMM_RETRY_COUNT, HvcConstants.HVC_COMM_RETRY_INTERVAL,
@@ -361,24 +349,13 @@ public class HvcDeviceService extends DConnectMessageService {
                         if (BuildConfig.DEBUG) {
                             Log.d(TAG, "judgeRetry()");
                         }
-                        // retry (Now in the device search)
-                        synchronized (mLockDeviceSearchBusy) {
-                            if (mIsDeviceSearchBusy) {
-                                if (BuildConfig.DEBUG) {
-                                    Log.d(TAG, "retry (Now in the device search)");
-                                }
-                                return true;
-                            }
-                        }
-
                         // retry(Now in the device communication)
-                        if (commManager.checkCommBusy()) {
+                        if (commManagerFinal.checkCommBusy()) {
                             if (BuildConfig.DEBUG) {
                                 Log.d(TAG, "retry (Now in the device search)");
                             }
                             return true;
                         }
-
                         // no retry
                         if (BuildConfig.DEBUG) {
                             Log.d(TAG, "no retry");
@@ -393,7 +370,7 @@ public class HvcDeviceService extends DConnectMessageService {
                         }
 
                         // get detection process.
-                        commManager.doGetDetectionProc(detectKind, requestParams, response);
+                        commManagerFinal.doGetDetectionProc(detectKind, requestParams, response);
                     }
 
                     @Override
@@ -489,16 +466,15 @@ public class HvcDeviceService extends DConnectMessageService {
      * @return not null: found device / null: not found
      */
     public BluetoothDevice searchCacheHvcDevice(final String serviceId) {
-
-        synchronized (mCacheDeviceList) {
-            for (BluetoothDevice device : mCacheDeviceList) {
-                if (serviceId.equals(HvcCommManager.getServiceId(device.getAddress()))) {
-                    return device;
-                }
+        
+        List<BluetoothDevice> hvcDeviceList = getHvcDeviceList();
+        for (BluetoothDevice device : hvcDeviceList) {
+            if (serviceId.equals(HvcCommManager.getServiceId(device.getAddress()))) {
+                return device;
             }
-            return null;
         }
-    };
+        return null;
+    }
 
     /**
      * start interval timer(if no event with same interval.).
@@ -562,154 +538,6 @@ public class HvcDeviceService extends DConnectMessageService {
                 }
             }
         });
-    }
-
-    /**
-     * start HVC device search timer.
-     * 
-     * @param deviceSearchInterval device search interval[msec]
-     */
-    private void startOmronDeviceSearchTimer(final long deviceSearchInterval) {
-
-        // already started.
-        if (mDeviceSearchTimer != null) {
-            return;
-        }
-
-        // timer start.
-        mDeviceSearchTimer = new Timer();
-        mDeviceSearchTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "device search timer proc.");
-                }
-
-                // if connect, skip.
-                if (checkConnect()) {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(TAG, "device search - skip.");
-                    }
-                    return;
-                }
-
-                // device search.
-                synchronized (mLockDeviceSearchBusy) {
-                    mIsDeviceSearchBusy = true;
-                }
-                List<BluetoothDevice> deviceList = HvcDeviceSearchUtils.selectHvcDevices(getContext());
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "device search - finish.");
-                    for (BluetoothDevice device : deviceList) {
-                        Log.d(TAG, "found device -  name:" + device.getName() + " address:" + device.getAddress());
-                    }
-                }
-
-                // store.
-                synchronized (mLockDeviceListObj) {
-                    mCacheDeviceList = deviceList;
-                }
-                
-                // finish.
-                synchronized (mLockDeviceSearchBusy) {
-                    mIsDeviceSearchBusy = false;
-                }
-            }
-        }, 0, HvcConstants.DEVICE_SEARCH_INTERVAL);
-    }
-
-
-    /**
-     * start HVC device search timer.
-     * 
-     * @param deviceSearchInterval device search interval[msec]
-     */
-    private void startDeviceSearchTimer(final long deviceSearchInterval) {
-
-        // already started.
-        if (mDeviceSearchTimer != null) {
-            return;
-        }
-
-        // timer start.
-        mDeviceSearchTimer = new Timer();
-        mDeviceSearchTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "device search timer proc.");
-                }
-
-                Thread thread = new Thread() {
-                    @Override
-                    public void run() {
-                        // if connect, skip.
-                        if (checkConnect()) {
-                            if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "device search - skip.");
-                            }
-                            return;
-                        }
-
-                        // device search.
-                        synchronized (mLockDeviceSearchBusy) {
-                            mIsDeviceSearchBusy = true;
-                        }
-                        
-                        // initialize ble device detector.
-                        final BleDeviceDetector detector = new BleDeviceDetector(getContext());
-                        if (detector.isEnabled()) {
-                            detector.scanLeDeviceOnce(new BleDeviceDiscoveryListener() {
-                                @Override
-                                public void onDiscovery(final List<BluetoothDevice> devices) {
-                                    
-                                    // remove duplicate data or non HVC data.
-                                    removeDuplicateOrNonHvcData(devices);
-                                    
-                                    if (BuildConfig.DEBUG) {
-                                        Log.d(TAG, "device search - finish.");
-                                        for (BluetoothDevice device : devices) {
-                                            Log.d(TAG, "found device -  name:" + device.getName() 
-                                                    + " address:" + device.getAddress());
-                                        }
-                                    }
-                                    // store.
-                                    synchronized (mLockDeviceListObj) {
-                                        mCacheDeviceList = devices;
-                                    }
-                                    
-                                    // finish
-                                    synchronized (mLockDeviceSearchBusy) {
-                                        mIsDeviceSearchBusy = false;
-                                    }
-                                    
-                                }
-                            });
-                        }
-                    }
-                };
-                thread.start();
-                
-            }
-        }, 0, HvcConstants.DEVICE_SEARCH_INTERVAL);
-    }
-
-    /**
-     * check connect.
-     * 
-     * @return true: connect / false: disconnect.
-     */
-    private boolean checkConnect() {
-        for (HvcCommManager commManager : mHvcCommManagerArray) {
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "checkConnect() - result:" + commManager.checkConnect() 
-                        + " serviceId:" + commManager.getServiceId());
-            }
-            if (commManager.checkConnect()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

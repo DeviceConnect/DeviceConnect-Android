@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.profile;
 
-import java.security.InvalidParameterException;
 import java.util.List;
 
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
@@ -28,9 +27,6 @@ import android.content.pm.PackageManager;
  * @author NTT DOCOMO, INC.
  */
 public class HvcHumanDetectProfile extends HumanDetectProfile {
-
-    /** Error. */
-    public static final int ERROR_VALUE_IS_NULL = 100;
 
     /**
      * error message. {@value}
@@ -168,14 +164,11 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
+        } else if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            // ble not available.
+            MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
+            return true;
         } else {
-            
-            // ble os available?
-            if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-                // ble not available.
-                MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
-                return true;
-            }
             
             // get parameter.
             HumanDetectRequestParams requestParams = null;
@@ -189,6 +182,10 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 // invalid request parameter error
                 MessageUtils.setInvalidRequestParameterError(response,
                         HvcDetectRequestUtils.ERROR_PARAMETER_DIFFERENT_TYPE);
+                return true;
+            } catch (IllegalArgumentException e) {
+                // invalid request parameter error
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
             
@@ -218,14 +215,11 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             createEmptyServiceId(response);
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
+        } else if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            // ble not available.
+            MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
+            return true;
         } else {
-            
-            // ble os available?
-            if (!getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-                // ble not available.
-                MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
-                return true;
-            }
             
             // get parameter.
             HumanDetectRequestParams requestParams = null;
@@ -240,6 +234,10 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 MessageUtils.setInvalidRequestParameterError(response,
                         HvcDetectRequestUtils.ERROR_PARAMETER_DIFFERENT_TYPE);
                 return true;
+            } catch (IllegalArgumentException e) {
+                // invalid request parameter error
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
+                return true;
             }
             
             // register event.
@@ -250,7 +248,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                         serviceId, sessionKey);
                 return false;
             } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
+                MessageUtils.setIllegalDeviceStateError(response, "Can not register event.");
                 return true;
             }
 
@@ -279,18 +277,12 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             // unregister event.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
-                try {
-                    ((HvcDeviceService) getContext()).unregisterDetectionEvent(detectKind, response, serviceId,
-                            sessionKey);
-                } catch (final InvalidParameterException e) {
-                    MessageUtils.setError(response, ERROR_VALUE_IS_NULL, e.getMessage());
-                    return true;
-                }
+                ((HvcDeviceService) getContext()).unregisterDetectionEvent(detectKind, response, serviceId,
+                        sessionKey);
                 return false;
             } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
+                MessageUtils.setIllegalDeviceStateError(response, "Can not unregister event.");
                 return true;
-
             }
         }
         return true;
@@ -303,7 +295,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * @param response response
      */
     private void createEmptyServiceId(final Intent response) {
-
         MessageUtils.setEmptyServiceIdError(response);
     }
 
@@ -313,8 +304,7 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * @param response response
      */
     private void createEmptySessionKey(final Intent response) {
-
-        MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "SessionKey not found");
+        MessageUtils.setInvalidRequestParameterError(response, "SessionKey not found");
     }
 }
 

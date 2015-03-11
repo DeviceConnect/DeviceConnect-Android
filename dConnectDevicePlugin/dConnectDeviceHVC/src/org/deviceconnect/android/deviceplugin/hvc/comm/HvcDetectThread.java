@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.hvc.comm;
 
 import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
+import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams;
 
 import omron.HVC.HVC;
@@ -133,6 +134,9 @@ public class HvcDetectThread extends Thread {
         
         // Replace last access time.
         mLastAccessTime = System.currentTimeMillis();
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "request() - mLastAccessTime:" + mLastAccessTime);
+        }
         
         // if not alive, thread start.
         if (!isAlive()) {

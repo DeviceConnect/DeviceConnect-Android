@@ -24,8 +24,17 @@ public class SWApplication extends Application {
     /** KeyEvent profile onDown cache. */
     static Bundle sOnDownCache = null;
 
+    /** KeyEvent profile onDown cache time. */
+    static long sOnDownCacheTime = 0;
+
     /** KeyEvent profile onUp cache. */
     static Bundle sOnUpCache = null;
+
+    /** KeyEvent profile onUp cache time. */
+    static long sOnUpCacheTime = 0;
+
+    /** KeyEvent profile cache retention time (mSec). */
+    static final long CACHE_RETENTION_TIME = 10000;
 
     /**
      * Get KeyEvent cache data.
@@ -34,10 +43,19 @@ public class SWApplication extends Application {
      * @return KeyEvent cache data.
      */
     public static Bundle getKeyEventCache(final String attr) {
+        long lCurrentTime = System.currentTimeMillis();
         if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
-            return sOnDownCache;
+            if (lCurrentTime - sOnDownCacheTime <= CACHE_RETENTION_TIME) {
+                return sOnDownCache;
+            } else {
+                return null;
+            }
         } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
-            return sOnUpCache;
+            if (lCurrentTime - sOnUpCacheTime <= CACHE_RETENTION_TIME) {
+                return sOnUpCache;
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -50,10 +68,13 @@ public class SWApplication extends Application {
      * @param keyeventData Touch data.
      */
     public static void setKeyEventCache(final String attr, final Bundle keyeventData) {
+        long lCurrentTime = System.currentTimeMillis();
         if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
             sOnDownCache = keyeventData;
+            sOnDownCacheTime = lCurrentTime;
         } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
             sOnUpCache = keyeventData;
+            sOnUpCacheTime = lCurrentTime;
         }
     }
 

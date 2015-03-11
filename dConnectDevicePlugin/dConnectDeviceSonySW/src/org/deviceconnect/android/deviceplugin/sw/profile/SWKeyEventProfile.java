@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.sw.profile;
 
 import org.deviceconnect.android.deviceplugin.sw.R;
 import org.deviceconnect.android.deviceplugin.sw.SWApplication;
+import org.deviceconnect.android.deviceplugin.sw.SWConstants;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -16,7 +17,6 @@ import org.deviceconnect.message.DConnectMessage;
 
 import com.sonyericsson.extras.liveware.aef.control.Control;
 import com.sonyericsson.extras.liveware.aef.registration.Registration;
-
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
@@ -27,7 +27,7 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class SWKeyEventProfile extends KeyEventProfile {
-
+    
     @Override
     protected boolean onGetOnDown(final Intent request, final Intent response, final String serviceId) {
         BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
@@ -35,7 +35,13 @@ public class SWKeyEventProfile extends KeyEventProfile {
             MessageUtils.setNotFoundServiceError(response, "No service is found: " + serviceId);
             return true;
         }
-        
+
+        if (SWUtil.toHostAppPackageName(device.getName()).equals(SWConstants.PACKAGE_SMART_WATCH)) {
+            // SW not support "KeyEvent Profile".
+            MessageUtils.setNotSupportProfileError(response);
+            return true;
+        }
+
         Bundle keyevent = SWApplication.getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_DOWN);
         if (keyevent == null) {
             response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
@@ -54,6 +60,12 @@ public class SWKeyEventProfile extends KeyEventProfile {
             return true;
         }
         
+        if (SWUtil.toHostAppPackageName(device.getName()).equals(SWConstants.PACKAGE_SMART_WATCH)) {
+            // SW not support "KeyEvent Profile".
+            MessageUtils.setNotSupportProfileError(response);
+            return true;
+        }
+
         Bundle keyevent = SWApplication.getKeyEventCache(KeyEventProfile.ATTRIBUTE_ON_UP);
         if (keyevent == null) {
             response.putExtra(KeyEventProfile.PARAM_KEYEVENT, "");
@@ -72,6 +84,13 @@ public class SWKeyEventProfile extends KeyEventProfile {
             MessageUtils.setNotFoundServiceError(response, "No service is found: " + serviceId);
             return true;
         }
+
+        if (SWUtil.toHostAppPackageName(device.getName()).equals(SWConstants.PACKAGE_SMART_WATCH)) {
+            // SW not support "KeyEvent Profile".
+            MessageUtils.setNotSupportProfileError(response);
+            return true;
+        }
+
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -92,6 +111,13 @@ public class SWKeyEventProfile extends KeyEventProfile {
             MessageUtils.setNotFoundServiceError(response, "No service is found: " + serviceId);
             return true;
         }
+
+        if (SWUtil.toHostAppPackageName(device.getName()).equals(SWConstants.PACKAGE_SMART_WATCH)) {
+            // SW not support "KeyEvent Profile".
+            MessageUtils.setNotSupportProfileError(response);
+            return true;
+        }
+
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -112,6 +138,13 @@ public class SWKeyEventProfile extends KeyEventProfile {
             MessageUtils.setNotFoundServiceError(response, "No service is found: " + serviceId);
             return true;
         }
+
+        if (SWUtil.toHostAppPackageName(device.getName()).equals(SWConstants.PACKAGE_SMART_WATCH)) {
+            // SW not support "KeyEvent Profile".
+            MessageUtils.setNotSupportProfileError(response);
+            return true;
+        }
+
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -131,6 +164,13 @@ public class SWKeyEventProfile extends KeyEventProfile {
             MessageUtils.setNotFoundServiceError(response, "No service is found: " + serviceId);
             return true;
         }
+
+        if (SWUtil.toHostAppPackageName(device.getName()).equals(SWConstants.PACKAGE_SMART_WATCH)) {
+            // SW not support "KeyEvent Profile".
+            MessageUtils.setNotSupportProfileError(response);
+            return true;
+        }
+
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);

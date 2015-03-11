@@ -115,12 +115,12 @@ public class SpheroProfile extends DConnectProfile {
     /**
      * パラメータ : {@value} .
      */
-    public static final String PARAM_VELOCITY_X = "verocityX";
+    public static final String PARAM_VELOCITY_X = "velocityX";
     
     /**
      * パラメータ : {@value} .
      */
-    public static final String PARAM_VELOCITY_Y = "verocityY";
+    public static final String PARAM_VELOCITY_Y = "velocityY";
     
     /**
      * パラメータ : {@value} .

@@ -74,7 +74,7 @@ public class HumanDetectBasicRequestParams implements Cloneable {
     public Object clone() throws CloneNotSupportedException {
         
         // deep copy
-        HumanDetectBasicRequestParams params = (HumanDetectBasicRequestParams) this.clone();
+        HumanDetectBasicRequestParams params = (HumanDetectBasicRequestParams) super.clone();
         params.setOptions(new ArrayList<String>(mOptions));
         
         return params;

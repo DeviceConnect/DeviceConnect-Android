@@ -97,7 +97,7 @@ public final class HvcCommManagerUtils {
         
         int count = commManagerArray.size();
         for (int index = (count - 1); index >= 0; index--) {
-            if (commManagerArray.get(index).getServiceId() == serviceId) {
+            if (commManagerArray.get(index).getServiceId().equals(serviceId)) {
                 commManagerArray.remove(index);
             }
         }

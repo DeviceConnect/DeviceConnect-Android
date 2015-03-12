@@ -51,9 +51,7 @@ public class HvcDeviceService extends DConnectMessageService {
     private static final String TAG = HvcDeviceService.class.getSimpleName();
 
     /**
-     * HVC comm managers(1serviceId,1record).<br>
-     * - if first serviceId, add record.<br>
-     * - if no access long time, remove record. by timer process.<br>
+     * HVC comm managers(1serviceId,1record).
      */
     private List<HvcCommManager> mHvcCommManagerArray = new ArrayList<HvcCommManager>();
 
@@ -235,7 +233,10 @@ public class HvcDeviceService extends DConnectMessageService {
         }
 
         // search CommManager by serviceId(if not found, add CommManager.).
-        HvcCommManager commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
+        HvcCommManager commManager = null;
+        synchronized (mHvcCommManagerArray) {
+            commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
+        }
         if (commManager == null) {
             
             // search cache bluetooth device.(if not found, not found service error)
@@ -247,7 +248,9 @@ public class HvcDeviceService extends DConnectMessageService {
             
             // add comm manager.
             commManager = new HvcCommManager(this, serviceId, bluetoothDevice);
-            mHvcCommManagerArray.add(commManager);
+            synchronized (mHvcCommManagerArray) {
+                mHvcCommManagerArray.add(commManager);
+            }
             
         }
 
@@ -279,7 +282,10 @@ public class HvcDeviceService extends DConnectMessageService {
         }
 
         // search CommManager by serviceId.
-        HvcCommManager commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
+        HvcCommManager commManager = null;
+        synchronized (mHvcCommManagerArray) {
+            commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
+        }
         if (commManager == null) {
             MessageUtils.setNotFoundServiceError(response, "service id not found");
             return;
@@ -296,7 +302,8 @@ public class HvcDeviceService extends DConnectMessageService {
 
         // if no event with same interval, stop interval timer (and remove
         // interval timer info record).
-        if (!HvcCommManagerUtils.checkExistEventByInterval(mHvcCommManagerArray, interval)) {
+        boolean result = HvcCommManagerUtils.checkExistEventByInterval(mHvcCommManagerArray, interval);
+        if (!result) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "stop interval timer. interval:" + interval);
             }
@@ -323,7 +330,10 @@ public class HvcDeviceService extends DConnectMessageService {
         }
 
         // search CommManager by serviceId(if not found, add CommManager.).
-        HvcCommManager commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
+        HvcCommManager commManager = null;
+        synchronized (mHvcCommManagerArray) {
+            commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
+        }
         if (commManager == null) {
             
             // search cache bluetooth device.(if not found, not found service error)
@@ -335,7 +345,9 @@ public class HvcDeviceService extends DConnectMessageService {
             
             // add comm manager.
             commManager = new HvcCommManager(this, serviceId, bluetoothDevice);
-            mHvcCommManagerArray.add(commManager);
+            synchronized (mHvcCommManagerArray) {
+                mHvcCommManagerArray.add(commManager);
+            }
             
         }
         final HvcCommManager commManagerFinal = commManager;
@@ -494,8 +506,10 @@ public class HvcDeviceService extends DConnectMessageService {
                         Log.d(TAG, "event interval timer proc.");
                     }
                     // call event process.
-                    for (HvcCommManager commManager : mHvcCommManagerArray) {
-                        commManager.onEventProc(interval);
+                    synchronized (mHvcCommManagerArray) {
+                        for (HvcCommManager commManager : mHvcCommManagerArray) {
+                            commManager.onEventProc(interval);
+                        }
                     }
                 }
             });
@@ -532,8 +546,10 @@ public class HvcDeviceService extends DConnectMessageService {
                     Log.d(TAG, "timeout judge timer proc.");
                 }
                 // call timeout judge process.
-                for (HvcCommManager commManager : mHvcCommManagerArray) {
-                    commManager.onTimeoutJudgeProc();
+                synchronized (mHvcCommManagerArray) {
+                    for (HvcCommManager commManager : mHvcCommManagerArray) {
+                        commManager.onTimeoutJudgeProc();
+                    }
                 }
             }
         });

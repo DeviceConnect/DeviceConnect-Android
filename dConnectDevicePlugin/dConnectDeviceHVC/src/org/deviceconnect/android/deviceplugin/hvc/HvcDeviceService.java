@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceDetector;
@@ -114,6 +113,9 @@ public class HvcDeviceService extends DConnectMessageService {
 
         // add supported profiles
         addProfile(new HvcHumanDetectProfile());
+        
+        // start timeout judget timer.
+        startTimeoutJudgetTimer();
     }
 
     @Override
@@ -251,9 +253,6 @@ public class HvcDeviceService extends DConnectMessageService {
 
         // start interval timer. (if no event with same interval.)
         startIntervalTimer(requestParams.getEvent().getInterval());
-
-        // start timeout judget timer.
-        startTimeoutJudgetTimer();
 
         // add event data to commManager.
         commManager.registerDetectEvent(detectKind, requestParams, response, sessionKey);

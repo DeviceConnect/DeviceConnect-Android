@@ -159,6 +159,16 @@ public class HvcDetectThread extends Thread {
     }
 
     /**
+     * comm disconnect.
+     */
+    public void disconnect() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "HvcDetectThread - disconnect()");
+        }
+        mHvcBle.disconnect();
+    }
+
+    /**
      * thread halt process.
      */
     public void halt() {
@@ -258,7 +268,7 @@ public class HvcDetectThread extends Thread {
     private void requestProcessOnThread() {
         // connect
         int commStatus = mHvcBle.getStatus();
-        if (commStatus == HVC.HVC_ERROR_NODEVICES) {
+        if (commStatus == HVC.HVC_ERROR_NODEVICES || commStatus == HVC.HVC_ERROR_DISCONNECTED) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "mHvcBle.connect()");
             }

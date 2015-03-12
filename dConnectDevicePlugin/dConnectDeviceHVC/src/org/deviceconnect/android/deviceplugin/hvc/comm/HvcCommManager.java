@@ -469,20 +469,17 @@ public class HvcCommManager {
      * timeout judge process.
      */
     public void onTimeoutJudgeProc() {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "onTimeoutJudgeProc()");
-        }
         
         // BLE connect timeout judge.
         if (mDetectThread != null
         &&  mDetectThread.isAlive()
         &&  (System.currentTimeMillis() - mDetectThread.getLastAccessTime()) > HvcConstants.HVC_CONNECT_TIMEOUT_TIME) {
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "onTimeoutJudgeProc() - System.currentTimeMillis():" + System.currentTimeMillis());
-                Log.d(TAG, "onTimeoutJudgeProc() - mDetectThread.getLastAccessTime():" + mDetectThread.getLastAccessTime());
-                Log.d(TAG, "onTimeoutJudgeProc() - HvcConstants.HVC_CONNECT_TIMEOUT_TIME:" + HvcConstants.HVC_CONNECT_TIMEOUT_TIME);
+                Log.d(TAG,
+                    "disconnect(BLE connect timeout). Not been accessed more than "
+                    + (HvcConstants.HVC_CONNECT_TIMEOUT_TIME / 1000) + " seconds");
             }
-            mDetectThread.halt();
+            mDetectThread.disconnect();
         }
         
     }

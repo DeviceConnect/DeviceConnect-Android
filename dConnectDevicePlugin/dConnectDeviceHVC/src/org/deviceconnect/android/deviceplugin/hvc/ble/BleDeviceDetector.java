@@ -54,7 +54,7 @@ public class BleDeviceDetector {
     private static final long SCAN_WAIT_PERIOD = 10 * 1000;
 
     /**
-     * Stops scanning after 1 second.
+     * Stops scanning after 2 second.
      */
     private static final long SCAN_PERIOD = 2000;
 

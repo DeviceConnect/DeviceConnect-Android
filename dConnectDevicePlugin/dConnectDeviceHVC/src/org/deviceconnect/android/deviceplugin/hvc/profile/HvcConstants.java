@@ -156,17 +156,12 @@ public final class HvcConstants {
     /**
      * HVC connect timeout time[msec].
      */
-    public static final long HVC_CONNECT_TIMEOUT_TIME = 2 * 60 * 1000;
+    public static final long HVC_CONNECT_TIMEOUT_TIME = 30 * 60 * 1000;
     
     /**
      * HVC device search interval[msec].
      */
     public static final long DEVICE_SEARCH_INTERVAL = 3 * 60 * 1000;
-
-    /**
-     * HVC device search wait time[msec].
-     */
-    public static final int DEVICE_SEARCH_WAIT_TIME = 5000;
 
     /**
      * number of times to retry, If HVC communication is busy.

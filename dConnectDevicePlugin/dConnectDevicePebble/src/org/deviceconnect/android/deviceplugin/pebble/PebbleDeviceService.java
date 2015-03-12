@@ -9,24 +9,23 @@ package org.deviceconnect.android.deviceplugin.pebble;
 import java.util.Set;
 
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleBatteryProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleCanvasProfile;
-import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleServceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleNotificationProfile;
+import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleServceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSettingProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleSystemProfile;
 import org.deviceconnect.android.deviceplugin.pebble.profile.PebbleVibrationProfile;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
-
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.db.DBCacheController;
+import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 
 /**
  * Pebbleデバイスプロバイダ.
@@ -46,7 +45,7 @@ public class PebbleDeviceService extends DConnectMessageService {
         super.onCreate();
 
         // initialize of the EventManager
-        EventManager.INSTANCE.setController(new DBCacheController(this));
+        EventManager.INSTANCE.setController(new MemoryCacheController());
 
         // add supported profiles
         addProfile(new PebbleNotificationProfile());
@@ -76,7 +75,7 @@ public class PebbleDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new PebbleServceDiscoveryProfile(this);
+        return new PebbleServceDiscoveryProfile(this, this);
     }
 
     /**

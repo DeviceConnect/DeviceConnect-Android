@@ -9,13 +9,9 @@ package org.deviceconnect.android.deviceplugin.hvc.profile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import omron.HVC.BleDeviceSearch;
 
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
-import org.deviceconnect.android.deviceplugin.hvc.comm.HvcCommManager;
+import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -30,6 +26,14 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class HvcServiceDiscoveryProfile extends ServiceDiscoveryProfile {
+
+    /**
+     * Constructor.
+     * @param provider profile provider
+     */
+    public HvcServiceDiscoveryProfile(final DConnectProfileProvider provider) {
+        super(provider);
+    }
 
     @Override
     public boolean onGetServices(final Intent request, final Intent response) {
@@ -70,6 +74,7 @@ public class HvcServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         result.putString(ServiceDiscoveryProfile.PARAM_NAME, foundDevice.getName());
         result.putString(ServiceDiscoveryProfile.PARAM_TYPE, NetworkType.BLE.getValue());
         result.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+        setScopes(result, getProfileProvider());
 
         return result;
     }

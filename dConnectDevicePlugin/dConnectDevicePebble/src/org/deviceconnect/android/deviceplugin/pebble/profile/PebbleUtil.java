@@ -1,3 +1,9 @@
+/*
+ PebbleUtil.java
+ Copyright (c) 2014 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.pebble.profile;
 
 import java.util.regex.Matcher;

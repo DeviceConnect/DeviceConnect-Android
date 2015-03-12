@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
+import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -30,6 +31,14 @@ import com.sonyericsson.extras.liveware.extension.util.registration.Registration
  */
 public class SWServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
+    /**
+     * コンストラクタ.
+     * @param provider プロファイルプロバイダ
+     */
+    public SWServiceDiscoveryProfile(final DConnectProfileProvider provider) {
+        super(provider);
+    }
+
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
         List<Bundle> services = new ArrayList<Bundle>();
@@ -47,6 +56,7 @@ public class SWServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                                 getHostApplication(getContext(), SWUtil.toHostAppPackageName(deviceName)).getId(); 
                         if (isConnected(hostAppId)) {
                             Bundle bundle = SWUtil.toBundle(device);
+                            setScopes(bundle, getProfileProvider());
                             services.add(bundle);
                         }
                     }

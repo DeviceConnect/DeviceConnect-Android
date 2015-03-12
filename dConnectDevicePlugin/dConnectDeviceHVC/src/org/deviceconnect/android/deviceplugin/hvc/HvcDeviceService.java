@@ -182,7 +182,7 @@ public class HvcDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HvcServiceDiscoveryProfile();
+        return new HvcServiceDiscoveryProfile(this);
     }
 
     //

@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.hvc.comm;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import android.bluetooth.BluetoothDevice;

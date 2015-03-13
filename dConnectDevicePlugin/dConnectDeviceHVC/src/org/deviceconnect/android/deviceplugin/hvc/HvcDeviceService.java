@@ -363,7 +363,7 @@ public class HvcDeviceService extends DConnectMessageService {
                         // retry(Now in the device communication)
                         if (commManagerFinal.checkCommBusy()) {
                             if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "retry (Now in the device search)");
+                                Log.d(TAG, "retry");
                             }
                             return true;
                         }

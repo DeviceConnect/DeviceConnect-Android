@@ -552,9 +552,17 @@ public class HVC_BLE extends HVC implements BleInterface
 	
 	/**
 	 * get status.
+	 * @return status(STATE_DISCONNECTED / STATE_CONNECTING / STATE_CONNECTED / STATE_BUSY)
+	 */
+	public int getStatus() {
+	    return mStatus;
+	}
+	
+	/**
+	 * get comm status.
 	 * @return status.
 	 */
-    public int getStatus() {
+    public int getCommStatus() {
         if ( mBtDevice == null ) {
             Log.d(TAG, "getStatus() : HVC_ERROR_NODEVICES");
             return HVC_ERROR_NODEVICES;

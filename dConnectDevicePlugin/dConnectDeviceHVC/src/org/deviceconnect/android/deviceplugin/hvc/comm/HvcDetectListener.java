@@ -17,25 +17,11 @@ import omron.HVC.HVC_RES;
 public interface HvcDetectListener {
     
     /**
-     * Device Connected.
-     */
-    void onConnected();
-    
-    /**
-     * Send Parameter finished.
-     * @param hvcPrm send HVC parameter.
-     */
-    void onPostSetParam(final HVC_PRM hvcPrm);
-    /**
      * Detect finished.
      * @param hvcPrm send HVC parameter.
      * @param hvcRes send HVC response.
      */
     void onDetectFinished(final HVC_PRM hvcPrm, final HVC_RES hvcRes);
-    /**
-     * Disconnected.
-     */
-    void onDisconnected();
     
     /**
      * Error.

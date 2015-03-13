@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import omron.HVC.HVC;
+import omron.HVC.HVCBleCallback;
+import omron.HVC.HVC_BLE;
 import omron.HVC.HVC_PRM;
 import omron.HVC.HVC_RES;
 
@@ -60,16 +63,36 @@ public class HvcCommManager {
      */
     private BluetoothDevice mBluetoothDevice;
 
-    // /**
-    // * Device search thread.
-    // */
-    // private HvcDeviceSearchThread mDeviceSearchThread;
-
-    /**
-     * Detect thread..
-     */
-    private HvcDetectThread mDetectThread;
     
+    /**
+     * HVC BLE class.
+     */
+    private HVC_BLE mHvcBle = new HVC_BLE();
+    /**
+     * HVC parameter class.
+     */
+    private HVC_PRM mHvcPrm = null;
+    /**
+     * HVC response class.
+     */
+    private HVC_RES mHvcRes = new HVC_RES();
+    /**
+     * Cache parameter.
+     */
+    private HVC_PRM mCacheHvcPrm = null;
+    /**
+     * Request parameters.
+     */
+    private HumanDetectRequestParams mRequestParams = null;
+    /**
+     * last process time(System.currentTimeMillis()).
+     */
+    private long mLastAccessTime;
+    
+    /**
+     * HVC detect listener.
+     */
+    private HvcDetectListener mListener;
     
     
     /**
@@ -221,13 +244,7 @@ public class HvcCommManager {
      * comm manager destroy process.
      */
     public void destroy() {
-
-        // if (mDeviceSearchThread.isAlive()) {
-        // mDeviceSearchThread.halt();
-        // }
-        if (mDetectThread != null && mDetectThread.isAlive()) {
-            mDetectThread.halt();
-        }
+        mHvcBle.disconnect();
     }
 
     /**
@@ -257,8 +274,10 @@ public class HvcCommManager {
         // check comm busy.
         if (checkCommBusy()) {
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "doGetDetectionProc() - skip event process.(busy)");
+                Log.d(TAG, "doGetDetectionProc() - BUG: Supposed to have been checked in HvcDeviceService.");
             }
+            MessageUtils.setIllegalDeviceStateError(response, "device busy.");
+            mContext.sendBroadcast(response);
             return;
         }
         
@@ -279,32 +298,11 @@ public class HvcCommManager {
             }
             
             @Override
-            public void onConnected() {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "<GET> connected.");
-                }
-            }
-            
-            @Override
             public void onSetParamError(final int status) {
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "<GET> set parameter error. status:" + status);
                 }
                 MessageUtils.setIllegalDeviceStateError(response, "set parameter error. status:" + status);
-            }
-            
-            @Override
-            public void onPostSetParam(final HVC_PRM hvcPrm) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "<GET> success post set parameter.");
-                }
-            }
-            
-            @Override
-            public void onDisconnected() {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "<GET> disconnected.");
-                }
             }
             
             @Override
@@ -318,7 +316,7 @@ public class HvcCommManager {
             @Override
             public void onDetectError(final int status) {
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "<EVENT> detect error.  status:" + status);
+                    Log.d(TAG, "<GET> detect error.  status:" + status);
                 }
                 MessageUtils.setIllegalDeviceStateError(response, "detect error.  status:" + status);
             }
@@ -326,17 +324,14 @@ public class HvcCommManager {
             @Override
             public void onConnectError(final int status) {
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "<EVENT> connect error.  status:" + status);
+                    Log.d(TAG, "<GET> connect error.  status:" + status);
                 }
                 MessageUtils.setIllegalDeviceStateError(response, "connect error.  status:" + status);
             }
         };
         
-        // start comm process and request.
-        if (mDetectThread == null || !mDetectThread.isAlive()) {
-            mDetectThread = new HvcDetectThread(mContext, mBluetoothDevice);
-        }
-        mDetectThread.request(requestParams, listener);
+        // detect request.
+        commRequestProc(requestParams, listener);
     }
     
     /**
@@ -344,9 +339,10 @@ public class HvcCommManager {
      * @return true: busy / false: not busy.
      */
     public boolean checkCommBusy() {
-         if (mDetectThread != null && mDetectThread.checkBusy()) {
-             return true;
-         }
+        
+        if (mHvcBle.getStatus() == HVC_BLE.STATE_BUSY) {
+            return true;
+        }
         return false;
     }
     
@@ -355,10 +351,11 @@ public class HvcCommManager {
      * @return true: busy / false: not busy.
      */
     public boolean checkConnect() {
-         if (mDetectThread != null && mDetectThread.checkConnect()) {
-             return true;
-         }
-        return false;
+        int commStatus = mHvcBle.getCommStatus();
+        if (commStatus == HVC.HVC_ERROR_NODEVICES) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -369,7 +366,7 @@ public class HvcCommManager {
     public void onEventProc(final long interval) {
         
         // comm busy.
-        if (mDetectThread != null && mDetectThread.checkBusy()) {
+        if (checkCommBusy()) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "onEventProc() - skip event process.(busy)");
             }
@@ -409,30 +406,9 @@ public class HvcCommManager {
             }
             
             @Override
-            public void onConnected() {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "<EVENT> connected.");
-                }
-            }
-            
-            @Override
             public void onSetParamError(final int status) {
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "<EVENT> set parameter error. status:" + status);
-                }
-            }
-            
-            @Override
-            public void onPostSetParam(final HVC_PRM hvcPrm) {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "<EVENT> success post set parameter.");
-                }
-            }
-            
-            @Override
-            public void onDisconnected() {
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "<EVENT> disconnected.");
                 }
             }
             
@@ -458,11 +434,8 @@ public class HvcCommManager {
             }
         };
         
-        // start comm process and request.
-        if (mDetectThread == null || !mDetectThread.isAlive()) {
-            mDetectThread = new HvcDetectThread(mContext, mBluetoothDevice);
-        }
-        mDetectThread.request(requestParams, listener);
+        // request.
+        commRequestProc(requestParams, listener);
     }
 
     /**
@@ -471,15 +444,14 @@ public class HvcCommManager {
     public void onTimeoutJudgeProc() {
         
         // BLE connect timeout judge.
-        if (mDetectThread != null
-        &&  mDetectThread.isAlive()
-        &&  (System.currentTimeMillis() - mDetectThread.getLastAccessTime()) > HvcConstants.HVC_CONNECT_TIMEOUT_TIME) {
+        if (checkConnect()
+        &&  (System.currentTimeMillis() - mLastAccessTime) > HvcConstants.HVC_CONNECT_TIMEOUT_TIME) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG,
                     "disconnect(BLE connect timeout). Not been accessed more than "
                     + (HvcConstants.HVC_CONNECT_TIMEOUT_TIME / 1000) + " seconds");
             }
-            mDetectThread.disconnect();
+            mHvcBle.disconnect();
         }
         
     }
@@ -510,5 +482,132 @@ public class HvcCommManager {
         }
         
         return requestParams;
+    }
+    
+    /**
+     * HVC comm request process.
+     * @param requestParams request parameters
+     * @param listener callback listener
+     */
+    public void commRequestProc(final HumanDetectRequestParams requestParams, final HvcDetectListener listener) {
+        
+        if (checkCommBusy()) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "commRequestProc() - BUG: Supposed to have been checked in HvcDeviceService.");
+            }
+            return;
+        }
+        
+        mRequestParams = requestParams;
+        mHvcPrm = new HvcDetectRequestParams(requestParams).getHvcParams();
+        mListener = listener;
+        
+        // Replace last access time.
+        mLastAccessTime = System.currentTimeMillis();
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "commRequestProc() - mLastAccessTime:" + mLastAccessTime);
+        }
+        
+        // BLE initialize (GATT)
+        mHvcBle.setCallBack(new HVCBleCallback() {
+            @Override
+            public void onConnected() {
+                super.onConnected();
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "commRequestProc() - onConnected()");
+                }
+                
+                // send parameter(if cache hit, no send)
+                sendParameterProc();
+            }
+            
+            @Override
+            public void onDisconnected() {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "commRequestProc() - onDisconnected()");
+                }
+                super.onDisconnected();
+            }
+            
+            @Override
+            public void onPostSetParam(final int nRet, final byte outStatus) {
+                super.onPostSetParam(nRet, outStatus);
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "commRequestProc() - onPostSetParam()");
+                }
+                
+                // replace cache.
+                mCacheHvcPrm = mHvcPrm;
+                
+                // send detect request.
+                sendDetectRequestProc();
+            }
+            
+            @Override
+            public void onPostExecute(final int nRet, final byte outStatus) {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "commRequestProc() - onPostExecute() nRet:" + nRet + " outStatus:" + outStatus);
+                }
+                if (nRet != HVC.HVC_NORMAL || outStatus != 0) {
+                    // Error processing
+                    mListener.onDetectError(nRet);
+                } else {
+                    mListener.onDetectFinished(mHvcPrm, mHvcRes);
+                }
+            }
+        });
+        
+        // connect
+        int commStatus = mHvcBle.getCommStatus();
+        if (commStatus == HVC.HVC_ERROR_NODEVICES || commStatus == HVC.HVC_ERROR_DISCONNECTED) {
+            
+            // clear cache.
+            mCacheHvcPrm = null;
+            
+            // connect
+            mHvcBle.connect(mContext, mBluetoothDevice);
+        } else {
+            // already connect
+            sendParameterProc();
+        }
+    }
+    
+    /**
+     * send parameter(if cache hit, no send).
+     */
+    private void sendParameterProc() {
+        // send parameter.
+        if (mCacheHvcPrm == null || !mCacheHvcPrm.equals(mHvcPrm)) {
+            
+            // no hit cache, send parameter.
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "mHvcBle.setParam()");
+            }
+            int result = mHvcBle.setParam(mHvcPrm);
+            if (result != HVC.HVC_NORMAL) {
+                mListener.onSetParamError(result);
+                return;
+            }
+            
+        } else {
+            // cache hit (no send parameter, next step)
+            sendDetectRequestProc();
+        }
+    }
+    
+    /**
+     * send detect request.
+     */
+    private void sendDetectRequestProc() {
+        // send detect request.
+        int useFunc = (new HvcDetectRequestParams(mRequestParams)).getUseFunc();
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "mHvcBle.execute() useFunc:" + useFunc);
+        }
+        int result = mHvcBle.execute(useFunc, mHvcRes);
+        if (result != HVC.HVC_NORMAL) {
+            mListener.onRequestDetectError(result);
+            return;
+        }
     }
 }

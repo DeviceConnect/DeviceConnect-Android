@@ -108,7 +108,6 @@ public class HostSettingsProfile extends SettingsProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
-            try {
             // 自動調整ボタンが有効な場合 0が変える
             // 端末画面の明るさを取得(0～255)
             double level = Settings.System.getInt(getContext().getContentResolver(),
@@ -116,9 +115,6 @@ public class HostSettingsProfile extends SettingsProfile {
             double maxLevel = MAX_LIGHT_LEVEL;
             setLightLevel(response, level / maxLevel);
             setResult(response, DConnectMessage.RESULT_OK);
-            } catch (Exception e) {
-                Log.e("ABC", " " , e);
-            }
         }
         return true;
     }

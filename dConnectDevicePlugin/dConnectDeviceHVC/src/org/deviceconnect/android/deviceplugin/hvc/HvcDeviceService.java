@@ -126,39 +126,21 @@ public class HvcDeviceService extends DConnectMessageService {
         if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "bluetooth state change.");
-                Bundle extras = intent.getExtras();
-                int state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
-                int prevState = extras.getInt(BluetoothAdapter.EXTRA_PREVIOUS_STATE);
-
-                Log.d(TAG, "state:"
-                        + (state == BluetoothAdapter.STATE_ON ? "STATE_ON"
-                                : state == BluetoothAdapter.STATE_OFF ? "STATE_OFF"
-                                        : state == BluetoothAdapter.STATE_TURNING_OFF ? "STATE_TURNING_OFF"
-                                                : state == BluetoothAdapter.STATE_TURNING_ON ? "STATE_TURNING_ON"
-                                                        : "other"));
-                Log.d(TAG, "prevState:"
-                        + (prevState == BluetoothAdapter.STATE_ON ? "STATE_ON"
-                                : prevState == BluetoothAdapter.STATE_OFF ? "STATE_OFF"
-                                        : prevState == BluetoothAdapter.STATE_TURNING_OFF ? "STATE_TURNING_OFF"
-                                                : prevState == BluetoothAdapter.STATE_TURNING_ON ? "STATE_TURNING_ON"
-                                                        : "other"));
+            }
+            
+            Bundle extras = intent.getExtras();
+            int state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
+            if (state == BluetoothAdapter.STATE_TURNING_OFF) {
+                // Bluetooth ON -> OFF
                 
-                if (state == BluetoothAdapter.STATE_TURNING_OFF) {
-                    // Bluetooth ON -> OFF
-                    
-                    // stop scan process.
-                    mDetector.stopScan();
-                    
-                    // remove all detection event and timer.
-                    removeAllDetectionEvents();
-                    
-                } else if (state == BluetoothAdapter.STATE_ON) {
-                    // Bluetooth OFF -> ON
-                    
-                    // start scan process.
-                    mDetector.startScan();
-                    
-                }
+                // stop scan process.
+                mDetector.stopScan();
+                
+            } else if (state == BluetoothAdapter.STATE_ON) {
+                // Bluetooth OFF -> ON
+                
+                // start scan process.
+                mDetector.startScan();
                 
             }
         }
@@ -324,7 +306,13 @@ public class HvcDeviceService extends DConnectMessageService {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "doGetDetectionProc(). detectKind:" + detectKind.toString() + " serviceId:" + serviceId);
         }
-
+        
+        // Bluetooth OFF
+        if (!mDetector.isScanning()) {
+            MessageUtils.setIllegalDeviceStateError(response, "bluetooth OFF.");
+            return;
+        }
+        
         // search CommManager by serviceId(if not found, add CommManager.).
         HvcCommManager commManager = null;
         synchronized (mHvcCommManagerArray) {
@@ -482,26 +470,6 @@ public class HvcDeviceService extends DConnectMessageService {
         }
         return null;
     }
-    
-    /**
-     * remove all detection events and timer.
-     */
-    private void removeAllDetectionEvents() {
-        
-        // stop all event interval timer.
-        for (HvcTimerInfo intervalTimerInfo : mIntervalTimerInfoArray) {
-            intervalTimerInfo.stopTimer();
-        }
-        
-        // unregister comm manager all event info.
-        for (HvcCommManager commManager : mHvcCommManagerArray) {
-            commManager.unregisterAllDetectEvent();
-        }
-        
-        // remove all event info.
-        mIntervalTimerInfoArray.clear();
-        
-    }
 
     /**
      * start interval timer(if no event with same interval.).
@@ -520,6 +488,13 @@ public class HvcDeviceService extends DConnectMessageService {
                 public void run() {
                     if (BuildConfig.DEBUG) {
                         Log.d(TAG, "event interval timer proc.");
+                    }
+                    // Bluetooth OFF
+                     if (!mDetector.isScanning()) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "can not send event. (bluetooth OFF)s");
+                        }
+                        return;
                     }
                     // call event process.
                     synchronized (mHvcCommManagerArray) {

@@ -61,7 +61,13 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
         boolean result = true;
 
         if (ATTRIBUTE_VIBRATE.equals(attribute)) {
-            result = onPutVibrate(request, response, getServiceID(request), parsePattern(getPattern(request)));
+            long[] pattern = parsePattern(getPattern(request));
+            if (pattern == null) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "pattern is invalid.");
+            } else {
+                result = onPutVibrate(request, response, getServiceID(request), pattern);
+            }
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -151,7 +157,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
      */
     protected final long[] parsePattern(final String pattern) {
 
-        if (pattern == null || pattern.length() == 0) {
+        if (pattern == null) {
             return new long[] {getMaxVibrationTime()};
         }
 
@@ -172,6 +178,11 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
                         break;
                     }
                     long value = Long.parseLong(time.trim());
+                    if (value < 0) {
+                        // 数値が負の値の場合はフォーマットエラー
+                        values.clear();
+                        break;
+                    }
                     values.add(value);
                 } catch (NumberFormatException e) {
                     values.clear();
@@ -189,7 +200,9 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
         } else {
             try {
                 long time = Long.parseLong(pattern);
-                result = new long[] {time};
+                if (time >= 0) {
+                    result = new long[] {time};
+                }
             } catch (NumberFormatException e) {
                 mLogger.warning("Exception in the VibrationProfile#parsePattern() method. " + e.toString());
             }

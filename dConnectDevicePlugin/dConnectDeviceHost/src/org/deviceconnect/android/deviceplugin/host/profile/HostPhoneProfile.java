@@ -28,39 +28,41 @@ import android.net.Uri;
  */
 public class HostPhoneProfile extends PhoneProfile {
 
-    /** Error. */
-    private static final int ERROR_VALUE_IS_NULL = 100;
+    /**
+     * 電話番号のサイズ.
+     */
+    private static final int MAX_PHONE_NUMBER_SIZE = 13;
 
     @Override
     protected boolean onPostCall(final Intent request, final Intent response, final String serviceId,
             final String phoneNumber) {
-
-        mLogger.entering(this.getClass().getName(), "onPostReceive", new Object[] {request, response});
-
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
             if (phoneNumber != null) {
+                if (!checkPhoneNumber(phoneNumber)) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "phoneNumber is invalid.");
+                    return true;
+                }
+                
                 Uri uri = Uri.parse("tel:" + phoneNumber);
                 if (uri != null) {
-                Intent intent = new Intent(Intent.ACTION_CALL, uri);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                this.getContext().startActivity(intent);
-                setResult(response, DConnectMessage.RESULT_OK);
+                    Intent intent = new Intent(Intent.ACTION_CALL, uri);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getContext().startActivity(intent);
+                    setResult(response, DConnectMessage.RESULT_OK);
                 } else {
-                    MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "phone app is not exist");
-                    setResult(response, DConnectMessage.RESULT_ERROR);
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "phoneNumber is invalid.");
                 }
-
             } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "phoneNumber is null");
-                setResult(response, DConnectMessage.RESULT_ERROR);
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "phoneNumber is invalid.");
             }
-
         }
-
         return true;
     }
 
@@ -72,25 +74,22 @@ public class HostPhoneProfile extends PhoneProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
-            this.getContext();
             // AudioManager
-            AudioManager mAudioManager = (AudioManager) this.getContext().getSystemService(
-                    Context.AUDIO_SERVICE);
+            AudioManager mAudioManager = (AudioManager) getContext()
+                    .getSystemService(Context.AUDIO_SERVICE);
 
             if (mode.equals(PhoneMode.SILENT)) {
-                // サイレントモード
                 mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (mode.equals(PhoneMode.SOUND)) {
-                // 通常
                 mAudioManager.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (mode.equals(PhoneMode.MANNER)) {
-                // バイブレーションのみ
                 mAudioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (mode.equals(PhoneMode.UNKNOWN)) {
-                setResult(response, DConnectMessage.RESULT_ERROR);
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "mode is invalid.");
             }
         }
         return true;
@@ -107,21 +106,27 @@ public class HostPhoneProfile extends PhoneProfile {
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
-            setResult(response, DConnectMessage.RESULT_OK);
-
-            // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
-            ((HostDeviceService) getContext()).setServiceId(serviceId);
-
             if (error == EventError.NONE) {
+                ((HostDeviceService) getContext()).setServiceId(serviceId);
                 setResult(response, DConnectMessage.RESULT_OK);
-                return true;
             } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
-                return true;
+                switch (error) {
+                case FAILED:
+                    MessageUtils.setUnknownError(response, "Do not unregister event.");
+                    break;
+                case INVALID_PARAMETER:
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    break;
+                case NOT_FOUND:
+                    MessageUtils.setUnknownError(response, "Event not found.");
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response);
+                    break;
+                }
             }
         }
-
         return true;
     }
 
@@ -135,13 +140,24 @@ public class HostPhoneProfile extends PhoneProfile {
         } else if (sessionKey == null) {
             createEmptySessionKey(response);
         } else {
-            setResult(response, DConnectMessage.RESULT_OK);
-            // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
+                switch (error) {
+                case FAILED:
+                    MessageUtils.setUnknownError(response, "Do not unregister event.");
+                    break;
+                case INVALID_PARAMETER:
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    break;
+                case NOT_FOUND:
+                    MessageUtils.setUnknownError(response, "Event not found.");
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response);
+                    break;
+                }
             }
         }
 
@@ -186,7 +202,22 @@ public class HostPhoneProfile extends PhoneProfile {
      * @param response レスポンスを格納するIntent
      */
     private void createEmptySessionKey(final Intent response) {
-        MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "SessionKey not found");
+        MessageUtils.setInvalidRequestParameterError(response, "SessionKey not found");
     }
 
+    /**
+     * 電話番号のフォーマットチェックを行う.
+     * @param phoneNumber 電話番号
+     * @return 電話番号の場合はtrue、それ以外はfalse
+     */
+    private boolean checkPhoneNumber(final String phoneNumber) {
+        if (phoneNumber == null) {
+            return false;
+        }
+        if (phoneNumber.length() > MAX_PHONE_NUMBER_SIZE) {
+            return false;
+        }
+        String pattern = "[0-9+]+";
+        return phoneNumber.matches(pattern);
+    }
 }

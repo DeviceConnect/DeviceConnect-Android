@@ -181,6 +181,17 @@ public class HvcCommManager {
         HumanDetectEventUtils.remove(mEventArray, detectKind, sessionKey);
     }
     
+    /**
+     * unregister all detect event.
+     */
+    public void unregisterAllDetectEvent() {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "unregisterAllDetectEvent()");
+        }
+
+        // remove all event register info.
+        mEventArray.clear();
+    }
 
 
     /**

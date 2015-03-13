@@ -264,7 +264,7 @@ public class BleDeviceDetector {
             
             mHandler = new Handler();
             
-            if (mScanning || mScanTimerFuture != null) {
+            if (mScanning) {
                 // scan have already started.
                 return;
             }
@@ -281,6 +281,7 @@ public class BleDeviceDetector {
                                 notifyBluetoothDevice();
                             } else {
                                 mScanTimerFuture.cancel(true);
+                                mScanning = false;
                             }
                         }
                     }, SCAN_PERIOD);
@@ -289,6 +290,7 @@ public class BleDeviceDetector {
                         startBleScan();
                     } else {
                         mScanTimerFuture.cancel(true);
+                        mScanning = false;
                     }
                 }
             }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);

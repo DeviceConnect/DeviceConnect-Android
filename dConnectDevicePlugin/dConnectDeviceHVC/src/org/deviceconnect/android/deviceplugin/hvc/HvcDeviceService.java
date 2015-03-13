@@ -142,30 +142,26 @@ public class HvcDeviceService extends DConnectMessageService {
                                         : prevState == BluetoothAdapter.STATE_TURNING_OFF ? "STATE_TURNING_OFF"
                                                 : prevState == BluetoothAdapter.STATE_TURNING_ON ? "STATE_TURNING_ON"
                                                         : "other"));
+                
+                if (state == BluetoothAdapter.STATE_TURNING_OFF) {
+                    // Bluetooth ON -> OFF
+                    
+                    // stop scan process.
+                    mDetector.stopScan();
+                    
+                    // remove all detection event and timer.
+                    removeAllDetectionEvents();
+                    
+                } else if (state == BluetoothAdapter.STATE_ON) {
+                    // Bluetooth OFF -> ON
+                    
+                    // start scan process.
+                    mDetector.startScan();
+                    
+                }
+                
             }
         }
-
-        // if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-        // HvcConnectProfile.PROFILE_NAME,
-        // List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
-        // null,
-        // HvcConnectProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        //
-        // for (int i = 0; i < events.size(); i++) {
-        // Event event = events.get(i);
-        // Intent mIntent = EventManager.createEventMessage(event);
-        // HvcConnectProfile.setAttribute(mIntent,
-        // HvcConnectProfile.ATTRIBUTE_ON_BLUETOOTH_CHANGE);
-        // Bundle bluetoothConnecting = new Bundle();
-        // BluetoothAdapter mBluetoothAdapter =
-        // BluetoothAdapter.getDefaultAdapter();
-        // HvcConnectProfile.setEnable(bluetoothConnecting,
-        // mBluetoothAdapter.isEnabled());
-        // HvcConnectProfile.setConnectStatus(mIntent, bluetoothConnecting);
-        // getContext().sendBroadcast(mIntent);
-        // }
-        // return START_STICKY;
-        // }
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -469,7 +465,7 @@ public class HvcDeviceService extends DConnectMessageService {
          */
         void timeoutProc();
     }
-
+    
     /**
      * search cache HVC device by serviceId.
      * 
@@ -485,6 +481,26 @@ public class HvcDeviceService extends DConnectMessageService {
             }
         }
         return null;
+    }
+    
+    /**
+     * remove all detection events and timer.
+     */
+    private void removeAllDetectionEvents() {
+        
+        // stop all event interval timer.
+        for (HvcTimerInfo intervalTimerInfo : mIntervalTimerInfoArray) {
+            intervalTimerInfo.stopTimer();
+        }
+        
+        // unregister comm manager all event info.
+        for (HvcCommManager commManager : mHvcCommManagerArray) {
+            commManager.unregisterAllDetectEvent();
+        }
+        
+        // remove all event info.
+        mIntervalTimerInfoArray.clear();
+        
     }
 
     /**

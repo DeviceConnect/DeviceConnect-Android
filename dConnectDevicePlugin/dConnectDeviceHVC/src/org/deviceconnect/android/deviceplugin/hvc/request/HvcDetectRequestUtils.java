@@ -18,7 +18,6 @@ import org.deviceconnect.android.deviceplugin.hvc.profile.HvcConstants;
 import org.deviceconnect.android.profile.HumanDetectProfile;
 
 import android.content.Intent;
-import android.util.Log;
 
 /**
  * HVC detect request utility.
@@ -109,21 +108,6 @@ public final class HvcDetectRequestUtils {
             if (maxHeight != null) {
                 bodyRequestParams.setMaxHeight(maxHeight);
             }
-            if (eventInterval != null) {
-                if (eventInterval == 0) {
-                    bodyRequestParams.setEventInterval(HvcConstants.PARAM_INTERVAL_DEFAULT);
-                } else if (eventInterval < HvcConstants.PARAM_INTERVAL_MIN) {
-                    String error = String.format(ERROR_INVERVAL_PARAMETER_TOO_MINIMUM,
-                            HvcConstants.PARAM_INTERVAL_MIN, HvcConstants.PARAM_INTERVAL_MAX);
-                    throw new IllegalArgumentException(error);
-                } else if (eventInterval > HvcConstants.PARAM_INTERVAL_MAX) {
-                    String error = String.format(ERROR_INVERVAL_PARAMETER_TOO_MAXIMUM,
-                            HvcConstants.PARAM_INTERVAL_MIN, HvcConstants.PARAM_INTERVAL_MAX);
-                    throw new IllegalArgumentException(error);
-                } else {
-                    bodyRequestParams.setEventInterval(eventInterval);
-                }
-            }
             
             // store.
             requestParams.setBody(bodyRequestParams);
@@ -152,21 +136,6 @@ public final class HvcDetectRequestUtils {
             if (maxHeight != null) {
                 handRequestParams.setMaxHeight(maxHeight);
             }
-            if (eventInterval != null) {
-                if (eventInterval == 0) {
-                    handRequestParams.setEventInterval(HvcConstants.PARAM_INTERVAL_DEFAULT);
-                } else if (eventInterval < HvcConstants.PARAM_INTERVAL_MIN) {
-                    String error = String.format(ERROR_INVERVAL_PARAMETER_TOO_MINIMUM,
-                            HvcConstants.PARAM_INTERVAL_MIN, HvcConstants.PARAM_INTERVAL_MAX);
-                    throw new IllegalArgumentException(error);
-                } else if (eventInterval > HvcConstants.PARAM_INTERVAL_MAX) {
-                    String error = String.format(ERROR_INVERVAL_PARAMETER_TOO_MAXIMUM,
-                            HvcConstants.PARAM_INTERVAL_MIN, HvcConstants.PARAM_INTERVAL_MAX);
-                    throw new IllegalArgumentException(error);
-                } else {
-                    handRequestParams.setEventInterval(eventInterval);
-                }
-            }
             
             // store.
             requestParams.setHand(handRequestParams);
@@ -194,21 +163,6 @@ public final class HvcDetectRequestUtils {
             }
             if (maxHeight != null) {
                 faceRequestParams.setMaxHeight(maxHeight);
-            }
-            if (eventInterval != null) {
-                if (eventInterval == 0) {
-                    faceRequestParams.setEventInterval(HvcConstants.PARAM_INTERVAL_DEFAULT);
-                } else if (eventInterval < HvcConstants.PARAM_INTERVAL_MIN) {
-                    String error = String.format(ERROR_INVERVAL_PARAMETER_TOO_MINIMUM,
-                            HvcConstants.PARAM_INTERVAL_MIN, HvcConstants.PARAM_INTERVAL_MAX);
-                    throw new IllegalArgumentException(error);
-                } else if (eventInterval > HvcConstants.PARAM_INTERVAL_MAX) {
-                    String error = String.format(ERROR_INVERVAL_PARAMETER_TOO_MAXIMUM,
-                            HvcConstants.PARAM_INTERVAL_MIN, HvcConstants.PARAM_INTERVAL_MAX);
-                    throw new IllegalArgumentException(error);
-                } else {
-                    faceRequestParams.setEventInterval(eventInterval);
-                }
             }
 
             // get parameters.(different type error, throw
@@ -265,7 +219,19 @@ public final class HvcDetectRequestUtils {
         }
         if (eventInterval != null) {
             HumanDetectEventRequestParams event = requestParams.getEvent();
-            event.setInterval(eventInterval);
+            if (eventInterval == 0) {
+                event.setInterval(HvcConstants.PARAM_INTERVAL_DEFAULT);
+            } else if (eventInterval < HvcConstants.PARAM_INTERVAL_MIN) {
+                String error = String.format(ERROR_INVERVAL_PARAMETER_TOO_MINIMUM,
+                        HvcConstants.PARAM_INTERVAL_MIN, HvcConstants.PARAM_INTERVAL_MAX);
+                throw new IllegalArgumentException(error);
+            } else if (eventInterval > HvcConstants.PARAM_INTERVAL_MAX) {
+                String error = String.format(ERROR_INVERVAL_PARAMETER_TOO_MAXIMUM,
+                        HvcConstants.PARAM_INTERVAL_MIN, HvcConstants.PARAM_INTERVAL_MAX);
+                throw new IllegalArgumentException(error);
+            } else {
+                event.setInterval(eventInterval);
+            }
         }
         
         // success

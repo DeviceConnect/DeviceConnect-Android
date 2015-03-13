@@ -82,7 +82,7 @@ public final class HvcResponseUtils {
         for (omron.HVC.HVC_RES.DetectionResult r : result.body) {
 
             // threshold check
-            if (r.confidence >= requestParams.getFace().getHvcThreshold()) {
+            if (r.confidence >= requestParams.getBody().getHvcThreshold()) {
                 Bundle bodyDetect = new Bundle();
                 HumanDetectProfile.setParamX(bodyDetect,
                         HvcConvertUtils.convertToNormalize(r.posX, HvcConstants.HVC_C_CAMERA_WIDTH));

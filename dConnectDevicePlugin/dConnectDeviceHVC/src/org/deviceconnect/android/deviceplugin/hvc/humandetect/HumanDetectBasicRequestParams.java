@@ -42,11 +42,6 @@ public class HumanDetectBasicRequestParams implements Cloneable {
      * max height value(normalized value).
      */
     private double mNormalizeMaxHeight;
-    
-    /**
-     * event interval[msec].
-     */
-    private long mEventInterval;
 
     /**
      * Constructor(with default value).
@@ -56,18 +51,16 @@ public class HumanDetectBasicRequestParams implements Cloneable {
      * @param normalizeMinHeight minHeight
      * @param normalizeMaxWidth maxWidth
      * @param normalizeMaxHeight maxHeight
-     * @param eventInterval event interval[msec]
      */
     public HumanDetectBasicRequestParams(final List<String> options, final double normalizeThreshold,
             final double normalizeMinWidth, final double normalizeMinHeight, final double normalizeMaxWidth,
-            final double normalizeMaxHeight, final long eventInterval) {
+            final double normalizeMaxHeight) {
         mOptions = options;
         mNormalizeThreshold = normalizeThreshold;
         mNormalizeMinWidth = normalizeMinWidth;
         mNormalizeMinHeight = normalizeMinHeight;
         mNormalizeMaxWidth = normalizeMaxWidth;
         mNormalizeMaxHeight = normalizeMaxHeight;
-        mEventInterval = eventInterval;
     }
     
     @Override
@@ -128,14 +121,6 @@ public class HumanDetectBasicRequestParams implements Cloneable {
         mNormalizeMaxHeight = maxHeight;
     }
     
-    /**
-     * set event interval.
-     * @param eventInterval event interval[msec].
-     */
-    public void setEventInterval(final long eventInterval) {
-        mEventInterval = eventInterval;
-    }
-    
     
     /**
      * get options.
@@ -183,13 +168,5 @@ public class HumanDetectBasicRequestParams implements Cloneable {
      */
     public double getMaxHeight() {
         return mNormalizeMaxHeight;
-    }
-    
-    /**
-     * get event interval.
-     * @return eventInterval event interval[msec].
-     */
-    public long getEventInterval() {
-        return mEventInterval;
     }
 }

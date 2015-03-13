@@ -23,13 +23,12 @@ public class HumanDetectHandRequestParams extends HumanDetectBasicRequestParams 
      * @param normalizeMinHeight minHeight
      * @param normalizeMaxWidth maxWidth
      * @param normalizeMaxHeight maxHeight
-     * @param eventInterval event interval[msec]
      */
     public HumanDetectHandRequestParams(final List<String> options, final double normalizeThreshold,
             final double normalizeMinWidth, final double normalizeMinHeight, final double normalizeMaxWidth,
-            final double normalizeMaxHeight, final long eventInterval) {
-        super(options, normalizeThreshold, normalizeMinWidth, normalizeMinHeight, normalizeMaxWidth, normalizeMaxHeight,
-                eventInterval);
+            final double normalizeMaxHeight) {
+        super(options, normalizeThreshold, normalizeMinWidth, normalizeMinHeight, normalizeMaxWidth,
+                normalizeMaxHeight);
         
     }
 }

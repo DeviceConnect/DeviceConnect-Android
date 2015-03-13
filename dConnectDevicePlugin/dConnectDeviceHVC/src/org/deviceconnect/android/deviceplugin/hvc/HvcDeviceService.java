@@ -209,7 +209,6 @@ public class HvcDeviceService extends DConnectMessageService {
             Log.d(TAG, "registerDetectionEvent(). detectKind:" + detectKind.toString() + " serviceId:" + serviceId
                     + " sessionKey:" + sessionKey);
         }
-
         // search CommManager by serviceId(if not found, add CommManager.).
         HvcCommManager commManager = null;
         synchronized (mHvcCommManagerArray) {

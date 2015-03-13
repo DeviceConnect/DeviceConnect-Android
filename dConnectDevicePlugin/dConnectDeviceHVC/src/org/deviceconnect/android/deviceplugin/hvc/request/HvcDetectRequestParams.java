@@ -119,7 +119,7 @@ public class HvcDetectRequestParams {
         
         HumanDetectBodyRequestParams body = new HumanDetectBodyRequestParams(new ArrayList<String>(),
                 DEFAULT_NORMALIZE_THRESHOLD, DEFAULT_NORMALIZE_BODY_MIN_WIDTH, DEFAULT_NORMALIZE_BODY_MIN_HEIGHT,
-                DEFAULT_NORMALIZE_BODY_MAX_WIDTH, DEFAULT_NORMALIZE_BODY_MAX_HEIGHT, DEFAULT_EVENT_INTERVAL);
+                DEFAULT_NORMALIZE_BODY_MAX_WIDTH, DEFAULT_NORMALIZE_BODY_MAX_HEIGHT);
         return body;
     }
     
@@ -131,7 +131,7 @@ public class HvcDetectRequestParams {
         
         HumanDetectHandRequestParams hand = new HumanDetectHandRequestParams(new ArrayList<String>(),
                 DEFAULT_NORMALIZE_THRESHOLD, DEFAULT_NORMALIZE_HAND_MIN_WIDTH, DEFAULT_NORMALIZE_HAND_MIN_HEIGHT,
-                DEFAULT_NORMALIZE_HAND_MAX_WIDTH, DEFAULT_NORMALIZE_HAND_MAX_HEIGHT, DEFAULT_EVENT_INTERVAL);
+                DEFAULT_NORMALIZE_HAND_MAX_WIDTH, DEFAULT_NORMALIZE_HAND_MAX_HEIGHT);
         return hand;
     }
     
@@ -144,7 +144,7 @@ public class HvcDetectRequestParams {
         
         HumanDetectFaceRequestParams face = new HumanDetectFaceRequestParams(new ArrayList<String>(),
                 DEFAULT_NORMALIZE_THRESHOLD, DEFAULT_NORMALIZE_FACE_MIN_WIDTH, DEFAULT_NORMALIZE_FACE_MIN_HEIGHT,
-                DEFAULT_NORMALIZE_FACE_MAX_WIDTH, DEFAULT_NORMALIZE_FACE_MAX_HEIGHT, DEFAULT_EVENT_INTERVAL);
+                DEFAULT_NORMALIZE_FACE_MAX_WIDTH, DEFAULT_NORMALIZE_FACE_MAX_HEIGHT);
         return face;
     }
     

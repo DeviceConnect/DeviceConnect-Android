@@ -18,6 +18,8 @@ package omron.HVC;
 
 import java.util.ArrayList;
 
+import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
+
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.util.Log;
@@ -37,6 +39,11 @@ interface BleInterface {
  */
 public class HVC_BLE extends HVC implements BleInterface
 {
+    /**
+     * DebugLog.
+     */
+    static final boolean DEBUG_LOG = BuildConfig.DEBUG;
+    
     public static final int STATE_DISCONNECTED = 0;
     public static final int STATE_CONNECTING = 1;
     public static final int STATE_CONNECTED = 2;
@@ -108,15 +115,21 @@ public class HVC_BLE extends HVC implements BleInterface
     public int execute(final int inExec, final HVC_RES res)
     {
         if ( mBtDevice == null ) {
-	        Log.d(TAG, "execute() : HVC_ERROR_NODEVICES");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "execute() : HVC_ERROR_NODEVICES");
+            }
             return HVC_ERROR_NODEVICES;
         }
         if ( mService == null || mService.getmConnectionState() != BleDeviceService.STATE_CONNECTED ) {
-	        Log.d(TAG, "execute() : HVC_ERROR_DISCONNECTED");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "execute() : HVC_ERROR_DISCONNECTED");
+            }
             return HVC_ERROR_DISCONNECTED;
         }
         if ( mStatus > STATE_CONNECTED ) {
-	        Log.d(TAG, "execute() : HVC_ERROR_BUSY");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "execute() : HVC_ERROR_BUSY");
+            }
             return HVC_ERROR_BUSY;
         }
 
@@ -126,31 +139,22 @@ public class HVC_BLE extends HVC implements BleInterface
 			public void run() {
 		        int nRet = HVC_NORMAL;
 		        byte[] outStatus = new byte[1];
-		        /*
-				 * 検出実行コマンドを送信して応答を待つ(30秒でタイムアウトする)
-				 * ・SendCommand(HVC_COM_EXECUTE, 3, sendData);
-				 * ・ReceiveHeader(inTimeOutTime, nSize, outStatus);
-				 * ・outStatusとresに戻り値を返す
-				 */
 		        nRet = Execute(30000, inExec, outStatus, res);
 
-                /*
-                 * STATE_BUSYを解除する(本処理がコールバック後になっていたが、BUSY状態でコールバックが実行されてなにもできないので先に処理するように変更した)
-                 */
-                /* レスポンス受信またはタイムアウトしたら、BUSYからCONNECTEDに繊維 */
                 if ( mStatus == STATE_BUSY ) {
                     mStatus = STATE_CONNECTED;
                 }
 
                 if ( mCallback != null ) {
-		        	/* 応答が帰ったらコールバックを実行 */
 		        	mCallback.onPostExecute(nRet, outStatus[0]);
 		        }
 			}
     	};
 
     	t.start();
-        Log.d(TAG, "execute() : HVC_NORMAL");
+        if (DEBUG_LOG) {
+            Log.d(TAG, "execute() : HVC_NORMAL");
+        }
     	return HVC_NORMAL;
     }
 
@@ -158,60 +162,44 @@ public class HVC_BLE extends HVC implements BleInterface
     public int setParam(final HVC_PRM prm)
     {
         if ( mBtDevice == null ) {
-            Log.d(TAG, "setParam() : HVC_ERROR_NODEVICES");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "setParam() : HVC_ERROR_NODEVICES");
+            }
             return HVC_ERROR_NODEVICES;
         }
         if ( mService == null || mService.getmConnectionState() != BleDeviceService.STATE_CONNECTED ) {
-            Log.d(TAG, "setParam() : HVC_ERROR_DISCONNECTED");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "setParam() : HVC_ERROR_DISCONNECTED");
+            }
             return HVC_ERROR_DISCONNECTED;
         }
         if ( mStatus > STATE_CONNECTED ) {
-            Log.d(TAG, "setParam() : HVC_ERROR_BUSY");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "setParam() : HVC_ERROR_BUSY");
+            }
             return HVC_ERROR_BUSY;
         }
 
-        /*
-         * mStatus=STATE_BUSY -> 
-         * スレッド起動 -> 
-         * カメラ角度
-         * mCallback.onPostSetParam() -> 
-         * mStatus = STATE_CONNECTED -> 
-         * スレッド終了
-         */
         mStatus = STATE_BUSY;
     	Thread t = new Thread() {
 			public void run() {
 		        int nRet = HVC_NORMAL;
 		        byte[] outStatus = new byte[1];
-		        /*
-					Send SetCameraAngle command signalを行いReceive headerする。
-					戻り値は、HVC_ERROR_SEND_DATA / HVC_NORMAL / HVC_ERROR_HEADER_TIMEOUT / HVC_ERROR_HEADER_INVALID
-		         */
 		        
-		        /* HVCの設置角度設定 - HVC_COM_SET_CAMERA_ANGLE(0x01) */
-		        nRet = SetCameraAngle(10000/* タイムアウト時間[msec] */, outStatus/* Receive headerで返された値 */, prm);
+		        nRet = SetCameraAngle(10000, outStatus, prm);
 		        if ( nRet == HVC_NORMAL && outStatus[0] == 0 ) {
-		            /*しきい値設定 - HVC_COM_SET_THRESHOLD(0x05)*/
 		            nRet = SetThreshold(10000, outStatus, prm);
 		        }
 		        if ( nRet == HVC_NORMAL && outStatus[0] == 0 ) {
-		        	/* 検出サイズ設定 - HVC_COM_SET_SIZE_RANGE(0x07) */
 		            nRet = SetSizeRange(10000, outStatus, prm);
 		        }
 		        if ( nRet == HVC_NORMAL && outStatus[0] == 0 ) {
-		        	/* HVC_COM_SET_DETECTION_ANGLE(0x09) */
 		            nRet = SetFaceDetectionAngle(10000, outStatus, prm);
 		        }
 
-		        /*
-		         * STATE_BUSYを解除する(本処理がコールバック後になっていたが、BUSY状態でコールバックが実行されてなにもできないので先に処理するように変更した)
-		         */
                 if ( mStatus == STATE_BUSY ) {
                     mStatus = STATE_CONNECTED;
                 }
-		        /*
-		         * 結果をコールバックで返す
-		         */
 		        if ( mCallback != null ) {
 		        	mCallback.onPostSetParam(nRet, outStatus[0]);
 		        }
@@ -219,21 +207,29 @@ public class HVC_BLE extends HVC implements BleInterface
     	};
 
     	t.start();
-        Log.d(TAG, "setParam() : HVC_NORMAL");
+        if (DEBUG_LOG) {
+            Log.d(TAG, "setParam() : HVC_NORMAL");
+        }
     	return HVC_NORMAL;
     }
 
     public int getParam(final HVC_PRM prm) {
         if ( mBtDevice == null ) {
-	        Log.d(TAG, "getParam() : HVC_ERROR_NODEVICES");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getParam() : HVC_ERROR_NODEVICES");
+            }
             return HVC_ERROR_NODEVICES;
         }
         if ( mService == null || mService.getmConnectionState() != BleDeviceService.STATE_CONNECTED ) {
-	        Log.d(TAG, "getParam() : HVC_ERROR_DISCONNECTED");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getParam() : HVC_ERROR_DISCONNECTED");
+            }
             return HVC_ERROR_DISCONNECTED;
         }
         if ( mStatus > STATE_CONNECTED ) {
-	        Log.d(TAG, "getParam() : HVC_ERROR_BUSY");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getParam() : HVC_ERROR_BUSY");
+            }
             return HVC_ERROR_BUSY;
         }
 
@@ -266,22 +262,30 @@ public class HVC_BLE extends HVC implements BleInterface
     	};
 
     	t.start();
-        Log.d(TAG, "getParam() : HVC_NORMAL");
+        if (DEBUG_LOG) {
+            Log.d(TAG, "getParam() : HVC_NORMAL");
+        }
     	return HVC_NORMAL;
     }
 
 	@Override
 	public int getVersion(final HVC_VER ver) {
         if ( mBtDevice == null ) {
-	        Log.d(TAG, "getParam() : HVC_ERROR_NODEVICES");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getParam() : HVC_ERROR_NODEVICES");
+            }
             return HVC_ERROR_NODEVICES;
         }
         if ( mService == null || mService.getmConnectionState() != BleDeviceService.STATE_CONNECTED ) {
-	        Log.d(TAG, "getParam() : HVC_ERROR_DISCONNECTED");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getParam() : HVC_ERROR_DISCONNECTED");
+            }
             return HVC_ERROR_DISCONNECTED;
         }
         if ( mStatus > STATE_CONNECTED ) {
-	        Log.d(TAG, "getParam() : HVC_ERROR_BUSY");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getParam() : HVC_ERROR_BUSY");
+            }
             return HVC_ERROR_BUSY;
         }
 
@@ -305,7 +309,9 @@ public class HVC_BLE extends HVC implements BleInterface
     	};
 
     	t.start();
-        Log.d(TAG, "getVersion() : HVC_NORMAL");
+        if (DEBUG_LOG) {
+            Log.d(TAG, "getVersion() : HVC_NORMAL");
+        }
     	return HVC_NORMAL;
 	}
 
@@ -314,13 +320,17 @@ public class HVC_BLE extends HVC implements BleInterface
 	    public void callbackMethod(String action) {
 	        //*********************//
 	        if (action.equals(BleDeviceService.ACTION_GATT_CONNECTED)) {
-	            Log.d(TAG, "UART_CONNECT_MSG");
+                if (DEBUG_LOG) {
+                    Log.d(TAG, "UART_CONNECT_MSG");
+                }
 	            mStatus = STATE_CONNECTING;
 	        }
 	        
 	        //*********************//
 	        if (action.equals(BleDeviceService.ACTION_GATT_DISCONNECTED)) {
-	            Log.d(TAG, "UART_DISCONNECT_MSG");
+                if (DEBUG_LOG) {
+                    Log.d(TAG, "UART_DISCONNECT_MSG");
+                }
 	            mService.close();
 	            mStatus = STATE_DISCONNECTED;
 		        if ( mCallback != null ) {
@@ -330,7 +340,9 @@ public class HVC_BLE extends HVC implements BleInterface
 	        
 	        //*********************//
 	        if (action.equals(BleDeviceService.ACTION_GATT_SERVICES_DISCOVERED)) {
-	            Log.d(TAG, "UART_DISCOVERED_MSG");
+                if (DEBUG_LOG) {
+                    Log.d(TAG, "UART_DISCOVERED_MSG");
+                }
 	            mStatus = STATE_CONNECTED;
 		        if ( mCallback != null ) {
 		        	mCallback.onConnected();
@@ -339,7 +351,9 @@ public class HVC_BLE extends HVC implements BleInterface
 
 	        //*********************//
 	        if (action.equals(BleDeviceService.DEVICE_DOES_NOT_SUPPORT_UART)){
-	            Log.d(TAG, "DEVICE_DOES_NOT_SUPPORT_UART");
+                if (DEBUG_LOG) {
+                    Log.d(TAG, "DEVICE_DOES_NOT_SUPPORT_UART");
+                }
 	            mService.disconnect();
 	            mStatus = STATE_DISCONNECTED;
 	        }
@@ -357,7 +371,9 @@ public class HVC_BLE extends HVC implements BleInterface
 	                        //deviceInfo += String.valueOf(byText[i]) + " ";
 	                    }
 	                }
-	                Log.d(TAG, deviceInfo);
+	                if (DEBUG_LOG) {
+	                    Log.d(TAG, deviceInfo);
+	                }
 	                sleep(1);
 	            }
 	        }
@@ -372,7 +388,9 @@ public class HVC_BLE extends HVC implements BleInterface
 	                        //deviceInfo += String.valueOf(mtxName[i]) + " ";
 	                    }
 	                }
-	                Log.d(TAG, deviceInfo);
+	                if (DEBUG_LOG) {
+	                    Log.d(TAG, deviceInfo);
+	                }
 			        if ( mCallback != null ) {
 			        	mCallback.onPostGetDeviceName(mtxName);
 			        }
@@ -406,7 +424,9 @@ public class HVC_BLE extends HVC implements BleInterface
         mService.writeTXCharacteristic(inData);
 
     	String deviceInfo = "Send: " + inData.length + " byte";
-        Log.d(TAG, deviceInfo);
+        if (DEBUG_LOG) {
+            Log.d(TAG, deviceInfo);
+        }
         return inData.length;
     }
 
@@ -445,7 +465,9 @@ public class HVC_BLE extends HVC implements BleInterface
             }
         }
         String deviceInfo = "Receive: " + String.valueOf(readLength) + " byte";
-        Log.d(TAG, deviceInfo);
+        if (DEBUG_LOG) {
+            Log.d(TAG, deviceInfo);
+        }
         return readLength;
     }
 
@@ -459,7 +481,9 @@ public class HVC_BLE extends HVC implements BleInterface
 	public void setCallBack(HVCBleCallback hvcCallback) {
 		// TODO Auto-generated method stub
 		mCallback = hvcCallback;
-        Log.d(TAG, "Set CallBack");
+        if (DEBUG_LOG) {
+            Log.d(TAG, "Set CallBack");
+        }
 	}
 
     /**
@@ -473,7 +497,9 @@ public class HVC_BLE extends HVC implements BleInterface
         mStatus = STATE_DISCONNECTED;
         if ( mService != null ) {
 
-            Log.d(TAG, "DisConnect Device = " + mBtDevice.getName() + " (" + mBtDevice.getAddress() + ")");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "DisConnect Device = " + mBtDevice.getName() + " (" + mBtDevice.getAddress() + ")");
+            }
             mService.close();
         }
 
@@ -485,7 +511,9 @@ public class HVC_BLE extends HVC implements BleInterface
         mService = new BleDeviceService(gattCallback);
 
         mService.connect(context, mBtDevice);
-        Log.d(TAG, "Connect Device = " + mBtDevice.getName() + " (" + mBtDevice.getAddress() + ")");
+        if (DEBUG_LOG) {
+            Log.d(TAG, "Connect Device = " + mBtDevice.getName() + " (" + mBtDevice.getAddress() + ")");
+        }
     }
 
     /**
@@ -498,7 +526,9 @@ public class HVC_BLE extends HVC implements BleInterface
         // TODO Auto-generated method stub
         mStatus = STATE_DISCONNECTED;
         if ( mService != null ) {
-	        Log.d(TAG, "DisConnect Device = " + mBtDevice.getName() + " (" + mBtDevice.getAddress() + ")");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "DisConnect Device = " + mBtDevice.getName() + " (" + mBtDevice.getAddress() + ")");
+            }
             mService.close();
         }
         mService = null;
@@ -511,20 +541,28 @@ public class HVC_BLE extends HVC implements BleInterface
 	public int setDeviceName(byte[] value) {
 		// TODO Auto-generated method stub
         if ( mBtDevice == null ) {
-	        Log.d(TAG, "setDeviceName() : HVC_ERROR_NODEVICES");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "setDeviceName() : HVC_ERROR_NODEVICES");
+            }
             return HVC_ERROR_NODEVICES;
         }
         if ( mService == null || mService.getmConnectionState() != BleDeviceService.STATE_CONNECTED ) {
-	        Log.d(TAG, "setDeviceName() : HVC_ERROR_DISCONNECTED");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "setDeviceName() : HVC_ERROR_DISCONNECTED");
+            }
             return HVC_ERROR_DISCONNECTED;
         }
         if ( mStatus > STATE_CONNECTED ) {
-	        Log.d(TAG, "setDeviceName() : HVC_ERROR_BUSY");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "setDeviceName() : HVC_ERROR_BUSY");
+            }
             return HVC_ERROR_BUSY;
         }
 
         mService.writeNameCharacteristic(value);
-		Log.d(TAG, "getDeviceName() : HVC_NORMAL");
+        if (DEBUG_LOG) {
+            Log.d(TAG, "getDeviceName() : HVC_NORMAL");
+        }
 		return HVC_NORMAL;
 	}
 
@@ -532,21 +570,29 @@ public class HVC_BLE extends HVC implements BleInterface
 	public int getDeviceName(byte[] value) {
 		// TODO Auto-generated method stub
         if ( mBtDevice == null ) {
-	        Log.d(TAG, "getDeviceName() : HVC_ERROR_NODEVICES");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getDeviceName() : HVC_ERROR_NODEVICES");
+            }
             return HVC_ERROR_NODEVICES;
         }
         if ( mService == null || mService.getmConnectionState() != BleDeviceService.STATE_CONNECTED ) {
-	        Log.d(TAG, "getDeviceName() : HVC_ERROR_DISCONNECTED");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getDeviceName() : HVC_ERROR_DISCONNECTED");
+            }
             return HVC_ERROR_DISCONNECTED;
         }
         if ( mStatus > STATE_CONNECTED ) {
-	        Log.d(TAG, "getDeviceName() : HVC_ERROR_BUSY");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getDeviceName() : HVC_ERROR_BUSY");
+            }
             return HVC_ERROR_BUSY;
         }
 
         mtxName = value;
         mService.readNameCharacteristic();
-		Log.d(TAG, "getDeviceName() : HVC_NORMAL");
+        if (DEBUG_LOG) {
+            Log.d(TAG, "getDeviceName() : HVC_NORMAL");
+        }
 		return HVC_NORMAL;
 	}
 	
@@ -564,18 +610,26 @@ public class HVC_BLE extends HVC implements BleInterface
 	 */
     public int getCommStatus() {
         if ( mBtDevice == null ) {
-            Log.d(TAG, "getStatus() : HVC_ERROR_NODEVICES");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getStatus() : HVC_ERROR_NODEVICES");
+            }
             return HVC_ERROR_NODEVICES;
         }
         if ( mService == null || mService.getmConnectionState() != BleDeviceService.STATE_CONNECTED ) {
-            Log.d(TAG, "getStatus() : HVC_ERROR_DISCONNECTED");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getStatus() : HVC_ERROR_DISCONNECTED");
+            }
             return HVC_ERROR_DISCONNECTED;
         }
         if ( mStatus > STATE_CONNECTED ) {
-            Log.d(TAG, "getStatus() : HVC_ERROR_BUSY");
+            if (DEBUG_LOG) {
+                Log.d(TAG, "getStatus() : HVC_ERROR_BUSY");
+            }
             return HVC_ERROR_BUSY;
         }
-        Log.d(TAG, "getStatus() : HVC_NORMAL - mStatus:" + mStatus);
+        if (DEBUG_LOG) {
+            Log.d(TAG, "getStatus() : HVC_NORMAL - mStatus:" + mStatus);
+        }
         return HVC_NORMAL;
     }
 }

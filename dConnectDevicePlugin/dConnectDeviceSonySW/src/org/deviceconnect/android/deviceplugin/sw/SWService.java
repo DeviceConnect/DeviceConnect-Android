@@ -8,12 +8,12 @@ package org.deviceconnect.android.deviceplugin.sw;
 
 import org.deviceconnect.android.deviceplugin.sw.profile.SWCanvasProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.sw.profile.SWServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWNotificationProfile;
+import org.deviceconnect.android.deviceplugin.sw.profile.SWServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWSystemProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWVibrationProfile;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.db.DBCacheController;
+import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
@@ -28,7 +28,7 @@ public class SWService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
 
-        EventManager.INSTANCE.setController(new DBCacheController(this));
+        EventManager.INSTANCE.setController(new MemoryCacheController());
 
         addProfile(new SWDeviceOrientationProfile());
         addProfile(new SWNotificationProfile());

@@ -13,7 +13,7 @@ import java.util.List;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class HumanDetectEventUtils {
+public final class HumanDetectEventUtils {
 
     /**
      * Constructor.

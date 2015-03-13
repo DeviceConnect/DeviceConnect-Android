@@ -39,12 +39,14 @@ public final class HvcDetectRequestUtils {
     /**
      * error message. {@value}
      */
-    public static final String ERROR_INVERVAL_PARAMETER_TOO_MINIMUM = "interval parameter too minimum. range: %ld <= interval <= %ld";
+    public static final String ERROR_INVERVAL_PARAMETER_TOO_MINIMUM = 
+            "interval parameter too minimum. range: %ld <= interval <= %ld";
     
     /**
      * error message. {@value}
      */
-    public static final String ERROR_INVERVAL_PARAMETER_TOO_MAXIMUM = "interval parameter too maximum. range: %ld <= interval <= %ld";
+    public static final String ERROR_INVERVAL_PARAMETER_TOO_MAXIMUM = 
+            "interval parameter too maximum. range: %ld <= interval <= %ld";
     
     /**
      * Constructor.
@@ -214,9 +216,6 @@ public final class HvcDetectRequestUtils {
         }
         
         // event parameter
-        if (requestParams.getEvent() == null) {
-            requestParams.setEvent(HvcDetectRequestParams.getDefaultEventRequestParameter());
-        }
         if (eventInterval != null) {
             HumanDetectEventRequestParams event = requestParams.getEvent();
             if (eventInterval == 0) {

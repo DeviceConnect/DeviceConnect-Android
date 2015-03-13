@@ -6,10 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.request;
 
-import java.util.List;
-
 import org.deviceconnect.android.deviceplugin.hvc.comm.HvcConvertUtils;
-import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectBasicRequestParams;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectHandRequestParams;
 
 /**

@@ -69,6 +69,7 @@ public final class HvcDetectRequestUtils {
             final HumanDetectKind detectKind) throws NumberFormatException, IllegalStateException {
 
         HumanDetectRequestParams requestParams = new HumanDetectRequestParams();
+        requestParams.setEvent(HvcDetectRequestParams.getDefaultEventRequestParameter());
         
         // get options parameter.
         List<String> options = HumanDetectProfile.getOptions(request);

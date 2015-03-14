@@ -1424,7 +1424,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                         DecimalFormat decimalFormat = new DecimalFormat("0.0#");
                         zoomDiameterParam = Double.valueOf(decimalFormat.format(zoomDiameterParam));
 
-                        response.putExtra(SonyCameraZoomProfile.PARAM_ZOOM_DIAMETER, zoomDiameterParam);
+                        response.putExtra(SonyCameraZoomProfile.PARAM_ZOOM_POSITION, zoomDiameterParam);
                         sendResponse(request, response);
                     }
                 } catch (IOException e) {

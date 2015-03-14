@@ -16,6 +16,9 @@ import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.PostMessageCall
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Intent;
 import android.util.Log;
@@ -90,19 +93,19 @@ public class IRKitRmeoteControllerProfile extends DConnectProfile {
         } else {
             String serviceId = getServiceID(request);
             String message = request.getStringExtra(PARAM_MESSAGE);
+
             final IRKitDeviceService service = (IRKitDeviceService) getContext();
             IRKitDevice device = service.getDevice(serviceId);
-            
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "onPostRequest service=" + service + " device" + device);
             }
-            
+
             if (device == null) {
                 MessageUtils.setNotFoundServiceError(response);
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "onPostRequest setNotFoundServiceError");
                 }
-            } else if (message == null) {
+            } else if (!checkData(message)) {
                 MessageUtils.setInvalidRequestParameterError(response);
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "onPostRequest setInvalidRequestParameterError");
@@ -129,5 +132,24 @@ public class IRKitRmeoteControllerProfile extends DConnectProfile {
             }
         }
         return send;
+    }
+    /**
+     * 送られてきたデータがIRKitに対応しているかチェックを行う.
+     * @param message データ
+     * @return フォーマットが問題ない場合はtrue、それ以外はfalse
+     */
+    private boolean checkData(final String message) {
+        if (message == null || message.length() == 0) {
+            return false;
+        }
+        try {
+            JSONObject json = new JSONObject(message);
+            String format = json.getString("format");
+            int freq = json.getInt("freq");
+            JSONArray datas = json.getJSONArray("data");
+            return (format != null && freq > 0 && datas != null);
+        } catch (JSONException e) {
+            return false;
+        }
     }
 }

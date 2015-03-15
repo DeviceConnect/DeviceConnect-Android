@@ -76,7 +76,6 @@ public final class HvcDetectRequestUtils {
         
         // get parameters.(different type error, throw
         // NumberFormatException)
-        
         Double threshold = HumanDetectProfile.getThreshold(request);
         Double minWidth = HumanDetectProfile.getMinWidth(request);
         Double minHeight = HumanDetectProfile.getMinHeight(request);
@@ -84,7 +83,8 @@ public final class HvcDetectRequestUtils {
         Double maxHeight = HumanDetectProfile.getMaxHeight(request);
         
         // get event interval.
-        Long eventInterval = HumanDetectProfile.getInterval(request);
+        Long eventInterval = HumanDetectProfile.getInterval(request, HvcConstants.PARAM_INTERVAL_MIN,
+                HvcConstants.PARAM_INTERVAL_MAX);
         
         // store parameter.(if data exist, to set. if data not exist, use default value.)
         if (detectKind == HumanDetectKind.BODY) {

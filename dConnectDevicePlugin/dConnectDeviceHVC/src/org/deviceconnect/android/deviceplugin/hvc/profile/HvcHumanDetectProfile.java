@@ -29,6 +29,11 @@ import android.content.pm.PackageManager;
 public class HvcHumanDetectProfile extends HumanDetectProfile {
 
     /**
+     * log tag.
+     */
+    private static final String TAG = HvcHumanDetectProfile.class.getSimpleName();
+
+    /**
      * error message. {@value}
      */
     protected static final String ERROR_BLE_NOT_AVAILABLE = "ble not available.";
@@ -169,7 +174,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
             return true;
         } else {
-            
             // get parameter.
             HumanDetectRequestParams requestParams = null;
             try {
@@ -180,14 +184,14 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 return true;
             } catch (NumberFormatException e) {
                 // invalid request parameter error
-                MessageUtils.setInvalidRequestParameterError(response,
-                        HvcDetectRequestUtils.ERROR_PARAMETER_DIFFERENT_TYPE);
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             } catch (IllegalArgumentException e) {
                 // invalid request parameter error
                 MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
+            requestParams.dumpLog(TAG);
             
             // GET API.
             ((HvcDeviceService) getContext()).doGetDetectionProc(detectKind, requestParams, response,
@@ -220,7 +224,6 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
             MessageUtils.setNotSupportProfileError(response, ERROR_BLE_NOT_AVAILABLE);
             return true;
         } else {
-            
             // get parameter.
             HumanDetectRequestParams requestParams = null;
             try {
@@ -231,14 +234,14 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 return true;
             } catch (NumberFormatException e) {
                 // invalid request parameter error
-                MessageUtils.setInvalidRequestParameterError(response,
-                        HvcDetectRequestUtils.ERROR_PARAMETER_DIFFERENT_TYPE);
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             } catch (IllegalArgumentException e) {
                 // invalid request parameter error
                 MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
+            requestParams.dumpLog(TAG);
             
             // register event.
             EventError error = EventManager.INSTANCE.addEvent(request);

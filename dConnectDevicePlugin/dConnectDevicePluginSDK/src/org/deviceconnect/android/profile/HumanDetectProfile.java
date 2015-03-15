@@ -8,13 +8,14 @@ package org.deviceconnect.android.profile;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import org.deviceconnect.android.message.MessageUtils;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
-//TODO: コメント修正する
 /**
  * Human Detect Profile.
  * 
@@ -30,10 +31,6 @@ import android.os.Bundle;
  * Subclasses override the methods for API provided by the DevicePlugin from the following methods group, to implement the functionality that.<br/>
  * Features that are not overridden automatically return the response as non-compliant API.
  * </p>
- * <ul>
- * <li>Human Detect API [POST] :
- * {@link HumanDetectProfile#detection(Intent, Intent, String, Byte[], double, double, String)}</li>
- * </ul>
  * @author NTT DOCOMO, INC.
  */
 public abstract class HumanDetectProfile extends DConnectProfile {
@@ -537,13 +534,184 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      */
     public static final String VALUE_EXPRESSION_SAD = "sad";
 
-
+    /** 
+     * normalize min value.
+     */
+    public static final double NORMALIZE_VALUE_MIN = 0.0;
+    
     /** 
      * normalize max value.
      */
     public static final double NORMALIZE_VALUE_MAX = 1.0;
     
 
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_THRESHOLD_DIFFERENT_TYPE = "threshold is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_THRESHOLD_OUT_OF_RANGE = 
+            "threshold is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_MINWIDTH_DIFFERENT_TYPE = "minWidth is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_MINWIDTH_OUT_OF_RANGE = 
+            "minWidth is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_MAXWIDTH_DIFFERENT_TYPE = "maxWidth is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_MAXWIDTH_OUT_OF_RANGE = 
+            "maxWidth is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_MINHEIGHT_DIFFERENT_TYPE = "minHeight is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_MINHEIGHT_OUT_OF_RANGE = 
+            "minHeight is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_MAXHEIGHT_DIFFERENT_TYPE = "maxHeight is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_MAXHEIGHT_OUT_OF_RANGE = 
+            "maxHeight is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_INTERVAL_DIFFERENT_TYPE = "interval is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_INTERVAL_OUT_OF_RANGE = 
+            "interval is out of range. range:{ %d - %d } [msec]";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_EYE_THRESHOLD_DIFFERENT_TYPE = "eye threshold is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_EYE_THRESHOLD_OUT_OF_RANGE = 
+            "eye threshold is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_NOSE_THRESHOLD_DIFFERENT_TYPE = "nose threshold is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_NOSE_THRESHOLD_OUT_OF_RANGE = 
+            "nose threshold is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_MOUTH_THRESHOLD_DIFFERENT_TYPE = "mouth threshold is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_MOUTH_THRESHOLD_OUT_OF_RANGE = 
+            "mouth threshold is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_BLINK_THRESHOLD_DIFFERENT_TYPE = "blink threshold is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_BLINK_THRESHOLD_OUT_OF_RANGE = 
+            "blink threshold is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_AGE_THRESHOLD_DIFFERENT_TYPE = "age threshold is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_AGE_THRESHOLD_OUT_OF_RANGE = 
+            "age threshold is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_GENDER_THRESHOLD_DIFFERENT_TYPE = "gender threshold is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_GENDER_THRESHOLD_OUT_OF_RANGE = 
+            "gender threshold is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_FACE_DIRECTION_THRESHOLD_DIFFERENT_TYPE = "face direction threshold is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_FACE_DIRECTION_THRESHOLD_OUT_OF_RANGE = 
+            "face direction threshold is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_GAZE_THRESHOLD_DIFFERENT_TYPE = "gaze threshold is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_GAZE_THRESHOLD_OUT_OF_RANGE = 
+            "gaze threshold is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_EXPRESSION_THRESHOLD_DIFFERENT_TYPE = "expression threshold is different type.";
+
+    /** 
+     * error: {@value} .
+     */
+    private static final String ERROR_EXPRESSION_THRESHOLD_OUT_OF_RANGE = 
+            "expression threshold is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+    
+    
+    
 
     /**
      * Constructor.
@@ -894,8 +1062,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getThreshold(final Intent request) {
+        if (!checkExistRequestData(request, PARAM_THRESHOLD)) {
+            return null;
+        }
         Double threshold = parseDouble(request, PARAM_THRESHOLD);
-        return threshold;
+        if (threshold == null) {
+            throw new NumberFormatException(ERROR_THRESHOLD_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= threshold && threshold <= NORMALIZE_VALUE_MAX) {
+            return threshold;
+        } else {
+            throw new NumberFormatException(ERROR_THRESHOLD_OUT_OF_RANGE);
+        }
     }
     
     /**
@@ -906,8 +1084,39 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getMinWidth(final Intent request) {
+        if (!checkExistRequestData(request, PARAM_MINWIDTH)) {
+            return null;
+        }
         Double minWidth = parseDouble(request, PARAM_MINWIDTH);
-        return minWidth;
+        if (minWidth == null) {
+            throw new NumberFormatException(ERROR_MINWIDTH_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= minWidth && minWidth <= NORMALIZE_VALUE_MAX) {
+            return minWidth;
+        } else {
+            throw new NumberFormatException(ERROR_MINWIDTH_OUT_OF_RANGE);
+        }
+    }
+    /**
+     * get maxWidth from request.
+     * 
+     * @param request request parameter.
+     * @return maxWidth(0.0 ... 1.0). if nothing, null.
+     * @throw NumberFormatException
+     */
+    public static Double getMaxWidth(final Intent request) {
+        if (!checkExistRequestData(request, PARAM_MAXWIDTH)) {
+            return null;
+        }
+        Double maxWidth = parseDouble(request, PARAM_MAXWIDTH);
+        if (maxWidth == null) {
+            throw new NumberFormatException(ERROR_MAXWIDTH_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= maxWidth && maxWidth <= NORMALIZE_VALUE_MAX) {
+            return maxWidth;
+        } else {
+            throw new NumberFormatException(ERROR_MAXWIDTH_OUT_OF_RANGE);
+        }
     }
     
     /**
@@ -918,22 +1127,19 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getMinHeight(final Intent request) {
+        if (!checkExistRequestData(request, PARAM_MINHEIGHT)) {
+            return null;
+        }
         Double minHeight = parseDouble(request, PARAM_MINHEIGHT);
-        return minHeight;
+        if (minHeight == null) {
+            throw new NumberFormatException(ERROR_MINHEIGHT_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= minHeight && minHeight <= NORMALIZE_VALUE_MAX) {
+            return minHeight;
+        } else {
+            throw new NumberFormatException(ERROR_MINHEIGHT_OUT_OF_RANGE);
+        }
     }
-    
-    /**
-     * get maxWidth from request.
-     * 
-     * @param request request parameter.
-     * @return maxWidth(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
-     */
-    public static Double getMaxWidth(final Intent request) {
-        Double maxWidth = parseDouble(request, PARAM_MAXWIDTH);
-        return maxWidth;
-    }
-    
     /**
      * get maxHeight from request.
      * 
@@ -942,20 +1148,44 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getMaxHeight(final Intent request) {
+        if (!checkExistRequestData(request, PARAM_MAXHEIGHT)) {
+            return null;
+        }
         Double maxHeight = parseDouble(request, PARAM_MAXHEIGHT);
-        return maxHeight;
+        if (maxHeight == null) {
+            throw new NumberFormatException(ERROR_MAXHEIGHT_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= maxHeight && maxHeight <= NORMALIZE_VALUE_MAX) {
+            return maxHeight;
+        } else {
+            throw new NumberFormatException(ERROR_MAXHEIGHT_OUT_OF_RANGE);
+        }
     }
     
     /**
      * get interval from request.
      * 
      * @param request request parameter.
+     * @param minInterval minimum interval[msec]
+     * @param maxInterval maximum interval[msec]
      * @return interval[msec]. if nothing, null.
      * @throw NumberFormatException
      */
-    public static Long getInterval(final Intent request) {
+    public static Long getInterval(final Intent request, long minInterval, long maxInterval) {
+        if (!checkExistRequestData(request, PARAM_INTERVAL)) {
+            return null;
+        }
         Long interval = parseLong(request, PARAM_INTERVAL);
-        return interval;
+        if (interval == null) {
+            throw new NumberFormatException(ERROR_INTERVAL_DIFFERENT_TYPE);
+        }
+        if (interval == 0 || minInterval <= interval && interval <= maxInterval) {
+            return interval;
+        } else {
+            String error = String.format(Locale.ENGLISH, 
+                    ERROR_INTERVAL_OUT_OF_RANGE, minInterval, maxInterval);
+            throw new NumberFormatException(error);
+        }
     }
 
     /**
@@ -966,8 +1196,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getEyeThreshold(final Intent request) {
-        Double threshold = parseDouble(request, PARAM_EYE_THRESHOLD);
-        return threshold;
+        if (!checkExistRequestData(request, PARAM_EYE_THRESHOLD)) {
+            return null;
+        }
+        Double eyeThreshold = parseDouble(request, PARAM_EYE_THRESHOLD);
+        if (eyeThreshold == null) {
+            throw new NumberFormatException(ERROR_EYE_THRESHOLD_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= eyeThreshold && eyeThreshold <= NORMALIZE_VALUE_MAX) {
+            return eyeThreshold;
+        } else {
+            throw new NumberFormatException(ERROR_EYE_THRESHOLD_OUT_OF_RANGE);
+        }
     }
 
     /**
@@ -978,8 +1218,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getNoseThreshold(final Intent request) {
-        Double threshold = parseDouble(request, PARAM_NOSE_THRESHOLD);
-        return threshold;
+        if (!checkExistRequestData(request, PARAM_NOSE_THRESHOLD)) {
+            return null;
+        }
+        Double noseThreshold = parseDouble(request, PARAM_EYE_THRESHOLD);
+        if (noseThreshold == null) {
+            throw new NumberFormatException(ERROR_NOSE_THRESHOLD_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= noseThreshold && noseThreshold <= NORMALIZE_VALUE_MAX) {
+            return noseThreshold;
+        } else {
+            throw new NumberFormatException(ERROR_NOSE_THRESHOLD_OUT_OF_RANGE);
+        }
     }
 
     /**
@@ -990,8 +1240,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getMouthThreshold(final Intent request) {
-        Double threshold = parseDouble(request, PARAM_MOUTH_THRESHOLD);
-        return threshold;
+        if (!checkExistRequestData(request, PARAM_MOUTH_THRESHOLD)) {
+            return null;
+        }
+        Double mouthThreshold = parseDouble(request, PARAM_MOUTH_THRESHOLD);
+        if (mouthThreshold == null) {
+            throw new NumberFormatException(ERROR_MOUTH_THRESHOLD_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= mouthThreshold && mouthThreshold <= NORMALIZE_VALUE_MAX) {
+            return mouthThreshold;
+        } else {
+            throw new NumberFormatException(ERROR_MOUTH_THRESHOLD_OUT_OF_RANGE);
+        }
     }
 
     /**
@@ -1002,8 +1262,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getBlinkThreshold(final Intent request) {
-        Double threshold = parseDouble(request, PARAM_BLINK_THRESHOLD);
-        return threshold;
+        if (!checkExistRequestData(request, PARAM_BLINK_THRESHOLD)) {
+            return null;
+        }
+        Double blinkThreshold = parseDouble(request, PARAM_BLINK_THRESHOLD);
+        if (blinkThreshold == null) {
+            throw new NumberFormatException(ERROR_BLINK_THRESHOLD_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= blinkThreshold && blinkThreshold <= NORMALIZE_VALUE_MAX) {
+            return blinkThreshold;
+        } else {
+            throw new NumberFormatException(ERROR_BLINK_THRESHOLD_OUT_OF_RANGE);
+        }
     }
 
     /**
@@ -1014,8 +1284,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getAgeThreshold(final Intent request) {
-        Double threshold = parseDouble(request, PARAM_AGE_THRESHOLD);
-        return threshold;
+        if (!checkExistRequestData(request, PARAM_AGE_THRESHOLD)) {
+            return null;
+        }
+        Double ageThreshold = parseDouble(request, PARAM_AGE_THRESHOLD);
+        if (ageThreshold == null) {
+            throw new NumberFormatException(ERROR_AGE_THRESHOLD_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= ageThreshold && ageThreshold <= NORMALIZE_VALUE_MAX) {
+            return ageThreshold;
+        } else {
+            throw new NumberFormatException(ERROR_AGE_THRESHOLD_OUT_OF_RANGE);
+        }
     }
 
     /**
@@ -1026,8 +1306,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getGenderThreshold(final Intent request) {
-        Double threshold = parseDouble(request, PARAM_GENDER_THRESHOLD);
-        return threshold;
+        if (!checkExistRequestData(request, PARAM_GENDER_THRESHOLD)) {
+            return null;
+        }
+        Double genderThreshold = parseDouble(request, PARAM_AGE_THRESHOLD);
+        if (genderThreshold == null) {
+            throw new NumberFormatException(ERROR_GENDER_THRESHOLD_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= genderThreshold && genderThreshold <= NORMALIZE_VALUE_MAX) {
+            return genderThreshold;
+        } else {
+            throw new NumberFormatException(ERROR_GENDER_THRESHOLD_OUT_OF_RANGE);
+        }
     }
 
     /**
@@ -1038,8 +1328,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getFaceDirectionThreshold(final Intent request) {
-        Double threshold = parseDouble(request, PARAM_FACE_DIRECTION_THRESHOLD);
-        return threshold;
+        if (!checkExistRequestData(request, PARAM_FACE_DIRECTION_THRESHOLD)) {
+            return null;
+        }
+        Double faceDirectionThreshold = parseDouble(request, PARAM_FACE_DIRECTION_THRESHOLD);
+        if (faceDirectionThreshold == null) {
+            throw new NumberFormatException(ERROR_FACE_DIRECTION_THRESHOLD_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= faceDirectionThreshold && faceDirectionThreshold <= NORMALIZE_VALUE_MAX) {
+            return faceDirectionThreshold;
+        } else {
+            throw new NumberFormatException(ERROR_FACE_DIRECTION_THRESHOLD_OUT_OF_RANGE);
+        }
     }
 
     /**
@@ -1050,8 +1350,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getGazeThreshold(final Intent request) {
-        Double threshold = parseDouble(request, PARAM_GAZE_THRESHOLD);
-        return threshold;
+        if (!checkExistRequestData(request, PARAM_GAZE_THRESHOLD)) {
+            return null;
+        }
+        Double gazeThreshold = parseDouble(request, PARAM_GAZE_THRESHOLD);
+        if (gazeThreshold == null) {
+            throw new NumberFormatException(ERROR_GAZE_THRESHOLD_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= gazeThreshold && gazeThreshold <= NORMALIZE_VALUE_MAX) {
+            return gazeThreshold;
+        } else {
+            throw new NumberFormatException(ERROR_GAZE_THRESHOLD_OUT_OF_RANGE);
+        }
     }
 
     /**
@@ -1062,8 +1372,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @throw NumberFormatException
      */
     public static Double getExpressionThreshold(final Intent request) {
-        Double threshold = parseDouble(request, PARAM_EXPRESSION_THRESHOLD);
-        return threshold;
+        if (!checkExistRequestData(request, PARAM_EXPRESSION_THRESHOLD)) {
+            return null;
+        }
+        Double expressionThreshold = parseDouble(request, PARAM_EXPRESSION_THRESHOLD);
+        if (expressionThreshold == null) {
+            throw new NumberFormatException(ERROR_EXPRESSION_THRESHOLD_DIFFERENT_TYPE);
+        }
+        if (NORMALIZE_VALUE_MIN <= expressionThreshold && expressionThreshold <= NORMALIZE_VALUE_MAX) {
+            return expressionThreshold;
+        } else {
+            throw new NumberFormatException(ERROR_EXPRESSION_THRESHOLD_OUT_OF_RANGE);
+        }
     }
     
     // ------------------------------------
@@ -1291,5 +1611,20 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      */
     public static void setParamExpressionResults(final Bundle bundle, final Bundle[] expressionResults) {
         bundle.putParcelableArray(PARAM_EXPRESSIONRESULTS, expressionResults);
+    }
+    
+    /**
+     * check exist request data. 
+     * @param request request
+     * @param param param
+     * @return true: exist / false: not exist
+     */
+    private static boolean checkExistRequestData(final Intent request, final String param) {
+        Bundle b = request.getExtras();
+        if (b != null && b.get(param) != null) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

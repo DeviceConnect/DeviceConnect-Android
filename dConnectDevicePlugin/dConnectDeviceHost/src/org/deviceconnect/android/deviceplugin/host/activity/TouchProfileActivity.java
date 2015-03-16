@@ -1,5 +1,5 @@
 /*
- TouchActivity.java
+ TouchProfileActivity.java
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -11,32 +11,51 @@ import java.util.List;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 
 /**
- * Touch Activity.
+ * Touch Profile Activity.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class TouchActivity extends Activity {
+public class TouchProfileActivity extends Activity {
 
     /** Application class instance. */
     private HostDeviceApplication mApp;
-    
+
     /** Gesture detector. */
     GestureDetector mGestureDetector;
     /** Service Id. */
     String mServiceId;
+
+    /**
+     * Implementation of BroadcastReceiver.
+     */
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            if (HostTouchProfile.ACTION_FINISH_TOUCH_ACTIVITY.equals(action)) {
+                finish();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -61,24 +80,31 @@ public class TouchActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(HostTouchProfile.ACTION_FINISH_TOUCH_ACTIVITY);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
     }
 
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
         List<Event> events;
 
-        switch (event.getAction()) {
+        Log.d("ABC", "Action: " + (event.getAction() & MotionEvent.ACTION_MASK));
+        switch (event.getAction() & MotionEvent.ACTION_MASK) {
         case MotionEvent.ACTION_DOWN: // 1st touch only.
         case MotionEvent.ACTION_POINTER_DOWN: // Others touch.
             // "ontouch" event processing.
             events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
                     TouchProfile.ATTRIBUTE_ON_TOUCH);
-            sendEventData(event, events);
+            if (events != null) {
+                sendEventData(event, events);
+            }
 
             // "ontouchstart" event processing.
             events = EventManager.INSTANCE.getEventList(mServiceId, TouchProfile.PROFILE_NAME, null,
@@ -104,7 +130,9 @@ public class TouchActivity extends Activity {
             return mGestureDetector.onTouchEvent(event);
         }
 
-        sendEventData(event, events);
+        if (events != null) {
+            sendEventData(event, events);
+        }
         return mGestureDetector.onTouchEvent(event);
     }
 

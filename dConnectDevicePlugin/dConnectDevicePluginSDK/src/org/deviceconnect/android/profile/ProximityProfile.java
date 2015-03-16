@@ -46,6 +46,26 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
     }
 
     @Override
+    protected boolean onGetRequest(Intent request, Intent response) {
+        String attribute = getAttribute(request);
+        boolean result = true;
+
+        if (attribute == null) {
+            MessageUtils.setUnknownAttributeError(response);
+        } else {
+            String serviceId = getServiceID(request);
+            if (attribute.equals(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
+                result = onGetOnDeviceProximity(request, response, serviceId);
+            } else if (attribute.equals(ATTRIBUTE_ON_USER_PROXIMITY)) {
+                result = onGetOnUserProximity(request, response, serviceId);
+            } else {
+                MessageUtils.setUnknownAttributeError(response);
+            }
+        }
+        return result;
+    }
+
+    @Override
     protected boolean onPutRequest(final Intent request, final Intent response) {
         String attribute = getAttribute(request);
         boolean result = true;
@@ -90,6 +110,42 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
         }
 
         return result;
+    }
+
+    // ------------------------------------
+    // GET
+    // ------------------------------------
+
+    /**
+     * ondeviceproximity取得リクエストハンドラー.<br/>
+     * ondeviceproximityを実行し、その結果をレスポンスパラメータに格納する。
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * 
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param serviceId サービスID
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onGetOnDeviceProximity(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * onuserproximity取得リクエストハンドラー.<br/>
+     * onuserproximityを実行し、その結果をレスポンスパラメータに格納する。
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * 
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param serviceId サービスID
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onGetOnUserProximity(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
     }
 
     // ------------------------------------

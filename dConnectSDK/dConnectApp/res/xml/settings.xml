@@ -8,11 +8,6 @@
             android:summary="@string/authorization_no_client_id"
             android:title="@string/authorization_client_id" />
         <EditTextPreference
-            android:enabled="false"
-            android:key="@string/key_settings_dconn_client_secret"
-            android:summary="@string/authorization_no_client_secret"
-            android:title="@string/authorization_client_secret" />
-        <EditTextPreference
             android:defaultValue=""
             android:enabled="false"
             android:key="@string/key_settings_dconn_access_token"

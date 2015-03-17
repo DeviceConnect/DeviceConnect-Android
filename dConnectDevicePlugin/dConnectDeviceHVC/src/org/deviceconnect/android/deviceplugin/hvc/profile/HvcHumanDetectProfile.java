@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.hvc.profile;
 
 import java.util.List;
 
+import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
@@ -34,42 +35,14 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     private static final String TAG = HvcHumanDetectProfile.class.getSimpleName();
 
     /**
+     * Debug.
+     */
+    private static final Boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
      * error message. {@value}
      */
     protected static final String ERROR_BLE_NOT_AVAILABLE = "ble not available.";
-    
-    /**
-     * error message. {@value}
-     */
-    protected static final String ERROR_DEVICE_ERROR_STATUS = "device error. status:";
-    
-    /**
-     * error message. {@value}
-     */
-    protected static final String ERROR_DEVICE_IS_BUSY = "device is busy.";
-    
-    /**
-     * error message. {@value}
-     */
-    protected static final String ERROR_RESULT_UNKNOWN_VALUE = "result unknown value. status:";
-    
-    /**
-     * error message. {@value}
-     */
-    protected static final String ERROR_DETECT = "detect error. status:";
-    
-    /**
-     * error message. {@value}
-     */
-    protected static final String ERROR_DEVICE_CONNECT = "device connect error. status:";
-    
-    /**
-     * error message. {@value}
-     */
-    protected static final String ERROR_REQUEST_DETECT = "request detect error. status:";
-    
-    
-    
     
     //
     // Get Detection API
@@ -78,25 +51,22 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     @Override
     protected boolean onGetBodyDetection(final Intent request, final Intent response, final String serviceId,
             final List<String> options) {
-        
-        boolean result = doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.BODY);
-        return result;
+
+        return doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.BODY);
     }
 
     @Override
     protected boolean onGetHandDetection(final Intent request, final Intent response, final String serviceId,
             final List<String> options) {
-        
-        boolean result = doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.HAND);
-        return result;
+
+        return doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.HAND);
     }
 
     @Override
     protected boolean onGetFaceDetection(final Intent request, final Intent response, final String serviceId,
             final List<String> options) {
-        
-        boolean result = doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.FACE);
-        return result;
+
+        return doGetDetectionProc(request, response, serviceId, options, HumanDetectKind.FACE);
     }
 
     //
@@ -106,25 +76,22 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     @Override
     protected boolean onPutOnBodyDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        
-        boolean result = doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.BODY);
-        return result;
+
+        return doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.BODY);
     }
     
     @Override
     protected boolean onPutOnHandDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        
-        boolean result = doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.HAND);
-        return result;
+
+        return doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.HAND);
     }
     
     @Override
     protected boolean onPutOnFaceDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        
-        boolean result = doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.FACE);
-        return result;
+
+        return doPutDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.FACE);
     }
     
     //
@@ -134,22 +101,19 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
     @Override
     protected boolean onDeleteOnBodyDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        boolean result = doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.BODY);
-        return result;
+        return doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.BODY);
     }
     
     @Override
     protected boolean onDeleteOnHandDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        boolean result = doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.HAND);
-        return result;
+        return doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.HAND);
     }
     
     @Override
     protected boolean onDeleteOnFaceDetection(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
-        boolean result = doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.FACE);
-        return result;
+        return doDeleteDetectionProc(request, response, serviceId, sessionKey, HumanDetectKind.FACE);
     }
     
     /**
@@ -191,7 +155,9 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
-            requestParams.dumpLog(TAG);
+            if (DEBUG) {
+                requestParams.dumpLog(TAG);
+            }
             
             // GET API.
             ((HvcDeviceService) getContext()).doGetDetectionProc(detectKind, requestParams, response,

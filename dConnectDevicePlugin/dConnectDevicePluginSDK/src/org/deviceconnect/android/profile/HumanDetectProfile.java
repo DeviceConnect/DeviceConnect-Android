@@ -14,7 +14,6 @@ import org.deviceconnect.android.message.MessageUtils;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 /**
  * Human Detect Profile.
@@ -22,13 +21,16 @@ import android.util.Log;
  * <p>
  * API that provides Setting, the Detection feature for Human Detect Device.<br/>
  * 
- * DevicePlugin that provides a HumanDetect operation function of for smart device inherits an equivalent class, and implements the corresponding API thing. <br/>
+ * DevicePlugin that provides a HumanDetect operation function of for smart device inherits an
+ * equivalent class, and implements the corresponding API thing. <br/>
  * </p>
  * 
  * <h1>API provides methods</h1>
  * <p>
- * For requests to each API of HumanDetectProfile, following callback method group is automatically invoked.<br/>
- * Subclasses override the methods for API provided by the DevicePlugin from the following methods group, to implement the functionality that.<br/>
+ * For requests to each API of HumanDetectProfile, following callback method group is automatically
+ * invoked.<br/>
+ * Subclasses override the methods for API provided by the DevicePlugin from the following methods
+ * group, to implement the functionality that.<br/>
  * Features that are not overridden automatically return the response as non-compliant API.
  * </p>
  * @author NTT DOCOMO, INC.
@@ -83,17 +85,20 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /**
      * path: {@value} .
      */
-    public static final String PATH_BODY_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_BODY_DETECTION;
+    public static final String PATH_BODY_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION
+            + SEPARATOR + ATTRIBUTE_BODY_DETECTION;
     
     /**
      * path: {@value} .
      */
-    public static final String PATH_HAND_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_HAND_DETECTION;
+    public static final String PATH_HAND_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION
+            + SEPARATOR + ATTRIBUTE_HAND_DETECTION;
     
     /**
      * path: {@value} .
      */
-    public static final String PATH_FACE_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION + SEPARATOR + ATTRIBUTE_FACE_DETECTION;
+    public static final String PATH_FACE_DETECTION = PATH_PROFILE + SEPARATOR + INTERFACE_DETECTION
+            + SEPARATOR + ATTRIBUTE_FACE_DETECTION;
     
     /**
      * path: {@value} .
@@ -680,13 +685,15 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     /** 
      * error: {@value} .
      */
-    private static final String ERROR_FACE_DIRECTION_THRESHOLD_DIFFERENT_TYPE = "face direction threshold is different type.";
+    private static final String ERROR_FACE_DIRECTION_THRESHOLD_DIFFERENT_TYPE =
+            "face direction threshold is different type.";
 
     /** 
      * error: {@value} .
      */
     private static final String ERROR_FACE_DIRECTION_THRESHOLD_OUT_OF_RANGE = 
-            "face direction threshold is out of range. range:{ " + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
+            "face direction threshold is out of range. range:{ "
+                    + NORMALIZE_VALUE_MIN + " - " + NORMALIZE_VALUE_MAX + " }";
 
     /** 
      * error: {@value} .
@@ -725,19 +732,19 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     }
     
     @Override
-    protected boolean onGetRequest(Intent request, Intent response) {
-        String interface_ = getInterface(request);
+    protected boolean onGetRequest(final Intent request, final Intent response) {
+        String interfac = getInterface(request);
         String attribute = getAttribute(request);
         boolean result = true;
-        if (INTERFACE_DETECTION.equals(interface_) && ATTRIBUTE_BODY_DETECTION.equals(attribute)) {
+        if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_BODY_DETECTION.equals(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onGetBodyDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interface_) && ATTRIBUTE_HAND_DETECTION.equals(attribute)) {
+        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_HAND_DETECTION.equals(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onGetHandDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interface_) && ATTRIBUTE_FACE_DETECTION.equals(attribute)) {
+        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_FACE_DETECTION.equals(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onGetFaceDetection(request, response, serviceId, options);
@@ -750,18 +757,18 @@ public abstract class HumanDetectProfile extends DConnectProfile {
 
     @Override
     protected boolean onPostRequest(final Intent request, final Intent response) {
-        String interface_ = getInterface(request);
+        String interfac = getInterface(request);
         String attribute = getAttribute(request);
         boolean result = true;
-        if (INTERFACE_DETECTION.equals(interface_) && ATTRIBUTE_BODY_DETECTION.equals(attribute)) {
+        if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_BODY_DETECTION.equals(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onPostBodyDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interface_) && ATTRIBUTE_HAND_DETECTION.equals(attribute)) {
+        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_HAND_DETECTION.equals(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onPostHandDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interface_) && ATTRIBUTE_FACE_DETECTION.equals(attribute)) {
+        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_FACE_DETECTION.equals(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
             result = onPostFaceDetection(request, response, serviceId, options);
@@ -773,7 +780,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
     }
     
     @Override
-    protected boolean onPutRequest(Intent request, Intent response) {
+    protected boolean onPutRequest(final Intent request, final Intent response) {
         boolean result = true;
         String attribute = getAttribute(request);
 
@@ -938,7 +945,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param options options.
      * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
      */
-    protected boolean onGetBodyDetection(final Intent request, final Intent response, final String serviceId, final List<String> options) {
+    protected boolean onGetBodyDetection(final Intent request, final Intent response,
+                                         final String serviceId, final List<String> options) {
         setUnsupportedError(response);
         return true;
     }
@@ -955,7 +963,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param options options.
      * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
      */
-    protected boolean onGetHandDetection(final Intent request, final Intent response, final String serviceId, final List<String> options) {
+    protected boolean onGetHandDetection(final Intent request, final Intent response,
+                                         final String serviceId, final List<String> options) {
         setUnsupportedError(response);
         return true;
     }
@@ -972,7 +981,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param options options.
      * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
      */
-    protected boolean onGetFaceDetection(final Intent request, final Intent response, final String serviceId, final List<String> options) {
+    protected boolean onGetFaceDetection(final Intent request, final Intent response,
+                                         final String serviceId, final List<String> options) {
         setUnsupportedError(response);
         return true;
     }
@@ -993,7 +1003,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param options options.
      * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
      */
-    protected boolean onPostBodyDetection(final Intent request, final Intent response, final String serviceId, final List<String> options) {
+    protected boolean onPostBodyDetection(final Intent request, final Intent response,
+                                          final String serviceId, final List<String> options) {
         setUnsupportedError(response);
         return true;
     }
@@ -1010,7 +1021,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param options options.
      * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
      */
-    protected boolean onPostHandDetection(final Intent request, final Intent response, final String serviceId, final List<String> options) {
+    protected boolean onPostHandDetection(final Intent request, final Intent response,
+                                          final String serviceId, final List<String> options) {
         setUnsupportedError(response);
         return true;
     }
@@ -1027,7 +1039,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param options options.
      * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
      */
-    protected boolean onPostFaceDetection(final Intent request, final Intent response, final String serviceId, final List<String> options) {
+    protected boolean onPostFaceDetection(final Intent request, final Intent response,
+                                          final String serviceId, final List<String> options) {
         setUnsupportedError(response);
         return true;
     }
@@ -1169,9 +1182,10 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param minInterval minimum interval[msec]
      * @param maxInterval maximum interval[msec]
      * @return interval[msec]. if nothing, null.
-     * @throw NumberFormatException
+     * @throw NumberFormatException exception
      */
-    public static Long getInterval(final Intent request, long minInterval, long maxInterval) {
+    public static Long getInterval(final Intent request,
+                                   final long minInterval, final long maxInterval) {
         if (!checkExistRequestData(request, PARAM_INTERVAL)) {
             return null;
         }
@@ -1621,10 +1635,6 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      */
     private static boolean checkExistRequestData(final Intent request, final String param) {
         Bundle b = request.getExtras();
-        if (b != null && b.get(param) != null) {
-            return true;
-        } else {
-            return false;
-        }
+        return b != null && b.get(param) != null;
     }
 }

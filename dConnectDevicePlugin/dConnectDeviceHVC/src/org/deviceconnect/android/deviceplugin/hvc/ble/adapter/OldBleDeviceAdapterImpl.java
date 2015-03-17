@@ -22,9 +22,19 @@ import java.util.Set;
  */
 public class OldBleDeviceAdapterImpl extends BleDeviceAdapter {
 
+    /**
+     * Bluetooth adapter.
+     */
     private BluetoothAdapter mBluetoothAdapter;
+    /**
+     * BLE device scan callback.
+     */
     private BleDeviceScanCallback mCallback;
 
+    /**
+     * Constructor.
+     * @param context context
+     */
     public OldBleDeviceAdapterImpl(final Context context) {
         BluetoothManager manager = BleUtils.getManager(context);
         mBluetoothAdapter = manager.getAdapter();
@@ -61,6 +71,9 @@ public class OldBleDeviceAdapterImpl extends BleDeviceAdapter {
         return BluetoothAdapter.checkBluetoothAddress(address);
     }
 
+    /**
+     * BLE scan callback.
+     */
     private final BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {

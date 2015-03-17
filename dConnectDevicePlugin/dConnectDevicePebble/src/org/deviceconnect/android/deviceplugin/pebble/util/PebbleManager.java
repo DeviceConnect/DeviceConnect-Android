@@ -23,6 +23,7 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.CanvasProfileConstants.Mode;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
+import org.deviceconnect.profile.KeyEventProfileConstants;
 import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
 import org.json.JSONArray;
@@ -110,9 +111,15 @@ public final class PebbleManager {
     public static final int KEY_PARAM_VIBRATION_PATTERN = 501;
     
     ///////// setting
-    /** settig date を表すキー番号.*/
+    /** setting date を表すキー番号.*/
     public static final int KEY_PARAM_SETTING_DATE = 600;
     
+    ///////// key event
+    /** Key number of KeyID.*/
+    public static final int KEY_PARAM_KEY_EVENT_ID = 700;
+    /** Key number of KeyType.*/
+    public static final int KEY_PARAM_KEY_EVENT_KEY_TYPE = 701;
+
     /** get action を表す数値. */
     public static final int ACTION_GET = 1;
     /** post action を表す数値. */
@@ -136,6 +143,8 @@ public final class PebbleManager {
     public static final int PROFILE_SYSTEM = 5;
     /** canvas profile を表す数値 canvas 用. */
     public static final int PROFILE_CANVAS = 6;
+    /** Numeric value that represents the key event profile. */
+    public static final int PROFILE_KEY_EVENT = 7;
     /** binary転送 profile を表す数値. */
     public static final int PROFILE_BINARY = 255;
 
@@ -166,6 +175,42 @@ public final class PebbleManager {
 
     /** canvas attribute drawImage を表す数値. */
     public static final int CANVAS_ATTRBIUTE_DRAW_IMAGE = 1;
+
+    /** key event attribute ondown. */
+    public static final int KEY_EVENT_ATTRIBUTE_ON_DOWN = 1;
+
+    /** key event attribute onup. */
+    public static final int KEY_EVENT_ATTRIBUTE_ON_UP = 2;
+
+    /** key event action down. */
+    public static final int KEY_EVENT_ACTION_DOWN = 1;
+
+    /** key event action up. */
+    public static final int KEY_EVENT_ACTION_UP = 2;
+
+    /** key event key ID up. */
+    public static final int KEY_EVENT_KEY_ID_UP = 1;
+
+    /** key event key ID select. */
+    public static final int KEY_EVENT_KEY_ID_SELECT = 2;
+
+    /** key event key ID down. */
+    public static final int KEY_EVENT_KEY_ID_DOWN = 3;
+
+    /** key event key ID back. */
+    public static final int KEY_EVENT_KEY_ID_BACK = 4;
+
+    /** key event key type STD_KEY. */
+    public static final int KEY_EVENT_KEY_TYPE_STD_KEY = 1;
+
+    /** key event key type MEDIA. */
+    public static final int KEY_EVENT_KEY_TYPE_MEDIA = 2;
+
+    /** key event key type DPAD_BUTTON. */
+    public static final int KEY_EVENT_KEY_TYPE_DPAD_BUTTON = 3;
+
+    /** key event key type USER. */
+    public static final int KEY_EVENT_KEY_TYPE_USER = 4;
 
     /** pebble の横ドット数. */
     public static final int PEBBLE_SCREEN_WIDTH = 144;
@@ -759,6 +804,8 @@ public final class PebbleManager {
             return PROFILE_VIBRATION;
         } else if (SettingsProfileConstants.PROFILE_NAME.equals(profile)) {
             return PROFILE_SETTING;
+        } else if (KeyEventProfileConstants.PROFILE_NAME.equals(profile)) {
+            return PROFILE_KEY_EVENT;
         }
         return -1;
     }
@@ -785,6 +832,8 @@ public final class PebbleManager {
             return convertBatteryAttribute(attribute);
         case PROFILE_DEVICE_ORIENTATION:
             return convertDeviceOrientationAttribute(attribute);
+        case PROFILE_KEY_EVENT:
+            return convertKeyEventAttribute(attribute);
         default:
             break;
         }
@@ -817,6 +866,20 @@ public final class PebbleManager {
     private byte convertDeviceOrientationAttribute(final String attribute) {
         if (DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION.equals(attribute)) {
             return DEVICE_ORIENTATION_ATTRIBUTE_ON_DEVICE_ORIENTATION;
+        }
+        return -1;
+    }
+
+    /**
+     * Change Key Event attribute for Pebble.
+     * @param attribute Attribute.
+     * @return Attribute foe Pebble.
+     */
+    private byte convertKeyEventAttribute(final String attribute) {
+        if (KeyEventProfileConstants.ATTRIBUTE_ON_DOWN.equals(attribute)) {
+            return KEY_EVENT_ATTRIBUTE_ON_DOWN;
+        } else if (KeyEventProfileConstants.ATTRIBUTE_ON_UP.equals(attribute)) {
+            return KEY_EVENT_ATTRIBUTE_ON_UP;
         }
         return -1;
     }

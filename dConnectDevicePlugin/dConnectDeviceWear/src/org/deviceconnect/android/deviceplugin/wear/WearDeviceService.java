@@ -29,7 +29,7 @@ import android.content.Intent;
 
 /**
  * WearService.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class WearDeviceService extends DConnectMessageService {

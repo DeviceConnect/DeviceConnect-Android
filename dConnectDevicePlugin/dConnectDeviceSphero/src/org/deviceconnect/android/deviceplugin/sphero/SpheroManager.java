@@ -20,10 +20,11 @@ import orbotix.robot.base.CollisionDetectedAsyncData.CollisionPower;
 import orbotix.robot.base.Robot;
 import orbotix.robot.base.RobotProvider;
 import orbotix.robot.sensor.Acceleration;
-import orbotix.robot.sensor.AttitudeSensor;
 import orbotix.robot.sensor.DeviceSensorsData;
+import orbotix.robot.sensor.GyroData;
 import orbotix.robot.sensor.LocatorData;
 import orbotix.robot.sensor.QuaternionSensor;
+import orbotix.robot.sensor.ThreeAxisSensor;
 import orbotix.sphero.ConnectionListener;
 import orbotix.sphero.DiscoveryListener;
 import orbotix.sphero.Sphero;
@@ -506,11 +507,12 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
         DeviceOrientationProfile.setY(accelerationIncludingGravity, accData.y * G);
         DeviceOrientationProfile.setZ(accelerationIncludingGravity, accData.z * G);
 
-        AttitudeSensor att = data.getAttitudeData();
+        GyroData gyroData = data.getGyroData();
+        ThreeAxisSensor threeAxisSensor = gyroData.getRotationRateFiltered();
         Bundle rotationRate = new Bundle();
-        DeviceOrientationProfile.setAlpha(rotationRate, att.yaw);
-        DeviceOrientationProfile.setBeta(rotationRate, att.roll);
-        DeviceOrientationProfile.setGamma(rotationRate, att.pitch);
+        DeviceOrientationProfile.setAlpha(rotationRate, 0.1d * threeAxisSensor.x);
+        DeviceOrientationProfile.setBeta(rotationRate, 0.1d * threeAxisSensor.y);
+        DeviceOrientationProfile.setGamma(rotationRate, 0.1d * threeAxisSensor.z);
 
         Bundle orientation = new Bundle();
         DeviceOrientationProfile.setAccelerationIncludingGravity(orientation, accelerationIncludingGravity);

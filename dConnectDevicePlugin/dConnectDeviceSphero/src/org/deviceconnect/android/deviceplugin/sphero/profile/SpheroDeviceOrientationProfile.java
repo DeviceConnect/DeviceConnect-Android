@@ -6,16 +6,21 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero.profile;
 
+import orbotix.robot.sensor.DeviceSensorsData;
+
+import org.deviceconnect.android.deviceplugin.sphero.SpheroDeviceService;
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
-
-import android.content.Intent;
-
+import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo.DeviceSensorListener;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.message.DConnectMessage;
+
+import android.content.Intent;
+import android.os.Bundle;
 
 /**
  * DeviceOrientation Profile.
@@ -24,9 +29,29 @@ import org.deviceconnect.message.DConnectMessage;
 public class SpheroDeviceOrientationProfile extends DeviceOrientationProfile {
 
     @Override
-    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        
+    protected boolean onGetOnDeviceOrientation(final Intent request, final Intent response, 
+            final String serviceId) {
+        final DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
+        if (device == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+        SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
+            @Override
+            public void sensorUpdated(final DeviceInfo info, final DeviceSensorsData data, final long interval) {
+                Bundle orientation = SpheroManager.createOrientation(data, interval);
+                DeviceOrientationProfile.setOrientation(response, orientation);
+                DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+                SpheroDeviceService service = (SpheroDeviceService) getContext();
+                service.sendResponse(response);
+            }
+        });
+        return false;
+    }
+
+    @Override
+    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response,
+            final String serviceId, final String sessionKey) {
         DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
         if (device == null) {
             MessageUtils.setNotFoundServiceError(response);

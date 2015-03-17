@@ -212,75 +212,40 @@ public class DConnectActivity extends FragmentPagerActivity {
      * アクセストークンがない場合にはnullを返却する。
      * @return アクセストークン
      */
-    public String getAccessToken() {
-        SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        String accessToken = prefs.getString(
-                getString(R.string.key_settings_dconn_access_token), null);
-        return accessToken;
+    private String getAccessToken() {
+        return ((DConnectApplication) getApplication()).getAccessToken();
     }
 
     /**
      * クライアントIDを取得する.
      * @return クライアントID
      */
-    public String getClientId() {
-        SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        String clientId = prefs.getString(
-                getString(R.string.key_settings_dconn_client_id), null);
-        return clientId;
-    }
-
-    /**
-     * クライアントシークレットを取得する.
-     * @return クライアントシークレット
-     */
-    public String getClientSecret() {
-        SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        String clientSecret = prefs.getString(
-                getString(R.string.key_settings_dconn_client_secret), null);
-        return clientSecret;
+    private String getClientId() {
+        return ((DConnectApplication) getApplication()).getClientId();
     }
 
     /**
      * SSLフラグを取得する.
      * @return SSLを使用する場合はtrue、それ以外はfalse
      */
-    public boolean isSSL() {
-        final SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        boolean isSSL = prefs.getBoolean(
-                getString(R.string.key_settings_dconn_ssl), false);
-        return isSSL;
+    private boolean isSSL() {
+        return ((DConnectApplication) getApplication()).isSSL();
     }
 
     /**
      * ホスト名を取得する.
      * @return ホスト名
      */
-    public String getHost() {
-        final SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        String host = prefs.getString(
-                getString(R.string.key_settings_dconn_host),
-                getString(R.string.default_host));
-        return host;
+    private String getHost() {
+        return ((DConnectApplication) getApplication()).getHost();
     }
 
     /**
      * ホートを取得する.
      * @return ポート番号
      */
-    public int getPort() {
-        final SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-
-        int port = Integer.parseInt(prefs.getString(
-                getString(R.string.key_settings_dconn_port),
-                getString(R.string.default_port)));
-        return port;
+    private int getPort() {
+        return ((DConnectApplication) getApplication()).getPort();
     }
 
     /**
@@ -292,9 +257,9 @@ public class DConnectActivity extends FragmentPagerActivity {
         int port = getPort();
         String appName = getResources().getString(R.string.app_name);
         String clientId = getClientId();
-        String clientSecret = getClientSecret();
-        if (!isStringEmpty(clientId) && !isStringEmpty(clientSecret)) {
-            AuthProcesser.asyncRefreshToken(host, port, isSSL, clientId, clientSecret, appName, mScopes, mAuthHandler);
+        if (!isStringEmpty(clientId)) {
+            AuthProcesser.asyncRefreshToken(host, port, isSSL, clientId,
+                    getPackageName(), appName, mScopes, mAuthHandler);
         } else {
             AuthProcesser.asyncAuthorize(host, port, isSSL, getPackageName(), appName, mScopes, mAuthHandler);
         }
@@ -331,8 +296,13 @@ public class DConnectActivity extends FragmentPagerActivity {
         boolean isSSL = isSSL();
         String host = getHost();
         int port = getPort();
-        
-        boolean result = HttpEventManager.INSTANCE.connect(host, port, isSSL, getClientId(), new CloseHandler() {
+
+        String sessionKey = getClientId();
+        if (sessionKey == null) {
+            Toast.makeText(DConnectActivity.this, "Client is not created.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        boolean result = HttpEventManager.INSTANCE.connect(host, port, isSSL, sessionKey, new CloseHandler() {
             @Override
             public void onClosed() {
                 runOnUiThread(new Runnable() {
@@ -355,12 +325,11 @@ public class DConnectActivity extends FragmentPagerActivity {
      */
     private AuthorizationHandler mAuthHandler =  new AuthorizationHandler() {
         @Override
-        public void onAuthorized(final String clientId, final String clientSecret, final String accessToken) {
+        public void onAuthorized(final String clientId, final String accessToken) {
             SharedPreferences prefs = PreferenceManager
                     .getDefaultSharedPreferences(getApplicationContext());
             SharedPreferences.Editor edit = prefs.edit();
             edit.putString(getString(R.string.key_settings_dconn_client_id), clientId);
-            edit.putString(getString(R.string.key_settings_dconn_client_secret), clientSecret);
             edit.putString(getString(R.string.key_settings_dconn_access_token), accessToken);
             edit.commit();
             mError = null;
@@ -379,7 +348,6 @@ public class DConnectActivity extends FragmentPagerActivity {
                     .getDefaultSharedPreferences(getApplicationContext());
             SharedPreferences.Editor edit = prefs.edit();
             edit.remove(getString(R.string.key_settings_dconn_client_id));
-            edit.remove(getString(R.string.key_settings_dconn_client_secret));
             edit.remove(getString(R.string.key_settings_dconn_access_token));
             edit.commit();
 

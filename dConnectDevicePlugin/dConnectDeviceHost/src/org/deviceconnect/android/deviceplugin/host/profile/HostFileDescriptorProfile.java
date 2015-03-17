@@ -6,7 +6,19 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.deviceplugin.host.file.FileData;
+import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
+import org.deviceconnect.android.deviceplugin.host.file.FileDataManager.FileModifiedListener;
+import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -14,6 +26,8 @@ import org.deviceconnect.android.profile.FileDescriptorProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
 
 /**
  * FileDescriptorプロファイル.
@@ -25,6 +39,27 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
     /** Error. */
     private static final int ERROR_VALUE_IS_NULL = 100;
 
+    /** ファイルデータ管理クラス. */
+    private FileDataManager mFileDataManager;
+
+    /** 時刻フォーマット. */
+    private SimpleDateFormat mDateFormat = 
+            new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss+0900", Locale.getDefault());
+
+    /**
+     * コンストラクタ.
+     * @param mgr ファイルデータ管理クラス.
+     */
+    public HostFileDescriptorProfile(final FileDataManager mgr) {
+        mFileDataManager = mgr;
+        mFileDataManager.setFileModifiedListener(new FileModifiedListener() {
+            @Override
+            public void onWatchFile(final List<File> files) {
+                sendWatchFileEvent(files);
+            }
+        });
+    }
+
     @Override
     protected boolean onGetOpen(final Intent request, final Intent response, final String serviceId, final String path,
             final Flag flag) {
@@ -32,13 +67,38 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
-        } else if (path == null || flag == Flag.UNKNOWN) {
-            MessageUtils.setInvalidRequestParameterError(response);
+        } else if (path == null) {
+            MessageUtils.setInvalidRequestParameterError(
+                    response, "path is invalid.");
         } else if (path.trim().equals("") || path.trim().equals("/")) {
-            MessageUtils.setUnknownError(response, "not found:" + path);
+            MessageUtils.setInvalidRequestParameterError(
+                    response, "path is invalid.");
+        } else if (flag == Flag.UNKNOWN) {
+            MessageUtils.setInvalidRequestParameterError(
+                    response, "flag is invalid.");
         } else {
-            ((HostDeviceService) getContext()).openFile(response, serviceId, path, flag);
-            return false;
+            FileDataManager mgr = getFileDataManager();
+            FileData file = mgr.getFileData(path);
+            if (file != null) {
+                MessageUtils.setIllegalDeviceStateError(
+                        response, "Already file is open.");
+            } else {
+                try {
+                    file = mgr.openFileData(path, flag);
+                    if (BuildConfig.DEBUG) {
+                        if (file != null) {
+                            Log.e("Host", "file is opened.");
+                        }
+                    }
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } catch (IOException e) {
+                    MessageUtils.setIllegalDeviceStateError(
+                            response, "file cannot open.");
+                } catch (IllegalStateException e) {
+                    MessageUtils.setIllegalDeviceStateError(
+                            response, "file is already opened.");
+                }
+            }
         }
         return true;
     }
@@ -50,15 +110,37 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
-        } else if (path == null || length == null || length < 0 || (position != null && position < 0)) {
-            MessageUtils.setInvalidRequestParameterError(response);
+        } else if (path == null) {
+            MessageUtils.setInvalidRequestParameterError(
+                    response, "path is invalid.");
+        } else if (length == null || length < 0) {
+            MessageUtils.setInvalidRequestParameterError(
+                    response, "length is invalid.");
+        } else if (position != null && position < 0) {
+            MessageUtils.setInvalidRequestParameterError(
+                    response, "position is invalid.");
         } else {
             long pos = 0;
             if (position != null) {
                 pos = position.longValue();
             }
-            ((HostDeviceService) getContext()).readFile(response, serviceId, path, pos, length);
-            return false;
+
+            FileDataManager mgr = getFileDataManager();
+            FileData file = mgr.getFileData(path);
+            if (file == null) {
+                MessageUtils.setInvalidRequestParameterError(
+                        response, "file is not opened.");
+            } else {
+                String fileData = mgr.readFile(file, (int) pos, length.intValue());
+                if (fileData != null) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    setSize(response, fileData.length());
+                    setFileData(response, fileData);
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response,
+                            "file cannot read.");
+                }
+            }
         }
         return true;
     }
@@ -71,10 +153,23 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else if (path == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
+            MessageUtils.setInvalidRequestParameterError(
+                    response, "path is invalid.");
         } else {
-            ((HostDeviceService) getContext()).closeFile(response, serviceId, path);
-            return false;
+            FileDataManager mgr = getFileDataManager();
+            FileData file = mgr.getFileData(path);
+            if (file != null) {
+                boolean isSuccess = mgr.closeFileData(path);
+                if (isSuccess) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setIllegalServerStateError(
+                            response, "file is not opened.");
+                }
+            } else {
+                MessageUtils.setIllegalServerStateError(
+                        response, "file is not opened.");
+            }
         }
         return true;
     }
@@ -86,25 +181,70 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
-        } else if (path == null || data == null || (position != null && position < 0)) {
-            String d = "";
-            if (data != null) {
-                d = new String(data, 0, data.length);
-            }
-            MessageUtils.setInvalidRequestParameterError(response, "path=" + path + " , data="
-                   + d + ", position="
-                    + position);
+        } else if (path == null) {
+            MessageUtils.setInvalidRequestParameterError(
+                    response, "path is invalid.");
+        } else if (data == null) {
+            MessageUtils.setInvalidRequestParameterError(
+                    response, "data is invalid.");
+        } else if (position != null && position < 0) {
+            MessageUtils.setInvalidRequestParameterError(
+                    response, "position is invalid.");
         } else {
-            ((HostDeviceService) getContext()).writeDataToFile(response, serviceId, path, data, position);
-            return false;
+            int pos = 0;
+            if (position != null) {
+                pos = position.intValue();
+            }
+
+            FileDataManager mgr = getFileDataManager();
+            FileData file = mgr.getFileData(path);
+            if (file == null) {
+                MessageUtils.setInvalidRequestParameterError(
+                        response, "file is not opened.");
+            } else if (file.getFlag() != Flag.RW) {
+                MessageUtils.setInvalidRequestParameterError(
+                        response, "file is not opened.");
+            } else {
+                if (pos < 0 || data.length < pos) {
+                    MessageUtils.setInvalidRequestParameterError(
+                            response, "position is invalid ");
+                } else {
+                    if (mgr.writeFile(file, data, pos)) {
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        MessageUtils.setUnknownError(
+                                response, "file cannot write.");
+                    }
+                }
+            }
         }
         return true;
     }
 
     @Override
-    protected boolean onPutOnWatchFile(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
+    protected boolean onGetOnWatchFile(final Intent request, final Intent response,
+            final String serviceId) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+        } else if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+        } else {
+            FileDataManager mgr = getFileDataManager();
+            List<File> files = mgr.checkUpdateFile();
+            if (files != null && files.size() > 0) {
+                Bundle f = createFile(files.get(0));
+                if (f != null) {
+                    setFile(response, f);
+                }
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+        }
+        return true;
+    }
 
+    @Override
+    protected boolean onPutOnWatchFile(final Intent request, final Intent response,
+            final String serviceId, final String sessionKey) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
@@ -112,27 +252,20 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-
-            // イベントの登録
             EventError error = EventManager.INSTANCE.addEvent(request);
-
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
-                ((HostDeviceService) getContext()).registerFileDescriptorOnWatchfileEvent(serviceId);
-                return true;
             } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
-                return true;
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL,
+                        "Can not register event.");
             }
-
         }
         return true;
     }
 
     @Override
-    protected boolean onDeleteOnWatchFile(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-
+    protected boolean onDeleteOnWatchFile(final Intent request, final Intent response,
+            final String serviceId, final String sessionKey) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
@@ -140,20 +273,13 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-
-            // イベントの解除
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
-                ((HostDeviceService) getContext()).unregisterFileDescriptorOnWatchfileEvent();
-                return true;
-
             } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");
-                return true;
-
+                MessageUtils.setError(response, ERROR_VALUE_IS_NULL,
+                        "Can not unregister event.");
             }
-
         }
         return true;
     }
@@ -186,4 +312,52 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
         MessageUtils.setNotFoundServiceError(response, "Service is not found.");
     }
 
+    /**
+     * onwatchイベントを送信する.
+     * @param files 変更のあったファイル一覧
+     */
+    private void sendWatchFileEvent(final List<File> files) {
+        HostDeviceService service = (HostDeviceService) getContext();
+
+        List<Event> events = EventManager.INSTANCE.getEventList(
+                HostServiceDiscoveryProfile.SERVICE_ID,
+                PROFILE_NAME, null, ATTRIBUTE_ON_WATCH_FILE);
+        synchronized (events) {
+            for (File f : files) {
+                Bundle file =  createFile(f);
+                if (file != null) {
+                    for (Event event : events) {
+                        Intent intent = EventManager.createEventMessage(event);
+                        setFile(intent, file);
+                        service.sendEvent(intent, event.getAccessToken());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Fileデータを作成する.
+     * @param f ファイル
+     * @return Fileデータ
+     */
+    private Bundle createFile(final File f) {
+        String path = mFileDataManager.getPath(f);
+        if (path == null) {
+            return null;
+        }
+
+        Bundle file = new Bundle();
+        setPath(file, path);
+        setCurr(file, mDateFormat.format(new Date(f.lastModified())));
+        return file;
+    }
+
+    /**
+     * ファイル管理クラスを取得する.
+     * @return ファイル管理クラス
+     */
+    private FileDataManager getFileDataManager() {
+        return mFileDataManager;
+    }
 }

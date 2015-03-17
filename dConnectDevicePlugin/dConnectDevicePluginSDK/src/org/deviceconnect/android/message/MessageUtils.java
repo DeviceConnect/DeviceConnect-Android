@@ -479,4 +479,23 @@ public final class MessageUtils {
         setError(response, ErrorCode.ILLEGAL_SERVER_STATE, message);
     }
 
+    /**
+     * レスポンスのエラーコードに 不正オリジンエラー を設定する.
+     * 
+     * @param response レスポンスパラメータ
+     */
+    public static void setInvalidOriginError(final Intent response) {
+        setError(response, ErrorCode.INVALID_ORIGIN);
+    }
+
+    /**
+     * レスポンスのエラーコードに 不正オリジンエラー を設定し、指定されたエラーメッセージを設定する.
+     * 
+     * @param response レスポンスパラメータ
+     * @param message エラーメッセージ　
+     */
+    public static void setInvalidOriginError(final Intent response, final String message) {
+        setError(response, ErrorCode.INVALID_ORIGIN, message);
+    }
+
 }

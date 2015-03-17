@@ -18,7 +18,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
-import org.deviceconnect.android.uiapp.DConnectActivity;
+import org.deviceconnect.android.uiapp.DConnectApplication;
 import org.deviceconnect.android.uiapp.R;
 import org.deviceconnect.android.uiapp.device.DevicePlugin;
 import org.deviceconnect.message.DConnectMessage;
@@ -117,7 +117,7 @@ public class PluginListFragment extends ListFragment {
      * @return アクセストークン
      */
     private String getAccessToken() {
-        return ((DConnectActivity) getActivity()).getAccessToken();
+        return ((DConnectApplication) getActivity().getApplication()).getAccessToken();
     }
 
     /**

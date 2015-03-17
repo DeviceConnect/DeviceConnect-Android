@@ -9,6 +9,7 @@
     <profile name="vibration" />
     <profile name="notification" />
     <profile name="canvas" />
+    <profile name="touch" />
     <profile name="keyevent" />
     
-</deviceplugin-provider> 
+</deviceplugin-provider>

@@ -1,5 +1,5 @@
 /*
- KeyEventActivity.java
+ KeyEventProfileActivity.java
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -28,11 +28,11 @@ import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
 /**
- * Key Event Activity.
+ * Key Event Profile Activity.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class KeyEventActivity extends Activity implements OnTouchListener, OnCheckedChangeListener {
+public class KeyEventProfileActivity extends Activity implements OnTouchListener, OnCheckedChangeListener {
 
     /** Application class instance. */
     private HostDeviceApplication mApp;

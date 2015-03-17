@@ -10,7 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
-import org.deviceconnect.android.deviceplugin.host.activity.KeyEventActivity;
+import org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -167,9 +167,9 @@ public class HostKeyEventProfile extends KeyEventProfile {
         ActivityManager mActivityManager = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
         String mClassName = mActivityManager.getRunningTasks(1).get(0).topActivity.getClassName();
 
-        if (!(KeyEventActivity.class.getName().equals(mClassName))) {
+        if (!(KeyEventProfileActivity.class.getName().equals(mClassName))) {
             Intent mIntent = new Intent();
-            mIntent.setClass(getContext(), KeyEventActivity.class);
+            mIntent.setClass(getContext(), KeyEventProfileActivity.class);
             mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             mIntent.putExtra(DConnectMessage.EXTRA_SERVICE_ID, serviceId);
             this.getContext().startActivity(mIntent);

@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="com.android.browser.permission.READ_HISTORY_BOOKMARKS" />
 
     <application
         android:allowBackup="true"
@@ -26,15 +27,19 @@
             android:launchMode="singleTop" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="start"
                     android:path="/"
                     android:scheme="dconnect" />
             </intent-filter>
+        </activity>
+
+        <!-- ホワイトリスト管理用Activity. -->
+        <activity
+            android:name="org.deviceconnect.android.manager.policy.WhitelistActivity"
+            android:label="@string/app_name" >
         </activity>
 
         <!-- Device Connect Manager設定画面用Activity. -->

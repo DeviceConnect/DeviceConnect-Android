@@ -33,6 +33,9 @@ public final class DConnectSettings {
     /** LocalOAuthの使用フラグ. */
     private boolean mUseALocalOAuth = true;
 
+    /** Originブロック機能の使用フラグ. */
+    private boolean mWhitelistEnabled = false;
+
     /** 監視時間を定義. */
     private int mObservationInterval;
 
@@ -68,6 +71,8 @@ public final class DConnectSettings {
         setSSL(sp.getBoolean(context.getString(R.string.key_settings_dconn_ssl), false));
         setUseALocalOAuth(sp.getBoolean(context.getString(R.string.key_settings_dconn_local_oauth), true));
         setAllowExternalIP(sp.getBoolean(context.getString(R.string.key_settings_dconn_allow_external_ip), false));
+        setBlockingOrigin(
+                sp.getBoolean(context.getString(R.string.key_settings_dconn_whitelist_origin_blocking), false));
         try {
             setObservationInterval(Integer.parseInt(sp.getString(
                     context.getString(R.string.key_settings_dconn_observation_interval),
@@ -166,6 +171,24 @@ public final class DConnectSettings {
      */
     public void setAllowExternalIP(final boolean allow) {
         this.mAllowExternalIP = allow;
+    }
+
+    /**
+     * Originブロック機能の使用フラグを取得する.
+     * @return trueの場合はホワイトリストに無いOriginからのアクセスを許可しない、
+     *      falseの場合は任意のOriginからのアクセスを許可する
+     */
+    public boolean isBlockingOrigin() {
+        return mWhitelistEnabled;
+    }
+
+    /**
+     * Originブロック機能の使用フラグを設定する.
+     * @param enabled trueの場合はホワイトリストに無いOriginからのアクセスを許可しない、
+     *      falseの場合は任意のOriginからのアクセスを許可する
+     */
+    public void setBlockingOrigin(final boolean enabled) {
+        this.mWhitelistEnabled = enabled;
     }
 
     /**

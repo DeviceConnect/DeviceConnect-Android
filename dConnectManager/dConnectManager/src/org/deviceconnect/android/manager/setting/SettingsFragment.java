@@ -61,6 +61,8 @@ public class SettingsFragment extends PreferenceFragment
     private CheckBoxPreference mCheckBoxOauthPreferences;
     /** 外部IP設定チェックボックス. */
     private CheckBoxPreference mCheckBoxExternalPreferences;
+    /** Originブロック設定チェックボックス. */
+    private CheckBoxPreference mCheckBoxOriginBlockingPreferences;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -132,11 +134,18 @@ public class SettingsFragment extends PreferenceFragment
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_allow_external_ip));
         mCheckBoxExternalPreferences.setOnPreferenceChangeListener(this);
 
+        // Originブロック設定のON/OFF
+        mCheckBoxOriginBlockingPreferences = (CheckBoxPreference)
+                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_whitelist_origin_blocking));
+        mCheckBoxOriginBlockingPreferences.setOnPreferenceChangeListener(this);
+
         editHostPreferences.setEnabled(false);
-        mCheckBoxSslPreferences.setEnabled(!isDConnectServiceRunning());
-        mEditPortPreferences.setEnabled(!isDConnectServiceRunning());
-        mCheckBoxOauthPreferences.setEnabled(!isDConnectServiceRunning());
-        mCheckBoxExternalPreferences.setEnabled(!isDConnectServiceRunning());
+        boolean enabled = !isDConnectServiceRunning();
+        mCheckBoxSslPreferences.setEnabled(enabled);
+        mEditPortPreferences.setEnabled(enabled);
+        mCheckBoxOauthPreferences.setEnabled(enabled);
+        mCheckBoxExternalPreferences.setEnabled(enabled);
+        mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
     }
 
     @Override
@@ -158,10 +167,12 @@ public class SettingsFragment extends PreferenceFragment
         observerPreferences.setChecked(isObservationServices());
 
         // 各dConnectManagerの設定
-        mCheckBoxSslPreferences.setEnabled(!isDConnectServiceRunning());
-        mEditPortPreferences.setEnabled(!isDConnectServiceRunning());
-        mCheckBoxOauthPreferences.setEnabled(!isDConnectServiceRunning());
-        mCheckBoxExternalPreferences.setEnabled(!isDConnectServiceRunning());
+        boolean enabled = !isDConnectServiceRunning();
+        mCheckBoxSslPreferences.setEnabled(enabled);
+        mEditPortPreferences.setEnabled(enabled);
+        mCheckBoxOauthPreferences.setEnabled(enabled);
+        mCheckBoxExternalPreferences.setEnabled(enabled);
+        mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
     }
 
     @Override
@@ -187,6 +198,7 @@ public class SettingsFragment extends PreferenceFragment
                 mCheckBoxSslPreferences.setEnabled(!checked);
                 mCheckBoxOauthPreferences.setEnabled(!checked);
                 mCheckBoxExternalPreferences.setEnabled(!checked);
+                mCheckBoxOriginBlockingPreferences.setEnabled(!checked);
                 mEditPortPreferences.setEnabled(!checked);
                 // dConnectManagerのON/OFF
                 Intent intent = new Intent(getActivity(), DConnectService.class);

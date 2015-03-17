@@ -72,6 +72,8 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
                 Long length = getLength(request);
                 Long position = getPosition(request);
                 result = onGetRead(request, response, serviceId, path, length, position);
+            } else if (attribute.equals(ATTRIBUTE_ON_WATCH_FILE)) {
+                result = onGetOnWatchFile(request, response, serviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -206,8 +208,25 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
     }
 
     /**
-     * watchfileコールバック登録リクエストハンドラー.<br/>
-     * watchfileコールバックを登録し、その結果をレスポンスパラメータに格納する。
+     * 変更のあったファイルを取得するリクエストハンドラー.<br/>
+     * 変更のあったファイルを取得する、その結果をレスポンスパラメータに格納する。
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * 
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param serviceId サービスID
+     * @param sessionKey セッションキー
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onGetOnWatchFile(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * onwatchfileコールバック登録リクエストハンドラー.<br/>
+     * onwatchfileコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * 
@@ -228,8 +247,8 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
     // ------------------------------------
 
     /**
-     * watchfileコールバック解除リクエストハンドラー.<br/>
-     * watchfileコールバックを解除し、その結果をレスポンスパラメータに格納する。
+     * onwatchfileコールバック解除リクエストハンドラー.<br/>
+     * onwatchfileコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * 

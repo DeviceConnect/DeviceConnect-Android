@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import org.deviceconnect.android.deviceplugin.sw.BuildConfig;
 import org.deviceconnect.android.deviceplugin.sw.R;
 import org.deviceconnect.android.deviceplugin.sw.SWApplication;
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
@@ -87,6 +88,12 @@ import com.sonyericsson.extras.liveware.extension.util.sensor.AccessorySensorMan
  */
 class SWControlExtension extends ControlExtension {
     /**
+     * LocalOAuthで無視するプロファイル群.
+     */
+    private static final String[] IGNORE_PROFILES = {AuthorizationProfileConstants.PROFILE_NAME,
+            SystemProfileConstants.PROFILE_NAME, ServiceDiscoveryProfileConstants.PROFILE_NAME };
+
+    /**
      * デバイスセンサー.
      */
     private AccessorySensor mSensor;
@@ -98,10 +105,38 @@ class SWControlExtension extends ControlExtension {
      * 画面サイズ(縦).
      */
     private final int mHeight;
+
     /**
-     * 加速度取得インターバル.
+     * このクラスが属するコンテキスト.
      */
-    private final long mInterval = SWConstants.DEFAULT_SENSOR_INTERVAL;
+    private Context mContext;
+
+    /**
+     * Creates a control extension.
+     * 
+     * @param hostAppPackageName Package name of host application.
+     * @param context The context.
+     */
+    SWControlExtension(final Context context, final String hostAppPackageName) {
+        super(context, hostAppPackageName);
+        mContext = context;
+        // Determine host application screen size.
+        if (DeviceInfoHelper.isSmartWatch2ApiAndScreenDetected(context, hostAppPackageName)) {
+            mWidth = context.getResources().getDimensionPixelSize(R.dimen.smart_watch_2_control_width);
+            mHeight = context.getResources().getDimensionPixelSize(R.dimen.smart_watch_2_control_height);
+        } else {
+            mWidth = context.getResources().getDimensionPixelSize(R.dimen.smart_watch_control_width);
+            mHeight = context.getResources().getDimensionPixelSize(R.dimen.smart_watch_control_height);
+        }
+
+        AccessorySensorManager manager = new AccessorySensorManager(context, hostAppPackageName);
+
+        // Add accelerometer, if supported by the host application.
+        if (DeviceInfoHelper.isSensorSupported(context, hostAppPackageName, SensorTypeValue.ACCELEROMETER)) {
+            mSensor = manager.getSensor(SensorTypeValue.ACCELEROMETER);
+        }
+        showDisplay();
+    }
 
     /**
      * Last press time for touch event.
@@ -138,7 +173,7 @@ class SWControlExtension extends ControlExtension {
      * 
      * @return 使用する場合にはtrue、それ以外はfalse
      */
-    protected boolean isUseLocalOAuth() {
+    private boolean isUseLocalOAuth() {
         return !LocalOAuth2Main.isAutoTestMode();
     }
 
@@ -153,39 +188,6 @@ class SWControlExtension extends ControlExtension {
             return true;
         }
         return result.checkResult();
-    }
-
-    /**
-     * LocalOAuthで無視するプロファイル群.
-     */
-    private static final String[] IGNORE_PROFILES = {AuthorizationProfileConstants.PROFILE_NAME,
-            SystemProfileConstants.PROFILE_NAME, ServiceDiscoveryProfileConstants.PROFILE_NAME};
-
-    /**
-     * Creates a control extension.
-     * 
-     * @param hostAppPackageName Package name of host application.
-     * @param context The context.
-     */
-    SWControlExtension(final Context context, final String hostAppPackageName) {
-        super(context, hostAppPackageName);
-
-        // Determine host application screen size.
-        if (DeviceInfoHelper.isSmartWatch2ApiAndScreenDetected(context, hostAppPackageName)) {
-            mWidth = context.getResources().getDimensionPixelSize(R.dimen.smart_watch_2_control_width);
-            mHeight = context.getResources().getDimensionPixelSize(R.dimen.smart_watch_2_control_height);
-        } else {
-            mWidth = context.getResources().getDimensionPixelSize(R.dimen.smart_watch_control_width);
-            mHeight = context.getResources().getDimensionPixelSize(R.dimen.smart_watch_control_height);
-        }
-
-        AccessorySensorManager manager = new AccessorySensorManager(context, hostAppPackageName);
-
-        // Add accelerometer, if supported by the host application.
-        if (DeviceInfoHelper.isSensorSupported(context, hostAppPackageName, SensorTypeValue.ACCELEROMETER)) {
-            mSensor = manager.getSensor(SensorTypeValue.ACCELEROMETER);
-        }
-        showDisplay();
     }
 
     /**
@@ -343,7 +345,9 @@ class SWControlExtension extends ControlExtension {
                     sensor.registerFixedRateListener(listener, Sensor.SensorRates.SENSOR_DELAY_UI);
                 }
             } catch (AccessorySensorException e) {
-                Log.e(SWConstants.LOG_TAG, "Failed to register listener", e);
+                if (BuildConfig.DEBUG) {
+                    Log.e(SWConstants.LOG_TAG, "Failed to register listener", e);
+                }
             }
         }
     }
@@ -390,42 +394,51 @@ class SWControlExtension extends ControlExtension {
             } else {
                 mDeviceName = SWConstants.DEVICE_NAME_SMART_WATCH;
             }
+            mStart = System.currentTimeMillis();
         }
 
         @Override
         public void onSensorEvent(final AccessorySensorEvent sensorEvent) {
-            if (mStart == 0 || System.currentTimeMillis() - mStart > mInterval) {
-                float[] values = sensorEvent.getSensorValues();
-                Bundle orientation = new Bundle();
-                Bundle acceleration = new Bundle();
-                orientation.putBundle(DeviceOrientationProfile.PARAM_ACCELERATION_INCLUDING_GRAVITY, acceleration);
-                orientation.putLong(DeviceOrientationProfile.PARAM_INTERVAL, mInterval);
-                acceleration.putDouble(DeviceOrientationProfile.PARAM_X, values[0]);
-                acceleration.putDouble(DeviceOrientationProfile.PARAM_Y, values[1]);
-                acceleration.putDouble(DeviceOrientationProfile.PARAM_Z, values[2]);
-
-                String serviceId = findServiceId(mDeviceName);
-                if (serviceId == null) {
-                    return;
-                }
-                List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                        DeviceOrientationProfileConstants.PROFILE_NAME, null,
-                        DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
-
+            long interval = System.currentTimeMillis() - mStart;
+            float[] values = sensorEvent.getSensorValues();
+            Bundle acceleration = new Bundle();
+            acceleration.putDouble(DeviceOrientationProfile.PARAM_X, values[0]);
+            acceleration.putDouble(DeviceOrientationProfile.PARAM_Y, values[1]);
+            acceleration.putDouble(DeviceOrientationProfile.PARAM_Z, values[2]);
+            
+            Bundle orientation = new Bundle();
+            DeviceOrientationProfile.setAccelerationIncludingGravity(orientation, acceleration);
+            DeviceOrientationProfile.setInterval(orientation, interval);
+            
+            String serviceId = findServiceId();
+            if (serviceId == null) {
+                return;
+            }
+            
+            // データをキャッシュする
+            SWExtensionService service = (SWExtensionService) mContext;
+            SWApplication application = (SWApplication) service.getApplication();
+            application.setDeviceOrientationCache(serviceId, values, interval);
+            
+            // イベントを配送
+            List<Event> events = EventManager.INSTANCE
+            .getEventList(serviceId, DeviceOrientationProfileConstants.PROFILE_NAME,
+                          null, DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
+            synchronized (events) {
                 for (Event event : events) {
                     Intent message = EventManager.createEventMessage(event);
                     message.putExtra(DeviceOrientationProfile.PARAM_ORIENTATION, orientation);
                     sendEvent(message, event.getAccessToken());
                 }
-
-                mStart = System.currentTimeMillis();
             }
+            
+            mStart = System.currentTimeMillis();
         }
     }
 
     /**
      * Find Service ID.
-     * 
+     *
      * @param deviceName Device Name.
      * @return Service ID.
      */

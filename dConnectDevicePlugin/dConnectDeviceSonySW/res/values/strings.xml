@@ -61,4 +61,7 @@
     <!-- Setting Page Number Fourth. -->
     <string name="index4">[4/4] 設定完了</string>
 
+    <!-- Touch Profile Axtivity. -->
+    <string name="touch_activity">Touch Activity</string>
+
 </resources>

@@ -94,10 +94,8 @@
     <string name="unregister_event">Unregister</string>
     <string name="authorization">Authorization</string>
     <string name="authorization_client_id">Client Id</string>
-    <string name="authorization_client_secret">Client Secret</string>
     <string name="authorization_access_token">Access Token</string>
     <string name="authorization_no_client_id">no data</string>
-    <string name="authorization_no_client_secret">no data</string>
     <string name="authorization_no_access_token">no data</string>
 
     <string-array name="notification_type_list">

@@ -94,7 +94,7 @@ public class HeartRateDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HeartRateServiceDiscoveryProfile();
+        return new HeartRateServiceDiscoveryProfile(this);
     }
 
     @Override

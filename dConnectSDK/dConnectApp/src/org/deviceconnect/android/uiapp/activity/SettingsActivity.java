@@ -63,15 +63,4 @@ public class SettingsActivity extends FragmentActivity {
         return clientId;
     }
 
-    /**
-     * クライアントシークレットを取得する.
-     * @return クライアントシークレット
-     */
-    public String getClientSecret() {
-        SharedPreferences prefs = PreferenceManager
-                .getDefaultSharedPreferences(getApplicationContext());
-        String clientSecret = prefs.getString(
-                getString(R.string.key_settings_dconn_client_secret), null);
-        return clientSecret;
-    }
 }

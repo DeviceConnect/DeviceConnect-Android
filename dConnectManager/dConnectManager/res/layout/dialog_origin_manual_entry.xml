@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="8dp" >
+    
+    <TextView
+        android:id="@+id/dialog_origin_manual_entry_text_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="@string/dialog_origin_manual_entry_item_title"
+        />
+    <EditText
+        android:id="@+id/dialog_origin_manual_entry_edit_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:inputType="text"
+        />
+    <TextView
+        android:id="@+id/dialog_origin_manual_entry_text_origin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="@string/dialog_origin_manual_entry_item_origin"
+        />
+    <EditText
+        android:id="@+id/dialog_origin_manual_entry_edit_origin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:inputType="text"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:textSize="14sp"
+        android:text="@string/dialog_origin_manual_entry_message" />
+</LinearLayout>

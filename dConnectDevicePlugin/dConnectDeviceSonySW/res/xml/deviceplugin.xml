@@ -9,5 +9,6 @@
      <profile name="vibration" />
      <profile name="notification" />
      <profile name="canvas" />
-    
+     <profile name="touch" />
+     
 </deviceplugin-provider> 

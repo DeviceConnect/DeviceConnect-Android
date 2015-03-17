@@ -47,6 +47,20 @@
         <description lang="en">Accesses device orientation. </description>
     </profile>
 
+    <profile name="notification" expireperiod="86400000">
+        <name lang="ja">通知</name>
+        <description lang="ja">通知管理機能にアクセスする</description>
+        <name lang="en">Notification </name>
+        <description lang="en">Accesses notification feature. </description>
+    </profile>
+
+	<profile name="touch" expireperiod="86400000">
+        <name lang="ja">タッチ </name>
+        <description lang="ja">タッチ状態を取得する </description>
+        <name lang="en">Touch </name>
+        <description lang="en">Touch event. </description>
+    </profile>
+
     <profile name="keyevent" expireperiod="86400000">
         <name lang="ja">キーイベント </name>
         <description lang="ja">キーイベント状態を取得する </description>

@@ -3,5 +3,6 @@
     <string name="shutter">シャッター</string>
     <string name="zoomin">ズームイン</string>
     <string name="zoomout">ズームアウト</string>
+    <string name="touch_activity">Touch Activity</string>
     
 </resources>

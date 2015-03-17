@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.hvc.profile;
 
 import java.util.List;
 
+import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectKind;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectRequestParams;
@@ -32,6 +33,11 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
      * log tag.
      */
     private static final String TAG = HvcHumanDetectProfile.class.getSimpleName();
+
+    /**
+     * Debug.
+     */
+    private static final Boolean DEBUG = BuildConfig.DEBUG;
 
     /**
      * error message. {@value}
@@ -191,7 +197,9 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
-            requestParams.dumpLog(TAG);
+            if (DEBUG) {
+                requestParams.dumpLog(TAG);
+            }
             
             // GET API.
             ((HvcDeviceService) getContext()).doGetDetectionProc(detectKind, requestParams, response,

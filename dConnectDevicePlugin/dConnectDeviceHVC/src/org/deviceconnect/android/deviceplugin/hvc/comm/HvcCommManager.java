@@ -49,6 +49,11 @@ public class HvcCommManager {
     private static final String TAG = HvcCommManager.class.getSimpleName();
 
     /**
+     * Debug.
+     */
+    private static final Boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
      * Context.
      */
     private Context mContext;
@@ -145,7 +150,7 @@ public class HvcCommManager {
      */
     public void registerDetectEvent(final HumanDetectKind detectKind, final HumanDetectRequestParams requestParams,
             final Intent response, final String sessionKey) {
-        if (BuildConfig.DEBUG) {
+        if (DEBUG) {
             Log.d(TAG, "registerDetectEvent() detectKind:" + detectKind.toString() + " sessionKey:" + sessionKey);
         }
         
@@ -173,7 +178,7 @@ public class HvcCommManager {
      * @param sessionKey sessionKey
      */
     public void unregisterDetectEvent(final HumanDetectKind detectKind, final String sessionKey) {
-        if (BuildConfig.DEBUG) {
+        if (DEBUG) {
             Log.d(TAG, "unregisterDetectEvent() detectKind:" + detectKind.toString() + " sessionKey:" + sessionKey);
         }
 
@@ -185,7 +190,7 @@ public class HvcCommManager {
      * unregister all detect event.
      */
     public void unregisterAllDetectEvent() {
-        if (BuildConfig.DEBUG) {
+        if (DEBUG) {
             Log.d(TAG, "unregisterAllDetectEvent()");
         }
 
@@ -284,7 +289,7 @@ public class HvcCommManager {
         
         // check comm busy.
         if (checkCommBusy()) {
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 Log.d(TAG, "doGetDetectionProc() - BUG: Supposed to have been checked in HvcDeviceService.");
             }
             MessageUtils.setIllegalDeviceStateError(response, "device busy.");
@@ -297,7 +302,7 @@ public class HvcCommManager {
             
             @Override
             public void onDetectFinished(final HVC_PRM hvcPrm, final HVC_RES hvcRes) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "<GET> detect finished. body:" + hvcRes.body.size() + " hand:" + hvcRes.hand.size()
                             + " face:" + hvcRes.face.size());
                     HvcResponseUtils.debugLogHvcRes(hvcRes, TAG);
@@ -310,34 +315,38 @@ public class HvcCommManager {
             
             @Override
             public void onSetParamError(final int status) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "<GET> set parameter error. status:" + status);
                 }
                 MessageUtils.setIllegalDeviceStateError(response, "set parameter error. status:" + status);
+                mContext.sendBroadcast(response);
             }
             
             @Override
             public void onRequestDetectError(final int status) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "<GET> request detect error. status:" + status);
                 }
                 MessageUtils.setIllegalDeviceStateError(response, "request detect error. status:" + status);
+                mContext.sendBroadcast(response);
             }
             
             @Override
             public void onDetectError(final int status) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "<GET> detect error.  status:" + status);
                 }
                 MessageUtils.setIllegalDeviceStateError(response, "detect error.  status:" + status);
+                mContext.sendBroadcast(response);
             }
             
             @Override
             public void onConnectError(final int status) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "<GET> connect error.  status:" + status);
                 }
                 MessageUtils.setIllegalDeviceStateError(response, "connect error.  status:" + status);
+                mContext.sendBroadcast(response);
             }
         };
         
@@ -378,7 +387,7 @@ public class HvcCommManager {
         
         // comm busy.
         if (checkCommBusy()) {
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 Log.d(TAG, "onEventProc() - skip event process.(busy)");
             }
             return;
@@ -392,7 +401,7 @@ public class HvcCommManager {
             
             @Override
             public void onDetectFinished(final HVC_PRM hvcPrm, final HVC_RES hvcRes) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "<EVENT> detect finished. body:" + hvcRes.body.size() + " hand:" + hvcRes.hand.size()
                             + " face:" + hvcRes.face.size());
                 }
@@ -408,7 +417,7 @@ public class HvcCommManager {
                             Intent intent = EventManager.createEventMessage(event);
                             HvcResponseUtils.setDetectResultResponse(intent, requestParams, hvcRes, detectKind);
                             mContext.sendBroadcast(intent);
-                            if (BuildConfig.DEBUG) {
+                            if (DEBUG) {
                                 Log.d(TAG, "<EVENT> send event. attribute:" + attribute);
                             }
                         }
@@ -418,28 +427,28 @@ public class HvcCommManager {
             
             @Override
             public void onSetParamError(final int status) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "<EVENT> set parameter error. status:" + status);
                 }
             }
             
             @Override
             public void onRequestDetectError(final int status) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "<EVENT> request detect error. status:" + status);
                 }
             }
             
             @Override
             public void onDetectError(final int status) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "<EVENT> detect error.  status:" + status);
                 }
             }
             
             @Override
             public void onConnectError(final int status) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "<EVENT> connect error.  status:" + status);
                 }
             }
@@ -457,7 +466,7 @@ public class HvcCommManager {
         // BLE connect timeout judge.
         if (checkConnect()
         &&  (System.currentTimeMillis() - mLastAccessTime) > HvcConstants.HVC_CONNECT_TIMEOUT_TIME) {
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 Log.d(TAG,
                     "disconnect(BLE connect timeout). Not been accessed more than "
                     + (HvcConstants.HVC_CONNECT_TIMEOUT_TIME / 1000) + " seconds");
@@ -485,7 +494,7 @@ public class HvcCommManager {
                 } else if (event.getKind() == HumanDetectKind.FACE) {
                     requestParams.setFace(event.getRequestParams().getFace());
                 } else {
-                    if (BuildConfig.DEBUG) {
+                    if (DEBUG) {
                         Log.d(TAG, "invalid event.getKind()" + event.getKind().ordinal());
                     }
                 }
@@ -503,7 +512,7 @@ public class HvcCommManager {
     public void commRequestProc(final HumanDetectRequestParams requestParams, final HvcDetectListener listener) {
         
         if (checkCommBusy()) {
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 Log.d(TAG, "commRequestProc() - BUG: Supposed to have been checked in HvcDeviceService.");
             }
             return;
@@ -515,7 +524,7 @@ public class HvcCommManager {
         
         // Replace last access time.
         mLastAccessTime = System.currentTimeMillis();
-        if (BuildConfig.DEBUG) {
+        if (DEBUG) {
             Log.d(TAG, "commRequestProc() - mLastAccessTime:" + mLastAccessTime);
         }
         
@@ -524,7 +533,7 @@ public class HvcCommManager {
             @Override
             public void onConnected() {
                 super.onConnected();
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "commRequestProc() - onConnected()");
                 }
                 
@@ -534,7 +543,7 @@ public class HvcCommManager {
             
             @Override
             public void onDisconnected() {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "commRequestProc() - onDisconnected()");
                 }
                 super.onDisconnected();
@@ -543,7 +552,7 @@ public class HvcCommManager {
             @Override
             public void onPostSetParam(final int nRet, final byte outStatus) {
                 super.onPostSetParam(nRet, outStatus);
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "commRequestProc() - onPostSetParam()");
                 }
                 
@@ -556,7 +565,7 @@ public class HvcCommManager {
             
             @Override
             public void onPostExecute(final int nRet, final byte outStatus) {
-                if (BuildConfig.DEBUG) {
+                if (DEBUG) {
                     Log.d(TAG, "commRequestProc() - onPostExecute() nRet:" + nRet + " outStatus:" + outStatus);
                 }
                 if (nRet != HVC.HVC_NORMAL || outStatus != 0) {
@@ -591,7 +600,7 @@ public class HvcCommManager {
         if (mCacheHvcPrm == null || !mCacheHvcPrm.equals(mHvcPrm)) {
             
             // no hit cache, send parameter.
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 Log.d(TAG, "mHvcBle.setParam()");
             }
             int result = mHvcBle.setParam(mHvcPrm);
@@ -612,7 +621,7 @@ public class HvcCommManager {
     private void sendDetectRequestProc() {
         // send detect request.
         int useFunc = (new HvcDetectRequestParams(mRequestParams)).getUseFunc();
-        if (BuildConfig.DEBUG) {
+        if (DEBUG) {
             Log.d(TAG, "mHvcBle.execute() useFunc:" + useFunc);
         }
         int result = mHvcBle.execute(useFunc, mHvcRes);

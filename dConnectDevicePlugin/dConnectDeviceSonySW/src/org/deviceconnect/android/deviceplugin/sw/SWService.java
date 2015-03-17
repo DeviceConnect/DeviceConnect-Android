@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.sw;
 
 import org.deviceconnect.android.deviceplugin.sw.profile.SWCanvasProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWDeviceOrientationProfile;
+import org.deviceconnect.android.deviceplugin.sw.profile.SWKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWNotificationProfile;
 import org.deviceconnect.android.deviceplugin.sw.profile.SWSystemProfile;
@@ -36,6 +37,7 @@ public class SWService extends DConnectMessageService {
         addProfile(new SWVibrationProfile());
         addProfile(new SWCanvasProfile());
         addProfile(new SWTouchProfile());
+        addProfile(new SWKeyEventProfile());
     }
 
     @Override

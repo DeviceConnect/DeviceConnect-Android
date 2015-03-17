@@ -68,7 +68,7 @@ public class HumanDetectBasicRequestParams implements Cloneable {
         
         // deep copy
         HumanDetectBasicRequestParams params = (HumanDetectBasicRequestParams) super.clone();
-        params.setOptions(new ArrayList<String>(mOptions));
+        params.setOptions(new ArrayList<>(mOptions));
         
         return params;
     }

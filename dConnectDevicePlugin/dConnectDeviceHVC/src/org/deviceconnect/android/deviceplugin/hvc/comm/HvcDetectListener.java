@@ -22,12 +22,6 @@ public interface HvcDetectListener {
      * @param hvcRes send HVC response.
      */
     void onDetectFinished(final HVC_PRM hvcPrm, final HVC_RES hvcRes);
-    
-    /**
-     * Error.
-     * @param status error status.
-     */
-    void onConnectError(final int status);
     /**
      * Set parameter error.
      * @param status error status.

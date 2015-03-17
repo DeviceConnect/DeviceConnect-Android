@@ -137,7 +137,7 @@ public class HvcCommManager {
     /**
      * event array.
      */
-    private List<HumanDetectEvent> mEventArray = new ArrayList<HumanDetectEvent>();
+    private List<HumanDetectEvent> mEventArray = new ArrayList<>();
 
 
     /**
@@ -185,37 +185,6 @@ public class HvcCommManager {
         // remove event register info.
         HumanDetectEventUtils.remove(mEventArray, detectKind, sessionKey);
     }
-    
-    /**
-     * unregister all detect event.
-     */
-    public void unregisterAllDetectEvent() {
-        if (DEBUG) {
-            Log.d(TAG, "unregisterAllDetectEvent()");
-        }
-
-        // remove all event register info.
-        mEventArray.clear();
-    }
-
-
-    /**
-     * Detection process result.
-     */
-    public enum CommDetectionResult {
-        /**
-         * Success.
-         */
-        RESULT_SUCCESS,
-        /**
-         * ERROR serviceId not found.
-         */
-        RESULT_ERR_SERVICEID_NOT_FOUND,
-        /**
-         * ERROR Thread alived.
-         */
-        RESULT_ERR_THREAD_ALIVE,
-    };
 
     /**
      * Get serviceId from bluetoothAddress.
@@ -224,8 +193,7 @@ public class HvcCommManager {
      * @return serviceId
      */
     public static String getServiceId(final String address) {
-        String serviceId = address.replace(":", "").toLowerCase(Locale.ENGLISH);
-        return serviceId;
+        return address.replace(":", "").toLowerCase(Locale.ENGLISH);
     }
 
 
@@ -245,22 +213,6 @@ public class HvcCommManager {
             }
         }
         return null;
-    }
-
-    /**
-     * get event count.
-     * 
-     * @return event count.
-     */
-    public int getEventCount() {
-        return mEventArray.size();
-    }
-
-    /**
-     * comm manager destroy process.
-     */
-    public void destroy() {
-        mHvcBle.disconnect();
     }
 
     /**
@@ -339,15 +291,6 @@ public class HvcCommManager {
                 MessageUtils.setIllegalDeviceStateError(response, "detect error.  status:" + status);
                 mContext.sendBroadcast(response);
             }
-            
-            @Override
-            public void onConnectError(final int status) {
-                if (DEBUG) {
-                    Log.d(TAG, "<GET> connect error.  status:" + status);
-                }
-                MessageUtils.setIllegalDeviceStateError(response, "connect error.  status:" + status);
-                mContext.sendBroadcast(response);
-            }
         };
         
         // detect request.
@@ -359,11 +302,8 @@ public class HvcCommManager {
      * @return true: busy / false: not busy.
      */
     public boolean checkCommBusy() {
-        
-        if (mHvcBle.getStatus() == HVC_BLE.STATE_BUSY) {
-            return true;
-        }
-        return false;
+
+        return mHvcBle.getStatus() == HVC_BLE.STATE_BUSY;
     }
     
     /**
@@ -372,10 +312,7 @@ public class HvcCommManager {
      */
     public boolean checkConnect() {
         int commStatus = mHvcBle.getCommStatus();
-        if (commStatus == HVC.HVC_ERROR_NODEVICES) {
-            return false;
-        }
-        return true;
+        return commStatus != HVC.HVC_ERROR_NODEVICES;
     }
 
     /**
@@ -443,13 +380,6 @@ public class HvcCommManager {
             public void onDetectError(final int status) {
                 if (DEBUG) {
                     Log.d(TAG, "<EVENT> detect error.  status:" + status);
-                }
-            }
-            
-            @Override
-            public void onConnectError(final int status) {
-                if (DEBUG) {
-                    Log.d(TAG, "<EVENT> connect error.  status:" + status);
                 }
             }
         };
@@ -606,7 +536,6 @@ public class HvcCommManager {
             int result = mHvcBle.setParam(mHvcPrm);
             if (result != HVC.HVC_NORMAL) {
                 mListener.onSetParamError(result);
-                return;
             }
             
         } else {
@@ -627,7 +556,6 @@ public class HvcCommManager {
         int result = mHvcBle.execute(useFunc, mHvcRes);
         if (result != HVC.HVC_NORMAL) {
             mListener.onRequestDetectError(result);
-            return;
         }
     }
 }

@@ -18,11 +18,6 @@
         android:icon="@drawable/dconnect_icon"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.hvc.setting.HvcSettingActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTask" >
-        </activity>
 
         <!-- Device Connect HVC Device Plugin Provider. -->
         <receiver android:name="org.deviceconnect.android.deviceplugin.hvc.HvcDeviceProvider" >
@@ -63,13 +58,6 @@
                 android:value="enable" />
         </service>
 
-        <activity
-            android:name="org.deviceconnect.android.deviceplugin.hvc.activity.BluetoothManageActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
-        </activity>
-
         <!-- LocalOAuth -->
         <activity
             android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
@@ -82,8 +70,7 @@
             android:exported="false" >
         </service>
         
-        <service android:enabled="true" android:name="omron.HVC.UartService" />
-        <activity android:name=".setting.HvcSettingStepsActivity"></activity>
+        <activity android:name=".setting.HvcSettingStepsActivity"/>
         
     </application>
 

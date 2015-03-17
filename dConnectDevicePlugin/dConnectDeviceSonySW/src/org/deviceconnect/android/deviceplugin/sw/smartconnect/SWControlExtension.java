@@ -410,7 +410,7 @@ class SWControlExtension extends ControlExtension {
             DeviceOrientationProfile.setAccelerationIncludingGravity(orientation, acceleration);
             DeviceOrientationProfile.setInterval(orientation, interval);
             
-            String serviceId = findServiceId();
+            String serviceId = findServiceId(mDeviceName);
             if (serviceId == null) {
                 return;
             }

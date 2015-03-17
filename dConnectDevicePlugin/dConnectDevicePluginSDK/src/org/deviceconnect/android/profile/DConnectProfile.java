@@ -536,6 +536,48 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     }
 
     /**
+     * リクエストからDeviceConnectManagerのバージョン名を取得する.
+     * 
+     * @param request リクエストパラメータ
+     * @return DeviceConnectManagerのバージョン名。無い場合はnullを返す。
+     */
+    public static String getVersion(final Intent request) {
+        String version = request.getStringExtra(DConnectMessage.EXTRA_VERSION);
+        return version;
+    }
+
+    /**
+     * リクエストからDeviceConnectManagerのバージョン名を設定する.
+     * 
+     * @param message メッセージパラメータ
+     * @param version DeviceConnectManagerのバージョン名
+     */
+    public static void setVersion(final Intent message, final String version) {
+        message.putExtra(DConnectMessage.EXTRA_VERSION, version);
+    }
+
+    /**
+     * リクエストからDeviceConnectManagerのアプリ名を取得する.
+     * 
+     * @param request リクエストパラメータ
+     * @return DeviceConnectManagerのアプリ名。無い場合はnullを返す。
+     */
+    public static String getProduct(final Intent request) {
+        String product = request.getStringExtra(DConnectMessage.EXTRA_PRODUCT);
+        return product;
+    }
+
+    /**
+     * リクエストからDeviceConnectManagerのアプリ名を設定する.
+     * 
+     * @param message メッセージパラメータ
+     * @param product DeviceConnectManagerのアプリ名
+     */
+    public static void setProduct(final Intent message, final String product) {
+        message.putExtra(DConnectMessage.EXTRA_PRODUCT, product);
+    }
+
+    /**
      * レスポンスの結果として非サポートエラーを設定する.
      * 
      * @param response レスポンスパラメータ

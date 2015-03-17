@@ -266,10 +266,14 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile {
         a2.putDouble(DeviceOrientationProfile.PARAM_Y, Double.parseDouble(mDataArray[1]));
         a2.putDouble(DeviceOrientationProfile.PARAM_Z, Double.parseDouble(mDataArray[2]));
 
+        // Conversion the unit of angular speed from rad/s to degree/s.
+        double alpha = Math.toDegrees(Double.parseDouble(mDataArray[3]));
+        double beta = Math.toDegrees(Double.parseDouble(mDataArray[4]));
+        double gamma = Math.toDegrees(Double.parseDouble(mDataArray[5]));
         Bundle r = new Bundle();
-        r.putDouble(DeviceOrientationProfile.PARAM_ALPHA, Double.parseDouble(mDataArray[3]));
-        r.putDouble(DeviceOrientationProfile.PARAM_BETA, Double.parseDouble(mDataArray[4]));
-        r.putDouble(DeviceOrientationProfile.PARAM_GAMMA, Double.parseDouble(mDataArray[5]));
+        r.putDouble(DeviceOrientationProfile.PARAM_ALPHA, alpha);
+        r.putDouble(DeviceOrientationProfile.PARAM_BETA, beta);
+        r.putDouble(DeviceOrientationProfile.PARAM_GAMMA, gamma);
         orientation.putBundle(DeviceOrientationProfile.PARAM_ACCELERATION, a1);
         orientation.putBundle(DeviceOrientationProfile.PARAM_ACCELERATION_INCLUDING_GRAVITY, a2);
         orientation.putBundle(DeviceOrientationProfile.PARAM_ROTATION_RATE, r);

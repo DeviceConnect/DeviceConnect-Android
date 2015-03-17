@@ -32,6 +32,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostProximityProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSettingsProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
 import org.deviceconnect.android.deviceplugin.host.video.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.video.VideoPlayer;
@@ -75,6 +76,9 @@ import android.webkit.MimeTypeMap;
  * @author NTT DOCOMO, INC.
  */
 public class HostDeviceService extends DConnectMessageService {
+    /** Application class instance. */
+    private HostDeviceApplication mApp;
+            
     /** マルチキャスト用のタグ. */
     private static final String HOST_MULTICAST = "deviceplugin.host";
 
@@ -106,6 +110,9 @@ public class HostDeviceService extends DConnectMessageService {
     public void onCreate() {
 
         super.onCreate();
+        
+        // Get application class instance.
+        mApp = (HostDeviceApplication) this.getApplication();
 
         // EventManagerの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
@@ -129,6 +136,7 @@ public class HostDeviceService extends DConnectMessageService {
         addProfile(new HostVibrationProfile());
         addProfile(new HostProximityProfile());
         addProfile(new HostCanvasProfile());
+        addProfile(new HostTouchProfile());
 
         // バッテリー関連の処理と値の保持
         mHostBatteryManager = new HostBatteryManager();
@@ -1199,5 +1207,15 @@ public class HostDeviceService extends DConnectMessageService {
         String mClassName = mActivityManager.getRunningTasks(1).get(0).topActivity
                 .getClassName();
         return mClassName;
+    }
+    
+    /**
+     * Get touch cache.
+     * 
+     * @param attr Attribute.
+     * @return Touch cache data.
+     */
+    public Bundle getTouchCache(final String attr) {
+        return mApp.getTouchCache(attr);
     }
 }

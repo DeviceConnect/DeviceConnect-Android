@@ -103,7 +103,6 @@ public class WearNotificationProfile extends NotificationProfile {
             
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
                     null, WearNotificationProfile.ATTRIBUTE_ON_SHOW);
-
             synchronized (events) {
                 for (int i = 0; i < events.size(); i++) {
                     Event event = events.get(i);

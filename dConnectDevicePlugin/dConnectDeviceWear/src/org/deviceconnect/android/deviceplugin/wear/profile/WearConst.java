@@ -97,6 +97,75 @@ public final class WearConst {
      */
     public static final int MODE_FILLS = 2;
 
+    /** Register Touch (ontouch). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCH_REGISTER
+            = "org.deviceconnect.wear.touch.ontouch.regist";
+
+    /** Register Touch (ontouchstart). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_REGISTER
+            = "org.deviceconnect.wear.touch.ontouchstart.regist";
+
+    /** Register Touch (ontouchend). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_REGISTER
+            = "org.deviceconnect.wear.touch.ontouchend.regist";
+
+    /** Register Touch (ondoubletap). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_REGISTER
+            = "org.deviceconnect.wear.touch.ondoubletap.regist";
+
+    /** Register Touch (ontouchmove). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_REGISTER
+            = "org.deviceconnect.wear.touch.ontouchmove.regist";
+
+    /** Register Touch (ontouchcancel). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_REGISTER
+            = "org.deviceconnect.wear.touch.ontouchcancel.regist";
+
+    /** Remove Touch (ontouch). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCH_UNREGISTER
+            = "org.deviceconnect.wear.touch.ontouch.unregist";
+
+    /** Remove Touch (ontouchstart). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHSTART_UNREGISTER
+            = "org.deviceconnect.wear.touch.ontouchstart.unregist";
+
+    /** Remove Touch (ontouchend). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHEND_UNREGISTER
+            = "org.deviceconnect.wear.touch.ontouchend.unregist";
+
+    /** Remove Touch (ondoubletap). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONDOUBLETAP_UNREGISTER
+            = "org.deviceconnect.wear.touch.ondoubletap.unregist";
+
+    /** Remove Touch (ontouchmove). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHMOVE_UNREGISTER
+            = "org.deviceconnect.wear.touch.ontouchmove.unregist";
+
+    /** Remove Touch (ontouchcancel). */
+    public static final String DEVICE_TO_WEAR_TOUCH_ONTOUCHCANCEL_UNREGISTER
+            = "org.deviceconnect.wear.touch.ontouchcancel.unregist";
+
+    /** Wear to Android. */
+    public static final String WEAR_TO_DEVICE_TOUCH_DATA = "org.deviceconnect.wear.touch.data";
+
+    /** Touch (touch). */
+    public static final String PARAM_TOUCH_TOUCH = "touch";
+
+    /** Touch (touchstart). */
+    public static final String PARAM_TOUCH_TOUCHSTART = "touchstart";
+
+    /** Touch (touchend). */
+    public static final String PARAM_TOUCH_TOUCHEND = "touchend";
+
+    /** Touch (doubletap). */
+    public static final String PARAM_TOUCH_DOUBLETAP = "doubletap";
+
+    /** Touch (touchmove). */
+    public static final String PARAM_TOUCH_TOUCHMOVE = "touchmove";
+
+    /** Touch (touchcancel). */
+    public static final String PARAM_TOUCH_TOUCHCANCEL = "touchcancel";
+
     /**
      * Constructor.
      */

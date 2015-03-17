@@ -38,6 +38,7 @@ public final class WearUtils {
         }
         return mm;
     }
+
     /**
      * サービスIDを確認する.
      * @param serviceId サービスID

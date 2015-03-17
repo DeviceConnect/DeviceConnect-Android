@@ -61,7 +61,7 @@
             android:exported="false" >
         </service>
 
-        <!-- 再起動用のServcie. -->
+        <!-- 再起動用のService. -->
         <service
             android:name="org.deviceconnect.android.message.DConnectLaunchService"
             android:exported="true" >

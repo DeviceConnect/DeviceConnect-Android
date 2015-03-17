@@ -14,6 +14,7 @@ import org.deviceconnect.android.deviceplugin.wear.profile.WearDeviceOrientation
 import org.deviceconnect.android.deviceplugin.wear.profile.WearNotificationProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearSystemProfile;
+import org.deviceconnect.android.deviceplugin.wear.profile.WearTouchProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearVibrationProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -52,6 +53,8 @@ public class WearDeviceService extends DConnectMessageService {
         addProfile(new WearVibrationProfile());
         addProfile(new WearDeviceOrientationProfile(mWearManager));
         addProfile(new WearCanvasProfile());
+        addProfile(new WearTouchProfile(mWearManager));
+
     }
 
     @Override

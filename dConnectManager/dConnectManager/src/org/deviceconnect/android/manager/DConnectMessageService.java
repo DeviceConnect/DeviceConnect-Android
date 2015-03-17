@@ -24,6 +24,8 @@ import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
 import org.deviceconnect.android.manager.DevicePluginManager.DevicePluginEventListener;
 import org.deviceconnect.android.manager.hmac.HmacManager;
+import org.deviceconnect.android.manager.policy.OriginParser;
+import org.deviceconnect.android.manager.policy.Whitelist;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.android.manager.profile.DConnectAvailabilityProfile;
 import org.deviceconnect.android.manager.profile.DConnectDeliveryProfile;
@@ -61,6 +63,10 @@ public abstract class DConnectMessageService extends Service
     private static final String DCONNECT_DOMAIN = ".deviceconnect.org";
     /** ローカルのドメイン名. */
     private static final String LOCALHOST_DCONNECT = "localhost" + DCONNECT_DOMAIN;
+    /** fileスキームのオリジン. */
+    private static final String ORIGIN_FILE = "file://";
+    /** 常に許可するオリジン一覧. */
+    private static final String[] IGNORED_ORIGINS = {ORIGIN_FILE};
 
     /** サービスIDやセッションキーを分割するセパレータ. */
     public static final String SEPARATOR = ".";
@@ -104,6 +110,9 @@ public abstract class DConnectMessageService extends Service
     /** HMAC管理クラス. */
     private HmacManager mHmacManager;
 
+    /** ホワイトリスト管理クラス. */
+    private Whitelist mWhitelist;
+
     @Override
     public IBinder onBind(final Intent intent) {
         return null;
@@ -136,6 +145,7 @@ public abstract class DConnectMessageService extends Service
         mLogger.info("    Host: " + mSettings.getHost());
         mLogger.info("    Port: " + mSettings.getPort());
         mLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
+        mLogger.info("    OriginBlock: " + mSettings.isBlockingOrigin());
 
         // ファイル管理クラス
         mFileMgr = new FileManager(this);
@@ -148,6 +158,9 @@ public abstract class DConnectMessageService extends Service
 
         // HMAC管理クラス
         mHmacManager = new HmacManager(this);
+
+        // ホワイトリスト管理クラス
+        mWhitelist = new Whitelist(this);
 
         // リクエスト管理クラスの作成
         mRequestManager = new DConnectRequestManager();
@@ -245,8 +258,18 @@ public abstract class DConnectMessageService extends Service
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
         response.putExtra(DConnectMessage.EXTRA_REQUEST_CODE, requestCode);
 
-        // プロファイル名の取得
+        // オリジンの確認
         String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        if (!allowsOrigin(request)) {
+            MessageUtils.setInvalidOriginError(response);
+            DConnectProfile profile = getProfile(profileName);
+            if (profile != null && profile instanceof AuthorizationProfile) {
+                ((AuthorizationProfile) profile).onInvalidOrigin(request, response);
+            }
+            sendResponse(request, response);
+            return;
+        }
+
         if (profileName == null) {
             MessageUtils.setNotSupportProfileError(response);
             sendResponse(request, response);
@@ -470,6 +493,9 @@ public abstract class DConnectMessageService extends Service
      * @return DConnectProfileのインスタンス
      */
     public DConnectProfile getProfile(final String name) {
+        if (name == null) {
+            return null;
+        }
         return mProfileMap.get(name);
     }
 
@@ -613,6 +639,31 @@ public abstract class DConnectMessageService extends Service
         }
         // Origin is a package name of LocalOAuth client.
         return packageInfo.getPackageInfo().getPackageName();
+    }
+
+    /**
+     * 指定されたリクエストのオリジンが許可されるかどうかを返す.
+     * 
+     * @param request 受信したリクエスト
+     * @return 指定されたリクエストのオリジンが許可される場合は<code>true</code>、
+     *      そうでない場合は<code>false</code>
+     */
+    private boolean allowsOrigin(final Intent request) {
+        String originExp = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        if (originExp == null) {
+            // NOTE: クライアント作成のためにオリジンが必要のため、
+            // ホワイトリストが無効の場合でもオリジン指定のない場合はリクエストを許可しない.
+            return false;
+        }
+        for (int i = 0; i < IGNORED_ORIGINS.length; i++) {
+            if (originExp.equals(IGNORED_ORIGINS[i])) {
+                return true;
+            }
+        }
+        if (!mSettings.isBlockingOrigin()) {
+            return true;
+        }
+        return mWhitelist.allows(OriginParser.parse(originExp));
     }
 
     /**

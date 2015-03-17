@@ -14,6 +14,7 @@ import org.deviceconnect.android.deviceplugin.heartrate.HeartRateDeviceService;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateDevice;
+import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -25,7 +26,13 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateServiceDiscoveryProfile extends ServiceDiscoveryProfile {
-
+    /**
+     * コンストラクタ.
+     * @param provider プロファイルプロバイダ
+     */
+    public HeartRateServiceDiscoveryProfile(final DConnectProfileProvider provider) {
+        super(provider);
+    }
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
         if (!BleUtils.isBLESupported(getContext())) {

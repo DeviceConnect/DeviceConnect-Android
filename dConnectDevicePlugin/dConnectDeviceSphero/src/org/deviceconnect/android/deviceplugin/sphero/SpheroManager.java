@@ -20,10 +20,11 @@ import orbotix.robot.base.CollisionDetectedAsyncData.CollisionPower;
 import orbotix.robot.base.Robot;
 import orbotix.robot.base.RobotProvider;
 import orbotix.robot.sensor.Acceleration;
-import orbotix.robot.sensor.AttitudeSensor;
 import orbotix.robot.sensor.DeviceSensorsData;
+import orbotix.robot.sensor.GyroData;
 import orbotix.robot.sensor.LocatorData;
 import orbotix.robot.sensor.QuaternionSensor;
+import orbotix.robot.sensor.ThreeAxisSensor;
 import orbotix.sphero.ConnectionListener;
 import orbotix.sphero.DiscoveryListener;
 import orbotix.sphero.Sphero;
@@ -107,6 +108,21 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
      * サービス.
      */
     private SpheroDeviceService mService;
+
+    /**
+     * 一時的にDeviceInfoをキャッシュする変数.
+     */
+    private DeviceInfo mCacheDeviceInfo;
+
+    /**
+     * 一時的にDeviceSensorsDataをキャッシュする変数.
+     */
+    private DeviceSensorsData mCacheDeviceSensorsData;
+
+    /**
+     * 一時的にインターバルをキャッシュする変数.
+     */
+    private long mCacheInterval;
 
     /**
      * SpheroManagerを生成する.
@@ -301,6 +317,35 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
     }
 
     /**
+     * 指定されたデバイスのセンサーを1回だけ監視する.
+     * @param device デバイス
+     * @param listener 監視結果を通知するリスナー
+     */
+    public void startSensor(final DeviceInfo device, final DeviceSensorListener listener) {
+        synchronized (device) {
+            if (!device.isSensorStarted()) {
+                device.startSensor(new DeviceSensorListener() {
+                    @Override
+                    public void sensorUpdated(final DeviceInfo info,
+                            final DeviceSensorsData data, final long interval) {
+                        if (listener != null) {
+                            listener.sensorUpdated(info, data, interval);
+                        }
+                        if (!hasSensorListener(device.getDevice().getUniqueId())) {
+                            stopSensor(device);
+                        }
+                    }
+                });
+            } else {
+                if (listener != null) {
+                    listener.sensorUpdated(mCacheDeviceInfo,
+                            mCacheDeviceSensorsData, mCacheInterval);
+                }
+            }
+        }
+    }
+
+    /**
      * 指定されたデバイスのセンサー監視を開始する.
      * 
      * @param device デバイス
@@ -325,7 +370,7 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
             }
         }
     }
-    
+
     /**
      * 指定されたデバイスの衝突監視を開始する.
      * 
@@ -335,6 +380,30 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
         synchronized (device) {
             if (!device.isCollisionStarted()) {
                 device.startCollistion(this);
+            }
+        }
+    }
+
+    /**
+     * 指定されたデバイスの衝突監視を開始する.
+     * 
+     * @param device デバイス
+     * @param listener リスナー
+     */
+    public void startCollision(final DeviceInfo device, final DeviceCollisionListener listener) {
+        synchronized (device) {
+            if (!device.isCollisionStarted()) {
+                device.startCollistion(new DeviceCollisionListener() {
+                    @Override
+                    public void collisionDetected(final DeviceInfo info, final CollisionDetectedAsyncData data) {
+                        if (listener != null) {
+                            listener.collisionDetected(info, data);
+                        }
+                        if (!hasCollisionListener(device.getDevice().getUniqueId())) {
+                            stopCollision(device);
+                        }
+                    }
+                });
             }
         }
     }
@@ -425,6 +494,97 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
     }
 
     /**
+     * 指定されたデータからOrientationデータを作成する.
+     * @param data データ
+     * @param interval インターバル
+     * @return Orientationデータ
+     */
+    public static Bundle createOrientation(final DeviceSensorsData data, final long interval)  {
+        Acceleration accData = data.getAccelerometerData().getFilteredAcceleration();
+        Bundle accelerationIncludingGravity = new Bundle();
+        // Spheroでは単位がG(1G=9.81m/s^2)で正規化しているので、Device Connectの単位(m/s^2)に変換する。
+        DeviceOrientationProfile.setX(accelerationIncludingGravity, accData.x * G);
+        DeviceOrientationProfile.setY(accelerationIncludingGravity, accData.y * G);
+        DeviceOrientationProfile.setZ(accelerationIncludingGravity, accData.z * G);
+
+        GyroData gyroData = data.getGyroData();
+        ThreeAxisSensor threeAxisSensor = gyroData.getRotationRateFiltered();
+        Bundle rotationRate = new Bundle();
+        DeviceOrientationProfile.setAlpha(rotationRate, 0.1d * threeAxisSensor.x);
+        DeviceOrientationProfile.setBeta(rotationRate, 0.1d * threeAxisSensor.y);
+        DeviceOrientationProfile.setGamma(rotationRate, 0.1d * threeAxisSensor.z);
+
+        Bundle orientation = new Bundle();
+        DeviceOrientationProfile.setAccelerationIncludingGravity(orientation, accelerationIncludingGravity);
+        DeviceOrientationProfile.setRotationRate(orientation, rotationRate);
+        DeviceOrientationProfile.setInterval(orientation, interval);
+        return orientation;
+    }
+
+    /**
+     * 指定されたデータからQuaternionデータを作成する.
+     * @param data データ
+     * @param interval インターバル
+     * @return Quaternionデータ
+     */
+    public static Bundle createQuaternion(final DeviceSensorsData data, final long interval) {
+        QuaternionSensor quat = data.getQuaternion();
+        Bundle quaternion = new Bundle();
+        quaternion.putDouble(SpheroProfile.PARAM_Q0, quat.q0);
+        quaternion.putDouble(SpheroProfile.PARAM_Q1, quat.q1);
+        quaternion.putDouble(SpheroProfile.PARAM_Q2, quat.q2);
+        quaternion.putDouble(SpheroProfile.PARAM_Q3, quat.q3);
+        quaternion.putLong(SpheroProfile.PARAM_INTERVAL, interval);
+        return quaternion;
+    }
+
+    /**
+     * 指定されたデータからLocatorデータを作成する.
+     * @param data データ
+     * @return Locatorデータ
+     */
+    public static Bundle createLocator(final DeviceSensorsData data) {
+        LocatorData loc = data.getLocatorData();
+        Bundle locator = new Bundle();
+        locator.putFloat(SpheroProfile.PARAM_POSITION_X, loc.getPositionX());
+        locator.putFloat(SpheroProfile.PARAM_POSITION_Y, loc.getPositionY());
+        locator.putFloat(SpheroProfile.PARAM_VELOCITY_X, loc.getVelocityX());
+        locator.putFloat(SpheroProfile.PARAM_VELOCITY_Y, loc.getVelocityY());
+        return locator;
+    }
+
+    /**
+     * 指定されたデータからCollisionデータを作成する.
+     * @param data データ
+     * @return Collisionデータ
+     */
+    public static Bundle createCollision(final CollisionDetectedAsyncData data) {
+        Bundle collision = new Bundle();
+        
+        Acceleration impactAccelerationData = data.getImpactAcceleration();
+        Bundle impactAcceleration = new Bundle();
+        impactAcceleration.putDouble(SpheroProfile.PARAM_X, impactAccelerationData.x);
+        impactAcceleration.putDouble(SpheroProfile.PARAM_Y, impactAccelerationData.y);
+        impactAcceleration.putDouble(SpheroProfile.PARAM_Z, impactAccelerationData.z);
+        
+        Bundle impactAxis = new Bundle();
+        impactAxis.putBoolean(SpheroProfile.PARAM_X, data.hasImpactXAxis());
+        impactAxis.putBoolean(SpheroProfile.PARAM_Y, data.hasImpactYAxis());
+        
+        CollisionPower power = data.getImpactPower();
+        Bundle impactPower = new Bundle();
+        impactPower.putShort(SpheroProfile.PARAM_X, power.x);
+        impactPower.putShort(SpheroProfile.PARAM_Y, power.y);
+        
+        collision.putBundle(SpheroProfile.PARAM_IMPACT_ACCELERATION, impactAcceleration);
+        collision.putBundle(SpheroProfile.PARAM_IMPACT_AXIS, impactAxis);
+        collision.putBundle(SpheroProfile.PARAM_IMPACT_POWER, impactPower);
+        collision.putFloat(SpheroProfile.PARAM_IMPACT_SPEED, data.getImpactSpeed());
+        collision.putLong(SpheroProfile.PARAM_IMPACT_TIMESTAMP, data.getTimeStamp().getTime());
+        return collision;
+    }
+
+    /**
      * Spheroが接続された時の処理.
      * 
      * @param sphero 接続されたSphero
@@ -438,6 +598,46 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
             Log.d("", "connected device : " + sphero.toString());
         }
         mDevices.put(sphero.getUniqueId(), info);
+    }
+
+    /**
+     * センサーのイベントが登録されているか確認する.
+     * @param serviceId サービスID
+     * @return 登録されている場合はtrue、それ以外はfalse
+     */
+    private boolean hasSensorListener(final String serviceId) {
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                DeviceOrientationProfile.PROFILE_NAME, null, DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
+        if (events != null && events.size() > 0) {
+            return true;
+        }
+
+        events = EventManager.INSTANCE.getEventList(serviceId, SpheroProfile.PROFILE_NAME,
+                SpheroProfile.INTER_QUATERNION, SpheroProfile.ATTR_ON_QUATERNION);
+        if (events != null && events.size() > 0) {
+            return true;
+        }
+
+        events = EventManager.INSTANCE.getEventList(serviceId, SpheroProfile.PROFILE_NAME,
+                SpheroProfile.INTER_LOCATOR, SpheroProfile.ATTR_ON_LOCATOR);
+        if (events != null && events.size() > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 衝突のイベントが登録されているか確認する.
+     * @param serviceId サービスID
+     * @return 登録されている場合はtrue、それ以外はfalse
+     */
+    private boolean hasCollisionListener(final String serviceId) {
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                SpheroProfile.PROFILE_NAME, 
+                SpheroProfile.INTER_COLLISION, 
+                SpheroProfile.ATTR_ON_COLLISION);
+        return events != null && events.size() > 0;
     }
 
     /**
@@ -617,32 +817,21 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
             return;
         }
 
+        mCacheDeviceInfo = info;
+        mCacheDeviceSensorsData = data;
+        mCacheInterval = interval;
+
         List<Event> events = EventManager.INSTANCE.getEventList(info.getDevice().getUniqueId(),
                 DeviceOrientationProfile.PROFILE_NAME, null, DeviceOrientationProfile.ATTRIBUTE_ON_DEVICE_ORIENTATION);
 
         if (events.size() != 0) {
-            Acceleration accData = data.getAccelerometerData().getFilteredAcceleration();
-            Bundle accelerationIncludingGravity = new Bundle();
-            // Spheroでは単位がG(1G=9.81m/s^2)で正規化しているので、Device Connectの単位(m/s^2)に変換する。
-            DeviceOrientationProfile.setX(accelerationIncludingGravity, accData.x * G);
-            DeviceOrientationProfile.setY(accelerationIncludingGravity, accData.y * G);
-            DeviceOrientationProfile.setZ(accelerationIncludingGravity, accData.z * G);
-
-            AttitudeSensor att = data.getAttitudeData();
-            Bundle rotationRate = new Bundle();
-            DeviceOrientationProfile.setAlpha(rotationRate, att.yaw);
-            DeviceOrientationProfile.setBeta(rotationRate, att.roll);
-            DeviceOrientationProfile.setGamma(rotationRate, att.pitch);
-
-            Bundle orientation = new Bundle();
-            DeviceOrientationProfile.setAccelerationIncludingGravity(orientation, accelerationIncludingGravity);
-            DeviceOrientationProfile.setRotationRate(orientation, rotationRate);
-            DeviceOrientationProfile.setInterval(orientation, interval);
-
-            for (Event e : events) {
-                Intent event = EventManager.createEventMessage(e);
-                DeviceOrientationProfile.setOrientation(event, orientation);
-                mService.sendEvent(event, e.getAccessToken());
+            Bundle orientation = createOrientation(data, interval);
+            synchronized (events) {
+                for (Event e : events) {
+                    Intent event = EventManager.createEventMessage(e);
+                    DeviceOrientationProfile.setOrientation(event, orientation);
+                    mService.sendEvent(event, e.getAccessToken());
+                }
             }
         }
 
@@ -650,18 +839,13 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
                 SpheroProfile.INTER_QUATERNION, SpheroProfile.ATTR_ON_QUATERNION);
 
         if (events.size() != 0) {
-            QuaternionSensor quat = data.getQuaternion();
-            Bundle quaternion = new Bundle();
-            quaternion.putDouble(SpheroProfile.PARAM_Q0, quat.q0);
-            quaternion.putDouble(SpheroProfile.PARAM_Q1, quat.q1);
-            quaternion.putDouble(SpheroProfile.PARAM_Q2, quat.q2);
-            quaternion.putDouble(SpheroProfile.PARAM_Q3, quat.q3);
-            quaternion.putLong(SpheroProfile.PARAM_INTERVAL, interval);
-
-            for (Event e : events) {
-                Intent event = EventManager.createEventMessage(e);
-                event.putExtra(SpheroProfile.PARAM_QUATERNION, quaternion);
-                mService.sendEvent(event, e.getAccessToken());
+            Bundle quaternion = createQuaternion(data, interval);
+            synchronized (events) {
+                for (Event e : events) {
+                    Intent event = EventManager.createEventMessage(e);
+                    event.putExtra(SpheroProfile.PARAM_QUATERNION, quaternion);
+                    mService.sendEvent(event, e.getAccessToken());
+                }
             }
         }
 
@@ -669,17 +853,13 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
                 SpheroProfile.INTER_LOCATOR, SpheroProfile.ATTR_ON_LOCATOR);
 
         if (events.size() != 0) {
-            LocatorData loc = data.getLocatorData();
-            Bundle locator = new Bundle();
-            locator.putFloat(SpheroProfile.PARAM_POSITION_X, loc.getPositionX());
-            locator.putFloat(SpheroProfile.PARAM_POSITION_Y, loc.getPositionY());
-            locator.putFloat(SpheroProfile.PARAM_VELOCITY_X, loc.getVelocityX());
-            locator.putFloat(SpheroProfile.PARAM_VELOCITY_Y, loc.getVelocityY());
-
-            for (Event e : events) {
-                Intent event = EventManager.createEventMessage(e);
-                event.putExtra(SpheroProfile.PARAM_LOCATOR, locator);
-                mService.sendEvent(event, e.getAccessToken());
+            Bundle locator = createLocator(data);
+            synchronized (events) {
+                for (Event e : events) {
+                    Intent event = EventManager.createEventMessage(e);
+                    event.putExtra(SpheroProfile.PARAM_LOCATOR, locator);
+                    mService.sendEvent(event, e.getAccessToken());
+                }
             }
         }
     }
@@ -696,34 +876,13 @@ public final class SpheroManager implements DeviceSensorListener, DeviceCollisio
                 SpheroProfile.ATTR_ON_COLLISION);
 
         if (events.size() != 0) {
-            
-            Bundle collision = new Bundle();
-            
-            Acceleration impactAccelerationData = data.getImpactAcceleration();
-            Bundle impactAcceleration = new Bundle();
-            impactAcceleration.putDouble(SpheroProfile.PARAM_X, impactAccelerationData.x);
-            impactAcceleration.putDouble(SpheroProfile.PARAM_Y, impactAccelerationData.y);
-            impactAcceleration.putDouble(SpheroProfile.PARAM_Z, impactAccelerationData.z);
-            
-            Bundle impactAxis = new Bundle();
-            impactAxis.putBoolean(SpheroProfile.PARAM_X, data.hasImpactXAxis());
-            impactAxis.putBoolean(SpheroProfile.PARAM_Y, data.hasImpactYAxis());
-            
-            CollisionPower power = data.getImpactPower();
-            Bundle impactPower = new Bundle();
-            impactPower.putShort(SpheroProfile.PARAM_X, power.x);
-            impactPower.putShort(SpheroProfile.PARAM_Y, power.y);
-            
-            collision.putBundle(SpheroProfile.PARAM_IMPACT_ACCELERATION, impactAcceleration);
-            collision.putBundle(SpheroProfile.PARAM_IMPACT_AXIS, impactAxis);
-            collision.putBundle(SpheroProfile.PARAM_IMPACT_POWER, impactPower);
-            collision.putFloat(SpheroProfile.PARAM_IMPACT_SPEED, data.getImpactSpeed());
-            collision.putLong(SpheroProfile.PARAM_IMPACT_TIMESTAMP, data.getTimeStamp().getTime());
-
-            for (Event e : events) {
-                Intent event = EventManager.createEventMessage(e);
-                event.putExtra(SpheroProfile.PARAM_COLLISION, collision);
-                mService.sendEvent(event, e.getAccessToken());
+            Bundle collision = createCollision(data);
+            synchronized (events) {
+                for (Event e : events) {
+                    Intent event = EventManager.createEventMessage(e);
+                    event.putExtra(SpheroProfile.PARAM_COLLISION, collision);
+                    mService.sendEvent(event, e.getAccessToken());
+                }
             }
         }
     }

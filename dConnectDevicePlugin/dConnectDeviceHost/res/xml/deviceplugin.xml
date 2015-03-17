@@ -107,4 +107,11 @@
         <description lang="en">Draw Shapes. </description>
     </profile>
      
+    <profile name="touch" expireperiod="86400000">
+        <name lang="ja">タッチ </name>
+        <description lang="ja">タッチ状態を取得する </description>
+        <name lang="en">Touch </name>
+        <description lang="en">Touch event. </description>
+    </profile>
+     
 </deviceplugin-provider>

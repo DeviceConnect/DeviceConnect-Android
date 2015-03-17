@@ -76,6 +76,9 @@ import android.webkit.MimeTypeMap;
  * @author NTT DOCOMO, INC.
  */
 public class HostDeviceService extends DConnectMessageService {
+    /** Application class instance. */
+    private HostDeviceApplication mApp;
+            
     /** マルチキャスト用のタグ. */
     private static final String HOST_MULTICAST = "deviceplugin.host";
 
@@ -107,6 +110,9 @@ public class HostDeviceService extends DConnectMessageService {
     public void onCreate() {
 
         super.onCreate();
+        
+        // Get application class instance.
+        mApp = (HostDeviceApplication) this.getApplication();
 
         // EventManagerの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
@@ -1201,5 +1207,15 @@ public class HostDeviceService extends DConnectMessageService {
         String mClassName = mActivityManager.getRunningTasks(1).get(0).topActivity
                 .getClassName();
         return mClassName;
+    }
+    
+    /**
+     * Get touch cache.
+     * 
+     * @param attr Attribute.
+     * @return Touch cache data.
+     */
+    public Bundle getTouchCache(final String attr) {
+        return mApp.getTouchCache(attr);
     }
 }

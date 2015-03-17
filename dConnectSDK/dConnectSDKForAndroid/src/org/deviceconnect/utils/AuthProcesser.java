@@ -63,18 +63,18 @@ public final class AuthProcesser {
      * @param host Device Connect Managerのホスト名
      * @param port Device Connect Managerのポート番号
      * @param isSSL trueの場合はhttps、falseの場合はhttpで通信する
-     * @param packageName Authorization Create Client APIのpackageパラメータの値
+     * @param origin アプリケーションのパッケージ名を指定する
      * @param appName Authorization Create Access Token APIのapplicationNameパラメータの値
      * @param scopes Authorization Create Access Token APIのscopeパラメータの値
      * @param callback 処理結果の通知を受けるハンドラ
      */
-    public static void asyncAuthorize(final String host, final int port, final boolean isSSL, final String packageName,
+    public static void asyncAuthorize(final String host, final int port, final boolean isSSL, final String origin,
             final String appName,
             final String[] scopes, final AuthorizationHandler callback) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                authorize(host, port, isSSL, packageName, appName, scopes, callback);
+                authorize(host, port, isSSL, origin, appName, scopes, callback);
             }
         }).start();
     }
@@ -87,12 +87,12 @@ public final class AuthProcesser {
      * @param host Device Connect Managerのホスト名
      * @param port Device Connect Managerのポート番号
      * @param isSSL trueの場合はhttps、falseの場合はhttpで通信する
-     * @param packageName Authorization Create Client APIのpackageパラメータの値
+     * @param origin アプリケーションのパッケージ名を指定する
      * @param appName Authorization Create Access Token APIのapplicationNameパラメータの値
      * @param scopes Authorization Create Access Token APIのscopeパラメータの値
      * @param callback 処理結果の通知を受けるハンドラ
      */
-    public static void authorize(final String host, final int port, final boolean isSSL, final String packageName,
+    public static void authorize(final String host, final int port, final boolean isSSL, final String origin,
             final String appName,
             final String[] scopes, final AuthorizationHandler callback) {
 
@@ -102,8 +102,8 @@ public final class AuthProcesser {
             throw new IllegalArgumentException("No scopes.");
         } else if (host == null) {
             throw new IllegalArgumentException("Host is null.");
-        } else if (packageName == null) {
-            throw new IllegalArgumentException("Package name is null.");
+        } else if (origin == null) {
+            throw new IllegalArgumentException("origin name is null.");
         } else if (appName == null) {
             throw new IllegalArgumentException("App name is null.");
         }
@@ -125,7 +125,7 @@ public final class AuthProcesser {
         HttpUriRequest request = null;
         try {
             request = new HttpGet(builder.build());
-            request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, packageName);
+            request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, origin);
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Invalid URI. Check parameters.");
         }
@@ -136,7 +136,7 @@ public final class AuthProcesser {
             ErrorCode error = checkResponse(json);
             if (error == null) {
                 String clientId = json.getString(AuthorizationProfileConstants.PARAM_CLIENT_ID);
-                refreshAccessToken(host, port, isSSL, clientId, appName, scopes, callback);
+                refreshAccessToken(host, port, isSSL, clientId, origin, appName, scopes, callback);
             } else {
                 callback.onAuthFailed(error);
             }
@@ -161,17 +161,18 @@ public final class AuthProcesser {
      * @param port Device Connect Managerのポート番号
      * @param isSSL trueのhttps、falseの場合httpで通信する
      * @param clientId クライアントID
+     * @param origin アプリケーションのパッケージ名を指定する
      * @param appName Authorization Create Access Token APIのapplicationNameパラメータの値
      * @param scopes Authorization Create Access Token APIのscopeパラメータの値
      * @param callback 処理結果の通知を受けるハンドラ
      */
     public static void asyncRefreshToken(final String host, final int port, final boolean isSSL, 
-            final String clientId, final String appName,
+            final String clientId, final String origin, final String appName,
             final String[] scopes, final AuthorizationHandler callback) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                refreshAccessToken(host, port, isSSL, clientId, appName, scopes, callback);
+                refreshAccessToken(host, port, isSSL, clientId, origin, appName, scopes, callback);
             }
         }).start();
     }
@@ -186,12 +187,13 @@ public final class AuthProcesser {
      * @param port Device Connect Managerのポート番号
      * @param isSSL trueの場合はhttps、falseの場合はhttpで通信する
      * @param clientId クライアントID
+     * @param origin アプリケーションのパッケージ名を指定する
      * @param appName Authorization Create Access Token APIのapplicationNameパラメータの値
      * @param scopes Authorization Create Access Token APIのscopeパラメータの値
      * @param callback 処理結果の通知を受けるハンドラ
      */
     public static void refreshAccessToken(final String host, final int port, final boolean isSSL, 
-            final String clientId, final String appName, final String[] scopes,
+            final String clientId, final String origin, final String appName, final String[] scopes,
             final AuthorizationHandler callback) {
 
         // 引数チェック
@@ -205,6 +207,8 @@ public final class AuthProcesser {
             throw new IllegalArgumentException("App name is null.");
         } else if (clientId == null) {
             throw new IllegalArgumentException("Client ID is null.");
+        } else if (origin == null) {
+            throw new IllegalArgumentException("Origin is null.");
         }
 
         String scheme = null;
@@ -228,6 +232,7 @@ public final class AuthProcesser {
         HttpUriRequest request = null;
         try {
             request = new HttpGet(builder.build());
+            request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, origin);
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Invalid URI. Check parameters.");
         }

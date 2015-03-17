@@ -205,8 +205,28 @@ public class DConnectServerEventListenerImpl implements
             }
         }
 
-        // Headerの解析
-        parseHeaders(request, intent);
+        // アプリケーションのオリジン解析
+        OriginHeaderError originError = parseOriginHeader(request, intent);
+        try {
+            switch (originError) {
+            case EMPTY:
+                setInvalidOriginResponse(response, "Origin is not specified.");
+                return true;
+            case NOT_UNIQUE:
+                setInvalidOriginResponse(response, "Origin is not unique.");
+                return true;
+            case NONE:
+                break;
+            default:
+                break;
+            }
+        } catch (JSONException e) {
+            setErrorResponse(response);
+            return true;
+        } catch (UnsupportedEncodingException e) {
+            setErrorResponse(response);
+            return true;
+        }
 
         // Bodyの解析
         if (hasMultipart(contentType)) {
@@ -260,6 +280,24 @@ public class DConnectServerEventListenerImpl implements
             }
         }
         return mRequestMap.remove(requestCode);
+    }
+
+    /**
+     * オリジン不正エラーのレスポンスを作成する.
+     * @param response レスポンスを格納するインスタンス
+     * @param message エラーメッセージ
+     * @throws JSONException JSON変換に失敗した場合には発生
+     * @throws UnsupportedEncodingException 文字コード(UTF8)がサポートされていない場合に発生
+     */
+    private void setInvalidOriginResponse(final HttpResponse response, final String message)
+            throws JSONException, UnsupportedEncodingException {
+        JSONObject root = new JSONObject();
+        root.put(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+        root.put(DConnectMessage.EXTRA_ERROR_CODE,
+                DConnectMessage.ErrorCode.INVALID_ORIGIN.getCode());
+        root.put(DConnectMessage.EXTRA_ERROR_MESSAGE, message);
+        response.setContentType(CONTENT_TYPE_JSON);
+        response.setBody(root.toString().getBytes("UTF-8"));
     }
 
     /**
@@ -355,36 +393,79 @@ public class DConnectServerEventListenerImpl implements
     }
 
     /**
-     * 受信したHTTPリクエストのヘッダを解釈し、Intentに格納する.
+     * HTTPリクエストヘッダからアプリケーションのオリジンを取得する.
      * @param request HTTPリクエスト
      * @param intent key-valueを格納するIntent
+     * @return 解析時に検知したエラー
      */
-    private void parseHeaders(final HttpRequest request, final Intent intent) {
-        Entry<String, String> webOrigin = null;
-        Entry<String, String> nativeOrigin = null;
+    private OriginHeaderError parseOriginHeader(final HttpRequest request, final Intent intent) {
         Map<String, String> headers = request.getHeaders();
+        if (headers == null) {
+            return OriginHeaderError.EMPTY;
+        }
+        String nativeOrigin = parseNativeOriginHeader(headers);
+        if (nativeOrigin != null) {
+            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, nativeOrigin);
+            return OriginHeaderError.NONE;
+        }
+        String[] webOrigins = parseWebOriginHeader(headers);
+        if (webOrigins == null) {
+            return OriginHeaderError.EMPTY;
+        }
+        if (webOrigins.length == 0) {
+            return OriginHeaderError.EMPTY;
+        }
+        if (webOrigins.length != 1) {
+            return OriginHeaderError.NOT_UNIQUE;
+        }
+        String webOrigin = webOrigins[0];
+        // NOTE: Chrome上のローカルHTMLアプリを動作させるための特別な処置
+        if (webOrigin.equals("null")) {
+            webOrigin = "file://";
+        }
+        intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, webOrigin);
+        intent.putExtra(DConnectService.EXTRA_INNER_APP_TYPE, DConnectService.INNER_APP_TYPE_WEB);
+        return OriginHeaderError.NONE;
+    }
+
+    /**
+     * HTTPリクエストヘッダからWebアプリのオリジンを取得する.
+     * 
+     * @param headers HTTPリクエストヘッダ
+     * @return Webアプリのオリジン
+     */
+    private String[] parseWebOriginHeader(final Map<String, String> headers) {
         for (Entry<String, String> entry :  headers.entrySet()) {
             String key = entry.getKey();
             if (key.equalsIgnoreCase("origin")) {
-                webOrigin = entry;
-            } else if (key.equalsIgnoreCase(DConnectMessage.HEADER_GOTAPI_ORIGIN)) {
-                nativeOrigin = entry;
+                String value = entry.getValue();
+                if (value != null) {
+                    return value.split(" ");
+                }
+                break;
             }
         }
-        if (nativeOrigin != null) {
-            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, nativeOrigin.getValue());
-            mLogger.info("Origin specified in HTTP request (native): " + nativeOrigin.getValue());
-        } else if (webOrigin != null) {
-            String value = webOrigin.getValue();
-            if (value == null || value.equals("null")) {
-                value = "file://";
+        return null;
+    }
+
+    /**
+     * HTTPリクエストヘッダからAndroidネイティブアプリのオリジンを取得する.
+     * 
+     * @param headers HTTPリクエストヘッダ
+     * @return Androidネイティブアプリのオリジン
+     */
+    private String parseNativeOriginHeader(final Map<String, String> headers) {
+        for (Entry<String, String> entry :  headers.entrySet()) {
+            String key = entry.getKey();
+            if (key.equalsIgnoreCase(DConnectMessage.HEADER_GOTAPI_ORIGIN)) {
+                String value = entry.getValue();
+                if (value != null) {
+                    return value;
+                }
+                break;
             }
-            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, value);
-            intent.putExtra(DConnectService.EXTRA_INNER_APP_TYPE, DConnectService.INNER_APP_TYPE_WEB);
-            mLogger.info("Origin specified in HTTP request (web): " + value);
-        } else {
-            mLogger.warning("No origin is specified in HTTP request: " + request);
         }
+        return null;
     }
 
     /**
@@ -563,5 +644,25 @@ public class DConnectServerEventListenerImpl implements
             response.setContentType(CONTENT_TYPE_JSON);
             response.setBody(root.toString().getBytes("UTF-8"));
         }
+    }
+
+    /**
+     * Originヘッダ解析時に検出したエラー.
+     */
+    private enum OriginHeaderError {
+        /**
+         * エラー無しを示す定数.
+         */
+        NONE,
+
+        /**
+         * オリジンが指定されていないことを示す定数.
+         */
+        EMPTY, 
+
+        /**
+         * 2つ以上のオリジンが指定されていたことを示す定数.
+         */
+        NOT_UNIQUE
     }
 }

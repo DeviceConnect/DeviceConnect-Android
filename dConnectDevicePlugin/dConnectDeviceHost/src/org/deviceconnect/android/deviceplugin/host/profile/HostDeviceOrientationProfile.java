@@ -39,23 +39,23 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
     /** ServiceID. */
     private String mServiceId;
 
-    /** 加速度 x. */
-    private float mAccellX;
+    /** X軸方向の重力付き加速度. (単位: m/s^2). */
+    private double mAccellX;
 
-    /** 加速度 y. */
-    private float mAccellY;
+    /** Y軸方向の重力付き加速度. (単位: m/s^2). */
+    private double mAccellY;
 
-    /** 加速度 z. */
-    private float mAccellZ;
+    /** Z軸方向の重力付き加速度. (単位: m/s^2). */
+    private double mAccellZ;
 
-    /** Gyro x. */
-    private float mGyroX;
+    /** X軸周りの角速度. (単位: degree/s). */
+    private double mGyroX;
 
-    /** Gyro y. */
-    private float mGyroY;
+    /** Y軸周りの角速度. (単位: degree/s). */
+    private double mGyroY;
 
-    /** Gyro z. */
-    private float mGyroZ;
+    /** Z軸周りの角速度. (単位: degree/s). */
+    private double mGyroZ;
 
     /** 前回の加速度の計測時間を保持する. */
     private long mAccelStartTime;
@@ -357,9 +357,9 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
 
             mAccelStartTime = System.currentTimeMillis();
         } else if (sensorEvent.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            mGyroX = sensorEvent.values[0];
-            mGyroY = sensorEvent.values[1];
-            mGyroZ = sensorEvent.values[2];
+            mGyroX = Math.toDegrees(sensorEvent.values[0]);
+            mGyroY = Math.toDegrees(sensorEvent.values[1]);
+            mGyroZ = Math.toDegrees(sensorEvent.values[2]);
         }
     }
 

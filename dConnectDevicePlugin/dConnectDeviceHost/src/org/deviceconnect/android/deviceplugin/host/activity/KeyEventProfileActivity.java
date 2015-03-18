@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceApplication;
 import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.profile.KeyEventProfile;
@@ -17,8 +18,12 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.KeyEventProfileConstants;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -61,6 +66,19 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
     String[] mConfigDpad = {"", "", "down", "", "left", "center", "right", "", "up", "", "", ""};
     /** Configure (User defined). */
     String[] mConfigUser = {"", "", "", "", "", "", "", "", "", "", "USER_CANCEL", "USER_OK"};
+
+    /**
+     * Implementation of BroadcastReceiver.
+     */
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            if (HostKeyEventProfile.ACTION_FINISH_KEYEVENT_ACTIVITY.equals(action)) {
+                finish();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -187,11 +205,15 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
     @Override
     protected void onPause() {
         super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(HostKeyEventProfile.ACTION_FINISH_KEYEVENT_ACTIVITY);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, filter);
     }
 
     @Override

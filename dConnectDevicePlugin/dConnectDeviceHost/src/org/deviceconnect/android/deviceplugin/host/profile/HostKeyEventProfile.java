@@ -22,6 +22,7 @@ import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 
 /**
  * Key Event Profile.
@@ -32,6 +33,17 @@ public class HostKeyEventProfile extends KeyEventProfile {
 
     /** Error. */
     private static final int ERROR_PROCESSING_ERROR = 100;
+
+    /** Key Event profile event management flag. */
+    private static int sFlagKeyEventEventManage = 0;
+    /** Key Event profile event flag. (ondown) */
+    private static final int FLAG_ON_DOWN = 0x0001;
+    /** Key Event  profile event flag. (onup) */
+    private static final int FLAG_ON_UP = 0x0002;
+
+    /** Finish key event profile activity action. */
+    public static final String ACTION_FINISH_KEYEVENT_ACTIVITY =
+            "org.deviceconnect.android.deviceplugin.host.keyevent.FINISH";
 
     @Override
     protected boolean onGetOnDown(final Intent request, final Intent response, final String serviceId) {
@@ -85,6 +97,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execKeyEventActivity(serviceId);
+                setKeyEventEventFlag(FLAG_ON_DOWN);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
@@ -107,6 +120,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 execKeyEventActivity(serviceId);
+                setKeyEventEventFlag(FLAG_ON_UP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not register event.");
@@ -128,6 +142,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
+                resetKeyEventEventFlag(FLAG_ON_DOWN);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
@@ -149,6 +164,7 @@ public class HostKeyEventProfile extends KeyEventProfile {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
+                resetKeyEventEventFlag(FLAG_ON_UP);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setError(response, ERROR_PROCESSING_ERROR, "Can not unregister event.");
@@ -175,6 +191,41 @@ public class HostKeyEventProfile extends KeyEventProfile {
             this.getContext().startActivity(mIntent);
         }
         return true;
+    }
+
+    /**
+     * Finish Key Event Profile Activity.
+     * 
+     * @return Always true.
+     */
+    private boolean finishKeyEventProfileActivity() {
+        String className = getClassnameOfTopActivity();
+        if (KeyEventProfileActivity.class.getName().equals(className)) {
+            Intent intent = new Intent(HostKeyEventProfile.ACTION_FINISH_KEYEVENT_ACTIVITY);
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+        }
+        return true;
+    }
+
+    /**
+     * Set key event event flag.
+     * 
+     * @param flag Set flag.
+     */
+    private void setKeyEventEventFlag(final int flag) {
+        sFlagKeyEventEventManage |= flag;
+    }
+
+    /**
+     * Reset key event event flag.
+     * 
+     * @param flag Reset flag.
+     */
+    private void resetKeyEventEventFlag(final int flag) {
+        sFlagKeyEventEventManage &= ~(flag);
+        if (sFlagKeyEventEventManage == 0) {
+            finishKeyEventProfileActivity();
+        }
     }
 
     /**
@@ -216,5 +267,16 @@ public class HostKeyEventProfile extends KeyEventProfile {
      */
     private void createNotFoundService(final Intent response) {
         MessageUtils.setNotFoundServiceError(response);
+    }
+
+    /**
+     * Get the class name of the Activity being displayed at the top of the screen.
+     * 
+     * @return class name.
+     */
+    private String getClassnameOfTopActivity() {
+        ActivityManager activitMgr = (ActivityManager) getContext().getSystemService(Service.ACTIVITY_SERVICE);
+        String className = activitMgr.getRunningTasks(1).get(0).topActivity.getClassName();
+        return className;
     }
 }

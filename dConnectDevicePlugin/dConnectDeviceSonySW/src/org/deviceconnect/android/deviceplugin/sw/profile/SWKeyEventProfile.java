@@ -27,7 +27,14 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class SWKeyEventProfile extends KeyEventProfile {
-    
+
+    /** Key Event profile event management flag. */
+    private static int sFlagKeyEventEventManage = 0;
+    /** Key Event profile event flag. (ondown) */
+    private static final int FLAG_ON_DOWN = 0x0001;
+    /** Key Event  profile event flag. (onup) */
+    private static final int FLAG_ON_UP = 0x0002;
+
     @Override
     protected boolean onGetOnDown(final Intent request, final Intent response, final String serviceId) {
         BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
@@ -95,6 +102,7 @@ public class SWKeyEventProfile extends KeyEventProfile {
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
             displayKeyEventScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            setKeyEventEventFlag(FLAG_ON_DOWN);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -122,6 +130,7 @@ public class SWKeyEventProfile extends KeyEventProfile {
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
             displayKeyEventScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            setKeyEventEventFlag(FLAG_ON_UP);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -148,7 +157,9 @@ public class SWKeyEventProfile extends KeyEventProfile {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
-            clearKeyEventScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            if (!(resetKeyEventEventFlag(FLAG_ON_DOWN))) {
+                clearKeyEventScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            }
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -175,7 +186,9 @@ public class SWKeyEventProfile extends KeyEventProfile {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
-            clearKeyEventScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            if (!(resetKeyEventEventFlag(FLAG_ON_UP))) {
+                clearKeyEventScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            }
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -216,6 +229,29 @@ public class SWKeyEventProfile extends KeyEventProfile {
         } else  {
             return; // This function not implemented. Because SW could not redraw xml layout data.
         }
+    }
+
+    /**
+     * Set key event event flag.
+     * 
+     * @param flag Set flag.
+     */
+    private void setKeyEventEventFlag(final int flag) {
+        sFlagKeyEventEventManage |= flag;
+    }
+
+    /**
+     * Reset key event event flag.
+     * 
+     * @param flag Reset flag.
+     * @return true : Other event register. false : No event registration.
+     */
+    private boolean resetKeyEventEventFlag(final int flag) {
+        sFlagKeyEventEventManage &= ~(flag);
+        if (sFlagKeyEventEventManage == 0) {
+            return false;
+        }
+        return true;
     }
 
     /**

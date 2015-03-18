@@ -44,6 +44,7 @@ import org.deviceconnect.android.deviceplugin.sw.BuildConfig;
 import org.deviceconnect.android.deviceplugin.sw.R;
 import org.deviceconnect.android.deviceplugin.sw.SWApplication;
 import org.deviceconnect.android.deviceplugin.sw.SWConstants;
+import org.deviceconnect.android.deviceplugin.sw.profile.SWUtil;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
@@ -74,6 +75,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.sonyericsson.extras.liveware.aef.control.Control;
+import com.sonyericsson.extras.liveware.aef.registration.Registration;
 import com.sonyericsson.extras.liveware.aef.registration.Registration.SensorTypeValue;
 import com.sonyericsson.extras.liveware.aef.sensor.Sensor;
 import com.sonyericsson.extras.liveware.extension.util.control.ControlExtension;
@@ -206,6 +208,7 @@ class SWControlExtension extends ControlExtension {
         if (DeviceInfoHelper.isSensorSupported(context, hostAppPackageName, SensorTypeValue.ACCELEROMETER)) {
             mSensor = manager.getSensor(SensorTypeValue.ACCELEROMETER);
         }
+        initializeMenus();
         showDisplay();
     }
 
@@ -578,6 +581,8 @@ class SWControlExtension extends ControlExtension {
             sendEvent(message, event.getAccessToken());
             SWApplication.setKeyEventCache(eventAttr, keyevent);
         }
+
+        displayKeyEventScreen(serviceId);                
     }
 
     /**
@@ -711,6 +716,8 @@ class SWControlExtension extends ControlExtension {
                 showMenu(mMenuItemsText2);
             }
             mTextMenu = !mTextMenu;
+        } else {
+            displayKeyEventScreen(serviceId);                
         }
     }
 
@@ -743,5 +750,30 @@ class SWControlExtension extends ControlExtension {
     private void setKeyEventData(final Bundle keyevent, final int keyCode, final String config) {
         keyevent.putInt(KeyEventProfile.PARAM_ID, keyCode);
         keyevent.putString(KeyEventProfile.PARAM_CONFIG, config);
+    }
+
+    /**
+     * Display Key Event screen.
+     * 
+     * @param serviceId serviceID
+     */
+    protected void displayKeyEventScreen(final String serviceId) {
+        Intent intent = new Intent(Control.Intents.CONTROL_PROCESS_LAYOUT_INTENT);
+        intent.putExtra(Control.Intents.EXTRA_DATA_XML_LAYOUT, R.layout.keyevent_control);
+        sendToHostApp(intent, serviceId);
+    }
+
+    /**
+     * Send intent to Host application.
+     * 
+     * @param intent Intent.
+     * @param serviceId ServiceID
+     */
+    protected void sendToHostApp(final Intent intent, final String serviceId) {
+        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
+        String deviceName = device.getName();
+        intent.putExtra(Control.Intents.EXTRA_AEA_PACKAGE_NAME, mContext.getPackageName());
+        intent.setPackage(SWUtil.toHostAppPackageName(deviceName));
+        mContext.sendBroadcast(intent, Registration.HOSTAPP_PERMISSION);
     }
 }

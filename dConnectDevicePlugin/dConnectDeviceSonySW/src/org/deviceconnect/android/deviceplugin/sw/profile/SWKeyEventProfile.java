@@ -94,7 +94,7 @@ public class SWKeyEventProfile extends KeyEventProfile {
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
-            displayKeyEventScreen(serviceId);
+            displayKeyEventScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -121,7 +121,7 @@ public class SWKeyEventProfile extends KeyEventProfile {
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
-            displayKeyEventScreen(serviceId);
+            displayKeyEventScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -148,6 +148,7 @@ public class SWKeyEventProfile extends KeyEventProfile {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
+            clearKeyEventScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -174,6 +175,7 @@ public class SWKeyEventProfile extends KeyEventProfile {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
+            clearKeyEventScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -185,12 +187,35 @@ public class SWKeyEventProfile extends KeyEventProfile {
     /**
      * Display Key Event screen.
      * 
+     * @param deviceName Device Name
      * @param serviceId serviceID
      */
-    protected void displayKeyEventScreen(final String serviceId) {
+    protected void displayKeyEventScreen(final String deviceName, final String serviceId) {
         Intent intent = new Intent(Control.Intents.CONTROL_PROCESS_LAYOUT_INTENT);
-        intent.putExtra(Control.Intents.EXTRA_DATA_XML_LAYOUT, R.layout.keyevent_control);
+        if (SWConstants.PACKAGE_SMART_WATCH_2.equals(deviceName)) {
+            intent.putExtra(Control.Intents.EXTRA_DATA_XML_LAYOUT, R.layout.keyevent_control);
+        } else {
+            return; // This function not implemented. Because SW could not redraw xml layout data.
+        }
         sendToHostApp(intent, serviceId);
+    }
+
+    /**
+     * Clear KeyEvent screen.
+     * 
+     * @param deviceName Device Name
+     * @param serviceId serviceID
+     */
+    protected void clearKeyEventScreen(final String deviceName, final String serviceId) {
+        if (SWConstants.PACKAGE_SMART_WATCH_2.equals(deviceName)) {
+            Intent intent = new Intent(Control.Intents.CONTROL_CLEAR_DISPLAY_INTENT);
+            sendToHostApp(intent, serviceId);
+            intent = new Intent(Control.Intents.CONTROL_PROCESS_LAYOUT_INTENT);
+            intent.putExtra(Control.Intents.EXTRA_DATA_XML_LAYOUT, R.layout.touch_clear_control_sw2);
+            sendToHostApp(intent, serviceId);
+        } else  {
+            return; // This function not implemented. Because SW could not redraw xml layout data.
+        }
     }
 
     /**

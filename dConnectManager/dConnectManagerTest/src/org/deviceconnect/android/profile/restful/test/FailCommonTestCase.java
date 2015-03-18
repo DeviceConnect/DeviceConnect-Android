@@ -83,10 +83,9 @@ public class FailCommonTestCase extends RESTfulDConnectTestCase {
      * 【期待する動作】
      * ・resultに1が返ってくること。
      * </pre>
-     * @throws UnsupportedEncodingException サービスIDのURLエンコーディングに失敗した場合
      */
-    public void testInvalidServiceIdNoExist() throws UnsupportedEncodingException {
-        final String serviceId = URLEncoder.encode("!#$'()-~¥@[;+:*],._", "UTF-8");
+    public void testInvalidServiceIdNoExist() {
+        final String serviceId = "no_exist";
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/" + BatteryProfileConstants.PROFILE_NAME);

@@ -12,6 +12,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
@@ -49,6 +50,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
     public void testGetSystemDeviceNoServiceId() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
@@ -74,6 +76,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "");
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
@@ -99,6 +102,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
@@ -124,6 +128,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter("abc", "abc");
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -156,6 +161,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
         builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, "123456789");
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
@@ -181,6 +187,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
@@ -206,6 +213,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
@@ -231,6 +239,7 @@ public class FailServiceInformationProfileTestCase extends RESTfulDConnectTestCa
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceInformationProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);

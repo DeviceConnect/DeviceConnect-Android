@@ -132,7 +132,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
                 try {
                     getAccessToken(request, response);
                 } catch (AuthorizatonException e) {
-                    MessageUtils.setNotSupportProfileError(response, e.getMessage());
+                    MessageUtils.setAuthorizationError(response, e.getMessage());
                 } catch (UnsupportedEncodingException e) {
                     MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 } catch (IllegalArgumentException e) {
@@ -274,7 +274,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
     /**
      * スコープを分割して、配列に変換します.
      * @param scope スコープ
-     * @return 分割されたスコープ
+     * @return 分割されたスコープ. scopeが<code>null</code>または空文字の場合は<code>null</code>
      */
     private String[] parseScopes(final String scope) {
         if (scope == null) {
@@ -282,7 +282,11 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         }
         String[] scopes = scope.split(",");
         for (int i = 0; i < scopes.length; i++) {
-            scopes[i] = scopes[i].trim();
+            String s = scopes[i].trim();
+            if (s.equals("")) {
+                return null;
+            }
+            scopes[i] = s;
         }
         return scopes;
     }

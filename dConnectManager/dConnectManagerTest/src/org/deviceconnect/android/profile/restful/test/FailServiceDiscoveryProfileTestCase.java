@@ -13,6 +13,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
@@ -52,6 +53,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
     public void testGetServices001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
@@ -78,6 +80,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
     public void testGetServices002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
@@ -104,6 +107,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
     public void testGetServices003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
@@ -133,6 +137,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);

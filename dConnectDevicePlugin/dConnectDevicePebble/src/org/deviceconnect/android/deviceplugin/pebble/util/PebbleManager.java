@@ -973,8 +973,6 @@ public final class PebbleManager {
         return convertImage(data, width, height, mode, x, y);
     }
 
-    /** Paint data. */
-    private static Paint sPaint = new Paint();
     /**
      * Pebbleで読み込めるような画像に変換する.
      * 

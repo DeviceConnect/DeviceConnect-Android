@@ -207,7 +207,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.AUTHORIZATION.getCode(), root);
+            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -303,7 +303,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request, false);
-            assertResultError(ErrorCode.AUTHORIZATION.getCode(), root);
+            assertResultError(ErrorCode.INVALID_REQUEST_PARAMETER.getCode(), root);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

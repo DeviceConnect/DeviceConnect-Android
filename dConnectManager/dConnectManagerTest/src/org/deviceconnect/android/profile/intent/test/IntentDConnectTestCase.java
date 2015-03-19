@@ -205,10 +205,9 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         intent.setComponent(ComponentName.unflattenFromString(DCCONNECT_MANAGER_RECEIVER));
         intent.putExtra(IntentDConnectMessage.EXTRA_RECEIVER, cn);
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
+        intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
         if (afterAuth) {
             intent.putExtra(IntentDConnectMessage.EXTRA_ACCESS_TOKEN, mAccessToken);
-        } else {
-            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
         }
         intent.putExtra(IntentDConnectMessage.EXTRA_NONCE, toHexString(nonce));
 

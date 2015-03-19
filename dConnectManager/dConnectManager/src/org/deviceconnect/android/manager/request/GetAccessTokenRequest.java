@@ -43,7 +43,7 @@ public class GetAccessTokenRequest extends DConnectRequest {
         try {
             getAccessToken();
         } catch (AuthorizatonException e) {
-            setNotSupportProfileError(mResponse, e.getMessage());
+            setAuthorizationError(mResponse, e.getMessage());
         } catch (UnsupportedEncodingException e) {
             setInvalidRequestParameterError(mResponse, e.getMessage());
         } catch (IllegalArgumentException e) {
@@ -186,7 +186,7 @@ public class GetAccessTokenRequest extends DConnectRequest {
     /**
      * スコープを分割して、配列に変換します.
      * @param scope スコープ
-     * @return 分割されたスコープ
+     * @return 分割されたスコープ. scopeが<code>null</code>または空文字の場合は<code>null</code>
      */
     private String[] parseScopes(final String scope) {
         if (scope == null) {
@@ -194,7 +194,11 @@ public class GetAccessTokenRequest extends DConnectRequest {
         }
         String[] scopes = scope.split(",");
         for (int i = 0; i < scopes.length; i++) {
-            scopes[i] = scopes[i].trim();
+            String s = scopes[i].trim();
+            if (s.equals("")) {
+                return null;
+            }
+            scopes[i] = s;
         }
         return scopes;
     }

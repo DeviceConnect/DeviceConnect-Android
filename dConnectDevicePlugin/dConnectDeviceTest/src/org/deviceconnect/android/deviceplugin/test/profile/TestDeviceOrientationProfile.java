@@ -46,6 +46,14 @@ public class TestDeviceOrientationProfile extends DeviceOrientationProfile {
     }
 
     @Override
+    protected boolean onGetOnDeviceOrientation(final Intent request, final Intent response,
+            final String serviceId) {
+        setResult(response, DConnectMessage.RESULT_OK);
+        setOrientation(response);
+        return true;
+    }
+
+    @Override
     protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         if (serviceId == null) {
@@ -62,26 +70,7 @@ public class TestDeviceOrientationProfile extends DeviceOrientationProfile {
             setServiceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_DEVICE_ORIENTATION);
-            
-            Bundle orientation = new Bundle();
-            Bundle a1 = new Bundle();
-            setX(a1, 0.0);
-            setY(a1, 0.0);
-            setZ(a1, 0.0);
-            Bundle a2 = new Bundle();
-            setX(a2, 0.0);
-            setY(a2, 0.0);
-            setZ(a2, 0.0);
-            Bundle r = new Bundle();
-            setAlpha(r, 0.0);
-            setBeta(r, 0.0);
-            setGamma(r, 0.0);
-            
-            setAcceleration(orientation, a1);
-            setAccelerationIncludingGravity(orientation, a2);
-            setRotationRate(orientation, r);
-            setInterval(orientation, 0);
-            setOrientation(intent, orientation);
+            setOrientation(intent);
             Util.sendBroadcast(getContext(), intent);
         }
         return true;
@@ -102,4 +91,31 @@ public class TestDeviceOrientationProfile extends DeviceOrientationProfile {
         return true;
     }
 
+    /**
+     * メッセージにテスト用データを設定する.
+     * @param message メッセージ
+     */
+    private static void setOrientation(final Intent message) {
+        Bundle orientation = new Bundle();
+        Bundle a1 = new Bundle();
+        setX(a1, 0.0);
+        setY(a1, 0.0);
+        setZ(a1, 0.0);
+        setAcceleration(orientation, a1);
+
+        Bundle a2 = new Bundle();
+        setX(a2, 0.0);
+        setY(a2, 0.0);
+        setZ(a2, 0.0);
+        setAccelerationIncludingGravity(orientation, a2);
+
+        Bundle r = new Bundle();
+        setAlpha(r, 0.0);
+        setBeta(r, 0.0);
+        setGamma(r, 0.0);
+        setRotationRate(orientation, r);
+
+        setOrientation(message, orientation);
+        setInterval(orientation, 0);
+    }
 }

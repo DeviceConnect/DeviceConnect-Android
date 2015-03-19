@@ -170,6 +170,14 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
     }
 
     @Override
+    protected boolean onGetOnWatchFile(final Intent request, final Intent response,
+            final String serviceId) {
+        setResult(response, DConnectMessage.RESULT_OK);
+        setFile(response);
+        return true;
+    }
+
+    @Override
     protected boolean onPutOnWatchFile(final Intent request, final Intent response, final String serviceId, 
             final String sessionKey) {
         
@@ -187,17 +195,9 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
             setServiceID(intent, serviceId);
             setProfile(intent, getProfileName());
             setAttribute(intent, ATTRIBUTE_ON_WATCH_FILE);
-            
-            Bundle obj = new Bundle();
-            setPath(obj, PATH);
-            setCurr(obj, CURR);
-            setPrev(obj, PREV);
-            
-            setFile(intent, obj);
-            
+            setFile(intent);
             Util.sendBroadcast(getContext(), intent);
         }
-        
         return true;
     }
 
@@ -214,6 +214,18 @@ public class TestFileDescriptorProfile extends FileDescriptorProfile {
             setResult(response, DConnectMessage.RESULT_OK);
         }
         return true;
+    }
+
+    /**
+     * メッセージにテスト用データを設定する.
+     * @param message メッセージ
+     */
+    private static void setFile(final Intent message) {
+        Bundle obj = new Bundle();
+        setPath(obj, PATH);
+        setCurr(obj, CURR);
+        setPrev(obj, PREV);
+        setFile(message, obj);
     }
 
 }

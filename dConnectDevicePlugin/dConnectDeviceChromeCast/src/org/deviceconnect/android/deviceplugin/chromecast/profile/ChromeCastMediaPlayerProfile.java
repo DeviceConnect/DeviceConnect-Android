@@ -726,17 +726,14 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             final String[] orders, final Integer offset, final Integer limit) {
         List<Bundle> list = new ArrayList<Bundle>();
 
-        Bundle medium = null;
-        Bundle creatorVideo = null;
-        
-        medium = new Bundle();
+        Bundle medium = new Bundle();
         setType(medium, "Video");
         setLanguage(medium, "Language");
-        setMediaId(medium, "https://raw.githubusercontent.com/DeviceConnect/DeviceConnect/master/sphero_demo.MOV");
-        setMIMEType(medium, "mov");
+        setMediaId(medium, "https://github.com/DeviceConnect/DeviceConnect-Android/wiki/sphero_demo.MOV");
+        setMIMEType(medium, "video/quicktime");
         setTitle(medium, "Title: Sample");
         setDuration(medium, 9999);
-        creatorVideo = new Bundle();
+        Bundle creatorVideo = new Bundle();
         setCreator(creatorVideo, "Creator: Sample");
         setCreators(medium, new Bundle[] {creatorVideo});
         list.add(medium);

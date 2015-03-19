@@ -28,6 +28,17 @@ import android.os.Bundle;
  */
 public class SWTouchProfile extends TouchProfile {
 
+    /** Touch profile event management flag. */
+    private static int sFlagTouchEventManage = 0;
+    /** Touch profile event flag. (ontouch) */
+    private static final int FLAG_ON_TOUCH = 0x0001;
+    /** Touch profile event flag. (ontouchstart) */
+    private static final int FLAG_ON_TOUCH_START = 0x0002;
+    /** Touch profile event flag. (ontouchend) */
+    private static final int FLAG_ON_TOUCH_END = 0x0004;
+    /** Touch profile event flag. (ondoubletap) */
+    private static final int FLAG_ON_DOUBLE_TAP = 0x0008;
+
     @Override
     protected boolean onGetOnTouch(final Intent request, final Intent response, final String serviceId) {
         BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
@@ -126,6 +137,7 @@ public class SWTouchProfile extends TouchProfile {
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
             displayTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            setTouchEventFlag(FLAG_ON_TOUCH);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -146,6 +158,7 @@ public class SWTouchProfile extends TouchProfile {
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
             displayTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            setTouchEventFlag(FLAG_ON_TOUCH_START);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -166,6 +179,7 @@ public class SWTouchProfile extends TouchProfile {
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
             displayTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            setTouchEventFlag(FLAG_ON_TOUCH_END);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -186,6 +200,7 @@ public class SWTouchProfile extends TouchProfile {
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
             displayTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            setTouchEventFlag(FLAG_ON_DOUBLE_TAP);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -221,7 +236,9 @@ public class SWTouchProfile extends TouchProfile {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
-            clearTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            if (!(resetTouchEventFlag(FLAG_ON_TOUCH))) {
+                clearTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            }
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -241,7 +258,9 @@ public class SWTouchProfile extends TouchProfile {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
-            clearTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            if (!(resetTouchEventFlag(FLAG_ON_TOUCH_START))) {
+                clearTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            }
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -261,7 +280,9 @@ public class SWTouchProfile extends TouchProfile {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
-            clearTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            if (!(resetTouchEventFlag(FLAG_ON_TOUCH_END))) {
+                clearTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            }
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -281,7 +302,9 @@ public class SWTouchProfile extends TouchProfile {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
-            clearTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            if (!(resetTouchEventFlag(FLAG_ON_DOUBLE_TAP))) {
+                clearTouchScreen(SWUtil.toHostAppPackageName(device.getName()), serviceId);
+            }
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
@@ -338,6 +361,29 @@ public class SWTouchProfile extends TouchProfile {
         } else  {
             return; // This function not implemented. Because SW could not redraw xml layout data.
         }
+    }
+
+    /**
+     * Set touch event flag.
+     * 
+     * @param flag Set flag.
+     */
+    private void setTouchEventFlag(final int flag) {
+        sFlagTouchEventManage |= flag;
+    }
+
+    /**
+     * Reset touch event flag.
+     * 
+     * @param flag Reset flag.
+     * @return true : Other event register. false : No event registration.
+     */
+    private boolean resetTouchEventFlag(final int flag) {
+        sFlagTouchEventManage &= ~(flag);
+        if (sFlagTouchEventManage == 0) {
+            return false;
+        }
+        return true;
     }
 
     /**

@@ -24,7 +24,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
@@ -95,7 +94,6 @@ public class TouchProfileActivity extends Activity {
     public boolean onTouchEvent(final MotionEvent event) {
         List<Event> events;
 
-        Log.d("ABC", "Action: " + (event.getAction() & MotionEvent.ACTION_MASK));
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
         case MotionEvent.ACTION_DOWN: // 1st touch only.
         case MotionEvent.ACTION_POINTER_DOWN: // Others touch.

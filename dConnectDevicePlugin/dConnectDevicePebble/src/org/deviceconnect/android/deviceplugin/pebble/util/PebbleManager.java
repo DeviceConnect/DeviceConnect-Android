@@ -69,6 +69,9 @@ public final class PebbleManager {
     public static final int KEY_ATTRIBUTE = 3;
     /** action を示すキー番号. */
     public static final int KEY_ACTION = 4;
+    /** Paint. */
+    private static Paint sPaint = new Paint();
+
 
     ///////// 共通
 
@@ -434,9 +437,10 @@ public final class PebbleManager {
     /**
      * イベント受信用のリスナーを削除する.
      * @param profile 削除するリスナーのプロファイル
-     * @param listener リスナー
+     * @param listener イベント受信用のリスナー
      */
-    public void removeEventListener(final int profile, final OnReceivedEventListener listener) {
+    public void removeEventListener(final int profile,
+            final OnReceivedEventListener listener) {
         List<OnReceivedEventListener> listeners = mEvtListeners.get(profile);
         if (listeners != null) {
             listeners.remove(listener);

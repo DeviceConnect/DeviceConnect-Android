@@ -54,6 +54,21 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
             String mimeType = getMIMEType(request);
             String uri = request.getStringExtra(CanvasProfile.PARAM_URI);
             byte[] data = getContentData(uri);
+
+
+            if (mimeType != null && !checkMimeTypeFormat(mimeType)) {
+                MessageUtils.setInvalidRequestParameterError(response, "mimeType format is incorrect.");
+                return result;
+            }
+            if (!checkXFormat(request)) {
+                MessageUtils.setInvalidRequestParameterError(response, "x is different type.");
+                return result;
+            }
+            if (!checkYFormat(request)) {
+                MessageUtils.setInvalidRequestParameterError(response, "y is different type.");
+                return result;
+            }
+
             double x = getX(request);
             double y = getY(request);
             String mode = getMode(request);
@@ -232,4 +247,45 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
     public static String getMode(final Intent request) {
         return request.getStringExtra(PARAM_MODE);
     }
+
+    /**
+     * check MimeType format.
+     * @param mimeType MimeType
+     * @return true: OK / false: ERROR
+     */
+    protected boolean checkMimeTypeFormat(final String mimeType) {
+        final String pattern = "^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$";
+        return mimeType.matches(pattern);
+    }
+
+    /**
+     * check x value format.
+     * @param request request
+     * @return true: check OK or nothing / false: check ERROR
+     */
+    protected boolean checkXFormat(final Intent request) {
+        if (request.getStringExtra(PARAM_X) != null) {
+            return parseDouble(request, PARAM_X) != null;
+        } else {
+            // nothing.
+            return true;
+        }
+    }
+
+    /**
+     * check y value format.
+     * @param request request
+     * @return true: check OK or nothing / false: check ERROR
+     */
+    protected boolean checkYFormat(final Intent request) {
+        if (request.getStringExtra(PARAM_Y) != null) {
+            return parseDouble(request, PARAM_Y) != null;
+        } else {
+            // nothing.
+            return true;
+        }
+    }
 }
+
+
+

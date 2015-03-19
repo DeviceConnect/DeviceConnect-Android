@@ -30,13 +30,27 @@ public class HostCanvasProfile extends CanvasProfile {
     protected boolean onPostRequest(final Intent request, final Intent response) {
         String attribute = getAttribute(request);
         boolean result = true;
-
         if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
             String serviceId = getServiceID(request);
             String mimeType = getMIMEType(request);
             String uri = request.getStringExtra(CanvasProfile.PARAM_URI);
+
+            if (mimeType != null && !checkMimeTypeFormat(mimeType)) {
+                MessageUtils.setInvalidRequestParameterError(response, "mimeType format is incorrect.");
+                return result;
+            }
+            if (!checkXFormat(request)) {
+                MessageUtils.setInvalidRequestParameterError(response, "x is different type.");
+                return result;
+            }
+            if (!checkYFormat(request)) {
+                MessageUtils.setInvalidRequestParameterError(response, "y is different type.");
+                return result;
+            }
+
             double x = getX(request);
             double y = getY(request);
+
             String mode = getMode(request);
             result = onPostDrawImageForHost(request, response, serviceId, mimeType, uri, x, y, mode);
         } else {

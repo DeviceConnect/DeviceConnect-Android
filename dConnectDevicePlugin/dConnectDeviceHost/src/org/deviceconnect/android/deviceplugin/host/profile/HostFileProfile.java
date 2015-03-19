@@ -157,7 +157,7 @@ public class HostFileProfile extends FileProfile {
 
                     if (respFileList == null) {
                         setResult(response, DConnectMessage.RESULT_ERROR);
-                        MessageUtils.setUnknownError(response, "Dir is not exist:" + tmpDir);
+                        MessageUtils.setInvalidRequestParameterError(response, "Dir is not exist:" + tmpDir);
                         getContext().sendBroadcast(response);
                     } else if (order != null && !order.endsWith("desc") && !order.endsWith("asc")) {
                         MessageUtils.setInvalidRequestParameterError(response);
@@ -368,7 +368,7 @@ public class HostFileProfile extends FileProfile {
             }
             if (mUri == null) {
                 setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setUnknownError(response, "Path is null, you must input path.");
+                MessageUtils.setInvalidRequestParameterError(response, "Path is null, you must input path.");
             } else {
                 String mMineType = getMIMEType(getFileManager().getBasePath() + "/" + path);
 
@@ -378,7 +378,7 @@ public class HostFileProfile extends FileProfile {
 
                 // MimeTypeが不明の場合はエラーを返す
                 if (mMineType == null) {
-                    MessageUtils.setUnknownError(response, "Not support format");
+                    MessageUtils.setInvalidRequestParameterError(response, "Not support format");
                     setResult(response, DConnectMessage.RESULT_ERROR);
                     return true;
                 }
@@ -457,7 +457,7 @@ public class HostFileProfile extends FileProfile {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setUnknownError(response, "not found:" + path);
+                MessageUtils.setInvalidRequestParameterError(response, "not found:" + path);
             }
         }
         return true;
@@ -479,14 +479,14 @@ public class HostFileProfile extends FileProfile {
 
             if (mMakeDir.isDirectory()) {
                 setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setUnknownError(response, "can not make dir :" + mMakeDir);
+                MessageUtils.setInvalidRequestParameterError(response, "can not make dir, \"" + mMakeDir + "\" already exist.");
             } else {
                 boolean isMakeDir = mMakeDir.mkdir();
                 if (isMakeDir) {
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     setResult(response, DConnectMessage.RESULT_ERROR);
-                    MessageUtils.setUnknownError(response, "can not make dir :" + mMakeDir);
+                    MessageUtils.setInvalidRequestParameterError(response, "can not make dir :" + mMakeDir);
                 }
             }
         }
@@ -510,7 +510,7 @@ public class HostFileProfile extends FileProfile {
 
             if (mDeleteDir.isFile()) {
                 setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setUnknownError(response, mDeleteDir + "is file");
+                MessageUtils.setInvalidRequestParameterError(response, mDeleteDir + "is file");
             } else {
                 boolean isDelete = mDeleteDir.delete();
                 if (isDelete) {

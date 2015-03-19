@@ -11,10 +11,19 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
+import org.apache.http.conn.util.InetAddressUtils;
 import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 
 import fi.iki.elonen.NanoHTTPD;
@@ -30,12 +39,10 @@ import fi.iki.elonen.NanoHTTPD;
  */
 public class ChromeCastHttpServer extends NanoHTTPD {
 
-    /** Server File Directory. */
-    private String mServerFileDir = null;
-    /** Server File Real Name. */
-    private String mServerFileRealName = null;
-    /** Server File Dummy Name. */
-    private String mServerFileDummyName = null;
+    /** Logger. */
+    private final Logger mLogger = Logger.getLogger("chromecast.dplugin");
+
+    private final List<MediaFile> fileList = new ArrayList<MediaFile>();
 
     /**
      * コンストラクタ.
@@ -54,22 +61,19 @@ public class ChromeCastHttpServer extends NanoHTTPD {
      * @return レスポンス
      */
     public Response serve(final IHTTPSession session) {
+        mLogger.info("Received HTTP request: " + session.getUri());
+
         Map<String, String> header = session.getHeaders();
         String uri = session.getUri();
         return respond(Collections.unmodifiableMap(header), session, uri);
     }
 
-    /**
-     * ファイルを設定する.
-     * 
-     * @param dir       ファイルのディレクトリへのパス
-     * @param realName  ファイル名
-     * @param dummyName ファイル名 (ダミー)
-     */
-    public void setFilePath(final String dir, final String realName, final String dummyName) {
-        mServerFileDir = dir;
-        mServerFileRealName = realName;
-        mServerFileDummyName = dummyName;
+    public String exposeFile(final File file) {
+        MediaFile media = new MediaFile(file);
+        synchronized (fileList) {
+            fileList.add(media);
+        }
+        return "http://" + getIpAddress() + ":" + getListeningPort() + media.mDummyPath;
     }
 
     /**
@@ -80,18 +84,15 @@ public class ChromeCastHttpServer extends NanoHTTPD {
      */
     private boolean checkRemote(final Map<String, String> headers) {
         String remoteAddr = headers.get("remote-addr");		
-        InetAddress addr;
         try {
-            addr = InetAddress.getByName(remoteAddr);
-            if (addr.isSiteLocalAddress()) {
-                return true;
-            }
+            InetAddress addr = InetAddress.getByName(remoteAddr);
+            return addr.isSiteLocalAddress();
         } catch (UnknownHostException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
+            return false;
         }
-        return false;
     }
 
     /**
@@ -103,29 +104,36 @@ public class ChromeCastHttpServer extends NanoHTTPD {
      * @return  レスポンス
      */
     private Response respond(final Map<String, String> headers, final IHTTPSession session, final String uri) {
-
         if (!checkRemote(headers)) {
             return createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "");
         }
 
-        if (mServerFileDir == null || mServerFileRealName == null
-                || mServerFileDummyName == null || !mServerFileDummyName.equals(uri)) {
-            mServerFileDir = null;
-            mServerFileRealName = null;
-            mServerFileDummyName = null;
+        MediaFile mediaFile = findFile(uri);
+        if (mediaFile == null) {
+            mLogger.info("File not found: URI=" + uri);
             return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
         }
 
-        File file = new File(mServerFileDir, mServerFileRealName);
-
         Response response = null;
-        response = serveFile(uri, headers, file, "");
+        response = serveFile(uri, headers, mediaFile.mFile, "");
 
         if (response == null) {
             return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
         }
 
         return response;
+    }
+
+    private MediaFile findFile(final String uri) {
+        synchronized (fileList) {
+            for (MediaFile file : fileList) {
+                mLogger.info(" - " + file.mDummyPath);
+                if (uri.equals(file.mDummyPath)) {
+                    return file;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -154,6 +162,37 @@ public class ChromeCastHttpServer extends NanoHTTPD {
         Response res = new Response(status, mimeType, message);
         res.addHeader("Accept-Ranges", "bytes");
         return res;
+    }
+
+    /**
+     * IPアドレスを取得する.
+     * 
+     * @return  IPアドレス
+     */
+    private String getIpAddress() {
+        try {
+            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface
+                    .getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = (NetworkInterface) networkInterfaces
+                        .nextElement();
+                Enumeration<InetAddress> ipAddrs = networkInterface
+                        .getInetAddresses();
+                while (ipAddrs.hasMoreElements()) {
+                    InetAddress ip = (InetAddress) ipAddrs.nextElement();
+                    String ipStr = ip.getHostAddress();
+                    if (!ip.isLoopbackAddress()
+                            && InetAddressUtils.isIPv4Address(ipStr)) {
+                        return ipStr;
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     /**
@@ -236,5 +275,42 @@ public class ChromeCastHttpServer extends NanoHTTPD {
         }
 
         return res;
+    }
+
+    public static class MediaFile {
+        
+        final File mFile;
+        final String mDummyPath;
+        
+        public MediaFile(final File file) {
+            mFile = file;
+
+            String md5 = getMd5(String.valueOf(System.currentTimeMillis()));
+            if (md5 != null) {
+                mDummyPath = "/" + md5;
+            } else {
+                mDummyPath = null;
+            }
+        }
+
+        private String getMd5(final String str) {
+            String result = null;
+            try {
+                MessageDigest digest = MessageDigest.getInstance("MD5");
+                digest.update(str.getBytes());
+                byte[] hash = digest.digest();
+                StringBuffer hex = new StringBuffer();
+                for (int i = 0; i < hash.length; i++) {
+                    hex.append(Integer.toHexString(0xFF & hash[i]));
+                }
+                result = hex.toString();
+            } catch (NoSuchAlgorithmException e) {
+                if (BuildConfig.DEBUG) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+            return result;
+        }
     }
 }

@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.host;
 
 import org.deviceconnect.android.profile.BatteryProfile;
 import org.deviceconnect.android.profile.TouchProfile;
+import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
@@ -21,6 +22,9 @@ import android.os.Bundle;
  * @author NTT DOCOMO, INC.
  */
 public class HostDeviceApplication extends Application {
+
+    /** Cache retention time (mSec). */
+    static final long CACHE_RETENTION_TIME = 10000;
 
     /** Touch profile onTouch cache. */
     Bundle mOnTouchCache = null;
@@ -57,9 +61,6 @@ public class HostDeviceApplication extends Application {
 
     /** Touch profile onTouchCancel cache time. */
     long mOnTouchCancelCacheTime = 0;
-
-    /** Touch profile cache retention time (mSec). */
-    static final long CACHE_RETENTION_TIME = 10000;
 
     /**
      * Get Touch cache data.
@@ -136,6 +137,60 @@ public class HostDeviceApplication extends Application {
         } else if (attr.equals(TouchProfile.ATTRIBUTE_ON_TOUCH_CANCEL)) {
             mOnTouchCancelCache = touchData;
             mOnTouchCancelCacheTime = lCurrentTime;
+        }
+    }
+
+    /** KeyEvent profile onDown cache. */
+    Bundle mOnDownCache = null;
+
+    /** KeyEvent profile onDown cache time. */
+    static long sOnDownCacheTime = 0;
+
+    /** KeyEvent profile onUp cache. */
+    Bundle mOnUpCache = null;
+
+    /** KeyEvent profile onUp cache time. */
+    static long sOnUpCacheTime = 0;
+
+    /**
+     * Get KeyEvent cache data.
+     * 
+     * @param attr Attribute.
+     * @return KeyEvent cache data.
+     */
+    public Bundle getKeyEventCache(final String attr) {
+        long lCurrentTime = System.currentTimeMillis();
+        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
+            if (lCurrentTime - sOnDownCacheTime <= CACHE_RETENTION_TIME) {
+                return mOnDownCache;
+            } else {
+                return null;
+            }
+        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
+            if (lCurrentTime - sOnUpCacheTime <= CACHE_RETENTION_TIME) {
+                return mOnUpCache;
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Set KeyEvent data to cache.
+     * 
+     * @param attr Attribute.
+     * @param keyeventData Touch data.
+     */
+    public void setKeyEventCache(final String attr, final Bundle keyeventData) {
+        long lCurrentTime = System.currentTimeMillis();
+        if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_DOWN)) {
+            mOnDownCache = keyeventData;
+            sOnDownCacheTime = lCurrentTime;
+        } else if (attr.equals(KeyEventProfile.ATTRIBUTE_ON_UP)) {
+            mOnUpCache = keyeventData;
+            sOnUpCacheTime = lCurrentTime;
         }
     }
 

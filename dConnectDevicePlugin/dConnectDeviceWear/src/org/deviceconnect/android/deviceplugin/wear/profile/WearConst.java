@@ -41,6 +41,30 @@ public final class WearConst {
     public static final String WEAR_TO_DEVICE_DEIVCEORIENTATION_DATA
             = "org.deviceconnect.wear.deivceorienatation.data";
 
+    /** Register Key Event (ondown). */
+    public static final String DEVICE_TO_WEAR_KEYEVENT_ONDOWN_REGISTER
+            = "org.deviceconnect.wear.keyevent.ondown.regist";
+
+    /** Register Key Event (onup). */
+    public static final String DEVICE_TO_WEAR_KEYEVENT_ONUP_REGISTER = "org.deviceconnect.wear.keyevent.onup.regist";
+
+    /** Remove Key Event (ondown). */
+    public static final String DEVICE_TO_WEAR_KEYEVENT_ONDOWN_UNREGISTER
+            = "org.deviceconnect.wear.keyevent.ondown.unregist";
+
+    /** Remove Key Event (onup). */
+    public static final String DEVICE_TO_WEAR_KEYEVENT_ONUP_UNREGISTER
+            = "org.deviceconnect.wear.keyevent.onup.unregist";
+
+    /** Wear to Android. */
+    public static final String WEAR_TO_DEVICE_KEYEVENT_DATA = "org.deviceconnect.wear.keyevent.data";
+
+    /** Key Event (down). */
+    public static final String PARAM_KEYEVENT_DOWN = "down";
+
+    /** Key Event (up). */
+    public static final String PARAM_KEYEVENT_UP = "up";
+
     /** ServiceId. */
     public static final String PARAM_DEVICEID = "serviceId";
 

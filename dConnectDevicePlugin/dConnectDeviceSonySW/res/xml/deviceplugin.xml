@@ -2,13 +2,14 @@
 <deviceplugin-provider
     xmlns:android="http://schemas.android.com/apk/res/android">
     
-     <profile name="servicediscovery" />
-     <profile name="serviceinformation" />
-     <profile name="system" />
-     <profile name="deviceorientation" />
-     <profile name="vibration" />
-     <profile name="notification" />
-     <profile name="canvas" />
-     <profile name="touch" />
-     
-</deviceplugin-provider> 
+    <profile name="servicediscovery" />
+    <profile name="serviceinformation" />
+    <profile name="system" />
+    <profile name="deviceorientation" />
+    <profile name="vibration" />
+    <profile name="notification" />
+    <profile name="canvas" />
+    <profile name="touch" />
+    <profile name="keyevent" />
+    
+</deviceplugin-provider>

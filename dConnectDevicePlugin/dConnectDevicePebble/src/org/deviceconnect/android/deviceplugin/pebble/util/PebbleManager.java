@@ -434,6 +434,7 @@ public final class PebbleManager {
     /**
      * イベント受信用のリスナーを削除する.
      * @param profile 削除するリスナーのプロファイル
+     * @param listener リスナー
      */
     public void removeEventListener(final int profile, final OnReceivedEventListener listener) {
         List<OnReceivedEventListener> listeners = mEvtListeners.get(profile);
@@ -968,7 +969,8 @@ public final class PebbleManager {
         return convertImage(data, width, height, mode, x, y);
     }
 
-    private static Paint mPaint = new Paint();
+    /** Paint data. */
+    private static Paint sPaint = new Paint();
     /**
      * Pebbleで読み込めるような画像に変換する.
      * 
@@ -988,9 +990,9 @@ public final class PebbleManager {
         Bitmap b2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 
         // 背景を白で塗りつぶす
-        mPaint.setColor(Color.WHITE);
+        sPaint.setColor(Color.WHITE);
         Canvas canvas = new Canvas(b2);
-        canvas.drawRect(0, 0, width, height, mPaint);
+        canvas.drawRect(0, 0, width, height, sPaint);
 
         boolean isDraw = false;
         if (mode == null || mode.equals("")) { // 等倍描画モード 

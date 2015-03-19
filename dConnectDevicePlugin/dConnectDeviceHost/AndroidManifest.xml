@@ -152,6 +152,11 @@
             android:name="org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity"
             android:label="@string/app_name" >
         </activity>
+        
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity"
+            android:label="@string/app_name" >
+        </activity>
     </application>
 
 </manifest>

@@ -23,7 +23,7 @@ import android.content.Intent;
  */
 public class ChromeCastNotificationProfile extends NotificationProfile {
     /** Chromecastが無効になっているときのエラーメッセージ. */
-    private static final String ERROR_MESSAGE_DEVICE_NOT_ENABLE = "Device is not enable";
+    private static final String ERROR_MESSAGE_DEVICE_NOT_ENABLED = "Chromecast is not enabled.";
 
     /**
      * デバイスが有効か否かを返す<br/>.
@@ -35,7 +35,7 @@ public class ChromeCastNotificationProfile extends NotificationProfile {
      */
     private boolean isDeviceEnable(final Intent response, final ChromeCastMessage app) {
         if (!app.isDeviceEnable()) {
-            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_DEVICE_NOT_ENABLE);
+            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_DEVICE_NOT_ENABLED);
             setResult(response, DConnectMessage.RESULT_ERROR);
             return false;
         }

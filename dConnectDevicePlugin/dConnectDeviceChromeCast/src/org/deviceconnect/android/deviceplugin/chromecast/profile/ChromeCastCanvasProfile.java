@@ -29,8 +29,8 @@ import android.content.Intent;
  */
 public class ChromeCastCanvasProfile extends CanvasProfile {
 
-    /** Chromecastが無効になっているときのエラーメッセージ. */
-    private static final String ERROR_MESSAGE_DEVICE_NOT_ENABLE = "Device is not enable";
+    /** Error message when Chromecast is not enabled.  */
+    private static final String ERROR_MESSAGE_DEVICE_NOT_ENABLED = "Chromecast is not enabled.";
 
     /** Logger. */
     private final Logger mLogger = Logger.getLogger("chromecast.dplugin");
@@ -125,7 +125,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile {
      */
     private boolean isDeviceEnable(final Intent response, final ChromeCastMessage app) {
         if (!app.isDeviceEnable()) {
-            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_DEVICE_NOT_ENABLE);
+            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_DEVICE_NOT_ENABLED);
             setResult(response, DConnectMessage.RESULT_ERROR);
             return false;
         }

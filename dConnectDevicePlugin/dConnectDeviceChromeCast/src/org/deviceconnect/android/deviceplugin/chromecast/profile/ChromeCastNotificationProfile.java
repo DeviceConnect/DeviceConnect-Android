@@ -11,6 +11,8 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.NotificationProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Intent;
 
@@ -21,7 +23,7 @@ import android.content.Intent;
  * </p>
  * @author NTT DOCOMO, INC.
  */
-public class ChromeCastNotificationProfile extends NotificationProfile {
+public class ChromeCastNotificationProfile extends NotificationProfile implements ChromeCastConstants {
     /** Chromecastが無効になっているときのエラーメッセージ. */
     private static final String ERROR_MESSAGE_DEVICE_NOT_ENABLED = "Chromecast is not enabled.";
 
@@ -67,9 +69,17 @@ public class ChromeCastNotificationProfile extends NotificationProfile {
         if (!isDeviceEnable(response, app)) {
             return true;
         }
-        app.sendMessage(response, "{\"function\":\"write\", \"type\":\"" 
-                            + type.getValue() + "\", \"message\":\"" + body + "\"}");
-        return false;
+        try {
+            JSONObject json = new JSONObject();
+            json.put(KEY_FUNCTION, FUNCTION_POST_NOTIFICATION);
+            json.put(KEY_TYPE, type.getValue());
+            json.put(KEY_MESSAGE, body);
+            app.sendMessage(response, json.toString());
+            return false;
+        } catch (JSONException e) {
+            MessageUtils.setUnknownError(response);
+            return true;
+        }
     }
 
     @Override
@@ -80,8 +90,15 @@ public class ChromeCastNotificationProfile extends NotificationProfile {
         if (!isDeviceEnable(response, app)) {
             return true;
         }
-        app.sendMessage(response, "{\"function\":\"clear\"}");
-        return false;
+        try {
+            JSONObject json = new JSONObject();
+            json.put(KEY_FUNCTION, FUNCTION_DELETE_NOTIFICATION);
+            app.sendMessage(response, json.toString());
+            return false;
+        } catch (JSONException e) {
+            MessageUtils.setUnknownError(response);
+            return true;
+        }
     }
 
 }

@@ -6,19 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
-import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
-import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
-import org.deviceconnect.android.event.EventError;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.MediaPlayerProfile;
-import org.deviceconnect.message.DConnectMessage;
-
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Intent;
@@ -29,6 +16,20 @@ import android.provider.MediaStore;
 
 import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.MediaStatus;
+
+import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
+import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
+import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
+import org.deviceconnect.android.deviceplugin.chromecast.core.MediaFile;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.MediaPlayerProfile;
+import org.deviceconnect.message.DConnectMessage;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * MediaPlayer プロファイル (Chromecast).
@@ -500,7 +501,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
         ChromeCastHttpServer server = ((ChromeCastService) getContext())
                 .getChromeCastHttpServer();
-        return server.exposeFile(new File(path));
+        return server.exposeFile(new MediaFile(new File(path), null));
     }
 
     @Override

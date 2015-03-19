@@ -6,6 +6,9 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.core;
 
+import org.apache.http.conn.util.InetAddressUtils;
+import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,17 +17,12 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import org.apache.http.conn.util.InetAddressUtils;
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -42,7 +40,8 @@ public class ChromeCastHttpServer extends NanoHTTPD {
     /** Logger. */
     private final Logger mLogger = Logger.getLogger("chromecast.dplugin");
 
-    private final List<MediaFile> fileList = new ArrayList<MediaFile>();
+    /** The List of media files. */
+    private final List<MediaFile> mFileList = new ArrayList<MediaFile>();
 
     /**
      * コンストラクタ.
@@ -68,12 +67,17 @@ public class ChromeCastHttpServer extends NanoHTTPD {
         return respond(Collections.unmodifiableMap(header), session, uri);
     }
 
-    public String exposeFile(final File file) {
-        MediaFile media = new MediaFile(file);
-        synchronized (fileList) {
-            fileList.add(media);
+    /**
+     * 指定されたファイルを公開する.
+     *
+     * @param file 公開するファイル
+     * @return 公開用URI
+     */
+    public String exposeFile(final MediaFile file) {
+        synchronized (mFileList) {
+            mFileList.add(file);
         }
-        return "http://" + getIpAddress() + ":" + getListeningPort() + media.mDummyPath;
+        return "http://" + getIpAddress() + ":" + getListeningPort() + file.getPath();
     }
 
     /**
@@ -113,22 +117,26 @@ public class ChromeCastHttpServer extends NanoHTTPD {
             mLogger.info("File not found: URI=" + uri);
             return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
         }
+        mLogger.info("Found File: " + mediaFile.mFile.getAbsolutePath());
 
-        Response response = null;
-        response = serveFile(uri, headers, mediaFile.mFile, "");
-
+        Response response = serveFile(uri, headers, mediaFile.mFile, "");
         if (response == null) {
             return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
         }
-
         return response;
     }
 
+    /**
+     * 指定したURIで公開しているファイルを検索する.
+     *
+     * @param uri ファイル公開用URI
+     * @return 検索により見つかったファイル. 見つからなかった場合は<code>null</code>
+     */
     private MediaFile findFile(final String uri) {
-        synchronized (fileList) {
-            for (MediaFile file : fileList) {
-                mLogger.info(" - " + file.mDummyPath);
-                if (uri.equals(file.mDummyPath)) {
+        synchronized (mFileList) {
+            for (MediaFile file : mFileList) {
+                mLogger.info(" - " + file.getPath());
+                if (uri.equals(file.getPath())) {
                     return file;
                 }
             }
@@ -275,42 +283,5 @@ public class ChromeCastHttpServer extends NanoHTTPD {
         }
 
         return res;
-    }
-
-    public static class MediaFile {
-        
-        final File mFile;
-        final String mDummyPath;
-        
-        public MediaFile(final File file) {
-            mFile = file;
-
-            String md5 = getMd5(String.valueOf(System.currentTimeMillis()));
-            if (md5 != null) {
-                mDummyPath = "/" + md5;
-            } else {
-                mDummyPath = null;
-            }
-        }
-
-        private String getMd5(final String str) {
-            String result = null;
-            try {
-                MessageDigest digest = MessageDigest.getInstance("MD5");
-                digest.update(str.getBytes());
-                byte[] hash = digest.digest();
-                StringBuffer hex = new StringBuffer();
-                for (int i = 0; i < hash.length; i++) {
-                    hex.append(Integer.toHexString(0xFF & hash[i]));
-                }
-                result = hex.toString();
-            } catch (NoSuchAlgorithmException e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-            return result;
-        }
     }
 }

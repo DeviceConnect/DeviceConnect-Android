@@ -157,7 +157,7 @@ public abstract class VibrationProfile extends DConnectProfile implements Vibrat
      */
     protected final long[] parsePattern(final String pattern) {
 
-        if (pattern == null) {
+        if (pattern == null || pattern.length() == 0) {
             return new long[] {getMaxVibrationTime()};
         }
 

@@ -6,16 +6,24 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.core;
 
+import org.apache.http.conn.util.InetAddressUtils;
+import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+import java.util.logging.Logger;
 
 import fi.iki.elonen.NanoHTTPD;
 
@@ -30,12 +38,14 @@ import fi.iki.elonen.NanoHTTPD;
  */
 public class ChromeCastHttpServer extends NanoHTTPD {
 
-    /** Server File Directory. */
-    private String mServerFileDir = null;
-    /** Server File Real Name. */
-    private String mServerFileRealName = null;
-    /** Server File Dummy Name. */
-    private String mServerFileDummyName = null;
+    /** Local IP Address prefix.  */
+    private static final String PREFIX_LOCAL_IP = "192.168.";
+
+    /** Logger. */
+    private final Logger mLogger = Logger.getLogger("chromecast.dplugin");
+
+    /** The List of media files. */
+    private final List<MediaFile> mFileList = new ArrayList<MediaFile>();
 
     /**
      * コンストラクタ.
@@ -54,22 +64,28 @@ public class ChromeCastHttpServer extends NanoHTTPD {
      * @return レスポンス
      */
     public Response serve(final IHTTPSession session) {
+        mLogger.info("Received HTTP request: " + session.getUri());
+
         Map<String, String> header = session.getHeaders();
         String uri = session.getUri();
         return respond(Collections.unmodifiableMap(header), session, uri);
     }
 
     /**
-     * ファイルを設定する.
-     * 
-     * @param dir       ファイルのディレクトリへのパス
-     * @param realName  ファイル名
-     * @param dummyName ファイル名 (ダミー)
+     * 指定されたファイルを公開する.
+     *
+     * @param file 公開するファイル
+     * @return 公開用URI
      */
-    public void setFilePath(final String dir, final String realName, final String dummyName) {
-        mServerFileDir = dir;
-        mServerFileRealName = realName;
-        mServerFileDummyName = dummyName;
+    public String exposeFile(final MediaFile file) {
+        synchronized (mFileList) {
+            mFileList.add(file);
+        }
+        String address = getIpAddress();
+        if (address == null) {
+            return null;
+        }
+        return "http://" + address + ":" + getListeningPort() + file.getPath();
     }
 
     /**
@@ -80,18 +96,15 @@ public class ChromeCastHttpServer extends NanoHTTPD {
      */
     private boolean checkRemote(final Map<String, String> headers) {
         String remoteAddr = headers.get("remote-addr");		
-        InetAddress addr;
         try {
-            addr = InetAddress.getByName(remoteAddr);
-            if (addr.isSiteLocalAddress()) {
-                return true;
-            }
+            InetAddress addr = InetAddress.getByName(remoteAddr);
+            return addr.isSiteLocalAddress();
         } catch (UnknownHostException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
+            return false;
         }
-        return false;
     }
 
     /**
@@ -103,29 +116,40 @@ public class ChromeCastHttpServer extends NanoHTTPD {
      * @return  レスポンス
      */
     private Response respond(final Map<String, String> headers, final IHTTPSession session, final String uri) {
-
         if (!checkRemote(headers)) {
             return createResponse(Response.Status.FORBIDDEN, NanoHTTPD.MIME_PLAINTEXT, "");
         }
 
-        if (mServerFileDir == null || mServerFileRealName == null
-                || mServerFileDummyName == null || !mServerFileDummyName.equals(uri)) {
-            mServerFileDir = null;
-            mServerFileRealName = null;
-            mServerFileDummyName = null;
+        MediaFile mediaFile = findFile(uri);
+        if (mediaFile == null) {
+            mLogger.info("File not found: URI=" + uri);
             return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
         }
+        mLogger.info("Found File: " + mediaFile.mFile.getAbsolutePath());
 
-        File file = new File(mServerFileDir, mServerFileRealName);
-
-        Response response = null;
-        response = serveFile(uri, headers, file, "");
-
+        Response response = serveFile(uri, headers, mediaFile.mFile, "");
         if (response == null) {
             return createResponse(Response.Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT, "");
         }
-
         return response;
+    }
+
+    /**
+     * 指定したURIで公開しているファイルを検索する.
+     *
+     * @param uri ファイル公開用URI
+     * @return 検索により見つかったファイル. 見つからなかった場合は<code>null</code>
+     */
+    private MediaFile findFile(final String uri) {
+        synchronized (mFileList) {
+            for (MediaFile file : mFileList) {
+                mLogger.info(" - " + file.getPath());
+                if (uri.equals(file.getPath())) {
+                    return file;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -154,6 +178,46 @@ public class ChromeCastHttpServer extends NanoHTTPD {
         Response res = new Response(status, mimeType, message);
         res.addHeader("Accept-Ranges", "bytes");
         return res;
+    }
+
+    /**
+     * IPアドレスを取得する.
+     * 
+     * @return  IPアドレス
+     */
+    private String getIpAddress() {
+        try {
+            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface
+                    .getNetworkInterfaces();
+            LinkedList<InetAddress> localAddresses = new LinkedList<InetAddress>();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = (NetworkInterface) networkInterfaces
+                        .nextElement();
+                Enumeration<InetAddress> ipAddrs = networkInterface
+                        .getInetAddresses();
+                while (ipAddrs.hasMoreElements()) {
+                    InetAddress ip = (InetAddress) ipAddrs.nextElement();
+                    String ipStr = ip.getHostAddress();
+
+                    mLogger.info("Searching IP Address: Address=" + ipStr
+                        + " isLoopback=" + ip.isLoopbackAddress()
+                        + " isSiteLocal=" + ip.isSiteLocalAddress());
+
+                    if (ipStr.startsWith(PREFIX_LOCAL_IP)) {
+                        localAddresses.addFirst(ip);
+                    }
+                }
+            }
+            if (localAddresses.size() == 0) {
+                return null;
+            }
+            return localAddresses.get(0).getHostAddress();
+        } catch (SocketException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     /**

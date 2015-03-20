@@ -6,27 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
-import java.io.File;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-
-import org.apache.http.conn.util.InetAddressUtils;
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
-import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
-import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
-import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
-import org.deviceconnect.android.event.EventError;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.MediaPlayerProfile;
-import org.deviceconnect.message.DConnectMessage;
-
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Intent;
@@ -34,10 +13,23 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.webkit.MimeTypeMap;
 
 import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.MediaStatus;
+
+import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
+import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
+import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
+import org.deviceconnect.android.deviceplugin.chromecast.core.MediaFile;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.MediaPlayerProfile;
+import org.deviceconnect.message.DConnectMessage;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * MediaPlayer プロファイル (Chromecast).
@@ -114,7 +106,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * サービスからChromeCastMediaPlayerを取得する.
-     * @param   なし
      * @return  ChromeCastMediaPlayer
      */
     private ChromeCastMediaPlayer getChromeCastApplication() {
@@ -472,32 +463,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     /**
-     * MD5の文字列を生成する.
-     * 
-     * @param   str     文字列
-     * @return  result  MD5文字列	
-     */
-    private String getMd5(final String str) {
-        String result = null;
-        try {
-            MessageDigest digest = MessageDigest.getInstance("MD5");
-            digest.update(str.getBytes());
-            byte[] hash = digest.digest();
-            StringBuffer hex = new StringBuffer();
-            for (int i = 0; i < hash.length; i++) {
-                hex.append(Integer.toHexString(0xFF & hash[i]));
-            }
-            result = hex.toString();
-        } catch (NoSuchAlgorithmException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-        return result;
-    }
-
-    /**
      * 指定したURIからkeyとvalueに基づき、Cursorを取得する.
      * 
      * @param   uri     URI
@@ -521,34 +486,22 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     /**
-     * mediaIdからdummyUrlを生成する.
+     * 指定したメディアをローカルサーバ上で公開する.
      * 
      * @param   mediaId     メディアID
      * @return  dummyUrl    ダミーURL
      */
-    private String getDummyUrlFromMediaId(final int mediaId) {
+    private String exposeMedia(final int mediaId) {
         Uri targetUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         String path = getPathFromUri(ContentUris.withAppendedId(targetUri,
                 Long.valueOf(mediaId)));
-
         if (path == null) {
             return null;
         }
 
         ChromeCastHttpServer server = ((ChromeCastService) getContext())
                 .getChromeCastHttpServer();
-        String dir = new File(path).getParent();
-        String realName = new File(path).getName();
-        String extension = MimeTypeMap.getFileExtensionFromUrl(realName);
-        String md5 = getMd5("" + System.currentTimeMillis());
-        if (md5 == null) {
-            return null;
-        }
-        String dummyName = md5 + "." + extension;
-        
-        server.setFilePath(dir, realName, "/" + dummyName);
-        return "http://" + getIpAddress() + ":" + server.getListeningPort()
-                + "/" + dummyName;
+        return server.exposeFile(new MediaFile(new File(path), null));
     }
 
     @Override
@@ -588,7 +541,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             } else {
                 title = cursor.getString(cursor
                         .getColumnIndex(MediaStore.Video.Media.TITLE));
-                url = getDummyUrlFromMediaId(mId);
+                url = exposeMedia(mId);
                 cursor.close();
                 if (url == null) {
                     response.putExtra(DConnectMessage.EXTRA_VALUE, "url is null");
@@ -606,37 +559,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         app.load(response, url, title);
 
         return false;
-    }
-
-    /**
-     * IPアドレスを取得する.
-     * 
-     * @return  IPアドレス
-     */
-    private String getIpAddress() {
-        try {
-            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface
-                    .getNetworkInterfaces();
-            while (networkInterfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = (NetworkInterface) networkInterfaces
-                        .nextElement();
-                Enumeration<InetAddress> ipAddrs = networkInterface
-                        .getInetAddresses();
-                while (ipAddrs.hasMoreElements()) {
-                    InetAddress ip = (InetAddress) ipAddrs.nextElement();
-                    String ipStr = ip.getHostAddress();
-                    if (!ip.isLoopbackAddress()
-                            && InetAddressUtils.isIPv4Address(ipStr)) {
-                        return ipStr;
-                    }
-                }
-            }
-        } catch (SocketException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-        }
-        return null;
     }
 
     /**
@@ -804,17 +726,14 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             final String[] orders, final Integer offset, final Integer limit) {
         List<Bundle> list = new ArrayList<Bundle>();
 
-        Bundle medium = null;
-        Bundle creatorVideo = null;
-        
-        medium = new Bundle();
+        Bundle medium = new Bundle();
         setType(medium, "Video");
         setLanguage(medium, "Language");
-        setMediaId(medium, "https://raw.githubusercontent.com/DeviceConnect/DeviceConnect/master/sphero_demo.MOV");
-        setMIMEType(medium, "mov");
+        setMediaId(medium, "https://github.com/DeviceConnect/DeviceConnect-Android/wiki/sphero_demo.MOV");
+        setMIMEType(medium, "video/quicktime");
         setTitle(medium, "Title: Sample");
         setDuration(medium, 9999);
-        creatorVideo = new Bundle();
+        Bundle creatorVideo = new Bundle();
         setCreator(creatorVideo, "Creator: Sample");
         setCreators(medium, new Bundle[] {creatorVideo});
         list.add(medium);

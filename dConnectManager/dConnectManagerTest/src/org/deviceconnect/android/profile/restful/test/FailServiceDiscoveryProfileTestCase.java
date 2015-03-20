@@ -13,6 +13,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
+import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
@@ -52,6 +53,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
     public void testGetServices001() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPost(builder.toString());
             JSONObject root = sendRequest(request);
@@ -78,6 +80,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
     public void testGetServices002() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpPut(builder.toString());
             JSONObject root = sendRequest(request);
@@ -104,6 +107,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
     public void testGetServices003() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpDelete(builder.toString());
             JSONObject root = sendRequest(request);
@@ -133,6 +137,7 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject root = sendRequest(request);
@@ -160,4 +165,61 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
+
+    /**
+     * GETメソッドでサービス追加イベント登録を行う.
+     * 
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
+     * Path: /servicediscovery/onservicechange
+     * </pre>
+     * 
+     * <pre>
+     * 【期待する動作】
+     * ・resultに1が返ってくること。
+     * </pre>
+     */
+    public void testOnServiceChangeInvalidMethodGet() {
+        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+        try {
+            HttpUriRequest request = new HttpGet(builder.toString());
+            JSONObject root = sendRequest(request);
+            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+        } catch (JSONException e) {
+            fail("Exception in JSONObject." + e.getMessage());
+        }
+    }
+
+    /**
+     * POSTメソッドでサービス追加イベント登録を行う.
+     * 
+     * <pre>
+     * 【HTTP通信】
+     * Method: POST
+     * Path: /servicediscovery/onservicechange
+     * </pre>
+     * 
+     * <pre>
+     * 【期待する動作】
+     * ・resultに1が返ってくること。
+     * </pre>
+     */
+    public void testOnServiceChangeInvalidMethodPost() {
+        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        builder.setAttribute(ServiceDiscoveryProfileConstants.ATTRIBUTE_ON_SERVICE_CHANGE);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+        try {
+            HttpUriRequest request = new HttpPost(builder.toString());
+            JSONObject root = sendRequest(request);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
+        } catch (JSONException e) {
+            fail("Exception in JSONObject." + e.getMessage());
+        }
+    }
+
 }

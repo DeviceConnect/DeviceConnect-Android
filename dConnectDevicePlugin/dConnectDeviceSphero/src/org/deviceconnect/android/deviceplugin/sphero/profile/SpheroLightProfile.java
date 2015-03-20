@@ -99,8 +99,8 @@ public class SpheroLightProfile extends DConnectProfile {
     protected boolean onGetRequest(final Intent request, final Intent response) {
 
         String attribute = getAttribute(request);
-        if (attribute != null && attribute.length() != 0) {
-            MessageUtils.setUnknownAttributeError(response);
+        if (attribute != null) {
+            MessageUtils.setNotSupportAttributeError(response);
         } else {
             String serviceId = getServiceID(request);
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
@@ -124,7 +124,6 @@ public class SpheroLightProfile extends DConnectProfile {
                 setResult(response, DConnectMessage.RESULT_OK);
             }
         }
-
         return true;
     }
 
@@ -133,59 +132,77 @@ public class SpheroLightProfile extends DConnectProfile {
 
         String attribute = getAttribute(request);
         if (attribute != null && attribute.length() != 0) {
-            MessageUtils.setUnknownAttributeError(response);
-        } else {
-            String serviceId = getServiceID(request);
-            DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
-            if (info == null) {
-                MessageUtils.setNotFoundServiceError(response);
+            MessageUtils.setNotSupportAttributeError(response);
+            return true;
+        }
+        String serviceId = getServiceID(request);
+        DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
+        if (info == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+        synchronized (info) {
+            String lightId = request.getStringExtra(PARAM_LIGHT_ID);
+            if (lightId == null) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return true;
+            }
+
+            int brightnessRaw;
+            if (request.hasExtra(PARAM_BRIGHTNESS)) {
+                double brightness = request.getDoubleExtra(PARAM_BRIGHTNESS, -1);
+                brightnessRaw = (int) ((double) MAX_BRIGHTNESS * brightness);
+                if (brightnessRaw < 0 || brightnessRaw > MAX_BRIGHTNESS) {
+                    MessageUtils.setInvalidRequestParameterError(response, "brightness is invalid.");
+                    return true;
+                }
             } else {
-                synchronized (info) {
-                    String lightId = request.getStringExtra(PARAM_LIGHT_ID);
-                    if (lightId == null) {
-                        MessageUtils.setInvalidRequestParameterError(response);
-                    } else if (lightId.equals(COLOR_LED_LIGHT_ID)) {
+                brightnessRaw = MAX_BRIGHTNESS;
+            }
 
-                        String color = request.getStringExtra(PARAM_COLOR);
-                        String flashing = request.getStringExtra(PARAM_FLASHING);
-                        int[] colors = parseColor(color);
-                        long[] pattern = parsePattern(flashing);
+            int[] colors;
+            if (request.hasExtra(PARAM_COLOR)) {
+                colors = parseColor(request.getStringExtra(PARAM_COLOR));
+                if (colors == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "color is invalid.");
+                    return true;
+                }
+            } else {
+                colors = new int[] {255, 255, 255};
+            }
 
-                        if (colors == null) {
-                            MessageUtils.setInvalidRequestParameterError(response);
-                        } else if (pattern == null) {
-                            info.setColor(colors[0], colors[1], colors[2]);
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            SpheroManager.flashFrontLight(info, colors, pattern);
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        }
-
-                    } else if (lightId.equals(BACK_LED_LIGHT_ID)) {
-                        int brightness = request.getIntExtra(PARAM_BRIGHTNESS, MAX_BRIGHTNESS);
-                        if (brightness > MAX_BRIGHTNESS || brightness < 0) {
-                            MessageUtils.setInvalidRequestParameterError(response);
-                        } else {
-                            String flashing = request.getStringExtra(PARAM_FLASHING);
-                            long[] pattern = parsePattern(flashing);
-                            
-                            if (pattern != null) {
-                                SpheroManager.flashBackLight(info, brightness, pattern);
-                            } else {
-                                float bf = brightness / (float) MAX_BRIGHTNESS;
-                                info.setBackBrightness(bf);
-                            }
-                            
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        }
-                    } else {
-                        MessageUtils.setInvalidRequestParameterError(response);
-                    }
+            long[] pattern = null;
+            if (request.hasExtra(PARAM_FLASHING)) {
+                String flashing = request.getStringExtra(PARAM_FLASHING);
+                pattern = parsePattern(flashing);
+                if (pattern == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "pattern is invalid.");
+                    return true;
                 }
             }
-        }
 
-        return true;
+            if (lightId.equals(COLOR_LED_LIGHT_ID)) {
+                if (pattern != null) {
+                    SpheroManager.flashFrontLight(info, colors, pattern);
+                } else {
+                    info.setColor(colors[0], colors[1], colors[2]);
+                }
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
+            } else if (lightId.equals(BACK_LED_LIGHT_ID)) {
+                if (pattern != null) {
+                    SpheroManager.flashBackLight(info, brightnessRaw, pattern);
+                } else {
+                    float bf = brightnessRaw / (float) MAX_BRIGHTNESS;
+                    info.setBackBrightness(bf);
+                }
+                setResult(response, DConnectMessage.RESULT_OK);
+                return true;
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return true;
+            }
+        }
     }
 
     @Override
@@ -193,7 +210,7 @@ public class SpheroLightProfile extends DConnectProfile {
 
         String attribute = getAttribute(request);
         if (attribute != null && attribute.length() != 0) {
-            MessageUtils.setUnknownAttributeError(response);
+            MessageUtils.setNotSupportAttributeError(response);
         } else {
             String serviceId = getServiceID(request);
             DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
@@ -227,11 +244,9 @@ public class SpheroLightProfile extends DConnectProfile {
      * @return RGBの配列
      */
     private int[] parseColor(final String color) {
-
-        if (color == null || color.length() == 0) {
-            return new int[] {255, 255, 255};
+        if (color.length() == 0) {
+            return null;
         }
-
         int[] c = new int[3];
         try {
             c[0] = Integer.parseInt(color.substring(0, 2), 16);
@@ -255,7 +270,7 @@ public class SpheroLightProfile extends DConnectProfile {
      */
     protected final long[] parsePattern(final String pattern) {
 
-        if (pattern == null || pattern.length() == 0) {
+        if (pattern.length() == 0) {
             return null;
         }
 

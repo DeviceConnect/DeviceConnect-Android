@@ -199,7 +199,7 @@ public class SpheroProfile extends DConnectProfile {
         } else if (INTER_COLLISION.equals(inter) && ATTR_ON_COLLISION.equals(attribute)) {
             result = onGetCollision(request, response, getServiceID(request));
         } else {
-            MessageUtils.setUnknownAttributeError(response);
+            MessageUtils.setNotSupportAttributeError(response);
         }
         return result;
     }
@@ -219,7 +219,7 @@ public class SpheroProfile extends DConnectProfile {
         } else if (INTER_COLLISION.equals(inter) && ATTR_ON_COLLISION.equals(attribute)) {
             type = TYPE_COL;
         } else {
-            MessageUtils.setUnknownAttributeError(response);
+            MessageUtils.setNotSupportAttributeError(response);
             return true;
         }
 
@@ -277,7 +277,7 @@ public class SpheroProfile extends DConnectProfile {
         } else if (INTER_COLLISION.equals(inter) && ATTR_ON_COLLISION.equals(attribute)) {
             type = TYPE_COL;
         } else {
-            MessageUtils.setUnknownAttributeError(response);
+            MessageUtils.setNotSupportAttributeError(response);
             return true;
         }
 

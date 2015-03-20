@@ -77,7 +77,11 @@ public class ChromeCastHttpServer extends NanoHTTPD {
         synchronized (mFileList) {
             mFileList.add(file);
         }
-        return "http://" + getIpAddress() + ":" + getListeningPort() + file.getPath();
+        String address = getIpAddress();
+        if (address == null) {
+            return null;
+        }
+        return "http://" + address + ":" + getListeningPort() + file.getPath();
     }
 
     /**
@@ -189,7 +193,13 @@ public class ChromeCastHttpServer extends NanoHTTPD {
                 while (ipAddrs.hasMoreElements()) {
                     InetAddress ip = (InetAddress) ipAddrs.nextElement();
                     String ipStr = ip.getHostAddress();
+
+                    mLogger.info("Searching IP Address: Address=" + ipStr
+                        + " isLoopback=" + ip.isLoopbackAddress()
+                        + " isSiteLocal=" + ip.isSiteLocalAddress());
+
                     if (!ip.isLoopbackAddress()
+                            && ip.isSiteLocalAddress()
                             && InetAddressUtils.isIPv4Address(ipStr)) {
                         return ipStr;
                     }

@@ -6,7 +6,12 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
-import android.content.Intent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Logger;
 
 import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
@@ -15,31 +20,25 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
 import org.deviceconnect.android.deviceplugin.chromecast.core.MediaFile;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
-import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
-import org.json.JSONObject;
 import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.logging.Logger;
+import android.content.Intent;
 
 /**
- * Canvas Profile (Chromecast)
+ * Canvas Profile (Chromecast).
  * @author NTT DOCOMO, INC.
  */
 public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCastConstants {
 
-    /** Error message when Chromecast is not enabled.  */
+    /** Error message when Chromecast is not enabled. */
     private static final String ERROR_MESSAGE_DEVICE_NOT_ENABLED = "Chromecast is not enabled.";
 
     /** Prefix of image file name. */
     private static final String PREFIX = "dConnectDeviceChromecast_";
 
-    /** The instance of {@link java.text.SimpleDateFormat}/ */
+    /** The instance of {@link java.text.SimpleDateFormat}. */
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
 
     /** Logger. */
@@ -64,6 +63,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
 
         try {
             String path = exposeImage(data, mimeType);
+            mLogger.info("Exposed image: URL=" + path);
             ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
             if (!isDeviceEnable(response, app)) {
                 return true;

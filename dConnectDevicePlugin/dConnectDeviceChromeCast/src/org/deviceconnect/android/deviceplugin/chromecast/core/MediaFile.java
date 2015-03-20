@@ -7,13 +7,7 @@
 package org.deviceconnect.android.deviceplugin.chromecast.core;
 
 
-import org.deviceconnect.android.provider.FileManager;
-
-
 import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Media file.
@@ -40,7 +34,7 @@ public class MediaFile {
 
     /**
      * Get the path to expose a media file.
-     * @return
+     * @return the path to expose a media file
      */
     String getPath() {
         return "/" + mFile.getName();

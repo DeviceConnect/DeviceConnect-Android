@@ -20,6 +20,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -36,6 +37,9 @@ import fi.iki.elonen.NanoHTTPD;
  * @author NTT DOCOMO, INC.
  */
 public class ChromeCastHttpServer extends NanoHTTPD {
+
+    /** Local IP Address prefix.  */
+    private static final String PREFIX_LOCAL_IP = "192.168.";
 
     /** Logger. */
     private final Logger mLogger = Logger.getLogger("chromecast.dplugin");
@@ -185,6 +189,7 @@ public class ChromeCastHttpServer extends NanoHTTPD {
         try {
             Enumeration<NetworkInterface> networkInterfaces = NetworkInterface
                     .getNetworkInterfaces();
+            LinkedList<InetAddress> localAddresses = new LinkedList<InetAddress>();
             while (networkInterfaces.hasMoreElements()) {
                 NetworkInterface networkInterface = (NetworkInterface) networkInterfaces
                         .nextElement();
@@ -198,13 +203,15 @@ public class ChromeCastHttpServer extends NanoHTTPD {
                         + " isLoopback=" + ip.isLoopbackAddress()
                         + " isSiteLocal=" + ip.isSiteLocalAddress());
 
-                    if (!ip.isLoopbackAddress()
-                            && ip.isSiteLocalAddress()
-                            && InetAddressUtils.isIPv4Address(ipStr)) {
-                        return ipStr;
+                    if (ipStr.startsWith(PREFIX_LOCAL_IP)) {
+                        localAddresses.addFirst(ip);
                     }
                 }
             }
+            if (localAddresses.size() == 0) {
+                return null;
+            }
+            return localAddresses.get(0).getHostAddress();
         } catch (SocketException e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();

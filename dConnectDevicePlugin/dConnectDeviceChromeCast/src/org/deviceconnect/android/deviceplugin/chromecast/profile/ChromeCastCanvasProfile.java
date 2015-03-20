@@ -64,6 +64,10 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
         try {
             String path = exposeImage(data, mimeType);
             mLogger.info("Exposed image: URL=" + path);
+            if (path == null) {
+                MessageUtils.setUnknownError(response, "The host device is not in local network.");
+                return true;
+            }
             ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
             if (!isDeviceEnable(response, app)) {
                 return true;

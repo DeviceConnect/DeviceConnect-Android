@@ -49,28 +49,18 @@ public final class HvcConvertUtils {
      * @return threshold value(HVC device value)
      */
     public static int convertToHvcThreshold(final double normalizeThreshold) {
-        int hvcThreshold = (int) (normalizeThreshold * HvcConstants.THRESHOLD_MAX);
+        int hvcThreshold;
+        hvcThreshold = (int) (normalizeThreshold * HvcConstants.THRESHOLD_MAX);
         return hvcThreshold;
     }
-    
-    /**
-     * Convert confidence value.
-     * @param normalizeConfidence confidence value(normalize value)
-     * @return confidence value(HVC device value)
-     */
-    public static int convertToHvcConfidence(final double normalizeConfidence) {
-        int hvcConfidence = (int) (normalizeConfidence * HvcConstants.CONFIDENCE_MAX);
-        return hvcConfidence;
-    }
-    
+
     /**
      * Convert width value.
      * @param normalizeWidth width value(normalize value)
      * @return width value(HVC device value)
      */
     public static int convertToHvcWidth(final double normalizeWidth) {
-        int hvcWidth = (int) (normalizeWidth * HvcConstants.HVC_C_CAMERA_WIDTH);
-        return hvcWidth;
+        return (int) (normalizeWidth * HvcConstants.HVC_C_CAMERA_WIDTH);
     }
     
     /**
@@ -79,58 +69,25 @@ public final class HvcConvertUtils {
      * @return height value(HVC device value)
      */
     public static int convertToHvcHeight(final double normalizeHeight) {
-        int hvcHeight = (int) (normalizeHeight * HvcConstants.HVC_C_CAMERA_HEIGHT);
-        return hvcHeight;
+        return (int) (normalizeHeight * HvcConstants.HVC_C_CAMERA_HEIGHT);
     }
-    
-    /**
-     * Convert threshold value.
-     * @param hvcThreshold threshold value(HVC device value)
-     * @return threshold value(normalize value)
-     */
-    public static double convertToNormalizeThreshold(final int hvcThreshold) {
-        double normalizeThreshold = (double) hvcThreshold / HvcConstants.THRESHOLD_MAX;
-        return normalizeThreshold;
-    }
-    
+
     /**
      * Convert confidence value.
      * @param hvcConfidence confidence value(HVC device value)
      * @return confidence value(normalize value)
      */
     public static double convertToNormalizeConfidence(final int hvcConfidence) {
-        double normalizeConfidence = (double) hvcConfidence / HvcConstants.CONFIDENCE_MAX;
-        return normalizeConfidence;
+        return (double) hvcConfidence / HvcConstants.CONFIDENCE_MAX;
     }
-    
-    /**
-     * Convert width value.
-     * @param hvcWidth width value(HVC device value)
-     * @return width value(normalize device value)
-     */
-    public static double convertToNormalizeWidth(final int hvcWidth) {
-        double normalizeWidth = (double) hvcWidth / HvcConstants.HVC_C_CAMERA_WIDTH;
-        return normalizeWidth;
-    }
-    
-    /**
-     * Convert height value.
-     * @param hvcHeight height value(HVC device value)
-     * @return height value(normalize device value)
-     */
-    public static double convertToNormalizeHeight(final double hvcHeight) {
-        double normalizeHeight = (double) hvcHeight / HvcConstants.HVC_C_CAMERA_HEIGHT;
-        return normalizeHeight;
-    }
-    
+
     /**
      * Convert expression score value.
      * @param hvcExpressionScore expression score value(HVC device value)
      * @return expression score value(normalize value)
      */
     public static double convertToNormalizeExpressionScore(final double hvcExpressionScore) {
-        double normalizeExpressionScore = (double) hvcExpressionScore / HvcConstants.EXPRESSION_SCORE_MAX;
-        return normalizeExpressionScore;
+        return hvcExpressionScore / HvcConstants.EXPRESSION_SCORE_MAX;
     }
     
     
@@ -144,7 +101,7 @@ public final class HvcConvertUtils {
         
         String normalizeExpression = HvcConstants.EXPRESSION_UNKNOWN;
         
-        SparseArray<String> map = new SparseArray<String>();
+        SparseArray<String> map = new SparseArray<>();
         map.put(HVC.HVC_EX_NEUTRAL, HvcConstants.EXPRESSION_UNKNOWN);
         map.put(HVC.HVC_EX_HAPPINESS, HvcConstants.EXPRESSION_SMILE);
         map.put(HVC.HVC_EX_SURPRISE, HvcConstants.EXPRESSION_SURPRISE);
@@ -159,27 +116,6 @@ public final class HvcConvertUtils {
         return normalizeExpression;
     }
 
-
-    /**
-     * convert to useFunc by detectKind.
-     * @param detectKind detectKind
-     * @return useFunc
-     */
-    public static int convertToUseFuncByDetectKind(final HumanDetectKind detectKind) {
-        
-        Map<HumanDetectKind, Integer> map = new HashMap<HumanDetectKind, Integer>();
-        map.put(HumanDetectKind.BODY, HVC.HVC_ACTIV_BODY_DETECTION);
-        map.put(HumanDetectKind.HAND, HVC.HVC_ACTIV_HAND_DETECTION);
-        map.put(HumanDetectKind.FACE, HVC.HVC_ACTIV_FACE_DETECTION);
-        
-        Integer useFunc = map.get(detectKind);
-        if (useFunc != null) {
-            return useFunc;
-        }
-        return 0;
-    }
-
-    
     /**
      * convert to normalize value by device value.
      * 
@@ -188,8 +124,7 @@ public final class HvcConvertUtils {
      * @return normalizeValue
      */
     public static double convertToNormalize(final int deviceValue, final int deviceMaxValue) {
-        double normalizeValue = (double) deviceValue / (double) deviceMaxValue;
-        return normalizeValue;
+        return (double) deviceValue / (double) deviceMaxValue;
     }
 
     /**
@@ -199,7 +134,7 @@ public final class HvcConvertUtils {
      */
     public static String convertToEventAttribute(final HumanDetectKind detectKind) {
         
-        Map<HumanDetectKind, String> map = new HashMap<HumanDetectKind, String>();
+        Map<HumanDetectKind, String> map = new HashMap<>();
         map.put(HumanDetectKind.BODY, HumanDetectProfile.ATTRIBUTE_ON_BODY_DETECTION);
         map.put(HumanDetectKind.HAND, HumanDetectProfile.ATTRIBUTE_ON_HAND_DETECTION);
         map.put(HumanDetectKind.FACE, HumanDetectProfile.ATTRIBUTE_ON_FACE_DETECTION);
@@ -220,7 +155,7 @@ public final class HvcConvertUtils {
      */
     public static int convertUseFunc(final HumanDetectKind detectKind, final List<String> options) {
 
-        HashMap<HumanDetectKind, Integer> convertDetectKinds = new HashMap<HumanDetectKind, Integer>();
+        HashMap<HumanDetectKind, Integer> convertDetectKinds = new HashMap<>();
         convertDetectKinds.put(HumanDetectKind.BODY, HVC.HVC_ACTIV_BODY_DETECTION);
         convertDetectKinds.put(HumanDetectKind.HAND, HVC.HVC_ACTIV_HAND_DETECTION);
         convertDetectKinds.put(HumanDetectKind.FACE, HVC.HVC_ACTIV_FACE_DETECTION);
@@ -233,7 +168,7 @@ public final class HvcConvertUtils {
             return 0;
         }
         
-        HashMap<String, Integer> convertOptions = new HashMap<String, Integer>();
+        HashMap<String, Integer> convertOptions = new HashMap<>();
         convertOptions.put(HumanDetectProfile.VALUE_OPTION_FACE_DIRECTION, HVC.HVC_ACTIV_FACE_DIRECTION);
         convertOptions.put(HumanDetectProfile.VALUE_OPTION_AGE, HVC.HVC_ACTIV_AGE_ESTIMATION);
         convertOptions.put(HumanDetectProfile.VALUE_OPTION_GENDER, HVC.HVC_ACTIV_GENDER_ESTIMATION);
@@ -252,7 +187,6 @@ public final class HvcConvertUtils {
             }
         }
 
-        int useFunc = detectBitFlag | optionBitFlag;
-        return useFunc;
+        return detectBitFlag | optionBitFlag;
     }
 }

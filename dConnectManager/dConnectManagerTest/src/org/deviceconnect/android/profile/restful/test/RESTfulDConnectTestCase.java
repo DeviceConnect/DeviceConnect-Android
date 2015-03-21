@@ -132,8 +132,12 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     @Override
     protected List<DeviceInfo> searchDevices() {
         List<DeviceInfo> services = new ArrayList<DeviceInfo>();
-        HttpGet request = new HttpGet(DCONNECT_MANAGER_URI
-                + "/" + ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        
+        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN,
+                getAccessToken());
+        HttpGet request = new HttpGet(builder.toString());
         try {
             JSONObject root = sendRequest(request);
             assertResultOK(root);
@@ -197,6 +201,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      */
     protected final byte[] getBytesFromHttp(final String uri) {
         HttpUriRequest request = new HttpGet(uri);
+        request.setHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
         HttpClient client = new DefaultHttpClient();
         try {
             HttpResponse response = client.execute(request);
@@ -232,7 +237,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      */
     protected final HttpResponse requestHttpResponse(final HttpUriRequest request) {
         // Origin指定
-        request.addHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
+        request.setHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
         
         HttpClient client = new DefaultHttpClient();
         try {
@@ -246,9 +251,9 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     }
 
     /**
-     * RESTfulでdConnectManagerにリクエストを出す.
-     * @param request Httpリクエスト
-     * @return レスポンスのintent
+     * RESTfulでDevice Connect Managerにリクエストを出す.
+     * @param request HTTPリクエスト
+     * @return レスポンスのJSON
      */
     protected final JSONObject sendRequest(final HttpUriRequest request) {
         return sendRequest(request, true);
@@ -263,8 +268,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     protected final JSONObject sendRequest(final HttpUriRequest originalRequest, final boolean requiredAuth) {
         HttpUriRequest request = originalRequest;
         if (requiredAuth) {
-            URI uri = request.getURI();
-            URIBuilder builder = new URIBuilder(uri);
+            URIBuilder builder = TestURIBuilder.createURIBuilder(request.getURI());
             builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
             request = recreateRequest(request, builder);
         }
@@ -314,10 +318,8 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
                     assertNotNull(mAccessToken);
                     storeOAuthInfo(mClientId, mAccessToken);
                     
-                    URI uri = request.getURI();
-                    URIBuilder builder = new URIBuilder(uri);
+                    URIBuilder builder = TestURIBuilder.createURIBuilder(request.getURI());
                     builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-
                     final HttpUriRequest newRequest = recreateRequest(request, builder);
                     return sendRequest(newRequest, requiredAuth, count + 1);
                 }
@@ -557,23 +559,29 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
 
     /**
      * HTTPリクエストを作り直す.
-     * @param request 元のHTTPリクエスト
-     * @param builder 新たなURI
+     * @param request 元のリクエスト
+     * @param builder URIBuilder
      * @return 作り直したHTTPリクエスト
      */
     private HttpUriRequest recreateRequest(final HttpUriRequest request, final URIBuilder builder) {
         if (request instanceof HttpGet) {
-            return new HttpGet(builder.toString());
+            HttpGet newGetRequest = new HttpGet(builder.toString());
+            newGetRequest.setHeaders(request.getAllHeaders());
+            return newGetRequest;
         } else if (request instanceof HttpPost) {
             HttpPost newPostRequest = new HttpPost(builder.toString());
             newPostRequest.setEntity(((HttpPost) request).getEntity());
+            newPostRequest.setHeaders(request.getAllHeaders());
             return newPostRequest;
         } else if (request instanceof HttpPut) {
             HttpPut newPutRequest = new HttpPut(builder.toString());
             newPutRequest.setEntity(((HttpPut) request).getEntity());
+            newPutRequest.setHeaders(request.getAllHeaders());
             return newPutRequest;
         } else if (request instanceof HttpDelete) {
-            return new HttpDelete(builder.toString());
+            HttpDelete newDeleteRequest = new HttpDelete(builder.toString());
+            newDeleteRequest.setHeaders(request.getAllHeaders());
+            return newDeleteRequest;
         } else {
             fail("Invalid method is specified: " + request.getMethod());
             return null;
@@ -589,7 +597,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      */
     private HttpUriRequest addParam(final HttpUriRequest request, final String key, final String value) {
         URI uri = request.getURI();
-        URIBuilder builder = new URIBuilder(uri);
+        URIBuilder builder = TestURIBuilder.createURIBuilder(uri);
         builder.addParameter(key, value);
         return recreateRequest(request, builder);
     }

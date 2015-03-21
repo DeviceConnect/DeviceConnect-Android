@@ -17,7 +17,6 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.os.Build;
-import android.os.ParcelUuid;
 
 import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceAdapter;
 import org.deviceconnect.android.deviceplugin.hvc.ble.BleUtils;
@@ -25,7 +24,6 @@ import org.deviceconnect.android.deviceplugin.hvc.ble.BleUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  *
@@ -34,13 +32,23 @@ import java.util.UUID;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
 
+    /**
+     * Bluetooth adapter.
+     */
     private BluetoothAdapter mBluetoothAdapter;
+    /**
+     * BLE scanner.
+     */
     private BluetoothLeScanner mBleScanner;
+    /**
+     * BLE device scan callback.
+     */
     private BleDeviceScanCallback mCallback;
-    private final UUID[] mServiceUuids = {
-            UUID.fromString(BleUtils.SERVICE_HEART_RATE_SERVICE)
-    };
 
+    /**
+     * Constructor.
+     * @param context context
+     */
     public NewBleDeviceAdapterImpl(final Context context) {
         BluetoothManager manager = BleUtils.getManager(context);
         mBluetoothAdapter = manager.getAdapter();
@@ -51,16 +59,8 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
     public void startScan(final BleDeviceScanCallback callback) {
         mCallback = callback;
 
-        List<ScanFilter> filters = new ArrayList<ScanFilter>();
-/*
-        if (mServiceUuids != null && mServiceUuids.length > 0) {
-            for (UUID uuid : mServiceUuids) {
-                ScanFilter filter = new ScanFilter.Builder().setServiceUuid(
-                        new ParcelUuid(uuid)).build();
-                filters.add(filter);
-            }
-        }
-*/
+        List<ScanFilter> filters = new ArrayList<>();
+
         ScanSettings settings = new ScanSettings.Builder().build();
 
         mBleScanner.startScan(filters, settings, mScanCallback);
@@ -91,6 +91,9 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
         return BluetoothAdapter.checkBluetoothAddress(address);
     }
 
+    /**
+     * Scan callback.
+     */
     private final ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(final int callbackType, final ScanResult result) {

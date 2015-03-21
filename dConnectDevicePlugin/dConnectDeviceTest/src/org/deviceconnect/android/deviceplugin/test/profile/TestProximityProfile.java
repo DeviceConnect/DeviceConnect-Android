@@ -76,6 +76,14 @@ public class TestProximityProfile extends ProximityProfile {
     }
 
     @Override
+    protected boolean onGetOnDeviceProximity(final Intent request, final Intent response,
+            final String serviceId) {
+        setResult(response, DConnectMessage.RESULT_OK);
+        setDeviceProximity(response);
+        return true;
+    }
+
+    @Override
     protected boolean onPutOnDeviceProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         if (serviceId == null) {
@@ -92,13 +100,7 @@ public class TestProximityProfile extends ProximityProfile {
             setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_DEVICE_PROXIMITY);
-            Bundle proximity = new Bundle();
-            setValue(proximity, VALUE);
-            setMin(proximity, MIN);
-            setMax(proximity, MAX);
-            setThreshold(proximity, THRESHOLD);
-            
-            setProximity(message, proximity);
+            setDeviceProximity(message);
             Util.sendBroadcast(getContext(), message);
         }
         return true;
@@ -120,6 +122,14 @@ public class TestProximityProfile extends ProximityProfile {
     }
 
     @Override
+    protected boolean onGetOnUserProximity(final Intent request, final Intent response,
+            final String serviceId) {
+        setResult(response, DConnectMessage.RESULT_OK);
+        setUserProximity(response);
+        return true;
+    }
+
+    @Override
     protected boolean onPutOnUserProximity(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         if (serviceId == null) {
@@ -136,9 +146,7 @@ public class TestProximityProfile extends ProximityProfile {
             setServiceID(message, serviceId);
             setProfile(message, getProfileName());
             setAttribute(message, ATTRIBUTE_ON_USER_PROXIMITY);
-            Bundle proximity = new Bundle();
-            setNear(proximity, true);
-            setProximity(message, proximity);
+            setUserProximity(message);
             Util.sendBroadcast(getContext(), message);
         }
         return true;
@@ -157,6 +165,29 @@ public class TestProximityProfile extends ProximityProfile {
             setResult(response, DConnectMessage.RESULT_OK);
         }
         return true;
+    }
+
+    /**
+     * メッセージにテスト用データを設定する.
+     * @param message メッセージ
+     */
+    private static void setDeviceProximity(final Intent message) {
+        Bundle proximity = new Bundle();
+        setValue(proximity, VALUE);
+        setMin(proximity, MIN);
+        setMax(proximity, MAX);
+        setThreshold(proximity, THRESHOLD);
+        setProximity(message, proximity);
+    }
+
+    /**
+     * メッセージにテスト用データを設定する.
+     * @param message メッセージ
+     */
+    private static void setUserProximity(final Intent message) {
+        Bundle proximity = new Bundle();
+        setNear(proximity, true);
+        setProximity(message, proximity);
     }
 
 }

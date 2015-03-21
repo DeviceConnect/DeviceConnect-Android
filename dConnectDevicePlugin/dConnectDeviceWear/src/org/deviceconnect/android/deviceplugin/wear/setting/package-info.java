@@ -4,7 +4,8 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
+
 /**
- * Setting Activity of wear.
+ * Setting activity of wear.
  */
 package org.deviceconnect.android.deviceplugin.wear.setting;

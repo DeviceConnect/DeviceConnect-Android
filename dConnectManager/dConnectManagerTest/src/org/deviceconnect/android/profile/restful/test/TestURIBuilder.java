@@ -6,6 +6,10 @@
  */
 package org.deviceconnect.android.profile.restful.test;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+
 import org.deviceconnect.utils.URIBuilder;
 
 /**
@@ -30,12 +34,52 @@ public final class TestURIBuilder extends URIBuilder {
     }
 
     /**
+     * コンストラクタ.
+     * @param uri URI
+     */
+    private TestURIBuilder(final URI uri) {
+        super();
+        setScheme(uri.getScheme());
+        setHost(uri.getHost());
+        setPort(uri.getPort());
+        setPath(uri.getPath());
+
+        try {
+            String query = uri.getQuery();
+            if (query != null) {
+                String[] params = query.split("&");
+                for (String param : params) {
+                    String[] splitted = param.split("=");
+                    if (splitted != null && splitted.length == 2) {
+                        addParameter(splitted[0], URLEncoder.encode(splitted[1], "UTF-8"));
+                    } else {
+                        addParameter(splitted[0], "");
+                    }
+                }
+            }
+        } catch (UnsupportedEncodingException e) {
+            // ここに入った場合はテストバグ
+            throw new RuntimeException("Please check the specifined URI.");
+        }
+    }
+
+    /**
      * テスト用URIBuilderを生成する.
      * 
      * @return テスト用URIBuilder
      */
     public static URIBuilder createURIBuilder() {
         return new TestURIBuilder();
+    }
+
+    /**
+     * テスト用URIBuilderを生成する.
+     * 
+     * @param uri URI
+     * @return テスト用URIBuilder
+     */
+    public static URIBuilder createURIBuilder(final URI uri) {
+        return new TestURIBuilder(uri);
     }
 
 }

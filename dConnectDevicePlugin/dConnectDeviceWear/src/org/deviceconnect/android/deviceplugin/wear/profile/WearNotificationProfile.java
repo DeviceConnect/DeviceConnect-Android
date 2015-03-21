@@ -96,7 +96,18 @@ public class WearNotificationProfile extends NotificationProfile {
             myNotificationManager = NotificationManagerCompat.from(this.getContext());
             myNotificationManager.notify(myNotificationId, myNotificationBuilder.build());
             response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
-            setResult(response, DConnectMessage.RESULT_OK);
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+            
+            List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
+                    null, WearNotificationProfile.ATTRIBUTE_ON_SHOW);
+            synchronized (events) {
+                for (int i = 0; i < events.size(); i++) {
+                    Event event = events.get(i);
+                    Intent intent = EventManager.createEventMessage(event);
+                    intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
+                    getContext().sendBroadcast(intent);
+                }
+            }
         }
         return true;
     }

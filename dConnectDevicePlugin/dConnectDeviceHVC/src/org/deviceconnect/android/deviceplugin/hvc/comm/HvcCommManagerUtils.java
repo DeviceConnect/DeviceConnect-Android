@@ -59,26 +59,12 @@ public final class HvcCommManagerUtils {
     }
 
     /**
-     * check exist event by interval.
-     * @param commManagerArray array.
-     * @return true: exist / false: not exist
-     */
-    public static boolean checkExistEvent(final List<HvcCommManager> commManagerArray) {
-        for (HvcCommManager commManager : commManagerArray) {
-            if (commManager.getEventCount() > 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * get connected bluetooth devices.
      * @param commManagerArray comm manager array
      * @return connected bluetooth device array
      */
     public static List<BluetoothDevice> getConnectedBluetoothDevices(final List<HvcCommManager> commManagerArray) {
-        List<BluetoothDevice> deviceList = new ArrayList<BluetoothDevice>();
+        List<BluetoothDevice> deviceList = new ArrayList<>();
         for (HvcCommManager commManager : commManagerArray) {
             if (commManager.checkConnect()) {
                 deviceList.add(commManager.getBluetoothDevice());
@@ -86,21 +72,5 @@ public final class HvcCommManagerUtils {
         }
         return deviceList;
     }
-
-    /**
-     * remove comm manager by service id.
-     * @param commManagerArray comm manager array
-     * @param serviceId service id
-     */
-    public static void remove(final List<HvcCommManager> commManagerArray, final String serviceId) {
-        
-        int count = commManagerArray.size();
-        for (int index = (count - 1); index >= 0; index--) {
-            if (commManagerArray.get(index).getServiceId().equals(serviceId)) {
-                commManagerArray.remove(index);
-            }
-        }
-    }
-    
 
 }

@@ -61,4 +61,13 @@
     <!-- Setting Page Number Fourth. -->
     <string name="index4">[4/4] 設定完了</string>
 
+    <!-- Touch Profile Activity. -->
+    <string name="touch_activity">Touch Activity</string>
+
+    <!-- Key Event layout (cancel). -->
+    <string name="keyevent_cancel">CANCEL</string>
+
+    <!-- Key Event layout (ok). -->
+    <string name="keyevent_ok">OK</string>
+
 </resources>

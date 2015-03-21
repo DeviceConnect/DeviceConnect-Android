@@ -58,7 +58,7 @@ public class NormalCommonTestCase extends RESTfulDConnectTestCase {
      * @throws UnsupportedEncodingException URLエンコーディングに失敗した場合
      */
     public void testRequestParametersWithURLEncodedReservedCharacters() throws UnsupportedEncodingException {
-        final String value = ":/?#[]@!$&'()*+,;=";
+        final String value = ":/?#[]@!$'()+,;";
         StringBuilder builder = new StringBuilder();
         builder.append(DCONNECT_MANAGER_URI);
         builder.append("/unique/test/ping");

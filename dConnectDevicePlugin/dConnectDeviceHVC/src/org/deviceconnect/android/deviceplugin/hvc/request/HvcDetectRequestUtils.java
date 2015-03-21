@@ -30,34 +30,34 @@ public final class HvcDetectRequestUtils {
      * error message. {@value}
      */
     public static final String ERROR_DETECTKIND_UNKNOWN_VALUE = "detectKind unknown value. detectKind:";
-    
+
     /**
      * error message. {@value}
      */
     public static final String ERROR_PARAMETER_DIFFERENT_TYPE = "parameter different type.";
-    
+
     /**
      * error message. {@value}
      */
-    public static final String ERROR_INVERVAL_PARAMETER_TOO_MINIMUM = 
+    public static final String ERROR_INVERVAL_PARAMETER_TOO_MINIMUM =
             "interval parameter too minimum. range: %ld <= interval <= %ld";
-    
+
     /**
      * error message. {@value}
      */
-    public static final String ERROR_INVERVAL_PARAMETER_TOO_MAXIMUM = 
+    public static final String ERROR_INVERVAL_PARAMETER_TOO_MAXIMUM =
             "interval parameter too maximum. range: %ld <= interval <= %ld";
-    
+
     /**
      * Constructor.
      */
     private HvcDetectRequestUtils() {
-        
+
     }
-    
+
     /**
      * get request parameter.
-     * 
+     *
      * @param request request
      * @param response response
      * @param detectKind detect kind
@@ -70,10 +70,10 @@ public final class HvcDetectRequestUtils {
 
         HumanDetectRequestParams requestParams = new HumanDetectRequestParams();
         requestParams.setEvent(HvcDetectRequestParams.getDefaultEventRequestParameter());
-        
+
         // get options parameter.
         List<String> options = HumanDetectProfile.getOptions(request);
-        
+
         // get parameters.(different type error, throw
         // NumberFormatException)
         Double threshold = HumanDetectProfile.getThreshold(request);
@@ -81,73 +81,26 @@ public final class HvcDetectRequestUtils {
         Double minHeight = HumanDetectProfile.getMinHeight(request);
         Double maxWidth = HumanDetectProfile.getMaxWidth(request);
         Double maxHeight = HumanDetectProfile.getMaxHeight(request);
-        
+
         // get event interval.
         Long eventInterval = HumanDetectProfile.getInterval(request, HvcConstants.PARAM_INTERVAL_MIN,
                 HvcConstants.PARAM_INTERVAL_MAX);
-        
+
         // store parameter.(if data exist, to set. if data not exist, use default value.)
         if (detectKind == HumanDetectKind.BODY) {
-            
-            // default value.
-            HumanDetectBodyRequestParams bodyRequestParams = HvcDetectRequestParams.getDefaultBodyRequestParameter();
-            
-            // set value.
-            if (options != null) {
-                bodyRequestParams.setOptions(options);
-            }
-            if (threshold != null) {
-                bodyRequestParams.setThreshold(threshold);
-            }
-            if (minWidth != null) {
-                bodyRequestParams.setMinWidth(minWidth);
-            }
-            if (minHeight != null) {
-                bodyRequestParams.setMinHeight(minHeight);
-            }
-            if (maxWidth != null) {
-                bodyRequestParams.setMaxWidth(maxWidth);
-            }
-            if (maxHeight != null) {
-                bodyRequestParams.setMaxHeight(maxHeight);
-            }
-            
-            // store.
+            HumanDetectBodyRequestParams bodyRequestParams = getBodyRequestParams(options,
+                    threshold, minWidth, minHeight, maxWidth, maxHeight);
             requestParams.setBody(bodyRequestParams);
-            
+
         } else if (detectKind == HumanDetectKind.HAND) {
-            
-            // default value.
-            HumanDetectHandRequestParams handRequestParams = HvcDetectRequestParams.getDefaultHandRequestParameter();
-            
-            // set value.
-            if (options != null) {
-                handRequestParams.setOptions(options);
-            }
-            if (threshold != null) {
-                handRequestParams.setThreshold(threshold);
-            }
-            if (minWidth != null) {
-                handRequestParams.setMinWidth(minWidth);
-            }
-            if (minHeight != null) {
-                handRequestParams.setMinHeight(minHeight);
-            }
-            if (maxWidth != null) {
-                handRequestParams.setMaxWidth(maxWidth);
-            }
-            if (maxHeight != null) {
-                handRequestParams.setMaxHeight(maxHeight);
-            }
-            
-            // store.
+            HumanDetectHandRequestParams handRequestParams = getHandRequestParams(options,
+                    threshold, minWidth, minHeight, maxWidth, maxHeight);
             requestParams.setHand(handRequestParams);
-            
         } else if (detectKind == HumanDetectKind.FACE) {
-            
+
             // default value.
             HumanDetectFaceRequestParams faceRequestParams = HvcDetectRequestParams.getDefaultFaceRequestParameter();
-            
+
             // set value.
             if (options != null) {
                 faceRequestParams.setOptions(options);
@@ -207,15 +160,15 @@ public final class HvcDetectRequestUtils {
             if (expressionThreshold != null) {
                 faceRequestParams.setExpressionThreshold(expressionThreshold);
             }
-            
+
             // store.
             requestParams.setFace(faceRequestParams);
-            
+
         } else {
             // BUG: detectKind unknown value.
             throw new IllegalStateException(ERROR_DETECTKIND_UNKNOWN_VALUE + detectKind.ordinal());
         }
-        
+
         // event parameter
         if (eventInterval != null) {
             HumanDetectEventRequestParams event = requestParams.getEvent();
@@ -233,9 +186,86 @@ public final class HvcDetectRequestUtils {
                 event.setInterval(eventInterval);
             }
         }
-        
+
         // success
         return requestParams;
     }
-}
 
+    /**
+     * get body request parameter.
+     * @param options options
+     * @param threshold threshold
+     * @param minWidth minWidth
+     * @param minHeight minHeight
+     * @param maxWidth maxWidth
+     * @param maxHeight maxHeight
+     * @return body request parameter
+     */
+    private static HumanDetectBodyRequestParams getBodyRequestParams(final List<String> options,
+                          final Double threshold, final Double minWidth, final Double minHeight,
+                          final Double maxWidth, final Double maxHeight) {
+
+        // default value.
+        HumanDetectBodyRequestParams bodyRequestParams = HvcDetectRequestParams.getDefaultBodyRequestParameter();
+
+        // set value.
+        if (options != null) {
+            bodyRequestParams.setOptions(options);
+        }
+        if (threshold != null) {
+            bodyRequestParams.setThreshold(threshold);
+        }
+        if (minWidth != null) {
+            bodyRequestParams.setMinWidth(minWidth);
+        }
+        if (minHeight != null) {
+            bodyRequestParams.setMinHeight(minHeight);
+        }
+        if (maxWidth != null) {
+            bodyRequestParams.setMaxWidth(maxWidth);
+        }
+        if (maxHeight != null) {
+            bodyRequestParams.setMaxHeight(maxHeight);
+        }
+        return bodyRequestParams;
+    }
+
+    /**
+     * get hand request parameter.
+     * @param options options
+     * @param threshold threshold
+     * @param minWidth minWidth
+     * @param minHeight minHeight
+     * @param maxWidth maxWidth
+     * @param maxHeight maxHeight
+     * @return body request parameter
+     */
+    private static HumanDetectHandRequestParams getHandRequestParams(final List<String> options,
+                          final Double threshold, final Double minWidth, final Double minHeight,
+                          final Double maxWidth, final Double maxHeight) {
+
+        // default value.
+        HumanDetectHandRequestParams handRequestParams = HvcDetectRequestParams.getDefaultHandRequestParameter();
+
+        // set value.
+        if (options != null) {
+            handRequestParams.setOptions(options);
+        }
+        if (threshold != null) {
+            handRequestParams.setThreshold(threshold);
+        }
+        if (minWidth != null) {
+            handRequestParams.setMinWidth(minWidth);
+        }
+        if (minHeight != null) {
+            handRequestParams.setMinHeight(minHeight);
+        }
+        if (maxWidth != null) {
+            handRequestParams.setMaxWidth(maxWidth);
+        }
+        if (maxHeight != null) {
+            handRequestParams.setMaxHeight(maxHeight);
+        }
+        return handRequestParams;
+    }
+}

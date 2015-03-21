@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
     <profile name="servicediscovery" />
     <profile name="serviceinformation" />
-    <profile name="notification" />
+    <profile name="canvas" />
     <profile name="media_player" />
+    <profile name="notification" />
 </deviceplugin-provider> 

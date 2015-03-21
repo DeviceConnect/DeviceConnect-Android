@@ -119,7 +119,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         builder.setProfile(FileProfileConstants.PROFILE_NAME);
         builder.setAttribute(FileProfileConstants.ATTRIBUTE_RECEIVE);
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(FileProfileConstants.PARAM_PATH, name);
+        builder.addParameter(FileProfileConstants.PARAM_PATH, "/test/" + name);
         builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
@@ -132,7 +132,7 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
             byte[] data = getBytesFromHttp(uri);
             byte[] orig = getBytesFromAssets(name);
             Assert.assertNotNull("data is invalid.", data);
-            Assert.assertEquals("data is invalid", orig.length, data.length);
+            Assert.assertEquals("length of data is invalid", orig.length, data.length);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

@@ -645,8 +645,10 @@ public class HostDeviceService extends DConnectMessageService {
         Cursor c = getContentResolver().query(mUri, null, null, null, null);
         if (c != null && c.moveToFirst()) {
             String filename = c.getString(c.getColumnIndex(MediaStore.MediaColumns.DATA));
+            c.close();
             return filename;
         } else {
+            c.close();
             return null;
         }
     }

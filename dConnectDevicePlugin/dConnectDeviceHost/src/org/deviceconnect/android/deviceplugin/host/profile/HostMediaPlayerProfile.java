@@ -432,6 +432,9 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                 e.printStackTrace();
             }
             MessageUtils.setInvalidRequestParameterError(response);
+            if (cursorMusic != null) {
+                cursorMusic.close();
+            }
             return;
         }
 
@@ -450,6 +453,12 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                 e.printStackTrace();
             }
             MessageUtils.setInvalidRequestParameterError(response);
+            if (cursorMusic != null) {
+                cursorMusic.close();
+            }
+            if (cursorVideo != null) {
+                cursorVideo.close();
+            }
             return;
         }
 

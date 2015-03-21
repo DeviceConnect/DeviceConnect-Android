@@ -6,14 +6,17 @@
  */
 package org.deviceconnect.android.deviceplugin.wear.profile;
 
+import java.util.List;
 import java.util.Random;
 
 import org.deviceconnect.android.deviceplugin.wear.R;
+import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.NotificationProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -103,9 +106,9 @@ public class WearNotificationProfile extends NotificationProfile {
             synchronized (events) {
                 for (int i = 0; i < events.size(); i++) {
                     Event event = events.get(i);
-                    Intent intent = EventManager.createEventMessage(event);
-                    intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
-                    getContext().sendBroadcast(intent);
+                    Intent mIntent = EventManager.createEventMessage(event);
+                    mIntent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
+                    getContext().sendBroadcast(mIntent);
                 }
             }
         }

@@ -353,11 +353,24 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         int counter = 0;
         int tmpLimit = 0;
         int tmpOffset = 0;
+        if (limit != null) {
+            if (limit >= 0) {
+                tmpLimit = limit;
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return;
+            }
+        }
         if (limit != null && limit >= 0) {
             tmpLimit = limit;
         }
-        if (offset != null && offset >= 0) {
-            tmpOffset = offset;
+        if (offset != null) {
+            if (offset >= 0) {
+                tmpOffset = offset;
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return;
+            }
         }
         int limitCounter = tmpLimit + tmpOffset;
 
@@ -404,7 +417,12 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             }
         }
         if (orders != null) {
-            mOrderBy = orders[0] + " " + orders[1];
+            if (orders.length == 2) {
+                mOrderBy = orders[0] + " " + orders[1];
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return;
+            }
         } else {
             mOrderBy = "title asc";
         }

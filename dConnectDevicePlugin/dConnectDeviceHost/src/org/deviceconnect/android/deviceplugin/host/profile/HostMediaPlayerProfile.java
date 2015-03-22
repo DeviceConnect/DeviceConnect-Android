@@ -874,7 +874,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         long id = 0;
         String[] mParam = {BaseColumns._ID};
         String[] mArgs = new String[] {path};
-
+        Cursor mAudioCursor = null;
+        
         // Audio
         Uri mAudioUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String mFilter = MediaStore.Audio.AudioColumns.DATA + " LIKE ?";
@@ -882,7 +883,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         // Search Contents Provider
         ContentResolver mAudioContentsProvider = context.getContentResolver();
         try {
-            Cursor mAudioCursor = mAudioContentsProvider.query(mAudioUri, mParam, mFilter, mArgs, null);
+            mAudioCursor = mAudioContentsProvider.query(mAudioUri, mParam, mFilter, mArgs, null);
             mAudioCursor.moveToFirst();
             int mIdField = mAudioCursor.getColumnIndex(mParam[0]);
             id = mAudioCursor.getLong(mIdField);
@@ -892,15 +893,22 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
+            if (mAudioCursor != null) {
+                mAudioCursor.close();
+            }
         } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
+            }
+            if (mAudioCursor != null) {
+                mAudioCursor.close();
             }
             return -1;
         }
 
         // Search video
         if (id == 0) {
+            Cursor mVideoCursor = null;
 
             Uri mViodeUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
             mFilter = MediaStore.Video.VideoColumns.DATA + " LIKE ?";
@@ -908,7 +916,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             // Search Contents Provider
             ContentResolver mVideoContentsProvider = context.getContentResolver();
             try {
-                Cursor mVideoCursor = mVideoContentsProvider.query(mViodeUri, mParam, mFilter, mArgs, null);
+                mVideoCursor = mVideoContentsProvider.query(mViodeUri, mParam, mFilter, mArgs, null);
 
                 mVideoCursor.moveToFirst();
                 int mIdField = mVideoCursor.getColumnIndex(mParam[0]);
@@ -919,9 +927,15 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
+                if (mVideoCursor != null) {
+                    mVideoCursor.close();
+                }
             } catch (Exception e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
+                }
+                if (mVideoCursor != null) {
+                    mVideoCursor.close();
                 }
                 return -1;
             }

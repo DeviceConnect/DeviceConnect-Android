@@ -167,6 +167,10 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                 FileManager mFileManager = new FileManager(this.getContext());
 
                 long newMediaId = mediaIdFromPath(this.getContext(), mFileManager.getBasePath() + mediaId);
+                if (newMediaId == -1) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return true;
+                }
                 ((HostDeviceService) getContext()).putMediaId(response, "" + newMediaId);
             }
 
@@ -888,6 +892,11 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             if (BuildConfig.DEBUG) {
                 e.printStackTrace();
             }
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+            return -1;
         }
 
         // Search video
@@ -910,6 +919,11 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
                 }
+            } catch (Exception e) {
+                if (BuildConfig.DEBUG) {
+                    e.printStackTrace();
+                }
+                return -1;
             }
 
         }

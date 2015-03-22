@@ -330,6 +330,19 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
+            Bundle b = request.getExtras();
+            if (b.getString(PARAM_LIMIT) != null) {
+                if (parseInteger(b.get(PARAM_LIMIT)) == null) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return true;
+                }
+            }
+            if (b.getString(PARAM_OFFSET) != null) {
+                if (parseInteger(b.get(PARAM_OFFSET)) == null) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return true;
+                }
+            }
             getMediaList(response, query, mimeType, orders, offset, limit);
         }
         return true;

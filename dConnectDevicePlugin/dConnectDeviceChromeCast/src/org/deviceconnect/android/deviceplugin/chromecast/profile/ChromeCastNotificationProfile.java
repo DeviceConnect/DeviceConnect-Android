@@ -27,6 +27,9 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
     /** Chromecastが無効になっているときのエラーメッセージ. */
     private static final String ERROR_MESSAGE_DEVICE_NOT_ENABLED = "Chromecast is not enabled.";
 
+    /** 通知ID. 全リクエストに対して共通. */
+    private static final String COMMON_ID = "dConnectDeviceChromeCast";
+
     /**
      * デバイスが有効か否かを返す<br/>.
      * デバイスが無効の場合、レスポンスにエラーを設定する
@@ -74,6 +77,7 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
             json.put(KEY_FUNCTION, FUNCTION_POST_NOTIFICATION);
             json.put(KEY_TYPE, type.getValue());
             json.put(KEY_MESSAGE, body);
+            setNotificationId(response, COMMON_ID);
             app.sendMessage(response, json.toString());
             return false;
         } catch (JSONException e) {
@@ -86,6 +90,10 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
     protected boolean onDeleteNotify(final Intent request,
             final Intent response, final String serviceId,
             final String notificationId) {
+        if (notificationId == null || !COMMON_ID.equals(notificationId)) {
+            MessageUtils.setInvalidRequestParameterError(response, "notificationId is invalid.");
+            return true;
+        }
         ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
         if (!isDeviceEnable(response, app)) {
             return true;

@@ -866,8 +866,14 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * メディアの停止.
+     * @param response レスポンス
      */
-    public void stopMedia() {
+    public void stopMedia(final Intent response) {
+        if (mMediaStatus == MEDIA_PLAYER_NODATA || mMediaStatus == MEDIA_PLAYER_STOP) {
+            MessageUtils.setIllegalDeviceStateError(response);
+            sendBroadcast(response);
+        }
+
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             try {
                 mMediaPlayer.stop();
@@ -882,12 +888,16 @@ public class HostDeviceService extends DConnectMessageService {
                     e.printStackTrace();
                 }
             }
+            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+            sendBroadcast(response);
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
-            mMediaStatus = MEDIA_PLAYER_PAUSE;
+            mMediaStatus = MEDIA_PLAYER_STOP;
             Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
             mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_STOP);
             this.getContext().sendBroadcast(mIntent);
             sendOnStatusChangeEvent("stop");
+            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+            sendBroadcast(response);
         }
     }
 

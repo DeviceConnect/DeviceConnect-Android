@@ -103,8 +103,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
-            ((HostDeviceService) getContext()).stopMedia();
-            setResult(response, DConnectMessage.RESULT_OK);
+            ((HostDeviceService) getContext()).stopMedia(response);
+            return false;
         }
         return true;
     }

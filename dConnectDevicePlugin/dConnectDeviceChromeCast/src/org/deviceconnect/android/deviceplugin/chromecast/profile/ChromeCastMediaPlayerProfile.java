@@ -29,7 +29,11 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * MediaPlayer プロファイル (Chromecast).
@@ -79,8 +83,45 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     private static final String ERROR_MESSAGE_MEDIA_VOLUME          = ERROR_MESSAGE_MEDIA_MUTE;
     /** メディアファイルのSeek変更時のエラーメッセージ. */
     private static final String ERROR_MESSAGE_MEDIA_SEEK            = ERROR_MESSAGE_MEDIA_MUTE;
+
+    /** メディア情報の{@link java.util.Comparator}のマップ. */
+    private static final Map<String, ParamComparator> COMPARATORS = new HashMap<String, ParamComparator>();
+
+    /** 比較をしない{@link java.util.Comparator}. */
+    private static final Comparator<Bundle> NOT_COMPARATOR = new Comparator<Bundle>() {
+        @Override
+        public int compare(final Bundle a, final Bundle b) {
+            return 0;
+        }
+    };
+
+    static {
+        COMPARATORS.put(PARAM_TYPE, new ParamComparator(PARAM_TYPE));
+        COMPARATORS.put(PARAM_LANGUAGE, new ParamComparator(PARAM_LANGUAGE));
+        COMPARATORS.put(PARAM_MEDIA_ID, new ParamComparator(PARAM_MEDIA_ID));
+        COMPARATORS.put(PARAM_MIME_TYPE, new ParamComparator(PARAM_MIME_TYPE));
+        COMPARATORS.put(PARAM_TITLE, new ParamComparator(PARAM_TITLE));
+        COMPARATORS.put(PARAM_DURATION, new ParamComparator(PARAM_DURATION));
+    }
+
+    /**
+     * 指定したパラメータに対する{@link java.util.Comparator}を返す.
+     *
+     * @param paramName パラメータ名
+     * @param isAsc 昇順である場合は<code>true</code>、そうでなければ<code>false</code>
+     * @return {@link java.util.Comparator}
+     */
+    private static Comparator<Bundle> findComparator(final String paramName, final boolean isAsc) {
+        ParamComparator comparator = COMPARATORS.get(paramName);
+        if (comparator != null) {
+            comparator.setOrder(isAsc);
+            return comparator;
+        }
+        return NOT_COMPARATOR;
+    }
+
     /** 再生中のメディアファイルのID. */
-    private String mMediaId = null;
+    private String mMediaId;
 
     /**
      * 再生状態を文字列に変換する.
@@ -646,29 +687,26 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      */
     private void listupMedia(final String mediaType, final List<Bundle> list, final String filter,
             final String orderBy) {
-        Uri uriType = null;
+        Uri uri = null;
 
         if (mediaType.equals("Video")) {
-            uriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+            uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         } else if (mediaType.equals("Audio")) {
-            uriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+            uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         } else if (mediaType.equals("Image")) {
-            uriType = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         }
-        ContentResolver mContentResolver = this.getContext()
-                .getApplicationContext().getContentResolver();
-        Cursor cursorVideo = mContentResolver.query(uriType, null, filter,
-                null, orderBy);
-        if (cursorVideo != null) {
-            cursorVideo.moveToFirst();
-            if (cursorVideo.getCount() > 0) {
+        ContentResolver resolver = this.getContext().getApplicationContext().getContentResolver();
+        Cursor cursor = resolver.query(uri, null, filter, null, orderBy);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
                 do {
                     Bundle medium = new Bundle();
-                    setMediaInformation(mediaType, medium, cursorVideo);
+                    setMediaInformation(mediaType, medium, cursor);
                     list.add(medium);
-                } while (cursorVideo.moveToNext());
+                } while (cursor.moveToNext());
             }
-            cursorVideo.close();
+            cursor.close();
         }
     }
 	
@@ -684,7 +722,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     private void listupMedia(final String mediaType, final List<Bundle> list, final String query,
             final String mimeType, final String[] orders) {
         String filter = "";
-        String orderBy = "";
+        String orderBy;
 
         if (mimeType != null) {
             String key = null;
@@ -724,6 +762,25 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     protected boolean onGetMediaList(final Intent request, final Intent response,
             final String serviceId, final String query, final String mimeType,
             final String[] orders, final Integer offset, final Integer limit) {
+
+        Comparator<Bundle> comparator = null;
+        if (orders != null) {
+            boolean isAsc;
+            Order o = Order.getInstance(orders[1]);
+            switch (o) {
+                case ASC:
+                    isAsc = true;
+                    break;
+                case DSEC:
+                    isAsc = false;
+                    break;
+                default:
+                    MessageUtils.setInvalidRequestParameterError(response, "order is invalid.");
+                    return true;
+            }
+            comparator = findComparator(orders[0], isAsc);
+        }
+
         List<Bundle> list = new ArrayList<Bundle>();
 
         Bundle medium = new Bundle();
@@ -739,6 +796,9 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         list.add(medium);
 
         listupMedia("Video", list, query, mimeType, orders);
+        if (comparator != null) {
+            Collections.sort(list, comparator);
+        }
 
         setCount(response, list.size());
         setMedia(response, list.toArray(new Bundle[list.size()]));
@@ -776,6 +836,74 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             MessageUtils.setError(response, ERROR_VALUE_IS_NULL,
                     "Can not unregister event.");
             return true;
+        }
+    }
+
+    /**
+     * パラメータ比較クラス.
+     */
+    private static class ParamComparator implements Comparator<Bundle> {
+
+        /** 比較するパラメータ名. */
+        private final String mParamName;
+        /** 昇順であることを示すフラグ. */
+        private boolean mIsAsc;
+
+        /**
+         * コンストラクタ.
+         *
+         * @param paramName パラメータ名
+         */
+        ParamComparator(final String paramName) {
+            mParamName = paramName;
+        }
+
+        /**
+         * ソート順を設定する.
+         * @param isAsc 昇順である場合は<code>true</code>、そうでなければ<code>false</code>
+         */
+        public void setOrder(final boolean isAsc) {
+            mIsAsc = isAsc;
+        }
+
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        @Override
+        public int compare(final Bundle a, final Bundle b) {
+            Object va = a.get(mParamName);
+            Object vb = b.get(mParamName);
+            if (!mIsAsc) {
+                Object vt = va;
+                va = vb;
+                vb = vt;
+            }
+            if (va == null && vb == null) {
+                return 0;
+            }
+            if (va != null && vb == null) {
+                return -1;
+            }
+            if (va == null && vb != null) {
+                return 1;
+            }
+            if (va.getClass() != vb.getClass()) {
+                return 0;
+            }
+            if (va instanceof Comparable && !(vb instanceof Comparable)) {
+                return -1;
+            }
+            if (!(va instanceof Comparable) && vb instanceof Comparable) {
+                return 1;
+            }
+            if (!(va instanceof Comparable) && !(vb instanceof Comparable)) {
+                return 0;
+            }
+            if (va instanceof Comparable && !(vb instanceof Comparable)) {
+                return -1;
+            }
+            if (!(va instanceof Comparable) && vb instanceof Comparable) {
+                return 1;
+            }
+            return ((Comparable) va).compareTo(vb);
         }
     }
 }

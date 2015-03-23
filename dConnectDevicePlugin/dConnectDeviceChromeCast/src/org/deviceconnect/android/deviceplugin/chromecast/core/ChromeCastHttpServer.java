@@ -6,9 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.core;
 
-import org.apache.http.conn.util.InetAddressUtils;
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -24,6 +21,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+
+import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 
 import fi.iki.elonen.NanoHTTPD;
 

@@ -743,7 +743,7 @@ public class HostDeviceService extends DConnectMessageService {
     }
 
     /**
-     * メディアの停止.
+     * メディアの一時停止.
      * 
      * @return セッションID
      */
@@ -899,7 +899,7 @@ public class HostDeviceService extends DConnectMessageService {
     public void getPlayStatus(final Intent response) {
         String mClassName = getClassnameOfTopActivity();
 
-        // VideoRecorderの場合は、画面から消えている場合m
+        // VideoRecorderの場合は、画面から消えている場合
         if (mSetMediaType == MEDIA_TYPE_VIDEO) {
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
 

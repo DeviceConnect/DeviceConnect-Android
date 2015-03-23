@@ -280,7 +280,7 @@ public interface DConnectMessage extends Map<String, Object> {
          */
         ILLEGAL_DEVICE_STATE(16, "State of device is illegality."),
         /**
-         * デバイスの状態異常エラー.
+         * サーバーの状態異常エラー.
          */
         ILLEGAL_SERVER_STATE(17, "State of server is illegality."),
         /**

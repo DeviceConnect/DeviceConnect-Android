@@ -671,7 +671,6 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         } else if (0 > pos) {
-            // MEMO 本テストプラグインでは pos の最大値チェックは行わないが、実際には行うべき.
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }

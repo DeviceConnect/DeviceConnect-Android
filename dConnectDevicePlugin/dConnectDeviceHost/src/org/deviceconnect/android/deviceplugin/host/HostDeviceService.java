@@ -41,6 +41,7 @@ import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
@@ -428,6 +429,8 @@ public class HostDeviceService extends DConnectMessageService {
     private int mMyCurrentMediaPosition = 0;
     /** Backup MediaId. (Used in KITKAT more). */
     String mBackupMediaId;
+    /** Media duration */
+    private int mMyCurrentMediaDuration = 0;
 
     /**
      * サポートしているaudioのタイプ一覧.
@@ -487,6 +490,7 @@ public class HostDeviceService extends DConnectMessageService {
                 mMediaPlayer.setOnPreparedListener(new OnPreparedListener() {
                     @Override
                     public void onPrepared(final MediaPlayer mp) {
+                        mMyCurrentMediaDuration = mMediaPlayer.getDuration() / UNIT_SEC;
                     }
                 });
 
@@ -523,6 +527,7 @@ public class HostDeviceService extends DConnectMessageService {
 
                 mMediaPlayer.setDataSource(mFd);
                 mMediaPlayer.prepare();
+                mMyCurrentMediaDuration = mMediaPlayer.getDuration() / UNIT_SEC;
                 mMediaPlayer.release();
                 fis.close();
 
@@ -838,6 +843,12 @@ public class HostDeviceService extends DConnectMessageService {
      * @param pos ポジション　
      */
     public void setMediaPos(final Intent response, final int pos) {
+        if (pos > mMyCurrentMediaDuration) {
+            MessageUtils.setInvalidRequestParameterError(response);
+            sendBroadcast(response);
+            return;
+        }
+
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             mMediaPlayer.seekTo(pos * UNIT_SEC);
             mMyCurrentMediaPosition = pos * UNIT_SEC;

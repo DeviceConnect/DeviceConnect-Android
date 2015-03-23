@@ -135,6 +135,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     @Override
     protected boolean onPutOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
+        if (sessionKey == null) {
+            MessageUtils.setInvalidRequestParameterError(response, 
+                    "sessionKey does not exist.");
+        }
+
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -147,6 +152,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     @Override
     protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
+        if (sessionKey == null) {
+            MessageUtils.setInvalidRequestParameterError(response, 
+                    "sessionKey does not exist.");
+        }
+
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -256,7 +266,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         } else {
 
             if (timeslice != null && timeslice <= 0) {
-                MessageUtils.setIllegalServerStateError(response, 
+                MessageUtils.setInvalidRequestParameterError(response, 
                         "timeslice is invalid.");
                 return true;
             }

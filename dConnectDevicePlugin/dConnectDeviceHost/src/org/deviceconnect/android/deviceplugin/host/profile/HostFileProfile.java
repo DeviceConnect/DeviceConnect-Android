@@ -479,7 +479,8 @@ public class HostFileProfile extends FileProfile {
 
             if (mMakeDir.isDirectory()) {
                 setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setInvalidRequestParameterError(response, "can not make dir, \"" + mMakeDir + "\" already exist.");
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "can not make dir, \"" + mMakeDir + "\" already exist.");
             } else {
                 boolean isMakeDir = mMakeDir.mkdir();
                 if (isMakeDir) {

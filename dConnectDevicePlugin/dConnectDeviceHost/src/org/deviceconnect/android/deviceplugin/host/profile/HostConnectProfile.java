@@ -41,9 +41,6 @@ public class HostConnectProfile extends ConnectProfile {
     /** Bluetooth Adapter. */
     private BluetoothAdapter mBluetoothAdapter;
 
-    /** Error. */
-    private static final int ERROR_VALUE_IS_NULL = 100;
-
     /**
      * コンストラクタ.
      * 

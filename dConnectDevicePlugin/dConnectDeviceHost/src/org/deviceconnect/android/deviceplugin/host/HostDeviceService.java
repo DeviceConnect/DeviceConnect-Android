@@ -429,7 +429,7 @@ public class HostDeviceService extends DConnectMessageService {
     private int mMyCurrentMediaPosition = 0;
     /** Backup MediaId. (Used in KITKAT more). */
     String mBackupMediaId;
-    /** Media duration */
+    /** Media duration. */
     private int mMyCurrentMediaDuration = 0;
 
     /**

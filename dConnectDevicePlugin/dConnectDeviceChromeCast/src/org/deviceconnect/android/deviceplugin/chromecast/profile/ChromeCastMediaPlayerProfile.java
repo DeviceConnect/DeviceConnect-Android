@@ -798,6 +798,11 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             final String serviceId, final String query, final String mimeType,
             final String[] orders, final Integer offset, final Integer limit) {
 
+        if (orders != null && orders.length != 2) {
+            MessageUtils.setInvalidRequestParameterError(response, "order is invalid.");
+            return true;
+        }
+
         Comparator<Bundle> comparator = null;
         if (orders != null) {
             boolean isAsc;

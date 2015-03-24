@@ -753,12 +753,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 filter += " AND ";
             }
             if (mediaType.equals("Video")) {
-                filter += "(" + MediaStore.Video.Media.TITLE + " LIKE '%" + query + "%'";
+                filter += "(" + MediaStore.Video.Media.TITLE + " LIKE '%" + query + "%')";
             } else if (mediaType.equals("Audio")) {
                 filter += "(" + MediaStore.Audio.Media.TITLE + " LIKE '%" + query + "%'";
                 filter += " OR " + MediaStore.Audio.Media.COMPOSER + " LIKE '%" + query + "%')";
             } else if (mediaType.equals("Image")) {
-                filter += "(" + MediaStore.Images.Media.TITLE + " LIKE '%" + query + "%'";
+                filter += "(" + MediaStore.Images.Media.TITLE + " LIKE '%" + query + "%')";
             }
         }
 

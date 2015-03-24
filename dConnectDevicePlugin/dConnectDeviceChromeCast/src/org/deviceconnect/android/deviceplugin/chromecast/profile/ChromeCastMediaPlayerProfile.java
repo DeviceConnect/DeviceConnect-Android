@@ -174,13 +174,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      * メディアの状態を取得する.
      * @param   response    レスポンス
      * @param   app         ChromeCastMediaPlayer
-     * @return  デバイスが有効か否か（有効: true, 無効: false）
+     * @return  デバイスが有効か否か（有効: {@link MediaStatus}, 無効: <code>null</code>）
      */
     private MediaStatus getMediaStatus(final Intent response, final ChromeCastMediaPlayer app) {
         MediaStatus status = app.getMediaStatus();
         if (status == null) {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_NOT_SELECTED);
-            setResult(response, DConnectMessage.RESULT_ERROR);
         }
         return status;
     }
@@ -475,29 +474,27 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onGetMedia(final Intent request, final Intent response,
             final String serviceId, final String mediaId) {
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
+        if (mediaId == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
             return true;
         }
-
-        MediaStatus status = getMediaStatus(response, app);
-        if (status == null) {
+        if (mediaId.equals("")) {
+            MessageUtils.setInvalidRequestParameterError(response, "mediaId is empty.");
             return true;
         }
-        String playStatus = getPlayStatus(status.getPlayerState());
-        response.putExtra(DConnectMessage.EXTRA_RESULT,
-                DConnectMessage.RESULT_OK);
-        response.putExtra(MediaPlayerProfile.PARAM_MIME_TYPE, status
-                .getMediaInfo().getContentType());
-        response.putExtra(MediaPlayerProfile.PARAM_TITLE, status
-                .getMediaInfo().getMetadata()
-                .getString(MediaMetadata.KEY_TITLE));
-        response.putExtra(MediaPlayerProfile.PARAM_MEDIA_ID, this.mMediaId);
-        response.putExtra(MediaPlayerProfile.PARAM_DURATION, status
-                .getMediaInfo().getStreamDuration() / MILLISECOND);
-        response.putExtra(MediaPlayerProfile.PARAM_POS,
-                status.getStreamPosition() / MILLISECOND);
-        response.putExtra(MediaPlayerProfile.PARAM_STATUS, playStatus);
+        Bundle media = getMedia(mediaId);
+        for (String key : media.keySet()) {
+            Object value = media.get(key);
+            if (value instanceof String) {
+                response.putExtra(key, (String) value);
+            } else if (value instanceof String[]) {
+                response.putExtra(key, (String[]) value);
+            }  else if (value instanceof Long) {
+                response.putExtra(key, (Long) value);
+            } else if (value instanceof Bundle) {
+                response.putExtra(key, (Bundle) value);
+            }
+        }
 
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
@@ -790,15 +787,19 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         return list;
     }
 
-    private boolean hasMedia(final String mediaId) {
+    private Bundle getMedia(final String mediaId) {
         List<Bundle> list = findAllMedia(null, null);
         for (Bundle b : list) {
             String id = b.getString(PARAM_MEDIA_ID);
             if (id.equals(mediaId)) {
-                return true;
+                return b;
             }
         }
-        return false;
+        return null;
+    }
+
+    private boolean hasMedia(final String mediaId) {
+        return getMedia(mediaId) != null;
     }
 
     @Override
@@ -860,13 +861,24 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             comparator = findComparator(orders[0], isAsc);
         }
 
-        List<Bundle> foundAllMedia = findAllMedia(query, mimeType);
+        // メディアリストのソート
+        List<Bundle> foundMedia = findAllMedia(query, mimeType);
         if (comparator != null) {
-            Collections.sort(foundAllMedia, comparator);
+            Collections.sort(foundMedia, comparator);
         }
 
-        final int limitValue = limit != null ? limit : foundAllMedia.size();
-        List<Bundle> result = foundAllMedia.subList(offsetValue, offsetValue + limitValue);
+        final int limitValue = limit != null ? limit : foundMedia.size();
+        int endIndex = offsetValue + limitValue;
+        if (endIndex > foundMedia.size()) {
+            endIndex = foundMedia.size();
+        }
+
+        List<Bundle> result;
+        if (offsetValue < foundMedia.size()) {
+            result = foundMedia.subList(offsetValue, endIndex);
+        } else {
+            result = new ArrayList<Bundle>();
+        }
 
         setCount(response, result.size());
         setMedia(response, result.toArray(new Bundle[result.size()]));

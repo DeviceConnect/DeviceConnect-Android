@@ -7,6 +7,8 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -49,6 +51,37 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     /** ミリ秒 - 秒オーダー変換用. */
     private static final int UNIT_SEC = 1000;
 
+    /** Sort flag. */
+    enum SortOrder {
+        /** Title (asc). */
+        TITLE_ASC,
+        /** Title (desc). */
+        TITLE_DESC,
+        /** Duration (asc). */
+        DURATION_ASC,
+        /** Duration (desc). */
+        DURATION_DESC,
+        /** Artist (asc). */
+        ARTIST_ASC,
+        /** Artist (desc). */
+        ARTIST_DESC,
+        /** Mime (asc). */
+        MIME_ASC,
+        /** Mime (desc). */
+        MIME_DESC,
+        /** Id (asc). */
+        ID_ASC,
+        /** Id (desc). */
+        ID_DESC,
+        /** Composer (asc). */
+        COMPOSER_ASC,
+        /** Composer (desc). */
+        COMPOSER_DESC,
+        /** Language (asc). */
+        LANGUAGE_ASC,
+        /** Language (desc). */
+        LANGUAGE_DESC
+    };
 
     /**
      * AudioのContentProviderのキー一覧を定義する.
@@ -364,32 +397,20 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     private void getMediaList(final Intent response, final String query,
             final String mimeType, final String[] orders, final Integer offset,
             final Integer limit) {
-        if (BuildConfig.DEBUG) {
-            Log.i(TAG, "onGetMediaList");
-        }
+        SortOrder mSort = SortOrder.TITLE_ASC;
         int counter = 0;
-        int tmpLimit = 0;
-        int tmpOffset = 0;
         if (limit != null) {
-            if (limit >= 0) {
-                tmpLimit = limit;
-            } else {
+            if (limit < 0) {
                 MessageUtils.setInvalidRequestParameterError(response);
                 return;
             }
-        }
-        if (limit != null && limit >= 0) {
-            tmpLimit = limit;
         }
         if (offset != null) {
-            if (offset >= 0) {
-                tmpOffset = offset;
-            } else {
+            if (offset < 0) {
                 MessageUtils.setInvalidRequestParameterError(response);
                 return;
             }
         }
-        int limitCounter = tmpLimit + tmpOffset;
 
         // 音楽用のテーブルの項目.
         String[] mMusicParam = null;
@@ -426,22 +447,17 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             mMusicFilter += "(" + MediaStore.Audio.Media.TITLE + " LIKE '%" + query + "%'";
             mMusicFilter += " OR " + MediaStore.Audio.Media.COMPOSER + " LIKE '%" + query + "%')";
         }
-        if (BuildConfig.DEBUG) {
-            if (orders != null) {
-                for (int i = 0; i < orders.length; i++) {
-                    Log.i(TAG, "orders[" + i + "]: " + orders[i]);
-                }
-            }
-        }
         if (orders != null) {
             if (orders.length == 2) {
                 mOrderBy = orders[0] + " " + orders[1];
+                mSort = getSortOrder(orders[0], orders[1]);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response);
                 return;
             }
         } else {
             mOrderBy = "title asc";
+            mSort = SortOrder.TITLE_ASC;
         }
 
         // 音楽用のテーブルキー設定.
@@ -462,10 +478,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         try {
             cursorMusic = mContentResolver.query(mMusicUriType, mMusicParam, mMusicFilter, null, mOrderBy);
             cursorMusic.moveToFirst();
-        } catch (NullPointerException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
             MessageUtils.setInvalidRequestParameterError(response);
             if (cursorMusic != null) {
                 cursorMusic.close();
@@ -473,20 +486,15 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             return;
         }
 
-        List<Bundle> list = new ArrayList<Bundle>();
-
+        ArrayList<MediaList> mList = new ArrayList<MediaList>();
         if (cursorMusic.getCount() > 0) {
-            counter = getMusicListData(offset, limit, counter, limitCounter,
-                    cursorMusic, list);
+            counter = getMusicList(cursorMusic, mList);
         }
 
         try {
             cursorVideo = mContentResolver.query(mVideoUriType, mVideoParam, mVideoFilter, null, mOrderBy);
             cursorVideo.moveToFirst();
-        } catch (NullPointerException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
             MessageUtils.setInvalidRequestParameterError(response);
             if (cursorMusic != null) {
                 cursorMusic.close();
@@ -498,11 +506,12 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         }
 
         if (cursorVideo.getCount() > 0) {
-            counter = getMovieListData(offset, limit, counter, limitCounter,
-                    cursorVideo, list);
+            counter = getVideoList(cursorVideo, mList);
         }
 
-        setCount(response, cursorMusic.getCount() + cursorVideo.getCount());
+        List<Bundle> list = new ArrayList<Bundle>();
+        counter = getMediaDataList(mList, list, offset, limit, mSort);
+        setCount(response, counter);
         setMedia(response, list.toArray(new Bundle[list.size()]));
         setResult(response, DConnectMessage.RESULT_OK);
         cursorMusic.close();
@@ -513,20 +522,14 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     /**
-     * Get Music List Data.
-     * @param offset Offset
-     * @param limit Limit
-     * @param c Counter
-     * @param limitCounter Limit Counter
+     * Get Music List.
      * @param cursorMusic Cursor Music
      * @param list List
-     * @return Music List
+     * @return counter Music data count.
      */
-    private int getMusicListData(final Integer offset, final Integer limit,
-            final int c, final int limitCounter, final Cursor cursorMusic, final List<Bundle> list) {
-        int counter = c;
+    private int getMusicList(final Cursor cursorMusic, final ArrayList<MediaList> list) {
+        int counter = 0;
         do {
-
             String mId = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media._ID));
             String mType = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.MIME_TYPE));
             String mTitle = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.TITLE));
@@ -534,55 +537,22 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                     / UNIT_SEC;
             String mArtist = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.ARTIST));
             String mComp = cursorMusic.getString(cursorMusic.getColumnIndex(MediaStore.Audio.Media.COMPOSER));
-            // 音楽のデータ作成
-            Bundle medium = new Bundle();
 
-            setType(medium, "Music");
-            setMediaId(medium, mId);
-            setMIMEType(medium, mType);
-            setTitle(medium, mTitle);
-            setDuration(medium, mDuration);
-
-            // Creatorを作成
-            List<Bundle> dataList = new ArrayList<Bundle>();
-            Bundle creator = new Bundle();
-            setCreator(creator, mArtist);
-            setRole(creator, "Artist");
-            dataList.add((Bundle) creator.clone());
-            setCreator(creator, mComp);
-            setRole(creator, "Composer");
-            dataList.add((Bundle) creator.clone());
-            
-            setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
-
-            if (limit == null || (limit != null && limitCounter > counter)) {
-                if (offset == null || (offset != null && counter >= offset)) {
-                    list.add(medium);
-                }
-            }
+            list.add(new MediaList(mId, mType, mTitle, mArtist, mDuration, mComp, null, false));
             counter++;
         } while (cursorMusic.moveToNext());
         return counter;
     }
 
     /**
-     * Get Movie List Data.
-     * @param offset Offset
-     * @param limit Limit
-     * @param c Counter
-     * @param limitCounter Limit Counter
+     * Get Video List.
      * @param cursorVideo Cursor Video
      * @param list List
-     * @return Movie List
+     * @return counter Video data count.
      */
-    private int getMovieListData(final Integer offset, final Integer limit,
-            final int c, final int limitCounter, final Cursor cursorVideo, final List<Bundle> list) {
-        int counter = c;
+    private int getVideoList(final Cursor cursorVideo, final ArrayList<MediaList> list) {
+        int counter = 0;
         do {
-
-            // 映像のリストデータ作成
-            Bundle medium = new Bundle();
-
             String mLang = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.LANGUAGE));
             String mId = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media._ID));
             String mType = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.MIME_TYPE));
@@ -590,29 +560,125 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             int mDuration = (cursorVideo.getInt(cursorVideo.getColumnIndex(MediaStore.Video.Media.DURATION)))
                     / UNIT_SEC;
             String mArtist = cursorVideo.getString(cursorVideo.getColumnIndex(MediaStore.Video.Media.ARTIST));
-            setType(medium, "Video");
-            setLanguage(medium, mLang);
+
+            list.add(new MediaList(mId, mType, mTitle, mArtist, mDuration, null, mLang, true));
+            counter++;
+        } while (cursorVideo.moveToNext());
+        return counter;
+    }
+
+    /**
+     * Get Media List.
+     * @param orglist original list.
+     * @param medialist Media list.
+     * @param offset Offset.
+     * @param limit Limit.
+     * @param sortflag Sort flag.
+     * @return counter Video data count.
+     */
+    private int getMediaDataList(final ArrayList<MediaList> orglist, final List<Bundle> medialist,
+            final Integer offset, final Integer limit, final SortOrder sortflag) {
+
+        switch (sortflag) {
+        case DURATION_ASC:
+        case DURATION_DESC:
+            Collections.sort(orglist, new MediaListDurationComparator());
+            break;
+        case ARTIST_ASC:
+        case ARTIST_DESC:
+            Collections.sort(orglist, new MediaListArtistComparator());
+            break;
+        case MIME_ASC:
+        case MIME_DESC:
+            Collections.sort(orglist, new MediaListTypeComparator());
+            break;
+        case ID_ASC:
+        case ID_DESC:
+            Collections.sort(orglist, new MediaListIdComparator());
+            break;
+        case COMPOSER_ASC:
+        case COMPOSER_DESC:
+            Collections.sort(orglist, new MediaListComposerComparator());
+            break;
+        case LANGUAGE_ASC:
+        case LANGUAGE_DESC:
+            Collections.sort(orglist, new MediaListLanguageComparator());
+            break;
+        case TITLE_ASC:
+        case TITLE_DESC:
+        default:
+            Collections.sort(orglist, new MediaListTitleComparator());
+            break;
+        }
+
+        switch (sortflag) {
+        case TITLE_DESC:
+        case DURATION_DESC:
+        case ARTIST_DESC:
+        case MIME_DESC:
+        case ID_DESC:
+        case COMPOSER_DESC:
+        case LANGUAGE_DESC:
+            Collections.reverse(orglist);
+            break;
+        default:
+            break;
+        }
+
+        int mOffset = 0;
+        if (offset == null) {
+            mOffset = 0;
+        } else {
+            mOffset = offset;
+        }
+        
+        int mLimit = 0;
+        if (limit == null) {
+            mLimit = orglist.size();
+        } else {
+            mLimit = limit + mOffset;
+        }
+        
+        for (int i = mOffset; i < mLimit; i++) {
+            Bundle medium = new Bundle();
+            String mComp = null;
+
+            String mId = orglist.get(i).getId();
+            String mType = orglist.get(i).getType();
+            String mTitle = orglist.get(i).getTitle();
+            String mArtist = orglist.get(i).getArtist();
+            int mDuration = orglist.get(i).getDuration();
+
             setMediaId(medium, mId);
             setMIMEType(medium, mType);
             setTitle(medium, mTitle);
             setDuration(medium, mDuration);
 
-            // Creatorを作成
-            List<Bundle> dataList = new ArrayList<Bundle>();
-            Bundle creatorVideo = new Bundle();
-            setCreator(creatorVideo, mArtist);
-            setRole(creatorVideo, "Artist");
-            dataList.add((Bundle) creatorVideo.clone());
-            setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
-
-            if (limit == null || (limit != null && limitCounter > counter)) {
-                if (offset == null || (offset != null && counter >= offset)) {
-                    list.add(medium);
-                }
+            if (orglist.get(i).isVideo()) {
+                String mLang = orglist.get(i).getLanguage();
+                setType(medium, "Video");
+                setLanguage(medium, mLang);
+            } else {
+                mComp = orglist.get(i).getComposer();
+                setType(medium, "Music");
             }
-            counter++;
-        } while (cursorVideo.moveToNext());
-        return counter;
+
+            List<Bundle> dataList = new ArrayList<Bundle>();
+            Bundle creator = new Bundle();
+            setCreator(creator, mArtist);
+            setRole(creator, "Artist");
+            dataList.add((Bundle) creator.clone());
+
+            if (!(orglist.get(i).isVideo())) {
+                setCreator(creator, mComp);
+                setRole(creator, "Composer");
+                dataList.add((Bundle) creator.clone());
+            }
+            setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
+            medialist.add(medium);
+        }
+
+        return orglist.size();
     }
 
     @Override
@@ -942,5 +1008,355 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         }
 
         return id;
+    }
+    
+    /**
+     * Media list class.
+     */
+    public class MediaList {
+        /** ID. */
+        private String mId;
+        /** Mime Type. */
+        private String mType;
+        /** Title. */
+        private String mTitle;
+        /** Artist. */
+        private String mArtist;
+        /** Duration. */
+        private int mDuration;
+        /** Composer(Audio only). */
+        private String mComposer;
+        /** Language(Video only). */
+        private String mLanguage;
+        /** Video flag. */
+        private boolean mIsVideo;
+        
+        /**
+         * Constructor.
+         * 
+         * @param id Id.
+         * @param type Mime type.
+         * @param title Title.
+         * @param artist Artist.
+         * @param duration Duration.
+         * @param composer Composer(Audio only).
+         * @param language Language(Video only).
+         * @param isvideo Video flag.
+         */
+        public MediaList(final String id, final String type, final String title, final String artist,
+                final int duration, final String composer, final String language, final boolean isvideo) {
+            this.setId(id);
+            this.setType(type);
+            this.setTitle(title);
+            this.setArtist(artist);
+            this.setDuration(duration);
+            this.setComposer(composer);
+            this.setLanguage(language);
+            this.setVideo(isvideo);
+        }
+
+        /**
+         * Get Id.
+         * 
+         * @return Id.
+         */
+        public String getId() {
+            return mId;
+        }
+
+        /**
+         * Set Id.
+         * 
+         * @param id Id.
+         */
+        public void setId(final String id) {
+            this.mId = id;
+        }
+
+        /**
+         * Get mime type.
+         * 
+         * @return Mime type.
+         */
+        public String getType() {
+            return mType;
+        }
+
+        /**
+         * Set mime type.
+         * @param type mime type.
+         */
+        public void setType(final String type) {
+            this.mType = type;
+        }
+
+        /**
+         * Get title.
+         * 
+         * @return Title.
+         */
+        public String getTitle() {
+            return mTitle;
+        }
+
+        /**
+         * Set title.
+         * 
+         * @param title Title.
+         */
+        public void setTitle(final String title) {
+            this.mTitle = title;
+        }
+
+        /**
+         * Get artist.
+         * 
+         * @return Artist.
+         */
+        public String getArtist() {
+            return mArtist;
+        }
+
+        /**
+         * Set artist.
+         * 
+         * @param artist Artist.
+         */
+        public void setArtist(final String artist) {
+            this.mArtist = artist;
+        }
+
+        /**
+         * Get duration.
+         * 
+         * @return Duration.
+         */
+        public int getDuration() {
+            return mDuration;
+        }
+
+        /**
+         * Set duration.
+         * 
+         * @param duration Duration.
+         */
+        public void setDuration(final int duration) {
+            this.mDuration = duration;
+        }
+
+        /**
+         * Get composer.
+         * 
+         * @return Composer.
+         */
+        public String getComposer() {
+            return mComposer;
+        }
+
+        /**
+         * Set composer.
+         * 
+         * @param composer Composer.
+         */
+        public void setComposer(final String composer) {
+            this.mComposer = composer;
+        }
+
+        /**
+         * Get language.
+         * 
+         * @return Language.
+         */
+        public String getLanguage() {
+            return mLanguage;
+        }
+
+        /**
+         * Set language.
+         * 
+         * @param language Language.
+         */
+        public void setLanguage(final String language) {
+            this.mLanguage = language;
+        }
+
+        /**
+         * Get Video flag.
+         * @return the mIsVideo.
+         */
+        public boolean isVideo() {
+            return mIsVideo;
+        }
+
+        /**
+         * Set video flag.
+         * @param isvideo the isVideo to set.
+         */
+        public void setVideo(final boolean isvideo) {
+            this.mIsVideo = isvideo;
+        }
+    }
+    
+    /**
+     * Duration sorting comparator.
+     */
+    public class MediaListDurationComparator implements Comparator<MediaList> {
+
+        @Override
+        public int compare(final MediaList lhs, final MediaList rhs) {
+            int mData1 = lhs.getDuration();
+            int mData2 = rhs.getDuration();
+
+            if (mData1 > mData2) {
+                return 1;
+            } else if (mData1 == mData2) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+    }
+
+    /**
+     * Title sorting comparator.
+     */
+    public class MediaListTitleComparator implements Comparator<MediaList> {
+
+        @Override
+        public int compare(final MediaList lhs, final MediaList rhs) {
+            return compareData(lhs.getTitle(), rhs.getTitle());
+        }
+    }
+
+    /**
+     * Artist sorting comparator.
+     */
+    public class MediaListArtistComparator implements Comparator<MediaList> {
+
+        @Override
+        public int compare(final MediaList lhs, final MediaList rhs) {
+            return compareData(lhs.getArtist(), rhs.getArtist());
+        }
+    }
+
+    /**
+     * Composer sorting comparator.
+     */
+    public class MediaListComposerComparator implements Comparator<MediaList> {
+
+        @Override
+        public int compare(final MediaList lhs, final MediaList rhs) {
+            return compareData(lhs.getComposer(), rhs.getComposer());
+        }
+    }
+
+    /**
+     * Language sorting comparator.
+     */
+    public class MediaListLanguageComparator implements Comparator<MediaList> {
+
+        @Override
+        public int compare(final MediaList lhs, final MediaList rhs) {
+            return compareData(lhs.getLanguage(), rhs.getLanguage());
+        }
+    }
+
+    /**
+     * ID sorting comparator.
+     */
+    public class MediaListIdComparator implements Comparator<MediaList> {
+
+        @Override
+        public int compare(final MediaList lhs, final MediaList rhs) {
+            return compareData(lhs.getId(), rhs.getId());
+        }
+    }
+
+    /**
+     * Type sorting comparator.
+     */
+    public class MediaListTypeComparator implements Comparator<MediaList> {
+
+        @Override
+        public int compare(final MediaList lhs, final MediaList rhs) {
+            return compareData(lhs.getType(), rhs.getType());
+        }
+    }
+    
+    /**
+     * Data compare.
+     * 
+     * @param data1 Data1.
+     * @param data2 Data2.
+     * @return result.
+     */
+    public int compareData(final String data1, final String data2) {
+        if (data1 == null && data2 == null) {
+            return 0;
+        } else if (data1 != null && data2 == null) {
+            return 1;
+        } else if (data1 == null && data2 != null) {
+            return -1;
+        }
+
+        if (data1.compareTo(data2) > 0) {
+            return 1;
+        } else if (data1.compareTo(data2) == 0) {
+            return 0;
+        } else {
+            return -1;
+        }
+    }
+
+    /**
+     * Get sort order.
+     * 
+     * @param order1 sort column.
+     * @param order2 asc / desc.
+     * @return SortOrder flag.
+     */
+    public SortOrder getSortOrder(final String order1, final String order2) {
+        if (order1.compareToIgnoreCase("id") == 0
+                && order2.compareToIgnoreCase("desc") == 0) {
+            return SortOrder.ID_DESC;
+        } else if (order1.compareToIgnoreCase("id") == 0
+                && order2.compareToIgnoreCase("asc") == 0) {
+            return SortOrder.ID_ASC;
+        } else if (order1.compareToIgnoreCase("duration") == 0
+                && order2.compareToIgnoreCase("desc") == 0) {
+            return SortOrder.DURATION_DESC;
+        } else if (order1.compareToIgnoreCase("duration") == 0
+                && order2.compareToIgnoreCase("asc") == 0) {
+            return SortOrder.DURATION_ASC;
+        } else if (order1.compareToIgnoreCase("artist") == 0
+                && order2.compareToIgnoreCase("desc") == 0) {
+            return SortOrder.ARTIST_DESC;
+        } else if (order1.compareToIgnoreCase("artist") == 0
+                && order2.compareToIgnoreCase("asc") == 0) {
+            return SortOrder.ARTIST_ASC;
+        } else if (order1.compareToIgnoreCase("composer") == 0
+                && order2.compareToIgnoreCase("desc") == 0) {
+            return SortOrder.COMPOSER_DESC;
+        } else if (order1.compareToIgnoreCase("composer") == 0
+                && order2.compareToIgnoreCase("asc") == 0) {
+            return SortOrder.COMPOSER_ASC;
+        } else if (order1.compareToIgnoreCase("language") == 0
+                && order2.compareToIgnoreCase("desc") == 0) {
+            return SortOrder.LANGUAGE_DESC;
+        } else if (order1.compareToIgnoreCase("language") == 0
+                && order2.compareToIgnoreCase("asc") == 0) {
+            return SortOrder.LANGUAGE_ASC;
+        } else if (order1.compareToIgnoreCase("mime") == 0
+                && order2.compareToIgnoreCase("desc") == 0) {
+            return SortOrder.MIME_DESC;
+        } else if (order1.compareToIgnoreCase("mime") == 0
+                && order2.compareToIgnoreCase("asc") == 0) {
+            return SortOrder.MIME_ASC;
+        } else if (order1.compareToIgnoreCase("title") == 0
+                && order2.compareToIgnoreCase("desc") == 0) {
+            return SortOrder.TITLE_DESC;
+        } else {
+            return SortOrder.TITLE_ASC;
+        }
     }
 }

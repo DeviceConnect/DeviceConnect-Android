@@ -548,6 +548,11 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutMedia(final Intent request, final Intent response,
             final String serviceId, final String mediaId) {
+        if (mediaId == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
+            return true;
+        }
+
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -758,6 +763,36 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         listupMedia(mediaType, list, filter, orderBy);
     }
 
+    private List<Bundle> getAllMedia(final String query, final String mimeType) {
+        List<Bundle> list = new ArrayList<Bundle>();
+
+        Bundle medium = new Bundle();
+        setType(medium, "Video");
+        setLanguage(medium, "Language");
+        setMediaId(medium, "https://github.com/DeviceConnect/DeviceConnect-Android/wiki/sphero_demo.MOV");
+        setMIMEType(medium, "video/quicktime");
+        setTitle(medium, "Title: Sample");
+        setDuration(medium, 9999);
+        Bundle creatorVideo = new Bundle();
+        setCreator(creatorVideo, "Creator: Sample");
+        setCreators(medium, new Bundle[] {creatorVideo});
+        list.add(medium);
+
+        listupMedia("Video", list, query, mimeType, null);
+        return list;
+    }
+
+    private boolean hasMedia(final String mediaId) {
+        List<Bundle> list = getAllMedia(null, null);
+        for (Bundle b : list) {
+            String id = b.getString(PARAM_MEDIA_ID);
+            if (id.equals(mediaId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     protected boolean onGetMediaList(final Intent request, final Intent response,
             final String serviceId, final String query, final String mimeType,
@@ -781,27 +816,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             comparator = findComparator(orders[0], isAsc);
         }
 
-        List<Bundle> list = new ArrayList<Bundle>();
-
-        Bundle medium = new Bundle();
-        setType(medium, "Video");
-        setLanguage(medium, "Language");
-        setMediaId(medium, "https://github.com/DeviceConnect/DeviceConnect-Android/wiki/sphero_demo.MOV");
-        setMIMEType(medium, "video/quicktime");
-        setTitle(medium, "Title: Sample");
-        setDuration(medium, 9999);
-        Bundle creatorVideo = new Bundle();
-        setCreator(creatorVideo, "Creator: Sample");
-        setCreators(medium, new Bundle[] {creatorVideo});
-        list.add(medium);
-
-        listupMedia("Video", list, query, mimeType, orders);
+        List<Bundle> result = getAllMedia(query, mimeType);
         if (comparator != null) {
-            Collections.sort(list, comparator);
+            Collections.sort(result, comparator);
         }
 
-        setCount(response, list.size());
-        setMedia(response, list.toArray(new Bundle[list.size()]));
+        setCount(response, result.size());
+        setMedia(response, result.toArray(new Bundle[result.size()]));
         setResult(response, DConnectMessage.RESULT_OK);
 
         return true;

@@ -556,6 +556,10 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             MessageUtils.setInvalidRequestParameterError(response, "mediaId is empty.");
             return true;
         }
+        if (!hasMedia(mediaId)) {
+            MessageUtils.setInvalidRequestParameterError(response, "media is not found.");
+            return true;
+        }
 
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {

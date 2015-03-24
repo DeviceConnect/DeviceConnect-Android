@@ -869,11 +869,6 @@ public class HostDeviceService extends DConnectMessageService {
      * @param response レスポンス
      */
     public void stopMedia(final Intent response) {
-        if (mMediaStatus == MEDIA_PLAYER_NODATA || mMediaStatus == MEDIA_PLAYER_STOP) {
-            MessageUtils.setIllegalDeviceStateError(response);
-            sendBroadcast(response);
-        }
-
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             try {
                 mMediaPlayer.stop();

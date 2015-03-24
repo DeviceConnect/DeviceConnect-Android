@@ -3,7 +3,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2" xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
     <!-- Name of app, shown when installing/uninstalling extension -->
-    <string name="app_name">Sony Watch 1.0.3</string>
+    <string name="app_name">Sony Watch 2.0.0</string>
     <!-- Title of preference activity -->
     <string name="preference_activity_title">SW Device Plugin settings</string>
     <!-- Name of extension, shown in preferences -->
@@ -56,7 +56,7 @@
     <string name="index2">[2/4] 接続の下準備</string>
     
     <!-- Setting Page Number Third. -->
-    <string name="index3">[3/4] ソニーウオッチとペアリング</string>
+    <string name="index3">[3/4] ソニーウォッチとペアリング</string>
     
     <!-- Setting Page Number Fourth. -->
     <string name="index4">[4/4] 設定完了</string>

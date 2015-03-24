@@ -14,7 +14,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 
-import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.MediaStatus;
 
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
@@ -51,7 +50,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     /** Chromecastの再生状態がバッファリング中であることを表す. */
     private static final String MESSAGE_BUFFERING                   = "buffering";
     /** Chromecastの再生状態がstop状態であることを表す. */
-    private static final String MESSAGE_IDLE                        = "stop";
+    private static final String MESSAGE_STOP = "stop";
     /** Chromecastの再生状態がpause状態であることを表す. */
     private static final String MESSAGE_PAUSED                      = "pause";
     /** Chromecastの再生状態がplay状態であることを表す. */
@@ -66,7 +65,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     private static final String ERROR_MESSAGE_PLAYSTATE_IS_NOT      = "Playstate is not";
     /** メディアファイルのPlay時のエラーメッセージ. */
     private static final String ERROR_MESSAGE_MEDIA_PLAY            = ERROR_MESSAGE_PLAYSTATE_IS_NOT
-                                                            + " " + MESSAGE_IDLE + " or " + MESSAGE_PAUSED;
+                                                            + " " + MESSAGE_STOP + " or " + MESSAGE_PAUSED;
     /** メディアファイルのResume時のエラーメッセージ. */
     private static final String ERROR_MESSAGE_MEDIA_RESUME          = ERROR_MESSAGE_PLAYSTATE_IS_NOT 
                                                                                 + " " + MESSAGE_PAUSED;
@@ -134,7 +133,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         case MediaStatus.PLAYER_STATE_BUFFERING:
             return MESSAGE_BUFFERING;
         case MediaStatus.PLAYER_STATE_IDLE:
-            return MESSAGE_IDLE;
+            return MESSAGE_STOP;
         case MediaStatus.PLAYER_STATE_PAUSED:
             return MESSAGE_PAUSED;
         case MediaStatus.PLAYER_STATE_PLAYING:
@@ -164,7 +163,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     private boolean isDeviceEnable(final Intent response, final ChromeCastMediaPlayer app) {
         if (!app.isDeviceEnable()) {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_DEVICE_NOT_ENABLE);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return false;
         }
         return true;
@@ -196,6 +194,10 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return true;
         }
 
+        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
         if (status.getPlayerState() == MediaStatus.PLAYER_STATE_IDLE) {
             app.play(response);
             return false;
@@ -204,7 +206,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return false;
         } else {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_PLAY);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return true;
         }
     }
@@ -221,12 +222,15 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return true;
         }
 
+        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
         if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
             app.resume(response);
             return false;
         } else {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_RESUME);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return true;
         }
     }
@@ -243,6 +247,10 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return true;
         }
 
+        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_IDLE) {
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
         if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
                 || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED
                 || status.getPlayerState() == MediaStatus.PLAYER_STATE_BUFFERING) {
@@ -250,7 +258,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return false;
         } else {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_STOP);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return true;
         }
     }
@@ -267,12 +274,15 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return true;
         }
 
+        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
         if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
             app.pause(response);
             return false;
         } else {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_PAUSE);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return true;
         }
     }
@@ -303,7 +313,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return false;
         } else {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_MUTE);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return true;
         }
     }
@@ -367,7 +376,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 return false;
             } else {
                 MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_VOLUME);
-                setResult(response, DConnectMessage.RESULT_ERROR);
                 return true;
             }
         }
@@ -426,7 +434,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 return false;
             } else {
                 MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_SEEK);
-                setResult(response, DConnectMessage.RESULT_ERROR);
                 return true;
             }
         }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">hue 1.0.2</string>
+    <string name="app_name">hue 2.0.0</string>
     <string name="index1">[1/3] hueの検索</string>
     <string name="index2">[2/3] hueへの接続設定</string>
     <string name="index3">[3/3] hueに接続しているライトの検索</string>

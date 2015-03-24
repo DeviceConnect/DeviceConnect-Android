@@ -6,15 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Bundle;
-import android.provider.MediaStore;
-
-import com.google.android.gms.cast.MediaStatus;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
@@ -26,13 +24,15 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.MediaStore;
+
+import com.google.android.gms.cast.MediaStatus;
 
 /**
  * MediaPlayer プロファイル (Chromecast).
@@ -118,9 +118,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         }
         return NOT_COMPARATOR;
     }
-
-    /** 再生中のメディアファイルのID. */
-    private String mMediaId;
 
     /**
      * 再生状態を文字列に変換する.
@@ -574,21 +571,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         String title = null;
         Integer mId = -1;
 
-        if (mediaId == null) {
-            response.putExtra(DConnectMessage.EXTRA_VALUE, "mediaId is null");
-            setResult(response, DConnectMessage.RESULT_ERROR);
-            return true;
-        }
-
         try {
             mId = Integer.parseInt(mediaId);
         } catch (NumberFormatException e) {
             url = mediaId;
         }
 
-        if (url != null) {
-            this.mMediaId = mediaId;
-        } else {
+        if (url == null) {
             Cursor cursor = getCursorFrom(
                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                     MediaStore.Video.Media._ID, mediaId);
@@ -607,7 +596,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                     return true;
                 }
             }
-            this.mMediaId = mId.toString();
         }
 
         if (title == null) {
@@ -775,6 +763,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         listupMedia(mediaType, list, filter, orderBy);
     }
 
+    /**
+     * デバイス内のメディアを全検索する.
+     * @param query 検索するタイトル
+     * @param mimeType マイムタイプ
+     * @return 検索結果
+     */
     private List<Bundle> findAllMedia(final String query, final String mimeType) {
         List<Bundle> list = new ArrayList<Bundle>();
 
@@ -794,6 +788,11 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         return list;
     }
 
+    /**
+     * 指定したメディアの情報を取得する.
+     * @param mediaId メディアID
+     * @return メディア情報
+     */
     private Bundle getMedia(final String mediaId) {
         List<Bundle> list = findAllMedia(null, null);
         for (Bundle b : list) {
@@ -805,6 +804,11 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         return null;
     }
 
+    /**
+     * 指定したメディアを保有しているかどうかをチェックする.
+     * @param mediaId メディアID
+     * @return 保有している場合は<code>true</code>、そうでない場合は<code>false</code>
+     */
     private boolean hasMedia(final String mediaId) {
         return getMedia(mediaId) != null;
     }

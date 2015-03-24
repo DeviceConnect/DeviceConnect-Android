@@ -552,6 +552,10 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
             return true;
         }
+        if (mediaId.equals("")) {
+            MessageUtils.setInvalidRequestParameterError(response, "mediaId is empty.");
+            return true;
+        }
 
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
@@ -763,7 +767,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         listupMedia(mediaType, list, filter, orderBy);
     }
 
-    private List<Bundle> getAllMedia(final String query, final String mimeType) {
+    private List<Bundle> findAllMedia(final String query, final String mimeType) {
         List<Bundle> list = new ArrayList<Bundle>();
 
         Bundle medium = new Bundle();
@@ -783,7 +787,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     private boolean hasMedia(final String mediaId) {
-        List<Bundle> list = getAllMedia(null, null);
+        List<Bundle> list = findAllMedia(null, null);
         for (Bundle b : list) {
             String id = b.getString(PARAM_MEDIA_ID);
             if (id.equals(mediaId)) {
@@ -798,8 +802,39 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             final String serviceId, final String query, final String mimeType,
             final String[] orders, final Integer offset, final Integer limit) {
 
+        // パラメータの型チェック
+        Bundle b = request.getExtras();
+        if (b.getString(PARAM_LIMIT) != null) {
+            if (parseInteger(b.get(PARAM_LIMIT)) == null) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return true;
+            }
+        }
+        if (b.getString(PARAM_OFFSET) != null) {
+            if (parseInteger(b.get(PARAM_OFFSET)) == null) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return true;
+            }
+        }
+
+        // パラメータの範囲チェック
         if (orders != null && orders.length != 2) {
             MessageUtils.setInvalidRequestParameterError(response, "order is invalid.");
+            return true;
+        }
+        final int offsetValue;
+        if (offset != null) {
+            if (offset >= 0) {
+                offsetValue = offset;
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response, "offset is negative.");
+                return true;
+            }
+        } else {
+            offsetValue = 0;
+        }
+        if (limit != null && limit < 0) {
+            MessageUtils.setInvalidRequestParameterError(response, "limit is negative.");
             return true;
         }
 
@@ -821,10 +856,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             comparator = findComparator(orders[0], isAsc);
         }
 
-        List<Bundle> result = getAllMedia(query, mimeType);
+        List<Bundle> foundAllMedia = findAllMedia(query, mimeType);
         if (comparator != null) {
-            Collections.sort(result, comparator);
+            Collections.sort(foundAllMedia, comparator);
         }
+
+        final int limitValue = limit != null ? limit : foundAllMedia.size();
+        List<Bundle> result = foundAllMedia.subList(offsetValue, offsetValue + limitValue);
 
         setCount(response, result.size());
         setMedia(response, result.toArray(new Bundle[result.size()]));

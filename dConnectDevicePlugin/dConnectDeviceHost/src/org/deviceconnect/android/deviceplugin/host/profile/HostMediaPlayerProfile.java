@@ -253,13 +253,10 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             ContentResolver cresolver = getContext()
                     .getApplicationContext().getContentResolver();
             try {
-                List<Bundle> list = new ArrayList<Bundle>();
                 cursor = cresolver.query(uriType, param, filter, new String[] {fileName}, null);
                 if (cursor.moveToFirst()) {
-                    Bundle medium = loadMediaData(uriType, cursor);
-                    list.add(medium);
+                    loadMediaData(uriType, cursor, response);
                 }
-                setMedia(response, list.toArray(new Bundle[list.size()]));
                 setResult(response, DConnectMessage.RESULT_OK);
             } finally {
                 if (cursor != null) {
@@ -274,10 +271,9 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
      * cursorからMediaDataを読み込みBundleに格納して返却する.
      * @param uriType メディアタイプ
      * @param cursor データが格納されているCursor
-     * @return データを移し替えたBundle
+     * @param response response.
      */
-    private Bundle loadMediaData(final Uri uriType, final Cursor cursor) {
-        Bundle medium = new Bundle();
+    private void loadMediaData(final Uri uriType, final Cursor cursor, final Intent response) {
         String mId = null;
         String mType = null;
         String mTitle = null;
@@ -293,7 +289,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             mArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
             mComp = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.COMPOSER));
 
-            setType(medium, "Music");
+            setType(response, "Music");
 
             // Make creator
             List<Bundle> dataList = new ArrayList<Bundle>();
@@ -305,7 +301,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             setRole(creator, "Composer");
             dataList.add((Bundle) creator.clone());
 
-            setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
+            setCreators(response, dataList.toArray(new Bundle[dataList.size()]));
         } else {
             mId = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media._ID));
             mType = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.MIME_TYPE));
@@ -313,9 +309,9 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             mDuration = (cursor.getInt(cursor.getColumnIndex(MediaStore.Video.Media.DURATION))) / UNIT_SEC;
             mArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.ARTIST));
             String mLang = cursor.getString(cursor.getColumnIndex(MediaStore.Video.Media.LANGUAGE));
-            setLanguage(medium, mLang);
+            setLanguage(response, mLang);
 
-            setType(medium, "Video");
+            setType(response, "Video");
 
             // Make creator
             List<Bundle> dataList = new ArrayList<Bundle>();
@@ -323,13 +319,13 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             setCreator(creatorVideo, mArtist);
             setRole(creatorVideo, "Artist");
             dataList.add((Bundle) creatorVideo.clone());
-            setCreators(medium, dataList.toArray(new Bundle[dataList.size()]));
+            setCreators(response, dataList.toArray(new Bundle[dataList.size()]));
         }
-        setMediaId(medium, mId);
-        setMIMEType(medium, mType);
-        setTitle(medium, mTitle);
-        setDuration(medium, mDuration);
-        return medium;
+        setMediaId(response, mId);
+        setMIMEType(response, mType);
+        setTitle(response, mTitle);
+        setDuration(response, mDuration);
+        return;
     }
 
     /**

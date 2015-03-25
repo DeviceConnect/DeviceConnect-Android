@@ -694,12 +694,16 @@ public class HostDeviceService extends DConnectMessageService {
     public int playMedia() {
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             try {
-                if (mMediaStatus != MEDIA_PLAYER_PAUSE && mMediaStatus != MEDIA_PLAYER_SET
-                        && mMediaStatus != MEDIA_PLAYER_COMPLETE) {
+                if (mMediaStatus == MEDIA_PLAYER_STOP) {
                     mMediaPlayer.prepare();
                 }
-                if (mMediaStatus == MEDIA_PLAYER_STOP) {
+                if (mMediaStatus == MEDIA_PLAYER_STOP
+                        || mMediaStatus == MEDIA_PLAYER_PAUSE
+                        || mMediaStatus == MEDIA_PLAYER_PLAY) {
                     mMediaPlayer.seekTo(0);
+                    if (mMediaStatus == MEDIA_PLAYER_PLAY) {
+                        return mMediaPlayer.getAudioSessionId();
+                    }
                 }
                 mMediaPlayer.start();
                 mMediaStatus = MEDIA_PLAYER_PLAY;

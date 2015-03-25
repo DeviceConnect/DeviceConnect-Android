@@ -487,6 +487,7 @@ public class HostDeviceService extends DConnectMessageService {
                     }
                 });
                 mMediaPlayer.prepareAsync();
+                mMyCurrentMediaPosition = 0;
                 mMediaPlayer.setOnPreparedListener(new OnPreparedListener() {
                     @Override
                     public void onPrepared(final MediaPlayer mp) {
@@ -701,6 +702,7 @@ public class HostDeviceService extends DConnectMessageService {
                         || mMediaStatus == MEDIA_PLAYER_PAUSE
                         || mMediaStatus == MEDIA_PLAYER_PLAY) {
                     mMediaPlayer.seekTo(0);
+                    mMyCurrentMediaPosition = 0;
                     if (mMediaStatus == MEDIA_PLAYER_PLAY) {
                         return mMediaPlayer.getAudioSessionId();
                     }

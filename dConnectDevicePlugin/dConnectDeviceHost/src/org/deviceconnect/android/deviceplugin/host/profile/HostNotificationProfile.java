@@ -148,7 +148,7 @@ public class HostNotificationProfile extends NotificationProfile {
                 synchronized (events) {
                     for (Event event : events) {
                         Intent intent = EventManager.createEventMessage(event);
-                        setNotificationId(response, String.valueOf(notifyId));
+                        setNotificationId(intent, String.valueOf(notifyId));
                         service.sendEvent(intent, event.getAccessToken());
                     }
                 }

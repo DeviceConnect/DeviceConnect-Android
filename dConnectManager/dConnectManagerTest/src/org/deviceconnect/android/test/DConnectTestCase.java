@@ -20,6 +20,7 @@ import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 
 import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
+import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.BatteryProfileConstants;
 import org.deviceconnect.profile.ConnectProfileConstants;
@@ -60,7 +61,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     protected static final String DCONNECT_MANAGER_APP_NAME = "Device Connect Manager";
 
     /** DeviceConnectManagerのバージョン名. */
-    protected static final String DCONNECT_MANAGER_VERSION_NAME = "1.0";
+    protected static final String DCONNECT_MANAGER_VERSION_NAME = TestSystemProfileConstants.VERSION;
 
     /** HMACアルゴリズム. */
     private static final String HMAC_ALGORITHM = "HmacSHA256";

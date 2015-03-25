@@ -36,7 +36,7 @@ import android.os.Bundle;
  * {@link MediaStreamRecordingProfile#onPostTakePhoto(Intent, Intent, String, String)}
  * </li>
  * <li>MediaStreamRecording Record API [POST] :
- * {@link MediaStreamRecordingProfile#onPostRecord(Intent, Intent, String, String, long)}
+ * {@link MediaStreamRecordingProfile#onPostRecord(Intent, Intent, String, String, Long)}
  * </li>
  * <li>MediaStreamRecording Pause API [PUT] :
  * {@link MediaStreamRecordingProfile#onPutPause(Intent, Intent, String, String)}
@@ -57,7 +57,7 @@ import android.os.Bundle;
  * {@link MediaStreamRecordingProfile#onGetOptions(Intent, Intent, String, String)}
  * </li>
  * <li>MediaStreamRecording Options API [PUT] :
- * {@link MediaStreamRecordingProfile#onPutOptions(Intent, Intent, String, String, int, int, String)}
+ * {@link MediaStreamRecordingProfile#onPutOptions(Intent, Intent, String, String, Integer, Integer, String)}
  * </li>
  * <li>MediaStreamRecording Take a Picture Event API [Register] :
  * {@link MediaStreamRecordingProfile#onPutOnPhoto(Intent, Intent, String, String)}

@@ -12,7 +12,7 @@ How to Build
     % ant debug
 
 
-サンプルアプリケーションのビルドは example/android/README.txt を参照すること
+サンプルアプリケーションのビルドは dConnectApp/README.txt を参照すること
 
 
 

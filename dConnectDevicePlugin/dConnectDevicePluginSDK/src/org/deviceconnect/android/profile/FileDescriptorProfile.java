@@ -28,10 +28,10 @@ import android.os.Bundle;
  * </p>
  * <ul>
  * <li>File Descriptor Open API [GET] :
- * {@link FileDescriptorProfile#onGetOpen(Intent, Intent, String, String, String, String)}
+ * {@link FileDescriptorProfile#onGetOpen(Intent, Intent, String, String, org.deviceconnect.profile.FileDescriptorProfileConstants.Flag)}
  * </li>
  * <li>File Descriptor Close API [PUT] :
- * {@link FileDescriptorProfile#onPutClose(Intent, Intent, String, String))}</li>
+ * {@link FileDescriptorProfile#onPutClose(Intent, Intent, String, String)}</li>
  * <li>File Descriptor Read API [GET] :
  * {@link FileDescriptorProfile#onGetRead(Intent, Intent, String, String, Long, Long)
  * )}</li>

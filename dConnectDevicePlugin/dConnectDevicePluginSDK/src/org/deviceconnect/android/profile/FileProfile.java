@@ -32,14 +32,13 @@ import android.os.Bundle;
  * </p>
  * <ul>
  * <li>File Send API [POST] :
- * {@link FileProfile#onPostSend(Intent, Intent, String, String, String, 
- * org.deviceconnect.profile.FileProfileConstants.FileType, byte[])}</li>
+ * {@link FileProfile#onPostSend(Intent, Intent, String, String, String, byte[])}</li>
  * <li>Make Directory API [POST] :
  * {@link FileProfile#onPostMkdir(Intent, Intent, String, String)}</li>
  * <li>File Receive API [GET] :
  * {@link FileProfile#onGetReceive(Intent, Intent, String, String)}</li>
  * <li>File List API [GET] :
- * {@link FileProfile#onGetList(Intent, Intent, String, String, String, String[], Integer, Integer)}</li>
+ * {@link FileProfile#onGetList(Intent, Intent, String, String, String, String, Integer, Integer)}</li>
  * <li>File Remove API [DELETE] :
  * {@link FileProfile#onDeleteRemove(Intent, Intent, String, String)}</li>
  * <li>Remove Directory API [POST] :

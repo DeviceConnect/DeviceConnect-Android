@@ -16,6 +16,6 @@ public interface TestSystemProfileConstants {
     /**
      * dConnectManager本体のバージョン.
      */
-    String VERSION = "1.0";
+    String VERSION = "2.0.0";
 
 }

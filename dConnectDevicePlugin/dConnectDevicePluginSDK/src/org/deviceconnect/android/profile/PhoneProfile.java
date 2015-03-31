@@ -199,12 +199,12 @@ public abstract class PhoneProfile extends DConnectProfile implements PhoneProfi
      * リクエストから電話のモードを取得する.
      * 
      * @param request リクエストパラメータ
-     * @return モード。無い場合は{@link PhoneMode#UNKNOWN}を返す。
+     * @return モード。無い場合は{@link org.deviceconnect.profile.PhoneProfileConstants.PhoneMode#UNKNOWN}を返す。
      *         <ul>
-     *         <li>{@link PhoneMode#SILENT}</li>
-     *         <li>{@link PhoneMode#MANNER}</li>
-     *         <li>{@link PhoneMode#SOUND}</li>
-     *         <li>{@link PhoneMode#UNKNOWN}</li>
+     *         <li>{@link org.deviceconnect.profile.PhoneProfileConstants.PhoneMode#SILENT}</li>
+     *         <li>{@link org.deviceconnect.profile.PhoneProfileConstants.PhoneMode#MANNER}</li>
+     *         <li>{@link org.deviceconnect.profile.PhoneProfileConstants.PhoneMode#SOUND}</li>
+     *         <li>{@link org.deviceconnect.profile.PhoneProfileConstants.PhoneMode#UNKNOWN}</li>
      *         </ul>
      */
     public static PhoneMode getMode(final Intent request) {

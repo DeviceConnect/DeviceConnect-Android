@@ -27,7 +27,9 @@ import android.content.Intent;
  * </p>
  * <ul>
  * <li>Canvas DrawImage API [POST] :
- * {@link CanvasProfile#drawImage(Intent, Intent, String, Byte[], double, double, String)}</li>
+ * {@link CanvasProfile#onPostDrawImage(Intent, Intent, String, String, byte[], double, double, String)}</li>
+ * <li>Canvas DrawImage API [DELETE] :
+ * {@link CanvasProfile#onDeleteDrawImage(Intent, Intent, String))}</li>
  * </ul>
  * @author NTT DOCOMO, INC.
  */

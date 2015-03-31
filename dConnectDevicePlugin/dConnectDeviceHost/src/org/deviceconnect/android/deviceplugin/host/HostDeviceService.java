@@ -487,6 +487,7 @@ public class HostDeviceService extends DConnectMessageService {
                     }
                 });
                 mMediaPlayer.prepareAsync();
+                mMyCurrentMediaPosition = 0;
                 mMediaPlayer.setOnPreparedListener(new OnPreparedListener() {
                     @Override
                     public void onPrepared(final MediaPlayer mp) {
@@ -694,12 +695,17 @@ public class HostDeviceService extends DConnectMessageService {
     public int playMedia() {
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             try {
-                if (mMediaStatus != MEDIA_PLAYER_PAUSE && mMediaStatus != MEDIA_PLAYER_SET
-                        && mMediaStatus != MEDIA_PLAYER_COMPLETE) {
+                if (mMediaStatus == MEDIA_PLAYER_STOP) {
                     mMediaPlayer.prepare();
                 }
-                if (mMediaStatus == MEDIA_PLAYER_STOP) {
+                if (mMediaStatus == MEDIA_PLAYER_STOP
+                        || mMediaStatus == MEDIA_PLAYER_PAUSE
+                        || mMediaStatus == MEDIA_PLAYER_PLAY) {
                     mMediaPlayer.seekTo(0);
+                    mMyCurrentMediaPosition = 0;
+                    if (mMediaStatus == MEDIA_PLAYER_PLAY) {
+                        return mMediaPlayer.getAudioSessionId();
+                    }
                 }
                 mMediaPlayer.start();
                 mMediaStatus = MEDIA_PLAYER_PLAY;
@@ -869,11 +875,6 @@ public class HostDeviceService extends DConnectMessageService {
      * @param response レスポンス
      */
     public void stopMedia(final Intent response) {
-        if (mMediaStatus == MEDIA_PLAYER_NODATA || mMediaStatus == MEDIA_PLAYER_STOP) {
-            MessageUtils.setIllegalDeviceStateError(response);
-            sendBroadcast(response);
-        }
-
         if (mSetMediaType == MEDIA_TYPE_MUSIC) {
             try {
                 mMediaPlayer.stop();

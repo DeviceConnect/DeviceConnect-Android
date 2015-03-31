@@ -57,7 +57,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/create_client
+     * Path: /authorization/grant
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -84,7 +84,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /authorization/create_client
+     * Path: /authorization/grant
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -109,7 +109,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /authorization/create_client
+     * Path: /authorization/grant
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -134,7 +134,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /authorization/create_client
+     * Path: /authorization/grant
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -159,7 +159,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?scope=xxxx&applicationName=xxxx
+     * Path: /authorization/accesstoken?scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -188,7 +188,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?clintId=&scope=xxxx&applicationName=xxxx
+     * Path: /authorization/accesstoken?clintId=&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -218,7 +218,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?scope=xxxx&applicationName=xxxx
+     * Path: /authorization/accesstoken?scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -250,7 +250,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?clientId=xxxx&applicationName=xxxx
+     * Path: /authorization/accesstoken?clientId=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -281,7 +281,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?
+     * Path: /authorization/accesstoken?
      *           clientId=xxxx&grantType=authorization_code&scope=&applicationName=xxxx
      * </pre>
      * <pre>
@@ -314,7 +314,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?clientId=xxxx&scope=xxxx
+     * Path: /authorization/accesstoken?clientId=xxxx&scope=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -344,7 +344,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?
+     * Path: /authorization/accesstoken?
      *           clientId=xxxx&grantType=authorization_code&scope=&applicationName
      * </pre>
      * <pre>
@@ -376,7 +376,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?
+     * Path: /authorization/accesstoken?
      *           clientId=xxxx&scope=xxxx&applicationName=xxxx&abc=abc
      * </pre>
      * <pre>
@@ -411,7 +411,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /authorization/request_accesstoken?
+     * Path: /authorization/accesstoken?
      *           clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
@@ -443,7 +443,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /authorization/request_accesstoken?
+     * Path: /authorization/accesstoken?
      *           clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
@@ -475,7 +475,7 @@ public class FailAuthorizationProfileTestCase extends RESTfulDConnectTestCase {
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /authorization/request_accesstoken?
+     * Path: /authorization/accesstoken?
      *           clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>

@@ -1072,7 +1072,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getThreshold(final Intent request) {
         if (!checkExistRequestData(request, PARAM_THRESHOLD)) {
@@ -1094,7 +1094,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return minWidth(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getMinWidth(final Intent request) {
         if (!checkExistRequestData(request, PARAM_MINWIDTH)) {
@@ -1115,7 +1115,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return maxWidth(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getMaxWidth(final Intent request) {
         if (!checkExistRequestData(request, PARAM_MAXWIDTH)) {
@@ -1137,7 +1137,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return minHeight(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getMinHeight(final Intent request) {
         if (!checkExistRequestData(request, PARAM_MINHEIGHT)) {
@@ -1158,7 +1158,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return maxHeight(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getMaxHeight(final Intent request) {
         if (!checkExistRequestData(request, PARAM_MAXHEIGHT)) {
@@ -1182,7 +1182,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param minInterval minimum interval[msec]
      * @param maxInterval maximum interval[msec]
      * @return interval[msec]. if nothing, null.
-     * @throw NumberFormatException exception
+     * @throws NumberFormatException exception
      */
     public static Long getInterval(final Intent request,
                                    final long minInterval, final long maxInterval) {
@@ -1207,7 +1207,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getEyeThreshold(final Intent request) {
         if (!checkExistRequestData(request, PARAM_EYE_THRESHOLD)) {
@@ -1229,7 +1229,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getNoseThreshold(final Intent request) {
         if (!checkExistRequestData(request, PARAM_NOSE_THRESHOLD)) {
@@ -1251,7 +1251,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getMouthThreshold(final Intent request) {
         if (!checkExistRequestData(request, PARAM_MOUTH_THRESHOLD)) {
@@ -1273,7 +1273,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getBlinkThreshold(final Intent request) {
         if (!checkExistRequestData(request, PARAM_BLINK_THRESHOLD)) {
@@ -1295,7 +1295,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getAgeThreshold(final Intent request) {
         if (!checkExistRequestData(request, PARAM_AGE_THRESHOLD)) {
@@ -1317,7 +1317,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getGenderThreshold(final Intent request) {
         if (!checkExistRequestData(request, PARAM_GENDER_THRESHOLD)) {
@@ -1339,7 +1339,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getFaceDirectionThreshold(final Intent request) {
         if (!checkExistRequestData(request, PARAM_FACE_DIRECTION_THRESHOLD)) {
@@ -1361,7 +1361,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getGazeThreshold(final Intent request) {
         if (!checkExistRequestData(request, PARAM_GAZE_THRESHOLD)) {
@@ -1383,7 +1383,7 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * 
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
-     * @throw NumberFormatException
+     * @throws NumberFormatException
      */
     public static Double getExpressionThreshold(final Intent request) {
         if (!checkExistRequestData(request, PARAM_EXPRESSION_THRESHOLD)) {

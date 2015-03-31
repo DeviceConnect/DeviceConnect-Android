@@ -8,6 +8,7 @@ package org.deviceconnect.android.profile.restful.test;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
@@ -58,7 +59,7 @@ public class NormalServiceInformationProfileTestCase extends RESTfulDConnectTest
             assertNotNull("root is null.", resp);
             assertEquals(DConnectMessage.RESULT_OK,
                     resp.getInt(DConnectMessage.EXTRA_RESULT));
-            assertEquals("1.0", 
+            assertEquals(TestSystemProfileConstants.VERSION, 
                     resp.getString(ServiceInformationProfileConstants.PARAM_VERSION));
             JSONObject connect = resp.getJSONObject(ServiceInformationProfileConstants.PARAM_CONNECT);
             assertNotNull(connect);

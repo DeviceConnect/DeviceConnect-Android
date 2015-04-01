@@ -396,7 +396,7 @@ public class HostDeviceService extends DConnectMessageService {
     // MediaPlayer Profile
     // ----------------------------------------------
     /** MediaPlayerのインスタンス. */
-    private MediaPlayer mMediaPlayer;
+    private MediaPlayer mMediaPlayer = null;
     /** Mediaのステータス. */
     private int mMediaStatus = 0;
     /** Mediaが未設定. */
@@ -471,6 +471,11 @@ public class HostDeviceService extends DConnectMessageService {
 
         // パス指定の場合
         if (AUDIO_TYPE_LIST.contains(mMineType)) {
+            if (mMediaPlayer != null) {
+                mMediaPlayer.reset();
+                mMediaPlayer.release();
+                mMediaPlayer = null;
+            }
             mMediaPlayer = new MediaPlayer();
 
             try {
@@ -519,6 +524,11 @@ public class HostDeviceService extends DConnectMessageService {
                 mMyCurrentFilePath = filePath;
                 mMyCurrentFileMIMEType = mMineType;
 
+                if (mMediaPlayer != null) {
+                    mMediaPlayer.reset();
+                    mMediaPlayer.release();
+                    mMediaPlayer = null;
+                }
                 mMediaPlayer = new MediaPlayer();
                 FileInputStream fis = null;
                 FileDescriptor mFd = null;
@@ -529,7 +539,9 @@ public class HostDeviceService extends DConnectMessageService {
                 mMediaPlayer.setDataSource(mFd);
                 mMediaPlayer.prepare();
                 mMyCurrentMediaDuration = mMediaPlayer.getDuration() / UNIT_SEC;
+                mMediaPlayer.reset();
                 mMediaPlayer.release();
+                mMediaPlayer = null;
                 fis.close();
 
                 if (response != null) {

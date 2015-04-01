@@ -21,6 +21,7 @@ import org.deviceconnect.android.deviceplugin.host.audio.AudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay.OnTakePhotoListener;
 import org.deviceconnect.android.deviceplugin.host.video.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.video.VideoRecorder;
+import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -134,6 +135,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     @Override
     protected boolean onPutOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
+        if (sessionKey == null) {
+            MessageUtils.setInvalidRequestParameterError(response, 
+                    "sessionKey does not exist.");
+        }
+
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -146,6 +152,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     @Override
     protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
+        if (sessionKey == null) {
+            MessageUtils.setInvalidRequestParameterError(response, 
+                    "sessionKey does not exist.");
+        }
+
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -174,10 +185,25 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             HostDeviceService c = ((HostDeviceService) getContext());
             c.takePicture(new OnTakePhotoListener() {
                 @Override
-                public void onTakenPhoto(final String uri) {
+                public void onTakenPhoto(final String uri, final String filePath) {
                     setResult(response, DConnectMessage.RESULT_OK);
                     setUri(response, uri);
                     getContext().sendBroadcast(response);
+                    
+                    List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
+                            MediaStreamRecordingProfile.PROFILE_NAME, null,
+                            MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
+
+                    for (Event evt : evts) {
+                        Bundle photo = new Bundle();
+                        photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
+                        photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
+                        photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
+
+                        Intent intent = EventManager.createEventMessage(evt);
+                        intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
+                        getContext().sendBroadcast(intent);
+                    }
                 }
                 @Override
                 public void onFailedTakePhoto() {
@@ -240,7 +266,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         } else {
 
             if (timeslice != null && timeslice <= 0) {
-                MessageUtils.setIllegalServerStateError(response, 
+                MessageUtils.setInvalidRequestParameterError(response, 
                         "timeslice is invalid.");
                 return true;
             }

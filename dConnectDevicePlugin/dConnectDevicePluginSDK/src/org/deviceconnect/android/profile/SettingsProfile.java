@@ -31,8 +31,7 @@ import android.content.Intent;
  * {@link SettingsProfile#onGetSoundVolume(Intent, Intent, String, 
  * org.deviceconnect.profile.SettingsProfileConstants.VolumeKind)}</li>
  * <li>Volume Settings API [PUT] :
- * {@link SettingsProfile#onPutSoundVolume(Intent, Intent, String, 
- * org.deviceconnect.profile.SettingsProfileConstants.VolumeKind, Double))}</li>
+ * {@link SettingsProfile#onPutSoundVolume(Intent, Intent, String, VolumeKind, Double)}</li>
  * <li>Date Settings API [GET] :
  * {@link SettingsProfile#onGetDate(Intent, Intent, String)}</li>
  * <li>Date Settings API [PUT] :

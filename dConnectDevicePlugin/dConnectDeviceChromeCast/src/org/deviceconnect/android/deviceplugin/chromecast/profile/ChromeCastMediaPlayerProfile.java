@@ -7,20 +7,17 @@
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
 import java.io.File;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.http.conn.util.InetAddressUtils;
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
+import org.deviceconnect.android.deviceplugin.chromecast.core.MediaFile;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -34,9 +31,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.webkit.MimeTypeMap;
 
-import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.MediaStatus;
 
 /**
@@ -55,7 +50,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     /** Chromecastの再生状態がバッファリング中であることを表す. */
     private static final String MESSAGE_BUFFERING                   = "buffering";
     /** Chromecastの再生状態がstop状態であることを表す. */
-    private static final String MESSAGE_IDLE                        = "stop";
+    private static final String MESSAGE_STOP = "stop";
     /** Chromecastの再生状態がpause状態であることを表す. */
     private static final String MESSAGE_PAUSED                      = "pause";
     /** Chromecastの再生状態がplay状態であることを表す. */
@@ -70,7 +65,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     private static final String ERROR_MESSAGE_PLAYSTATE_IS_NOT      = "Playstate is not";
     /** メディアファイルのPlay時のエラーメッセージ. */
     private static final String ERROR_MESSAGE_MEDIA_PLAY            = ERROR_MESSAGE_PLAYSTATE_IS_NOT
-                                                            + " " + MESSAGE_IDLE + " or " + MESSAGE_PAUSED;
+                                                            + " " + MESSAGE_STOP + " or " + MESSAGE_PAUSED;
     /** メディアファイルのResume時のエラーメッセージ. */
     private static final String ERROR_MESSAGE_MEDIA_RESUME          = ERROR_MESSAGE_PLAYSTATE_IS_NOT 
                                                                                 + " " + MESSAGE_PAUSED;
@@ -87,8 +82,42 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     private static final String ERROR_MESSAGE_MEDIA_VOLUME          = ERROR_MESSAGE_MEDIA_MUTE;
     /** メディアファイルのSeek変更時のエラーメッセージ. */
     private static final String ERROR_MESSAGE_MEDIA_SEEK            = ERROR_MESSAGE_MEDIA_MUTE;
-    /** 再生中のメディアファイルのID. */
-    private String mMediaId = null;
+
+    /** メディア情報の{@link java.util.Comparator}のマップ. */
+    private static final Map<String, ParamComparator> COMPARATORS = new HashMap<String, ParamComparator>();
+
+    /** 比較をしない{@link java.util.Comparator}. */
+    private static final Comparator<Bundle> NOT_COMPARATOR = new Comparator<Bundle>() {
+        @Override
+        public int compare(final Bundle a, final Bundle b) {
+            return 0;
+        }
+    };
+
+    static {
+        COMPARATORS.put(PARAM_TYPE, new ParamComparator(PARAM_TYPE));
+        COMPARATORS.put(PARAM_LANGUAGE, new ParamComparator(PARAM_LANGUAGE));
+        COMPARATORS.put(PARAM_MEDIA_ID, new ParamComparator(PARAM_MEDIA_ID));
+        COMPARATORS.put(PARAM_MIME_TYPE, new ParamComparator(PARAM_MIME_TYPE));
+        COMPARATORS.put(PARAM_TITLE, new ParamComparator(PARAM_TITLE));
+        COMPARATORS.put(PARAM_DURATION, new ParamComparator(PARAM_DURATION));
+    }
+
+    /**
+     * 指定したパラメータに対する{@link java.util.Comparator}を返す.
+     *
+     * @param paramName パラメータ名
+     * @param isAsc 昇順である場合は<code>true</code>、そうでなければ<code>false</code>
+     * @return {@link java.util.Comparator}
+     */
+    private static Comparator<Bundle> findComparator(final String paramName, final boolean isAsc) {
+        ParamComparator comparator = COMPARATORS.get(paramName);
+        if (comparator != null) {
+            comparator.setOrder(isAsc);
+            return comparator;
+        }
+        return NOT_COMPARATOR;
+    }
 
     /**
      * 再生状態を文字列に変換する.
@@ -101,7 +130,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         case MediaStatus.PLAYER_STATE_BUFFERING:
             return MESSAGE_BUFFERING;
         case MediaStatus.PLAYER_STATE_IDLE:
-            return MESSAGE_IDLE;
+            return MESSAGE_STOP;
         case MediaStatus.PLAYER_STATE_PAUSED:
             return MESSAGE_PAUSED;
         case MediaStatus.PLAYER_STATE_PLAYING:
@@ -114,7 +143,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * サービスからChromeCastMediaPlayerを取得する.
-     * @param   なし
      * @return  ChromeCastMediaPlayer
      */
     private ChromeCastMediaPlayer getChromeCastApplication() {
@@ -132,7 +160,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     private boolean isDeviceEnable(final Intent response, final ChromeCastMediaPlayer app) {
         if (!app.isDeviceEnable()) {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_DEVICE_NOT_ENABLE);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return false;
         }
         return true;
@@ -142,13 +169,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      * メディアの状態を取得する.
      * @param   response    レスポンス
      * @param   app         ChromeCastMediaPlayer
-     * @return  デバイスが有効か否か（有効: true, 無効: false）
+     * @return  デバイスが有効か否か（有効: {@link MediaStatus}, 無効: <code>null</code>）
      */
     private MediaStatus getMediaStatus(final Intent response, final ChromeCastMediaPlayer app) {
         MediaStatus status = app.getMediaStatus();
         if (status == null) {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_NOT_SELECTED);
-            setResult(response, DConnectMessage.RESULT_ERROR);
         }
         return status;
     }
@@ -165,6 +191,10 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return true;
         }
 
+        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
         if (status.getPlayerState() == MediaStatus.PLAYER_STATE_IDLE) {
             app.play(response);
             return false;
@@ -173,7 +203,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return false;
         } else {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_PLAY);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return true;
         }
     }
@@ -190,12 +219,15 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return true;
         }
 
+        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
         if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
             app.resume(response);
             return false;
         } else {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_RESUME);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return true;
         }
     }
@@ -212,6 +244,10 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return true;
         }
 
+        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_IDLE) {
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
         if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
                 || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED
                 || status.getPlayerState() == MediaStatus.PLAYER_STATE_BUFFERING) {
@@ -219,7 +255,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return false;
         } else {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_STOP);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return true;
         }
     }
@@ -236,12 +271,15 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return true;
         }
 
+        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
         if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
             app.pause(response);
             return false;
         } else {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_PAUSE);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return true;
         }
     }
@@ -272,7 +310,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             return false;
         } else {
             MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_MUTE);
-            setResult(response, DConnectMessage.RESULT_ERROR);
             return true;
         }
     }
@@ -336,7 +373,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 return false;
             } else {
                 MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_VOLUME);
-                setResult(response, DConnectMessage.RESULT_ERROR);
                 return true;
             }
         }
@@ -395,7 +431,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 return false;
             } else {
                 MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_SEEK);
-                setResult(response, DConnectMessage.RESULT_ERROR);
                 return true;
             }
         }
@@ -443,58 +478,30 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onGetMedia(final Intent request, final Intent response,
             final String serviceId, final String mediaId) {
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
+        if (mediaId == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
             return true;
         }
-
-        MediaStatus status = getMediaStatus(response, app);
-        if (status == null) {
+        if (mediaId.equals("")) {
+            MessageUtils.setInvalidRequestParameterError(response, "mediaId is empty.");
             return true;
         }
-        String playStatus = getPlayStatus(status.getPlayerState());
-        response.putExtra(DConnectMessage.EXTRA_RESULT,
-                DConnectMessage.RESULT_OK);
-        response.putExtra(MediaPlayerProfile.PARAM_MIME_TYPE, status
-                .getMediaInfo().getContentType());
-        response.putExtra(MediaPlayerProfile.PARAM_TITLE, status
-                .getMediaInfo().getMetadata()
-                .getString(MediaMetadata.KEY_TITLE));
-        response.putExtra(MediaPlayerProfile.PARAM_MEDIA_ID, this.mMediaId);
-        response.putExtra(MediaPlayerProfile.PARAM_DURATION, status
-                .getMediaInfo().getStreamDuration() / MILLISECOND);
-        response.putExtra(MediaPlayerProfile.PARAM_POS,
-                status.getStreamPosition() / MILLISECOND);
-        response.putExtra(MediaPlayerProfile.PARAM_STATUS, playStatus);
+        Bundle media = getMedia(mediaId);
+        for (String key : media.keySet()) {
+            Object value = media.get(key);
+            if (value instanceof String) {
+                response.putExtra(key, (String) value);
+            } else if (value instanceof String[]) {
+                response.putExtra(key, (String[]) value);
+            }  else if (value instanceof Long) {
+                response.putExtra(key, (Long) value);
+            } else if (value instanceof Bundle) {
+                response.putExtra(key, (Bundle) value);
+            }
+        }
 
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
-    }
-
-    /**
-     * MD5の文字列を生成する.
-     * 
-     * @param   str     文字列
-     * @return  result  MD5文字列	
-     */
-    private String getMd5(final String str) {
-        String result = null;
-        try {
-            MessageDigest digest = MessageDigest.getInstance("MD5");
-            digest.update(str.getBytes());
-            byte[] hash = digest.digest();
-            StringBuffer hex = new StringBuffer();
-            for (int i = 0; i < hash.length; i++) {
-                hex.append(Integer.toHexString(0xFF & hash[i]));
-            }
-            result = hex.toString();
-        } catch (NoSuchAlgorithmException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-        return result;
     }
 
     /**
@@ -521,39 +528,40 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     /**
-     * mediaIdからdummyUrlを生成する.
+     * 指定したメディアをローカルサーバ上で公開する.
      * 
      * @param   mediaId     メディアID
      * @return  dummyUrl    ダミーURL
      */
-    private String getDummyUrlFromMediaId(final int mediaId) {
+    private String exposeMedia(final int mediaId) {
         Uri targetUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         String path = getPathFromUri(ContentUris.withAppendedId(targetUri,
                 Long.valueOf(mediaId)));
-
         if (path == null) {
             return null;
         }
 
         ChromeCastHttpServer server = ((ChromeCastService) getContext())
                 .getChromeCastHttpServer();
-        String dir = new File(path).getParent();
-        String realName = new File(path).getName();
-        String extension = MimeTypeMap.getFileExtensionFromUrl(realName);
-        String md5 = getMd5("" + System.currentTimeMillis());
-        if (md5 == null) {
-            return null;
-        }
-        String dummyName = md5 + "." + extension;
-        
-        server.setFilePath(dir, realName, "/" + dummyName);
-        return "http://" + getIpAddress() + ":" + server.getListeningPort()
-                + "/" + dummyName;
+        return server.exposeFile(new MediaFile(new File(path), null));
     }
 
     @Override
     protected boolean onPutMedia(final Intent request, final Intent response,
             final String serviceId, final String mediaId) {
+        if (mediaId == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
+            return true;
+        }
+        if (mediaId.equals("")) {
+            MessageUtils.setInvalidRequestParameterError(response, "mediaId is empty.");
+            return true;
+        }
+        if (!hasMedia(mediaId)) {
+            MessageUtils.setInvalidRequestParameterError(response, "media is not found.");
+            return true;
+        }
+
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -563,21 +571,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         String title = null;
         Integer mId = -1;
 
-        if (mediaId == null) {
-            response.putExtra(DConnectMessage.EXTRA_VALUE, "mediaId is null");
-            setResult(response, DConnectMessage.RESULT_ERROR);
-            return true;
-        }
-
         try {
             mId = Integer.parseInt(mediaId);
         } catch (NumberFormatException e) {
             url = mediaId;
         }
 
-        if (url != null) {
-            this.mMediaId = mediaId;
-        } else {
+        if (url == null) {
             Cursor cursor = getCursorFrom(
                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                     MediaStore.Video.Media._ID, mediaId);
@@ -588,7 +588,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             } else {
                 title = cursor.getString(cursor
                         .getColumnIndex(MediaStore.Video.Media.TITLE));
-                url = getDummyUrlFromMediaId(mId);
+                url = exposeMedia(mId);
                 cursor.close();
                 if (url == null) {
                     response.putExtra(DConnectMessage.EXTRA_VALUE, "url is null");
@@ -596,7 +596,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                     return true;
                 }
             }
-            this.mMediaId = mId.toString();
         }
 
         if (title == null) {
@@ -606,37 +605,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         app.load(response, url, title);
 
         return false;
-    }
-
-    /**
-     * IPアドレスを取得する.
-     * 
-     * @return  IPアドレス
-     */
-    private String getIpAddress() {
-        try {
-            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface
-                    .getNetworkInterfaces();
-            while (networkInterfaces.hasMoreElements()) {
-                NetworkInterface networkInterface = (NetworkInterface) networkInterfaces
-                        .nextElement();
-                Enumeration<InetAddress> ipAddrs = networkInterface
-                        .getInetAddresses();
-                while (ipAddrs.hasMoreElements()) {
-                    InetAddress ip = (InetAddress) ipAddrs.nextElement();
-                    String ipStr = ip.getHostAddress();
-                    if (!ip.isLoopbackAddress()
-                            && InetAddressUtils.isIPv4Address(ipStr)) {
-                        return ipStr;
-                    }
-                }
-            }
-        } catch (SocketException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-        }
-        return null;
     }
 
     /**
@@ -724,29 +692,26 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      */
     private void listupMedia(final String mediaType, final List<Bundle> list, final String filter,
             final String orderBy) {
-        Uri uriType = null;
+        Uri uri = null;
 
         if (mediaType.equals("Video")) {
-            uriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+            uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
         } else if (mediaType.equals("Audio")) {
-            uriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+            uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         } else if (mediaType.equals("Image")) {
-            uriType = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         }
-        ContentResolver mContentResolver = this.getContext()
-                .getApplicationContext().getContentResolver();
-        Cursor cursorVideo = mContentResolver.query(uriType, null, filter,
-                null, orderBy);
-        if (cursorVideo != null) {
-            cursorVideo.moveToFirst();
-            if (cursorVideo.getCount() > 0) {
+        ContentResolver resolver = this.getContext().getApplicationContext().getContentResolver();
+        Cursor cursor = resolver.query(uri, null, filter, null, orderBy);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
                 do {
                     Bundle medium = new Bundle();
-                    setMediaInformation(mediaType, medium, cursorVideo);
+                    setMediaInformation(mediaType, medium, cursor);
                     list.add(medium);
-                } while (cursorVideo.moveToNext());
+                } while (cursor.moveToNext());
             }
-            cursorVideo.close();
+            cursor.close();
         }
     }
 	
@@ -762,7 +727,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     private void listupMedia(final String mediaType, final List<Bundle> list, final String query,
             final String mimeType, final String[] orders) {
         String filter = "";
-        String orderBy = "";
+        String orderBy;
 
         if (mimeType != null) {
             String key = null;
@@ -780,12 +745,12 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 filter += " AND ";
             }
             if (mediaType.equals("Video")) {
-                filter += "(" + MediaStore.Video.Media.TITLE + " LIKE '%" + query + "%'";
+                filter += "(" + MediaStore.Video.Media.TITLE + " LIKE '%" + query + "%')";
             } else if (mediaType.equals("Audio")) {
                 filter += "(" + MediaStore.Audio.Media.TITLE + " LIKE '%" + query + "%'";
                 filter += " OR " + MediaStore.Audio.Media.COMPOSER + " LIKE '%" + query + "%')";
             } else if (mediaType.equals("Image")) {
-                filter += "(" + MediaStore.Images.Media.TITLE + " LIKE '%" + query + "%'";
+                filter += "(" + MediaStore.Images.Media.TITLE + " LIKE '%" + query + "%')";
             }
         }
 
@@ -798,31 +763,136 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         listupMedia(mediaType, list, filter, orderBy);
     }
 
-    @Override
-    protected boolean onGetMediaList(final Intent request, final Intent response,
-            final String serviceId, final String query, final String mimeType,
-            final String[] orders, final Integer offset, final Integer limit) {
+    /**
+     * デバイス内のメディアを全検索する.
+     * @param query 検索するタイトル
+     * @param mimeType マイムタイプ
+     * @return 検索結果
+     */
+    private List<Bundle> findAllMedia(final String query, final String mimeType) {
         List<Bundle> list = new ArrayList<Bundle>();
 
-        Bundle medium = null;
-        Bundle creatorVideo = null;
-        
-        medium = new Bundle();
+        Bundle medium = new Bundle();
         setType(medium, "Video");
         setLanguage(medium, "Language");
-        setMediaId(medium, "https://raw.githubusercontent.com/DeviceConnect/DeviceConnect/master/sphero_demo.MOV");
-        setMIMEType(medium, "mov");
+        setMediaId(medium, "https://github.com/DeviceConnect/DeviceConnect-Android/wiki/sphero_demo.MOV");
+        setMIMEType(medium, "video/quicktime");
         setTitle(medium, "Title: Sample");
         setDuration(medium, 9999);
-        creatorVideo = new Bundle();
+        Bundle creatorVideo = new Bundle();
         setCreator(creatorVideo, "Creator: Sample");
         setCreators(medium, new Bundle[] {creatorVideo});
         list.add(medium);
 
-        listupMedia("Video", list, query, mimeType, orders);
+        listupMedia("Video", list, query, mimeType, null);
+        return list;
+    }
 
-        setCount(response, list.size());
-        setMedia(response, list.toArray(new Bundle[list.size()]));
+    /**
+     * 指定したメディアの情報を取得する.
+     * @param mediaId メディアID
+     * @return メディア情報
+     */
+    private Bundle getMedia(final String mediaId) {
+        List<Bundle> list = findAllMedia(null, null);
+        for (Bundle b : list) {
+            String id = b.getString(PARAM_MEDIA_ID);
+            if (id.equals(mediaId)) {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 指定したメディアを保有しているかどうかをチェックする.
+     * @param mediaId メディアID
+     * @return 保有している場合は<code>true</code>、そうでない場合は<code>false</code>
+     */
+    private boolean hasMedia(final String mediaId) {
+        return getMedia(mediaId) != null;
+    }
+
+    @Override
+    protected boolean onGetMediaList(final Intent request, final Intent response,
+            final String serviceId, final String query, final String mimeType,
+            final String[] orders, final Integer offset, final Integer limit) {
+
+        // パラメータの型チェック
+        Bundle b = request.getExtras();
+        if (b.getString(PARAM_LIMIT) != null) {
+            if (parseInteger(b.get(PARAM_LIMIT)) == null) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return true;
+            }
+        }
+        if (b.getString(PARAM_OFFSET) != null) {
+            if (parseInteger(b.get(PARAM_OFFSET)) == null) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return true;
+            }
+        }
+
+        // パラメータの範囲チェック
+        if (orders != null && orders.length != 2) {
+            MessageUtils.setInvalidRequestParameterError(response, "order is invalid.");
+            return true;
+        }
+        final int offsetValue;
+        if (offset != null) {
+            if (offset >= 0) {
+                offsetValue = offset;
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response, "offset is negative.");
+                return true;
+            }
+        } else {
+            offsetValue = 0;
+        }
+        if (limit != null && limit < 0) {
+            MessageUtils.setInvalidRequestParameterError(response, "limit is negative.");
+            return true;
+        }
+
+        Comparator<Bundle> comparator = null;
+        if (orders != null) {
+            boolean isAsc;
+            Order o = Order.getInstance(orders[1]);
+            switch (o) {
+                case ASC:
+                    isAsc = true;
+                    break;
+                case DSEC:
+                    isAsc = false;
+                    break;
+                default:
+                    MessageUtils.setInvalidRequestParameterError(response, "order is invalid.");
+                    return true;
+            }
+            comparator = findComparator(orders[0], isAsc);
+        }
+
+        // メディアリストのソート
+        List<Bundle> foundMedia = findAllMedia(query, mimeType);
+        if (comparator != null) {
+            Collections.sort(foundMedia, comparator);
+        }
+
+        final int limitValue = limit != null ? limit : foundMedia.size();
+        int endIndex = offsetValue + limitValue;
+        if (endIndex > foundMedia.size()) {
+            endIndex = foundMedia.size();
+        }
+
+        List<Bundle> result;
+        if (offsetValue < foundMedia.size()) {
+            result = foundMedia.subList(offsetValue, endIndex);
+        } else {
+            result = new ArrayList<Bundle>();
+        }
+
+        setCount(response, result.size());
+        setMedia(response, result.toArray(new Bundle[result.size()]));
         setResult(response, DConnectMessage.RESULT_OK);
 
         return true;
@@ -857,6 +927,74 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             MessageUtils.setError(response, ERROR_VALUE_IS_NULL,
                     "Can not unregister event.");
             return true;
+        }
+    }
+
+    /**
+     * パラメータ比較クラス.
+     */
+    private static class ParamComparator implements Comparator<Bundle> {
+
+        /** 比較するパラメータ名. */
+        private final String mParamName;
+        /** 昇順であることを示すフラグ. */
+        private boolean mIsAsc;
+
+        /**
+         * コンストラクタ.
+         *
+         * @param paramName パラメータ名
+         */
+        ParamComparator(final String paramName) {
+            mParamName = paramName;
+        }
+
+        /**
+         * ソート順を設定する.
+         * @param isAsc 昇順である場合は<code>true</code>、そうでなければ<code>false</code>
+         */
+        public void setOrder(final boolean isAsc) {
+            mIsAsc = isAsc;
+        }
+
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        @Override
+        public int compare(final Bundle a, final Bundle b) {
+            Object va = a.get(mParamName);
+            Object vb = b.get(mParamName);
+            if (!mIsAsc) {
+                Object vt = va;
+                va = vb;
+                vb = vt;
+            }
+            if (va == null && vb == null) {
+                return 0;
+            }
+            if (va != null && vb == null) {
+                return -1;
+            }
+            if (va == null && vb != null) {
+                return 1;
+            }
+            if (va.getClass() != vb.getClass()) {
+                return 0;
+            }
+            if (va instanceof Comparable && !(vb instanceof Comparable)) {
+                return -1;
+            }
+            if (!(va instanceof Comparable) && vb instanceof Comparable) {
+                return 1;
+            }
+            if (!(va instanceof Comparable) && !(vb instanceof Comparable)) {
+                return 0;
+            }
+            if (va instanceof Comparable && !(vb instanceof Comparable)) {
+                return -1;
+            }
+            if (!(va instanceof Comparable) && vb instanceof Comparable) {
+                return 1;
+            }
+            return ((Comparable) va).compareTo(vb);
         }
     }
 }

@@ -41,9 +41,6 @@ public class HostConnectProfile extends ConnectProfile {
     /** Bluetooth Adapter. */
     private BluetoothAdapter mBluetoothAdapter;
 
-    /** Error. */
-    private static final int ERROR_VALUE_IS_NULL = 100;
-
     /**
      * コンストラクタ.
      * 
@@ -431,7 +428,7 @@ public class HostConnectProfile extends ConnectProfile {
      * @param enabled WiFi接続状態
      */
     protected void setEnabledNfc(final Intent request, final Intent response, final boolean enabled) {
-        MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "not support change status of nfc.");
+        MessageUtils.setNotSupportActionError(response, "not support change status of nfc.");
     }
 
     /**

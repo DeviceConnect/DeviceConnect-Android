@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Host 1.0.11</string>
+    <string name="app_name">Host 2.0.0</string>
     <string name="action_settings">Settings</string>
     
     <string name="about">About</string>
@@ -25,6 +25,7 @@
     <string name="touch_activity">Touch Activity</string>
     
     <string name="canvas_profile_view_close_guidance">tap to close.</string>
+    <string name="keyevent_activity">Key Event Activity</string>
 
     <string name="overlay_preview">●PREVIEW</string>
 </resources>

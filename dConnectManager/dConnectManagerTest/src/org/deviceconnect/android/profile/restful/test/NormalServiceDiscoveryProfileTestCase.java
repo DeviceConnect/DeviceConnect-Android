@@ -9,6 +9,7 @@ package org.deviceconnect.android.profile.restful.test;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
+import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONArray;
@@ -53,6 +54,7 @@ public class NormalServiceDiscoveryProfileTestCase extends
     public void testGetServices() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
             HttpUriRequest request = new HttpGet(builder.toString());
             JSONObject response = sendRequest(request);

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.deviceconnect.android.deviceplugin.sw"
-    android:versionCode="4"
-    android:versionName="1.0.3" >
+    android:versionCode="1"
+    android:versionName="2.0.0" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -61,7 +61,7 @@
             android:exported="false" >
         </service>
 
-        <!-- 再起動用のServcie. -->
+        <!-- 再起動用のService. -->
         <service
             android:name="org.deviceconnect.android.message.DConnectLaunchService"
             android:exported="true" >
@@ -114,7 +114,9 @@
                 <action android:name="com.sonyericsson.extras.aef.control.KEY_EVENT" />
                 <action android:name="com.sonyericsson.extras.aef.control.TOUCH_EVENT" />
                 <action android:name="com.sonyericsson.extras.aef.control.SWIPE_EVENT" />
-            </intent-filter>
+                <action android:name="com.sonyericsson.extras.aef.control.OBJECT_CLICK_EVENT" />
+                <action android:name="com.sonyericsson.extras.aef.control.MENU_ITEM_SELECTED" />
+                </intent-filter>
         </receiver>
     </application>
 

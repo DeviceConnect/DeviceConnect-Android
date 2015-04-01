@@ -57,12 +57,12 @@ public class WearNotificationProfile extends NotificationProfile {
             NotificationManagerCompat myNotificationManager = null;
             int myNotificationId = mRandom.nextInt(Integer.MAX_VALUE);
 
-            Intent mIntent = new Intent(getContext(),
+            Intent intent = new Intent(getContext(),
                     org.deviceconnect.android.deviceplugin.wear.WearDeviceService.class);
-            mIntent.setAction(WearConst.DEVICE_TO_WEAR_NOTIFICATION_OPEN);
-            mIntent.putExtra(WearConst.PARAM_DEVICEID, serviceId);
-            mIntent.putExtra(WearConst.PARAM_NOTIFICATIONID, myNotificationId);
-            PendingIntent pendingIntent = PendingIntent.getService(getContext(), 0, mIntent,
+            intent.setAction(WearConst.DEVICE_TO_WEAR_NOTIFICATION_OPEN);
+            intent.putExtra(WearConst.PARAM_DEVICEID, serviceId);
+            intent.putExtra(WearConst.PARAM_NOTIFICATIONID, myNotificationId);
+            PendingIntent pendingIntent = PendingIntent.getService(getContext(), 0, intent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
 
             switch (type) {
@@ -103,13 +103,12 @@ public class WearNotificationProfile extends NotificationProfile {
             
             List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
                     null, WearNotificationProfile.ATTRIBUTE_ON_SHOW);
-
             synchronized (events) {
                 for (int i = 0; i < events.size(); i++) {
                     Event event = events.get(i);
-                    Intent intent = EventManager.createEventMessage(event);
-                    intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
-                    getContext().sendBroadcast(intent);
+                    Intent mIntent = EventManager.createEventMessage(event);
+                    mIntent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, myNotificationId);
+                    getContext().sendBroadcast(mIntent);
                 }
             }
         }
@@ -126,20 +125,14 @@ public class WearNotificationProfile extends NotificationProfile {
         } else if (notificationId == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            NotificationManager mNotificationManager = (NotificationManager) getContext().getSystemService(
-                    Context.NOTIFICATION_SERVICE);
-            mNotificationManager.cancel(Integer.parseInt(notificationId));
-            setResult(response, IntentDConnectMessage.RESULT_OK);
-
-            List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
-                    null, WearNotificationProfile.ATTRIBUTE_ON_CLOSE);
-            synchronized (events) {
-                for (int i = 0; i < events.size(); i++) {
-                    Event event = events.get(i);
-                    Intent intent = EventManager.createEventMessage(event);
-                    intent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
-                    getContext().sendBroadcast(intent);
-                }
+            NotificationManager manager = (NotificationManager) getContext()
+                    .getSystemService(Context.NOTIFICATION_SERVICE);
+            try {
+                manager.cancel(Integer.parseInt(notificationId));
+                setResult(response, DConnectMessage.RESULT_OK);
+            } catch (NumberFormatException e) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "notificationId is invalid.");
             }
         }
         return true;
@@ -157,58 +150,22 @@ public class WearNotificationProfile extends NotificationProfile {
         } else {
             // Event registration.
             EventError error = EventManager.INSTANCE.addEvent(request);
-            if (error == EventError.NONE) {
+            switch (error) {
+            case NONE:
                 setResult(response, DConnectMessage.RESULT_OK);
-                return true;
-            } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
-                return true;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPutOnClose(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-
-            // Event registration.
-            EventError error = EventManager.INSTANCE.addEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-                return true;
-            } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
-                return true;
-            }
-
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onPutOnShow(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            // Event registration.
-            EventError error = EventManager.INSTANCE.addEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
+                break;
+            case FAILED:
+                MessageUtils.setUnknownError(response, "Do not register event.");
+                break;
+            case INVALID_PARAMETER:
+                MessageUtils.setInvalidRequestParameterError(response);
+                break;
+            case NOT_FOUND:
+                MessageUtils.setUnknownError(response, "Event not found.");
+                break;
+            default:
+                MessageUtils.setUnknownError(response);
+                break;
             }
         }
         return true;
@@ -226,52 +183,22 @@ public class WearNotificationProfile extends NotificationProfile {
         } else {
             // Event release.
             EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
+            switch (error) {
+            case NONE:
                 setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
-            }
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onDeleteOnClose(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            // Event release.
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
-            }
-        }
-        return true;
-    }
-
-    @Override
-    protected boolean onDeleteOnShow(final Intent request, final Intent response, final String serviceId,
-            final String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else if (!WearUtils.checkServiceId(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-        } else if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            // Event release.
-            EventError error = EventManager.INSTANCE.removeEvent(request);
-            if (error == EventError.NONE) {
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                setResult(response, DConnectMessage.RESULT_ERROR);
+                break;
+            case FAILED:
+                MessageUtils.setUnknownError(response, "Do not unregister event.");
+                break;
+            case INVALID_PARAMETER:
+                MessageUtils.setInvalidRequestParameterError(response);
+                break;
+            case NOT_FOUND:
+                MessageUtils.setUnknownError(response, "Event not found.");
+                break;
+            default:
+                MessageUtils.setUnknownError(response);
+                break;
             }
         }
         return true;

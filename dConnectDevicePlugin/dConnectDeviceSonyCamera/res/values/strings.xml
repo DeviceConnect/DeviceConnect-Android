@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Sony Camera 1.0.4</string>
+    <string name="app_name">Sony Camera 2.0.0</string>
 
     <string name="sonycamera_no_device"></string>
     <string name="sonycamera_setting_message_QX_1_1">Sonyカメラとの接続</string>

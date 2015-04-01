@@ -94,11 +94,12 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     /** Defines a period 50 millisecond between server shutdown. */
     private static final int PERIOD_WAIT_TIME = 50;
 
+    /** ターゲットID. */
+    private static final String TARGET_ID = "sonycamera";
+
     /** ロガー. */
     private Logger mLogger = Logger.getLogger("sonycamera.dplugin");
 
-    /** カメラステータス. */
-    private String mRecorderState = "";
     /** 接続中カメラが利用できるRemote API一覧. */
     private String mAvailableApiList = "";
 
@@ -304,63 +305,6 @@ public class SonyCameraDeviceService extends DConnectMessageService {
     }
 
     /**
-     * フラッシュモード設定メソッド.
-     * 
-     * @param request リクエスト
-     * @param response レスポンス
-     * @param serviceId サービスID
-     * @param flashMode フラッシュモード
-     * @return response レスポンス
-     */
-    public boolean onPutFlashMode(final Intent request, final Intent response, final String serviceId,
-            final String flashMode) {
-        final String[] modeList = {"off", "auto", "on", "slowSync", "rearSync", "wireless"};
-        boolean checkResult = false;
-        if (serviceId == null || !serviceId.equals(SERVICE_ID)) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-        for (String modecheck : modeList) {
-            if (flashMode.equals(modecheck)) {
-                checkResult = true;
-            }
-        }
-        if (!checkResult) {
-            MessageUtils.setInvalidRequestParameterError(response, "Not found " + flashMode + " in FlashModeList.");
-            return true;
-        }
-
-        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        mExecutor.execute(new Runnable() {
-
-            @Override
-            public void run() {
-
-                try {
-                    JSONObject replyJson = mRemoteApi.getFlashMode();
-                    if (isErrorReply(replyJson)) {
-                        sendErrorResponse(request, response);
-                    } else {
-                        try {
-                            JSONArray resultsObj = replyJson.getJSONArray("result");
-                            if (resultsObj != null) {
-                                sendResponse(request, response);
-                            }
-                        } catch (JSONException e) {
-                            MessageUtils.setInvalidRequestParameterError(response);
-                            sendErrorResponse(request, response);
-                        }
-                    }
-                } catch (IOException e) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    sendErrorResponse(request, response);
-                }
-            }
-        });
-        return true;
-    }
-
-    /**
      * カメラの情報を取得する.
      * 
      * @param request リクエスト
@@ -368,7 +312,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      * @param serviceId サービスID
      * @return 即座にレスポンスする場合はtrue、それ以外はfalse
      */
-    public boolean getMediaRecorder(final Intent request, final Intent response, final String serviceId) {
+    public boolean onGetMediaRecorder(final Intent request, final Intent response, final String serviceId) {
 
         if (serviceId == null || !serviceId.equals(SERVICE_ID)) {
             MessageUtils.setEmptyServiceIdError(response);
@@ -376,7 +320,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
         }
 
         if (mAvailableApiList == null) {
-            MessageUtils.setUnknownError(response);
+            MessageUtils.setIllegalDeviceStateError(response, "device is not ready.");
             return true;
         }
 
@@ -384,84 +328,148 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             MessageUtils.setNotSupportAttributeError(response);
             return true;
         }
-        
+
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-
-                String aspect = "";
-                String size = "";
-                String cameraState = "";
                 try {
-                    JSONObject replyJson = mRemoteApi.getStillSize();
-                    if (!isErrorReply(replyJson)) {
-                        JSONArray resultsObj = replyJson.getJSONArray("result");
-                        replyJson = resultsObj.getJSONObject(0);
-                        aspect = replyJson.getString("aspect");
-                        size = replyJson.getString("size");
-                    }
-
-                    replyJson = mRemoteApi.getEvent(false);
-                    if (!isErrorReply(replyJson)) {
-                        JSONArray resultObject = replyJson.getJSONArray("result");
-                        replyJson = resultObject.getJSONObject(1);
-                        cameraState = replyJson.getString("cameraStatus");
-                    }
+                    getMediaRecorder(request, response);
                 } catch (IOException e) {
                     sendErrorResponse(request, response);
-                    return;
                 } catch (JSONException e) {
                     sendErrorResponse(request, response);
-                    return;
-                }
-
-                int width = 0;
-                int height = 0;
-                int index = aspect.indexOf(":");
-                if (index == -1) {
-                    sendErrorResponse(request, response);
-                } else {
-                    width = Integer.valueOf(aspect.substring(0, index));
-                    height = Integer.valueOf(aspect.substring(index + 1));
-                    int stillSize = (int) pixelValueCalculate(width, height, size);
-
-                    if (cameraState.equals("Error") || cameraState.equals("NotReady")
-                            || cameraState.equals("MovieSaving") || cameraState.equals("AudioSaving")
-                            || cameraState.equals("StillSaving") || cameraState.equals("IDLE")) {
-                        mRecorderState = "inactive";
-                    } else if (cameraState.equals("StillCapturing") || cameraState.equals("MediaRecording")
-                            || cameraState.equals("AudioRecording") || cameraState.equals("IntervalRecording")) {
-                        mRecorderState = "recording";
-                    } else if (cameraState.equals("MovieWaitRecStart") || cameraState.equals("MoviewWaitRecStop")
-                            || cameraState.equals("AudioWaitRecStart") || cameraState.equals("AudioRecWaitRecStop")
-                            || cameraState.equals("IntervalWaitRecStart")
-                            || cameraState.equals("IntervalWaitRecStop")) {
-                        mRecorderState = "paused";
-                    }
-
-                    if (stillSize == 0) {
-                        sendErrorResponse(request, response);
-                    } else {
-                        width *= stillSize;
-                        height *= stillSize;
-                        List<Bundle> recorders = new ArrayList<Bundle>();
-                        Bundle recorder = new Bundle();
-                        recorder.putString(MediaStreamRecordingProfile.PARAM_ID, serviceId);
-                        recorder.putString(MediaStreamRecordingProfile.PARAM_NAME, DEVICE_NAME);
-                        recorder.putString(MediaStreamRecordingProfile.PARAM_STATE, mRecorderState);
-                        recorder.putInt(MediaStreamRecordingProfile.PARAM_IMAGE_WIDTH, width);
-                        recorder.putInt(MediaStreamRecordingProfile.PARAM_IMAGE_HEIGHT, height);
-                        recorder.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
-                        recorders.add(recorder);
-                        response.putExtra(MediaStreamRecordingProfile.PARAM_RECORDERS,
-                                recorders.toArray(new Bundle[recorders.size()]));
-                        sendResponse(request, response);
-                    }
                 }
             }
         });
         return false;
+    }
+
+    /**
+     * カメラ情報を取得する.
+     * @param request リクエスト
+     * @param response レスポンス
+     * @throws IOException SonyCameraとの通信に失敗した場合に発生
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
+    private void getMediaRecorder(final Intent request, final Intent response)
+            throws IOException, JSONException {
+
+        List<Bundle> recorders = new ArrayList<Bundle>();
+
+        String state = convertCameraState(getCameraState());
+        int[] size = getCameraSize();
+
+        Bundle recorder = new Bundle();
+        recorder.putString(MediaStreamRecordingProfile.PARAM_ID, TARGET_ID);
+        recorder.putString(MediaStreamRecordingProfile.PARAM_NAME, DEVICE_NAME);
+        recorder.putString(MediaStreamRecordingProfile.PARAM_STATE, state);
+        if (size != null) {
+            recorder.putInt(MediaStreamRecordingProfile.PARAM_IMAGE_WIDTH, size[0]);
+            recorder.putInt(MediaStreamRecordingProfile.PARAM_IMAGE_HEIGHT, size[1]);
+        }
+        recorder.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
+        recorders.add(recorder);
+
+        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+        response.putExtra(MediaStreamRecordingProfile.PARAM_RECORDERS,
+                recorders.toArray(new Bundle[recorders.size()]));
+        sendResponse(request, response);
+    }
+
+    /**
+     * カメラのサイズを取得する.
+     * @return カメラのサイズ
+     * @throws IOException 通信に失敗した場合に発生
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
+    private String[] getStillSize() throws IOException, JSONException {
+        try {
+            JSONObject replyJson = mRemoteApi.getStillSize();
+            if (!isErrorReply(replyJson)) {
+                JSONArray resultsObj = replyJson.optJSONArray("result");
+                replyJson = resultsObj.optJSONObject(0);
+                String[] str = new String[2];
+                str[0] = replyJson.optString("aspect");
+                str[1] = replyJson.optString("size");
+                return str;
+            }
+        } catch (IOException e) {
+            // ファームウェアがアップデートされていないと使えない
+            return null;
+        }
+        return null;
+    }
+
+    /**
+     * カメラの状態を取得する.
+     * @return カメラの状態
+     * @throws IOException 通信に失敗した場合に発生
+     * @throws JSONException JSONの解析に失敗した場合に発生
+     */
+    private String getCameraState() throws IOException, JSONException {
+        JSONObject replyJson;
+        replyJson = mRemoteApi.getEvent(false);
+        if (!isErrorReply(replyJson)) {
+            JSONArray resultObject = replyJson.getJSONArray("result");
+            replyJson = resultObject.getJSONObject(1);
+            return replyJson.getString("cameraStatus");
+        }
+        return null;
+    }
+
+    /**
+     * カメラのサイズを取得する.
+     * @return カメラのサイズ
+     * @throws IOException 通信に失敗した場合に発生
+     * @throws JSONException JSONの解析に失敗した場合
+     */
+    private int[] getCameraSize() throws IOException, JSONException {
+        String[] stillSize = getStillSize();
+        if (stillSize != null) {
+            String aspect = stillSize[0];
+            String size = stillSize[1];
+            int width = 0;
+            int height = 0;
+            int index = aspect.indexOf(":");
+            if (index != -1) {
+                width = Integer.valueOf(aspect.substring(0, index));
+                height = Integer.valueOf(aspect.substring(index + 1));
+                int ss = (int) pixelValueCalculate(width, height, size);
+                if (ss != 0) {
+                    width *= ss;
+                    height *= ss;
+                }
+                
+                int[] s = new int[2];
+                s[0] = width;
+                s[1] = height;
+            }
+        }
+        return null;
+    }
+    /**
+     * カメラの状態をDeviceConnectの状態に変換する.
+     * @param cameraState カメラの状態
+     * @return DeviceConnectの状態
+     */
+    private String convertCameraState(final String cameraState) {
+        if (cameraState == null) {
+            return "unknown";
+        } else if (cameraState.equals("Error") || cameraState.equals("NotReady")
+                || cameraState.equals("MovieSaving") || cameraState.equals("AudioSaving")
+                || cameraState.equals("StillSaving") || cameraState.equals("IDLE")) {
+            return "inactive";
+        } else if (cameraState.equals("StillCapturing") || cameraState.equals("MediaRecording")
+                || cameraState.equals("AudioRecording") || cameraState.equals("IntervalRecording")) {
+            return "recording";
+        } else if (cameraState.equals("MovieWaitRecStart") || cameraState.equals("MoviewWaitRecStop")
+                || cameraState.equals("AudioWaitRecStart") || cameraState.equals("AudioRecWaitRecStop")
+                || cameraState.equals("IntervalWaitRecStart")
+                || cameraState.equals("IntervalWaitRecStop")) {
+            return "paused";
+        } else {
+            return "unknown";
+        }
     }
 
     /**
@@ -526,6 +534,14 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             mLogger.exiting(this.getClass().getName(), "onPostTakePhoto");
             MessageUtils.setEmptyServiceIdError(response);
             return true;
+        }
+
+        if (target != null) {
+            if (!TARGET_ID.equals(target)) {
+                MessageUtils.setInvalidRequestParameterError(
+                        response, "target is invalid.");
+                return true;
+            }
         }
 
         if (SONY_CAMERA_STATUS_RECORDING.equals(mEventObserver.getCameraStatus())) {
@@ -1424,7 +1440,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
                         DecimalFormat decimalFormat = new DecimalFormat("0.0#");
                         zoomDiameterParam = Double.valueOf(decimalFormat.format(zoomDiameterParam));
 
-                        response.putExtra(SonyCameraZoomProfile.PARAM_ZOOM_DIAMETER, zoomDiameterParam);
+                        response.putExtra(SonyCameraZoomProfile.PARAM_ZOOM_POSITION, zoomDiameterParam);
                         sendResponse(request, response);
                     }
                 } catch (IOException e) {

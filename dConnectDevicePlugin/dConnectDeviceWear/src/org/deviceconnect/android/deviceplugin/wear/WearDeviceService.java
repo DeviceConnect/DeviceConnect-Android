@@ -1,5 +1,5 @@
 /*
- WearServiceProvider.java
+ WearDeviceService.java
  Copyright (c) 2014 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -14,7 +14,9 @@ import org.deviceconnect.android.deviceplugin.wear.profile.WearDeviceOrientation
 import org.deviceconnect.android.deviceplugin.wear.profile.WearNotificationProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearSystemProfile;
+import org.deviceconnect.android.deviceplugin.wear.profile.WearTouchProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearVibrationProfile;
+import org.deviceconnect.android.deviceplugin.wear.profile.WearKeyEventProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
@@ -27,7 +29,7 @@ import android.content.Intent;
 
 /**
  * WearService.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class WearDeviceService extends DConnectMessageService {
@@ -52,19 +54,22 @@ public class WearDeviceService extends DConnectMessageService {
         addProfile(new WearVibrationProfile());
         addProfile(new WearDeviceOrientationProfile(mWearManager));
         addProfile(new WearCanvasProfile());
+        addProfile(new WearTouchProfile(mWearManager));
+        addProfile(new WearKeyEventProfile(mWearManager));
+
     }
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         if (intent != null) {
-            
+
             String action = intent.getAction();
             if (action.equals(WearConst.DEVICE_TO_WEAR_NOTIFICATION_OPEN)) {
                 String serviceId = intent.getStringExtra(WearConst.PARAM_DEVICEID);
                 int notificationId = intent.getIntExtra(WearConst.PARAM_NOTIFICATIONID, -1);
 
-                List<Event> events = EventManager.INSTANCE.getEventList(serviceId, WearNotificationProfile.PROFILE_NAME,
-                        null, WearNotificationProfile.ATTRIBUTE_ON_CLICK);
+                List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                        WearNotificationProfile.PROFILE_NAME, null, WearNotificationProfile.ATTRIBUTE_ON_CLICK);
 
                 for (int i = 0; i < events.size(); i++) {
                     Event event = events.get(i);

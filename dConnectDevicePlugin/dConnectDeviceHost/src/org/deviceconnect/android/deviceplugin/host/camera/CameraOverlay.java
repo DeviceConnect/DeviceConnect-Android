@@ -262,8 +262,9 @@ public class CameraOverlay implements Camera.PreviewCallback {
                 String pictureUri = null;
                 try {
                     pictureUri = mFileMgr.saveFile(fileName, data);
+                    String filePath = mFileMgr.getBasePath().getAbsolutePath() + "/" + fileName;
                     if (listener != null) {
-                        listener.onTakenPhoto(pictureUri);
+                        listener.onTakenPhoto(pictureUri, filePath);
                     }
                 } catch (IOException e) {
                     if (listener != null) {
@@ -378,8 +379,9 @@ public class CameraOverlay implements Camera.PreviewCallback {
         /**
          * 写真撮影を行った画像へのURIを通知する.
          * @param uri URI
+         * @param filePath file path.
          */
-        void onTakenPhoto(String uri);
+        void onTakenPhoto(String uri, String filePath);
 
         /**
          * 写真撮影に失敗したことを通知する.

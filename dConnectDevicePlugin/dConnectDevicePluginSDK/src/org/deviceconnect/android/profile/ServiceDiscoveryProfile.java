@@ -37,10 +37,6 @@ import android.os.Bundle;
  * </li>
  * </ul>
  * 
- * @see org.deviceconnect.android.message.DConnectMessageService#notifyNetworkServiceFound(String,
- *      String, String, boolean, String)
- * @see org.deviceconnect.android.message.DConnectMessageService#notifyNetworkServiceLost(String,
- *      String)
  * @author NTT DOCOMO, INC.
  */
 public abstract class ServiceDiscoveryProfile extends DConnectProfile implements

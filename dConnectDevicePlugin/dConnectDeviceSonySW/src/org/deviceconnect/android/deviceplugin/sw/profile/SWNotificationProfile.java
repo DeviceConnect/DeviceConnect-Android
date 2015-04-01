@@ -69,7 +69,7 @@ public class SWNotificationProfile extends NotificationProfile {
             MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
-        if (notificationId == null) {
+        if (notificationId == null || notificationId.equals("")) {
             MessageUtils.setInvalidRequestParameterError(response, "notificationId is not specified.");
             return true;
         }
@@ -78,7 +78,8 @@ public class SWNotificationProfile extends NotificationProfile {
         if (num > 0) {
             setResult(response, DConnectMessage.RESULT_OK);
         } else {
-            MessageUtils.setUnknownError(response, "No notification event is found to be deleted: " + event);
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "No notification event is found to be deleted: " + event);
         }
         return true;
     }

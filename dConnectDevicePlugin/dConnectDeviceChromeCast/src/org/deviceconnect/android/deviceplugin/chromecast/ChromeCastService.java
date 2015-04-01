@@ -15,6 +15,7 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscover
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMediaPlayer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
+import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastCanvasProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastNotificationProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastServiceDiscoveryProfile;
@@ -103,6 +104,7 @@ public class ChromeCastService extends DConnectMessageService implements
         mMessage.setCallbacks(this);
 
         EventManager.INSTANCE.setController(new DBCacheController(this));
+        addProfile(new ChromeCastCanvasProfile());
         addProfile(new ChromeCastNotificationProfile());
         mMediaPlayerProfile = new ChromeCastMediaPlayerProfile();
         addProfile(mMediaPlayerProfile);

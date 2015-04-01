@@ -89,7 +89,7 @@ public class NormalSystemProfileTestCase extends IntentDConnectTestCase
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・versionに"1.0"が返ってくること。
+     * ・versionに"2.0.0"が返ってくること。
      * </pre>
      */
     public void testPutSystemWakeup() {

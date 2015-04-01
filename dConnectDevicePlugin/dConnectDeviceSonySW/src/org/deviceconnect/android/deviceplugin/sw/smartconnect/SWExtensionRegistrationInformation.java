@@ -86,6 +86,11 @@ public class SWExtensionRegistrationInformation extends RegistrationInformation 
     }
 
     @Override
+    public boolean controlInterceptsBackButton() {
+        return false;
+    }
+
+    @Override
     public int getRequiredSensorApiVersion() {
         return 1;
     }

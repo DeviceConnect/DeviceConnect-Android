@@ -8,17 +8,23 @@ package org.deviceconnect.android.deviceplugin.sphero.profile;
 
 import java.util.List;
 
+import orbotix.robot.base.CollisionDetectedAsyncData;
+import orbotix.robot.sensor.DeviceSensorsData;
+
+import org.deviceconnect.android.deviceplugin.sphero.SpheroDeviceService;
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
-
-import android.content.Intent;
-
+import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo.DeviceCollisionListener;
+import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo.DeviceSensorListener;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
+
+import android.content.Intent;
+import android.os.Bundle;
 
 /**
  * spheroプロファイル.
@@ -109,12 +115,12 @@ public class SpheroProfile extends DConnectProfile {
     /**
      * パラメータ : {@value} .
      */
-    public static final String PARAM_VELOCITY_X = "verocityX";
+    public static final String PARAM_VELOCITY_X = "velocityX";
     
     /**
      * パラメータ : {@value} .
      */
-    public static final String PARAM_VELOCITY_Y = "verocityY";
+    public static final String PARAM_VELOCITY_Y = "velocityY";
     
     /**
      * パラメータ : {@value} .
@@ -182,6 +188,23 @@ public class SpheroProfile extends DConnectProfile {
     }
 
     @Override
+    protected boolean onGetRequest(final Intent request, final Intent response) {
+        boolean result = true;
+        String inter = getInterface(request);
+        String attribute = getAttribute(request);
+        if (INTER_QUATERNION.equals(inter) && ATTR_ON_QUATERNION.equals(attribute)) {
+            result = onGetQuaternion(request, response, getServiceID(request));
+        } else if (INTER_LOCATOR.equals(inter) && ATTR_ON_LOCATOR.equals(attribute)) {
+            result = onGetLocator(request, response, getServiceID(request));
+        } else if (INTER_COLLISION.equals(inter) && ATTR_ON_COLLISION.equals(attribute)) {
+            result = onGetCollision(request, response, getServiceID(request));
+        } else {
+            MessageUtils.setNotSupportAttributeError(response);
+        }
+        return result;
+    }
+
+    @Override
     protected boolean onPutRequest(final Intent request, final Intent response) {
 
         String inter = getInterface(request);
@@ -196,7 +219,7 @@ public class SpheroProfile extends DConnectProfile {
         } else if (INTER_COLLISION.equals(inter) && ATTR_ON_COLLISION.equals(attribute)) {
             type = TYPE_COL;
         } else {
-            MessageUtils.setUnknownAttributeError(response);
+            MessageUtils.setNotSupportAttributeError(response);
             return true;
         }
 
@@ -254,7 +277,7 @@ public class SpheroProfile extends DConnectProfile {
         } else if (INTER_COLLISION.equals(inter) && ATTR_ON_COLLISION.equals(attribute)) {
             type = TYPE_COL;
         } else {
-            MessageUtils.setUnknownAttributeError(response);
+            MessageUtils.setNotSupportAttributeError(response);
             return true;
         }
 
@@ -301,4 +324,86 @@ public class SpheroProfile extends DConnectProfile {
         return true;
     }
 
+    /**
+     * Spheroのクォータニオンを取得する.
+     * @param request リクエスト
+     * @param response レスポンス
+     * @param serviceId サービスID
+     * @return 即座に返却する場合はtrue、それ以外はfalse
+     */
+    private boolean onGetQuaternion(final Intent request, final Intent response,
+            final String serviceId) {
+        DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
+        if (device == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
+            @Override
+            public void sensorUpdated(final DeviceInfo info, final DeviceSensorsData data, final long interval) {
+                SpheroDeviceService service = (SpheroDeviceService) getContext();
+                Bundle quaternion = SpheroManager.createQuaternion(data, interval);
+                setResult(response, DConnectMessage.RESULT_OK);
+                response.putExtra(SpheroProfile.PARAM_QUATERNION, quaternion);
+                service.sendResponse(response);
+            }
+        });
+        return false;
+    }
+
+    /**
+     * Spheroのlocatorを取得する.
+     * @param request リクエスト
+     * @param response レスポンス
+     * @param serviceId サービスID
+     * @return 即座に返却する場合はtrue、それ以外はfalse
+     */
+    private boolean onGetLocator(final Intent request, final Intent response,
+            final String serviceId) {
+        DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
+        if (device == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
+            @Override
+            public void sensorUpdated(final DeviceInfo info, final DeviceSensorsData data, final long interval) {
+                SpheroDeviceService service = (SpheroDeviceService) getContext();
+                Bundle locator = SpheroManager.createLocator(data);
+                setResult(response, DConnectMessage.RESULT_OK);
+                response.putExtra(SpheroProfile.PARAM_LOCATOR, locator);
+                service.sendResponse(response);
+            }
+        });
+        return false;
+    }
+
+    /**
+     * Spheroの衝突を取得する.
+     * @param request リクエスト
+     * @param response レスポンス
+     * @param serviceId サービスID
+     * @return 即座に返却する場合はtrue、それ以外はfalse
+     */
+    private boolean onGetCollision(final Intent request, final Intent response,
+            final String serviceId) {
+        DeviceInfo device = SpheroManager.INSTANCE.getDevice(serviceId);
+        if (device == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+        SpheroManager.INSTANCE.startCollision(device, new DeviceCollisionListener() {
+            @Override
+            public void collisionDetected(final DeviceInfo info, final CollisionDetectedAsyncData data) {
+                SpheroDeviceService service = (SpheroDeviceService) getContext();
+                Bundle collision = SpheroManager.createCollision(data);
+                setResult(response, DConnectMessage.RESULT_OK);
+                response.putExtra(SpheroProfile.PARAM_COLLISION, collision);
+                service.sendResponse(response);
+            }
+        });
+        return false;
+    }
 }

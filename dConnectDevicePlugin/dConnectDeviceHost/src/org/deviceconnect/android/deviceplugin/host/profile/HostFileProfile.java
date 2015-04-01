@@ -113,7 +113,6 @@ public class HostFileProfile extends FileProfile {
     @Override
     protected boolean onGetList(final Intent request, final Intent response, final String serviceId, final String path,
             final String mimeType, final String order, final Integer offset, final Integer limit) {
-
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
@@ -125,7 +124,7 @@ public class HostFileProfile extends FileProfile {
                 @Override
                 public void run() {
                     File tmpDir = null;
-
+                    String mPath = null;
                     Boolean currentTop = false;
                     if (path == null) {
                         // nullの時はTopに指定
@@ -135,17 +134,20 @@ public class HostFileProfile extends FileProfile {
                         // /の場合はTopに指定
                         tmpDir = getFileManager().getBasePath();
                         currentTop = true;
-                    } else if (path.equals("..")) {
+                    } else if (path.endsWith("..")) {
                         // ..の場合は、1つ上のフォルダを指定
                         String[] mDirs = path.split("/", 0);
-                        String mPath = "/";
-                        for (int i = 0; i < mDirs.length - 1; i++) {
+                        mPath = "/";
+                        int mCount = 0;
+                        if (mDirs[0].equals("")) {
+                            mCount = 1;
+                        }
+                        for (int i = mCount; i < mDirs.length - 2; i++) {
                             mPath += mDirs[i] + "/";
                         }
-                        if (mDirs.length == 1) {
+                        if (mDirs.length == 1 || mPath.equals("/")) {
                             currentTop = true;
                         }
-
                         tmpDir = new File(getFileManager().getBasePath(), mPath);
                     } else {
                         // それ以外は、そのフォルダを指定
@@ -154,10 +156,9 @@ public class HostFileProfile extends FileProfile {
                     }
 
                     File[] respFileList = tmpDir.listFiles();
-
                     if (respFileList == null) {
                         setResult(response, DConnectMessage.RESULT_ERROR);
-                        MessageUtils.setUnknownError(response, "Dir is not exist:" + tmpDir);
+                        MessageUtils.setInvalidRequestParameterError(response, "Dir is not exist:" + tmpDir);
                         getContext().sendBroadcast(response);
                     } else if (order != null && !order.endsWith("desc") && !order.endsWith("asc")) {
                         MessageUtils.setInvalidRequestParameterError(response);
@@ -175,7 +176,11 @@ public class HostFileProfile extends FileProfile {
 
                         // ..のフォルダを追加(常時)
                         if (!currentTop) {
-                            File parentDir = new File("..");
+                            String tmpPath = path;
+                            if (mPath != null) {
+                                tmpPath = mPath;
+                            }
+                            File parentDir = new File(tmpPath + "/..");
                             String path = parentDir.getPath().replaceAll("" + mFileManager.getBasePath(), "");
                             String name = parentDir.getName();
                             Long size = parentDir.length();
@@ -368,7 +373,7 @@ public class HostFileProfile extends FileProfile {
             }
             if (mUri == null) {
                 setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setUnknownError(response, "Path is null, you must input path.");
+                MessageUtils.setInvalidRequestParameterError(response, "Path is null, you must input path.");
             } else {
                 String mMineType = getMIMEType(getFileManager().getBasePath() + "/" + path);
 
@@ -378,7 +383,7 @@ public class HostFileProfile extends FileProfile {
 
                 // MimeTypeが不明の場合はエラーを返す
                 if (mMineType == null) {
-                    MessageUtils.setUnknownError(response, "Not support format");
+                    MessageUtils.setInvalidRequestParameterError(response, "Not support format");
                     setResult(response, DConnectMessage.RESULT_ERROR);
                     return true;
                 }
@@ -457,7 +462,7 @@ public class HostFileProfile extends FileProfile {
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setUnknownError(response, "not found:" + path);
+                MessageUtils.setInvalidRequestParameterError(response, "not found:" + path);
             }
         }
         return true;
@@ -479,14 +484,15 @@ public class HostFileProfile extends FileProfile {
 
             if (mMakeDir.isDirectory()) {
                 setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setUnknownError(response, "can not make dir :" + mMakeDir);
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "can not make dir, \"" + mMakeDir + "\" already exist.");
             } else {
                 boolean isMakeDir = mMakeDir.mkdir();
                 if (isMakeDir) {
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     setResult(response, DConnectMessage.RESULT_ERROR);
-                    MessageUtils.setUnknownError(response, "can not make dir :" + mMakeDir);
+                    MessageUtils.setInvalidRequestParameterError(response, "can not make dir :" + mMakeDir);
                 }
             }
         }
@@ -510,7 +516,7 @@ public class HostFileProfile extends FileProfile {
 
             if (mDeleteDir.isFile()) {
                 setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setUnknownError(response, mDeleteDir + "is file");
+                MessageUtils.setInvalidRequestParameterError(response, mDeleteDir + "is file");
             } else {
                 boolean isDelete = mDeleteDir.delete();
                 if (isDelete) {

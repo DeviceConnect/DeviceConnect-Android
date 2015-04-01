@@ -45,6 +45,19 @@ public class DConnectServiceDiscoveryProfile extends ServiceDiscoveryProfile {
     }
 
     @Override
+    protected boolean onGetRequest(final Intent request, final Intent response) {
+        String inter = getInterface(request);
+        String attribute = getAttribute(request);
+        if (inter == null && attribute == null) {
+            return onGetServices(request, response);
+        } else {
+            MessageUtils.setUnknownAttributeError(response);
+            ((DConnectService) getContext()).sendResponse(request, response);
+            return true;
+        }
+    }
+
+    @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
         ServiceDiscoveryRequest req = new ServiceDiscoveryRequest();
         req.setContext(getContext());

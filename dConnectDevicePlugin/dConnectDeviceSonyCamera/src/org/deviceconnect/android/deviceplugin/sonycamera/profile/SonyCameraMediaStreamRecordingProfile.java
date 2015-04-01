@@ -23,7 +23,7 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
 
     @Override
     protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String serviceId) {
-        return ((SonyCameraDeviceService) getContext()).getMediaRecorder(request, response, serviceId);
+        return ((SonyCameraDeviceService) getContext()).onGetMediaRecorder(request, response, serviceId);
     }
 
     @Override

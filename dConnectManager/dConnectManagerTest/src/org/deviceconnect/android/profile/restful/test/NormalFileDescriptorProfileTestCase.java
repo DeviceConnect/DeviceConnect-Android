@@ -21,6 +21,7 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.FileDescriptorProfileConstants;
+import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -273,11 +274,47 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
     }
 
     /**
+     * メソッドにGETを指定してonwatchfile属性のリクエストテストを行う.
+     * <pre>
+     * 【HTTP通信】
+     * Method: GET
+     * Path: /file_descriptor/onwatchfile?serviceId=xxxx&sessionKey=xxxx
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに0が返ってくること。
+     * </pre>
+     */
+    public void testGetOnWatchFile() {
+        URIBuilder builder = TestURIBuilder.createURIBuilder();
+        builder.setProfile(FileDescriptorProfileConstants.PROFILE_NAME);
+        builder.setAttribute(FileDescriptorProfileConstants.ATTRIBUTE_ON_WATCH_FILE);
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        builder.addParameter(DConnectProfileConstants.PARAM_SESSION_KEY, TEST_SESSION_KEY);
+        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+        try {
+            HttpUriRequest request = new HttpGet(builder.toString());
+            JSONObject root = sendRequest(request);
+            Assert.assertNotNull("root is null.", root);
+            Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
+            JSONObject file = root.getJSONObject(FileDescriptorProfileConstants.PARAM_FILE);
+            Assert.assertEquals(TestFileDescriptorProfileConstants.PATH, 
+                    file.getString(FileDescriptorProfileConstants.PARAM_PATH));
+            Assert.assertEquals(TestFileDescriptorProfileConstants.CURR, 
+                    file.getString(FileDescriptorProfileConstants.PARAM_CURR));
+            Assert.assertEquals(TestFileDescriptorProfileConstants.PREV, 
+                    file.getString(FileDescriptorProfileConstants.PARAM_PREV));
+        } catch (JSONException e) {
+            fail("Exception in JSONObject." + e.getMessage());
+        }
+    }
+
+    /**
      * ファイルの更新通知のコールバック登録テストを行う.
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file_descriptor/watchfile?deviceid=xxxx&session_key=xxxx
+     * Path: /file_descriptor/onwatchfile?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -318,7 +355,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /file_descriptor/watchfile?deviceid=xxxx&session_key=xxxx
+     * Path: /file_descriptor/onwatchfile?deviceid=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】

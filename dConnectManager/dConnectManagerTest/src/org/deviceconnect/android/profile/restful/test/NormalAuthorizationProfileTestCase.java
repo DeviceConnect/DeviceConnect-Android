@@ -45,7 +45,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/create_client
+     * Path: /authorization/grant
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -63,7 +63,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/create_client
+     * Path: /authorization/grant
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -85,7 +85,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?
+     * Path: /authorization/accesstoken?
      *           clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>
@@ -110,7 +110,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /authorization/request_accesstoken?
+     * Path: /authorization/accesstoken?
      *           clientId=xxxx&scope=xxxx&applicationName=xxxx
      * </pre>
      * <pre>

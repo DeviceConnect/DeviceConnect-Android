@@ -13,7 +13,7 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -31,7 +31,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -40,9 +39,6 @@ import android.widget.Toast;
  * @author NTT DOCOMO, INC.
  */
 public class HostNotificationProfile extends NotificationProfile {
-
-    /** Debug Tag. */
-    private static final String TAG = "HOST";
 
     /** Random Seed. */
     private static final int RANDOM_SEED = 1000000;
@@ -57,14 +53,11 @@ public class HostNotificationProfile extends NotificationProfile {
      */
     private static final String ACTON_NOTIFICATION = "org.deviceconnect.android.intent.action.notifiy";
 
-    /** Error. */
-    private static final int ERROR_VALUE_IS_NULL = 100;
+    /** ランダムシード. */
+    private final Random mRandom = new Random();
 
-    /**
-     * POSTメッセージ受信時の処理.
-     */
     @Override
-    public boolean onPostNotify(final Intent request, final Intent response, final String serviceId,
+    protected boolean onPostNotify(final Intent request, final Intent response, final String serviceId,
             final NotificationType type, final Direction dir, final String lang, final String body, final String tag,
             final byte[] iconData) {
 
@@ -73,103 +66,92 @@ public class HostNotificationProfile extends NotificationProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
+            if (body == null) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "body is invalid.");
+                return true;
+            } else {
+                if (mNotificationStatusReceiver == null) {
+                    mNotificationStatusReceiver = new NotificationStatusReceiver();
+                    getContext().getApplicationContext().registerReceiver(mNotificationStatusReceiver,
+                            new IntentFilter(ACTON_NOTIFICATION));
+                }
 
-            if (NotificationProfile.ATTRIBUTE_NOTIFY.equals(getAttribute(request))) {
-                if (body == null) {
-                    MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "body is null");
-                    return true;
+                int iconType = 0;
+                String title = "";
+                if (type == NotificationType.PHONE) {
+                    iconType = R.drawable.notification_00;
+                    title = "PHONE";
+                } else if (type == NotificationType.MAIL) {
+                    iconType = R.drawable.notification_01;
+                    title = "MAIL";
+                } else if (type == NotificationType.SMS) {
+                    iconType = R.drawable.notification_02;
+                    title = "SMS";
+                } else if (type == NotificationType.EVENT) {
+                    iconType = R.drawable.notification_03;
+                    title = "EVENT";
                 } else {
-                    if (mNotificationStatusReceiver == null) {
-                        mNotificationStatusReceiver = new NotificationStatusReceiver();
-                        getContext().getApplicationContext().registerReceiver(mNotificationStatusReceiver,
-                                new IntentFilter(ACTON_NOTIFICATION));
-                    }
-
-                    int iconType = 0;
-                    String mTitle = "";
-                    // Typeの処理
-                    if (type == NotificationType.PHONE) {
-                        iconType = R.drawable.notification_00;
-                        mTitle = "PHONE";
-                    } else if (type == NotificationType.MAIL) {
-                        iconType = R.drawable.notification_01;
-                        mTitle = "MAIL";
-                    } else if (type == NotificationType.SMS) {
-                        iconType = R.drawable.notification_02;
-                        mTitle = "SMS";
-                    } else if (type == NotificationType.EVENT) {
-                        iconType = R.drawable.notification_03;
-                        mTitle = "EVENT";
-                    } else {
-                        MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "not support type");
-                        return true;
-                    }
-                    String encodeBody = "";
-                    try {
-                        encodeBody = URLDecoder.decode(body, "UTF-8");
-                    } catch (UnsupportedEncodingException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    Random random = new Random();
-                    int notifyId = random.nextInt(RANDOM_SEED);
-
-                    if (Build.MODEL.endsWith("M100")) {
-                        Log.i(TAG, "@@@@M1000");
-                        Toast.makeText(this.getContext(), encodeBody, Toast.LENGTH_SHORT).show();
-
-                        response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, notifyId);
-                        setResult(response, IntentDConnectMessage.RESULT_OK);
-                    } else {
-
-                        // Build intent for notification content
-                        Intent notifyIntent = new Intent(ACTON_NOTIFICATION);
-                        notifyIntent.putExtra("notificationId", notifyId);
-                        notifyIntent.putExtra("serviceId", serviceId);
-
-                        PendingIntent mPendingIntent = PendingIntent.getBroadcast(this.getContext(),
-                                notifyId,
-                                notifyIntent,
-                                android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                        NotificationCompat.Builder notificationBuilder =
-                                new NotificationCompat.Builder(this.getContext())
-                                .setSmallIcon(iconType)
-                                .setContentTitle("" + mTitle)
-                                .setContentText(encodeBody)
-                                .setContentIntent(mPendingIntent);
-
-                        // Get an instance of the NotificationManager service
-                        NotificationManager mNotification = (NotificationManager) getContext()
-                                .getSystemService(Context.NOTIFICATION_SERVICE);
-
-                        // Build the notification and issues it with notification
-                        // manager.
-                        mNotification.notify(notifyId, notificationBuilder.build());
-
-                        response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, notifyId);
-                        setResult(response, IntentDConnectMessage.RESULT_OK);
-                    }
-
-                    List<Event> events = EventManager.INSTANCE.getEventList(
-                            serviceId,
-                            HostNotificationProfile.PROFILE_NAME,
-                            null,
-                            HostNotificationProfile.ATTRIBUTE_ON_SHOW);
-
-                    for (int i = 0; i < events.size(); i++) {
-                        Event event = events.get(i);
-                        Intent intent = EventManager.createEventMessage(event);
-                        intent.putExtra(HostNotificationProfile.PARAM_NOTIFICATION_ID, notifyId);
-                        getContext().sendBroadcast(intent);
-                    }
-
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "type is invalid.");
                     return true;
                 }
-            } else {
-                MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "not support profile");
+
+                String encodeBody = "";
+                try {
+                    encodeBody = URLDecoder.decode(body, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "body is invalid.");
+                    return true;
+                }
+
+                int notifyId = mRandom.nextInt(RANDOM_SEED);
+                if (Build.MODEL.endsWith("M100")) {
+                    Toast.makeText(getContext(), encodeBody, Toast.LENGTH_SHORT).show();
+                    response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, notifyId);
+                    setResult(response, IntentDConnectMessage.RESULT_OK);
+                } else {
+                    // Build intent for notification content
+                    Intent notifyIntent = new Intent(ACTON_NOTIFICATION);
+                    notifyIntent.putExtra("notificationId", notifyId);
+                    notifyIntent.putExtra("serviceId", serviceId);
+
+                    PendingIntent mPendingIntent = PendingIntent.getBroadcast(getContext(),
+                            notifyId, notifyIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                    NotificationCompat.Builder notificationBuilder =
+                            new NotificationCompat.Builder(this.getContext())
+                            .setSmallIcon(iconType)
+                            .setContentTitle("" + title)
+                            .setContentText(encodeBody)
+                            .setContentIntent(mPendingIntent);
+
+                    // Get an instance of the NotificationManager service
+                    NotificationManager mNotification = (NotificationManager) getContext()
+                            .getSystemService(Context.NOTIFICATION_SERVICE);
+
+                    // Build the notification and issues it with notification
+                    // manager.
+                    mNotification.notify(notifyId, notificationBuilder.build());
+
+                    response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, notifyId);
+                    setResult(response, IntentDConnectMessage.RESULT_OK);
+                }
+
+                List<Event> events = EventManager.INSTANCE.getEventList(
+                        serviceId,
+                        HostNotificationProfile.PROFILE_NAME,
+                        null,
+                        HostNotificationProfile.ATTRIBUTE_ON_SHOW);
+                HostDeviceService service = (HostDeviceService) getContext();
+                synchronized (events) {
+                    for (Event event : events) {
+                        Intent intent = EventManager.createEventMessage(event);
+                        setNotificationId(intent, String.valueOf(notifyId));
+                        service.sendEvent(intent, event.getAccessToken());
+                    }
+                }
                 return true;
             }
         }
@@ -195,11 +177,19 @@ public class HostNotificationProfile extends NotificationProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
+            int notifyId = 0;
+            try {
+                notifyId = Integer.parseInt(notificationId);
+            } catch (NumberFormatException e) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "notificationId is invalid.");
+                return true;
+            }
 
             NotificationManager mNotificationManager =
-                    (NotificationManager) this.getContext().getSystemService(
+                    (NotificationManager) getContext().getSystemService(
                        Context.NOTIFICATION_SERVICE);
-            mNotificationManager.cancel(Integer.parseInt(notificationId));
+            mNotificationManager.cancel(notifyId);
             setResult(response, IntentDConnectMessage.RESULT_OK);
 
             List<Event> events = EventManager.INSTANCE.getEventList(
@@ -207,14 +197,14 @@ public class HostNotificationProfile extends NotificationProfile {
                     HostNotificationProfile.PROFILE_NAME,
                     null,
                     HostNotificationProfile.ATTRIBUTE_ON_CLOSE);
-
-            for (int i = 0; i < events.size(); i++) {
-                Event event = events.get(i);
-                Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra(HostNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
-                getContext().sendBroadcast(intent);
+            HostDeviceService service = (HostDeviceService) getContext();
+            synchronized (events) {
+                for (Event event : events) {
+                    Intent intent = EventManager.createEventMessage(event);
+                    intent.putExtra(HostNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
+                    service.sendEvent(intent, event.getAccessToken());
+                }
             }
-
         }
         return true;
     }
@@ -419,7 +409,7 @@ public class HostNotificationProfile extends NotificationProfile {
      * @param response レスポンスを格納するIntent
      */
     private void createEmptySessionKey(final Intent response) {
-        MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "SessionKey not found");
+        MessageUtils.setInvalidRequestParameterError(response, "SessionKey not found");
     }
 
     /**

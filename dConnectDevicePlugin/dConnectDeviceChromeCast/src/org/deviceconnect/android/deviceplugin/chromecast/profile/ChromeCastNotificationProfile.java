@@ -11,6 +11,8 @@ import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.NotificationProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Intent;
 
@@ -21,9 +23,12 @@ import android.content.Intent;
  * </p>
  * @author NTT DOCOMO, INC.
  */
-public class ChromeCastNotificationProfile extends NotificationProfile {
+public class ChromeCastNotificationProfile extends NotificationProfile implements ChromeCastConstants {
     /** Chromecastが無効になっているときのエラーメッセージ. */
-    private static final String ERROR_MESSAGE_DEVICE_NOT_ENABLE = "Device is not enable";
+    private static final String ERROR_MESSAGE_DEVICE_NOT_ENABLED = "Chromecast is not enabled.";
+
+    /** 通知ID. 全リクエストに対して共通. */
+    private static final String COMMON_ID = "dConnectDeviceChromeCast";
 
     /**
      * デバイスが有効か否かを返す<br/>.
@@ -35,7 +40,7 @@ public class ChromeCastNotificationProfile extends NotificationProfile {
      */
     private boolean isDeviceEnable(final Intent response, final ChromeCastMessage app) {
         if (!app.isDeviceEnable()) {
-            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_DEVICE_NOT_ENABLE);
+            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_DEVICE_NOT_ENABLED);
             setResult(response, DConnectMessage.RESULT_ERROR);
             return false;
         }
@@ -67,21 +72,41 @@ public class ChromeCastNotificationProfile extends NotificationProfile {
         if (!isDeviceEnable(response, app)) {
             return true;
         }
-        app.sendMessage(response, "{\"function\":\"write\", \"type\":\"" 
-                            + type.getValue() + "\", \"message\":\"" + body + "\"}");
-        return false;
+        try {
+            JSONObject json = new JSONObject();
+            json.put(KEY_FUNCTION, FUNCTION_POST_NOTIFICATION);
+            json.put(KEY_TYPE, type.getValue());
+            json.put(KEY_MESSAGE, body);
+            setNotificationId(response, COMMON_ID);
+            app.sendMessage(response, json.toString());
+            return false;
+        } catch (JSONException e) {
+            MessageUtils.setUnknownError(response);
+            return true;
+        }
     }
 
     @Override
     protected boolean onDeleteNotify(final Intent request,
             final Intent response, final String serviceId,
             final String notificationId) {
+        if (notificationId == null || !COMMON_ID.equals(notificationId)) {
+            MessageUtils.setInvalidRequestParameterError(response, "notificationId is invalid.");
+            return true;
+        }
         ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
         if (!isDeviceEnable(response, app)) {
             return true;
         }
-        app.sendMessage(response, "{\"function\":\"clear\"}");
-        return false;
+        try {
+            JSONObject json = new JSONObject();
+            json.put(KEY_FUNCTION, FUNCTION_DELETE_NOTIFICATION);
+            app.sendMessage(response, json.toString());
+            return false;
+        } catch (JSONException e) {
+            MessageUtils.setUnknownError(response);
+            return true;
+        }
     }
 
 }

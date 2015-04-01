@@ -43,6 +43,8 @@ public class HueLightProfile extends LightProfile {
      * エラーコード301.
      */
     private static final int HUE_SDK_ERROR_301 = 301;
+    /** RGBの文字列の長さ. */
+    private static final int RGB_LENGTH = 6;
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response) {
@@ -85,10 +87,65 @@ public class HueLightProfile extends LightProfile {
         }
         PHLight light = bridge.getResourceCache().getLights().get(lightId);
         if (light == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found light: " + lightId + "@" + serviceId);
+            MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
-
+        
+        if (getBrightness(request) != null) {
+        	try {
+        		float mBrightness = Float.valueOf(getBrightness(request));
+        		if (mBrightness > 1.0
+        				|| mBrightness < 0) {
+        			MessageUtils.setInvalidRequestParameterError(response,
+        					"brightness should be a value between 0 and 1.0");
+        			return true;
+        		}
+        	} catch (NumberFormatException e) {
+        		MessageUtils.setInvalidRequestParameterError(response,
+    					"brightness should be a value between 0 and 1.0");
+        		return true;
+        	}
+        }
+        
+        if (getColor(request) != null) {
+        	try {
+        		String mColor = getColor(request);
+        		String rr = mColor.substring(0, 2);
+                String gg = mColor.substring(2, 4);
+                String bb = mColor.substring(4, 6);
+                int mColorParam;
+                if (mColor.length() == RGB_LENGTH) {
+                	if (rr == null) {
+                		MessageUtils.setInvalidRequestParameterError(response);
+                		return true;
+                	} else {
+                		mColorParam = Integer.parseInt(rr, 16);
+                	}
+                	if (gg == null) {
+                		MessageUtils.setInvalidRequestParameterError(response);
+                		return true;
+                	} else {
+                		mColorParam = Integer.parseInt(gg, 16);
+                	}
+                	if (bb == null) {
+                		MessageUtils.setInvalidRequestParameterError(response);
+                		return true;
+                	} else {
+                		mColorParam = Integer.parseInt(bb, 16);
+                	}
+                } else {
+                	MessageUtils.setInvalidRequestParameterError(response);
+            		return true;
+                }
+        	} catch (NumberFormatException e) {
+        		MessageUtils.setInvalidRequestParameterError(response);
+        		return true;
+        	} catch (IllegalArgumentException e) {
+        		MessageUtils.setInvalidRequestParameterError(response);
+        		return true;
+        	}
+        }
+        
         PHLightState lightState = new PHLightState();
         lightState.setOn(true);
         lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
@@ -138,7 +195,7 @@ public class HueLightProfile extends LightProfile {
         }
         PHLight light = bridge.getResourceCache().getLights().get(lightId);
         if (light == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found light: " + lightId + "@" + serviceId);
+            MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
         PHLightState lightState = new PHLightState();
@@ -184,7 +241,7 @@ public class HueLightProfile extends LightProfile {
         }
         PHLight light = getLight(bridge, lightId);
         if (light == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found light: " + lightId + "@" + serviceId);
+            MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
@@ -653,8 +710,6 @@ public class HueLightProfile extends LightProfile {
          * モデル.
          */
         private static final String MODEL = "LST001";
-        /** RGBの文字列の長さ. */
-        private static final int RGB_LENGTH = 6;
         /** R. */
         final int mR;
         /** G. */

@@ -36,7 +36,7 @@ public class WearSettingActivity extends DConnectSettingPageFragmentActivity {
     /**
      * Get Service ID.
      * 
-     * @return Service ID
+     * @return Service ID.
      */
     public String getServiceId() {
         return mServiceId;
@@ -45,7 +45,7 @@ public class WearSettingActivity extends DConnectSettingPageFragmentActivity {
     /**
      * Set Service ID.
      * 
-     * @param serviceId Service ID
+     * @param serviceId Service ID.
      */
     public void setServiceId(final String serviceId) {
         mServiceId = serviceId;

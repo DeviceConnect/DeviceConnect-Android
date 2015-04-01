@@ -36,7 +36,7 @@ import android.os.Bundle;
  * {@link MediaStreamRecordingProfile#onPostTakePhoto(Intent, Intent, String, String)}
  * </li>
  * <li>MediaStreamRecording Record API [POST] :
- * {@link MediaStreamRecordingProfile#onPostRecord(Intent, Intent, String, String, long)}
+ * {@link MediaStreamRecordingProfile#onPostRecord(Intent, Intent, String, String, Long)}
  * </li>
  * <li>MediaStreamRecording Pause API [PUT] :
  * {@link MediaStreamRecordingProfile#onPutPause(Intent, Intent, String, String)}
@@ -57,7 +57,7 @@ import android.os.Bundle;
  * {@link MediaStreamRecordingProfile#onGetOptions(Intent, Intent, String, String)}
  * </li>
  * <li>MediaStreamRecording Options API [PUT] :
- * {@link MediaStreamRecordingProfile#onPutOptions(Intent, Intent, String, String, int, int, String)}
+ * {@link MediaStreamRecordingProfile#onPutOptions(Intent, Intent, String, String, Integer, Integer, String)}
  * </li>
  * <li>MediaStreamRecording Take a Picture Event API [Register] :
  * {@link MediaStreamRecordingProfile#onPutOnPhoto(Intent, Intent, String, String)}
@@ -123,8 +123,12 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             if (attribute.equals(ATTRIBUTE_TAKE_PHOTO)) {
                 result = onPostTakePhoto(request, response, serviceId, target);
             } else if (attribute.equals(ATTRIBUTE_RECORD)) {
-                Long timeslice = getTimeSlice(request);
-                result = onPostRecord(request, response, serviceId, target, timeslice);
+                try {
+                    Long timeslice = getTimeSlice(request);
+                    result = onPostRecord(request, response, serviceId, target, timeslice);
+                } catch (NumberFormatException e) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                }
             } else {
                 setUnsupportedError(response);
             }
@@ -566,7 +570,20 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * @return タイムスライス。無い、または不正値の場合は-1を返す。
      */
     public static Long getTimeSlice(final Intent request) {
-        return parseLong(request, PARAM_TIME_SLICE);
+        Bundle b = request.getExtras();
+        if (b == null) {
+            return null;
+        }
+        try {
+            String slice = b.getString(PARAM_TIME_SLICE);
+            if (slice == null) {
+                return null;
+            }
+            Long res = Long.valueOf(slice);
+            return res;
+        } catch (NumberFormatException e) {
+            throw e;
+        }
     }
 
     /**

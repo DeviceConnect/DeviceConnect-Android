@@ -122,10 +122,10 @@ public interface SettingsProfileConstants extends DConnectProfileConstants {
         RINGTONE(3),
         /** メール着信音. */
         MAIL(4),
-        /** その他SNS等の着信音. */
-        OTHER(5),
         /** メディアプレーヤーの音量. */
-        MEDIA_PLAYER(6);
+        MEDIA_PLAYER(5),
+        /** その他SNS等の着信音. */
+        OTHER(6);
 
         /**
          * 仕様上の定数値.

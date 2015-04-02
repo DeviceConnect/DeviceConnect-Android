@@ -75,7 +75,9 @@ public class VideoPlayer extends Activity implements OnCompletionListener {
         super.onPause();
 
         // ReceiverをUnregister
-        unregisterReceiver(mReceiver);
+        if (mReceiver != null) {
+            unregisterReceiver(mReceiver);
+        }
     }
 
     /**
@@ -94,6 +96,8 @@ public class VideoPlayer extends Activity implements OnCompletionListener {
                     mVideoView.start();
                 } else if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_STOP)) {
                     mVideoView.stopPlayback();
+                    unregisterReceiver(mReceiver);
+                    mReceiver = null;
                     finish();
                 } else if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PAUSE)) {
 

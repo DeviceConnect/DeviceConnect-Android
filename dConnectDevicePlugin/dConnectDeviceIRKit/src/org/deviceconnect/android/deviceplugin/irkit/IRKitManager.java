@@ -881,7 +881,7 @@ public enum IRKitManager {
             public void run() {
 
                 boolean isIRKit = false;
-                HttpGet req = createGetRequest(ip, "/");
+                HttpGet req = createGetRequest(ip, "/messages");
                 HttpClient client = createClient(HTTP_REQUEST_TIMEOUT);
                 try {
                     HttpResponse res = client.execute(req);

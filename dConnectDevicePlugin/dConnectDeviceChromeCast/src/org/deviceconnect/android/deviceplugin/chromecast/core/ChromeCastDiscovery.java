@@ -6,15 +6,18 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.core;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 import android.content.Context;
 import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
 import android.util.Log;
+
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.CastMediaControlIntent;
+
+import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Chromecast Discovery クラス.
@@ -102,8 +105,10 @@ public class ChromeCastDiscovery {
                     Log.d(TAG, "MediaRouter.Callback$onRouteAdded: " + info.toString());
                 }
                 synchronized (this) {
-                    mRouteInfos.add(info);
-                    mRouteNames.add(info.getName());
+                    if (!"付近の端末".equals(info.getName())) {
+                        mRouteInfos.add(info);
+                        mRouteNames.add(info.getName());
+                    }
                 }
                 mCallbacks.onCastDeviceUpdate(mRouteNames);
             }
@@ -149,9 +154,17 @@ public class ChromeCastDiscovery {
 
             @Override
             public void onRouteChanged(final MediaRouter router, final MediaRouter.RouteInfo info) {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "MediaRouter.onRouteChanged");
+                    Log.d(TAG, "MediaRouter.onRouteChanged: " + info.toString());
+                }
             }
             @Override
             public void onRoutePresentationDisplayChanged(final MediaRouter router, final MediaRouter.RouteInfo info) {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "MediaRouter.onRoutePresentationDisplayChanged");
+                    Log.d(TAG, "MediaRouter.onRoutePresentationDisplayChanged: " + info.toString());
+                }
             }
             @Override
             public void onRouteVolumeChanged(final MediaRouter router, final MediaRouter.RouteInfo info) {
@@ -164,6 +177,11 @@ public class ChromeCastDiscovery {
             }
             @Override
             public void onProviderRemoved(final MediaRouter router, final MediaRouter.ProviderInfo info) {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "MediaRouter.onProviderRemoved");
+                    Log.d(TAG, "MediaRouter.onProviderRemoved: " + info.toString());
+                }
+
             }
         };
     }
@@ -195,9 +213,17 @@ public class ChromeCastDiscovery {
         for (int i = 0; i < rInfos.size(); i++) {
             MediaRouter.RouteInfo info = rInfos.get(i);
 
-            if (info.getDescription() != null) {
+            if (info.getDescription() != null
+                    && !"付近の端末".equals(info.getName())) {
                 mRouteInfos.add(info);
                 mRouteNames.add(info.getName());
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "name:" + info.getName());
+                    Log.d(TAG, "desc:" + info.getDescription());
+                    Log.d(TAG, "Is Connecting:" + info.isConnecting());
+                    Log.d(TAG, "Is Enabled:" + info.isEnabled());
+                    Log.d(TAG, "Is Selected:" + info.isSelected());
+                }
             }
         }
     }

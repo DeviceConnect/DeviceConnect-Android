@@ -6,8 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.R;
@@ -20,8 +20,8 @@ import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
-import android.content.Intent;
-import android.os.Bundle;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Network Service Discovery プロファイル (Chromecast).
@@ -47,6 +47,7 @@ public class ChromeCastServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         String deviceName = getContext().getResources().getString(R.string.device_name);
 
         ChromeCastDiscovery discovery = ((ChromeCastService) getContext()).getChromeCastDiscovery();
+        discovery.registerEvent();
         List<Bundle> services = new ArrayList<Bundle>();
         for (int i = 0; i < discovery.getDeviceNames().size(); i++) {
             Bundle service = new Bundle();

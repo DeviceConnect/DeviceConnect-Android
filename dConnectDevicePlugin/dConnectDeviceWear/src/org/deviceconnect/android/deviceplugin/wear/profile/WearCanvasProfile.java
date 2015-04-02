@@ -31,7 +31,7 @@ public class WearCanvasProfile extends CanvasProfile {
     /**
      * Android wearは100KB以上の画像は送信できない.
      */
-    private static final int LIMIT_DATA_SIZE = 1024 * 1024 * 100;
+    private static final int LIMIT_DATA_SIZE = 1024 * 1024;
 
     @Override
     protected boolean onPostDrawImage(final Intent request, final Intent response, 
@@ -47,12 +47,10 @@ public class WearCanvasProfile extends CanvasProfile {
             MessageUtils.setInvalidRequestParameterError(response, "data is not empty");
             return true;
         }
-
         if (data.length > LIMIT_DATA_SIZE) {
-            MessageUtils.setInvalidRequestParameterError(response, "data size more than 100KB");
+            MessageUtils.setInvalidRequestParameterError(response, "data size more than 1MB");
             return true;
         }
-
         Mode m = Mode.getInstance(mode);
         if ((mode != null && mode.length() > 0) && m == null) {
             MessageUtils.setInvalidRequestParameterError(response, "mode is invalid");

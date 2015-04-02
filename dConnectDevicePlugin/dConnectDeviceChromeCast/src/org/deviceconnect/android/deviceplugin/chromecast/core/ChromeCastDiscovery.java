@@ -214,7 +214,7 @@ public class ChromeCastDiscovery {
             MediaRouter.RouteInfo info = rInfos.get(i);
 
             if (info.getDescription() != null
-                    && !"付近の端末".equals(info.getName())) {
+                    && (mSelectedDevice != null && mSelectedDevice.isOnLocalNetwork())) {
                 mRouteInfos.add(info);
                 mRouteNames.add(info.getName());
                 if (BuildConfig.DEBUG) {

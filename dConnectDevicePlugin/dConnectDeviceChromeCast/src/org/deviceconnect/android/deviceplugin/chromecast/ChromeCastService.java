@@ -6,9 +6,14 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
+
+import com.google.android.gms.cast.CastDevice;
+import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.MediaStatus;
+import com.google.android.gms.cast.RemoteMediaPlayer.MediaChannelResult;
+import com.google.android.gms.common.api.Status;
 
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastApplication;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastDiscovery;
@@ -32,14 +37,9 @@ import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.Intent;
-import android.os.Bundle;
-
-import com.google.android.gms.cast.CastDevice;
-import com.google.android.gms.cast.MediaInfo;
-import com.google.android.gms.cast.MediaStatus;
-import com.google.android.gms.cast.RemoteMediaPlayer.MediaChannelResult;
-import com.google.android.gms.common.api.Status;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * メッセージサービス (Chromecast).
@@ -139,6 +139,7 @@ public class ChromeCastService extends DConnectMessageService implements
     @Override
     public void onCastDeviceSelected(final CastDevice selectedDevice) {
         CastDevice currentDevice = mApplication.getSelectedDevice();
+
         if (currentDevice != null) {
             if (!currentDevice.getDeviceId().equals(selectedDevice.getDeviceId())) {
                 mApplication.setSelectedDevice(selectedDevice);

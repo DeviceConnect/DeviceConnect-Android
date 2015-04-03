@@ -6,13 +6,15 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.MediaStore;
+
+import com.google.android.gms.cast.MediaStatus;
 
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
@@ -24,15 +26,13 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaPlayerProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Bundle;
-import android.provider.MediaStore;
-
-import com.google.android.gms.cast.MediaStatus;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * MediaPlayer プロファイル (Chromecast).
@@ -581,19 +581,24 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
             Cursor cursor = getCursorFrom(
                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                     MediaStore.Video.Media._ID, mediaId);
-            if (cursor == null) {
-                response.putExtra(DConnectMessage.EXTRA_VALUE, "mediaId is not exist");
-                setResult(response, DConnectMessage.RESULT_ERROR);
-                return true;
-            } else {
-                title = cursor.getString(cursor
-                        .getColumnIndex(MediaStore.Video.Media.TITLE));
-                url = exposeMedia(mId);
-                cursor.close();
-                if (url == null) {
-                    response.putExtra(DConnectMessage.EXTRA_VALUE, "url is null");
+            try {
+                if (cursor == null) {
+                    response.putExtra(DConnectMessage.EXTRA_VALUE, "mediaId is not exist");
                     setResult(response, DConnectMessage.RESULT_ERROR);
                     return true;
+                } else {
+                    title = cursor.getString(cursor
+                            .getColumnIndex(MediaStore.Video.Media.TITLE));
+                    url = exposeMedia(mId);
+                    if (url == null) {
+                        response.putExtra(DConnectMessage.EXTRA_VALUE, "url is null");
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                        return true;
+                    }
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
                 }
             }
         }

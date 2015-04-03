@@ -105,7 +105,8 @@ public class ChromeCastDiscovery {
                     Log.d(TAG, "MediaRouter.Callback$onRouteAdded: " + info.toString());
                 }
                 synchronized (this) {
-                    if (!"付近の端末".equals(info.getName())) {
+                    CastDevice device = CastDevice.getFromBundle(info.getExtras());
+                    if (device != null && device.isOnLocalNetwork()) {
                         mRouteInfos.add(info);
                         mRouteNames.add(info.getName());
                     }
@@ -213,16 +214,18 @@ public class ChromeCastDiscovery {
         for (int i = 0; i < rInfos.size(); i++) {
             MediaRouter.RouteInfo info = rInfos.get(i);
 
-            if (info.getDescription() != null
-                    && (mSelectedDevice != null && mSelectedDevice.isOnLocalNetwork())) {
-                mRouteInfos.add(info);
-                mRouteNames.add(info.getName());
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "name:" + info.getName());
-                    Log.d(TAG, "desc:" + info.getDescription());
-                    Log.d(TAG, "Is Connecting:" + info.isConnecting());
-                    Log.d(TAG, "Is Enabled:" + info.isEnabled());
-                    Log.d(TAG, "Is Selected:" + info.isSelected());
+            if (info.getDescription() != null) {
+                CastDevice device = CastDevice.getFromBundle(info.getExtras());
+                if (device != null && device.isOnLocalNetwork()) {
+                    mRouteInfos.add(info);
+                    mRouteNames.add(info.getName());
+                    if (BuildConfig.DEBUG) {
+                        Log.d(TAG, "name:" + info.getName());
+                        Log.d(TAG, "desc:" + info.getDescription());
+                        Log.d(TAG, "Is Connecting:" + info.isConnecting());
+                        Log.d(TAG, "Is Enabled:" + info.isEnabled());
+                        Log.d(TAG, "Is Selected:" + info.isSelected());
+                    }
                 }
             }
         }

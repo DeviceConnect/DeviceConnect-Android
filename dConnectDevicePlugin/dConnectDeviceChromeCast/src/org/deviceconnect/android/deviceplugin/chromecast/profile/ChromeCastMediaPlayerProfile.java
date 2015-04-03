@@ -210,6 +210,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutResume(final Intent request, final Intent response,
             final String serviceId) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -235,6 +236,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutStop(final Intent request, final Intent response,
             final String serviceId) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -262,6 +264,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutPause(final Intent request, final Intent response,
             final String serviceId) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -296,6 +299,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      */
     private boolean setMute(final Intent request, final Intent response,
             final String serviceId, final boolean mute) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app))	{
             return true;
@@ -328,6 +332,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onGetMute(final Intent request, final Intent response,
             final String serviceId) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -353,6 +359,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutVolume(final Intent request, final Intent response,
             final String serviceId, final Double volume) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -382,6 +390,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onGetVolume(final Intent request, final Intent response,
             final String serviceId) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -403,6 +413,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutSeek(final Intent request, final Intent response,
             final String serviceId, final Integer pos) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -439,6 +451,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onGetSeek(final Intent request, final Intent response,
             final String serviceId) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -460,6 +473,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onGetPlayStatus(final Intent request,
             final Intent response, final String serviceId) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+
         ChromeCastMediaPlayer app = getChromeCastApplication();
         if (!isDeviceEnable(response, app)) {
             return true;
@@ -478,6 +493,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onGetMedia(final Intent request, final Intent response,
             final String serviceId, final String mediaId) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+
         if (mediaId == null) {
             MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
             return true;
@@ -549,6 +566,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutMedia(final Intent request, final Intent response,
             final String serviceId, final String mediaId) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
         if (mediaId == null) {
             MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
             return true;
@@ -606,7 +624,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         if (title == null) {
             title = "TITLE";
         }
-
         app.load(response, url, title);
 
         return false;
@@ -822,6 +839,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     protected boolean onGetMediaList(final Intent request, final Intent response,
             final String serviceId, final String query, final String mimeType,
             final String[] orders, final Integer offset, final Integer limit) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+
 
         // パラメータの型チェック
         Bundle b = request.getExtras();
@@ -907,6 +926,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     protected boolean onPutOnStatusChange(final Intent request,
             final Intent response, final String serviceId,
             final String sessionKey) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             ((ChromeCastService) getContext()).registerOnStatusChange(response,
@@ -923,6 +944,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     protected boolean onDeleteOnStatusChange(final Intent request,
             final Intent response, final String serviceId,
             final String sessionKey) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             ((ChromeCastService) getContext())

@@ -6,12 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.logging.Logger;
+import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
@@ -24,7 +19,12 @@ import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Intent;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Logger;
 
 /**
  * Canvas Profile (Chromecast).
@@ -56,6 +56,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
     @Override
     protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId,
             final String mimeType, final byte[] data, final double x, final double y, final String mode) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
         if (data == null) {
             MessageUtils.setInvalidRequestParameterError(response, "data is not specified.");
             return true;
@@ -151,6 +152,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
 
     @Override
     protected boolean onDeleteDrawImage(final Intent request, final Intent response, final String serviceId) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
         ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
         if (!isDeviceEnable(response, app)) {
             return true;

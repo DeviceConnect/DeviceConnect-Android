@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
 import org.deviceconnect.android.message.MessageUtils;
@@ -13,8 +15,6 @@ import org.deviceconnect.android.profile.NotificationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.content.Intent;
 
 /**
  * Notification プロファイル (Chromecast).
@@ -52,6 +52,8 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
             final String serviceId, final NotificationType type, final Direction dir,
             final String lang, final String body, final String tag,
             final byte[] iconData) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+
         ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
         if (body == null) {
             MessageUtils.setInvalidRequestParameterError(response, "body is null");
@@ -90,6 +92,8 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
     protected boolean onDeleteNotify(final Intent request,
             final Intent response, final String serviceId,
             final String notificationId) {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+
         if (notificationId == null || !COMMON_ID.equals(notificationId)) {
             MessageUtils.setInvalidRequestParameterError(response, "notificationId is invalid.");
             return true;

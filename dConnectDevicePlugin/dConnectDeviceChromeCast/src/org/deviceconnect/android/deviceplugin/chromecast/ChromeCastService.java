@@ -24,7 +24,6 @@ import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastCanva
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastNotificationProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastServiceDiscoveryProfile;
-import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.chromecast.profile.ChromeCastSystemProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -123,7 +122,7 @@ public class ChromeCastService extends DConnectMessageService implements
 
     @Override
     protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ChromeCastServiceInformationProfile(this);
+        return new ServiceInformationProfile(this){};
     }
 
     @Override
@@ -157,7 +156,21 @@ public class ChromeCastService extends DConnectMessageService implements
     public void onCastDeviceUnselected() {
         mApplication.reconnect();
     }
-    
+
+
+    /**
+     * Connected By Selected ChromeCast.
+     * @param serviceId Service Identifier
+     */
+    public void connectChromeCast(final String serviceId) {
+        if (mDiscovery.getSelectedDevice() != null) {
+            if (mDiscovery.getSelectedDevice().getFriendlyName().equals(serviceId)) {
+                mApplication.connect();
+                return;
+            }
+        }
+        mDiscovery.setRouteName(serviceId);
+    }
     /**
      * ChromeCastDiscoveryを返す.
      * @return  ChromeCastDiscovery

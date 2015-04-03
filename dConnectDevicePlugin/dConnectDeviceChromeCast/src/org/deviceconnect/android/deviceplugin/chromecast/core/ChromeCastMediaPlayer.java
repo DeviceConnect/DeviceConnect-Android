@@ -6,10 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.core;
 
-import java.io.IOException;
-import java.util.Locale;
-
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+import android.content.Intent;
+import android.webkit.MimeTypeMap;
 
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.MediaInfo;
@@ -19,8 +17,10 @@ import com.google.android.gms.cast.RemoteMediaPlayer;
 import com.google.android.gms.cast.RemoteMediaPlayer.MediaChannelResult;
 import com.google.android.gms.common.api.ResultCallback;
 
-import android.content.Intent;
-import android.webkit.MimeTypeMap;
+import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+
+import java.io.IOException;
+import java.util.Locale;
 
 /**
  * Chromecast MediaPlayer クラス.

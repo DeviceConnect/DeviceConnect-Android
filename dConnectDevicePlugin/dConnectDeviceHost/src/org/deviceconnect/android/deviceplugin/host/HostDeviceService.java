@@ -99,6 +99,9 @@ public class HostDeviceService extends DConnectMessageService {
     /** Video Current Position response. */
     private Intent mResponse = null;
 
+    /** Intent filter for MediaPlayer (Video). */
+    private IntentFilter mIfMediaPlayerVideo;
+
     /** Intent filter for battery charge event. */
     private IntentFilter mIfBatteryCharge;
 
@@ -160,6 +163,10 @@ public class HostDeviceService extends DConnectMessageService {
         // オーバーレイ
         mCameraOverlay = new CameraOverlay(this);
         mCameraOverlay.setFileManager(mFileMgr);
+
+        // MediaPlayer (Video) IntentFilter.
+        mIfMediaPlayerVideo = new IntentFilter();
+        mIfMediaPlayerVideo.addAction(VideoConst.SEND_VIDEOPLAYER_TO_HOSTDP);
     }
 
     @Override
@@ -451,6 +458,13 @@ public class HostDeviceService extends DConnectMessageService {
      * @param mediaId MediaID
      */
     public void putMediaId(final Intent response, final String mediaId) {
+        // Check status.
+        if (mMediaStatus == MEDIA_PLAYER_PLAY || mMediaStatus == MEDIA_PLAYER_PAUSE) {
+            MessageUtils.setIllegalDeviceStateError(response, "Status is playing.");
+            sendBroadcast(response);
+            return;
+        }
+
         // Backup MediaId.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             mBackupMediaId = mediaId;
@@ -733,6 +747,7 @@ public class HostDeviceService extends DConnectMessageService {
             sendOnStatusChangeEvent("play");
             return mMediaPlayer.getAudioSessionId();
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
+            registerReceiver(mMediaPlayerVideoBR, mIfMediaPlayerVideo);
             String className = getClassnameOfTopActivity();
 
             if (VideoPlayer.class.getName().equals(className)) {
@@ -803,11 +818,6 @@ public class HostDeviceService extends DConnectMessageService {
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
             String className = getClassnameOfTopActivity();
             if (VideoPlayer.class.getName().equals(className)) {
-                // ReceiverをRegister
-                IntentFilter mIntentFilter = new IntentFilter();
-                mIntentFilter.addAction(VideoConst.SEND_VIDEOPLAYER_TO_HOSTDP);
-                registerReceiver(mReceiver, mIntentFilter);
-
                 Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_GET_POS);
                 this.getContext().sendBroadcast(mIntent);
@@ -834,7 +844,7 @@ public class HostDeviceService extends DConnectMessageService {
     /**
      * VideoPlayer用Broadcast Receiver.
      */
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver mMediaPlayerVideoBR = new BroadcastReceiver() {
 
         @Override
         public void onReceive(final Context context, final Intent intent) {
@@ -846,9 +856,10 @@ public class HostDeviceService extends DConnectMessageService {
                     mResponse.putExtra("pos", mMyCurrentMediaPosition / UNIT_SEC);
                     mResponse.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                     sendBroadcast(mResponse);
-
-                    // ReceiverをUnregister
-                    unregisterReceiver(mReceiver);
+                } else if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY_COMPLETION)) {
+                    mMediaStatus = MEDIA_PLAYER_COMPLETE;
+                    sendOnStatusChangeEvent("complete");
+                    unregisterReceiver(mMediaPlayerVideoBR);
                 }
             }
         }
@@ -911,6 +922,7 @@ public class HostDeviceService extends DConnectMessageService {
             sendOnStatusChangeEvent("stop");
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             sendBroadcast(response);
+            unregisterReceiver(mMediaPlayerVideoBR);
         }
     }
 

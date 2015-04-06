@@ -56,48 +56,57 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
     @Override
     protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId,
             final String mimeType, final byte[] data, final double x, final double y, final String mode) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
-        if (data == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "data is not specified.");
-            return true;
-        }
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
-        try {
-            String path = exposeImage(data, mimeType);
-            mLogger.info("Exposed image: URL=" + path);
-            if (path == null) {
-                MessageUtils.setUnknownError(response, "The host device is not in local network.");
-                return true;
-            }
-            ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
-            if (!isDeviceEnable(response, app)) {
-                return true;
-            }
-            JSONObject json = new JSONObject();
-            json.put(KEY_FUNCTION, FUNCTION_POST_IMAGE);
-            json.put(KEY_URL, path);
-            json.put(KEY_MODE, mode);
-            json.put(KEY_X, x);
-            json.put(KEY_Y, y);
-            String message = json.toString();
-            app.sendMessage(response, message);
-            mLogger.info("Send message successfully: " + message);
+            @Override
+            public void onResponse() {
+                if (data == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "data is not specified.");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        } catch (IOException e) {
-            MessageUtils.setUnknownError(response, "Failed to deploy image to Chromecast.");
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
+                try {
+                    String path = exposeImage(data, mimeType);
+                    mLogger.info("Exposed image: URL=" + path);
+                    if (path == null) {
+                        MessageUtils.setUnknownError(response, "The host device is not in local network.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
+                    if (!isDeviceEnable(response, app)) {
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    JSONObject json = new JSONObject();
+                    json.put(KEY_FUNCTION, FUNCTION_POST_IMAGE);
+                    json.put(KEY_URL, path);
+                    json.put(KEY_MODE, mode);
+                    json.put(KEY_X, x);
+                    json.put(KEY_Y, y);
+                    String message = json.toString();
+                    mLogger.info("Send message successfully: " + message);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    app.sendMessage(response, message);
+                } catch (IOException e) {
+                    MessageUtils.setUnknownError(response, "Failed to deploy image to Chromecast.");
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
+                    getContext().sendBroadcast(response);
+                    return;
+                } catch (Exception e) {
+                    MessageUtils.setUnknownError(response, e.getMessage());
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
             }
-            return true;
-        } catch (Exception e) {
-            MessageUtils.setUnknownError(response, e.getMessage());
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-            return true;
-        }
+        });
     }
 
     /**
@@ -152,20 +161,27 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
 
     @Override
     protected boolean onDeleteDrawImage(final Intent request, final Intent response, final String serviceId) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
-        ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
-        try {
-            JSONObject json = new JSONObject();
-            json.put(KEY_FUNCTION, FUNCTION_DELETE_IMAGE);
-            app.sendMessage(response, json.toString());
-            return false;
-        } catch (JSONException e) {
-            MessageUtils.setUnknownError(response);
-            return true;
-        }
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+
+            @Override
+            public void onResponse() {
+                ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put(KEY_FUNCTION, FUNCTION_DELETE_IMAGE);
+                    app.sendMessage(response, json.toString());
+                } catch (JSONException e) {
+                    MessageUtils.setUnknownError(response);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+            }
+        });
     }
 
     /**

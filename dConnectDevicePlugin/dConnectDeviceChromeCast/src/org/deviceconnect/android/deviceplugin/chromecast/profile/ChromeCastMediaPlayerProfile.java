@@ -210,81 +210,109 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutResume(final Intent request, final Intent response,
             final String serviceId) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
-        MediaStatus status = getMediaStatus(response, app);
-        if (status == null) {
-            return true;
-        }
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
-        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        }
-        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
-            app.resume(response);
-            return false;
-        } else {
-            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_RESUME);
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                ChromeCastMediaPlayer app = getChromeCastApplication();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                MediaStatus status = getMediaStatus(response, app);
+                if (status == null) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
+                    app.resume(response);
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_RESUME);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+            }
+        });
+        return false;
     }
 
     @Override
     protected boolean onPutStop(final Intent request, final Intent response,
             final String serviceId) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
-        MediaStatus status = getMediaStatus(response, app);
-        if (status == null) {
-            return true;
-        }
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
-        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_IDLE) {
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        }
-        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
-                || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED
-                || status.getPlayerState() == MediaStatus.PLAYER_STATE_BUFFERING) {
-            app.stop(response);
-            return false;
-        } else {
-            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_STOP);
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                ChromeCastMediaPlayer app = getChromeCastApplication();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                MediaStatus status = getMediaStatus(response, app);
+                if (status == null) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                if (status.getPlayerState() == MediaStatus.PLAYER_STATE_IDLE) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
+                        || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED
+                        || status.getPlayerState() == MediaStatus.PLAYER_STATE_BUFFERING) {
+                    app.stop(response);
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_STOP);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+            }
+        });
     }
 
     @Override
     protected boolean onPutPause(final Intent request, final Intent response,
             final String serviceId) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
-        MediaStatus status = getMediaStatus(response, app);
-        if (status == null) {
-            return true;
-        }
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
-        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        }
-        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
-            app.pause(response);
-            return false;
-        } else {
-            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_PAUSE);
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                ChromeCastMediaPlayer app = getChromeCastApplication();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                MediaStatus status = getMediaStatus(response, app);
+                if (status == null) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
+                    app.pause(response);
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_PAUSE);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+            }
+        });
     }
 
     /**
@@ -299,23 +327,31 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      */
     private boolean setMute(final Intent request, final Intent response,
             final String serviceId, final boolean mute) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app))	{
-            return true;
-        }
-        MediaStatus status = getMediaStatus(response, app);
-        if (status == null) {
-            return true;
-        }
-        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
-                || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
-            app.setMute(response, mute);
-            return false;
-        } else {
-            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_MUTE);
-            return true;
-        }
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+
+            @Override
+            public void onResponse() {
+                ChromeCastMediaPlayer app = getChromeCastApplication();
+                if (!isDeviceEnable(response, app))	{
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                MediaStatus status = getMediaStatus(response, app);
+                if (status == null) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
+                        || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
+                    app.setMute(response, mute);
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_MUTE);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+            }
+        });
     }
     @Override
     protected boolean onPutMute(final Intent request, final Intent response,
@@ -332,193 +368,250 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onGetMute(final Intent request, final Intent response,
             final String serviceId) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
-        if (getMediaStatus(response, app) == null) {
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                ChromeCastMediaPlayer app = getChromeCastApplication();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (getMediaStatus(response, app) == null) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
-        int mute = app.getMute(response);
-        if (mute == 1) {
-            setMute(response, true);
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        } else if (mute == 0) {
-            setMute(response, false);
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        } else {
-            return false;
-        }
+                int mute = app.getMute(response);
+                if (mute == 1) {
+                    setMute(response, true);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    getContext().sendBroadcast(response);
+                    return;
+                } else if (mute == 0) {
+                    setMute(response, false);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+            }
+        });
     }
 
     @Override
     protected boolean onPutVolume(final Intent request, final Intent response,
             final String serviceId, final Double volume) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+                                                new ChromeCastService.Callback() {
 
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
-        MediaStatus status = getMediaStatus(response, app);
-        if (status == null) {
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                ChromeCastMediaPlayer app = getChromeCastApplication();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                MediaStatus status = getMediaStatus(response, app);
+                if (status == null) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
-        if (volume == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else if (0.0 > volume || volume > 1.0) {
-            MessageUtils.setInvalidRequestParameterError(response);
-        } else {
-            if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
-                    || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
-                app.setVolume(response, volume);
-                return false;
-            } else {
-                MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_VOLUME);
-                return true;
+                if (volume == null) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                } else if (0.0 > volume || volume > 1.0) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                } else {
+                    if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
+                            || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
+                        app.setVolume(response, volume);
+                    } else {
+                        MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_VOLUME);
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                }
+                getContext().sendBroadcast(response);
+                return;
             }
-        }
-        return true;
+        });
+
     }
 
     @Override
     protected boolean onGetVolume(final Intent request, final Intent response,
             final String serviceId) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+                                        new ChromeCastService.Callback() {
 
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
-        if (getMediaStatus(response, app) == null) {
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                ChromeCastMediaPlayer app = getChromeCastApplication();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (getMediaStatus(response, app) == null) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
-        double volume = app.getVolume(response);
-        if (volume >= 0) {
-            setVolume(response, volume);
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        } else {
-            return false;
-        }
+                double volume = app.getVolume(response);
+                if (volume >= 0) {
+                    setVolume(response, volume);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+            }
+        });
+
     }
 
     @Override
     protected boolean onPutSeek(final Intent request, final Intent response,
             final String serviceId, final Integer pos) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                ChromeCastMediaPlayer app = getChromeCastApplication();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
-        if (pos == null) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            return true;
-        } else {
-            MediaStatus status = getMediaStatus(response, app);
-            if (status == null) {
-                return true;
+                if (pos == null) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    getContext().sendBroadcast(response);
+                    return;
+                } else {
+                    MediaStatus status = getMediaStatus(response, app);
+                    if (status == null) {
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
+                    long posMillisecond = pos * MILLISECOND;
+                    if (0 > posMillisecond
+                            || posMillisecond > status.getMediaInfo()
+                            .getStreamDuration()) {
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
+                    if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
+                            || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
+                        app.setSeek(response, posMillisecond);
+                    } else {
+                        MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_SEEK);
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                }
+
             }
+        });
 
-            long posMillisecond = pos * MILLISECOND;
-            if (0 > posMillisecond
-                    || posMillisecond > status.getMediaInfo()
-                    .getStreamDuration()) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return true;
-            }
-
-            if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING 
-                    || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
-                app.setSeek(response, posMillisecond);
-                return false;
-            } else {
-                MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_SEEK);
-                return true;
-            }
-        }
     }
 
     @Override
     protected boolean onGetSeek(final Intent request, final Intent response,
             final String serviceId) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
-        if (getMediaStatus(response, app) == null) {
-            return true;
-        }
-		
-        long posSecond = app.getSeek(response) / MILLISECOND;
-        if (posSecond >= 0) {
-            setPos(response, (int) posSecond);
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        } else {
-            return false;
-        }
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+                                                    new ChromeCastService.Callback() {
+
+            @Override
+            public void onResponse() {
+                ChromeCastMediaPlayer app = getChromeCastApplication();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (getMediaStatus(response, app) == null) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                long posSecond = app.getSeek(response) / MILLISECOND;
+                if (posSecond >= 0) {
+                    setPos(response, (int) posSecond);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+            }
+        });
     }
 
     @Override
     protected boolean onGetPlayStatus(final Intent request,
             final Intent response, final String serviceId) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+                                                            new ChromeCastService.Callback() {
 
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                ChromeCastMediaPlayer app = getChromeCastApplication();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
-        MediaStatus status = getMediaStatus(response, app);
-        if (status == null) {
-            return true;
-        }
-        String playStatus = getPlayStatus(status.getPlayerState());
-        response.putExtra(MediaPlayerProfile.PARAM_STATUS, playStatus);
-        setResult(response, DConnectMessage.RESULT_OK);
-        return true;
+                MediaStatus status = getMediaStatus(response, app);
+                if (status == null) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                String playStatus = getPlayStatus(status.getPlayerState());
+                response.putExtra(MediaPlayerProfile.PARAM_STATUS, playStatus);
+                setResult(response, DConnectMessage.RESULT_OK);
+                getContext().sendBroadcast(response);
+                return;
+            }
+        });
+
     }
 
     @Override
     protected boolean onGetMedia(final Intent request, final Intent response,
             final String serviceId, final String mediaId) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+                                                    new ChromeCastService.Callback() {
 
-        if (mediaId == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
-            return true;
-        }
-        if (mediaId.equals("")) {
-            MessageUtils.setInvalidRequestParameterError(response, "mediaId is empty.");
-            return true;
-        }
-        Bundle media = getMedia(mediaId);
-        for (String key : media.keySet()) {
-            Object value = media.get(key);
-            if (value instanceof String) {
-                response.putExtra(key, (String) value);
-            } else if (value instanceof String[]) {
-                response.putExtra(key, (String[]) value);
-            }  else if (value instanceof Long) {
-                response.putExtra(key, (Long) value);
-            } else if (value instanceof Bundle) {
-                response.putExtra(key, (Bundle) value);
+            @Override
+            public void onResponse() {
+                if (mediaId == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (mediaId.equals("")) {
+                    MessageUtils.setInvalidRequestParameterError(response, "mediaId is empty.");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                Bundle media = getMedia(mediaId);
+                for (String key : media.keySet()) {
+                    Object value = media.get(key);
+                    if (value instanceof String) {
+                        response.putExtra(key, (String) value);
+                    } else if (value instanceof String[]) {
+                        response.putExtra(key, (String[]) value);
+                    }  else if (value instanceof Long) {
+                        response.putExtra(key, (Long) value);
+                    } else if (value instanceof Bundle) {
+                        response.putExtra(key, (Bundle) value);
+                    }
+                }
+
+                setResult(response, DConnectMessage.RESULT_OK);
+                getContext().sendBroadcast(response);
+                return;
             }
-        }
-
-        setResult(response, DConnectMessage.RESULT_OK);
-        return true;
+        });
     }
 
     /**
@@ -566,67 +659,77 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutMedia(final Intent request, final Intent response,
             final String serviceId, final String mediaId) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
-        if (mediaId == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
-            return true;
-        }
-        if (mediaId.equals("")) {
-            MessageUtils.setInvalidRequestParameterError(response, "mediaId is empty.");
-            return true;
-        }
-        if (!hasMedia(mediaId)) {
-            MessageUtils.setInvalidRequestParameterError(response, "media is not found.");
-            return true;
-        }
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+                                                        new ChromeCastService.Callback() {
 
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                if (mediaId == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "mediaId is null.");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (mediaId.equals("")) {
+                    MessageUtils.setInvalidRequestParameterError(response, "mediaId is empty.");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (!hasMedia(mediaId)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "media is not found.");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
-        String url = null;
-        String title = null;
-        Integer mId = -1;
+                ChromeCastMediaPlayer app = getChromeCastApplication();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
-        try {
-            mId = Integer.parseInt(mediaId);
-        } catch (NumberFormatException e) {
-            url = mediaId;
-        }
+                String url = null;
+                String title = null;
+                Integer mId = -1;
 
-        if (url == null) {
-            Cursor cursor = getCursorFrom(
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    MediaStore.Video.Media._ID, mediaId);
-            try {
-                if (cursor == null) {
-                    response.putExtra(DConnectMessage.EXTRA_VALUE, "mediaId is not exist");
-                    setResult(response, DConnectMessage.RESULT_ERROR);
-                    return true;
-                } else {
-                    title = cursor.getString(cursor
-                            .getColumnIndex(MediaStore.Video.Media.TITLE));
-                    url = exposeMedia(mId);
-                    if (url == null) {
-                        response.putExtra(DConnectMessage.EXTRA_VALUE, "url is null");
-                        setResult(response, DConnectMessage.RESULT_ERROR);
-                        return true;
+                try {
+                    mId = Integer.parseInt(mediaId);
+                } catch (NumberFormatException e) {
+                    url = mediaId;
+                }
+
+                if (url == null) {
+                    Cursor cursor = getCursorFrom(
+                            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                            MediaStore.Video.Media._ID, mediaId);
+                    try {
+                        if (cursor == null) {
+                            response.putExtra(DConnectMessage.EXTRA_VALUE, "mediaId is not exist");
+                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            getContext().sendBroadcast(response);
+                            return;
+                        } else {
+                            title = cursor.getString(cursor
+                                    .getColumnIndex(MediaStore.Video.Media.TITLE));
+                            url = exposeMedia(mId);
+                            if (url == null) {
+                                response.putExtra(DConnectMessage.EXTRA_VALUE, "url is null");
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                                getContext().sendBroadcast(response);
+                                return;
+                            }
+                        }
+                    } finally {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
                     }
                 }
-            } finally {
-                if (cursor != null) {
-                    cursor.close();
+
+                if (title == null) {
+                    title = "TITLE";
                 }
+                app.load(response, url, title);
             }
-        }
-
-        if (title == null) {
-            title = "TITLE";
-        }
-        app.load(response, url, title);
-
-        return false;
+        });
     }
 
     /**
@@ -839,123 +942,149 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     protected boolean onGetMediaList(final Intent request, final Intent response,
             final String serviceId, final String query, final String mimeType,
             final String[] orders, final Integer offset, final Integer limit) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+        new ChromeCastService.Callback() {
 
+            @Override
+            public void onResponse() {
+                // パラメータの型チェック
+                Bundle b = request.getExtras();
+                if (b.getString(PARAM_LIMIT) != null) {
+                    if (parseInteger(b.get(PARAM_LIMIT)) == null) {
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                }
+                if (b.getString(PARAM_OFFSET) != null) {
+                    if (parseInteger(b.get(PARAM_OFFSET)) == null) {
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                }
 
-        // パラメータの型チェック
-        Bundle b = request.getExtras();
-        if (b.getString(PARAM_LIMIT) != null) {
-            if (parseInteger(b.get(PARAM_LIMIT)) == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return true;
-            }
-        }
-        if (b.getString(PARAM_OFFSET) != null) {
-            if (parseInteger(b.get(PARAM_OFFSET)) == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return true;
-            }
-        }
-
-        // パラメータの範囲チェック
-        if (orders != null && orders.length != 2) {
-            MessageUtils.setInvalidRequestParameterError(response, "order is invalid.");
-            return true;
-        }
-        final int offsetValue;
-        if (offset != null) {
-            if (offset >= 0) {
-                offsetValue = offset;
-            } else {
-                MessageUtils.setInvalidRequestParameterError(response, "offset is negative.");
-                return true;
-            }
-        } else {
-            offsetValue = 0;
-        }
-        if (limit != null && limit < 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "limit is negative.");
-            return true;
-        }
-
-        Comparator<Bundle> comparator = null;
-        if (orders != null) {
-            boolean isAsc;
-            Order o = Order.getInstance(orders[1]);
-            switch (o) {
-                case ASC:
-                    isAsc = true;
-                    break;
-                case DSEC:
-                    isAsc = false;
-                    break;
-                default:
+                // パラメータの範囲チェック
+                if (orders != null && orders.length != 2) {
                     MessageUtils.setInvalidRequestParameterError(response, "order is invalid.");
-                    return true;
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                final int offsetValue;
+                if (offset != null) {
+                    if (offset >= 0) {
+                        offsetValue = offset;
+                    } else {
+                        MessageUtils.setInvalidRequestParameterError(response, "offset is negative.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                } else {
+                    offsetValue = 0;
+                }
+                if (limit != null && limit < 0) {
+                    MessageUtils.setInvalidRequestParameterError(response, "limit is negative.");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                Comparator<Bundle> comparator = null;
+                if (orders != null) {
+                    boolean isAsc;
+                    Order o = Order.getInstance(orders[1]);
+                    switch (o) {
+                        case ASC:
+                            isAsc = true;
+                            break;
+                        case DSEC:
+                            isAsc = false;
+                            break;
+                        default:
+                            MessageUtils.setInvalidRequestParameterError(response, "order is invalid.");
+                            getContext().sendBroadcast(response);
+                            return;
+                    }
+                    comparator = findComparator(orders[0], isAsc);
+                }
+
+                // メディアリストのソート
+                List<Bundle> foundMedia = findAllMedia(query, mimeType);
+                if (comparator != null) {
+                    Collections.sort(foundMedia, comparator);
+                }
+
+                final int limitValue = limit != null ? limit : foundMedia.size();
+                int endIndex = offsetValue + limitValue;
+                if (endIndex > foundMedia.size()) {
+                    endIndex = foundMedia.size();
+                }
+
+                List<Bundle> result;
+                if (offsetValue < foundMedia.size()) {
+                    result = foundMedia.subList(offsetValue, endIndex);
+                } else {
+                    result = new ArrayList<Bundle>();
+                }
+
+                setCount(response, result.size());
+                setMedia(response, result.toArray(new Bundle[result.size()]));
+                setResult(response, DConnectMessage.RESULT_OK);
+                getContext().sendBroadcast(response);
+                return;
             }
-            comparator = findComparator(orders[0], isAsc);
-        }
+        });
 
-        // メディアリストのソート
-        List<Bundle> foundMedia = findAllMedia(query, mimeType);
-        if (comparator != null) {
-            Collections.sort(foundMedia, comparator);
-        }
 
-        final int limitValue = limit != null ? limit : foundMedia.size();
-        int endIndex = offsetValue + limitValue;
-        if (endIndex > foundMedia.size()) {
-            endIndex = foundMedia.size();
-        }
-
-        List<Bundle> result;
-        if (offsetValue < foundMedia.size()) {
-            result = foundMedia.subList(offsetValue, endIndex);
-        } else {
-            result = new ArrayList<Bundle>();
-        }
-
-        setCount(response, result.size());
-        setMedia(response, result.toArray(new Bundle[result.size()]));
-        setResult(response, DConnectMessage.RESULT_OK);
-
-        return true;
     }
 
     @Override
     protected boolean onPutOnStatusChange(final Intent request,
             final Intent response, final String serviceId,
             final String sessionKey) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+                new ChromeCastService.Callback() {
 
-        EventError error = EventManager.INSTANCE.addEvent(request);
-        if (error == EventError.NONE) {
-            ((ChromeCastService) getContext()).registerOnStatusChange(response,
-                    serviceId, sessionKey);
-            return false;
-        } else {
-            MessageUtils.setError(response, ERROR_VALUE_IS_NULL,
-                    "Can not register event.");
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                EventError error = EventManager.INSTANCE.addEvent(request);
+                if (error == EventError.NONE) {
+                    ((ChromeCastService) getContext()).registerOnStatusChange(response,
+                            serviceId, sessionKey);
+                } else {
+                    MessageUtils.setError(response, ERROR_VALUE_IS_NULL,
+                            "Can not register event.");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+            }
+        });
+
     }
 
     @Override
     protected boolean onDeleteOnStatusChange(final Intent request,
             final Intent response, final String serviceId,
             final String sessionKey) {
-        ((ChromeCastService) getContext()).connectChromeCast(serviceId);
+        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+                new ChromeCastService.Callback() {
 
-        EventError error = EventManager.INSTANCE.removeEvent(request);
-        if (error == EventError.NONE) {
-            ((ChromeCastService) getContext())
-                .unregisterOnStatusChange(response);
-            return false;
-        } else {
-            MessageUtils.setError(response, ERROR_VALUE_IS_NULL,
-                    "Can not unregister event.");
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                EventError error = EventManager.INSTANCE.removeEvent(request);
+                if (error == EventError.NONE) {
+                    ((ChromeCastService) getContext())
+                            .unregisterOnStatusChange(response);
+                } else {
+                    MessageUtils.setError(response, ERROR_VALUE_IS_NULL,
+                            "Can not unregister event.");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+            }
+        });
+
     }
 
     /**

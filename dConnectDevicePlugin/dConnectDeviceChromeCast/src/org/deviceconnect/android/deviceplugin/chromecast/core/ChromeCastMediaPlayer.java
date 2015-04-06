@@ -93,6 +93,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
     @Override
     public void onAttach() {
         mRemoteMediaPlayer = new RemoteMediaPlayer();
+
         mRemoteMediaPlayer
                 .setOnStatusUpdatedListener(new RemoteMediaPlayer.OnStatusUpdatedListener() {
                     @Override

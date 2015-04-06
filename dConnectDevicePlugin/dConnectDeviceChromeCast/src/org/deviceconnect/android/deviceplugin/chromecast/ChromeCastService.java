@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.chromecast;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaStatus;
@@ -50,7 +51,8 @@ import java.util.List;
 public class ChromeCastService extends DConnectMessageService implements
         ChromeCastDiscovery.Callbacks,
         ChromeCastMediaPlayer.Callbacks,
-        ChromeCastMessage.Callbacks {
+        ChromeCastMessage.Callbacks,
+        ChromeCastApplication.Result {
     /**
      * Chromecastのサーバポート.
      */
@@ -74,6 +76,20 @@ public class ChromeCastService extends DConnectMessageService implements
     private String mSessionKeyOnStatusChange = null;
     /** MediaPlayerのステータスアップデートフラグ. */
     private boolean mEnableCastMediaPlayerStatusUpdate = false;
+    /** Async Response. */
+    private Callback mAsyncResponse;
+    /**
+     * ChromeCastが接続完了してからレスポンスを返すためのCallbackを返す.
+     * @author NTT DOCOMO, INC.
+     */
+    public interface Callback {
+        /**
+         * レスポンス.
+         */
+        void onResponse();
+    }
+
+
 
     @Override
     public void onCreate() {
@@ -97,6 +113,7 @@ public class ChromeCastService extends DConnectMessageService implements
         mDiscovery.setCallbacks(this);
         mDiscovery.registerEvent();
         mApplication = new ChromeCastApplication(this, appId);
+        mApplication.setResult(this);
         mMediaPlayer = new ChromeCastMediaPlayer(mApplication);
         mMediaPlayer.setCallbacks(this);
         mMessage = new ChromeCastMessage(mApplication, appMsgUrn);
@@ -112,6 +129,9 @@ public class ChromeCastService extends DConnectMessageService implements
     @Override
     public void onDestroy() {
         mServer.stop();
+        if (mApplication != null) {
+            mApplication.teardown();
+        }
         super.onDestroy();
     }
 
@@ -132,13 +152,11 @@ public class ChromeCastService extends DConnectMessageService implements
 
     @Override
     public void onCastDeviceUpdate(final ArrayList<String> devices) { 
-        
     }
 
     @Override
     public void onCastDeviceSelected(final CastDevice selectedDevice) {
         CastDevice currentDevice = mApplication.getSelectedDevice();
-
         if (currentDevice != null) {
             if (!currentDevice.getDeviceId().equals(selectedDevice.getDeviceId())) {
                 mApplication.setSelectedDevice(selectedDevice);
@@ -161,15 +179,26 @@ public class ChromeCastService extends DConnectMessageService implements
     /**
      * Connected By Selected ChromeCast.
      * @param serviceId Service Identifier
+     * @param callback Asynchronous Response
      */
-    public void connectChromeCast(final String serviceId) {
+    public boolean connectChromeCast(final String serviceId,
+                                  final Callback callback) {
         if (mDiscovery.getSelectedDevice() != null) {
             if (mDiscovery.getSelectedDevice().getFriendlyName().equals(serviceId)) {
                 mApplication.connect();
-                return;
+                if ((Cast.CastApi.getApplicationStatus(mApplication.getGoogleApiClient())
+                    .equals(""))) {
+                    callback.onResponse();
+                    mAsyncResponse = null;
+                } else {
+                    mAsyncResponse = callback;
+                }
+                return false;
             }
         }
+        mAsyncResponse = callback;
         mDiscovery.setRouteName(serviceId);
+        return false;
     }
     /**
      * ChromeCastDiscoveryを返す.
@@ -304,6 +333,15 @@ public class ChromeCastService extends DConnectMessageService implements
             onChromeCastResult(response, result.getStatus(), message);
         }
     }
+
+    @Override
+    public void onChromeCastConnected() {
+        if (mAsyncResponse != null) {
+            mAsyncResponse.onResponse();
+            mAsyncResponse = null;
+        }
+    }
+
     @Override
     public void onChromeCastMessageResult(final Intent response, final Status result, final String message) {
         onChromeCastResult(response, result, message);

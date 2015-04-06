@@ -182,29 +182,40 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutPlay(final Intent request, final Intent response,
             final String serviceId) {
-        ChromeCastMediaPlayer app = getChromeCastApplication();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
-        MediaStatus status = getMediaStatus(response, app);
-        if (status == null) {
-            return true;
-        }
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+                new ChromeCastService.Callback() {
 
-        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        }
-        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_IDLE) {
-            app.play(response);
-            return false;
-        } else if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
-            app.resume(response);
-            return false;
-        } else {
-            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_PLAY);
-            return true;
-        }
+                    @Override
+                    public void onResponse() {
+                        ChromeCastMediaPlayer app = getChromeCastApplication();
+                        if (!isDeviceEnable(response, app)) {
+                            getContext().sendBroadcast(response);
+                            return;
+                        }
+                        MediaStatus status = getMediaStatus(response, app);
+                        if (status == null) {
+                            getContext().sendBroadcast(response);
+                            return;
+                        }
+
+                        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            getContext().sendBroadcast(response);
+                            return;
+                        }
+                        if (status.getPlayerState() == MediaStatus.PLAYER_STATE_IDLE) {
+                            app.play(response);
+                        } else if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
+                            app.resume(response);
+                        } else {
+                            MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_PLAY);
+                            getContext().sendBroadcast(response);
+                            return;
+                        }
+
+                    }
+                });
+        return false;
     }
 
     @Override
@@ -246,7 +257,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutStop(final Intent request, final Intent response,
             final String serviceId) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
             @Override
             public void onResponse() {
@@ -278,12 +289,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
             }
         });
+        return false;
     }
 
     @Override
     protected boolean onPutPause(final Intent request, final Intent response,
             final String serviceId) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
             @Override
             public void onResponse() {
@@ -313,6 +325,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
             }
         });
+        return false;
     }
 
     /**
@@ -327,7 +340,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      */
     private boolean setMute(final Intent request, final Intent response,
             final String serviceId, final boolean mute) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
             @Override
             public void onResponse() {
@@ -352,6 +365,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
             }
         });
+        return false;
     }
     @Override
     protected boolean onPutMute(final Intent request, final Intent response,
@@ -368,7 +382,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onGetMute(final Intent request, final Intent response,
             final String serviceId) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
             @Override
             public void onResponse() {
@@ -397,12 +411,14 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
             }
         });
+        return false;
+
     }
 
     @Override
     protected boolean onPutVolume(final Intent request, final Intent response,
             final String serviceId, final Double volume) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                                                 new ChromeCastService.Callback() {
 
             @Override
@@ -436,13 +452,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 return;
             }
         });
-
+        return false;
     }
 
     @Override
     protected boolean onGetVolume(final Intent request, final Intent response,
             final String serviceId) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                                         new ChromeCastService.Callback() {
 
             @Override
@@ -466,13 +482,14 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 }
             }
         });
+        return false;
 
     }
 
     @Override
     protected boolean onPutSeek(final Intent request, final Intent response,
             final String serviceId, final Integer pos) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
             @Override
             public void onResponse() {
@@ -514,13 +531,14 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
             }
         });
+        return false;
 
     }
 
     @Override
     protected boolean onGetSeek(final Intent request, final Intent response,
             final String serviceId) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                                                     new ChromeCastService.Callback() {
 
             @Override
@@ -544,12 +562,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 }
             }
         });
+        return false;
     }
 
     @Override
     protected boolean onGetPlayStatus(final Intent request,
             final Intent response, final String serviceId) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                                                             new ChromeCastService.Callback() {
 
             @Override
@@ -572,13 +591,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 return;
             }
         });
-
+        return false;
     }
 
     @Override
     protected boolean onGetMedia(final Intent request, final Intent response,
             final String serviceId, final String mediaId) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                                                     new ChromeCastService.Callback() {
 
             @Override
@@ -612,6 +631,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 return;
             }
         });
+        return false;
+
     }
 
     /**
@@ -659,7 +680,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     @Override
     protected boolean onPutMedia(final Intent request, final Intent response,
             final String serviceId, final String mediaId) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                                                         new ChromeCastService.Callback() {
 
             @Override
@@ -730,6 +751,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 app.load(response, url, title);
             }
         });
+        return false;
     }
 
     /**
@@ -942,7 +964,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     protected boolean onGetMediaList(final Intent request, final Intent response,
             final String serviceId, final String query, final String mimeType,
             final String[] orders, final Integer offset, final Integer limit) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId,
         new ChromeCastService.Callback() {
 
             @Override
@@ -1033,15 +1055,14 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 return;
             }
         });
-
-
+        return false;
     }
 
     @Override
     protected boolean onPutOnStatusChange(final Intent request,
             final Intent response, final String serviceId,
             final String sessionKey) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                 new ChromeCastService.Callback() {
 
             @Override
@@ -1059,14 +1080,14 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
             }
         });
-
+        return false;
     }
 
     @Override
     protected boolean onDeleteOnStatusChange(final Intent request,
             final Intent response, final String serviceId,
             final String sessionKey) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId,
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId,
                 new ChromeCastService.Callback() {
 
             @Override
@@ -1084,7 +1105,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
 
             }
         });
-
+        return false;
     }
 
     /**

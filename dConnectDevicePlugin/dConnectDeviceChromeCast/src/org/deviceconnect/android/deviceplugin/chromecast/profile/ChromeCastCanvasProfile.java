@@ -56,7 +56,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
     @Override
     protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId,
             final String mimeType, final byte[] data, final double x, final double y, final String mode) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
             @Override
             public void onResponse() {
@@ -107,6 +107,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
 
             }
         });
+        return false;
     }
 
     /**
@@ -161,7 +162,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
 
     @Override
     protected boolean onDeleteDrawImage(final Intent request, final Intent response, final String serviceId) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
             @Override
             public void onResponse() {
@@ -182,6 +183,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
 
             }
         });
+        return false;
     }
 
     /**

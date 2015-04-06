@@ -52,7 +52,7 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
             final String serviceId, final NotificationType type, final Direction dir,
             final String lang, final String body, final String tag,
             final byte[] iconData) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
             @Override
             public void onResponse() {
@@ -97,13 +97,14 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
                 }
             }
         });
+        return false;
     }
 
     @Override
     protected boolean onDeleteNotify(final Intent request,
             final Intent response, final String serviceId,
             final String notificationId) {
-        return ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
             @Override
             public void onResponse() {
@@ -130,6 +131,7 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
 
             }
         });
+        return false;
     }
 
 }

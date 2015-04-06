@@ -142,7 +142,7 @@ public class ChromeCastService extends DConnectMessageService implements
 
     @Override
     protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this){};
+        return new ServiceInformationProfile(this) { };
     }
 
     @Override
@@ -181,11 +181,12 @@ public class ChromeCastService extends DConnectMessageService implements
      * @param serviceId Service Identifier
      * @param callback Asynchronous Response
      */
-    public boolean connectChromeCast(final String serviceId,
+    public void connectChromeCast(final String serviceId,
                                   final Callback callback) {
         if (mDiscovery.getSelectedDevice() != null) {
             if (mDiscovery.getSelectedDevice().getFriendlyName().equals(serviceId)) {
                 mApplication.connect();
+                // Whether application that had been started before whether other apps
                 if ((Cast.CastApi.getApplicationStatus(mApplication.getGoogleApiClient())
                     .equals(""))) {
                     callback.onResponse();
@@ -193,12 +194,12 @@ public class ChromeCastService extends DConnectMessageService implements
                 } else {
                     mAsyncResponse = callback;
                 }
-                return false;
+                return;
             }
         }
         mAsyncResponse = callback;
         mDiscovery.setRouteName(serviceId);
-        return false;
+        return;
     }
     /**
      * ChromeCastDiscoveryを返す.

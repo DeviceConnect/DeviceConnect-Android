@@ -856,6 +856,8 @@ public class HostDeviceService extends DConnectMessageService {
                     mResponse.putExtra("pos", mMyCurrentMediaPosition / UNIT_SEC);
                     mResponse.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                     sendBroadcast(mResponse);
+                } else if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_STOP)) {
+                    unregisterReceiver(mMediaPlayerVideoBR);
                 } else if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY_COMPLETION)) {
                     mMediaStatus = MEDIA_PLAYER_COMPLETE;
                     sendOnStatusChangeEvent("complete");
@@ -922,7 +924,6 @@ public class HostDeviceService extends DConnectMessageService {
             sendOnStatusChangeEvent("stop");
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             sendBroadcast(response);
-            unregisterReceiver(mMediaPlayerVideoBR);
         }
     }
 

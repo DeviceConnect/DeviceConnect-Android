@@ -108,6 +108,9 @@ public class VideoPlayer extends Activity implements OnCompletionListener {
                     unregisterReceiver(mReceiver);
                     mReceiver = null;
                     mIsReady = false;
+                    Intent mIntent = new Intent(VideoConst.SEND_VIDEOPLAYER_TO_HOSTDP);
+                    mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_STOP);
+                    sendBroadcast(mIntent);
                     finish();
                 } else if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PAUSE)) {
                     mVideoView.pause();

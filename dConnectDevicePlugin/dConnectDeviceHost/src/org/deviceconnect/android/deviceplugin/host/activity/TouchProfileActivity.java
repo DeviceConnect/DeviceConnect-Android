@@ -27,6 +27,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
 
 /**
  * Touch Profile Activity.
@@ -69,6 +71,14 @@ public class TouchProfileActivity extends Activity {
         mServiceId = intent.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         // Create GestureDetector instance.
         mGestureDetector = new GestureDetector(this, mSimpleOnGestureListener);
+        // onclicklistener register.
+        Button button = (Button) findViewById(R.id.button_touch_close);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     @Override

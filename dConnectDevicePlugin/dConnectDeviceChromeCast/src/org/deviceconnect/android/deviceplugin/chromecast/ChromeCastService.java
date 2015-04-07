@@ -76,8 +76,9 @@ public class ChromeCastService extends DConnectMessageService implements
     private String mSessionKeyOnStatusChange = null;
     /** MediaPlayerのステータスアップデートフラグ. */
     private boolean mEnableCastMediaPlayerStatusUpdate = false;
-    /** Async Response. */
-    private Callback mAsyncResponse;
+    /** Async Response Array List. */
+    private ArrayList<Callback> mAsyncResponse = new ArrayList<Callback>();
+
     /**
      * ChromeCastが接続完了してからレスポンスを返すためのCallbackを返す.
      * @author NTT DOCOMO, INC.
@@ -184,22 +185,29 @@ public class ChromeCastService extends DConnectMessageService implements
     public void connectChromeCast(final String serviceId,
                                   final Callback callback) {
         if (mDiscovery.getSelectedDevice() != null) {
-            if (mDiscovery.getSelectedDevice().getFriendlyName().equals(serviceId)) {
+            if (mDiscovery.getSelectedDevice().getFriendlyName().equals(serviceId)
+                    && !mApplication.getGoogleApiClient().isConnecting()) {
                 mApplication.connect();
                 // Whether application that had been started before whether other apps
                 if ((Cast.CastApi.getApplicationStatus(mApplication.getGoogleApiClient())
                     .equals(""))) {
+                    for (int i = 0; i < mAsyncResponse.size(); i++) {
+                        Callback call = mAsyncResponse.remove(i);
+                        call.onResponse();
+                    }
                     callback.onResponse();
-                    mAsyncResponse = null;
-                } else {
-                    mAsyncResponse = callback;
+                } else  {
+                    mAsyncResponse.add(callback);
                 }
+                return;
+            } else {
+                // Request in connection queuing
+                mAsyncResponse.add(callback);
                 return;
             }
         }
-        mAsyncResponse = callback;
+        mAsyncResponse.add(callback);
         mDiscovery.setRouteName(serviceId);
-        return;
     }
     /**
      * ChromeCastDiscoveryを返す.
@@ -337,9 +345,9 @@ public class ChromeCastService extends DConnectMessageService implements
 
     @Override
     public void onChromeCastConnected() {
-        if (mAsyncResponse != null) {
-            mAsyncResponse.onResponse();
-            mAsyncResponse = null;
+        for (int i = 0; i < mAsyncResponse.size(); i++) {
+            Callback callback = mAsyncResponse.remove(i);
+            callback.onResponse();
         }
     }
 

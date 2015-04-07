@@ -187,6 +187,7 @@ public class ChromeCastApplication implements
                         Log.d(TAG, "onApplicationDisconnected$statusCode: " + statusCode);
                     }
                     mIsApplicationDisconnected = true;
+                    teardown();
                 }
                 @Override
                 public void onApplicationStatusChanged() {

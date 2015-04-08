@@ -87,6 +87,9 @@ public final class VideoConst {
     /** 現在再生場所. */
     public static final String EXTRA_VALUE_VIDEO_PLAYER_PLAY_POS = "playpos";
 
+    /** Play completion. */
+    public static final String EXTRA_VALUE_VIDEO_PLAYER_PLAY_COMPLETION = "complation";
+
     /** 撮影するサイズ(横). */
     public static final int VIDEO_WIDTH = 320;
 

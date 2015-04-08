@@ -60,6 +60,9 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
     /** ファイル名. */
     private String mFileName;
 
+    /** Ready flag. */
+    private Boolean mIsReady = false;
+    
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,7 +98,6 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         mRecorder = new MediaRecorder();
 
         mCamera.unlock();
-
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -157,10 +159,13 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
      */
     private void releaseMediaRecorder() {
         if (mRecorder != null) {
-            mRecorder.stop();
+            if (mIsReady) {
+                mRecorder.stop();
+            }
             mRecorder.reset();
             mRecorder.release();
             mRecorder = null;
+            mIsReady = false;
         }
     }
 
@@ -206,6 +211,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
             }
         }
         mRecorder.start();
+        mIsReady = true;
     }
 
     @Override

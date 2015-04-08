@@ -945,9 +945,10 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         ContentResolver mAudioContentsProvider = context.getContentResolver();
         try {
             mAudioCursor = mAudioContentsProvider.query(mAudioUri, mParam, mFilter, mArgs, null);
-            mAudioCursor.moveToFirst();
-            int mIdField = mAudioCursor.getColumnIndex(mParam[0]);
-            id = mAudioCursor.getLong(mIdField);
+            if (mAudioCursor.moveToFirst()) {
+                int mIdField = mAudioCursor.getColumnIndex(mParam[0]);
+                id = mAudioCursor.getLong(mIdField);
+            }
             mAudioCursor.close();
 
         } catch (NullPointerException e) {
@@ -979,9 +980,12 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             try {
                 mVideoCursor = mVideoContentsProvider.query(mViodeUri, mParam, mFilter, mArgs, null);
 
-                mVideoCursor.moveToFirst();
-                int mIdField = mVideoCursor.getColumnIndex(mParam[0]);
-                id = mVideoCursor.getLong(mIdField);
+                if (mVideoCursor.moveToFirst()) {
+                    int mIdField = mVideoCursor.getColumnIndex(mParam[0]);
+                    id = mVideoCursor.getLong(mIdField);
+                } else {
+                    id = -1;
+                }
                 mVideoCursor.close();
 
             } catch (NullPointerException e) {

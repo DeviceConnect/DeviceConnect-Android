@@ -83,6 +83,12 @@ public class HostSettingFragment extends Fragment {
         return mView;
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        mActivity.unbindService(mServiceConnection);
+    }
+
     /**
      * Host PluginをSearchします.
      */

@@ -75,7 +75,7 @@ public class TouchProfileActivity extends Activity {
         Button button = (Button) findViewById(R.id.button_touch_close);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 finish();
             }
         });

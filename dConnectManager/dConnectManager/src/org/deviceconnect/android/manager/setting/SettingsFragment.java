@@ -23,6 +23,7 @@ import android.app.ActivityManager.RunningServiceInfo;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -255,11 +256,25 @@ public class SettingsFragment extends PreferenceFragment
         } else if (getString(R.string.key_settings_demo_link).equals(preference.getKey())) {
         	Uri uri = Uri.parse("http://www.gclue.io/wda/demo.html");
         	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        	startActivity(intent);
+        	intent.setPackage("com.android.chrome");
+        	try {
+            	startActivity(intent);
+        	} catch (ActivityNotFoundException ex) {
+        	    // Chrome browser presumably not installed so allow user to choose instead
+        	    intent.setPackage(null);
+            	startActivity(intent);
+            }
         } else if (getString(R.string.key_settings_about_consortium_link).equals(preference.getKey())) {
         	Uri uri = Uri.parse("http://www.gclue.io/wda/index.html");
         	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        	startActivity(intent);
+        	intent.setPackage("com.android.chrome");
+        	try {
+            	startActivity(intent);
+        	} catch (ActivityNotFoundException ex) {
+        	    // Chrome browser presumably not installed so allow user to choose instead
+        	    intent.setPackage(null);
+            	startActivity(intent);
+            }
         }
 
         return result;

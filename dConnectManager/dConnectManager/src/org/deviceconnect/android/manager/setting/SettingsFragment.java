@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
@@ -251,6 +252,14 @@ public class SettingsFragment extends PreferenceFragment
             fragment.show(getFragmentManager(), null);
         } else if (getString(R.string.key_settings_restart_device_plugin).equals(preference.getKey())) {
             restartDevicePlugins();
+        } else if (getString(R.string.key_settings_demo_link).equals(preference.getKey())) {
+        	Uri uri = Uri.parse("http://www.gclue.io/wda/demo.html");
+        	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        	startActivity(intent);
+        } else if (getString(R.string.key_settings_about_consortium_link).equals(preference.getKey())) {
+        	Uri uri = Uri.parse("http://www.gclue.io/wda/index.html");
+        	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        	startActivity(intent);
         }
 
         return result;

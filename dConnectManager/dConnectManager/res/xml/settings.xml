@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
+    <PreferenceCategory android:title="@string/activity_settings_demo_link" >
+        <PreferenceScreen
+            android:key="@string/key_settings_demo_link"
+            android:title="@string/activity_settings_demo_link" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_server_on_off" >
         <SwitchPreference
             android:key="@string/key_settings_dconn_server_on_off"
@@ -82,6 +87,9 @@
         <PreferenceScreen
             android:key="@string/key_settings_about_privacypolicy"
             android:title="@string/activity_settings_privacy_policy" />
+        <PreferenceScreen
+            android:key="@string/key_settings_about_consortium_link"
+            android:title="@string/activity_settings_consortium_link" />
         <PreferenceScreen
             android:key="@string/key_settings_about_appinfo"
             android:summary="@string/activity_settings_app_infomation_summary"

@@ -48,6 +48,8 @@
     <string name="activity_settings_restart_device_plugin">Restart</string>
     <string name="activity_settings_restart_device_plugin_title">Starting Device Plugin</string>
     <string name="activity_settings_restart_device_plugin_message">Processing</string>
+    <string name="activity_settings_demo_link">Demo Application Link</string>
+    <string name="activity_settings_consortium_link">Device Web API Consortium Link</string>
     
     <!-- ================= SharedPreferences ================= -->
 
@@ -67,7 +69,9 @@
     <string name="key_settings_dconn_whitelist">settings_whitelist</string>
     <string name="key_settings_dconn_whitelist_origin_blocking">settings_whitelist_origin_blocking</string>
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
-
+    <string name="key_settings_demo_link">settings_demo_link</string>
+    <string name="key_settings_about_consortium_link">settings_about_consortium_link</string>
+    
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Whitelist of Origin</string>
     <string name="no_origin">No allowed origin by user.</string>

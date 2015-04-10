@@ -19,7 +19,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
 
-        <!-- Device Connect Manager起動用Activity. -->
+        <!-- Device Web API Manager起動用Activity. -->
         <activity
             android:name="org.deviceconnect.android.manager.DConnectLaunchActivity"
             android:label="@string/app_name"
@@ -42,7 +42,7 @@
             android:label="@string/app_name" >
         </activity>
 
-        <!-- Device Connect Manager設定画面用Activity. -->
+        <!-- Device Web API Manager設定画面用Activity. -->
         <activity
             android:name="org.deviceconnect.android.manager.setting.SettingActivity"
             android:label="@string/app_name"
@@ -53,14 +53,14 @@
             </intent-filter>
         </activity>
 
-        <!-- キーワード表示用Activitiy. -->
+        <!-- キーワード表示用Activity. -->
         <activity
             android:name="org.deviceconnect.android.manager.setting.KeywordDialogAcitivty"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.Translucent" >
         </activity>
 
-        <!-- Device Connect Managerデバック用Activity. -->
+        <!-- Device Web API Managerデバック用Activity. -->
         <activity
             android:name="org.deviceconnect.android.manager.setting.ReqResDebugActivity"
             android:label="@string/app_name"
@@ -98,7 +98,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Device Connect Manager本体のサービス. -->
+        <!-- Device Web API Manager本体のサービス. -->
         <!-- Activityとは別プロセスで動作させるために、:dconnect_process上で動作させている。 -->
         <service
             android:name="org.deviceconnect.android.manager.DConnectService"
@@ -138,7 +138,7 @@
         </service>
 
         <!-- Device Connect監視サービス. -->
-        <!-- Device ConnectManagerの生存確認を行うため、Device Connect Managerとは別プロセスで動作する。 -->
+        <!-- Device Web API Managerの生存確認を行うため、Device Web API Managerとは別プロセスで動作する。 -->
         <service
             android:name="org.deviceconnect.android.observer.DConnectObservationService"
             android:exported="false"

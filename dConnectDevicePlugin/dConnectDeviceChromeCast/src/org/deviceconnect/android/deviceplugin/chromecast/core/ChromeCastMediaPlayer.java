@@ -353,7 +353,7 @@ public class ChromeCastMediaPlayer implements ChromeCastApplication.Callbacks {
      */
     public long getSeek(final Intent response) {
         if (mRemoteMediaPlayer != null) {
-            return mRemoteMediaPlayer.getApproximateStreamPosition();
+            return  mRemoteMediaPlayer.getApproximateStreamPosition();
         } else {
             return -1;
         }

@@ -315,14 +315,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                     getContext().sendBroadcast(response);
                     return;
                 }
-                if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING) {
-                    app.pause(response);
-                } else {
-                    MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_PAUSE);
-                    getContext().sendBroadcast(response);
-                    return;
-                }
-
+                app.pause(response);
             }
         });
         return false;
@@ -354,15 +347,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                     getContext().sendBroadcast(response);
                     return;
                 }
-                if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
-                        || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
-                    app.setMute(response, mute);
-                } else {
-                    MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_MUTE);
-                    getContext().sendBroadcast(response);
-                    return;
-                }
-
+                app.setMute(response, mute);
             }
         });
         return false;
@@ -439,14 +424,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                 } else if (0.0 > volume || volume > 1.0) {
                     MessageUtils.setInvalidRequestParameterError(response);
                 } else {
-                    if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
-                            || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
-                        app.setVolume(response, volume);
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_VOLUME);
-                        getContext().sendBroadcast(response);
-                        return;
-                    }
+                    app.setVolume(response, volume);
+                    return;
                 }
                 getContext().sendBroadcast(response);
                 return;
@@ -518,15 +497,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                         getContext().sendBroadcast(response);
                         return;
                     }
-
-                    if (status.getPlayerState() == MediaStatus.PLAYER_STATE_PLAYING
-                            || status.getPlayerState() == MediaStatus.PLAYER_STATE_PAUSED) {
-                        app.setSeek(response, posMillisecond);
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response, ERROR_MESSAGE_MEDIA_SEEK);
-                        getContext().sendBroadcast(response);
-                        return;
-                    }
+                    app.setSeek(response, posMillisecond);
                 }
 
             }
@@ -918,7 +889,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      */
     private List<Bundle> findAllMedia(final String query, final String mimeType) {
         List<Bundle> list = new ArrayList<Bundle>();
-
+        listupMedia("Video", list, query, mimeType, null);
         Bundle medium = new Bundle();
         setType(medium, "Video");
         setLanguage(medium, "Language");
@@ -931,7 +902,6 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         setCreators(medium, new Bundle[] {creatorVideo});
         list.add(medium);
 
-        listupMedia("Video", list, query, mimeType, null);
         return list;
     }
 

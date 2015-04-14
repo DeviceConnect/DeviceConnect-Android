@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.deviceconnect.android.deviceplugin.chromecast"
     android:versionCode="1"
-    android:versionName="2.0.0" >
+    android:versionName="1.0.0" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -20,7 +20,7 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-        <!-- 再起動用のServcie. -->
+        <!-- 再起動用のService. -->
         <service
             android:name="org.deviceconnect.android.message.DConnectLaunchService"
             android:exported="true" >

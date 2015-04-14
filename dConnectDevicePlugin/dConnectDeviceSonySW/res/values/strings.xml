@@ -2,8 +2,10 @@
 <!-- No translation of sample extensions -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2" xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
 
-    <!-- Name of app, shown when installing/uninstalling extension -->
-    <string name="app_name">Sony Watch 2.0.0</string>
+    <!-- Name of app -->
+    <string name="app_name">Sony Watch (Device Web API device plug-in)</string>
+    <!-- Name of app display, shown when installing/uninstalling extension -->
+    <string name="app_display_name">Sony Watch 1.0.0</string>
     <!-- Title of preference activity -->
     <string name="preference_activity_title">SW Device Plugin settings</string>
     <!-- Name of extension, shown in preferences -->

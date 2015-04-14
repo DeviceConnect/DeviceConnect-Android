@@ -150,7 +150,12 @@ public class SpheroLightProfile extends DConnectProfile {
 
             int brightnessRaw;
             if (request.hasExtra(PARAM_BRIGHTNESS)) {
-                double brightness = request.getDoubleExtra(PARAM_BRIGHTNESS, -1);
+            	double brightness = 0;
+            	try {
+            		brightness = Double.valueOf(request.getStringExtra(PARAM_BRIGHTNESS));
+            	} catch (Exception e) {
+            		brightness = -1.0;
+            	}
                 brightnessRaw = (int) ((double) MAX_BRIGHTNESS * brightness);
                 if (brightnessRaw < 0 || brightnessRaw > MAX_BRIGHTNESS) {
                     MessageUtils.setInvalidRequestParameterError(response, "brightness is invalid.");

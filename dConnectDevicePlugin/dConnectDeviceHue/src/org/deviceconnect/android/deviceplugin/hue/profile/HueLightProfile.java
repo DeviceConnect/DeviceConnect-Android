@@ -3,7 +3,7 @@ HueLightProfile
 Copyright (c) 2014 NTT DOCOMO,INC.
 Released under the MIT license
 http://opensource.org/licenses/mit-license.php
-*/
+ */
 
 package org.deviceconnect.android.deviceplugin.hue.profile;
 
@@ -18,7 +18,6 @@ import org.deviceconnect.message.DConnectMessage;
 
 import android.content.Intent;
 import android.os.Bundle;
-
 import com.philips.lighting.hue.listener.PHGroupListener;
 import com.philips.lighting.hue.listener.PHLightListener;
 import com.philips.lighting.hue.sdk.PHHueSDK;
@@ -32,9 +31,9 @@ import com.philips.lighting.model.PHLight;
 import com.philips.lighting.model.PHLight.PHLightColorMode;
 import com.philips.lighting.model.PHLightState;
 
-
 /**
  * 親クラスで振り分けられたメソッドに対して、Hueのlight attribute処理を呼び出す.
+ * 
  * @author NTT DOCOMO, INC.
  */
 public class HueLightProfile extends LightProfile {
@@ -71,6 +70,8 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLight(final Intent request, final Intent response) {
+        int[] mColorParam = new int[3];
+        float mBrightness = 0;
         String serviceId = getServiceID(request);
         String lightId = getLightID(request);
 
@@ -90,76 +91,32 @@ public class HueLightProfile extends LightProfile {
             MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
-        
-        if (getBrightness(request) != null) {
-        	try {
-        		float mBrightness = Float.valueOf(getBrightness(request));
-        		if (mBrightness > 1.0
-        				|| mBrightness < 0) {
-        			MessageUtils.setInvalidRequestParameterError(response,
-        					"brightness should be a value between 0 and 1.0");
-        			return true;
-        		}
-        	} catch (NumberFormatException e) {
-        		MessageUtils.setInvalidRequestParameterError(response,
-    					"brightness should be a value between 0 and 1.0");
-        		return true;
-        	}
+
+        mBrightness = getBrightnessParam(request, response);
+        if (mBrightness == -1) {
+            return true;
         }
-        
-        if (getColor(request) != null) {
-        	try {
-        		String mColor = getColor(request);
-        		String rr = mColor.substring(0, 2);
-                String gg = mColor.substring(2, 4);
-                String bb = mColor.substring(4, 6);
-                int mColorParam;
-                if (mColor.length() == RGB_LENGTH) {
-                	if (rr == null) {
-                		MessageUtils.setInvalidRequestParameterError(response);
-                		return true;
-                	} else {
-                		mColorParam = Integer.parseInt(rr, 16);
-                	}
-                	if (gg == null) {
-                		MessageUtils.setInvalidRequestParameterError(response);
-                		return true;
-                	} else {
-                		mColorParam = Integer.parseInt(gg, 16);
-                	}
-                	if (bb == null) {
-                		MessageUtils.setInvalidRequestParameterError(response);
-                		return true;
-                	} else {
-                		mColorParam = Integer.parseInt(bb, 16);
-                	}
-                } else {
-                	MessageUtils.setInvalidRequestParameterError(response);
-            		return true;
-                }
-        	} catch (NumberFormatException e) {
-        		MessageUtils.setInvalidRequestParameterError(response);
-        		return true;
-        	} catch (IllegalArgumentException e) {
-        		MessageUtils.setInvalidRequestParameterError(response);
-        		return true;
-        	}
+
+        if (!(getColorParam(request, response, mColorParam))) {
+            return true;
         }
-        
+
+        // Brightness magnification conversion
+        String colorParam = calcColorParam(mColorParam, mBrightness);
+
+        // Calculation of brightness.
+        int mCalcBrightness = calcBrightnessParam(mColorParam);
+
         PHLightState lightState = new PHLightState();
         lightState.setOn(true);
+        
         lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
-        String colorParam = getColor(request);
-        if (colorParam == null) {
-            colorParam = "FFFFFF";
-        }
+        
         Color hueColor = new Color(colorParam);
         lightState.setX(hueColor.mX);
         lightState.setY(hueColor.mY);
-        String brightnessParam = getBrightness(request);
-        if (brightnessParam != null) {
-            lightState.setBrightness(Integer.valueOf(new Brightness(brightnessParam).mValue));
-        }
+
+        lightState.setBrightness(mCalcBrightness);
 
         bridge.updateLightState(light, lightState, new PHLightAdapter() {
             @Override
@@ -209,8 +166,7 @@ public class HueLightProfile extends LightProfile {
 
             @Override
             public void onError(final int code, final String message) {
-                String errMsg = "ライトの状態更新に失敗しました hue:code = " 
-                        + Integer.toString(code) + "  message = " + message;
+                String errMsg = "ライトの状態更新に失敗しました hue:code = " + Integer.toString(code) + "  message = " + message;
                 MessageUtils.setUnknownError(response, errMsg);
                 sendResultERR(response);
             }
@@ -220,6 +176,8 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLight(final Intent request, final Intent response) {
+        int[] mColorParam = new int[3];
+        float mBrightness = 0;
         String serviceId = getServiceID(request);
         String lightId = getLightID(request);
         String name = getName(request);
@@ -239,30 +197,123 @@ public class HueLightProfile extends LightProfile {
             MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
+
+        mBrightness = getBrightnessParam(request, response);
+        if (mBrightness == -1) {
+            return true;
+        }
+
+        if (!(getColorParam(request, response, mColorParam))) {
+            return true;
+        }
+
         PHLight light = getLight(bridge, lightId);
         if (light == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
+        // Set response count.
+        setResponseCount(2);
+        setResponse(response);
+
         PHLight newLight = new PHLight(light);
         newLight.setName(name);
-        bridge.updateLight(newLight, new PHLightAdapter() {
-            @Override
-            public void onSuccess() {
-                sendResultOK(response);
-            }
+        bridge.updateLight(newLight, mAdaptor);
 
-            @Override
-            public void onError(final int code, final String message) {
-                String errMsg = "ライトの名称変更に失敗しました hue:code = " 
-                        + Integer.toString(code) + "  message = " + message;
-                MessageUtils.setUnknownError(response, errMsg);
-                sendResultERR(response);
-            }
-        });
+        // Brightness magnification conversion
+        String colorParam = calcColorParam(mColorParam, mBrightness);
+
+        // Calculation of brightness.
+        int mCalcBrightness = calcBrightnessParam(mColorParam);
+
+        PHLightState lightState = new PHLightState();
+        lightState.setOn(true);
+        lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
+        Color hueColor = new Color(colorParam);
+        lightState.setX(hueColor.mX);
+        lightState.setY(hueColor.mY);
+        lightState.setBrightness(mCalcBrightness);
+
+        bridge.updateLightState(light, lightState, mAdaptor);
         return false;
     }
+
+    /** Response intent backup. */
+    private static Intent sResponse = null;
+
+    /**
+     * Get Response intent.
+     * 
+     * @return response intent.
+     */
+    private static Intent getResponse() {
+        return sResponse;
+    }
+
+    /**
+     * Set response intent.
+     * 
+     * @param response Response intent.
+     */
+    private static void setResponse(final Intent response) {
+        sResponse = response;
+    }
+
+    /** Response counter. */
+    private static int sResponseCount = 0;
+
+    /**
+     * Get Response count.
+     * 
+     * @return Response count.
+     */
+    private static int getResponseCount() {
+        return --sResponseCount;
+    }
+
+    /**
+     * Set response count.
+     * 
+     * @param count Response count.
+     */
+    private static void setResponseCount(final int count) {
+        sResponseCount = count;
+    }
+
+    /**
+     *  Bridge response listener.
+     */
+    PHLightAdapter mAdaptor = new PHLightAdapter() {
+        @Override
+        public void onSuccess() {
+            if (getResponseCount() == 0) {
+                sendResultOK(getResponse());
+            }
+        }
+
+        @Override
+        public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
+            if (getResponseCount() == 0) {
+                sendResultOK(getResponse());
+            }
+        }
+
+        @Override
+        public void onError(final int code, final String message) {
+            int count = getResponseCount();
+            if (count == 1) {
+                setResponseCount(0); // Reset response counter.
+            } else if (count != 0) {
+                return; // Already send response.
+            }
+
+            Intent response = getResponse();
+            String errMsg = "ライトの状態更新に失敗しました hue:code = " + Integer.toString(code) + "  message = " + message;
+            MessageUtils.setUnknownError(response, errMsg);
+            sendResultERR(response);
+        }
+    };
 
     @Override
     protected boolean onGetLightGroup(final Intent request, final Intent response) {
@@ -304,6 +355,8 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLightGroup(final Intent request, final Intent response) {
+        int[] mColorParam = new int[3];
+        float mBrightness = 0;
         String serviceId = getServiceID(request);
         String groupId = getGroupId(request);
 
@@ -319,20 +372,28 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
+        mBrightness = getBrightnessParam(request, response);
+        if (mBrightness == -1) {
+            return true;
+        }
+
+        if (!(getColorParam(request, response, mColorParam))) {
+            return true;
+        }
+
+        // Brightness magnification conversion
+        String colorParam = calcColorParam(mColorParam, mBrightness);
+
+        // Calculation of brightness.
+        int mCalcBrightness = calcBrightnessParam(mColorParam);
+
         PHLightState lightState = new PHLightState();
         lightState.setOn(true);
         lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
-        String colorParam = getColor(request);
-        if (colorParam == null) {
-            colorParam = "FFFFFF";
-        }
         Color hueColor = new Color(colorParam);
         lightState.setX(hueColor.mX);
         lightState.setY(hueColor.mY);
-        String brightnessParam = getBrightness(request);
-        if (brightnessParam != null) {
-            lightState.setBrightness(Integer.valueOf(new Brightness(brightnessParam).mValue));
-        }
+        lightState.setBrightness(mCalcBrightness);
 
         if ("0".equals(groupId)) {
             bridge.setLightStateForDefaultGroup(lightState);
@@ -348,8 +409,7 @@ public class HueLightProfile extends LightProfile {
         bridge.setLightStateForGroup(group.getIdentifier(), lightState, new PHGroupAdapter() {
             @Override
             public void onError(final int code, final String message) {
-                String msg = "ライトの状態更新に失敗しました hue:code = " 
-                        + Integer.toString(code) + "  message = " + message;
+                String msg = "ライトの状態更新に失敗しました hue:code = " + Integer.toString(code) + "  message = " + message;
                 MessageUtils.setUnknownError(response, msg);
                 sendResultERR(response);
             }
@@ -397,8 +457,7 @@ public class HueLightProfile extends LightProfile {
         bridge.setLightStateForGroup(group.getIdentifier(), lightState, new PHGroupAdapter() {
             @Override
             public void onError(final int code, final String message) {
-                String msg = "ライトの状態更新に失敗しました hue:code = " 
-                        + Integer.toString(code) + "  message = " + message;
+                String msg = "ライトの状態更新に失敗しました hue:code = " + Integer.toString(code) + "  message = " + message;
                 MessageUtils.setUnknownError(response, msg);
                 sendResultERR(response);
             }
@@ -416,13 +475,13 @@ public class HueLightProfile extends LightProfile {
     protected boolean onPutLightGroup(final Intent request, final Intent response) {
         String serviceId = getServiceID(request);
         String groupId = getGroupId(request);
-        
+
         // 必須パラメータの存在チェック
         if (groupId == null || groupId.length() == 0) {
             MessageUtils.setInvalidRequestParameterError(response, "groupId is not specified.");
             return true;
         }
-        
+
         PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
             MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
@@ -448,8 +507,7 @@ public class HueLightProfile extends LightProfile {
 
             @Override
             public void onError(final int code, final String message) {
-                String errMsg = "グループの名称変更に失敗しました hue:code = " 
-                        + Integer.toString(code) + "  message = " + message;
+                String errMsg = "グループの名称変更に失敗しました hue:code = " + Integer.toString(code) + "  message = " + message;
                 MessageUtils.setUnknownError(response, errMsg);
                 sendResultERR(response);
             }
@@ -462,7 +520,7 @@ public class HueLightProfile extends LightProfile {
         String serviceId = getServiceID(request);
         String groupName = getGroupName(request);
         String lightIds = getLightIds(request);
-        
+
         // 必須パラメータの存在チェック
         if (groupName == null || groupName.length() == 0) {
             MessageUtils.setInvalidRequestParameterError(response, "groupName is not specified.");
@@ -496,12 +554,11 @@ public class HueLightProfile extends LightProfile {
 
             @Override
             public void onError(final int code, final String msg) {
-                String errMsg = "グループ作成に失敗しました hue:code = " 
-                + Integer.toString(code) + "  message = " + msg;
+                String errMsg = "グループ作成に失敗しました hue:code = " + Integer.toString(code) + "  message = " + msg;
                 if (code == HUE_SDK_ERROR_301) {
                     MessageUtils.setUnknownError(response, "グループが作成できる上限に達しています");
-               } else {
-                   MessageUtils.setUnknownError(response, errMsg);
+                } else {
+                    MessageUtils.setUnknownError(response, errMsg);
                 }
                 sendResultERR(response);
             }
@@ -534,8 +591,7 @@ public class HueLightProfile extends LightProfile {
 
             @Override
             public void onError(final int code, final String msg) {
-                String errMsg = "グループ削除に失敗しました hue:code = " 
-                        + Integer.toString(code) + "  message = " + msg;
+                String errMsg = "グループ削除に失敗しました hue:code = " + Integer.toString(code) + "  message = " + msg;
                 MessageUtils.setUnknownError(response, errMsg);
                 sendResultERR(response);
             }
@@ -545,6 +601,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Hueのブリッジを検索する.
+     * 
      * @param serviceId Service ID
      * @return Hueのブリッジを管理するオブジェクト
      */
@@ -562,6 +619,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Hue Lightを管理するオブジェクトを取得する.
+     * 
      * @param bridge Hueのブリッジ
      * @param lightId Light ID
      * @return Lightを管理するオブジェクト
@@ -577,6 +635,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Hue Lightのグループ情報を管理するオブジェクトを取得する.
+     * 
      * @param bridge Hueのブリッジ
      * @param groupID Group ID
      * @return Lightのグループ情報を持つオブジェクト
@@ -592,6 +651,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * 選択したLight IDのリストを取得する.
+     * 
      * @param lightIdList Light IDをカンマ区切りした文字列
      * @return Light IDのリスト
      */
@@ -607,14 +667,16 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Error レスポンス設定.
+     * 
      * @param response response
      */
     private void setResultERR(final Intent response) {
-        setResult(response, DConnectMessage.RESULT_ERROR); 
+        setResult(response, DConnectMessage.RESULT_ERROR);
     }
 
     /**
      * 成功レスポンス送信.
+     * 
      * @param response response
      */
     private void sendResultOK(final Intent response) {
@@ -624,6 +686,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * エラーレスポンスを送信する.
+     * 
      * @param response エラーレスポンス
      */
     private void sendResultERR(final Intent response) {
@@ -702,14 +765,132 @@ public class HueLightProfile extends LightProfile {
     }
 
     /**
+     * Get brightness parameter.
+     * 
+     * @param request request
+     * @param response response
+     * @return Brightness parameter, if -1, parameter error.
+     */
+    private static float getBrightnessParam(final Intent request, final Intent response) {
+        float brightness = 0;
+        if (getBrightness(request) != null) {
+            try {
+                brightness = Float.valueOf(getBrightness(request));
+                if (brightness > 1.0 || brightness < 0) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "brightness should be a value between 0 and 1.0");
+                    return -1;
+                }
+            } catch (NumberFormatException e) {
+                MessageUtils
+                        .setInvalidRequestParameterError(response, "brightness should be a value between 0 and 1.0");
+                return -1;
+            }
+        } else {
+            brightness = 1;
+        }
+        return brightness;
+    }
+
+    /**
+     * Get color parameter.
+     * 
+     * @param request request
+     * @param response response
+     * @param color Color parameter.
+     * @return true : Success, false : failure.
+     */
+    private static boolean getColorParam(final Intent request, final Intent response, final int[] color) {
+        if (getColor(request) != null) {
+            try {
+                String mColor = getColor(request);
+                String rr = mColor.substring(0, 2);
+                String gg = mColor.substring(2, 4);
+                String bb = mColor.substring(4, 6);
+                if (mColor.length() == RGB_LENGTH) {
+                    if (rr == null || gg == null || bb == null) {
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        return false;
+                    }
+                    color[0] = Integer.parseInt(rr, 16);
+                    color[1] = Integer.parseInt(gg, 16);
+                    color[2] = Integer.parseInt(bb, 16);
+                } else {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return false;
+            } catch (IllegalArgumentException e) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                return false;
+            }
+        } else {
+            color[0] = 0xFF;
+            color[1] = 0xFF;
+            color[2] = 0xFF;
+        }
+        return true;
+    }
+
+    /**
+     * Calculate color parameter.
+     * 
+     * @param color Color parameters.
+     * @param brightness Brightness parameter.
+     * @return Color parameter.
+     */
+    private static String calcColorParam(final int[] color, final float brightness) {
+        color[0] = Math.round(color[0] * brightness);
+        color[1] = Math.round(color[1] * brightness);
+        color[2] = Math.round(color[2] * brightness);
+
+        String colorParam = "";
+        for (int i = 0; i < 3; i++) {
+            if (color[i] <= 0xf) {
+                colorParam = colorParam + "0" + Integer.toHexString(color[i]); 
+            } else {
+                colorParam = colorParam + Integer.toHexString(color[i]); 
+            }
+        }
+        return colorParam;
+    }
+
+    /** hue minimum brightness value. */
+    static final int HUE_BRIGHTNESS_MIN_VALUE = 1;
+    /** hue maximum brightness value. */
+    static final int HUE_BRIGHTNESS_MAX_VALUE = 255;
+    /** hue SDK maximum brightness value. */
+    static final int HUE_BRIGHTNESS_TUNED_MAX_VALUE = 254;
+
+    /**
+     * Calculate brightness parameter.
+     * 
+     * @param color Color parameters.
+     * @return brightness Brightness parameter.
+     */
+    private static int calcBrightnessParam(final int[] color) {
+        int brightness = Math.max(color[0], color[1]);
+        brightness = Math.max(brightness, color[2]);
+        if (brightness < HUE_BRIGHTNESS_MIN_VALUE) {
+            brightness = HUE_BRIGHTNESS_MIN_VALUE;
+        } else if (brightness >= HUE_BRIGHTNESS_MAX_VALUE) {
+            brightness = HUE_BRIGHTNESS_TUNED_MAX_VALUE;
+        }
+        return brightness;
+    }
+
+    /**
      * Hueの色指定.
+     * 
      * @author NTT DOCOMO, INC.
      */
     private static class Color {
         /**
          * モデル.
          */
-        private static final String MODEL = "LST001";
+        private static final String MODEL = "LCT001";
         /** R. */
         final int mR;
         /** G. */
@@ -720,9 +901,10 @@ public class HueLightProfile extends LightProfile {
         final float mX;
         /** 色相のY座標. */
         final float mY;
-        
+
         /**
          * コンストラクタ.
+         * 
          * @param rgb RGBの文字列
          */
         Color(final String rgb) {
@@ -754,35 +936,10 @@ public class HueLightProfile extends LightProfile {
     }
 
     /**
-     * Hueの明るさ判定.
-     * @author NTT DOCOMO, INC.
-     *
-     */
-    private static class Brightness {
-        /** 明るさのMax値. */
-        static final int MAX_VALUE = 255;
-        /** 明るさのチューニング用Max値. */
-        static final int TUNED_MAX_VALUE = 254;
-        /** 明るさの値. */
-        final int mValue;
-        
-        /**
-         * コンストラクタ.
-         * @param param 明るさ
-         */
-        Brightness(final String param) {
-            int temp = (int) (MAX_VALUE * Float.parseFloat(param));
-            if (temp >= MAX_VALUE) {
-                temp = TUNED_MAX_VALUE; // 255を指定するとHue上のエラーとなるため254に丸める.
-            }
-            mValue = temp;
-        }
-    }
-
-    /**
      * ライトのアダプター.
+     * 
      * @author NTT DOCOMO, INC.
-     *
+     * 
      */
     private static class PHLightAdapter implements PHLightListener {
 
@@ -791,8 +948,7 @@ public class HueLightProfile extends LightProfile {
         }
 
         @Override
-        public void onStateUpdate(final Map<String, String> successAttribute,
-                final List<PHHueError> errorAttribute) {
+        public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
         }
 
         @Override
@@ -811,11 +967,12 @@ public class HueLightProfile extends LightProfile {
         public void onSearchComplete() {
         }
     }
-    
+
     /**
      * ライトグループのアダプター.
+     * 
      * @author NTT DOCOMO, INC.
-     *
+     * 
      */
     private static class PHGroupAdapter implements PHGroupListener {
         @Override

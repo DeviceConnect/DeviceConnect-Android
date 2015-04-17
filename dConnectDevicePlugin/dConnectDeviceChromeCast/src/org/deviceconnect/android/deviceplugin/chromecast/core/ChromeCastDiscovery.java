@@ -159,6 +159,25 @@ public class ChromeCastDiscovery {
                     Log.d(TAG, "MediaRouter.onRouteChanged");
                     Log.d(TAG, "MediaRouter.onRouteChanged: " + info.toString());
                 }
+                for (int i = 0; i < mRouteInfos.size(); i++) {
+                    MediaRouter.RouteInfo routeInfo = mRouteInfos.get(i);
+                    if (routeInfo.equals(info)) {
+                        synchronized (this) {
+                            mRouteInfos.remove(i);
+                            mRouteNames.remove(i);
+                        }
+                    }
+                }
+                synchronized (this) {
+                    CastDevice device = CastDevice.getFromBundle(info.getExtras());
+                    if (device != null && device.isOnLocalNetwork()) {
+                        mRouteInfos.add(info);
+                        mRouteNames.add(info.getName());
+                    }
+                }
+                mCallbacks.onCastDeviceUpdate(mRouteNames);
+
+
             }
             @Override
             public void onRoutePresentationDisplayChanged(final MediaRouter router, final MediaRouter.RouteInfo info) {

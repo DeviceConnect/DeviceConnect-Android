@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.chromecast;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.gms.cast.Cast;
 import com.google.android.gms.cast.CastDevice;
@@ -152,7 +153,18 @@ public class ChromeCastService extends DConnectMessageService implements
     }
 
     @Override
-    public void onCastDeviceUpdate(final ArrayList<String> devices) { 
+    public void onCastDeviceUpdate(final ArrayList<String> devices) {
+        if (devices.size() == 0) {
+            if (BuildConfig.DEBUG) {
+                Log.d("ChromeCastDiscovery", "size:0");
+            }
+            if (mApplication != null) {
+                mApplication.teardown();
+            }
+            if (mDiscovery != null) {
+                mDiscovery.unregisterEvent();
+            }
+        }
     }
 
     @Override
@@ -182,7 +194,7 @@ public class ChromeCastService extends DConnectMessageService implements
      * @param serviceId Service Identifier
      * @param callback Asynchronous Response
      */
-    public void connectChromeCast(final String serviceId,
+    public synchronized void connectChromeCast(final String serviceId,
                                   final Callback callback) {
         if (mDiscovery.getSelectedDevice() != null) {
             if (mDiscovery.getSelectedDevice().getFriendlyName().equals(serviceId)
@@ -344,7 +356,7 @@ public class ChromeCastService extends DConnectMessageService implements
     }
 
     @Override
-    public void onChromeCastConnected() {
+    public synchronized void onChromeCastConnected() {
         for (int i = 0; i < mAsyncResponse.size(); i++) {
             Callback callback = mAsyncResponse.remove(i);
             callback.onResponse();

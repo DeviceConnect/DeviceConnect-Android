@@ -100,7 +100,7 @@
 
     <!-- ================= WarningDialogActivity ================= -->
     <string name="activity_warning">警告</string>
-    <string name="activity_warning_mess">Device Web API Mnager以外のアプリケーションがポートを利用しているため、起動することができません。</string>
+    <string name="activity_warning_mess">Device Web API Manager以外のアプリケーションがポートを利用しているため、起動することができません。</string>
     <string name="activity_warning_ok">OK</string>
     <string name="activity_warning_disable">次から表示しない</string>
 

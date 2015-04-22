@@ -254,7 +254,7 @@ public class SettingsFragment extends PreferenceFragment
         } else if (getString(R.string.key_settings_restart_device_plugin).equals(preference.getKey())) {
             restartDevicePlugins();
         } else if (getString(R.string.key_settings_demo_link).equals(preference.getKey())) {
-        	Uri uri = Uri.parse("http://www.gclue.io/wda/demo.html");
+        	Uri uri = Uri.parse("http://www.gclue.io/dwa/demo.html");
         	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         	intent.setPackage("com.android.chrome");
         	try {
@@ -265,7 +265,7 @@ public class SettingsFragment extends PreferenceFragment
             	startActivity(intent);
             }
         } else if (getString(R.string.key_settings_about_consortium_link).equals(preference.getKey())) {
-        	Uri uri = Uri.parse("http://www.gclue.io/wda/index.html");
+        	Uri uri = Uri.parse("http://device-webapi.org/index.html");
         	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         	intent.setPackage("com.android.chrome");
         	try {

@@ -57,7 +57,17 @@ public class HostBatteryManager {
     public void getBatteryInfo(final Context context) {
 
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        Intent batteryStatus = context.registerReceiver(null, ifilter);
+        Intent batteryStatus = null;
+        int i = 0;
+        do {
+            batteryStatus = context.registerReceiver(null, ifilter);
+        } while (i++ < 3 && batteryStatus == null);
+        if (batteryStatus == null) {
+            mStatusBattery = HostBatteryManager.BATTERY_STATUS_UNKNOWN;
+            mValueLevel = 0;
+            mValueScale = 0;
+            return;
+        }
 
         // バッテリーの変化を取得
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);

@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <string name="app_name">Host 2.0.0</string>
+
     <string name="shutter">シャッター</string>
     <string name="zoomin">ズームイン</string>
     <string name="zoomout">ズームアウト</string>
+
+    <string name="stop_btn">Stop</string>
+
     <string name="touch_activity">Touch Activity</string>
+
+    <string name="canvas_profile_view_close_guidance">tap to close.</string>
     <string name="keyevent_activity">Key Event Activity</string>
-    
+
+    <string name="overlay_preview">●PREVIEW</string>
 </resources>

@@ -258,6 +258,26 @@ public abstract class SystemProfile extends DConnectProfile implements SystemPro
     }
 
     /**
+     * レスポンスにサポートしているI/Fの一覧を格納する.
+     *
+     * @param response レスポンスパラメータ
+     * @param supports サポートしているI/F一覧
+     */
+    public static void setSupports(final Bundle response, final String[] supports) {
+        response.putStringArray(PARAM_SUPPORTS, supports);
+    }
+
+    /**
+     * レスポンスにサポートしているI/Fの一覧を格納する.
+     *
+     * @param response レスポンスパラメータ
+     * @param supports サポートしているI/F一覧
+     */
+    public static void setSupports(final Bundle response, final List<String> supports) {
+        setSupports(response, supports.toArray(new String[supports.size()]));
+    }
+
+    /**
      * リクエストからpluginIdを取得する.
      * 
      * @param request リクエストパラメータ

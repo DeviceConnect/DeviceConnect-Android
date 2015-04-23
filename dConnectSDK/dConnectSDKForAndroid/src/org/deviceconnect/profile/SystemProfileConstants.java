@@ -82,6 +82,11 @@ public interface SystemProfileConstants extends DConnectProfileConstants {
     /**
      * パラメータ: {@value}.
      */
+    String PARAM_PACKAGE_NAME = "packageName";
+
+    /**
+     * パラメータ: {@value}.
+     */
     String PARAM_PLUGINS = "plugins";
 
     /**

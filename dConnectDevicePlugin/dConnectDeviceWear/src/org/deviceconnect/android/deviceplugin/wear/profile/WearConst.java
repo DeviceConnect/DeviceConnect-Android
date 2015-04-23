@@ -100,7 +100,11 @@ public final class WearConst {
      * 描画モードを受け渡しするためのキー.
      */
     public static final String PARAM_MODE = "mode";
-
+    
+    /**
+     * Timestamp.
+     */
+    public static final String TIMESTAMP = "timestamp";
     /**
      * 画像を送信するためのパスを定義する.
      */

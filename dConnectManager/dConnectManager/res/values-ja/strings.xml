@@ -15,6 +15,7 @@
     <!-- ================= SettingsActivity ================= -->
 
     <string name="activity_settings_server_on_off">Device Web API Manager</string>
+    <string name="activity_settings_server_short_name">Manager</string>
     <string name="activity_settings_observer">Monitoring Service</string>
     <string name="activity_settings_allow_external_ip">Allow External IP</string>
     <string name="activity_settings_server_keyword">Keyword</string>

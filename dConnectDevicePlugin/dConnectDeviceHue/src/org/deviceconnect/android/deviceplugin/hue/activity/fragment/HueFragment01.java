@@ -77,13 +77,15 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
                 mPhHueSDK.getAccessPointsFound().addAll(accessPoint);
 
                 // ListViewに描画.
-                mActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mAdapter.updateData(mPhHueSDK.getAccessPointsFound());
-                        mProgressView.setVisibility(View.GONE);
-                    }
-                });
+                if (mActivity != null) {
+                    mActivity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mAdapter.updateData(mPhHueSDK.getAccessPointsFound());
+                            mProgressView.setVisibility(View.GONE);
+                        }
+                    });
+                }
             }
         }
 
@@ -109,12 +111,22 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
     };
 
     @Override
+    public void onAttach(final Activity activity) {
+        super.onAttach(activity);
+        mActivity = activity;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mActivity = null;
+    }
+
+    @Override
     public View onCreateView(final LayoutInflater inflater,
             final ViewGroup container, final Bundle savedInstanceState) {
 
         View mRootView = inflater.inflate(R.layout.hue_fragment_01, container, false);
-
-        mActivity = this.getActivity();
 
         if (mRootView != null) {
             mSearchButton = (Button) mRootView.findViewById(R.id.btnRefresh);

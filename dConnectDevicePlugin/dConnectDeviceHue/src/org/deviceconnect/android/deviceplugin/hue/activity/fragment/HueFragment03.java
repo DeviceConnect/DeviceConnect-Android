@@ -47,6 +47,13 @@ public class HueFragment03 extends Fragment implements OnClickListener {
 
     /** 接続したアクセスポイント. */
     private final PHAccessPoint mAccessPoint;
+
+    /** Activity. */
+    private Activity mActivity;
+
+    /** Search flag. */
+    private Boolean mIsSearch = false;
+
     /**
      * ライト検索リスナー.
      */
@@ -57,6 +64,7 @@ public class HueFragment03 extends Fragment implements OnClickListener {
 
         @Override
         public void onError(final int code, final String message) {
+            mIsSearch = false;
         }
 
         @Override
@@ -84,6 +92,9 @@ public class HueFragment03 extends Fragment implements OnClickListener {
             if (sPhHueSDK != null) {
                 PHBridge b = sPhHueSDK.getSelectedBridge();
                 if (b != null) {
+                    if (sPhHueSDK.isHeartbeatEnabled(b)) {
+                        sPhHueSDK.disableHeartbeat(b);
+                    }
                     sPhHueSDK.disconnect(b);
                     
                     sPhHueSDK.connect(mAccessPoint);
@@ -92,18 +103,22 @@ public class HueFragment03 extends Fragment implements OnClickListener {
                             System.currentTimeMillis());
                 }
             }
-            
-            final Activity activity = getActivity();
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mProgressView.setVisibility(View.GONE);
-                    mProgressView.invalidate();
-                    String message = getString(R.string.frag03_light_result1);
-                    message += mLightHeaders.size() + getString(R.string.frag03_light_result2);
-                    Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
-                }
-            });
+            mIsSearch = false;
+
+            if (mActivity != null) {
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mActivity != null) {
+                            mProgressView.setVisibility(View.GONE);
+                            mProgressView.invalidate();
+                            String message = getString(R.string.frag03_light_result1);
+                            message += mLightHeaders.size() + getString(R.string.frag03_light_result2);
+                            Toast.makeText(mActivity, message, Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+            }
         }
 
         @Override
@@ -115,6 +130,17 @@ public class HueFragment03 extends Fragment implements OnClickListener {
         }
     }
 
+    @Override
+    public void onAttach(final Activity activity) {
+        super.onAttach(activity);
+        mActivity = activity;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mActivity = null;
+    }
 
     /**
      * コンストラクタ.
@@ -146,6 +172,7 @@ public class HueFragment03 extends Fragment implements OnClickListener {
         
         if (bridge == null) {
             mProgressView.setVisibility(View.GONE);
+            mIsSearch = false;
             return;
         } else {
             mProgressView.setVisibility(View.VISIBLE);
@@ -157,12 +184,16 @@ public class HueFragment03 extends Fragment implements OnClickListener {
     @Override
     public void onClick(final View view) {
         if (view.equals(sButtonRegister)) {
-            searchLight();
+            if (!mIsSearch) {
+                mIsSearch = true;
+                searchLight();
+            }
         }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mIsSearch = false;
     }
 }

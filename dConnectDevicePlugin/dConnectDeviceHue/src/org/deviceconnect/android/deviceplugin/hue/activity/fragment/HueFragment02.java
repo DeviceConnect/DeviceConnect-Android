@@ -177,13 +177,15 @@ public class HueFragment02 extends Fragment implements OnClickListener {
             sHueStatus = HueState.AUTHENTICATE_SUCCESS;
             HANDLER.sendEmptyMessage(INVALIDATE);
 
-            mActivity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    String message = getString(R.string.frag02_connected);
-                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                }
-            });
+            if (mActivity != null) {
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String message = getString(R.string.frag02_connected);
+                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
 
             // 接続.
             sPhHueSDK.setSelectedBridge(b);
@@ -266,12 +268,22 @@ public class HueFragment02 extends Fragment implements OnClickListener {
     }
 
     @Override
+    public void onAttach(final Activity activity) {
+        super.onAttach(activity);
+        mActivity = activity;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mActivity = null;
+    }
+
+    @Override
     public View onCreateView(final LayoutInflater inflater,
             final ViewGroup container, final Bundle savedInstanceState) {
 
         View mRootView = inflater.inflate(R.layout.hue_fragment_02, container, false);
-
-        mActivity = this.getActivity();
 
         if (mRootView != null) {
 

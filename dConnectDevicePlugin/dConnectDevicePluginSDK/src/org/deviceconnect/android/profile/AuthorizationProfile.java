@@ -24,6 +24,10 @@ import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.restlet.ext.oauth.PackageInfoOAuth;
 
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 
 /**
@@ -195,7 +199,17 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         if (scopes == null) {
             scopes = getAllProfileNames();
         }
-        String applicationName = request.getStringExtra(AuthorizationProfile.PARAM_APPLICATION_NAME);
+
+        String applicationName = null;
+        PackageManager pm = getContext().getPackageManager();
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = pm.getPackageInfo(getContext().getPackageName(), 0);
+            ApplicationInfo ai = packageInfo.applicationInfo;
+            applicationName = (String) pm.getApplicationLabel(ai);
+        } catch (NameNotFoundException e) {
+            applicationName = request.getStringExtra(AuthorizationProfile.PARAM_APPLICATION_NAME);
+        }
 
         // TODO _typeからアプリorデバイスプラグインかを判別できる？
         ConfirmAuthParams params = new ConfirmAuthParams.Builder().context(getContext()).serviceId(serviceId)

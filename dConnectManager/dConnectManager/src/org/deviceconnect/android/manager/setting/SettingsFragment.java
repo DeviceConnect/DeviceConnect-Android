@@ -156,15 +156,7 @@ public class SettingsFragment extends PreferenceFragment
 	@Override
 	public void onActivityCreated(final Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-        WifiManager wifiManager = (WifiManager) this.getActivity().getSystemService(WIFI_SERVICE);
-        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
-        final String formatedIpAddress = String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
-              (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
-
-        // Set Host IP Address.
-        EditTextPreference editHostPreferences = (EditTextPreference)
-                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_host));
-        editHostPreferences.setSummary(formatedIpAddress);
+		showIPAddress();
 	}
 
 	@Override
@@ -192,6 +184,8 @@ public class SettingsFragment extends PreferenceFragment
         mCheckBoxOauthPreferences.setEnabled(enabled);
         mCheckBoxExternalPreferences.setEnabled(enabled);
         mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
+        
+        showIPAddress();
     }
 
     @Override
@@ -293,6 +287,7 @@ public class SettingsFragment extends PreferenceFragment
             	startActivity(intent);
             }
         }
+        showIPAddress();
 
         return result;
     }
@@ -394,5 +389,20 @@ public class SettingsFragment extends PreferenceFragment
             setCancelable(false);
             return progressDialog;
         }
+    }
+    
+    /**
+     * Show IP Address.
+     */
+    private void showIPAddress() {
+        WifiManager wifiManager = (WifiManager) this.getActivity().getSystemService(WIFI_SERVICE);
+        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
+        final String formatedIpAddress = String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+              (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+
+        // Set Host IP Address.
+        EditTextPreference editHostPreferences = (EditTextPreference)
+                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_host));
+        editHostPreferences.setSummary(formatedIpAddress);
     }
 }

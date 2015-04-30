@@ -95,9 +95,15 @@ public class HueFragment03 extends Fragment implements OnClickListener {
                     if (sPhHueSDK.isHeartbeatEnabled(b)) {
                         sPhHueSDK.disableHeartbeat(b);
                     }
-                    sPhHueSDK.disconnect(b);
-                    
-                    sPhHueSDK.connect(mAccessPoint);
+                    int count = 0;
+                    Boolean result = false;
+                    do {
+                        result = sPhHueSDK.disconnect(b);
+                    } while (count++ < 3 && result == false);
+
+                    if (!sPhHueSDK.isAccessPointConnected(mAccessPoint)) {
+                        sPhHueSDK.connect(mAccessPoint);
+                    }
                     sPhHueSDK.enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
                     sPhHueSDK.getLastHeartbeat().put(b.getResourceCache().getBridgeConfiguration().getIpAddress(),
                             System.currentTimeMillis());

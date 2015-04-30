@@ -487,7 +487,7 @@ public class HostFileProfile extends FileProfile {
                 MessageUtils.setInvalidRequestParameterError(response,
                         "can not make dir, \"" + mMakeDir + "\" already exist.");
             } else {
-                boolean isMakeDir = mMakeDir.mkdir();
+                boolean isMakeDir = mMakeDir.mkdirs();
                 if (isMakeDir) {
                     setResult(response, DConnectMessage.RESULT_OK);
                 } else {

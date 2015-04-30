@@ -6,8 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.wear.profile;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+
+import com.google.android.gms.wearable.MessageApi.SendMessageResult;
 
 import org.deviceconnect.android.deviceplugin.wear.BuildConfig;
 import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
@@ -22,11 +25,8 @@ import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
-
-import com.google.android.gms.wearable.MessageApi.SendMessageResult;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Touch Profile.
@@ -301,6 +301,7 @@ public class WearTouchProfile extends TouchProfile {
             return true;
         } else {
             String nodeId = WearUtils.getNodeId(serviceId);
+
             getManager().sendMessageToWear(nodeId,
                     WearConst.DEVICE_TO_WEAR_TOUCH_ONTOUCH_REGISTER,
                     "", new OnMessageResultListener() {

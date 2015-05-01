@@ -34,7 +34,7 @@
     <string name="activity_settings_local_oauth">Local OAuth</string>
     <string name="activity_settings_dconn_enabled">Enabled</string>
     <string name="activity_settings_dconn_disabled">Disabled</string>
-    <string name="activity_settings_terms_of_service">Terms of Service</string>
+    <string name="activity_settings_terms_of_service">利用規約</string>
     <string name="activity_settings_privacy_policy">プライバシーポリシー</string>
     <string name="activity_settings_open_source_licenses">Open Source Licenses</string>
     <string name="activity_settings_open_source_licenses_summary">Legal information about licenses</string>

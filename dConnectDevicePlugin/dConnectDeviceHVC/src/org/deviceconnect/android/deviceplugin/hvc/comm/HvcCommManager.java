@@ -156,7 +156,7 @@ public class HvcCommManager {
         
         // check already event register info registered.
         if (HumanDetectEventUtils.search(mEventArray, detectKind, sessionKey) != null) {
-            MessageUtils.setInvalidRequestParameterError(response, "already event registered.");
+            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             mContext.sendBroadcast(response);
             return;
         }

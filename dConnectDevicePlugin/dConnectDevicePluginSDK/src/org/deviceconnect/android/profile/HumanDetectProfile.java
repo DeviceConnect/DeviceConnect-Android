@@ -1578,8 +1578,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param bundle bundle
      * @param faceDirectionResults face direction results.
      */
-    public static void setParamFaceDirectionResults(final Bundle bundle, final Bundle[] faceDirectionResults) {
-        bundle.putParcelableArray(PARAM_FACEDIRECTIONRESULTS, faceDirectionResults);
+    public static void setParamFaceDirectionResults(final Bundle bundle, final Bundle faceDirectionResults) {
+        bundle.putParcelable(PARAM_FACEDIRECTIONRESULTS, faceDirectionResults);
     }
     
     /**
@@ -1587,8 +1587,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param bundle bundle
      * @param ageResults age results.
      */
-    public static void setParamAgeResults(final Bundle bundle, final Bundle[] ageResults) {
-        bundle.putParcelableArray(PARAM_AGERESULTS, ageResults);
+    public static void setParamAgeResults(final Bundle bundle, final Bundle ageResults) {
+        bundle.putParcelable(PARAM_AGERESULTS, ageResults);
     }
     
     /**
@@ -1596,8 +1596,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param bundle bundle
      * @param genderResults gender results.
      */
-    public static void setParamGenderResults(final Bundle bundle, final Bundle[] genderResults) {
-        bundle.putParcelableArray(PARAM_GENDERRESULTS, genderResults);
+    public static void setParamGenderResults(final Bundle bundle, final Bundle genderResults) {
+        bundle.putParcelable(PARAM_GENDERRESULTS, genderResults);
     }
     
     /**
@@ -1605,8 +1605,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param bundle bundle
      * @param gazeResults gaze results.
      */
-    public static void setParamGazeResults(final Bundle bundle, final Bundle[] gazeResults) {
-        bundle.putParcelableArray(PARAM_GAZERESULTS, gazeResults);
+    public static void setParamGazeResults(final Bundle bundle, final Bundle gazeResults) {
+        bundle.putParcelable(PARAM_GAZERESULTS, gazeResults);
     }
     
     /**
@@ -1614,8 +1614,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param bundle bundle
      * @param blinkResults blink results.
      */
-    public static void setParamBlinkResults(final Bundle bundle, final Bundle[] blinkResults) {
-        bundle.putParcelableArray(PARAM_BLINKRESULTS, blinkResults);
+    public static void setParamBlinkResults(final Bundle bundle, final Bundle blinkResults) {
+        bundle.putParcelable(PARAM_BLINKRESULTS, blinkResults);
     }
     
     /**
@@ -1623,8 +1623,8 @@ public abstract class HumanDetectProfile extends DConnectProfile {
      * @param bundle bundle
      * @param expressionResults expression result.
      */
-    public static void setParamExpressionResults(final Bundle bundle, final Bundle[] expressionResults) {
-        bundle.putParcelableArray(PARAM_EXPRESSIONRESULTS, expressionResults);
+    public static void setParamExpressionResults(final Bundle bundle, final Bundle expressionResults) {
+        bundle.putParcelable(PARAM_EXPRESSIONRESULTS, expressionResults);
     }
     
     /**

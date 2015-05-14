@@ -1,2 +1,0 @@
-include 'dConnectSDKForAndroid'
-project(':dConnectSDKForAndroid').projectDir = new File('../../dConnectSDK/dConnectSDKForAndroid')

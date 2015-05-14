@@ -24,6 +24,7 @@ public class DevicePluginListActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(R.string.activity_devicepluginlist_title);
+        getActionBar().setDisplayHomeAsUpEnabled(true);
         
         if (savedInstanceState == null) {
             Fragment f = new DevicePluginListFragment();

@@ -13,6 +13,7 @@
                 android:id="@+id/devicelist_package_name"
                 android:layout_width="220dp"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="6dp"
                 android:layout_weight="0.60"
                 android:ellipsize="end"
                 android:gravity="center_vertical"

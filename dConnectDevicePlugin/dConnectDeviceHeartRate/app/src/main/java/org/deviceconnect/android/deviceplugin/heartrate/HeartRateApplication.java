@@ -10,6 +10,9 @@ import android.app.Application;
 
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Implementation of Application.
  * @author NTT DOCOMO, INC.
@@ -19,6 +22,18 @@ public class HeartRateApplication extends Application {
      * Instance of HeartRateManager.
      */
     private HeartRateManager mMgr;
+
+    /** Logger. */
+    private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        if (!BuildConfig.DEBUG) {
+            mLogger.setLevel(Level.OFF);
+        }
+    }
 
     /**
      * Initialize the HeartRateApplication.

@@ -131,6 +131,12 @@
             android:exported="false" >
         </activity>
 
+        <!-- Device Plug-in List Activity. -->
+        <activity
+            android:name="org.deviceconnect.android.manager.setting.DevicePluginListActivity"
+            android:label="@string/app_name" >
+        </activity>
+
         <!-- Local OAuth 認可処理用サービス. -->
         <service
             android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"

@@ -61,7 +61,7 @@ uploadArchives {
             repository url: "file://${repo.absolutePath}"
             pom.version = '1.0.0'
             pom.groupId = 'org.deviceconnect'
-            pom.artifactId = 'dConnectSDKForAndroid'
+            pom.artifactId = 'dconnect-sdk-for-android'
         }
     }
 }

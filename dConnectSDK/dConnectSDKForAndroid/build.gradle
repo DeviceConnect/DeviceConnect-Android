@@ -50,3 +50,18 @@ android {
         release.setRoot('build-types/release')
     }
 }
+
+def repo = new File(rootDir, "repository")
+
+apply plugin: 'maven'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository url: "file://${repo.absolutePath}"
+            pom.version = '1.0.0'
+            pom.groupId = 'org.deviceconnect'
+            pom.artifactId = 'dConnectSDKForAndroid'
+        }
+    }
+}

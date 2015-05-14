@@ -207,7 +207,9 @@ public class HvcHumanDetectProfile extends HumanDetectProfile {
                 MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
-            requestParams.dumpLog(TAG);
+            if (DEBUG) {
+                requestParams.dumpLog(TAG);
+            }
             
             // register event.
             EventError error = EventManager.INSTANCE.addEvent(request);

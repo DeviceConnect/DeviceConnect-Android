@@ -441,9 +441,6 @@ public class HeartRateConnector {
             }
         }
 
-        mLogger.warning("@@@@@@ HEART RATE[" + heartRate + ", "
-                + energyExpended + ", " + rrInterval + "]");
-
         BluetoothDevice device = gatt.getDevice();
         if (mListener != null) {
             mListener.onReceivedData(device, heartRate, energyExpended, rrInterval);

@@ -61,9 +61,11 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
         mDeviceAdapter = new DeviceAdapter(getActivity(), createDeviceContainers());
 
+        View footerView = inflater.inflate(R.layout.item_heart_rate_searching, null);
         View rootView = inflater.inflate(R.layout.fragment_heart_rate_device_settings, null);
         ListView listView = (ListView) rootView.findViewById(R.id.device_list_view);
         listView.setAdapter(mDeviceAdapter);
+        listView.addFooterView(footerView);
         return rootView;
     }
 

@@ -44,7 +44,8 @@
     <string name="activity_settings_whitelist">Whitelist</string>
     <string name="activity_settings_whitelist_enable">Enable origin blocking</string>
     <string name="activity_settings_manage_whitelist">Manage whitelist</string>
-    <string name="activity_settings_device_plugin">Device Plugin</string>
+    <string name="activity_settings_device_plugin">Device Plug-in</string>
+    <string name="activity_settings_list_device_plugin">List of device plug-in</string>
     <string name="activity_settings_restart_device_plugin">Restart</string>
     <string name="activity_settings_restart_device_plugin_title">Starting Device Plugin</string>
     <string name="activity_settings_restart_device_plugin_message">Processing</string>
@@ -66,6 +67,7 @@
     <string name="key_settings_about_tos">settings_about_tos</string>
     <string name="key_settings_dconn_whitelist">settings_whitelist</string>
     <string name="key_settings_dconn_whitelist_origin_blocking">settings_whitelist_origin_blocking</string>
+    <string name="key_settings_list_device_plugin">settings_list_device_plugin</string>
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
 
     <!-- ================= WhitelistActivity ================= -->
@@ -90,6 +92,11 @@
         <item>from manual entry</item>
     </string-array>
 
+    <!-- ================= DevicePluginListActivity ================= -->
+    <string name="activity_devicepluginlist_title">List of device plug-in</string>
+    <string name="activity_devicepluginlist_info">詳細</string>
+    <string name="activity_devicepluginlist_del">削除</string>
+    
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>
     <string name="activity_keyword_ok">OK</string>

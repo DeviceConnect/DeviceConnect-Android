@@ -66,7 +66,7 @@ public final class HvcCommManagerUtils {
     public static List<BluetoothDevice> getConnectedBluetoothDevices(final List<HvcCommManager> commManagerArray) {
         List<BluetoothDevice> deviceList = new ArrayList<>();
         for (HvcCommManager commManager : commManagerArray) {
-            if (commManager.checkConnect()) {
+            if (commManager.isConnected()) {
                 deviceList.add(commManager.getBluetoothDevice());
             }
         }

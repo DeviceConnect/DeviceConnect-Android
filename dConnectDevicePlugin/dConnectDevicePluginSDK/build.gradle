@@ -14,17 +14,17 @@ allprojects {
     }
 }
 
+
+
+
 apply plugin: 'com.android.library'
 
-dependencies {
-    compile project(':dConnectSDKForAndroid')
-    compile fileTree(dir: 'libs', include: '*.jar')
-}
 
 android {
 
     compileSdkVersion 19
     buildToolsVersion "21.1.1"
+
 
     defaultConfig {
         minSdkVersion 14
@@ -50,5 +50,36 @@ android {
         }
         debug.setRoot('build-types/debug')
         release.setRoot('build-types/release')
+    }
+}
+
+
+repositories {
+    maven { url 'http://raw.github.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: '*.jar')
+    compile project(':dconnect-sdk-for-android')
+    compile 'org.deviceconnect:dconnect-sdk-for-android:1.0.0'
+}
+
+configurations {
+    // to avoid double inclusion of support libraries
+    all*.exclude group: 'org.deviceconnect', module: 'dconnect-sdk-for-android'
+}
+
+def repo = new File(rootDir, "repository")
+
+apply plugin: 'maven'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository url: "file://${repo.absolutePath}"
+            pom.version = '1.0.0'
+            pom.groupId = 'org.deviceconnect'
+            pom.artifactId = 'dconnect-device-plugin-sdk'
+        }
     }
 }

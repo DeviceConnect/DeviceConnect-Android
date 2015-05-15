@@ -321,10 +321,6 @@ public class HvcCommManager {
      * @return true: connected / false: disconnected.
      */
     public boolean isConnected() {
-        if (DEBUG) {
-            Log.d(TAG, "mHvcBle.getStatus() : " + mHvcBle.getStatus());
-            Log.d(TAG, "mHvcBle.getCommStatus() : " + mHvcBle.getCommStatus());
-        }
         return mHvcBle.getStatus() == HVC_BLE.STATE_CONNECTED;
     }
 

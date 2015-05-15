@@ -15,11 +15,6 @@ allprojects {
 }
 
 apply plugin: 'com.android.application'
-
-dependencies {
-    compile fileTree(dir: 'libs', include: '*.jar')
-    compile project(':dConnectDevicePluginSDK')
-}
 android {
 
     compileSdkVersion 19
@@ -53,4 +48,9 @@ android {
 
 }
 
+dependencies {
+    compile fileTree(dir: 'libs', include: '*.jar')
+    compile project(':dconnect-device-plugin-sdk')
+
+}
 

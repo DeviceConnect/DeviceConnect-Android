@@ -18,8 +18,8 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar')
-    compile project(':dConnectDevicePluginSDK')
-    compile project(':dConnectServerNanoHttpd')
+    compile project(':dconnect-device-plugin-sdk')
+    compile project(':dconnect-server-nano-httpd')
 }
 
 android {

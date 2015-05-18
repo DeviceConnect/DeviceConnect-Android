@@ -308,12 +308,20 @@ public class HvcCommManager {
     }
     
     /**
-     * check device connect.
-     * @return true: busy / false: not busy.
+     * check whether this manager has a device.
+     * @return true: this manager has a device / false: this manager has no device.
      */
     public boolean checkConnect() {
         int commStatus = mHvcBle.getCommStatus();
         return commStatus != HVC.HVC_ERROR_NODEVICES;
+    }
+
+    /**
+     * check device connect.
+     * @return true: connected / false: disconnected.
+     */
+    public boolean isConnected() {
+        return mHvcBle.getStatus() == HVC_BLE.STATE_CONNECTED;
     }
 
     /**

@@ -25,12 +25,10 @@ import android.app.ActivityManager.RunningServiceInfo;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
@@ -264,28 +262,6 @@ public class SettingsFragment extends PreferenceFragment
             fragment.show(getFragmentManager(), null);
         } else if (getString(R.string.key_settings_restart_device_plugin).equals(preference.getKey())) {
             restartDevicePlugins();
-        } else if (getString(R.string.key_settings_demo_link).equals(preference.getKey())) {
-        	Uri uri = Uri.parse("http://www.gclue.io/dwa/demo.html");
-        	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        	intent.setPackage("com.android.chrome");
-        	try {
-            	startActivity(intent);
-        	} catch (ActivityNotFoundException ex) {
-        	    // Chrome browser presumably not installed so allow user to choose instead
-        	    intent.setPackage(null);
-            	startActivity(intent);
-            }
-        } else if (getString(R.string.key_settings_about_consortium_link).equals(preference.getKey())) {
-        	Uri uri = Uri.parse("http://device-webapi.org/index.html");
-        	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        	intent.setPackage("com.android.chrome");
-        	try {
-            	startActivity(intent);
-        	} catch (ActivityNotFoundException ex) {
-        	    // Chrome browser presumably not installed so allow user to choose instead
-        	    intent.setPackage(null);
-            	startActivity(intent);
-            }
         }
         showIPAddress();
 

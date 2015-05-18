@@ -18,7 +18,7 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile fileTree(dir: 'libs', include: '*.jar')
-    compile project(':dConnectSDKForAndroid')
+    compile project(':dconnect-sdk-for-android')
 }
 android {
 

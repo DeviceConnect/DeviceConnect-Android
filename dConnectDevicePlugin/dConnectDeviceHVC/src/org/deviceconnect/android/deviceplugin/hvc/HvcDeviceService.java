@@ -405,7 +405,6 @@ public class HvcDeviceService extends DConnectMessageService {
 
                 @Override
                 public void onDiscovery(final List<BluetoothDevice> devices) {
-Log.d("TEST", "discovery");
                     // remove duplicate data or non HVC data.
                     removeDuplicateOrNonHvcData(devices);
 

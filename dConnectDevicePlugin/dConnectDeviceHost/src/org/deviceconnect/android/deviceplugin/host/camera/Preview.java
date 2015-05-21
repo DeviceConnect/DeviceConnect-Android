@@ -209,12 +209,40 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             int rot = getCameraDisplayOrientation(getContext());
 
             Camera.Parameters parameters = mCamera.getParameters();
+            Size mPrevSize = parameters.getPreviewSize();
             parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+            try {
+                mCamera.setParameters(parameters);
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "This preview size not support. (" + mPreviewSize.width + ", "
+                        + mPreviewSize.height + ")");
+                parameters.setPreviewSize(mPrevSize.width, mPrevSize.height);
+            }
+
+            String mFocusMode = parameters.getFocusMode();
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+            try {
+                mCamera.setParameters(parameters);
+            } catch (Exception e) {
+                Log.i(LOG_TAG, "Auto focus not support.");
+                parameters.setFocusMode(mFocusMode);
+                mCamera.setParameters(parameters);
+            }
+
             parameters.setRotation(rot);
+            try {
+                mCamera.setParameters(parameters);
+            } catch (Exception e) {
+                Log.i(LOG_TAG, "Rotation not support.");
+            }
 
             mCamera.setDisplayOrientation(rot);
-            mCamera.setParameters(parameters);
+            try {
+                mCamera.setParameters(parameters);
+            } catch (Exception e) {
+                Log.i(LOG_TAG, "Display orientation not support.");
+            }
+
             mCamera.startPreview();
 
             mPreviewFormat = parameters.getPreviewFormat();

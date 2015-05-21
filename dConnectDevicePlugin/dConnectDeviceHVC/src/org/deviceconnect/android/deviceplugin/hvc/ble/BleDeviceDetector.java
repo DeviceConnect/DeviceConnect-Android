@@ -313,7 +313,7 @@ public class BleDeviceDetector {
         } catch (Exception e) {
             // Exception occurred when the BLE state is invalid.
             if (BuildConfig.DEBUG) {
-                Log.e("heartrate.dplugin", "", e);
+                Log.e("hvc.dplugin", "", e);
             }
         }
     }
@@ -327,7 +327,7 @@ public class BleDeviceDetector {
         } catch (Exception e) {
             // Exception occurred when the BLE state is invalid.
             if (BuildConfig.DEBUG) {
-                Log.e("heartrate.dplugin", "", e);
+                Log.e("hvc.dplugin", "", e);
             }
         }
     }

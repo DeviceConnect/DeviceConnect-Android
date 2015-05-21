@@ -101,6 +101,7 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
         findViewById(R.id.button_9).setOnTouchListener(this);
         findViewById(R.id.button_dot).setOnTouchListener(this);
         findViewById(R.id.button_enter).setOnTouchListener(this);
+        findViewById(R.id.button_keyevent_close).setOnTouchListener(this);
 
         RadioGroup radioGroup = (RadioGroup) findViewById(R.id.RadioGroup);
         // Set default select radio button.
@@ -159,6 +160,9 @@ public class KeyEventProfileActivity extends Activity implements OnTouchListener
                 break;
             case R.id.button_enter:
                 keyevent = new KeyEvent(action, KeyEvent.KEYCODE_NUMPAD_ENTER);
+                break;
+            case R.id.button_keyevent_close:
+                finish();
                 break;
             default:
                 break;

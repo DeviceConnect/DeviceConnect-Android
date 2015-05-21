@@ -1,13 +1,5 @@
 package org.deviceconnect.android.deviceplugin.wear;
 
-import java.io.ByteArrayOutputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -22,10 +14,19 @@ import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataApi.DataItemResult;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
+import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
+
+import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
+
+import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Android Wearを管理するクラス.
@@ -173,8 +174,14 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
         sendMessageToWear(new Runnable() {
             @Override
             public void run() {
-                MessageApi.SendMessageResult result = Wearable.MessageApi.sendMessage(
-                        mGoogleApiClient, dest, action, message.getBytes()).await();
+                NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+                MessageApi.SendMessageResult result = null;
+                for(Node node : nodes.getNodes()) {
+                    if (node.getId().indexOf(dest) != -1) {
+                        result = Wearable.MessageApi.sendMessage(
+                                mGoogleApiClient, node.getId(), action, message.getBytes()).await();
+                    }
+                }
                 if (result != null) {
                     if (listener != null) {
                         listener.onResult(result);
@@ -221,6 +228,8 @@ public class WearManager implements ConnectionCallbacks, OnConnectionFailedListe
         dataMap.getDataMap().putInt(WearConst.PARAM_X, x);
         dataMap.getDataMap().putInt(WearConst.PARAM_Y, y);
         dataMap.getDataMap().putInt(WearConst.PARAM_MODE, mode);
+        dataMap.getDataMap().putLong(WearConst.TIMESTAMP,
+                                System.currentTimeMillis());
         PutDataRequest request = dataMap.asPutDataRequest();
         return request;
     }

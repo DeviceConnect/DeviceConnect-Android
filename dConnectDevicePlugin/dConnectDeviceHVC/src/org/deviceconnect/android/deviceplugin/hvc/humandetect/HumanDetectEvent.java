@@ -18,20 +18,20 @@ public class HumanDetectEvent {
     /**
      * detect kind.
      */
-    private HumanDetectKind mDetectKind;
+    private final HumanDetectKind mDetectKind;
     /**
      * session key.
      */
-    private String mSessionKey;
+    private final String mSessionKey;
     /**
      * request parameters.
      */
-    private HumanDetectRequestParams mRequestParams; 
+    private final HumanDetectRequestParams mRequestParams;
     
     /**
      * response.
      */
-    private Intent mResponse;
+    private final Intent mResponse;
     
     /**
      * Constructor.

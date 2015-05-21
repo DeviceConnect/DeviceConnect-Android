@@ -137,7 +137,7 @@ public class HvcCommManager {
     /**
      * event array.
      */
-    private List<HumanDetectEvent> mEventArray = new ArrayList<>();
+    private final List<HumanDetectEvent> mEventArray = new ArrayList<>();
 
 
     /**
@@ -156,7 +156,7 @@ public class HvcCommManager {
         
         // check already event register info registered.
         if (HumanDetectEventUtils.search(mEventArray, detectKind, sessionKey) != null) {
-            MessageUtils.setInvalidRequestParameterError(response, "already event registered.");
+            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             mContext.sendBroadcast(response);
             return;
         }
@@ -195,9 +195,6 @@ public class HvcCommManager {
     public static String getServiceId(final String address) {
         return address.replace(":", "").toLowerCase(Locale.ENGLISH);
     }
-
-
-
 
     /**
      * get event interval by detectKind and sessionKey.
@@ -260,8 +257,12 @@ public class HvcCommManager {
                     HvcResponseUtils.debugLogHvcRes(hvcRes, TAG);
                 }
                 // send response.
-                response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                 HvcResponseUtils.setDetectResultResponse(response, requestParams, hvcRes, detectKind);
+                if (checkDetectResult(detectKind, response)) {
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setUnknownError(response, "No data to be sent.");
+                }
                 mContext.sendBroadcast(response);
             }
             
@@ -307,12 +308,20 @@ public class HvcCommManager {
     }
     
     /**
-     * check device connect.
-     * @return true: busy / false: not busy.
+     * check whether this manager has a device.
+     * @return true: this manager has a device / false: this manager has no device.
      */
     public boolean checkConnect() {
         int commStatus = mHvcBle.getCommStatus();
         return commStatus != HVC.HVC_ERROR_NODEVICES;
+    }
+
+    /**
+     * check device connect.
+     * @return true: connected / false: disconnected.
+     */
+    public boolean isConnected() {
+        return mHvcBle.getStatus() == HVC_BLE.STATE_CONNECTED;
     }
 
     /**
@@ -342,6 +351,7 @@ public class HvcCommManager {
                     Log.d(TAG, "<EVENT> detect finished. body:" + hvcRes.body.size() + " hand:" + hvcRes.hand.size()
                             + " face:" + hvcRes.face.size());
                 }
+
                 // send event.
                 for (HumanDetectEvent humanDetectEvent : mEventArray) {
                     String attribute = HvcConvertUtils.convertToEventAttribute(humanDetectEvent.getKind());
@@ -353,6 +363,9 @@ public class HvcCommManager {
                         for (Event event : events) {
                             Intent intent = EventManager.createEventMessage(event);
                             HvcResponseUtils.setDetectResultResponse(intent, requestParams, hvcRes, detectKind);
+                            if (!checkDetectResult(detectKind, intent)) {
+                                continue;
+                            }
                             mContext.sendBroadcast(intent);
                             if (DEBUG) {
                                 Log.d(TAG, "<EVENT> send event. attribute:" + attribute);
@@ -386,6 +399,26 @@ public class HvcCommManager {
         
         // request.
         commRequestProc(requestParams, listener);
+    }
+
+    /**
+     * Checks whether the specified intent has a necessary bundle or not.
+     *
+     * @param detectKind a kind of detection
+     * @param intent an instance of {@link Intent}
+     * @return <code>true</code> if the specified intent has a necessary bundle, otherwise <code>false</code>
+     */
+    private boolean checkDetectResult(final HumanDetectKind detectKind, final Intent intent) {
+        switch (detectKind) {
+        case BODY:
+            return intent.hasExtra(HumanDetectProfile.PARAM_BODYDETECTS);
+        case HAND:
+            return intent.hasExtra(HumanDetectProfile.PARAM_HANDDETECTS);
+        case FACE:
+            return intent.hasExtra(HumanDetectProfile.PARAM_FACEDETECTS);
+        default:
+            return false;
+        }
     }
 
     /**

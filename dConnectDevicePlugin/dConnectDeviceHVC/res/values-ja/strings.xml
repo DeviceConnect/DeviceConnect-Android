@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     
+    <string name="app_name">HVC 1.0.0</string>
     
     <string name="open_bluetooth_setting">Bluetooth設定画面を開く</string>
     <string name="setting_step1_title">[1/3] デバイスプラグイン概要</string>

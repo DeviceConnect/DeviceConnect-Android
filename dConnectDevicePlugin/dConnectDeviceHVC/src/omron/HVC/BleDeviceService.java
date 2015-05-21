@@ -107,9 +107,10 @@ public class BleDeviceService {
                     Log.i(TAG, "Connected to GATT server.");
                 }
                 // Attempts to discover services after successful connection.
+                boolean result = mBluetoothGatt.discoverServices();
                 if (DEBUG_LOG) {
                     Log.i(TAG, "Attempting to start service discovery:"
-                        + mBluetoothGatt.discoverServices());
+                        + result);
                 }
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;

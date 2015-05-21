@@ -274,6 +274,10 @@ public class HueFragment04 extends Fragment {
         private void setLights(final List<PHLight> lights) {
             mLights = lights;
         }
+
+        private void addLight(final List<PHLight> lights) {
+            mLights.addAll(lights);
+        }
     }
 
     private class PHLightListenerImpl implements PHLightListener {
@@ -334,7 +338,16 @@ public class HueFragment04 extends Fragment {
                 showToast(message);
             }
             closeProgressBar();
-            updateListView();
+
+            View view = getView();
+            if (view != null) {
+                view.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateListView();
+                    }
+                }, 400);
+            }
         }
 
         @Override

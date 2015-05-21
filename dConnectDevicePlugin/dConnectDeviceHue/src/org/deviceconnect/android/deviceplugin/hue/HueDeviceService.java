@@ -10,7 +10,7 @@ package org.deviceconnect.android.deviceplugin.hue;
 import java.util.List;
 
 import org.deviceconnect.android.deviceplugin.hue.profile.HueLightProfile;
-import org.deviceconnect.android.deviceplugin.hue.profile.HueServceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.hue.profile.HueServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hue.profile.HueSystemProfile;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -71,7 +71,7 @@ public class HueDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
-        return new HueServceDiscoveryProfile(this);
+        return new HueServiceDiscoveryProfile(this);
     }
 
     /**

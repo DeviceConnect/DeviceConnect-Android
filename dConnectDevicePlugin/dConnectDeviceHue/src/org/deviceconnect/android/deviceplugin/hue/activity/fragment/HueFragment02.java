@@ -7,16 +7,8 @@ http://opensource.org/licenses/mit-license.php
 
 package org.deviceconnect.android.deviceplugin.hue.activity.fragment;
 
-import java.util.List;
-
-import org.deviceconnect.android.deviceplugin.hue.HueConstants;
-import org.deviceconnect.android.deviceplugin.hue.R;
-
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -37,6 +29,15 @@ import com.philips.lighting.hue.sdk.PHSDKListener;
 import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHHueParsingError;
 
+import org.deviceconnect.android.deviceplugin.hue.HueConstants;
+import org.deviceconnect.android.deviceplugin.hue.R;
+
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Hue設定画面(2)フラグメント.
  * 
@@ -44,43 +45,35 @@ import com.philips.lighting.model.PHHueParsingError;
 public class HueFragment02 extends Fragment implements OnClickListener {
 
     /** アクセスポイント. */
-    private static PHAccessPoint sAccessPoint;
+    private PHAccessPoint mAccessPoint;
 
     /** HueSDKオブジェクト. */
-    private static PHHueSDK sPhHueSDK;
+    private PHHueSDK mPhHueSDK;
 
     /** ステータスを表示するTextView. */
-    private static TextView sTextViewStatus;
+    private TextView mTextViewStatus;
 
     /** Howtoを表示するTextView. */
-    private static TextView sTextViewHowto;
+    private TextView mTextViewHowto;
 
     /** Button. */
-    private static Button sButton;
-
-    /** ステータス. */
-    private static HueState sHueStatus = HueState.INIT;
+    private Button mButton;
 
     /** ImageView. */
-    private static ImageView sImageView;
+    private ImageView mImageView;
 
     /** 前回IPアドレスがスキャンできたかのフラグ. */
     private boolean mLastSearchWasIPScan = false;
 
-    /** 次のハンドラーの時間. */
-    private static long sNextTime;
-
-    /** ハンドラーの再呼び出しの命令. */
-    private static final int INVALIDATE = 1;
-
     /** ハンドラー用のCounter. */
-    private static int sCount = 0;
+    private int mCount = 0;
+    /** ステータス. */
+    private HueState mHueStatus = HueState.INIT;
 
-    /** 周期. */
-    private static final int CYCLE = 1000;
-
-    /** Activity. */
-    private Activity mActivity;
+    /** アニメーション用スレッド. */
+    private final ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
+    /** スレッドキャンセル用オブジェクト. */
+    private ScheduledFuture<?> mFuture;
 
     /**
      * Hue接続状態.
@@ -91,118 +84,34 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         /** 未接続. */
         NOCONNECT,
         /** 認証失敗. */
-        AUTHENTICATE_FAILD,
+        AUTHENTICATE_FAILED,
         /** 認証済み. */
         AUTHENTICATE_SUCCESS
-    };
-
-    /**
-     * タイマーハンドラー.
-     */
-    private static final Handler HANDLER = new Handler() {
-        @Override
-        public void handleMessage(final Message message) {
-            Message msg = message;
-            if (msg.what == INVALIDATE) {
-                if (sHueStatus == HueState.INIT) {
-
-                    // 画像をアニメーション.
-                    if (sCount == 0) {
-                        sImageView.setImageResource(R.drawable.img01);
-                        sCount = 1;
-                    } else {
-                        sImageView.setImageResource(R.drawable.img02);
-                        sCount = 0;
-                    }
-
-                    msg = obtainMessage(INVALIDATE);
-                    long current = SystemClock.uptimeMillis();
-
-                    if (sNextTime < current) {
-                        // 1000ms周期でタイマーイベントが発生
-                        sNextTime = current + CYCLE;
-                    }
-                    sendMessageAtTime(msg, sNextTime);
-
-                    // 1000ms周期でタイマーイベントが発生
-                    sNextTime += CYCLE;
-
-                } else if (sHueStatus == HueState.AUTHENTICATE_SUCCESS) {
-
-                    sTextViewStatus.setText(R.string.frag02_authsuccess);
-                    sTextViewHowto.setText(R.string.frag02_authsuccess_howto);
-                    sImageView.setImageResource(R.drawable.img05);
-                    sButton.setText(R.string.frag02_authsuccess_btn);
-
-                    sTextViewStatus.invalidate();
-                    sTextViewHowto.invalidate();
-                    sImageView.invalidate();
-                    sButton.setVisibility(View.VISIBLE);
-
-                } else if (sHueStatus == HueState.AUTHENTICATE_FAILD) {
-
-                    sTextViewStatus.setText(R.string.frag02_failed);
-                    sTextViewHowto.setText("");
-                    sImageView.setImageResource(R.drawable.img01);
-                    sButton.setText(R.string.frag02_retry_btn);
-
-                    sTextViewHowto.invalidate();
-                    sImageView.invalidate();
-                    sTextViewStatus.invalidate();
-                    sButton.setVisibility(View.VISIBLE);
-
-                } else if (sHueStatus == HueState.NOCONNECT) {
-
-                    sTextViewStatus.setText(R.string.frag02_failed);
-                    sTextViewHowto.setText("");
-                    sImageView.setImageResource(R.drawable.img01);
-                    sButton.setText(R.string.frag02_retry_btn);
-
-                    sTextViewHowto.invalidate();
-                    sImageView.invalidate();
-                    sTextViewStatus.invalidate();
-                    sButton.setVisibility(View.VISIBLE);
-                }
-            }
-        }
     };
 
     /**
      * hueブリッジのNotificationを受け取るためのリスナー.
      */
     private PHSDKListener mListener = new PHSDKListener() {
-
         @Override
         public void onBridgeConnected(final PHBridge b) {
-            sHueStatus = HueState.AUTHENTICATE_SUCCESS;
-            HANDLER.sendEmptyMessage(INVALIDATE);
-
-            if (mActivity != null) {
-                mActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String message = getString(R.string.frag02_connected);
-                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
+            mHueStatus = HueState.AUTHENTICATE_SUCCESS;
+            successAuthorization();
 
             // 接続.
-            sPhHueSDK.setSelectedBridge(b);
-            sPhHueSDK.enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
-            sPhHueSDK.getLastHeartbeat().put(b.getResourceCache().getBridgeConfiguration().getIpAddress(),
+            mPhHueSDK.setSelectedBridge(b);
+            mPhHueSDK.enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
+            mPhHueSDK.getLastHeartbeat().put(b.getResourceCache().getBridgeConfiguration().getIpAddress(),
                     System.currentTimeMillis());
         }
 
         @Override
         public void onAuthenticationRequired(final PHAccessPoint accessPoint) {
-            sHueStatus = HueState.INIT;
+            mHueStatus = HueState.INIT;
+            failAuthorization();
 
             // 認証を実施.
-            sPhHueSDK.startPushlinkAuthentication(accessPoint);
-
-            // アニメーションの開始.
-            HANDLER.sendEmptyMessage(INVALIDATE);
+            mPhHueSDK.startPushlinkAuthentication(accessPoint);
         }
 
         @Override
@@ -215,33 +124,29 @@ public class HueFragment02 extends Fragment implements OnClickListener {
 
         @Override
         public void onConnectionLost(final PHAccessPoint accessPoint) {
-
-            if (!sPhHueSDK.getDisconnectedAccessPoint().contains(accessPoint)) {
-                sPhHueSDK.getDisconnectedAccessPoint().add(accessPoint);
+            if (!mPhHueSDK.getDisconnectedAccessPoint().contains(accessPoint)) {
+                mPhHueSDK.getDisconnectedAccessPoint().add(accessPoint);
             }
         }
 
         @Override
         public void onConnectionResumed(final PHBridge bridge) {
-
-            sPhHueSDK.getLastHeartbeat().put(bridge.getResourceCache().getBridgeConfiguration().getIpAddress(),
+            mPhHueSDK.getLastHeartbeat().put(bridge.getResourceCache().getBridgeConfiguration().getIpAddress(),
                     System.currentTimeMillis());
-            for (int i = 0; i < sPhHueSDK.getDisconnectedAccessPoint().size(); i++) {
-
-                if (sPhHueSDK.getDisconnectedAccessPoint().get(i).getIpAddress()
+            for (int i = 0; i < mPhHueSDK.getDisconnectedAccessPoint().size(); i++) {
+                if (mPhHueSDK.getDisconnectedAccessPoint().get(i).getIpAddress()
                         .equals(bridge.getResourceCache().getBridgeConfiguration().getIpAddress())) {
-                    sPhHueSDK.getDisconnectedAccessPoint().remove(i);
+                    mPhHueSDK.getDisconnectedAccessPoint().remove(i);
                 }
             }
-
         }
 
         @Override
         public void onError(final int code, final String message) {
             if (code == PHMessageType.BRIDGE_NOT_FOUND) {
                 if (!mLastSearchWasIPScan) {
-                    sPhHueSDK = PHHueSDK.getInstance();
-                    PHBridgeSearchManager sm = (PHBridgeSearchManager) sPhHueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
+                    mPhHueSDK = PHHueSDK.getInstance();
+                    PHBridgeSearchManager sm = (PHBridgeSearchManager) mPhHueSDK.getSDKService(PHHueSDK.SEARCH_BRIDGE);
                     sm.search(false, false, true);
                     mLastSearchWasIPScan = true;
                 }
@@ -261,56 +166,38 @@ public class HueFragment02 extends Fragment implements OnClickListener {
      */
     public static HueFragment02 newInstance(final PHAccessPoint accessPoint) {
         HueFragment02 fragment = new HueFragment02();
-
-        sAccessPoint = accessPoint;
-
+        fragment.setPHAccessPoint(accessPoint);
         return fragment;
-    }
-
-    @Override
-    public void onAttach(final Activity activity) {
-        super.onAttach(activity);
-        mActivity = activity;
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mActivity = null;
     }
 
     @Override
     public View onCreateView(final LayoutInflater inflater,
             final ViewGroup container, final Bundle savedInstanceState) {
 
-        View mRootView = inflater.inflate(R.layout.hue_fragment_02, container, false);
+        View rootView = inflater.inflate(R.layout.hue_fragment_02, container, false);
+        // Macアドレスを画面に反映.
+        TextView macTextView = (TextView) rootView.findViewById(R.id.text_mac);
+        macTextView.setText(mAccessPoint.getMacAddress());
 
-        if (mRootView != null) {
+        // IPアドレスを画面に反映.
+        TextView ipTextView = (TextView) rootView.findViewById(R.id.text_ip);
+        ipTextView.setText(mAccessPoint.getIpAddress());
 
-            // Macアドレスを画面に反映.
-            TextView mMacTextView = (TextView) mRootView.findViewById(R.id.text_mac);
-            mMacTextView.setText(sAccessPoint.getMacAddress());
+        // 現在の状態を表示.
+        mTextViewStatus = (TextView) rootView.findViewById(R.id.textStatus);
 
-            // IPアドレスを画面に反映.
-            TextView mIpTextView = (TextView) mRootView.findViewById(R.id.text_ip);
-            mIpTextView.setText(sAccessPoint.getIpAddress());
+        // 作業方法を表示.
+        mTextViewHowto = (TextView) rootView.findViewById(R.id.textHowto);
 
-            // 現在の状態を表示.
-            sTextViewStatus = (TextView) mRootView.findViewById(R.id.textStatus);
+        // ボタン.
+        mButton = (Button) rootView.findViewById(R.id.btnBridgeTouroku);
+        mButton.setOnClickListener(this);
+        mButton.setVisibility(View.GONE);
 
-            // 作業方法を表示.
-            sTextViewHowto = (TextView) mRootView.findViewById(R.id.textHowto);
+        // 画像を表示.
+        mImageView = (ImageView) rootView.findViewById(R.id.iv01);
 
-            // ボタン.
-            sButton = (Button) mRootView.findViewById(R.id.btnBridgeTouroku);
-            sButton.setOnClickListener(this);
-            sButton.setVisibility(View.GONE);
-
-            // 画像を表示.
-            sImageView = (ImageView) mRootView.findViewById(R.id.iv01);
-        }
-
-        return mRootView;
+        return rootView;
     }
 
     @Override
@@ -318,70 +205,142 @@ public class HueFragment02 extends Fragment implements OnClickListener {
         super.onResume();
 
         // ステータスを初期状態(INIT)に設定.
-        sHueStatus = HueState.INIT;
-        sTextViewStatus.setText(R.string.frag02_init);
-        sTextViewHowto.setText(R.string.frag02_init_howto);
+        mHueStatus = HueState.INIT;
+        mTextViewStatus.setText(R.string.frag02_init);
+        mTextViewHowto.setText(R.string.frag02_init_howto);
 
         // Hueのインスタンスを取得.
-        sPhHueSDK = PHHueSDK.create();
-
+        mPhHueSDK = PHHueSDK.getInstance();
         // HueブリッジからのCallbackを受け取るためのリスナーを登録.
-        sPhHueSDK.getNotificationManager().registerSDKListener(mListener);
+        mPhHueSDK.getNotificationManager().registerSDKListener(mListener);
 
         // User名を追加.
-        sAccessPoint.setUsername(HueConstants.USERNAME);
+        mAccessPoint.setUsername(HueConstants.USERNAME);
 
         // アクセスポイントに接続.
-        if (!sPhHueSDK.isAccessPointConnected(sAccessPoint)) {
-            sPhHueSDK.connect(sAccessPoint);
+        if (!mPhHueSDK.isAccessPointConnected(mAccessPoint)) {
+            mPhHueSDK.connect(mAccessPoint);
+            startAnimation();
         } else {
-            sHueStatus = HueState.AUTHENTICATE_SUCCESS;
+            mHueStatus = HueState.AUTHENTICATE_SUCCESS;
+            successAuthorization();
         }
+    }
 
-        // アニメーションの開始.
-        HANDLER.sendEmptyMessageDelayed(INVALIDATE, CYCLE);
+    @Override
+    public void onDestroy() {
+        mPhHueSDK.getNotificationManager().unregisterSDKListener(mListener);
+        mPhHueSDK.disableAllHeartbeat();
+
+        stopAnimation();
+
+        super.onDestroy();
     }
 
     @Override
     public void onClick(final View v) {
-
-        if (sHueStatus == HueState.AUTHENTICATE_SUCCESS) {
+        if (mHueStatus == HueState.AUTHENTICATE_SUCCESS) {
             FragmentManager manager = getFragmentManager();
             FragmentTransaction transaction = manager.beginTransaction();
-
             transaction.setCustomAnimations(R.anim.fragment_slide_right_enter, R.anim.fragment_slide_left_exit,
                     R.anim.fragment_slide_left_enter, R.anim.fragment_slide_right_exit);
-
-            transaction.replace(R.id.fragment_frame, new HueFragment03(sAccessPoint));
-
+            transaction.replace(R.id.fragment_frame, HueFragment03.newInstance(mAccessPoint));
             transaction.commit();
-
         } else {
-            sButton.setVisibility(View.INVISIBLE);
+            mButton.setVisibility(View.INVISIBLE);
 
             // アクセスポイントに接続.
-            if (!sPhHueSDK.isAccessPointConnected(sAccessPoint)) {
-                sPhHueSDK.connect(sAccessPoint);
+            if (!mPhHueSDK.isAccessPointConnected(mAccessPoint)) {
+                mPhHueSDK.connect(mAccessPoint);
             } else {
-                sHueStatus = HueState.AUTHENTICATE_SUCCESS;
+                mHueStatus = HueState.AUTHENTICATE_SUCCESS;
             }
 
             // アニメーションの開始.
-            HANDLER.sendEmptyMessageDelayed(INVALIDATE, CYCLE);
+            startAnimation();
         }
-
     }
 
-    // 画面終了
-    @Override
-    public void onDestroy() {
+    private void setPHAccessPoint(final PHAccessPoint accessPoint) {
+        mAccessPoint = accessPoint;
+    }
 
-        if (mListener != null) {
-            sPhHueSDK.getNotificationManager().unregisterSDKListener(mListener);
+    private synchronized void startAnimation() {
+        mFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                switch (mHueStatus) {
+                    case INIT:
+                        nextImage();
+                        break;
+                    default:
+                    case NOCONNECT:
+                    case AUTHENTICATE_FAILED:
+                    case AUTHENTICATE_SUCCESS:
+                        stopAnimation();
+                        break;
+                }
+            }
+        }, 1, 1, TimeUnit.SECONDS);
+    }
+
+    private synchronized void stopAnimation() {
+        if (mFuture != null) {
+            mFuture.cancel(false);
+            mFuture = null;
         }
-        sPhHueSDK.disableAllHeartbeat();
+    }
 
-        super.onDestroy();
+    private void nextImage() {
+        final Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mCount == 0) {
+                        mImageView.setImageResource(R.drawable.img01);
+                    } else {
+                        mImageView.setImageResource(R.drawable.img02);
+                    }
+                    mCount++;
+                    mCount %= 2;
+                }
+            });
+        }
+    }
 
+    private void successAuthorization() {
+        final Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mTextViewStatus.setText(R.string.frag02_authsuccess);
+                    mTextViewHowto.setText(R.string.frag02_authsuccess_howto);
+                    mImageView.setImageResource(R.drawable.img05);
+                    mButton.setText(R.string.frag02_authsuccess_btn);
+                    mButton.setVisibility(View.VISIBLE);
+
+                    String message = getString(R.string.frag02_connected);
+                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
+
+    private void failAuthorization() {
+        final Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mTextViewStatus.setText(R.string.frag02_failed);
+                    mTextViewHowto.setText("");
+                    mImageView.setImageResource(R.drawable.img01);
+                    mButton.setText(R.string.frag02_retry_btn);
+                    mButton.setVisibility(View.VISIBLE);
+                }
+            });
+        }
     }
 }

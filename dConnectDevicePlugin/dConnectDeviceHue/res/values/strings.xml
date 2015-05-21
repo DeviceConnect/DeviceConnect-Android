@@ -2,7 +2,7 @@
     <string name="app_name">hue 2.0.0</string>
     <string name="index1">[1/4] hueの検索</string>
     <string name="index2">[2/4] hueへの接続設定</string>
-    <string name="index3">[3/4] hueに接続しているライトの</string>
+    <string name="index3">[3/4] ライトの設定</string>
     <string name="index4">[4/4] 新しいライトの登録</string>
     <string name="message_searching">hueを検索中</string>
     <string name="message_light_searching">ライトを検索中</string>

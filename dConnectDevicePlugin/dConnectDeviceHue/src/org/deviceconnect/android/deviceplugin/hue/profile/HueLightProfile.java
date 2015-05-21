@@ -39,9 +39,7 @@ import java.util.Map;
  */
 public class HueLightProfile extends LightProfile {
 
-    /**
-     * エラーコード301.
-     */
+    /** エラーコード301. */
     private static final int HUE_SDK_ERROR_301 = 301;
     /** RGBの文字列の長さ. */
     private static final int RGB_LENGTH = 6;

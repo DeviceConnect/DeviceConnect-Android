@@ -7,11 +7,10 @@ http://opensource.org/licenses/mit-license.php
 
 package org.deviceconnect.android.original.profile;
 
-import org.deviceconnect.android.deviceplugin.util.DcLoggerLight;
+import android.content.Intent;
+
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
-
-import android.content.Intent;
 
 
 /**
@@ -23,11 +22,6 @@ import android.content.Intent;
  * @author NTT DOCOMO, INC.
  */
 public abstract class LightProfile extends DConnectProfile implements LightProfileConstants {
-
-    /**
-     * ロガー.
-     */
-    protected DcLoggerLight mLogger = new DcLoggerLight();
 
     @Override
     public String getProfileName() {

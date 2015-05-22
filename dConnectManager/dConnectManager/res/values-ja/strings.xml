@@ -101,10 +101,18 @@
     </string-array>
 
     <!-- ================= DevicePluginListActivity ================= -->
-    <string name="activity_devicepluginlist_title">List of device plug-in</string>
-    <string name="activity_devicepluginlist_info">詳細</string>
-    <string name="activity_devicepluginlist_del">削除</string>
-    
+    <string name="activity_devicepluginlist_title">デバイスプラグイン一覧</string>
+    <string name="activity_devicepluginlist_version">バージョン: </string>
+
+    <!-- ================= DevicePluginInfoActivity ================= -->
+    <string name="activity_deviceplugin_info_title">デバイスプラグイン情報</string>
+    <string name="activity_deviceplugin_info_version">バージョン: </string>
+    <string name="activity_deviceplugin_info_restart">再起動</string>
+    <string name="activity_deviceplugin_info_uninstall">削除</string>
+    <string name="activity_deviceplugin_info_settings">設定</string>
+    <string name="activity_deviceplugin_info_open_settings">設定を開く</string>
+    <string name="activity_deviceplugin_info_profile">プロファイル</string>
+
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>
     <string name="activity_keyword_ok">OK</string>

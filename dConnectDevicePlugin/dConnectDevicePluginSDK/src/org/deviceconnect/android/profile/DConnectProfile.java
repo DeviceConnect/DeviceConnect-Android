@@ -6,21 +6,21 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.logging.Logger;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
 
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.DConnectProfileConstants;
 
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Bundle;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Logger;
 
 /**
  * DConnect プロファイルクラス.
@@ -419,6 +419,15 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         message.putExtra(PARAM_SERVICE_ID, serviceId);
     }
 
+    public static String getApi(final Intent request) {
+        String api = request.getStringExtra(DConnectMessage.EXTRA_API);
+        return api;
+    }
+
+    public static void setApi(final Intent message, final String api) {
+        message.putExtra(DConnectMessage.EXTRA_API, api);
+    }
+
     /**
      * リクエストからプロファイル名を取得する.
      * 
@@ -443,12 +452,22 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
     /**
      * リクエストからインターフェース名を取得する.
      * 
-     * @param request リクエストパラメータ
+     * @param request リクエストパラメータsetProfile
      * @return インターフェース名
      */
     public static String getInterface(final Intent request) {
         String inter = request.getExtras().getString(DConnectMessage.EXTRA_INTERFACE);
         return inter;
+    }
+
+    /**
+     * メッセージにインターフェース名を設定する.
+     *
+     * @param message メッセージパラメータ
+     * @param inter インターフェース名
+     */
+    public static void setInterface(final Intent message, final String inter) {
+        message.putExtra(DConnectMessage.EXTRA_INTERFACE, inter);
     }
 
     /**

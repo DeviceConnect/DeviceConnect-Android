@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.manager.setting;
 
+import static android.content.Context.WIFI_SERVICE;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import static android.content.Context.WIFI_SERVICE;
 
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePlugin;
@@ -22,10 +22,12 @@ import org.deviceconnect.android.observer.receiver.ObserverReceiver;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -64,6 +66,8 @@ public class SettingsFragment extends PreferenceFragment
     private CheckBoxPreference mCheckBoxOauthPreferences;
     /** 外部IP設定チェックボックス. */
     private CheckBoxPreference mCheckBoxExternalPreferences;
+    /** オリジン不要フラグ設定チェックボックス. */
+    private CheckBoxPreference mCheckBoxRequireOriginPreferences;
     /** Originブロック設定チェックボックス. */
     private CheckBoxPreference mCheckBoxOriginBlockingPreferences;
 
@@ -137,6 +141,11 @@ public class SettingsFragment extends PreferenceFragment
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_allow_external_ip));
         mCheckBoxExternalPreferences.setOnPreferenceChangeListener(this);
 
+        // Origin不要フラグ設定のON/OFF
+        mCheckBoxRequireOriginPreferences = (CheckBoxPreference)
+                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_require_origin));
+        mCheckBoxRequireOriginPreferences.setOnPreferenceChangeListener(this);
+
         // Originブロック設定のON/OFF
         mCheckBoxOriginBlockingPreferences = (CheckBoxPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_whitelist_origin_blocking));
@@ -148,16 +157,17 @@ public class SettingsFragment extends PreferenceFragment
         mEditPortPreferences.setEnabled(enabled);
         mCheckBoxOauthPreferences.setEnabled(enabled);
         mCheckBoxExternalPreferences.setEnabled(enabled);
+        mCheckBoxRequireOriginPreferences.setEnabled(enabled);
         mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
     }
 
-	@Override
-	public void onActivityCreated(final Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-		showIPAddress();
-	}
+    @Override
+    public void onActivityCreated(final Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        showIPAddress();
+    }
 
-	@Override
+    @Override
     public void onResume() {
         super.onResume();
         
@@ -181,6 +191,7 @@ public class SettingsFragment extends PreferenceFragment
         mEditPortPreferences.setEnabled(enabled);
         mCheckBoxOauthPreferences.setEnabled(enabled);
         mCheckBoxExternalPreferences.setEnabled(enabled);
+        mCheckBoxRequireOriginPreferences.setEnabled(enabled);
         mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
         
         showIPAddress();
@@ -209,6 +220,7 @@ public class SettingsFragment extends PreferenceFragment
                 mCheckBoxSslPreferences.setEnabled(!checked);
                 mCheckBoxOauthPreferences.setEnabled(!checked);
                 mCheckBoxExternalPreferences.setEnabled(!checked);
+                mCheckBoxRequireOriginPreferences.setEnabled(!checked);
                 mCheckBoxOriginBlockingPreferences.setEnabled(!checked);
                 mEditPortPreferences.setEnabled(!checked);
                 // dConnectManagerのON/OFF
@@ -229,6 +241,83 @@ public class SettingsFragment extends PreferenceFragment
                     intent.setAction(DConnectObservationService.ACTION_STOP);
                 }
                 getActivity().sendBroadcast(intent);
+            }
+        } else if (preference instanceof CheckBoxPreference) {
+            if (getString(R.string.key_settings_dconn_require_origin).equals(key)) {
+                boolean checked = ((Boolean) newValue).booleanValue();
+                if (!checked) {
+                    List<String> settings = new ArrayList<String>();
+                    if (mCheckBoxOauthPreferences.isChecked()) {
+                        settings.add(getString(R.string.activity_settings_local_oauth));
+                    }
+                    if (mCheckBoxOriginBlockingPreferences.isChecked()) {
+                        settings.add(getString(R.string.activity_settings_whitelist_enable));
+                    }
+                    
+                    if (settings.size() > 0) {
+                        StringBuilder list = new StringBuilder();
+                        for (int i = 0; i < settings.size(); i++) {
+                            list.append(" - ");
+                            list.append(settings.get(i));
+                            list.append("\n");
+                        }
+                        
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                        builder.setTitle(getString(R.string.activity_settings_warning));
+                        String message = getString(R.string.activity_settings_warning_require_origin_disabled);
+                        message = message.replace("%1", list);
+                        builder.setMessage(message);
+                        builder.setCancelable(false);
+                        String yes = getString(R.string.activity_settings_yes);
+                        String no = getString(R.string.activity_settings_no);
+                        builder.setPositiveButton(yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mCheckBoxOauthPreferences.setChecked(false);
+                                mCheckBoxOriginBlockingPreferences.setChecked(false);
+                            }
+                        });
+                        builder.setNegativeButton(no, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mCheckBoxRequireOriginPreferences.setChecked(true);
+                            }
+                        });
+                        builder.create().show();
+                    }
+                }
+            } else if (getString(R.string.key_settings_dconn_local_oauth).equals(key)
+                    || getString(R.string.key_settings_dconn_whitelist_origin_blocking).equals(key)) {
+                boolean checked = ((Boolean) newValue).booleanValue();
+                boolean requiredOrigin = mCheckBoxRequireOriginPreferences.isChecked();
+                if (checked && !requiredOrigin) {
+                    StringBuilder list = new StringBuilder();
+                    list.append(" - ");
+                    list.append(getString(R.string.activity_settings_require_origin));
+                    list.append("\n");
+                    
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                    builder.setTitle(getString(R.string.activity_settings_warning));
+                    String message = getString(R.string.activity_settings_warning_require_origin_enabled);
+                    message = message.replace("%1", list);
+                    builder.setMessage(message);
+                    builder.setCancelable(false);
+                    String yes = getString(R.string.activity_settings_yes);
+                    String no = getString(R.string.activity_settings_no);
+                    builder.setPositiveButton(yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mCheckBoxRequireOriginPreferences.setChecked(true);
+                        }
+                    });
+                    builder.setNegativeButton(no, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ((CheckBoxPreference) preference).setChecked(false);
+                        }
+                    });
+                    builder.create().show();
+                }
             }
         }
         return true;
@@ -366,7 +455,7 @@ public class SettingsFragment extends PreferenceFragment
             return progressDialog;
         }
     }
-    
+
     /**
      * Show IP Address.
      */

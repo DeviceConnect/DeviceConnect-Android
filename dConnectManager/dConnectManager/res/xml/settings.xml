@@ -62,6 +62,12 @@
             android:summaryOff="@string/activity_settings_dconn_disabled"
             android:summaryOn="@string/activity_settings_dconn_enabled"
             android:title="@string/activity_settings_allow_external_ip" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="@string/key_settings_dconn_require_origin"
+            android:summaryOff="@string/activity_settings_dconn_disabled"
+            android:summaryOn="@string/activity_settings_dconn_enabled"
+            android:title="@string/activity_settings_require_origin" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_whitelist" >
         <CheckBoxPreference

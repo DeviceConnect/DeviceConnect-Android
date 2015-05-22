@@ -47,7 +47,7 @@
     <string name="activity_settings_manage_whitelist">Manage whitelist</string>
     <string name="activity_settings_device_plugin">Device Plug-in</string>
     <string name="activity_settings_list_device_plugin">List of device plug-in</string>
-    <string name="activity_settings_restart_device_plugin">Restart</string>
+    <string name="activity_settings_restart_device_plugin">Restart all the devices plug-ins</string>
     <string name="activity_settings_restart_device_plugin_title">Starting Device Plugin</string>
     <string name="activity_settings_restart_device_plugin_message">Processing</string>
     <string name="activity_settings_warning_require_origin_disabled">下記の機能がアプリのOriginを参照するため、下記もOFFに切り替わります。\n\n%1\nよろしいですか？</string>

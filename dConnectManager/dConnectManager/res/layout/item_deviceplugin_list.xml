@@ -1,47 +1,54 @@
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:orientation="horizontal">
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
+    <ImageView
+        android:id="@+id/devicelist_icon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="8dp" />
 
-            <TextView
-                android:id="@+id/devicelist_package_name"
-                android:layout_width="220dp"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="6dp"
-                android:layout_weight="0.60"
-                android:ellipsize="end"
-                android:gravity="center_vertical"
-                android:maxLines="4"
-                android:minHeight="?android:attr/listPreferredItemHeightSmall"
-                android:scrollHorizontally="true"
-                android:textAppearance="?android:attr/textAppearanceListItemSmall"
-                android:textColor="#000000"
-                android:textSize="14sp" />
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:minHeight="?android:attr/listPreferredItemHeightSmall"
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical">
 
-            <Button
-                android:id="@+id/devicelist_info_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:layout_weight="0.20"
-                android:background="@drawable/button_blue"
-                android:text="@string/activity_devicepluginlist_info"
-                android:textColor="#FFFFFF" />
+        <TextView
+            android:id="@+id/devicelist_package_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="6dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="4"
+            android:scrollHorizontally="true"
+            android:textAppearance="?android:attr/textAppearanceListItemSmall"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
 
-            <Button
-                android:id="@+id/devicelist_delete_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:layout_weight="0.20"
-                android:background="@drawable/button_blue"
-                android:text="@string/activity_devicepluginlist_del"
-                android:textColor="#FFFFFF" />
-        </LinearLayout>
-</RelativeLayout>
+        <TextView
+            android:id="@+id/devicelist_version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="6dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="4"
+            android:scrollHorizontally="true"
+            android:textAppearance="?android:attr/textAppearanceListItemSmall"
+            android:textColor="#000000"
+            android:textSize="14sp"/>
+    </LinearLayout>
+</LinearLayout>

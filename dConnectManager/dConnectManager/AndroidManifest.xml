@@ -136,6 +136,11 @@
             android:name="org.deviceconnect.android.manager.setting.DevicePluginListActivity"
             android:label="@string/app_name" >
         </activity>
+        <!-- Device Plug-in Information Activity. -->
+        <activity
+            android:name="org.deviceconnect.android.manager.setting.DevicePluginInfoActivity"
+            android:label="@string/app_name" >
+        </activity>
 
         <!-- Local OAuth 認可処理用サービス. -->
         <service

@@ -7,17 +7,9 @@ http://opensource.org/licenses/mit-license.php
 
 package org.deviceconnect.android.deviceplugin.hue.profile;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.original.profile.LightProfile;
-import org.deviceconnect.message.DConnectMessage;
-
 import android.content.Intent;
 import android.os.Bundle;
+
 import com.philips.lighting.hue.listener.PHGroupListener;
 import com.philips.lighting.hue.listener.PHLightListener;
 import com.philips.lighting.hue.sdk.PHHueSDK;
@@ -31,6 +23,15 @@ import com.philips.lighting.model.PHLight;
 import com.philips.lighting.model.PHLight.PHLightColorMode;
 import com.philips.lighting.model.PHLightState;
 
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.original.profile.LightProfile;
+import org.deviceconnect.message.DConnectMessage;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 親クラスで振り分けられたメソッドに対して、Hueのlight attribute処理を呼び出す.
  * 
@@ -38,9 +39,7 @@ import com.philips.lighting.model.PHLightState;
  */
 public class HueLightProfile extends LightProfile {
 
-    /**
-     * エラーコード301.
-     */
+    /** エラーコード301. */
     private static final int HUE_SDK_ERROR_301 = 301;
     /** RGBの文字列の長さ. */
     private static final int RGB_LENGTH = 6;
@@ -70,8 +69,8 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLight(final Intent request, final Intent response) {
-        int[] mColorParam = new int[3];
-        float mBrightness = 0;
+        int[] colorParam = new int[3];
+        float brightness = 0;
         String serviceId = getServiceID(request);
         String lightId = getLightID(request);
 
@@ -92,30 +91,30 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        mBrightness = getBrightnessParam(request, response);
-        if (mBrightness == -1) {
+        brightness = getBrightnessParam(request, response);
+        if (brightness == -1) {
+            MessageUtils.setInvalidRequestParameterError(response, "brightness is not set.");
             return true;
         }
 
-        if (!(getColorParam(request, response, mColorParam))) {
+        if (!(getColorParam(request, response, colorParam))) {
+            MessageUtils.setInvalidRequestParameterError(response, "color is invalid.");
             return true;
         }
 
         // Brightness magnification conversion
-        String colorParam = calcColorParam(mColorParam, mBrightness);
+        String color = calcColorParam(colorParam, brightness);
 
         // Calculation of brightness.
-        int mCalcBrightness = calcBrightnessParam(mColorParam);
+        int mCalcBrightness = calcBrightnessParam(colorParam);
 
         PHLightState lightState = new PHLightState();
         lightState.setOn(true);
-        
         lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
-        
-        Color hueColor = new Color(colorParam);
+
+        Color hueColor = new Color(color);
         lightState.setX(hueColor.mX);
         lightState.setY(hueColor.mY);
-
         lightState.setBrightness(mCalcBrightness);
 
         bridge.updateLightState(light, lightState, new PHLightAdapter() {
@@ -124,7 +123,6 @@ public class HueLightProfile extends LightProfile {
                     final List<PHHueError> errorAttribute) {
                 sendResultOK(response);
             }
-
             @Override
             public void onError(final int code, final String message) {
                 MessageUtils.setUnknownError(response, code + ": " + message);
@@ -150,11 +148,13 @@ public class HueLightProfile extends LightProfile {
             MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
+
         PHLight light = bridge.getResourceCache().getLights().get(lightId);
         if (light == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
+
         PHLightState lightState = new PHLightState();
         lightState.setOn(false);
         bridge.updateLightState(light, lightState, new PHLightAdapter() {
@@ -163,7 +163,6 @@ public class HueLightProfile extends LightProfile {
                     final List<PHHueError> errorAttribute) {
                 sendResultOK(response);
             }
-
             @Override
             public void onError(final int code, final String message) {
                 String errMsg = "ライトの状態更新に失敗しました hue:code = " + Integer.toString(code) + "  message = " + message;
@@ -176,8 +175,8 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLight(final Intent request, final Intent response) {
-        int[] mColorParam = new int[3];
-        float mBrightness = 0;
+        int[] colorParam = new int[3];
+        float brightness = 0;
         String serviceId = getServiceID(request);
         String lightId = getLightID(request);
         String name = getName(request);
@@ -198,12 +197,14 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        mBrightness = getBrightnessParam(request, response);
-        if (mBrightness == -1) {
+        brightness = getBrightnessParam(request, response);
+        if (brightness == -1) {
+            MessageUtils.setInvalidRequestParameterError(response, "brightness is not set.");
             return true;
         }
 
-        if (!(getColorParam(request, response, mColorParam))) {
+        if (!(getColorParam(request, response, colorParam))) {
+            MessageUtils.setInvalidRequestParameterError(response, "color is invalid.");
             return true;
         }
 
@@ -222,15 +223,15 @@ public class HueLightProfile extends LightProfile {
         bridge.updateLight(newLight, mAdaptor);
 
         // Brightness magnification conversion
-        String colorParam = calcColorParam(mColorParam, mBrightness);
+        String color = calcColorParam(colorParam, brightness);
 
         // Calculation of brightness.
-        int mCalcBrightness = calcBrightnessParam(mColorParam);
+        int mCalcBrightness = calcBrightnessParam(colorParam);
 
         PHLightState lightState = new PHLightState();
         lightState.setOn(true);
         lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
-        Color hueColor = new Color(colorParam);
+        Color hueColor = new Color(color);
         lightState.setX(hueColor.mX);
         lightState.setY(hueColor.mY);
         lightState.setBrightness(mCalcBrightness);
@@ -284,7 +285,7 @@ public class HueLightProfile extends LightProfile {
     /**
      *  Bridge response listener.
      */
-    PHLightAdapter mAdaptor = new PHLightAdapter() {
+    private PHLightAdapter mAdaptor = new PHLightAdapter() {
         @Override
         public void onSuccess() {
             if (getResponseCount() == 0) {
@@ -355,8 +356,8 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLightGroup(final Intent request, final Intent response) {
-        int[] mColorParam = new int[3];
-        float mBrightness = 0;
+        int[] colorParam = new int[3];
+        float brightness = 0;
         String serviceId = getServiceID(request);
         String groupId = getGroupId(request);
 
@@ -372,25 +373,25 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        mBrightness = getBrightnessParam(request, response);
-        if (mBrightness == -1) {
+        brightness = getBrightnessParam(request, response);
+        if (brightness == -1) {
             return true;
         }
 
-        if (!(getColorParam(request, response, mColorParam))) {
+        if (!(getColorParam(request, response, colorParam))) {
             return true;
         }
 
         // Brightness magnification conversion
-        String colorParam = calcColorParam(mColorParam, mBrightness);
+        String color = calcColorParam(colorParam, brightness);
 
         // Calculation of brightness.
-        int mCalcBrightness = calcBrightnessParam(mColorParam);
+        int mCalcBrightness = calcBrightnessParam(colorParam);
 
         PHLightState lightState = new PHLightState();
         lightState.setOn(true);
         lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
-        Color hueColor = new Color(colorParam);
+        Color hueColor = new Color(color);
         lightState.setX(hueColor.mX);
         lightState.setY(hueColor.mY);
         lightState.setBrightness(mCalcBrightness);
@@ -803,11 +804,11 @@ public class HueLightProfile extends LightProfile {
     private static boolean getColorParam(final Intent request, final Intent response, final int[] color) {
         if (getColor(request) != null) {
             try {
-                String mColor = getColor(request);
-                String rr = mColor.substring(0, 2);
-                String gg = mColor.substring(2, 4);
-                String bb = mColor.substring(4, 6);
-                if (mColor.length() == RGB_LENGTH) {
+                String colorParam = getColor(request);
+                String rr = colorParam.substring(0, 2);
+                String gg = colorParam.substring(2, 4);
+                String bb = colorParam.substring(4, 6);
+                if (colorParam.length() == RGB_LENGTH) {
                     if (rr == null || gg == null || bb == null) {
                         MessageUtils.setInvalidRequestParameterError(response);
                         return false;
@@ -926,10 +927,10 @@ public class HueLightProfile extends LightProfile {
             if (bb == null) {
                 throw new IllegalArgumentException();
             }
-            this.mR = Integer.parseInt(rr, 16);
-            this.mG = Integer.parseInt(gg, 16);
-            this.mB = Integer.parseInt(bb, 16);
-            float[] xy = PHUtilities.calculateXYFromRGB(this.mR, this.mG, this.mB, MODEL);
+            mR = Integer.parseInt(rr, 16);
+            mG = Integer.parseInt(gg, 16);
+            mB = Integer.parseInt(bb, 16);
+            float[] xy = PHUtilities.calculateXYFromRGB(mR, mG, mB, MODEL);
             mX = xy[0];
             mY = xy[1];
         }

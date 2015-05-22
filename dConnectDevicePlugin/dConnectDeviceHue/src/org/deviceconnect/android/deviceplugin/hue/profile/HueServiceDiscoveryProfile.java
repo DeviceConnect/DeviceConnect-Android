@@ -7,32 +7,32 @@ http://opensource.org/licenses/mit-license.php
 
 package org.deviceconnect.android.deviceplugin.hue.profile;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.deviceconnect.android.profile.DConnectProfileProvider;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
 import com.philips.lighting.hue.sdk.PHHueSDK;
 
+import org.deviceconnect.android.profile.DConnectProfileProvider;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * スマートデバイス検索機能を提供するAPI.
  * @author NTT DOCOMO, INC.
  */
-public class HueServceDiscoveryProfile extends ServiceDiscoveryProfile {
+public class HueServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     /**
      * コンストラクタ.
      * 
      * @param provider プロファイルプロバイダ
      */
-    public HueServceDiscoveryProfile(final DConnectProfileProvider provider) {
+    public HueServiceDiscoveryProfile(final DConnectProfileProvider provider) {
         super(provider);
     }
 

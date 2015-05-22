@@ -7,11 +7,6 @@
             android:summaryOff="@string/activity_settings_dconnect_disabled"
             android:summaryOn="@string/activity_settings_dconnect_enabled"
             android:title="@string/app_name" />
-        <SwitchPreference
-            android:key="@string/key_settings_dconn_observer_on_off"
-            android:summaryOff="@string/activity_settings_dconnect_disabled"
-            android:summaryOn="@string/activity_settings_dconnect_enabled"
-            android:title="@string/activity_settings_observer" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_device_plugin" >
         <PreferenceScreen
@@ -32,12 +27,6 @@
             android:title="@string/activity_settings_keyword" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_server_settings" >
-        <CheckBoxPreference
-            android:key="@string/key_settings_dconn_ssl"
-            android:summaryOff="@string/activity_settings_ssl_disabled"
-            android:summaryOn="@string/activity_settings_ssl_enabled"
-            android:title="@string/activity_settings_ssl" />
-
         <EditTextPreference
             android:defaultValue="@string/activity_settings_default_host"
             android:key="@string/key_settings_dconn_host"
@@ -49,13 +38,13 @@
             android:key="@string/key_settings_dconn_port"
             android:summary="@string/activity_settings_default_port"
             android:title="@string/activity_settings_port" />
-
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/activity_settings_security" >
         <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="@string/key_settings_dconn_local_oauth"
-            android:summaryOff="@string/activity_settings_dconn_disabled"
-            android:summaryOn="@string/activity_settings_dconn_enabled"
-            android:title="@string/activity_settings_local_oauth" />
+            android:key="@string/key_settings_dconn_ssl"
+            android:summaryOff="@string/activity_settings_ssl_disabled"
+            android:summaryOn="@string/activity_settings_ssl_enabled"
+            android:title="@string/activity_settings_ssl" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="@string/key_settings_dconn_allow_external_ip"
@@ -68,8 +57,12 @@
             android:summaryOff="@string/activity_settings_dconn_disabled"
             android:summaryOn="@string/activity_settings_dconn_enabled"
             android:title="@string/activity_settings_require_origin" />
-    </PreferenceCategory>
-    <PreferenceCategory android:title="@string/activity_settings_whitelist" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="@string/key_settings_dconn_local_oauth"
+            android:summaryOff="@string/activity_settings_dconn_disabled"
+            android:summaryOn="@string/activity_settings_dconn_enabled"
+            android:title="@string/activity_settings_local_oauth" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="@string/key_settings_dconn_whitelist_origin_blocking"
@@ -82,6 +75,11 @@
             <intent android:targetPackage="org.deviceconnect.android.manager"
                     android:targetClass="org.deviceconnect.android.manager.policy.WhitelistActivity" />
         </PreferenceScreen>
+        <SwitchPreference
+            android:key="@string/key_settings_dconn_observer_on_off"
+            android:summaryOff="@string/activity_settings_dconnect_disabled"
+            android:summaryOn="@string/activity_settings_dconnect_enabled"
+            android:title="@string/activity_settings_observer" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_about" >
         <PreferenceScreen

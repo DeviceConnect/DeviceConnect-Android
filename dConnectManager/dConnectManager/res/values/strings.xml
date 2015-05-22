@@ -99,11 +99,11 @@
     <!-- ================= DevicePluginInfoActivity ================= -->
     <string name="activity_deviceplugin_info_title">device plug-in info</string>
     <string name="activity_deviceplugin_info_version">version: </string>
-    <string name="activity_deviceplugin_info_restart">再起動</string>
-    <string name="activity_deviceplugin_info_uninstall">削除</string>
-    <string name="activity_deviceplugin_info_settings">設定</string>
-    <string name="activity_deviceplugin_info_open_settings">設定を開く</string>
-    <string name="activity_deviceplugin_info_profile">プロファイル</string>
+    <string name="activity_deviceplugin_info_restart">Restart</string>
+    <string name="activity_deviceplugin_info_uninstall">Delete</string>
+    <string name="activity_deviceplugin_info_settings">Settings</string>
+    <string name="activity_deviceplugin_info_open_settings">Open settings</string>
+    <string name="activity_deviceplugin_info_profile">Profile</string>
 
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>

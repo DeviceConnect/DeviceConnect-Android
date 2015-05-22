@@ -1,5 +1,5 @@
 /*
- DevicePluginListActivity.java
+ DevicePluginInfoFragment.java
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -17,7 +17,6 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -153,10 +152,17 @@ public class DevicePluginInfoFragment extends Fragment {
         }
     }
 
+    /**
+     * Get supported profiles.
+     * @return profiles
+     */
     private Map<String, DevicePluginXmlProfile> getSupportedProfiles() {
         return DevicePluginXmlUtil.getSupportProfiles(getActivity(), mPackageName);
     }
 
+    /**
+     * Open device plug-in's settings.
+     */
     private void openSettings() {
         DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
         mgr.createDevicePluginList();
@@ -178,12 +184,18 @@ public class DevicePluginInfoFragment extends Fragment {
         }
     }
 
+    /**
+     * Open uninstall dialog.
+     */
     private void openUninstall() {
         Uri uri = Uri.fromParts("package", mPackageName, null);
         Intent intent = new Intent(Intent.ACTION_DELETE, uri);
         startActivityForResult(intent, REQUEST_CODE);
     }
 
+    /**
+     * Restart device plug-in.
+     */
     private void restartDevicePlugin() {
         final StartingDialogFragment dialog = new StartingDialogFragment();
         dialog.show(getFragmentManager(), "dialog");
@@ -207,6 +219,7 @@ public class DevicePluginInfoFragment extends Fragment {
 
     /**
      * Start a device plugin.
+     *
      * @param plugin device plugin to be started
      */
     private void restartDevicePlugin(final DevicePlugin plugin) {
@@ -215,6 +228,12 @@ public class DevicePluginInfoFragment extends Fragment {
         getActivity().startService(service);
     }
 
+    /**
+     * Tests whether packageName exists in application list.
+     *
+     * @param packageName package name
+     * @return true if packageName exists, false otherwise
+     */
     private boolean existApplicationFromPackageName(final String packageName) {
         if (packageName == null) {
             return false;

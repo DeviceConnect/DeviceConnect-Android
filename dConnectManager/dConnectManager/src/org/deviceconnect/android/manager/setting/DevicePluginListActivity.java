@@ -6,12 +6,13 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import org.deviceconnect.android.manager.R;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
+
+import org.deviceconnect.android.manager.R;
 
 /**
  * Device Connect Manager device plug-in list Activity.
@@ -31,7 +32,7 @@ public class DevicePluginListActivity extends Activity {
             FragmentManager fm = getFragmentManager();
             FragmentTransaction t = fm.beginTransaction();
             t.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            t.add(android.R.id.content, f, "continar");
+            t.add(android.R.id.content, f, "container");
             t.commit();
         }
     }

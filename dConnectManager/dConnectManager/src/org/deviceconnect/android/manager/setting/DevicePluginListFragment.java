@@ -40,9 +40,6 @@ import java.util.List;
  */
 public class DevicePluginListFragment extends Fragment {
 
-    /** The root view. */
-    private View mRootView;
-
     /** Adapter. */
     private PluginAdapter mPluginAdapter;
 
@@ -113,16 +110,16 @@ public class DevicePluginListFragment extends Fragment {
             final Bundle savedInstanceState) {
 
         mPluginAdapter = new PluginAdapter(getActivity(), createPluginContainers());
-        mRootView = inflater.inflate(R.layout.fragment_devicepluginlist, container, false);
-        ListView listView = (ListView) mRootView.findViewById(R.id.listview_pluginlist);
+        View rootView = inflater.inflate(R.layout.fragment_devicepluginlist, container, false);
+        ListView listView = (ListView) rootView.findViewById(R.id.listview_pluginlist);
         listView.setAdapter(mPluginAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-                test(mPluginAdapter.getItem(position));
+                openDevicePluginInformation(mPluginAdapter.getItem(position));
             }
         });
-        return mRootView;
+        return rootView;
     }
 
     @Override
@@ -154,7 +151,12 @@ public class DevicePluginListFragment extends Fragment {
        });
     }
 
-    private void test(PluginContainer container) {
+    /**
+     * Open device plug-in information activity.
+     *
+     * @param container plug-in container
+     */
+    private void openDevicePluginInformation(final PluginContainer container) {
         Intent intent = new Intent();
         intent.setClass(getActivity(), DevicePluginInfoActivity.class);
         intent.putExtra(DevicePluginInfoActivity.PACKAGE_NAME, container.getPackageName());
@@ -169,7 +171,6 @@ public class DevicePluginListFragment extends Fragment {
         private String mLabel;
         /** Package name. */
         private String mPackageName;
-        private String mClassName;
         /** Version. */
         private String mVersion;
         /** Icon. */
@@ -215,10 +216,20 @@ public class DevicePluginListFragment extends Fragment {
             mPackageName = name;
         }
 
+        /**
+         * Get plug-in version.
+         *
+         * @return Plug-in version
+         */
         public String getVersion() {
             return mVersion;
         }
 
+        /**
+         * Set plug-in version.
+         *
+         * @param version Plug-in version
+         */
         public void setVersion(final String version) {
             mVersion = version;
         }

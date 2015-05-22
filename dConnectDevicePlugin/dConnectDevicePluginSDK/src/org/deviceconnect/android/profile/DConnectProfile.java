@@ -419,11 +419,23 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
         message.putExtra(PARAM_SERVICE_ID, serviceId);
     }
 
+    /**
+     * リクエストからAPI名を取得する.
+     *
+     * @param request リクエストパラメータ
+     * @return API名。無い場合はnullを返す。
+     */
     public static String getApi(final Intent request) {
         String api = request.getStringExtra(DConnectMessage.EXTRA_API);
         return api;
     }
 
+    /**
+     * メッセージにAPI名を設定する.
+     *
+     * @param message メッセージパラメータ
+     * @param api API名
+     */
     public static void setApi(final Intent message, final String api) {
         message.putExtra(DConnectMessage.EXTRA_API, api);
     }
@@ -453,7 +465,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * リクエストからインターフェース名を取得する.
      * 
      * @param request リクエストパラメータsetProfile
-     * @return インターフェース名
+     * @return インターフェース。無い場合はnullを返す。
      */
     public static String getInterface(final Intent request) {
         String inter = request.getExtras().getString(DConnectMessage.EXTRA_INTERFACE);
@@ -474,7 +486,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * リクエストから属性名を取得する.
      * 
      * @param request リクエストパラメータ
-     * @return 属性名
+     * @return 属性名。無い場合はnullを返す。
      */
     public static String getAttribute(final Intent request) {
         String attribute = request.getExtras().getString(DConnectMessage.EXTRA_ATTRIBUTE);

@@ -6,27 +6,32 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.deviceconnect.android.manager.R;
-
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.provider.Settings;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.deviceconnect.android.manager.BuildConfig;
+import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.R;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Device plug-in list fragment.
@@ -34,9 +39,6 @@ import android.widget.TextView;
  * @author NTT DOCOMO, INC.
  */
 public class DevicePluginListFragment extends Fragment {
-
-    /** The root view. */
-    private View mRootView;
 
     /** Adapter. */
     private PluginAdapter mPluginAdapter;
@@ -63,6 +65,23 @@ public class DevicePluginListFragment extends Fragment {
         PluginContainer container = new PluginContainer();
         container.setLabel(app.loadLabel(pm).toString());
         container.setPackageName(app.packageName);
+        try {
+            container.setIcon(pm.getApplicationIcon(app.packageName));
+        } catch (PackageManager.NameNotFoundException e) {
+            // do nothing.
+            if (BuildConfig.DEBUG) {
+                Log.d("Manager", "Icon is not found.");
+            }
+        }
+        try {
+            PackageInfo info = pm.getPackageInfo(app.packageName, PackageManager.GET_META_DATA);
+            container.setVersion(info.versionName);
+        } catch (PackageManager.NameNotFoundException e) {
+            // do nothing.
+            if (BuildConfig.DEBUG) {
+                Log.d("Manager", "VersionName is not found.");
+            }
+        }
         return container;
     }
 
@@ -72,14 +91,15 @@ public class DevicePluginListFragment extends Fragment {
      */
     private List<PluginContainer> createPluginContainers() {
         List<PluginContainer> containers = new ArrayList<PluginContainer>();
-        String pluginName = "org.deviceconnect.android.deviceplugin";
         PackageManager pm = getActivity().getPackageManager();
-        final int flags = PackageManager.GET_UNINSTALLED_PACKAGES | PackageManager.GET_DISABLED_COMPONENTS;
-        final List<ApplicationInfo> installedAppList = pm.getInstalledApplications(flags);
-
-        for (ApplicationInfo app : installedAppList) {
-            if (app.packageName.startsWith(pluginName)) {
+        DevicePluginManager manager = new DevicePluginManager(getActivity(), "");
+        manager.createDevicePluginList();
+        for (DevicePlugin plugin : manager.getDevicePlugins()) {
+            try {
+                ApplicationInfo app = pm.getApplicationInfo(plugin.getPackageName(), 0);
                 containers.add(createContainer(pm, app));
+            } catch (PackageManager.NameNotFoundException e) {
+                continue;
             }
         }
         return containers;
@@ -90,10 +110,16 @@ public class DevicePluginListFragment extends Fragment {
             final Bundle savedInstanceState) {
 
         mPluginAdapter = new PluginAdapter(getActivity(), createPluginContainers());
-        mRootView = inflater.inflate(R.layout.fragment_devicepluginlist, container, false);
-        ListView listView = (ListView) mRootView.findViewById(R.id.listview_pluginlist);
+        View rootView = inflater.inflate(R.layout.fragment_devicepluginlist, container, false);
+        ListView listView = (ListView) rootView.findViewById(R.id.listview_pluginlist);
         listView.setAdapter(mPluginAdapter);
-        return mRootView;
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+                openDevicePluginInformation(mPluginAdapter.getItem(position));
+            }
+        });
+        return rootView;
     }
 
     @Override
@@ -126,13 +152,29 @@ public class DevicePluginListFragment extends Fragment {
     }
 
     /**
+     * Open device plug-in information activity.
+     *
+     * @param container plug-in container
+     */
+    private void openDevicePluginInformation(final PluginContainer container) {
+        Intent intent = new Intent();
+        intent.setClass(getActivity(), DevicePluginInfoActivity.class);
+        intent.putExtra(DevicePluginInfoActivity.PACKAGE_NAME, container.getPackageName());
+        startActivity(intent);
+    }
+
+    /**
      * PluginContainer class.
      */
-    private class PluginContainer {
+    static class PluginContainer {
         /** Label. */
         private String mLabel;
         /** Package name. */
         private String mPackageName;
+        /** Version. */
+        private String mVersion;
+        /** Icon. */
+        private Drawable mIcon;
 
         /**
          * Get plug-in Label.
@@ -173,6 +215,40 @@ public class DevicePluginListFragment extends Fragment {
         public void setPackageName(final String name) {
             mPackageName = name;
         }
+
+        /**
+         * Get plug-in version.
+         *
+         * @return Plug-in version
+         */
+        public String getVersion() {
+            return mVersion;
+        }
+
+        /**
+         * Set plug-in version.
+         *
+         * @param version Plug-in version
+         */
+        public void setVersion(final String version) {
+            mVersion = version;
+        }
+
+        /**
+         * Get plug-in icon.
+         * @return icon
+         */
+        public Drawable getIcon() {
+            return mIcon;
+        }
+
+        /**
+         * Set plug-in icon.
+         * @param icon plug-in icon
+         */
+        public void setIcon(final Drawable icon) {
+            mIcon = icon;
+        }
     }
 
     /**
@@ -196,7 +272,7 @@ public class DevicePluginListFragment extends Fragment {
 
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
-            View cv = null;
+            View cv;
             if (convertView == null) {
                 cv = mInflater.inflate(R.layout.item_deviceplugin_list, parent, false);
             } else {
@@ -210,28 +286,15 @@ public class DevicePluginListFragment extends Fragment {
             TextView nameView = (TextView) cv.findViewById(R.id.devicelist_package_name);
             nameView.setText(name);
 
-            Button infoBtn = (Button) cv.findViewById(R.id.devicelist_info_btn);
-            infoBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    Uri uri = Uri.fromParts("package", plugin.getPackageName(), null);
-                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri);
-                    startActivity(intent);
-                    updatePluginList();
-                }
-            });
+            Drawable icon = plugin.getIcon();
+            if (icon != null) {
+                ImageView iconView = (ImageView) cv.findViewById(R.id.devicelist_icon);
+                iconView.setImageDrawable(icon);
+            }
 
-            Button delBtn = (Button) cv.findViewById(R.id.devicelist_delete_btn);
-            delBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    Uri uri = Uri.fromParts("package", plugin.getPackageName(), null);
-                    Intent intent = new Intent(Intent.ACTION_DELETE, uri);
-                    startActivity(intent);
-                    updatePluginList();
-                }
-            });
-
+            String version = plugin.getVersion();
+            TextView versionView = (TextView) cv.findViewById(R.id.devicelist_version);
+            versionView.setText(getString(R.string.activity_devicepluginlist_version) + version);
             return cv;
         }
     }

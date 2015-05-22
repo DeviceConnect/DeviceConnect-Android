@@ -75,7 +75,7 @@
             <intent android:targetPackage="org.deviceconnect.android.manager"
                     android:targetClass="org.deviceconnect.android.manager.policy.WhitelistActivity" />
         </PreferenceScreen>
-        <SwitchPreference
+        <CheckBoxPreference
             android:key="@string/key_settings_dconn_observer_on_off"
             android:summaryOff="@string/activity_settings_dconnect_disabled"
             android:summaryOn="@string/activity_settings_dconnect_enabled"

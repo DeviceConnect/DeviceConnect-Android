@@ -179,7 +179,7 @@ public class SettingsFragment extends PreferenceFragment
         serverPreferences.setChecked(isDConnectServiceRunning());
         
         // 監視サービスの起動チェック
-        SwitchPreference observerPreferences = (SwitchPreference)
+        CheckBoxPreference observerPreferences = (CheckBoxPreference)
                 getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_observer_on_off));
         observerPreferences.setOnPreferenceChangeListener(this);
@@ -230,7 +230,9 @@ public class SettingsFragment extends PreferenceFragment
                 } else {
                     getActivity().stopService(intent);
                 }
-            } else if (getString(R.string.key_settings_dconn_observer_on_off).equals(key)) {
+            }
+        } else if (preference instanceof CheckBoxPreference) {
+            if (getString(R.string.key_settings_dconn_observer_on_off).equals(key)) {
                 boolean checked = ((Boolean) newValue).booleanValue();
                 // 監視サービスのON/OFF
                 Intent intent = new Intent();
@@ -241,9 +243,7 @@ public class SettingsFragment extends PreferenceFragment
                     intent.setAction(DConnectObservationService.ACTION_STOP);
                 }
                 getActivity().sendBroadcast(intent);
-            }
-        } else if (preference instanceof CheckBoxPreference) {
-            if (getString(R.string.key_settings_dconn_require_origin).equals(key)) {
+            } else if (getString(R.string.key_settings_dconn_require_origin).equals(key)) {
                 boolean checked = ((Boolean) newValue).booleanValue();
                 if (!checked) {
                     List<String> settings = new ArrayList<String>();

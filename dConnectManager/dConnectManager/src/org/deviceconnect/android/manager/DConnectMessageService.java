@@ -320,6 +320,14 @@ public abstract class DConnectMessageService extends Service
         }
     }
 
+    /**
+     * オリジンの正当性をチェックする.
+     * <p>
+     * 設定画面上でオリジン要求フラグがOFFにされた場合は即座に「エラー無し」を返す。
+     * </p>
+     * @param request 送信元のリクエスト
+     * @return チェック処理の結果
+     */
     private OriginError checkOrigin(final Intent request) {
         if (!mSettings.requireOrigin()) {
             return OriginError.NONE;

@@ -519,18 +519,23 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                     getContext().sendBroadcast(response);
                     return;
                 }
-                if (getMediaStatus(response, app) == null) {
+                MediaStatus status = getMediaStatus(response, app);
+                if (status == null) {
                     getContext().sendBroadcast(response);
                     return;
                 }
-
+                long streamPosition = status.getStreamPosition();
                 long posSecond = app.getSeek(response) / MILLISECOND;
-                if (posSecond >= 0) {
+                if (posSecond > 0) {
                     setPos(response, (int) posSecond);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    getContext().sendBroadcast(response);
-                    return;
+                } else if (streamPosition > 0) {
+                    setPos(response, (int) streamPosition);
+                } else {
+                    setPos(response, 0);
                 }
+                setResult(response, DConnectMessage.RESULT_OK);
+                getContext().sendBroadcast(response);
+                return;
             }
         });
         return false;
@@ -885,11 +890,13 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      * デバイス内のメディアを全検索する.
      * @param query 検索するタイトル
      * @param mimeType マイムタイプ
+     * @param orders ソート
      * @return 検索結果
      */
-    private List<Bundle> findAllMedia(final String query, final String mimeType) {
+    private List<Bundle> findAllMedia(final String query, final String mimeType,
+                                      final String[] orders) {
         List<Bundle> list = new ArrayList<Bundle>();
-        listupMedia("Video", list, query, mimeType, null);
+        listupMedia("Video", list, query, mimeType, orders);
         Bundle medium = new Bundle();
         setType(medium, "Video");
         setLanguage(medium, "Language");
@@ -899,7 +906,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
         setDuration(medium, 9999);
         Bundle creatorVideo = new Bundle();
         setCreator(creatorVideo, "Creator: Sample");
-        setCreators(medium, new Bundle[] {creatorVideo});
+        setCreators(medium, new Bundle[]{creatorVideo});
         list.add(medium);
 
         return list;
@@ -911,7 +918,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
      * @return メディア情報
      */
     private Bundle getMedia(final String mediaId) {
-        List<Bundle> list = findAllMedia(null, null);
+        List<Bundle> list = findAllMedia(null, null, null);
         for (Bundle b : list) {
             String id = b.getString(PARAM_MEDIA_ID);
             if (id.equals(mediaId)) {
@@ -934,6 +941,7 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
     protected boolean onGetMediaList(final Intent request, final Intent response,
             final String serviceId, final String query, final String mimeType,
             final String[] orders, final Integer offset, final Integer limit) {
+
         ((ChromeCastService) getContext()).connectChromeCast(serviceId,
         new ChromeCastService.Callback() {
 
@@ -998,9 +1006,8 @@ public class ChromeCastMediaPlayerProfile extends MediaPlayerProfile {
                     }
                     comparator = findComparator(orders[0], isAsc);
                 }
-
                 // メディアリストのソート
-                List<Bundle> foundMedia = findAllMedia(query, mimeType);
+                List<Bundle> foundMedia = findAllMedia(query, mimeType, orders);
                 if (comparator != null) {
                     Collections.sort(foundMedia, comparator);
                 }

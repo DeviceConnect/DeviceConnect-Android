@@ -7,14 +7,10 @@
 package org.deviceconnect.android.manager.setting;
 
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.localoauth.activity.AccessTokenListActivity;
 import org.deviceconnect.android.manager.R;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 
 /**
  * Device Connect Manager設定管理用Activity.
@@ -40,29 +36,5 @@ public class SettingActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         LocalOAuth2Main.destroy();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean onCreateOptionsMenu(final Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_dconnect_settings, menu);
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean onOptionsItemSelected(final MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            Intent intent = new Intent(this, AccessTokenListActivity.class);
-            startActivity(intent);
-        } else if (id == android.R.id.home) {
-            onBackPressed();
-        }
-        return true;
     }
 }

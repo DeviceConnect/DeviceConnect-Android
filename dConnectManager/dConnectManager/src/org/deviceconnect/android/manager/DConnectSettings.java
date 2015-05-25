@@ -30,6 +30,9 @@ public final class DConnectSettings {
     /** 外部IPのアクセス権限. */
     private boolean mAllowExternalIP = false;
 
+    /** オリジン要求フラグ. */
+    private boolean mRequireOrigin = true;
+
     /** LocalOAuthの使用フラグ. */
     private boolean mUseALocalOAuth = true;
 
@@ -71,6 +74,8 @@ public final class DConnectSettings {
         setSSL(sp.getBoolean(context.getString(R.string.key_settings_dconn_ssl), false));
         setUseALocalOAuth(sp.getBoolean(context.getString(R.string.key_settings_dconn_local_oauth), true));
         setAllowExternalIP(sp.getBoolean(context.getString(R.string.key_settings_dconn_allow_external_ip), false));
+        setRequireOrigin(
+                sp.getBoolean(context.getString(R.string.key_settings_dconn_require_origin), true));
         setBlockingOrigin(
                 sp.getBoolean(context.getString(R.string.key_settings_dconn_whitelist_origin_blocking), false));
         try {
@@ -171,6 +176,28 @@ public final class DConnectSettings {
      */
     public void setAllowExternalIP(final boolean allow) {
         this.mAllowExternalIP = allow;
+    }
+
+    /**
+     * オリジン要求フラグを取得する.
+     * <p>
+     * デフォルトではtrueに設定されている。
+     * </p>
+     * @return trueの場合は必要、falseの場合は不要
+     */
+    public boolean requireOrigin() {
+        return mRequireOrigin;
+    }
+
+    /**
+     * オリジン要求フラグを設定する.
+     * <p>
+     * デフォルトではtrueに設定されている。
+     * </p>
+     * @param allow trueの場合は必要、falseの場合は不要
+     */
+    public void setRequireOrigin(final boolean allow) {
+        this.mRequireOrigin = allow;
     }
 
     /**

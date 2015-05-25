@@ -15,8 +15,8 @@
     <!-- ================= SettingsActivity ================= -->
 
     <string name="activity_settings_server_on_off">Device Connect Manager</string>
-    <string name="activity_settings_observer">Monitoring Service</string>
-    <string name="activity_settings_observer_summary">Monitor whether the port of the server is used by other application or not.</string>
+    <string name="activity_settings_observer">Monitoring Port</string>
+    <string name="activity_settings_observer_summary">Notify the possibility that Manager will be spoofed if the port is used by other application.</string>
     <string name="activity_settings_allow_external_ip">Allow External IP</string>
     <string name="activity_settings_require_origin">Require Origin</string>
     <string name="activity_settings_require_origin_summary">Require applications to set Origin header to their requests.</string>
@@ -52,7 +52,7 @@
     <string name="activity_settings_device_plugin">Device Plug-in</string>
     <string name="activity_settings_list_device_plugin">List of device plug-in</string>
     <string name="activity_settings_restart_device_plugin">Restart all the devices plug-ins</string>
-    <string name="activity_settings_restart_device_plugin_title">Starting Device Plugin</string>
+    <string name="activity_settings_restart_device_plugin_title">Starting Device Plug-in</string>
     <string name="activity_settings_restart_device_plugin_message">Processing</string>
     <string name="activity_settings_warning_require_origin_disabled">The below other settings will be turned OFF because these settings reffer origins of apps.\n\n%1\nIs it OK？</string>
     <string name="activity_settings_warning_require_origin_enabled">The below other settings will be turned ON because this setting reffers origins of apps.\n\n%1\nIs it OK？</string>
@@ -122,10 +122,10 @@
     <string name="activity_keyword_ok">OK</string>
 
     <!-- ================= WarningDialogActivity ================= -->
-    <string name="activity_warning">警告</string>
-    <string name="activity_warning_mess">DeviceConnect以外のアプリケーションがポートを利用しているため、d-Connectを起動することができません。</string>
+    <string name="activity_warning">Warning</string>
+    <string name="activity_warning_mess">Manager could not started because other application is using the port.</string>
     <string name="activity_warning_ok">OK</string>
-    <string name="activity_warning_disable">次から表示しない</string>
+    <string name="activity_warning_disable">Do not display from the next time</string>
 
     <!-- =================     DebugActivity     ================= -->
 

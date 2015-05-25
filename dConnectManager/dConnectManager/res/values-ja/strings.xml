@@ -15,11 +15,11 @@
     <!-- ================= SettingsActivity ================= -->
 
     <string name="activity_settings_server_on_off">Device Connect Manager</string>
-    <string name="activity_settings_observer">サーバ監視</string>
-    <string name="activity_settings_observer_summary">他アプリによってポートが占有されていないかどうかを監視</string>
+    <string name="activity_settings_observer">使用ポート監視</string>
+    <string name="activity_settings_observer_summary">他のアプリによってポートが占有された場合、なりすましが発生する可能性があることを通知します。</string>
     <string name="activity_settings_allow_external_ip">外部IPを許可</string>
     <string name="activity_settings_require_origin">Origin有効化</string>
-    <string name="activity_settings_require_origin_summary">リクエストにOriginヘッダーが設定されていることを要求</string>
+    <string name="activity_settings_require_origin_summary">リクエストにOriginヘッダーが設定されていることを要求します。</string>
     <string name="activity_settings_server_keyword">キーワード</string>
     <string name="activity_settings_server_settings">設定</string>
     <string name="activity_settings_dconnect_enabled">オン</string>
@@ -32,7 +32,7 @@
     <string name="activity_settings_default_host">localhost</string>
     <string name="activity_settings_default_port">4035</string>
     <string name="activity_settings_local_oauth">Local OAuth</string>
-    <string name="activity_settings_local_oauth_summary">ユーザによってアプリケーションを認可</string>
+    <string name="activity_settings_local_oauth_summary">ユーザによってアプリケーションを認可します。</string>
     <string name="activity_settings_dconn_enabled">有効</string>
     <string name="activity_settings_dconn_disabled">無効</string>
     <string name="activity_settings_list_access_token_list">アクセストークン管理</string>
@@ -47,13 +47,13 @@
     <string name="activity_settings_security">セキュリティ</string>
     <string name="activity_settings_whitelist">Whitelist</string>
     <string name="activity_settings_whitelist_enable">Originブロック機能</string>
-    <string name="activity_settings_whitelist_enable_summary">Originホワイトリストに含まれないOrigin上のアプリからのアクセスをブロック</string>
+    <string name="activity_settings_whitelist_enable_summary">Originホワイトリストに含まれないOrigin上のアプリからのアクセスをブロックします。</string>
     <string name="activity_settings_manage_whitelist">Originホワイトリスト管理</string>
     <string name="activity_settings_device_plugin">デバイスプラグイン</string>
     <string name="activity_settings_list_device_plugin">デバイスプラグイン管理</string>
     <string name="activity_settings_restart_device_plugin">全デバイスプラグインを再起動</string>
-    <string name="activity_settings_restart_device_plugin_title">Starting Device Plugin</string>
-    <string name="activity_settings_restart_device_plugin_message">Processing</string>
+    <string name="activity_settings_restart_device_plugin_title">デバイスプラグインを再起動しています</string>
+    <string name="activity_settings_restart_device_plugin_message">処理中</string>
     <string name="activity_settings_warning_require_origin_disabled">下記の機能がアプリのOriginを参照するため、下記もOFFに切り替わります。\n\n%1\nよろしいですか？</string>
     <string name="activity_settings_warning_require_origin_enabled">本機能はアプリのOriginを参照するため、下記もONに切り替わります。\n\n%1\nよろしいですか？</string>
     <string name="activity_settings_warning">警告</string>

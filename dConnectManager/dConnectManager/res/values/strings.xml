@@ -16,8 +16,10 @@
 
     <string name="activity_settings_server_on_off">Device Connect Manager</string>
     <string name="activity_settings_observer">Monitoring Service</string>
+    <string name="activity_settings_observer_summary">Monitor whether the port of the server is used by other application or not.</string>
     <string name="activity_settings_allow_external_ip">Allow External IP</string>
     <string name="activity_settings_require_origin">Require Origin</string>
+    <string name="activity_settings_require_origin_summary">Require applications to set Origin header to their requests.</string>
     <string name="activity_settings_server_keyword">Keyword</string>
     <string name="activity_settings_server_settings">Settings</string>
     <string name="activity_settings_dconnect_enabled">On</string>
@@ -25,13 +27,12 @@
     <string name="activity_settings_default_keyword"></string>
     <string name="activity_settings_keyword">Keyword</string>
     <string name="activity_settings_ssl">SSL</string>
-    <string name="activity_settings_ssl_enabled">SSL Enabled</string>
-    <string name="activity_settings_ssl_disabled">SSL Disabled</string>
     <string name="activity_settings_host">Host</string>
     <string name="activity_settings_port">Port</string>
     <string name="activity_settings_default_host">localhost</string>
     <string name="activity_settings_default_port">4035</string>
     <string name="activity_settings_local_oauth">Local OAuth</string>
+    <string name="activity_settings_local_oauth_summary">Authorize applications by user.</string>
     <string name="activity_settings_dconn_enabled">Enabled</string>
     <string name="activity_settings_dconn_disabled">Disabled</string>
     <string name="activity_settings_list_access_token_list">List of access token</string>
@@ -46,14 +47,15 @@
     <string name="activity_settings_security">Security</string>
     <string name="activity_settings_whitelist">Whitelist</string>
     <string name="activity_settings_whitelist_enable">Enable origin blocking</string>
+    <string name="activity_settings_whitelist_enable_summary">Block requests of applications that the origin is not included in whitelist.</string>
     <string name="activity_settings_manage_whitelist">Manage whitelist</string>
     <string name="activity_settings_device_plugin">Device Plug-in</string>
     <string name="activity_settings_list_device_plugin">List of device plug-in</string>
     <string name="activity_settings_restart_device_plugin">Restart all the devices plug-ins</string>
     <string name="activity_settings_restart_device_plugin_title">Starting Device Plugin</string>
     <string name="activity_settings_restart_device_plugin_message">Processing</string>
-    <string name="activity_settings_warning_require_origin_disabled">下記の機能がアプリのOriginを参照するため、下記もOFFに切り替わります。\n\n%1\nよろしいですか？</string>
-    <string name="activity_settings_warning_require_origin_enabled">本機能はアプリのOriginを参照するため、下記もONに切り替わります。\n\n%1\nよろしいですか？</string>
+    <string name="activity_settings_warning_require_origin_disabled">The below other settings will be turned OFF because these settings reffer origins of apps.\n\n%1\nIs it OK？</string>
+    <string name="activity_settings_warning_require_origin_enabled">The below other settings will be turned ON because this setting reffers origins of apps.\n\n%1\nIs it OK？</string>
     <string name="activity_settings_warning">Warning</string>
     <string name="activity_settings_yes">Yes</string>
     <string name="activity_settings_no">No</string>

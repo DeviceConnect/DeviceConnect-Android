@@ -19,13 +19,6 @@
             android:key="@string/key_settings_restart_device_plugin"
             android:title="@string/activity_settings_restart_device_plugin" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/activity_settings_server_keyword" >
-        <EditTextPreference
-            android:defaultValue="@string/activity_settings_default_keyword"
-            android:key="@string/key_settings_dconn_keyword"
-            android:summary="@string/activity_settings_default_keyword"
-            android:title="@string/activity_settings_keyword" />
-    </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_server_settings" >
         <EditTextPreference
             android:defaultValue="@string/activity_settings_default_host"
@@ -42,8 +35,8 @@
     <PreferenceCategory android:title="@string/activity_settings_security" >
         <CheckBoxPreference
             android:key="@string/key_settings_dconn_ssl"
-            android:summaryOff="@string/activity_settings_ssl_disabled"
-            android:summaryOn="@string/activity_settings_ssl_enabled"
+            android:summaryOff="@string/activity_settings_dconn_disabled"
+            android:summaryOn="@string/activity_settings_dconn_enabled"
             android:title="@string/activity_settings_ssl" />
         <CheckBoxPreference
             android:defaultValue="false"
@@ -54,14 +47,12 @@
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="@string/key_settings_dconn_require_origin"
-            android:summaryOff="@string/activity_settings_dconn_disabled"
-            android:summaryOn="@string/activity_settings_dconn_enabled"
+            android:summary="@string/activity_settings_require_origin_summary"
             android:title="@string/activity_settings_require_origin" />
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="@string/key_settings_dconn_local_oauth"
-            android:summaryOff="@string/activity_settings_dconn_disabled"
-            android:summaryOn="@string/activity_settings_dconn_enabled"
+            android:summary="@string/activity_settings_local_oauth_summary"
             android:title="@string/activity_settings_local_oauth" />
         <PreferenceScreen
             android:key="@string/key_settings_list_access_token"
@@ -72,8 +63,7 @@
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="@string/key_settings_dconn_whitelist_origin_blocking"
-            android:summaryOff="@string/activity_settings_dconn_disabled"
-            android:summaryOn="@string/activity_settings_dconn_enabled"
+            android:summary="@string/activity_settings_whitelist_enable_summary"
             android:title="@string/activity_settings_whitelist_enable" />
         <PreferenceScreen
             android:key="@string/key_settings_dconn_whitelist"
@@ -83,9 +73,13 @@
         </PreferenceScreen>
         <CheckBoxPreference
             android:key="@string/key_settings_dconn_observer_on_off"
-            android:summaryOff="@string/activity_settings_dconnect_disabled"
-            android:summaryOn="@string/activity_settings_dconnect_enabled"
+            android:summary="@string/activity_settings_observer_summary"
             android:title="@string/activity_settings_observer" />
+        <EditTextPreference
+            android:defaultValue="@string/activity_settings_default_keyword"
+            android:key="@string/key_settings_dconn_keyword"
+            android:summary="@string/activity_settings_default_keyword"
+            android:title="@string/activity_settings_keyword" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_about" >
         <PreferenceScreen

@@ -83,25 +83,25 @@
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
 
     <!-- ================= WhitelistActivity ================= -->
-    <string name="activity_whitelist_title">Whitelist of Origin</string>
-    <string name="no_origin">No allowed origin by user.</string>
-    <string name="dialog_delete_origin_message">Are you sure you want to remove this origin from whitelist?</string>
-    <string name="dialog_delete_origin_positive">Remove</string>
-    <string name="dialog_delete_origin_negative">Cancel</string>
-    <string name="menu_add_origin">Add</string>
-    <string name="dialog_add_origin_title">Add an origin to be allowed</string>
-    <string name="dialog_add_origin_positive">Add</string>
-    <string name="dialog_add_origin_negative">Cancel</string>
-    <string name="dialog_update_origin_title">Update this origin</string>
-    <string name="dialog_update_origin_positive">Update</string>
-    <string name="dialog_update_origin_negative">Cancel</string>
-    <string name="dialog_origin_manual_entry_item_title">Title</string>
+    <string name="activity_whitelist_title">Originホワイトリスト</string>
+    <string name="no_origin">ユーザーによって許可されている\nOriginはありません。</string>
+    <string name="dialog_delete_origin_message">このOriginをホワイトリストから削除してよろしいですか?</string>
+    <string name="dialog_delete_origin_positive">削除</string>
+    <string name="dialog_delete_origin_negative">キャンセル</string>
+    <string name="menu_add_origin">追加</string>
+    <string name="dialog_add_origin_title">Originを追加する</string>
+    <string name="dialog_add_origin_positive">追加</string>
+    <string name="dialog_add_origin_negative">キャンセル</string>
+    <string name="dialog_update_origin_title">Origin設定を更新する</string>
+    <string name="dialog_update_origin_positive">更新</string>
+    <string name="dialog_update_origin_negative">キャンセル</string>
+    <string name="dialog_origin_manual_entry_item_title">タイトル</string>
     <string name="dialog_origin_manual_entry_item_origin">Origin</string>
-    <string name="dialog_origin_manual_entry_message">Please enter an origin at least.</string>
+    <string name="dialog_origin_manual_entry_message">少なくともOriginを入力してください。</string>
     <string-array name="whitelist_menu_origin">
-        <item>from the bookmark of Chrome</item>
-        <item>from the installed app.</item>
-        <item>from manual entry</item>
+        <item>Chromeのブックマークから追加</item>
+        <item>インストール済みのアプリを追加</item>
+        <item>手入力で追加</item>
     </string-array>
 
     <!-- ================= DevicePluginListActivity ================= -->

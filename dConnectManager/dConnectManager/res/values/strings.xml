@@ -34,6 +34,7 @@
     <string name="activity_settings_local_oauth">Local OAuth</string>
     <string name="activity_settings_dconn_enabled">Enabled</string>
     <string name="activity_settings_dconn_disabled">Disabled</string>
+    <string name="activity_settings_list_access_token_list">List of access token</string>
     <string name="activity_settings_terms_of_service">Terms of Service</string>
     <string name="activity_settings_privacy_policy">Privacy Policy</string>
     <string name="activity_settings_open_source_licenses">Open Source Licenses</string>
@@ -69,6 +70,7 @@
     <string name="key_settings_dconn_host">settings_dconn_host</string>
     <string name="key_settings_dconn_port">settings_dconn_port</string>
     <string name="key_settings_dconn_local_oauth">settings_dconn_local_oauth</string>
+    <string name="key_settings_list_access_token">settings_list_access_token</string>
     <string name="key_settings_dconn_observation_interval">key_settings_dconn_observation_interval</string>
     <string name="key_settings_open_source_licenses">settings_open_source_licenses</string>
     <string name="key_settings_about_privacypolicy">settings_about_privacypolicy</string>

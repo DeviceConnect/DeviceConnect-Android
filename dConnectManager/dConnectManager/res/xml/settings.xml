@@ -63,6 +63,12 @@
             android:summaryOff="@string/activity_settings_dconn_disabled"
             android:summaryOn="@string/activity_settings_dconn_enabled"
             android:title="@string/activity_settings_local_oauth" />
+        <PreferenceScreen
+            android:key="@string/key_settings_list_access_token"
+            android:title="@string/activity_settings_list_access_token_list" >
+            <intent android:targetPackage="org.deviceconnect.android.manager"
+                    android:targetClass="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity" />
+        </PreferenceScreen>
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="@string/key_settings_dconn_whitelist_origin_blocking"

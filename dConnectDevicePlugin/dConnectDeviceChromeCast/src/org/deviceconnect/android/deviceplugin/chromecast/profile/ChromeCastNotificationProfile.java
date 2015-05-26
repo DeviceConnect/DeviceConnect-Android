@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
 import org.deviceconnect.android.message.MessageUtils;
@@ -13,8 +15,6 @@ import org.deviceconnect.android.profile.NotificationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.content.Intent;
 
 /**
  * Notification プロファイル (Chromecast).
@@ -52,61 +52,86 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
             final String serviceId, final NotificationType type, final Direction dir,
             final String lang, final String body, final String tag,
             final byte[] iconData) {
-        ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
-        if (body == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "body is null");
-            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
-            return true;
-        }
-        switch (type) {
-        case PHONE: break;
-        case MAIL:  break;
-        case SMS:   break;
-        case EVENT: break;
-        default:
-            MessageUtils.setInvalidRequestParameterError(response, "type is null or invalid");
-            response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
-            return true;
-        }
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
-        try {
-            JSONObject json = new JSONObject();
-            json.put(KEY_FUNCTION, FUNCTION_POST_NOTIFICATION);
-            json.put(KEY_TYPE, type.getValue());
-            json.put(KEY_MESSAGE, body);
-            setNotificationId(response, COMMON_ID);
-            app.sendMessage(response, json.toString());
-            return false;
-        } catch (JSONException e) {
-            MessageUtils.setUnknownError(response);
-            return true;
-        }
+            @Override
+            public void onResponse() {
+                ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
+                if (body == null) {
+                    MessageUtils.setInvalidRequestParameterError(response, "body is null");
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                switch (type) {
+                    case PHONE:
+                        break;
+                    case MAIL:
+                        break;
+                    case SMS:
+                        break;
+                    case EVENT:
+                        break;
+                    default:
+                        MessageUtils.setInvalidRequestParameterError(response, "type is null or invalid");
+                        response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+                        getContext().sendBroadcast(response);
+                        return;
+                }
+
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put(KEY_FUNCTION, FUNCTION_POST_NOTIFICATION);
+                    json.put(KEY_TYPE, type.getValue());
+                    json.put(KEY_MESSAGE, body);
+                    setNotificationId(response, COMMON_ID);
+                    app.sendMessage(response, json.toString());
+                } catch (JSONException e) {
+                    MessageUtils.setUnknownError(response);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+            }
+        });
+        return false;
     }
 
     @Override
     protected boolean onDeleteNotify(final Intent request,
             final Intent response, final String serviceId,
             final String notificationId) {
-        if (notificationId == null || !COMMON_ID.equals(notificationId)) {
-            MessageUtils.setInvalidRequestParameterError(response, "notificationId is invalid.");
-            return true;
-        }
-        ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
-        if (!isDeviceEnable(response, app)) {
-            return true;
-        }
-        try {
-            JSONObject json = new JSONObject();
-            json.put(KEY_FUNCTION, FUNCTION_DELETE_NOTIFICATION);
-            app.sendMessage(response, json.toString());
-            return false;
-        } catch (JSONException e) {
-            MessageUtils.setUnknownError(response);
-            return true;
-        }
+        ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
+
+            @Override
+            public void onResponse() {
+
+                if (notificationId == null || !COMMON_ID.equals(notificationId)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "notificationId is invalid.");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
+                if (!isDeviceEnable(response, app)) {
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put(KEY_FUNCTION, FUNCTION_DELETE_NOTIFICATION);
+                    app.sendMessage(response, json.toString());
+                } catch (JSONException e) {
+                    MessageUtils.setUnknownError(response);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+            }
+        });
+        return false;
     }
 
 }

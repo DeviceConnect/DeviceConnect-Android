@@ -6,18 +6,21 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.core;
 
-import java.util.ArrayList;
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+
 import com.google.android.gms.cast.Cast;
-import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.Cast.ApplicationConnectionResult;
+import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+
+import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+
+import java.util.ArrayList;
 
 /**
  * Chromecast Application クラス.
@@ -44,9 +47,22 @@ public class ChromeCastApplication implements
     private String mAppId;
     /** ChromecastAttach/Detach用のコールバック群. */
     private ArrayList<Callbacks> mCallbacks;
+    /** Chromecast接続完了用のコールバック群. */
+    private Result mResult;
     /** Application接続フラグ. */
     private boolean mIsApplicationDisconnected = false;
+    /**
+     * Chromecastとの接続結果を通知するコールバックのインターフェース.
+     *
+     * @author NTT DOCOMO, INC.
+     */
+    public interface Result {
+        /**
+         * ChromeCastと接続されたことを通知する。
+         */
+        void onChromeCastConnected();
 
+    }
     /**
      * ChromecastAttach/Detachイベントを通知するコールバックのインターフェース.
      * @author NTT DOCOMO, INC.
@@ -124,6 +140,14 @@ public class ChromeCastApplication implements
     public void addCallbacks(final Callbacks callbacks) {
         this.mCallbacks.add(callbacks);
     }
+    /**
+     * 接続完了を通知するコールバックを登録する.
+     *
+     * @param   result コールバック
+     */
+    public void setResult(final Result result) {
+        this.mResult = result;
+    }
 
     /**
      * Chromecastデバイスをセットする.
@@ -148,12 +172,11 @@ public class ChromeCastApplication implements
      * 
      */
     public void connect() {
-        
         if (mApiClient != null && mIsApplicationDisconnected) {
             mIsApplicationDisconnected = false;
             launchApplication();
         }
-        
+
         if (mApiClient == null) {
             mIsApplicationDisconnected = false;
             
@@ -164,6 +187,7 @@ public class ChromeCastApplication implements
                         Log.d(TAG, "onApplicationDisconnected$statusCode: " + statusCode);
                     }
                     mIsApplicationDisconnected = true;
+                    teardown();
                 }
                 @Override
                 public void onApplicationStatusChanged() {
@@ -210,24 +234,28 @@ public class ChromeCastApplication implements
         if (mApiClient != null && mApiClient.isConnected()) {
             Cast.CastApi.launchApplication(mApiClient, mAppId, false)
                 .setResultCallback(new ResultCallback<Cast.ApplicationConnectionResult>() {
-                @Override
-                public void onResult(final ApplicationConnectionResult result) {
-                    Status status = result.getStatus();
-                    if (status.isSuccess()) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "launchApplication$onResult: Success");
+                    @Override
+                    public void onResult(final ApplicationConnectionResult result) {
+                        Status status = result.getStatus();
+                        if (status.isSuccess()) {
+                            if (BuildConfig.DEBUG) {
+                                Log.d(TAG, "launchApplication$onResult: Success");
+                            }
+                            for (int i = 0; i < mCallbacks.size(); i++) {
+                                mCallbacks.get(i).onAttach();
+                            }
+
+                        } else {
+                            if (BuildConfig.DEBUG) {
+                                Log.d(TAG, "launchApplication$onResult: Fail");
+                            }
+                            teardown();
                         }
-                        for (int i = 0; i < mCallbacks.size(); i++) {
-                            mCallbacks.get(i).onAttach();
+                        if (mResult != null) {
+                            mResult.onChromeCastConnected();
                         }
-                    } else {
-                        if (BuildConfig.DEBUG) {
-                            Log.d(TAG, "launchApplication$onResult: Fail");
-                        }
-                        teardown();
                     }
-                }
-            });
+                });
         }
     }
     

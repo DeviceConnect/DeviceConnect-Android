@@ -6,17 +6,17 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast.core;
 
-import java.io.IOException;
-
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
-
 import android.content.Intent;
 
 import com.google.android.gms.cast.Cast;
-import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.cast.Cast.MessageReceivedCallback;
+import com.google.android.gms.cast.CastDevice;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+
+import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
+
+import java.io.IOException;
 
 /**
  * Chromecast Message クラス.
@@ -87,6 +87,7 @@ public class ChromeCastMessage implements ChromeCastApplication.Callbacks {
          * @param message メッセージ処理のステータス
          */
         void onChromeCastMessageResult(final Intent response, final Status result, final String message);
+
     }
 
     /**

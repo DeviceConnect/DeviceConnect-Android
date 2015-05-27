@@ -38,8 +38,8 @@
     <string name="activity_settings_list_access_token_list">アクセストークン管理</string>
     <string name="activity_settings_terms_of_service">利用規約</string>
     <string name="activity_settings_privacy_policy">プライバシーポリシー</string>
-    <string name="activity_settings_open_source_licenses">Open Source Licenses</string>
-    <string name="activity_settings_open_source_licenses_summary">Legal information about licenses</string>
+    <string name="activity_settings_open_source_licenses">オープンソースライセンス</string>
+    <string name="activity_settings_open_source_licenses_summary">ライセンスに関する法的情報</string>
     <string name="activity_settings_app_infomation_summary">Version %1$s</string>
     <string name="activity_settings_about">About</string>
     <string name="activity_settings_general">General</string>
@@ -59,8 +59,8 @@
     <string name="activity_settings_warning">警告</string>
     <string name="activity_settings_yes">はい</string>
     <string name="activity_settings_no">いいえ</string>
-    <string name="activity_settings_demo_link">Demo Application Link</string>
-    <string name="activity_settings_consortium_link">Device Web API Consortium Link</string>
+    <string name="activity_settings_demo_link">デモアプリへのリンク</string>
+    <string name="activity_settings_consortium_link">デバイスWebAPIコンソーシアム</string>
     
     <!-- ================= SharedPreferences ================= -->
 

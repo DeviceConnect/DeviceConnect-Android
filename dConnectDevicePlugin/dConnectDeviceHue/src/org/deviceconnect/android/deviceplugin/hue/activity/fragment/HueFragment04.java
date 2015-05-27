@@ -45,18 +45,36 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Hue setting fragment (4).
+ */
 public class HueFragment04 extends Fragment {
+    /** Hue SDK. */
     private PHHueSDK mPhHueSDK;
+    /** Hue access point. */
     private PHAccessPoint mAccessPoint;
+    /** List adapter. */
     private ListAdapter mListAdapter;
+    /** Progress dialog. */
     private ProgressDialog mProgressBar;
 
+    /**
+     * newInstance.
+     * 
+     * @param accessPoint Access point.
+     * @return fragment Fragment instance.
+     */
     public static HueFragment04 newInstance(final PHAccessPoint accessPoint) {
         HueFragment04 fragment = new HueFragment04();
         fragment.setPHAccessPoint(accessPoint);
         return fragment;
     }
 
+    /**
+     * Set PHAccessPoint.
+     * 
+     * @param accessPoint Access point.
+     */
     private void setPHAccessPoint(final PHAccessPoint accessPoint) {
         mAccessPoint = accessPoint;
     }
@@ -81,7 +99,7 @@ public class HueFragment04 extends Fragment {
         Button autoBtn = (Button) view.findViewById(R.id.btn_auto_add);
         autoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 searchLightAutomatic();
             }
         });
@@ -96,6 +114,9 @@ public class HueFragment04 extends Fragment {
         return view;
     }
 
+    /**
+     * Update ListView.
+     */
     private void updateListView() {
         PHBridge bridge = mPhHueSDK.getSelectedBridge();
         if (bridge != null) {
@@ -105,6 +126,9 @@ public class HueFragment04 extends Fragment {
         }
     }
 
+    /**
+     * Edit serial.
+     */
     private void editSerial() {
         final EditText editText = new EditText(getActivity());
         AlertDialog dialog = new AlertDialog.Builder(getActivity())
@@ -158,6 +182,9 @@ public class HueFragment04 extends Fragment {
         editText.setHint(R.string.frag04_serial_number_hint);
     }
 
+    /**
+     * Search light automatic.
+     */
     private void searchLightAutomatic() {
         openProgressBar();
 
@@ -172,6 +199,11 @@ public class HueFragment04 extends Fragment {
         }
     }
 
+    /**
+     * Search light manually.
+     * 
+     * @param serial Serial number.
+     */
     private void searchLightManually(final String serial) {
         openProgressBar();
 
@@ -189,6 +221,9 @@ public class HueFragment04 extends Fragment {
         }
     }
 
+    /**
+     * Open progress bar. 
+     */
     private void openProgressBar() {
         final Activity activity = getActivity();
         if (activity != null) {
@@ -205,6 +240,9 @@ public class HueFragment04 extends Fragment {
         }
     }
 
+    /**
+     * Close progress bar. 
+     */
     private void closeProgressBar() {
         Activity activity = getActivity();
         if (activity != null) {
@@ -220,6 +258,11 @@ public class HueFragment04 extends Fragment {
         }
     }
 
+    /**
+     * Show toast.
+     * 
+     * @param message Show message.
+     */
     private void showToast(final String message) {
         final Activity activity = getActivity();
         if (activity != null) {
@@ -232,10 +275,21 @@ public class HueFragment04 extends Fragment {
         }
     }
 
+    /**
+     * List adapter class.
+     */
     private class ListAdapter extends BaseAdapter {
+        /** Layout inflater. */
         private LayoutInflater mInflater;
+        /** Light list. */
         private List<PHLight> mLights;
 
+        /**
+         * Constructor.
+         * 
+         * @param context Context.
+         * @param lights Light list.
+         */
         public ListAdapter(final Context context, final List<PHLight> lights) {
             mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             setLights(lights);
@@ -271,16 +325,30 @@ public class HueFragment04 extends Fragment {
             return view;
         }
 
+        /**
+         * Set lights.
+         * 
+         * @param lights Light list.
+         */
         private void setLights(final List<PHLight> lights) {
             mLights = lights;
         }
 
+        /**
+         * Add lights.
+         * 
+         * @param lights Light list.
+         */
         private void addLight(final List<PHLight> lights) {
             mLights.addAll(lights);
         }
     }
 
+    /**
+     * Light Listener.
+     */
     private class PHLightListenerImpl implements PHLightListener {
+        /** Bridge resource list. */
         private final List<PHBridgeResource> mLightHeaders = new ArrayList<PHBridgeResource>();
 
         @Override

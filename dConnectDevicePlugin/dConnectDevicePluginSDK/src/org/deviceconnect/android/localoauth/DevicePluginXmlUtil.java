@@ -6,15 +6,6 @@
  */
 package org.deviceconnect.android.localoauth;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.deviceconnect.android.BuildConfig;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -22,6 +13,15 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.XmlResourceParser;
+
+import org.deviceconnect.android.BuildConfig;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * デバイスプラグインxml関連ユーティリティ.
@@ -51,23 +51,20 @@ public final class DevicePluginXmlUtil {
             final String packageName) {
         Map<String, DevicePluginXmlProfile> supportProfiles = null;
 
-        ComponentName component = getComponentName(context, packageName);
-        if (component != null) {
-            ActivityInfo receiverInfo = getActivityInfo(context, component);
-            if (receiverInfo != null) {
-                if (receiverInfo.metaData != null) {
-                    PackageManager pkgMgr = context.getPackageManager();
-                    XmlResourceParser xrp = receiverInfo.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
-                    try {
-                        supportProfiles = parseDevicePluginXML(xrp);
-                    } catch (XmlPullParserException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
-                    } catch (IOException e) {
-                        if (BuildConfig.DEBUG) {
-                            e.printStackTrace();
-                        }
+        ActivityInfo receiverInfo = getActivityInfo(context, packageName);
+        if (receiverInfo != null) {
+            if (receiverInfo.metaData != null) {
+                PackageManager pkgMgr = context.getPackageManager();
+                XmlResourceParser xrp = receiverInfo.loadXmlMetaData(pkgMgr, PLUGIN_META_DATA);
+                try {
+                    supportProfiles = parseDevicePluginXML(xrp);
+                } catch (XmlPullParserException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
+                } catch (IOException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -106,14 +103,31 @@ public final class DevicePluginXmlUtil {
      * コンポーネントのActivityInfoを取得する.
      * 
      * @param context コンテキスト
-     * @param component ComponentName
+     * @param packageName package name
      * @return コンポーネントのActivityInfo
      */
-    private static ActivityInfo getActivityInfo(final Context context, final ComponentName component) {
+    private static ActivityInfo getActivityInfo(final Context context, final String packageName) {
         try {
             PackageManager pkgMgr = context.getPackageManager();
-            ActivityInfo receiverInfo = pkgMgr.getReceiverInfo(component, PackageManager.GET_META_DATA);
-            return receiverInfo;
+            PackageInfo pkg = pkgMgr.getPackageInfo(packageName, PackageManager.GET_RECEIVERS);
+            if (pkg != null) {
+                ActivityInfo[] receivers = pkg.receivers;
+                if (receivers != null) {
+                    for (int i = 0; i < receivers.length; i++) {
+                        String pkgName = receivers[i].packageName;
+                        String className = receivers[i].name;
+                        ComponentName component = new ComponentName(pkgName, className);
+                        ActivityInfo receiverInfo = pkgMgr.getReceiverInfo(component, PackageManager.GET_META_DATA);
+                        if (receiverInfo.metaData != null) {
+                            Object value = receiverInfo.metaData.get(PLUGIN_META_DATA);
+                            if (value != null) {
+                                return receiverInfo;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
         } catch (NameNotFoundException e) {
             return null;
         }

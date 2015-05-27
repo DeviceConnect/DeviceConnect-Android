@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.MediaPlayerProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.profile.MediaPlayerProfileConstants;
 
 /**
  * MediaPlayer プロファイル.

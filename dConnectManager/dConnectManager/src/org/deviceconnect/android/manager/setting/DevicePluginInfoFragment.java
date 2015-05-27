@@ -46,7 +46,10 @@ import java.util.Map;
  */
 public class DevicePluginInfoFragment extends Fragment {
 
+    /** デバイスプラグインをアンインストールする際のリクエストコード. */
     private static final int REQUEST_CODE = 101;
+
+    /** デバイスプラグインのパッケージ名. */
     private String mPackageName;
 
     @Override
@@ -96,14 +99,14 @@ public class DevicePluginInfoFragment extends Fragment {
         Button deleteBtn = (Button) view.findViewById(R.id.plugin_delete_btn);
         deleteBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 openUninstall();
             }
         });
         Button restartBtn = (Button) view.findViewById(R.id.plugin_restart_btn);
         restartBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 restartDevicePlugin();
             }
         });
@@ -168,8 +171,8 @@ public class DevicePluginInfoFragment extends Fragment {
         mgr.createDevicePluginList();
         List<DevicePlugin> plugins = mgr.getDevicePlugins();
         for (DevicePlugin plugin : plugins) {
-            if (mPackageName.equals(plugin.getPackageName()) &&
-                    plugin.getServiceId() != null) {
+            if (mPackageName.equals(plugin.getPackageName())
+                    && plugin.getServiceId() != null) {
                 Intent request = new Intent();
                 request.setComponent(plugin.getComponentName());
                 request.setAction(IntentDConnectMessage.ACTION_PUT);
@@ -206,8 +209,8 @@ public class DevicePluginInfoFragment extends Fragment {
                 mgr.createDevicePluginList();
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
-                    if (mPackageName.equals(plugin.getPackageName()) &&
-                            plugin.getStartServiceClassName() != null) {
+                    if (mPackageName.equals(plugin.getPackageName())
+                            && plugin.getStartServiceClassName() != null) {
                         restartDevicePlugin(plugin);
                         break;
                     }

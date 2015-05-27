@@ -112,6 +112,12 @@ public class HostCanvasProfile extends CanvasProfile {
             return true;
         }
 
+        if (CanvasDrawUtils.getMimeType(uri)
+                .indexOf("image") == -1) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Data format is invalid.");
+            return true;
+        }
         if (!CanvasDrawUtils.checkBitmap(getContext(), uri)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "The width and height of image must be less than 2048px.");

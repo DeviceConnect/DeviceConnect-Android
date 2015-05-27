@@ -15,6 +15,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.webkit.MimeTypeMap;
 
 /**
  * Canvas Draw Utility.
@@ -92,7 +93,19 @@ public final class CanvasDrawUtils {
             }
         }
     }
-
+    /**
+     * Get MimeType.
+     * @param url file's url
+     * @return file's MimeType
+     */
+    public static String getMimeType(final String url) {
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        }
+        return type;
+    }
     /**
      * Checks whether uri is valid.
      * @param context context

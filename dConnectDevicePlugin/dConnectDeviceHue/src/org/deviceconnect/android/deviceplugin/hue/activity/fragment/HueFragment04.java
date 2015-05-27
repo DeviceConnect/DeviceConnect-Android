@@ -333,15 +333,6 @@ public class HueFragment04 extends Fragment {
         private void setLights(final List<PHLight> lights) {
             mLights = lights;
         }
-
-        /**
-         * Add lights.
-         * 
-         * @param lights Light list.
-         */
-        private void addLight(final List<PHLight> lights) {
-            mLights.addAll(lights);
-        }
     }
 
     /**

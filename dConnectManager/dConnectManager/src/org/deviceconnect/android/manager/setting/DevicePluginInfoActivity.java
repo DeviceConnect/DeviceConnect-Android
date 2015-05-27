@@ -22,6 +22,7 @@ import org.deviceconnect.android.manager.R;
  */
 public class DevicePluginInfoActivity extends Activity {
 
+    /** デバイスプラグインのパッケージ名のキー. */
     static final String PACKAGE_NAME = "packageName";
 
     @Override

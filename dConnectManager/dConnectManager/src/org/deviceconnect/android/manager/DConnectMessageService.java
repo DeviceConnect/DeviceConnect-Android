@@ -259,6 +259,7 @@ public abstract class DConnectMessageService extends Service
         response.putExtra(DConnectMessage.EXTRA_REQUEST_CODE, requestCode);
 
         // オリジンの正当性チェック
+        String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         OriginError error = checkOrigin(request);
         switch (error) {
         case NOT_SPECIFIED:
@@ -269,9 +270,8 @@ public abstract class DConnectMessageService extends Service
             MessageUtils.setInvalidOriginError(response, "The specified origin is not unique.");
             sendResponse(request, response);
             return;
-        case NOT_ALLOWED: {
+        case NOT_ALLOWED:
             // NOTE: Local OAuth関連のAPIに対する特別措置
-            String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
             DConnectProfile profile = getProfile(profileName);
             if (profile != null && profile instanceof AuthorizationProfile) {
                 ((AuthorizationProfile) profile).onInvalidOrigin(request, response);
@@ -280,12 +280,10 @@ public abstract class DConnectMessageService extends Service
             MessageUtils.setInvalidOriginError(response, "The specified origin is not allowed.");
             sendResponse(request, response);
             return;
-        }
         default:
             break;
         }
 
-        String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         if (profileName == null) {
             MessageUtils.setNotSupportProfileError(response);
             sendResponse(request, response);

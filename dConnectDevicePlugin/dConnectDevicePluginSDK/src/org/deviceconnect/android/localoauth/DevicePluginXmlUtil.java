@@ -6,6 +6,14 @@
  */
 package org.deviceconnect.android.localoauth;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.deviceconnect.android.BuildConfig;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -13,15 +21,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.XmlResourceParser;
-
-import org.deviceconnect.android.BuildConfig;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * デバイスプラグインxml関連ユーティリティ.
@@ -70,33 +69,6 @@ public final class DevicePluginXmlUtil {
             }
         }
         return supportProfiles;
-    }
-
-    /**
-     * パッケージ名をキーにComponentNameデータを取得する.
-     * 
-     * @param context コンテキスト
-     * @param packageName パッケージ名
-     * @return ComponentNameデータ
-     */
-    private static ComponentName getComponentName(final Context context, final String packageName) {
-        PackageManager pkgMgr = context.getPackageManager();
-        List<PackageInfo> pkgList = pkgMgr.getInstalledPackages(PackageManager.GET_RECEIVERS);
-        if (pkgList != null) {
-            for (PackageInfo pkg : pkgList) {
-                ActivityInfo[] receivers = pkg.receivers;
-                if (receivers != null) {
-                    for (int i = 0; i < receivers.length; i++) {
-                        if (packageName.equals(receivers[i].packageName)) {
-                            String className = receivers[i].name;
-                            ComponentName componentName = new ComponentName(packageName, className);
-                            return componentName;
-                        }
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     /**

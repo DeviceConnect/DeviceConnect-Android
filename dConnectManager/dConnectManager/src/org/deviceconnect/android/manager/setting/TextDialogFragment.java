@@ -8,12 +8,13 @@ import java.util.logging.Logger;
 import org.apache.http.protocol.HTTP;
 import org.deviceconnect.android.manager.R;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 
 /**
@@ -32,12 +33,8 @@ public class TextDialogFragment extends DialogFragment {
     private Logger mLogger = Logger.getLogger("dconnect.uiapp");
 
     @Override
-    public View onCreateView(final LayoutInflater inflater,
-            final ViewGroup container, final Bundle savedInstanceState) {
-        mLogger.entering(getClass().getName(), "onCreateView",
-                new Object[] {inflater, container, savedInstanceState});
-
-        View view = inflater.inflate(R.layout.fragment_privacypolicy, null);
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        View view = View.inflate(getActivity(), R.layout.fragment_privacypolicy, null);
         TextView text = (TextView) view.findViewById(android.R.id.text1);
 
         InputStream is = null;
@@ -66,10 +63,17 @@ public class TextDialogFragment extends DialogFragment {
             }
         }
 
-        getDialog().setTitle(getArguments().getInt(Intent.EXTRA_TITLE));
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setView(view);
+        builder.setTitle(getArguments().getInt(Intent.EXTRA_TITLE));
+        builder.setPositiveButton(R.string.activity_settings_close, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog, final int which) {
+                dialog.dismiss();
+            }
+        });
 
-        mLogger.exiting(getClass().getName(), "onCreateView", view);
-        return view;
+        return builder.create();
     }
 
 }

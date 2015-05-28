@@ -59,6 +59,7 @@
     <string name="activity_settings_warning">Warning</string>
     <string name="activity_settings_yes">Yes</string>
     <string name="activity_settings_no">No</string>
+    <string name="activity_settings_close">Close</string>
     
     <!-- ================= SharedPreferences ================= -->
 

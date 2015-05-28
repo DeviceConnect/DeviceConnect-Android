@@ -24,7 +24,7 @@ public class SettingActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getActionBar().setDisplayHomeAsUpEnabled(false);
         setContentView(R.layout.activity_dconnect_settings);
         LocalOAuth2Main.initialize(this);
     }

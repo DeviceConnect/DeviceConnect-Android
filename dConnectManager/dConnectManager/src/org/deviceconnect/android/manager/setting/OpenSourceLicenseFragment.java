@@ -9,8 +9,11 @@ import java.util.logging.Logger;
 import org.apache.http.protocol.HTTP;
 import org.deviceconnect.android.manager.R;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -38,11 +41,7 @@ public class OpenSourceLicenseFragment extends DialogFragment {
     private Logger mLogger = Logger.getLogger("dconnect.uiapp");
 
     @Override
-    public View onCreateView(final LayoutInflater inflater,
-            final ViewGroup container, final Bundle savedInstanceState) {
-        mLogger.entering(getClass().getName(), "onCreateView",
-                new Object[] {inflater, container, savedInstanceState});
-
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
         FrameLayout lframe = new FrameLayout(getActivity());
 
         ListView lv = new ListView(getActivity());
@@ -61,10 +60,17 @@ public class OpenSourceLicenseFragment extends DialogFragment {
         ListView listView = (ListView) lframe.findViewById(android.R.id.list);
         listView.setAdapter(adapter);
 
-        getDialog().setTitle(R.string.activity_settings_open_source_licenses);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(R.string.activity_settings_open_source_licenses);
+        builder.setView(lframe);
+        builder.setPositiveButton(R.string.activity_settings_close, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog, final int which) {
+                dialog.dismiss();
+            }
+        });
 
-        mLogger.exiting(getClass().getName(), "onCreateView", lframe);
-        return lframe;
+        return builder.create();
     }
 
     /**

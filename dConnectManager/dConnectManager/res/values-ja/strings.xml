@@ -59,6 +59,7 @@
     <string name="activity_settings_warning">警告</string>
     <string name="activity_settings_yes">はい</string>
     <string name="activity_settings_no">いいえ</string>
+    <string name="activity_settings_close">閉じる</string>
     <string name="activity_settings_demo_link">デモアプリへのリンク</string>
     <string name="activity_settings_consortium_link">デバイスWebAPIコンソーシアム</string>
     

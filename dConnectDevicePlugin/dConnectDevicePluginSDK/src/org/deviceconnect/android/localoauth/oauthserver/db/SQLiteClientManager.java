@@ -385,7 +385,7 @@ public class SQLiteClientManager extends AbstractClientManager {
                         if (whereValue == null) {
                             selection += whereKeyData + " is null";
                         } else {
-                            selection += whereKeyData + " = '" + DatabaseUtils.sqlEscapeString(whereValue) + "'";
+                            selection += whereKeyData + " = " + DatabaseUtils.sqlEscapeString(whereValue);
                         }
                     } else {
                         throw new IllegalArgumentException("whereのデータタイプが認識できません。");

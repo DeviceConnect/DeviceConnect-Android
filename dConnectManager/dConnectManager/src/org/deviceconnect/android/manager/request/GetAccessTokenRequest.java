@@ -121,16 +121,6 @@ public class GetAccessTokenRequest extends DConnectRequest {
     }
 
     /**
-     * レスポンスのエラーコードに 未サポートプロファイルエラー を設定し、指定されたエラーメッセージを設定する.
-     * 
-     * @param response レスポンスパラメータ
-     * @param message エラーメッセージ
-     */
-    private static void setNotSupportProfileError(final Intent response, final String message) {
-        setError(response, ErrorCode.NOT_SUPPORT_PROFILE, message);
-    }
-
-    /**
      * レスポンスのエラーコードに 認証エラー を設定し、指定されたエラーメッセージを設定する.
      * 
      * @param response レスポンスパラメータ

@@ -272,14 +272,14 @@ public class SettingsFragment extends PreferenceFragment
                         String no = getString(R.string.activity_settings_no);
                         builder.setPositiveButton(yes, new DialogInterface.OnClickListener() {
                             @Override
-                            public void onClick(DialogInterface dialog, int which) {
+                            public void onClick(final DialogInterface dialog, final int which) {
                                 mCheckBoxOauthPreferences.setChecked(false);
                                 mCheckBoxOriginBlockingPreferences.setChecked(false);
                             }
                         });
                         builder.setNegativeButton(no, new DialogInterface.OnClickListener() {
                             @Override
-                            public void onClick(DialogInterface dialog, int which) {
+                            public void onClick(final DialogInterface dialog, final int which) {
                                 mCheckBoxRequireOriginPreferences.setChecked(true);
                             }
                         });
@@ -306,13 +306,13 @@ public class SettingsFragment extends PreferenceFragment
                     String no = getString(R.string.activity_settings_no);
                     builder.setPositiveButton(yes, new DialogInterface.OnClickListener() {
                         @Override
-                        public void onClick(DialogInterface dialog, int which) {
+                        public void onClick(final DialogInterface dialog, final int which) {
                             mCheckBoxRequireOriginPreferences.setChecked(true);
                         }
                     });
                     builder.setNegativeButton(no, new DialogInterface.OnClickListener() {
                         @Override
-                        public void onClick(DialogInterface dialog, int which) {
+                        public void onClick(final DialogInterface dialog, final int which) {
                             ((CheckBoxPreference) preference).setChecked(false);
                         }
                     });

@@ -258,18 +258,34 @@ public abstract class DConnectMessageService extends Service
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
         response.putExtra(DConnectMessage.EXTRA_REQUEST_CODE, requestCode);
 
-        // オリジンの確認
-        String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
-        if (!allowsOrigin(request)) {
-            MessageUtils.setInvalidOriginError(response);
+        // オリジンの正当性チェック
+        OriginError error = checkOrigin(request);
+        switch (error) {
+        case NOT_SPECIFIED:
+            MessageUtils.setInvalidOriginError(response, "Origin is not specified.");
+            sendResponse(request, response);
+            return;
+        case NOT_UNIQUE:
+            MessageUtils.setInvalidOriginError(response, "The specified origin is not unique.");
+            sendResponse(request, response);
+            return;
+        case NOT_ALLOWED: {
+            // NOTE: Local OAuth関連のAPIに対する特別措置
+            String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
             DConnectProfile profile = getProfile(profileName);
             if (profile != null && profile instanceof AuthorizationProfile) {
                 ((AuthorizationProfile) profile).onInvalidOrigin(request, response);
             }
+ 
+            MessageUtils.setInvalidOriginError(response, "The specified origin is not allowed.");
             sendResponse(request, response);
             return;
         }
+        default:
+            break;
+        }
 
+        String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         if (profileName == null) {
             MessageUtils.setNotSupportProfileError(response);
             sendResponse(request, response);
@@ -302,6 +318,32 @@ public abstract class DConnectMessageService extends Service
         } else {
             executeRequest(request, response);
         }
+    }
+
+    /**
+     * オリジンの正当性をチェックする.
+     * <p>
+     * 設定画面上でオリジン要求フラグがOFFにされた場合は即座に「エラー無し」を返す。
+     * </p>
+     * @param request 送信元のリクエスト
+     * @return チェック処理の結果
+     */
+    private OriginError checkOrigin(final Intent request) {
+        if (!mSettings.requireOrigin()) {
+            return OriginError.NONE;
+        }
+        String originParam = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        if (originParam == null) {
+            return OriginError.NOT_SPECIFIED;
+        }
+        String[] origins = originParam.split(" ");
+        if (origins.length != 1) {
+            return OriginError.NOT_UNIQUE;
+        }
+        if (!allowsOrigin(request)) {
+            return OriginError.NOT_ALLOWED;
+        }
+        return OriginError.NONE;
     }
 
     /**
@@ -685,5 +727,30 @@ public abstract class DConnectMessageService extends Service
         Intent targetIntent = new Intent(event);
         targetIntent.setComponent(ComponentName.unflattenFromString(receiver));
         sendBroadcast(targetIntent);
+    }
+
+    /**
+     * Originヘッダ解析時に検出したエラー.
+     */
+    private enum OriginError {
+        /**
+         * エラー無しを示す定数.
+         */
+        NONE,
+
+        /**
+         * オリジンが指定されていないことを示す定数.
+         */
+        NOT_SPECIFIED, 
+
+        /**
+         * 2つ以上のオリジンが指定されていたことを示す定数.
+         */
+        NOT_UNIQUE,
+
+        /**
+         * 指定されたオリジンが許可されていない(ホワイトリストに含まれていない)ことを示す定数.
+         */
+        NOT_ALLOWED
     }
 }

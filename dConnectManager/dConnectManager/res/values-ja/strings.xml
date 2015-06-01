@@ -49,7 +49,7 @@
     <string name="activity_settings_restart_device_plugin">Restart</string>
     <string name="activity_settings_restart_device_plugin_title">Starting Device Plugin</string>
     <string name="activity_settings_restart_device_plugin_message">Processing</string>
-    
+
     <!-- ================= SharedPreferences ================= -->
 
     <string name="key_settings_about_appinfo">settings_about_appinfo</string>
@@ -93,10 +93,18 @@
     </string-array>
 
     <!-- ================= DevicePluginListActivity ================= -->
-    <string name="activity_devicepluginlist_title">List of device plug-in</string>
-    <string name="activity_devicepluginlist_info">詳細</string>
-    <string name="activity_devicepluginlist_del">削除</string>
-    
+    <string name="activity_devicepluginlist_title">デバイスプラグイン一覧</string>
+    <string name="activity_devicepluginlist_version">バージョン: </string>
+
+    <!-- ================= DevicePluginInfoActivity ================= -->
+    <string name="activity_deviceplugin_info_title">デバイスプラグイン情報</string>
+    <string name="activity_deviceplugin_info_version">バージョン: </string>
+    <string name="activity_deviceplugin_info_restart">再起動</string>
+    <string name="activity_deviceplugin_info_uninstall">削除</string>
+    <string name="activity_deviceplugin_info_settings">設定</string>
+    <string name="activity_deviceplugin_info_open_settings">設定を開く</string>
+    <string name="activity_deviceplugin_info_profile">プロファイル</string>
+
     <!-- ================= KeywordDialogActivity ================= -->
     <string name="activity_keyword">Keyword</string>
     <string name="activity_keyword_ok">OK</string>
@@ -373,7 +381,7 @@
         <item></item>
         <item>zoom</item>
     </string-array>
-    
+
     <!-- Dice API -->
     <string name="dice_profile">camera</string>
 
@@ -385,7 +393,7 @@
         <item>ondice</item>
         <item>onmagnetometer</item>
     </string-array>
-    
+
     <!-- Temperature API -->
     <string name="temperature_profile">camera</string>
 
@@ -395,7 +403,7 @@
     <string-array name="temperature_attrib_list">
         <item></item>
     </string-array>
-    
+
     <!-- drive_controller API -->
     <string name="drive_controller_profile">drive_controller</string>
 
@@ -407,7 +415,7 @@
         <item>stop</item>
         <item>rotate</item>
     </string-array>
-   
+
     <!-- remote_controller API -->
     <string name="remote_controller_profile">remote_controller</string>
 
@@ -417,8 +425,8 @@
     <string-array name="remote_controller_attrib_list">
         <item></item>
     </string-array>
-        
-    
+
+
     <!-- sphero API -->
     <string name="sphero_profile">sphero</string>
 
@@ -434,7 +442,7 @@
         <item>onlocator</item>
         <item>oncollision</item>
     </string-array>
-        
+
     <!-- MHealth API -->
     <string name="mhealth_profile">mhealth</string>
 

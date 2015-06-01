@@ -374,6 +374,9 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      */
     @Override
     public Token findTokenByAccessToken(final String accessToken) {
+        if (accessToken == null) {
+            return null;
+        }
         if (mDb != null) {
             String selection = SQLiteToken.ACCCESS_TOKEN_FIELD + "=?";
             String[] selectionArgs = { accessToken };

@@ -43,6 +43,7 @@ import org.restlet.ext.oauth.internal.Client;
 import org.restlet.ext.oauth.internal.Client.ClientType;
 
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
@@ -384,7 +385,7 @@ public class SQLiteClientManager extends AbstractClientManager {
                         if (whereValue == null) {
                             selection += whereKeyData + " is null";
                         } else {
-                            selection += whereKeyData + " = '" + whereValue + "'";
+                            selection += whereKeyData + " = '" + DatabaseUtils.sqlEscapeString(whereValue) + "'";
                         }
                     } else {
                         throw new IllegalArgumentException("whereのデータタイプが認識できません。");

@@ -33,7 +33,7 @@
                 <data
                     android:host="start"
                     android:path="/"
-                    android:scheme="dconnect" />
+                    android:scheme="gotapi" />
             </intent-filter>
         </activity>
 

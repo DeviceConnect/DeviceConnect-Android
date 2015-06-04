@@ -112,8 +112,9 @@ public class HostCanvasProfile extends CanvasProfile {
             return true;
         }
 
-        if (CanvasDrawUtils.getMimeType(uri)
-                .indexOf("image") == -1) {
+        String type = CanvasDrawUtils.getMimeType(uri);
+        if (type != null
+                && type.indexOf("image") == -1) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Data format is invalid.");
             return true;

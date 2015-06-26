@@ -20,6 +20,7 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -30,7 +31,7 @@ import android.widget.TextView;
 
 /**
  * Device Connect Manager Launch Activity.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class DConnectLaunchActivity extends Activity {
@@ -81,7 +82,18 @@ public class DConnectLaunchActivity extends Activity {
         if (intent != null && SCHEME_LAUNCH.equals(intent.getScheme())) {
             String key = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEY);
             String origin = intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-            mLogger.info("Requested to update HMAC key: origin=" + origin + ", key=" + key);
+            mLogger.info("Requested to update HMAC key from intent: origin=" + origin + ", key=" + key);
+
+            if (key == null || origin == null) {
+                mLogger.warning("Origin or key is missing.");
+                Uri uri = intent.getData();
+                if (uri != null) {
+                    key = uri.getQueryParameter(IntentDConnectMessage.EXTRA_KEY);
+                    origin = uri.getQueryParameter(IntentDConnectMessage.EXTRA_ORIGIN);
+                    mLogger.info("Requested to update HMAC key from URI: origin=" + origin + ", key=" + key);
+                }
+            }
+
             try {
                 if (origin != null) {
                     origin = URLDecoder.decode(origin, "UTF-8");
@@ -99,7 +111,7 @@ public class DConnectLaunchActivity extends Activity {
 
     /**
      * Toggles the text on views.
-     * 
+     *
      * @param isLaunched <code>true</code> if Device Connect Manager is running, otherwise <code>false</code>
      */
     private void toggleButton(final boolean isLaunched) {

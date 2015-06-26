@@ -782,7 +782,12 @@ public final class LocalOAuth2Main {
         if (specialScopes != null && Arrays.asList(specialScopes).contains(scope)) {
             return new CheckAccessTokenResult(true, true, true, true);
         }
-        
+
+        // アクセストークンが設定されていない場合
+        if (accessToken == null) {
+            return new CheckAccessTokenResult(false, false, false, false);
+        }
+
         SQLiteDatabase db = null;
         SQLiteClientManager sqliteClientManager = null;
         SQLiteTokenManager sqliteTokenManager = null;

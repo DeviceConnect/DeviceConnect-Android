@@ -74,10 +74,12 @@ public class DConnectService extends DConnectMessageService {
         if (receiver == null || receiver.length() <= 0) {
             String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
             try {
-                mLogger.fine("■ sendEvent: " + key + " extra: " + event.getExtras());
-                JSONObject root = new JSONObject();
-                DConnectUtil.convertBundleToJSON(root, event.getExtras());
-                mWebServer.sendEvent(key, root.toString());
+                if (key != null && mWebServer != null && mWebServer.isRunning()) {
+                    mLogger.fine("■ sendEvent: " + key + " extra: " + event.getExtras());
+                    JSONObject root = new JSONObject();
+                    DConnectUtil.convertBundleToJSON(root, event.getExtras());
+                    mWebServer.sendEvent(key, root.toString());
+                }
             } catch (JSONException e) {
                 mLogger.warning("JSONException in sendEvent: " + e.toString());
             } catch (IOException e) {

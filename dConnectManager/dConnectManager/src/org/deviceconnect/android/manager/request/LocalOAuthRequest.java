@@ -33,9 +33,6 @@ public class LocalOAuthRequest extends DConnectRequest {
     /** プラグイン側のAuthorizationのアトリビュート名: {@value}. */
     private static final String ATTRIBUTE_REQUEST_ACCESS_TOKEN = "requestAccessToken";
 
-    /** オリジン無効時にプラグイン側へ送信するダミーのパッケージ名: {@value}. */
-    private static final String DUMMY_PACKAGE = "dummy.package";
-
     /** リトライ回数の最大値を定義. */
     protected static final int MAX_RETRY_COUNT = 3;
 
@@ -163,8 +160,8 @@ public class LocalOAuthRequest extends DConnectRequest {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_CREATE_CLIENT);
         request.putExtra(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId);
         String origin = mRequest.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-        if (!mRequireOrigin && origin == null) {
-            origin = DUMMY_PACKAGE;
+        if (!mRequireOrigin && origin == null && getContext() != null) {
+            origin = getContext().getPackageName();
         }
         request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, origin);
 

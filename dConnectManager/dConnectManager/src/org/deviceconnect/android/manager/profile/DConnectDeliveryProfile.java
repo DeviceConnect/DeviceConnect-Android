@@ -31,14 +31,20 @@ public class DConnectDeliveryProfile extends DConnectProfile {
     /** LocalOAuth管理クラス. */
     private DConnectLocalOAuth mLocalOAuth;
 
+    /** オリジン有効フラグ. */
+    private final boolean mRequireOrigin;
+
     /**
      * コンストラクタ.
      * @param mgr デバイスプラグイン管理クラス
      * @param auth LocalOAuth管理クラス
+     * @param requireOrigin オリジン有効フラグ
      */
-    public DConnectDeliveryProfile(final DevicePluginManager mgr, final DConnectLocalOAuth auth) {
+    public DConnectDeliveryProfile(final DevicePluginManager mgr, final DConnectLocalOAuth auth,
+                                   final boolean requireOrigin) {
         mDevicePluginManager = mgr;
         mLocalOAuth = auth;
+        mRequireOrigin = requireOrigin;
     }
 
     @Override
@@ -76,6 +82,7 @@ public class DConnectDeliveryProfile extends DConnectProfile {
                 req.setContext(getContext());
                 req.setLocalOAuth(mLocalOAuth);
                 req.setUseAccessToken(isUseLocalOAuth(profileName));
+                req.setRequireOrigin(mRequireOrigin);
                 req.setRequest(request);
                 req.setDevicePluginManager(mDevicePluginManager);
                 req.setDestination(plugins.get(0));

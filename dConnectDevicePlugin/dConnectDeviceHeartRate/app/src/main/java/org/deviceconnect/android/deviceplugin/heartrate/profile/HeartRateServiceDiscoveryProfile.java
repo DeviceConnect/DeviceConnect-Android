@@ -53,6 +53,7 @@ public class HeartRateServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                 service.putString(PARAM_TYPE, NetworkType.BLE.getValue());
                 service.putBoolean(PARAM_ONLINE, true);
                 service.putString(PARAM_CONFIG, "");
+                setScopes(service, getProfileProvider());
                 services.add(service);
             }
         }
@@ -62,12 +63,14 @@ public class HeartRateServiceDiscoveryProfile extends ServiceDiscoveryProfile {
     }
 
     @Override
-    protected boolean onPutOnServiceChange(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onPutOnServiceChange(final Intent request, final Intent response,
+                                           final String serviceId, final String sessionKey) {
         return super.onPutOnServiceChange(request, response, serviceId, sessionKey);
     }
 
     @Override
-    protected boolean onDeleteOnServiceChange(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onDeleteOnServiceChange(final Intent request, final Intent response,
+                                              final String serviceId, final String sessionKey) {
         return super.onDeleteOnServiceChange(request, response, serviceId, sessionKey);
     }
 

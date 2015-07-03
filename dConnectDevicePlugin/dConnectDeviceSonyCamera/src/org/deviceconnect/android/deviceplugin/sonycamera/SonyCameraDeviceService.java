@@ -26,6 +26,7 @@ import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraSyste
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraZoomProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.sonycamera.utils.MixedReplaceMediaServer.ServerEventListener;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.UserSettings;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -1085,6 +1086,19 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
                     if (mServer == null) {
                         mServer = new MixedReplaceMediaServer();
+                        mServer.setServerEventListener(new ServerEventListener() {
+                            @Override
+                            public void onStart() {
+                            }
+                            @Override
+                            public void onStop() {
+                                mWhileFetching = false;
+                            }
+                            @Override
+                            public void onError() {
+                                mWhileFetching = false;
+                            }
+                        });
                         mServer.setServerName("SonyCameraDevicePlugin Server");
                         mServer.setContentType("image/jpg");
                         String ip = mServer.start();

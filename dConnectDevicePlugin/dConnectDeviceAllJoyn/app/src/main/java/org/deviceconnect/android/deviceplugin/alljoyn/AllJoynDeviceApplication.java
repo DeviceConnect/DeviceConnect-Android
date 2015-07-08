@@ -51,6 +51,15 @@ public class AllJoynDeviceApplication extends Application {
 
     private static final String SERVICE_NAME = "DConnectAllJoyn";
 
+    public static final String[] REQUIRED_INTERFACES =
+            new String[]{
+                    // AllJoyn Lighting Service, Lamp interface
+                    "org.allseen.LSF.LampDetails",
+                    "org.allseen.LSF.LampParameters",
+                    "org.allseen.LSF.LampService",
+                    "org.allseen.LSF.LampState"
+            };
+
     public static final int RESULT_OK = -1;
     public static final int RESULT_FAILED = 0;
 
@@ -162,9 +171,15 @@ public class AllJoynDeviceApplication extends Application {
     // TODO: 非推奨のorg.alljoyn.about周辺のAPIから新しいorg.alljoyn.bus周辺のAPIへ移行する。
     private class AllJoynHandler extends Handler implements AnnouncementHandler {
 
+        private static final int PING_TIMEOUT = 5000;
+        private static final int PING_INTERVAL = 20000;
+        private static final int DISCOVER_INTERVAL = 30000;
+
         private BusAttachment mBus;
         private AboutService mAboutService;
         private ScheduledExecutorService mPingTimer;
+        private boolean mFirstTime = true;
+        private ScheduledExecutorService mDiscoverTimer;
 
         public AllJoynHandler(Looper looper) {
             super(looper);
@@ -209,7 +224,7 @@ public class AllJoynDeviceApplication extends Application {
                         resultReceiver.send(RESULT_FAILED, null);
                         return;
                     }
-                    int sessionId = data.getInt(PARAM_SESSION_ID, -1);
+                    int sessionId = data.getInt(PARAM_SESSION_ID);
                     doLeaveSession(sessionId, resultReceiver);
                     break;
                 }
@@ -225,17 +240,33 @@ public class AllJoynDeviceApplication extends Application {
             }
         }
 
-        @Override
-        public void onAnnouncement(String busName, short port,
-                                   BusObjectDescription[] interfaces,
-                                   Map<String, Variant> aboutMap) {
-            try {
-                Log.i(AllJoynHandler.this.getClass().getSimpleName(), "found: " + busName + ", " +
-                        port + ", " + aboutMap.get(AboutKeys.ABOUT_DEFAULT_LANGUAGE).getObject(String.class));
-            } catch (BusException e) {
-                e.printStackTrace();
+        private boolean containsRequiredInterfaces(@NonNull BusObjectDescription[] busObjects) {
+            boolean allFound = true;
+            for (String requiredInterface : REQUIRED_INTERFACES) {
+                boolean found = false;
+                for (BusObjectDescription busObject : busObjects) {
+                    for (String iface : busObject.interfaces) {
+                        if (requiredInterface.equals(iface)) {
+                            found = true;
+                        }
+                    }
+                    if (found) {
+                        break;
+                    }
+                }
+                if (!found) {
+                    allFound = false;
+                    break;
+                }
             }
 
+            return allFound;
+        }
+
+        @Override
+        public void onAnnouncement(String busName, short port,
+                                   BusObjectDescription[] busObjects,
+                                   Map<String, Variant> aboutMap) {
             // Determine a DeviceConnect service name.
             String serviceName;
             if (aboutMap.containsKey(AboutKeys.ABOUT_DEVICE_NAME)) {
@@ -251,11 +282,19 @@ public class AllJoynDeviceApplication extends Application {
                 serviceName = "Alljoyn service (" + busName.hashCode() + ")";
             }
 
+            Log.i(AllJoynHandler.this.getClass().getSimpleName(), "Service found: " + serviceName);
+
+            if (!containsRequiredInterfaces(busObjects)) {
+                Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                        "Required I/Fs are missing. Ignoring \"" + serviceName + "\"");
+                return;
+            }
+
             AllJoynServiceEntity service = new AllJoynServiceEntity();
             service.serviceName = serviceName;
             service.busName = busName;
             service.port = port;
-            service.proxyObjects = interfaces;
+            service.proxyObjects = busObjects;
             service.aboutData = aboutMap;
             mAllJoynServiceEntities.put(busName, service);
         }
@@ -316,7 +355,7 @@ public class AllJoynDeviceApplication extends Application {
                     e.printStackTrace();
                 }
 
-                mPingTimer = Executors.newSingleThreadScheduledExecutor();
+                mPingTimer = Executors.newScheduledThreadPool(3);
                 final ResultReceiver pingResultReceiver = new ResultReceiver(mMainHandler) {
                     @Override
                     protected void onReceiveResult(int resultCode, Bundle resultData) {
@@ -350,7 +389,30 @@ public class AllJoynDeviceApplication extends Application {
                             AllJoynHandler.this.sendMessage(msg);
                         }
                     }
-                }, 0, 10, TimeUnit.SECONDS);
+                }, 0, PING_INTERVAL, TimeUnit.MILLISECONDS);
+
+                mDiscoverTimer = Executors.newSingleThreadScheduledExecutor();
+                mDiscoverTimer.scheduleAtFixedRate(new Runnable() {
+                    @Override
+                    public void run() {
+                        // FIXME: ***** HACK ***** Needs clean up or a better solution.
+                        // About announcements of services that were powered off or nonresponsive to
+                        // pings, somehow return as results of discovery (cached?).
+                        // By initializing AboutService, announcement cache is cleared.
+                        if (mAboutService != null) {
+                            try {
+                                mAboutService.stopAboutClient();
+                                mAboutService = AboutServiceImpl.getInstance();
+                                mAboutService.startAboutClient(mBus);
+                                mAboutService.addAnnouncementHandler(AllJoynHandler.this, null);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        performDiscovery();
+                    }
+                }, 0, DISCOVER_INTERVAL, TimeUnit.MILLISECONDS);
             }
             resultReceiver.send(RESULT_OK, null);
         }
@@ -390,8 +452,19 @@ public class AllJoynDeviceApplication extends Application {
 
             Status status;
 
+            if (!mFirstTime) {
+                for (String iface : REQUIRED_INTERFACES) {
+                    mBus.cancelWhoImplements(new String[]{iface});
+                }
+            } else {
+                mFirstTime = false;
+            }
+
             // To realize fine-grained API availability for DeviceConnect,
             // query each AllJoyn interface separately.
+            for (String iface : REQUIRED_INTERFACES) {
+                mBus.whoImplements(new String[]{iface});
+            }
 
             // For Light profile
 //            mBus.whoImplements(new String[]{"org.allseen.LSF.LampDetails"});
@@ -462,7 +535,7 @@ public class AllJoynDeviceApplication extends Application {
             final AtomicBoolean finished = new AtomicBoolean(false);
             final Bundle data = new Bundle();
             data.putString(PARAM_BUS_NAME, busName);
-            Status pingStatus = mBus.ping(busName, 5000, new OnPingListener() {
+            Status pingStatus = mBus.ping(busName, PING_TIMEOUT, new OnPingListener() {
                 @Override
                 public void onPing(Status status, Object context) {
                     synchronized (finished) {

@@ -45,18 +45,18 @@ public class AllJoynLightProfile extends LightProfile {
     @Override
     protected boolean onGetLight(Intent request, Intent response, String serviceId) {
         // TODO: 特定のサービスとの紐付け
-        List<Bundle> lights = new ArrayList<>();
-        AllJoynDeviceApplication app = getApplication();
-        for (Lamp lamp : app.getLightingDirector().getLamps()) {
-            LampDataModel lampData = lamp.getLampDataModel();
-            Bundle light = new Bundle();
-            light.putString(PARAM_LIGHT_ID, lampData.id);
-            light.putString(PARAM_NAME, lampData.getName());
-            light.putString(PARAM_CONFIG, "");
-            light.putBoolean(PARAM_ON, lampData.state.getOnOff());
-            lights.add(light);
-        }
-        response.putExtra(PARAM_LIGHTS, lights.toArray(new Bundle[lights.size()]));
+//        List<Bundle> lights = new ArrayList<>();
+//        AllJoynDeviceApplication app = getApplication();
+//        for (Lamp lamp : app.getLightingDirector().getLamps()) {
+//            LampDataModel lampData = lamp.getLampDataModel();
+//            Bundle light = new Bundle();
+//            light.putString(PARAM_LIGHT_ID, lampData.id);
+//            light.putString(PARAM_NAME, lampData.getName());
+//            light.putString(PARAM_CONFIG, "");
+//            light.putBoolean(PARAM_ON, lampData.state.getOnOff());
+//            lights.add(light);
+//        }
+//        response.putExtra(PARAM_LIGHTS, lights.toArray(new Bundle[lights.size()]));
         sendResultOK(response);
         return true;
     }

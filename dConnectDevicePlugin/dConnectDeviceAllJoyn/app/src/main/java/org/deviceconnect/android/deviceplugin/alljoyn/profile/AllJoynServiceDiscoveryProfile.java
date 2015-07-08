@@ -2,14 +2,16 @@ package org.deviceconnect.android.deviceplugin.alljoyn.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
-import org.allseen.lsf.helper.model.ControllerDataModel;
 import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynDeviceApplication;
+import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynServiceEntity;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -26,34 +28,25 @@ public class AllJoynServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
-
         AllJoynDeviceApplication app =
                 (AllJoynDeviceApplication) getContext().getApplicationContext();
-        if (app.isReady(10000)) {
-//            LightingDirector director = app.getLightingDirector();
-//            BusAttachment bus = director.getBusAttachment();
-//            Log.d("SHIGSHIG", bus.toString());
 
-            List<ControllerDataModel> controllers = app.getDiscoveredControllers();
-            List<Bundle> services = new LinkedList<>();
-            for (ControllerDataModel controller : controllers) {
-                Bundle service = new Bundle();
-                service.putString(ServiceDiscoveryProfileConstants.PARAM_ID, controller.id);
-                service.putString(ServiceDiscoveryProfileConstants.PARAM_NAME, controller.getName());
-                // TODO: AllJoynリモートオブジェクトのトランスポート情報を取得できるか調査。
+        app.performDiscovery();
+        List<Bundle> services = new LinkedList<>();
+        for (AllJoynServiceEntity serviceEntity : app.getDiscoveredAlljoynServices().values()) {
+            Bundle service = new Bundle();
+            service.putString(ServiceDiscoveryProfileConstants.PARAM_ID, serviceEntity.busName);
+            service.putString(ServiceDiscoveryProfileConstants.PARAM_NAME, serviceEntity.serviceName);
+            // TODO: AllJoynリモートオブジェクトのトランスポート情報を取得できるか調査。
 //                service.putString(ServiceDiscoveryProfileConstants.PARAM_TYPE, "wifi");
-                service.putBoolean(ServiceDiscoveryProfileConstants.PARAM_ONLINE, controller.connected);
-                services.add(service);
-            }
-            // レスポンスを設定
-            setServices(response, services);
-        } else {
-            setServices(response, new Bundle[0]);
+            service.putBoolean(ServiceDiscoveryProfileConstants.PARAM_ONLINE, true);
+            services.add(service);
         }
 
+        // レスポンスを設定
+        setServices(response, services);
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }
-
 
 }

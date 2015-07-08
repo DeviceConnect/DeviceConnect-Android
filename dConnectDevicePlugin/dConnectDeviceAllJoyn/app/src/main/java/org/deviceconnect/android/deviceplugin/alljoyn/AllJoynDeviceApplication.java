@@ -1,30 +1,38 @@
 package org.deviceconnect.android.deviceplugin.alljoyn;
 
 import android.app.Application;
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.Message;
+import android.os.ResultReceiver;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
-import org.alljoyn.bus.AboutListener;
-import org.alljoyn.bus.AboutObjectDescription;
+import org.alljoyn.about.AboutKeys;
+import org.alljoyn.about.AboutService;
+import org.alljoyn.about.AboutServiceImpl;
 import org.alljoyn.bus.BusAttachment;
+import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.Mutable;
+import org.alljoyn.bus.OnPingListener;
+import org.alljoyn.bus.ProxyBusObject;
 import org.alljoyn.bus.SessionListener;
 import org.alljoyn.bus.SessionOpts;
 import org.alljoyn.bus.Status;
 import org.alljoyn.bus.Variant;
-import org.allseen.LSF.helper.LightingDirector;
-import org.allseen.lsf.helper.listener.ControllerErrorEvent;
-import org.allseen.lsf.helper.listener.ControllerListener;
-import org.allseen.lsf.helper.manager.LightingSystemQueue;
-import org.allseen.lsf.helper.model.ControllerDataModel;
+import org.alljoyn.bus.alljoyn.DaemonInit;
+import org.alljoyn.services.common.AnnouncementHandler;
+import org.alljoyn.services.common.BusObjectDescription;
 
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * AllJoynデバイスプラグインアプリケーショ。
@@ -43,154 +51,442 @@ public class AllJoynDeviceApplication extends Application {
 
     private static final String SERVICE_NAME = "DConnectAllJoyn";
 
-    // TODO: 低レイヤーのBusAttachmenを用いた実装へ移行し、高レイヤーのLightingDirectorから脱却する。
-    private LightingDirector mLightingDirector;
-    private BusAttachment mBus;
+    public static final int RESULT_OK = -1;
+    public static final int RESULT_FAILED = 0;
 
-    private final Object mIsReadyLock = new Object();
-    private CountDownLatch mIsReady = new CountDownLatch(1);
-    private LightingSystemQueue mQueue;
-    private AboutListener mAboutListener;
-    private List<ControllerDataModel> mLightControllers =
-            Collections.synchronizedList(new LinkedList<ControllerDataModel>());
+    public static final String PARAM_RESULT_RECEIVER = "PARAM_RESULT_RECEIVER";
+    public static final String PARAM_BUS_NAME = "PARAM_BUS_NAME";
+    public static final String PARAM_PORT = "PARAM_PORT";
+    public static final String PARAM_SESSION_ID = "PARAM_SESSION_ID";
+
+    public static final int MSG_TYPE_INIT = 0;
+    public static final int MSG_TYPE_DISCOVER = 1;
+    public static final int MSG_TYPE_DESTROY = 2;
+    public static final int MSG_TYPE_JOIN_SESSION = 3;
+    public static final int MSG_TYPE_LEAVE_SESSION = 4;
+    public static final int MSG_TYPE_PING = 5;
+
+    private Handler mMainHandler = new Handler();
+    private AllJoynHandler mAllJoynHandler;
+
+    // TODO: 到達不可のリモートバス（サービス）を削除する機構。
+    private Map<String, AllJoynServiceEntity> mAllJoynServiceEntities =
+            Collections.synchronizedMap(new LinkedHashMap<String, AllJoynServiceEntity>());
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-//        Debug.waitForDebugger();
-
         startLightClient();
     }
 
-    private void startLightClient() {
-        if (mLightingDirector == null) {
-            mQueue = new LightingSystemQueue() {
-                Handler handler = new Handler(Looper.getMainLooper());
-
-                @Override
-                public void post(Runnable r) {
-                    handler.post(r);
-                }
-
-                @Override
-                public void postDelayed(Runnable r, int delay) {
-                    handler.postDelayed(r, delay);
-                }
-            };
-            mLightingDirector = new LightingDirector(mQueue);
-//            mLightingDirector.postOnNextControllerConnection(new Runnable() {
-//                @Override
-//                public void run() {
-//
-//                }
-//            }, 5000);
-            mLightingDirector.getLightingManager().getControllerManager().addListener(new ControllerListener() {
-                @Override
-                public void onLeaderModelChange(final ControllerDataModel controllerDataModel) {
-                    Log.i("SHIGSHIG", controllerDataModel.toString());
-
-                    if (!mLightControllers.contains(controllerDataModel)) {
-                        mLightControllers.add(controllerDataModel);
-                    }
-
-                    if (mBus == null) {
-                        mBus = mLightingDirector.getBusAttachment();
-                        if (mBus == null) {
-                            return;
-                        }
-
-                        synchronized (mIsReadyLock) {
-                            AllJoynDeviceApplication.this.mIsReady.countDown();
-                        }
-
-                        if (mAboutListener == null) {
-                            mAboutListener = new AboutListener() {
-                                @Override
-                                public void announced(String busName, int version, short port,
-                                                      AboutObjectDescription[] aboutObjectDescriptions, Map<String, Variant> map) {
-                                    Log.d("SHIGSHIG", "hello");
-
-//                                    for (AboutObjectDescription dscr : aboutObjectDescriptions) {
-//                                        dscr.interfaces
-//                                    }
-                                    Mutable.IntegerValue sessionID = new Mutable.IntegerValue();
-                                    Status status = mBus.joinSession(busName, port, sessionID,
-                                            new SessionOpts(), new SessionListener() {
-                                                public void sessionLost(int sessionId, int reason) {
-                                                }
-
-                                                public void sessionMemberAdded(int sessionId, String uniqueName) {
-                                                }
-
-                                                public void sessionMemberRemoved(int sessionId, String uniqueName) {
-                                                }
-                                            });
-                                    Log.i("SHIGSHIG", status.toString());
-                                }
-                            };
-                            mBus.registerAboutListener(mAboutListener);
-                        }
-
-                        mQueue.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                // To query per-API availability info in a context of
-                                // DeviceConnect, query each AllJoyn interface separately.
-//                                mBus.whoImplements(new String[]{"org.allseen.LSF.LampDetails"});
-//                                mBus.whoImplements(new String[]{"org.allseen.LSF.LampParameters"});
-//                                mBus.whoImplements(new String[]{"org.allseen.LSF.LampService"});
-//                                mBus.whoImplements(new String[]{"org.allseen.LSF.LampState"});
-
-                                mBus.whoImplements(new String[]{"org.allseen.LSF.ControllerService"});
-                                mBus.whoImplements(new String[]{"org.allseen.LSF.ControllerService.Lamp"});
-                                mBus.whoImplements(new String[]{"org.allseen.LSF.ControllerService.LampGroup"});
-                            }
-                        });
-                    }
-                }
-
-                @Override
-                public void onControllerErrors(ControllerErrorEvent controllerErrorEvent) {
-
-                }
-            });
-        } else {
-            stopLightClient();
+    public void startLightClient() {
+        Log.d(getClass().getSimpleName(), "startLightClient");
+        if (mAllJoynHandler == null) {
+            HandlerThread busThread = new HandlerThread("AllJoynHandler");
+            busThread.start();
+            mAllJoynHandler = new AllJoynHandler(busThread.getLooper());
         }
-        mLightingDirector.start(SERVICE_NAME);
+        final Message msg = new Message();
+        msg.what = MSG_TYPE_INIT;
+        Bundle data = new Bundle();
+        data.putParcelable(PARAM_RESULT_RECEIVER, new ResultReceiver(mMainHandler) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                if (resultCode == RESULT_FAILED) {
+                    Log.w(AllJoynDeviceApplication.class.getSimpleName(),
+                            "AllJoyn init failed, retrying...");
+                    // Resend
+                    mMainHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mAllJoynHandler.sendMessage(msg);
+                        }
+                    }, 5000);
+                }
+            }
+        });
+        msg.obj = data;
+        mAllJoynHandler.sendMessage(msg);
     }
 
-    private void stopLightClient() {
-        synchronized (mIsReadyLock) {
-            mIsReady = new CountDownLatch(1);
-        }
-        mLightingDirector.stop();
+    public void performDiscovery() {
+        final Message msg = new Message();
+        msg.what = MSG_TYPE_DISCOVER;
+        Bundle data = new Bundle();
+        data.putParcelable(PARAM_RESULT_RECEIVER, new ResultReceiver(mMainHandler) {
+            @Override
+            protected void onReceiveResult(int resultCode, Bundle resultData) {
+            }
+        });
+        msg.obj = data;
+        mAllJoynHandler.sendMessage(msg);
+    }
+
+    public Map<String, AllJoynServiceEntity> getDiscoveredAlljoynServices() {
+        return new LinkedHashMap<>(mAllJoynServiceEntities);
     }
 
     /**
-     * デバイスプラグインの準備が整っているか否かを返す。
+     * Obtain a proxy to an AllJoyn interface on a service.
+     * Through this proxy, properties, methods and signals of the service are accessed.
      *
-     * @param timeoutMillisec タイムアウト時間（ミリ秒）
-     * @return 準備が整っているなら<code>true</code>、さもなくば<code>false</code。
+     * @param serviceId  service ID
+     * @param ifaceClass AllJoyn interface class
+     * @param <T>        AllJoyn interface
+     * @return a concrete AllJoyn object
      */
-    public boolean isReady(long timeoutMillisec) {
-        synchronized (mIsReadyLock) {
-            boolean result = false;
-            try {
-                result = mIsReady.await(timeoutMillisec, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException ignore) {
-            }
-            return result;
+    public <T> T getInterface(@NonNull String serviceId, @NonNull Class<T> ifaceClass) {
+        AllJoynServiceEntity service = mAllJoynServiceEntities.get(serviceId);
+        if (service == null) {
+            return null;
         }
+
+        // FIXME: 特定のAllJoyn I/Fを備えたオブジェクトが複数あった場合の対処。
+        // 当面、最初のオブジェクトのI/Fを返す。オブジェクト毎にサービスID、別々に取り扱えるようにすべき？
+        for (BusObjectDescription proxyObject : service.proxyObjects) {
+            for (String iface : proxyObject.interfaces) {
+                if (ifaceClass.getCanonicalName().equals(iface)) {
+                    return mAllJoynHandler.getInterface(service.busName, proxyObject.path,
+                            service.sessionId, ifaceClass);
+                }
+            }
+        }
+        return null;
     }
 
-    public LightingDirector getLightingDirector() {
-        return mLightingDirector;
-    }
+    /**
+     * AllJoyn-related process handler.
+     * Access to AllJoyn SDK goes through an instance of this class for thread safety.
+     */
+    // TODO: 非推奨のorg.alljoyn.about周辺のAPIから新しいorg.alljoyn.bus周辺のAPIへ移行する。
+    private class AllJoynHandler extends Handler implements AnnouncementHandler {
 
-    public List<ControllerDataModel> getDiscoveredControllers() {
-        return mLightControllers;
+        private BusAttachment mBus;
+        private AboutService mAboutService;
+        private ScheduledExecutorService mPingTimer;
+
+        public AllJoynHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.obj == null || !(msg.obj instanceof Bundle)) {
+                return;
+            }
+            Bundle data = (Bundle) msg.obj;
+            ResultReceiver resultReceiver = data.getParcelable(PARAM_RESULT_RECEIVER);
+            if (resultReceiver == null) {
+                return;
+            }
+
+            switch (msg.what) {
+                case MSG_TYPE_INIT:
+                    doInitAllJoynContext(resultReceiver);
+                    break;
+                case MSG_TYPE_DISCOVER:
+                    doDiscover(resultReceiver);
+                    break;
+                case MSG_TYPE_DESTROY:
+                    doDestroyAllJoynContext(resultReceiver);
+                case MSG_TYPE_JOIN_SESSION: {
+                    String sessionhostBusName = data.getString(PARAM_BUS_NAME);
+                    if (sessionhostBusName == null) {
+                        resultReceiver.send(RESULT_FAILED, null);
+                        return;
+                    }
+                    if (!data.containsKey(PARAM_PORT)) {
+                        resultReceiver.send(RESULT_FAILED, null);
+                        return;
+                    }
+                    short sessionPort = data.getShort(PARAM_PORT);
+                    doJoinSession(sessionhostBusName, sessionPort, resultReceiver);
+                    break;
+                }
+                case MSG_TYPE_LEAVE_SESSION: {
+                    if (!data.containsKey(PARAM_SESSION_ID)) {
+                        resultReceiver.send(RESULT_FAILED, null);
+                        return;
+                    }
+                    int sessionId = data.getInt(PARAM_SESSION_ID, -1);
+                    doLeaveSession(sessionId, resultReceiver);
+                    break;
+                }
+                case MSG_TYPE_PING: {
+                    String busName = data.getString(PARAM_BUS_NAME);
+                    if (busName == null) {
+                        resultReceiver.send(RESULT_FAILED, null);
+                        return;
+                    }
+                    doPing(busName, resultReceiver);
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void onAnnouncement(String busName, short port,
+                                   BusObjectDescription[] interfaces,
+                                   Map<String, Variant> aboutMap) {
+            try {
+                Log.i(AllJoynHandler.this.getClass().getSimpleName(), "found: " + busName + ", " +
+                        port + ", " + aboutMap.get(AboutKeys.ABOUT_DEFAULT_LANGUAGE).getObject(String.class));
+            } catch (BusException e) {
+                e.printStackTrace();
+            }
+
+            // Determine a DeviceConnect service name.
+            String serviceName;
+            if (aboutMap.containsKey(AboutKeys.ABOUT_DEVICE_NAME)) {
+                try {
+                    Variant val = aboutMap.get(AboutKeys.ABOUT_DEVICE_NAME);
+                    serviceName = val.getObject(String.class);
+                } catch (BusException e) {
+                    Log.w(AllJoynHandler.this.getClass().getSimpleName(),
+                            "Failed to parse about announcement (1).");
+                    serviceName = "Alljoyn service (" + busName.hashCode() + ")";
+                }
+            } else {
+                serviceName = "Alljoyn service (" + busName.hashCode() + ")";
+            }
+
+            AllJoynServiceEntity service = new AllJoynServiceEntity();
+            service.serviceName = serviceName;
+            service.busName = busName;
+            service.port = port;
+            service.proxyObjects = interfaces;
+            service.aboutData = aboutMap;
+            mAllJoynServiceEntities.put(busName, service);
+        }
+
+        @Override
+        public void onDeviceLost(String busName) {
+            // Remove the service
+            Log.d(AllJoynHandler.this.getClass().getSimpleName(),
+                    "onDeviceLost received: device with busName: " + busName + " was lost");
+            mAllJoynServiceEntities.remove(busName);
+        }
+
+        /**
+         * Obtain a proxy to an AllJoyn interface on a service.
+         * Through this proxy, properties, methods and signals of the service are accessed.
+         *
+         * @param busName    messaging bus name
+         * @param objPath    object path
+         * @param sessionId  session ID
+         * @param ifaceClass AllJoyn interface class
+         * @param <T>        AllJoyn interface
+         * @return a concrete AllJoyn object
+         */
+        public <T> T getInterface(@NonNull String busName, @NonNull String objPath,
+                                  int sessionId, @NonNull Class<T> ifaceClass) {
+            ProxyBusObject proxyObj =
+                    mBus.getProxyBusObject(busName, objPath, sessionId, new Class[]{ifaceClass});
+            if (proxyObj == null) {
+                return null;
+            }
+            return proxyObj.getInterface(ifaceClass);
+        }
+
+        /**
+         * Initialize an AllJoyn context (message bus).
+         *
+         * @param resultReceiver
+         */
+        private void doInitAllJoynContext(@NonNull ResultReceiver resultReceiver) {
+            Log.d(AllJoynHandler.this.getClass().getSimpleName(), "init");
+
+            if (mBus == null) {
+                DaemonInit.PrepareDaemon(getApplicationContext());
+                mBus = new BusAttachment(getPackageName(), BusAttachment.RemoteMessage.Receive);
+
+                Status status = mBus.connect();
+                if (status != Status.OK) {
+                    mBus = null;
+                    resultReceiver.send(RESULT_FAILED, null);
+                    return;
+                }
+
+                try {
+                    mAboutService = AboutServiceImpl.getInstance();
+                    mAboutService.startAboutClient(mBus);
+                    mAboutService.addAnnouncementHandler(this, null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                mPingTimer = Executors.newSingleThreadScheduledExecutor();
+                final ResultReceiver pingResultReceiver = new ResultReceiver(mMainHandler) {
+                    @Override
+                    protected void onReceiveResult(int resultCode, Bundle resultData) {
+                        if (resultData == null || !resultData.containsKey(PARAM_BUS_NAME)) {
+                            Log.e(AllJoynHandler.this.getClass().getSimpleName(),
+                                    "Logical error: ping result must be present.");
+                            return;
+                        }
+                        String busName = resultData.getString(PARAM_BUS_NAME);
+                        if (resultCode != RESULT_OK) {
+                            Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                                    "No ping from the service with bus name \"" + busName +
+                                            "\". Removing it from discovered services...");
+                            mAllJoynServiceEntities.remove(busName);
+                        }
+                    }
+                };
+                mPingTimer.scheduleAtFixedRate(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                                "Sending pings to discovered services...");
+
+                        for (AllJoynServiceEntity serviceEntity : mAllJoynServiceEntities.values()) {
+                            Message msg = new Message();
+                            msg.what = MSG_TYPE_PING;
+                            Bundle data = new Bundle();
+                            data.putString(PARAM_BUS_NAME, serviceEntity.busName);
+                            data.putParcelable(PARAM_RESULT_RECEIVER, pingResultReceiver);
+                            msg.obj = data;
+                            AllJoynHandler.this.sendMessage(msg);
+                        }
+                    }
+                }, 0, 10, TimeUnit.SECONDS);
+            }
+            resultReceiver.send(RESULT_OK, null);
+        }
+
+        /**
+         * @param resultReceiver
+         */
+        private void doDestroyAllJoynContext(@NonNull ResultReceiver resultReceiver) {
+            try {
+                if (mPingTimer != null) {
+                    mPingTimer.shutdownNow();
+                    mPingTimer = null;
+                }
+                if (mAboutService != null) {
+                    mAboutService.stopAboutClient();
+                    mAboutService = null;
+                }
+                if (mBus != null) {
+                    mBus.disconnect();
+                    mBus = null;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                resultReceiver.send(RESULT_FAILED, null);
+                return;
+            }
+            resultReceiver.send(RESULT_OK, null);
+        }
+
+        /**
+         * Discover AllJoyn services with DeviceConnect-compatible interfaces.
+         *
+         * @param resultReceiver
+         */
+        private void doDiscover(@NonNull ResultReceiver resultReceiver) {
+            Log.d(AllJoynHandler.this.getClass().getSimpleName(), "discover");
+
+            Status status;
+
+            // To realize fine-grained API availability for DeviceConnect,
+            // query each AllJoyn interface separately.
+
+            // For Light profile
+//            mBus.whoImplements(new String[]{"org.allseen.LSF.LampDetails"});
+//            mBus.whoImplements(new String[]{"org.allseen.LSF.LampParameters"});
+//            mBus.whoImplements(new String[]{"org.allseen.LSF.LampService"});
+//            mBus.whoImplements(new String[]{"org.allseen.LSF.LampState"});
+//
+//            mBus.whoImplements(new String[]{"org.allseen.LSF.ControllerService"});
+//            mBus.whoImplements(new String[]{"org.allseen.LSF.ControllerService.Lamp"});
+//            mBus.whoImplements(new String[]{"org.allseen.LSF.ControllerService.LampGroup"});
+
+            resultReceiver.send(RESULT_OK, null);
+        }
+
+        /**
+         * Join a messaging session hosted by a service.
+         * Messaging session is specified by its hosting bus name and port.
+         *
+         * @param sessionHostBusName
+         * @param sessionPort
+         * @param resultReceiver
+         */
+        private void doJoinSession(@NonNull String sessionHostBusName, short sessionPort,
+                                   @NonNull ResultReceiver resultReceiver) {
+            Log.d(AllJoynHandler.this.getClass().getSimpleName(), "joinSession");
+
+            SessionOpts sessionOpts = new SessionOpts();
+            Mutable.IntegerValue sessionId = new Mutable.IntegerValue();
+
+            Status status = mBus.joinSession(sessionHostBusName, sessionPort,
+                    sessionId, sessionOpts, new SessionListener() {
+                        @Override
+                        public void sessionLost(int sessionId, int reason) {
+                        }
+
+                        @Override
+                        public void sessionMemberAdded(int sessionId, String uniqueName) {
+                        }
+
+                        @Override
+                        public void sessionMemberRemoved(int sessionId, String uniqueName) {
+                        }
+                    });
+
+            if (status == Status.OK) {
+                Bundle resultData = new Bundle();
+                resultData.putInt(PARAM_SESSION_ID, sessionId.value);
+                resultReceiver.send(RESULT_OK, resultData);
+            } else {
+                resultReceiver.send(RESULT_FAILED, null);
+            }
+        }
+
+        private void doLeaveSession(int sessionId, @NonNull ResultReceiver resultReceiver) {
+            Log.d(AllJoynHandler.this.getClass().getSimpleName(), "leaveSession");
+
+            Status status = mBus.leaveSession(sessionId);
+            if (status == Status.OK) {
+                resultReceiver.send(RESULT_OK, null);
+            } else {
+                resultReceiver.send(RESULT_FAILED, null);
+            }
+        }
+
+        private void doPing(final String busName, @NonNull final ResultReceiver resultReceiver) {
+            Log.d(AllJoynHandler.this.getClass().getSimpleName(), "ping the service with bus name \"" + busName + "\"");
+
+            final AtomicBoolean finished = new AtomicBoolean(false);
+            final Bundle data = new Bundle();
+            data.putString(PARAM_BUS_NAME, busName);
+            Status pingStatus = mBus.ping(busName, 5000, new OnPingListener() {
+                @Override
+                public void onPing(Status status, Object context) {
+                    synchronized (finished) {
+                        if (!finished.get()) {
+                            if (status == Status.OK) {
+                                resultReceiver.send(RESULT_OK, data);
+                            } else {
+                                resultReceiver.send(RESULT_FAILED, data);
+                            }
+                            finished.set(true);
+                        }
+                    }
+                }
+            }, null);
+            if (pingStatus != Status.OK) {
+                synchronized (finished) {
+                    if (!finished.get()) {
+                        resultReceiver.send(RESULT_FAILED, data);
+                        finished.set(true);
+                    }
+                }
+            }
+        }
+
     }
 
 }

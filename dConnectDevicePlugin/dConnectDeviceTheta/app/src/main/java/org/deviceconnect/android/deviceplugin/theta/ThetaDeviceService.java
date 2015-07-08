@@ -8,16 +8,20 @@ import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaBatteryProfile;
+import org.deviceconnect.android.deviceplugin.theta.profile.ThetaMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSystemProfile;
+import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -32,15 +36,16 @@ public class ThetaDeviceService extends DConnectMessageService {
 
     private static final String PREFIX_SSID = "THETA";
 
-    private ThetaApiClient mClient;
-
     @Override
     public void onCreate() {
         super.onCreate();
-        mClient = new ThetaApiClient();
+
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
-        addProfile(new ThetaBatteryProfile());
+        ThetaApiClient client = new ThetaApiClient();
+        FileManager fileMgr = new FileManager(this);
+        addProfile(new ThetaBatteryProfile(client));
+        addProfile(new ThetaMediaStreamRecordingProfile(client, fileMgr));
     }
 
     @Override
@@ -56,10 +61,6 @@ public class ThetaDeviceService extends DConnectMessageService {
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
         return new ThetaServiceDiscoveryProfile(this);
-    }
-
-    public void execute(final ThetaApiTask task) {
-        mClient.execute(task);
     }
 
     public boolean searchDevice(final Intent request, final Intent response) {

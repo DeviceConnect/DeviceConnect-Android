@@ -13,4 +13,6 @@ public interface ThetaApi {
 
     double getBatteryLevel() throws ThetaException, IOException;
 
+    void takePhoto(ThetaPhotoEventListener listener) throws ThetaException, IOException;
+
 }

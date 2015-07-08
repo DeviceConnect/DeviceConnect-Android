@@ -5,6 +5,7 @@ import android.content.Intent;
 import com.theta360.lib.ThetaException;
 
 import org.deviceconnect.android.deviceplugin.theta.ThetaApi;
+import org.deviceconnect.android.deviceplugin.theta.ThetaApiClient;
 import org.deviceconnect.android.deviceplugin.theta.ThetaApiTask;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
 import org.deviceconnect.android.message.MessageUtils;
@@ -20,16 +21,22 @@ import java.io.IOException;
  */
 public class ThetaBatteryProfile extends BatteryProfile {
 
+    private final ThetaApiClient mClient;
+
+    public ThetaBatteryProfile(final ThetaApiClient client) {
+        mClient = client;
+    }
+
     @Override
     protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
-        getService().execute(new ThetaApiTask() {
+        mClient.execute(new ThetaApiTask() {
             @Override
-            public void run(final ThetaApi api)  {
+            public void run(final ThetaApi api) {
                 try {
                     setLevel(response, api.getBatteryLevel());
                     setCharging(response, false);
                     setResult(response, DConnectMessage.RESULT_OK);
-                }  catch (ThetaException e) {
+                } catch (ThetaException e) {
                     MessageUtils.setUnknownError(response, e.getMessage());
                 } catch (IOException e) {
                     MessageUtils.setUnknownError(response, e.getMessage());
@@ -42,13 +49,13 @@ public class ThetaBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
-        getService().execute(new ThetaApiTask() {
+        mClient.execute(new ThetaApiTask() {
             @Override
             public void run(final ThetaApi api) {
                 try {
                     setLevel(response, api.getBatteryLevel());
                     setResult(response, DConnectMessage.RESULT_OK);
-                }  catch (ThetaException e) {
+                } catch (ThetaException e) {
                     MessageUtils.setUnknownError(response, e.getMessage());
                 } catch (IOException e) {
                     MessageUtils.setUnknownError(response, e.getMessage());

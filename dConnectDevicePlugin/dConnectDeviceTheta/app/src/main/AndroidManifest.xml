@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -41,6 +42,12 @@
             android:name="org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService"
             android:exported="false" >
         </service>
+
+        <provider
+            android:name="org.deviceconnect.android.provider.FileProvider"
+            android:authorities="org.deviceconnect.android.deviceplugin.theta.provider"
+            android:exported="true" >
+        </provider>
 
         <service
             android:name="org.deviceconnect.android.message.DConnectLaunchService"

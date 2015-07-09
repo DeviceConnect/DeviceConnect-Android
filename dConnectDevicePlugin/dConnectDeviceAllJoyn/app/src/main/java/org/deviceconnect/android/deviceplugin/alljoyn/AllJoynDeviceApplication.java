@@ -6,7 +6,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -75,7 +74,6 @@ public class AllJoynDeviceApplication extends Application {
     public static final int MSG_TYPE_LEAVE_SESSION = 4;
     public static final int MSG_TYPE_PING = 5;
 
-    private Handler mMainHandler = new Handler();
     private AllJoynHandler mAllJoynHandler;
 
     // TODO: 到達不可のリモートバス（サービス）を削除する機構。
@@ -99,14 +97,14 @@ public class AllJoynDeviceApplication extends Application {
         final Message msg = new Message();
         msg.what = MSG_TYPE_INIT;
         Bundle data = new Bundle();
-        data.putParcelable(PARAM_RESULT_RECEIVER, new ResultReceiver(mMainHandler) {
+        data.putParcelable(PARAM_RESULT_RECEIVER, new ResultReceiver() {
             @Override
             protected void onReceiveResult(int resultCode, Bundle resultData) {
                 if (resultCode == RESULT_FAILED) {
                     Log.w(AllJoynDeviceApplication.class.getSimpleName(),
                             "AllJoyn init failed, retrying...");
                     // Resend
-                    mMainHandler.postDelayed(new Runnable() {
+                    mAllJoynHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             mAllJoynHandler.sendMessage(msg);
@@ -123,7 +121,7 @@ public class AllJoynDeviceApplication extends Application {
         final Message msg = new Message();
         msg.what = MSG_TYPE_DISCOVER;
         Bundle data = new Bundle();
-        data.putParcelable(PARAM_RESULT_RECEIVER, new ResultReceiver(mMainHandler) {
+        data.putParcelable(PARAM_RESULT_RECEIVER, new ResultReceiver() {
             @Override
             protected void onReceiveResult(int resultCode, Bundle resultData) {
             }
@@ -356,7 +354,7 @@ public class AllJoynDeviceApplication extends Application {
                 }
 
                 mPingTimer = Executors.newScheduledThreadPool(3);
-                final ResultReceiver pingResultReceiver = new ResultReceiver(mMainHandler) {
+                final ResultReceiver pingResultReceiver = new ResultReceiver() {
                     @Override
                     protected void onReceiveResult(int resultCode, Bundle resultData) {
                         if (resultData == null || !resultData.containsKey(PARAM_BUS_NAME)) {
@@ -560,6 +558,12 @@ public class AllJoynDeviceApplication extends Application {
             }
         }
 
+    }
+
+    public class ResultReceiver extends android.os.ResultReceiver {
+        public ResultReceiver() {
+            super(mAllJoynHandler);
+        }
     }
 
 }

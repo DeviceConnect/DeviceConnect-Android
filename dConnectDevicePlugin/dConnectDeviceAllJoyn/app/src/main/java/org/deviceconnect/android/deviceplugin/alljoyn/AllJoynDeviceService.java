@@ -3,6 +3,7 @@ package org.deviceconnect.android.deviceplugin.alljoyn;
 import android.os.Debug;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.alljoyn.profile.AllJoynLightProfile;
 import org.deviceconnect.android.deviceplugin.alljoyn.profile.AllJoynServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.alljoyn.profile.AllJoynSystemProfile;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -26,6 +27,8 @@ public class AllJoynDeviceService extends DConnectMessageService
         Debug.waitForDebugger();
 
         Log.d("SHIGSHIG", "start");
+
+        addProfile(new AllJoynLightProfile());
     }
 
     @Override

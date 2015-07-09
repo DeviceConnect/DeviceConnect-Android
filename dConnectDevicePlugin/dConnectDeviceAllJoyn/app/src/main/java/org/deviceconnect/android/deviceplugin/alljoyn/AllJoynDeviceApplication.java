@@ -181,19 +181,19 @@ public class AllJoynDeviceApplication extends Application {
      * @param <T>        AllJoyn interface
      * @return a concrete AllJoyn object
      */
-    public <T> T getInterface(@NonNull String serviceId, @NonNull Class<T> ifaceClass) {
+    public <T> T getInterface(@NonNull String serviceId, int sessionId, @NonNull Class<T> ifaceClass) {
         AllJoynServiceEntity service = mAllJoynServiceEntities.get(serviceId);
         if (service == null) {
             return null;
         }
 
-        // FIXME: 特定のAllJoyn I/Fを備えたオブジェクトが複数あった場合の対処。
-        // 当面、最初のオブジェクトのI/Fを返す。オブジェクト毎にサービスID、別々に取り扱えるようにすべき？
+        // FIXME: 特定のAllJoyn I/Fを備えたBusオブジェクトが1サービスに複数あった場合の対処。
+        // 当面、最初のオブジェクトのI/Fを返す。オブジェクト毎にサービスIDを発行し、別々に取り扱えるようにすべき？
         for (BusObjectDescription proxyObject : service.proxyObjects) {
             for (String iface : proxyObject.interfaces) {
                 if (ifaceClass.getCanonicalName().equals(iface)) {
                     return mAllJoynHandler.getInterface(service.busName, proxyObject.path,
-                            service.sessionId, ifaceClass);
+                            sessionId, ifaceClass);
                 }
             }
         }

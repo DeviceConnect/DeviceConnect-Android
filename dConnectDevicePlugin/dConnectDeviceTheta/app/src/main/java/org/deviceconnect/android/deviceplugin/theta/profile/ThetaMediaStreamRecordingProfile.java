@@ -12,12 +12,12 @@ import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
 import org.deviceconnect.android.deviceplugin.theta.ThetaPhoto;
 import org.deviceconnect.android.deviceplugin.theta.ThetaPhotoEventListener;
 import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -81,6 +81,8 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                             getService().sendResponse(response);
                         }
                     });
+                } catch (IllegalStateException e) {
+                    MessageUtils.setIllegalDeviceStateError(response, "Theta's current mode is not video mode.");
                 } catch (ThetaException e) {
                     MessageUtils.setUnknownError(response, e.getMessage());
                     getService().sendResponse(response);
@@ -88,6 +90,89 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                     MessageUtils.setUnknownError(response, e.getMessage());
                     getService().sendResponse(response);
                 }
+            }
+        });
+        return false;
+    }
+
+    @Override
+    protected boolean onPutOnPhoto(Intent request, Intent response, String serviceId, String sessionKey) {
+        if (serviceId == null) {
+            MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+        } else if (sessionKey == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+        } else {
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onDeleteOnPhoto(Intent request, Intent response, String serviceId, String sessionKey) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+        } else if (sessionKey == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
+        } else {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else if (error == EventError.FAILED) {
+                MessageUtils.setUnknownError(response, "Failed to uninsert event for db.");
+            } else if (error == EventError.NOT_FOUND) {
+                MessageUtils.setUnknownError(response, "Not found event.");
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onPostRecord(final Intent request, final Intent response,
+                                   final String serviceId, final String target,
+                                   final Long timeslice) {
+        mClient.execute(new ThetaApiTask() {
+            @Override
+            public void run(final ThetaApi api) {
+                try {
+                    api.startVideoRecording();
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } catch (IllegalStateException e) {
+                    MessageUtils.setIllegalDeviceStateError(response, "Theta's current mode is not video mode.");
+                } catch (ThetaException e) {
+                    MessageUtils.setUnknownError(response, e.getMessage());
+                } catch (IOException e) {
+                    MessageUtils.setUnknownError(response, e.getMessage());
+                }
+                getService().sendResponse(response);
+            }
+        });
+        return false;
+    }
+
+    @Override
+    protected boolean onPutStop(final Intent request, final Intent response,
+                                final String serviceId, final String target) {
+        mClient.execute(new ThetaApiTask() {
+            @Override
+            public void run(final ThetaApi api) {
+                try {
+                    api.stopVideoRecording();
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } catch (ThetaException e) {
+                    MessageUtils.setUnknownError(response, e.getMessage());
+                } catch (IOException e) {
+                    MessageUtils.setUnknownError(response, e.getMessage());
+                }
+                getService().sendResponse(response);
             }
         });
         return false;

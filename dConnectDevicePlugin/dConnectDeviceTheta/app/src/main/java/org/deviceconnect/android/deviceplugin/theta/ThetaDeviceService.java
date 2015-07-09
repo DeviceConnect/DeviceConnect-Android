@@ -7,7 +7,11 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.theta360.lib.PtpipInitiator;
+import com.theta360.lib.ThetaException;
+
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaBatteryProfile;
+import org.deviceconnect.android.deviceplugin.theta.profile.ThetaFileProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaServiceInformationProfile;
@@ -45,7 +49,18 @@ public class ThetaDeviceService extends DConnectMessageService {
         ThetaApiClient client = new ThetaApiClient();
         FileManager fileMgr = new FileManager(this);
         addProfile(new ThetaBatteryProfile(client));
+        addProfile(new ThetaFileProfile(client, fileMgr));
         addProfile(new ThetaMediaStreamRecordingProfile(client, fileMgr));
+    }
+
+    @Override
+    public void onDestroy() {
+        try {
+            PtpipInitiator.close();
+        } catch (ThetaException e) {
+            // Nothing to do.
+        }
+        super.onDestroy();
     }
 
     @Override

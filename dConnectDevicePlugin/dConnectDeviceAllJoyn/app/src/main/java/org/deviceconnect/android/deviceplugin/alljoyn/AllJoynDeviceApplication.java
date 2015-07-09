@@ -263,35 +263,18 @@ public class AllJoynDeviceApplication extends Application {
         public void onAnnouncement(String busName, short port,
                                    BusObjectDescription[] busObjects,
                                    Map<String, Variant> aboutMap) {
-            // Determine a DeviceConnect service name.
-            String serviceName;
-            if (aboutMap.containsKey(AboutKeys.ABOUT_DEVICE_NAME)) {
-                try {
-                    Variant val = aboutMap.get(AboutKeys.ABOUT_DEVICE_NAME);
-                    serviceName = val.getObject(String.class);
-                } catch (BusException e) {
-                    Log.w(AllJoynHandler.this.getClass().getSimpleName(),
-                            "Failed to parse about announcement (1).");
-                    serviceName = "Alljoyn service (" + busName.hashCode() + ")";
-                }
-            } else {
-                serviceName = "Alljoyn service (" + busName.hashCode() + ")";
-            }
+            AllJoynServiceEntity service =
+                    new AllJoynServiceEntity(busName, port, aboutMap, busObjects);
 
-            Log.i(AllJoynHandler.this.getClass().getSimpleName(), "Service found: " + serviceName);
+            Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                    "Service found: " + service.serviceName);
 
             if (!containsRequiredInterfaces(busObjects)) {
                 Log.i(AllJoynHandler.this.getClass().getSimpleName(),
-                        "Required I/Fs are missing. Ignoring \"" + serviceName + "\"");
+                        "Required I/Fs are missing. Ignoring \"" + service.serviceName + "\"");
                 return;
             }
 
-            AllJoynServiceEntity service = new AllJoynServiceEntity();
-            service.serviceName = serviceName;
-            service.busName = busName;
-            service.port = port;
-            service.proxyObjects = busObjects;
-            service.aboutData = aboutMap;
             mAllJoynServiceEntities.put(busName, service);
         }
 

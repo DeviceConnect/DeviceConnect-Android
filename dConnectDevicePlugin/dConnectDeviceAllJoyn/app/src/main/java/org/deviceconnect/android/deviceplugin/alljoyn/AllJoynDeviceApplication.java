@@ -9,11 +9,9 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import org.alljoyn.about.AboutKeys;
 import org.alljoyn.about.AboutService;
 import org.alljoyn.about.AboutServiceImpl;
 import org.alljoyn.bus.BusAttachment;
-import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.Mutable;
 import org.alljoyn.bus.OnPingListener;
 import org.alljoyn.bus.ProxyBusObject;

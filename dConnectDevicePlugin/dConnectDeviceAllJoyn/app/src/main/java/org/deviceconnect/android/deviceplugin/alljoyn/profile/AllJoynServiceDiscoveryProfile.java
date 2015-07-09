@@ -2,7 +2,6 @@ package org.deviceconnect.android.deviceplugin.alljoyn.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynDeviceApplication;
 import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynServiceEntity;
@@ -11,7 +10,6 @@ import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 

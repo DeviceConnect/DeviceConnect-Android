@@ -132,6 +132,28 @@ public class AllJoynDeviceApplication extends Application {
         return new LinkedHashMap<>(mAllJoynServiceEntities);
     }
 
+    public void joinSession(@NonNull String busName, short port,
+                            @NonNull ResultReceiver resultReceiver) {
+        final Message msg = new Message();
+        msg.what = MSG_TYPE_JOIN_SESSION;
+        Bundle data = new Bundle();
+        data.putString(PARAM_BUS_NAME, busName);
+        data.putShort(PARAM_PORT, port);
+        data.putParcelable(PARAM_RESULT_RECEIVER, resultReceiver);
+        msg.obj = data;
+        mAllJoynHandler.sendMessage(msg);
+    }
+
+    public void leaveSession(int sessionId, @NonNull ResultReceiver resultReceiver) {
+        final Message msg = new Message();
+        msg.what = MSG_TYPE_LEAVE_SESSION;
+        Bundle data = new Bundle();
+        data.putInt(PARAM_SESSION_ID, sessionId);
+        data.putParcelable(PARAM_RESULT_RECEIVER, resultReceiver);
+        msg.obj = data;
+        mAllJoynHandler.sendMessage(msg);
+    }
+
     /**
      * Obtain a proxy to an AllJoyn interface on a service.
      * Through this proxy, properties, methods and signals of the service are accessed.

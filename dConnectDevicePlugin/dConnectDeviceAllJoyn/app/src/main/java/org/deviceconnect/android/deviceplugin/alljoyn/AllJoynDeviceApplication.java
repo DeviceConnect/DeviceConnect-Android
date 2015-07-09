@@ -25,8 +25,11 @@ import org.alljoyn.bus.alljoyn.DaemonInit;
 import org.alljoyn.services.common.AnnouncementHandler;
 import org.alljoyn.services.common.BusObjectDescription;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -43,14 +46,29 @@ public class AllJoynDeviceApplication extends Application {
 
     private static final String SERVICE_NAME = "DConnectAllJoyn";
 
-    public static final String[] REQUIRED_INTERFACES =
+    public static final String[] SINGLE_LAMP_INTERFACE_SET =
             new String[]{
-                    // AllJoyn Lighting Service, Lamp interface
-                    "org.allseen.LSF.LampDetails",
-                    "org.allseen.LSF.LampParameters",
-                    "org.allseen.LSF.LampService",
-                    "org.allseen.LSF.LampState"
+                    // AllJoyn Lighting service framework, Lamp service
+                    "org.allseen.LSF.LampDetails"
+                    , "org.allseen.LSF.LampParameters"
+                    , "org.allseen.LSF.LampService"
+                    , "org.allseen.LSF.LampState"
             };
+    public static final String[] LAMP_CONTROLLER_INTERFACE_SET =
+            new String[]{
+//                    // AllJoyn Lighting service framework, Controller Service
+                    "org.allseen.LSF.ControllerService"
+                    , "org.allseen.LSF.ControllerService.Lamp"
+//                    , "org.allseen.LSF.ControllerService.LampGroup"
+//                    , "org.allseen.LSF.ControllerService.Preset"
+//                    , "org.allseen.LSF.ControllerService.Scene"
+//                    , "org.allseen.LSF.ControllerService.MasterScene"
+//                    , "org.allseen.LeaderElectionAndStateSync"
+            };
+    public static final String[][] SUPPORTED_INTERFACE_SETS = new String[][]{
+            SINGLE_LAMP_INTERFACE_SET
+            , LAMP_CONTROLLER_INTERFACE_SET
+    };
 
     public static final int RESULT_OK = -1;
     public static final int RESULT_FAILED = 0;
@@ -258,27 +276,23 @@ public class AllJoynDeviceApplication extends Application {
             }
         }
 
-        private boolean containsRequiredInterfaces(@NonNull BusObjectDescription[] busObjects) {
-            boolean allFound = true;
-            for (String requiredInterface : REQUIRED_INTERFACES) {
-                boolean found = false;
-                for (BusObjectDescription busObject : busObjects) {
-                    for (String iface : busObject.interfaces) {
-                        if (requiredInterface.equals(iface)) {
-                            found = true;
-                        }
-                    }
-                    if (found) {
-                        break;
-                    }
-                }
-                if (!found) {
-                    allFound = false;
-                    break;
-                }
+        private boolean isSupported(@NonNull BusObjectDescription[] busObjects) {
+            List<String> interfaces = new LinkedList<>();
+            for (BusObjectDescription busObject : busObjects) {
+                Collections.addAll(interfaces, busObject.interfaces);
             }
 
-            return allFound;
+            // Each supported AllJoyn interface set represents a collection of required AllJoyn
+            // interfaces to realize a certain DeviceConnect profile (e.g. AllJoyn Lamp service
+            // interfaces are required for the DeviceConnect Light profile).
+            // If AllJoyn bus object in question contains any of supported interface sets, then
+            // assumedly this bus object is able to become a DeviceConect service.
+            for (String[] supportedInterfaceSet : SUPPORTED_INTERFACE_SETS) {
+                if (interfaces.containsAll(Arrays.asList(supportedInterfaceSet))) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
@@ -291,7 +305,7 @@ public class AllJoynDeviceApplication extends Application {
             Log.i(AllJoynHandler.this.getClass().getSimpleName(),
                     "Service found: " + service.serviceName);
 
-            if (!containsRequiredInterfaces(busObjects)) {
+            if (!isSupported(busObjects)) {
                 Log.i(AllJoynHandler.this.getClass().getSimpleName(),
                         "Required I/Fs are missing. Ignoring \"" + service.serviceName + "\"");
                 return;
@@ -451,11 +465,11 @@ public class AllJoynDeviceApplication extends Application {
         private void doDiscover(@NonNull ResultReceiver resultReceiver) {
             Log.d(AllJoynHandler.this.getClass().getSimpleName(), "discover");
 
-            Status status;
-
             if (!mFirstTime) {
-                for (String iface : REQUIRED_INTERFACES) {
-                    mBus.cancelWhoImplements(new String[]{iface});
+                for (String[] ifaceSet : SUPPORTED_INTERFACE_SETS) {
+                    for (String iface : ifaceSet) {
+                        mBus.cancelWhoImplements(new String[]{iface});
+                    }
                 }
             } else {
                 mFirstTime = false;
@@ -463,21 +477,11 @@ public class AllJoynDeviceApplication extends Application {
 
             // To realize fine-grained API availability for DeviceConnect,
             // query each AllJoyn interface separately.
-            for (String iface : REQUIRED_INTERFACES) {
-                mBus.whoImplements(new String[]{iface});
+            for (String[] ifaceSet : SUPPORTED_INTERFACE_SETS) {
+                for (String iface : ifaceSet) {
+                    mBus.whoImplements(new String[]{iface});
+                }
             }
-
-            // For Light profile
-//            mBus.whoImplements(new String[]{"org.allseen.LSF.LampDetails"});
-//            mBus.whoImplements(new String[]{"org.allseen.LSF.LampParameters"});
-//            mBus.whoImplements(new String[]{"org.allseen.LSF.LampService"});
-//            mBus.whoImplements(new String[]{"org.allseen.LSF.LampState"});
-//
-//            mBus.whoImplements(new String[]{"org.allseen.LSF.ControllerService"});
-//            mBus.whoImplements(new String[]{"org.allseen.LSF.ControllerService.Lamp"});
-//            mBus.whoImplements(new String[]{"org.allseen.LSF.ControllerService.LampGroup"});
-
-            resultReceiver.send(RESULT_OK, null);
         }
 
         /**

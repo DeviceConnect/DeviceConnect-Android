@@ -3,8 +3,6 @@ package org.deviceconnect.android.deviceplugin.alljoyn.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import org.allseen.lsf.helper.facade.Lamp;
-import org.allseen.lsf.helper.model.LampDataModel;
 import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynDeviceApplication;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.message.DConnectMessage;

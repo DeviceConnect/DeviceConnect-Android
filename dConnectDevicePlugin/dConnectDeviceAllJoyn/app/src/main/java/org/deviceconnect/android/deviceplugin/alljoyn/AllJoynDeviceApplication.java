@@ -41,13 +41,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class AllJoynDeviceApplication extends Application {
 
-    // AllJoyネイティブライブラリを読み込む
-    static {
-        System.loadLibrary("gnustl_shared");
-        System.loadLibrary("alljoyn_java");
-        System.loadLibrary("alljoyn_lsf_java");
-    }
-
     private static final String SERVICE_NAME = "DConnectAllJoyn";
 
     public static final String[] REQUIRED_INTERFACES =
@@ -73,6 +66,11 @@ public class AllJoynDeviceApplication extends Application {
     public static final int MSG_TYPE_JOIN_SESSION = 3;
     public static final int MSG_TYPE_LEAVE_SESSION = 4;
     public static final int MSG_TYPE_PING = 5;
+
+    static {
+        // Load AllJoyn native libraries.
+        System.loadLibrary("alljoyn_java");
+    }
 
     private AllJoynHandler mAllJoynHandler;
 

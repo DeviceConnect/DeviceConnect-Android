@@ -2,14 +2,14 @@
 
 package org.allseen.LSF;
 
-import java.util.HashMap;
-
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.Variant;
 import org.alljoyn.bus.annotation.BusInterface;
 import org.alljoyn.bus.annotation.BusMethod;
 import org.alljoyn.bus.annotation.BusProperty;
 import org.alljoyn.bus.annotation.BusSignal;
+
+import java.util.HashMap;
 
 /*
  * The BusInterface annotation is used to tell the code this interface is an AllJoyn
@@ -30,9 +30,10 @@ public interface LampState {
      * All methods that use the BusMethod annotation can throw a BusException and should indicate
      * this fact.
      */
-    @BusMethod (name = "TransitionLampState", signature = "ta{sv}u", replySignature = "u")
+    @BusMethod(name = "TransitionLampState", signature = "ta{sv}u", replySignature = "u")
     int transitionLampState(long Timestamp, HashMap<String, Variant> NewState, int TransitionPeriod) throws BusException;
-    @BusMethod (name = "ApplyPulseEffect", signature = "a{sv}a{sv}uuut", replySignature = "u")
+
+    @BusMethod(name = "ApplyPulseEffect", signature = "a{sv}a{sv}uuut", replySignature = "u")
     int applyPulseEffect(HashMap<String, Variant> FromState, HashMap<String, Variant> ToState, int period, int duration, int numPulses, long timestamp) throws BusException;
 
     /*
@@ -43,32 +44,37 @@ public interface LampState {
      * All properties that use the BusProperty annotation can throw a BusException and should
      * indicate this fact.
      */
-    @BusProperty (name = "Version", signature = "u")
+    @BusProperty(name = "Version", signature = "u")
     int getVersion() throws BusException;
 
-    @BusProperty (name = "OnOff", signature = "b")
+    @BusProperty(name = "OnOff", signature = "b")
     void setOnOff(boolean in_value) throws BusException;
-    @BusProperty (name = "OnOff", signature = "b")
+
+    @BusProperty(name = "OnOff", signature = "b")
     boolean getOnOff() throws BusException;
 
-    @BusProperty (name = "Hue", signature = "u")
+    @BusProperty(name = "Hue", signature = "u")
     void setHue(int in_value) throws BusException;
-    @BusProperty (name = "Hue", signature = "u")
+
+    @BusProperty(name = "Hue", signature = "u")
     int getHue() throws BusException;
 
-    @BusProperty (name = "Saturation", signature = "u")
+    @BusProperty(name = "Saturation", signature = "u")
     void setSaturation(int in_value) throws BusException;
-    @BusProperty (name = "Saturation", signature = "u")
+
+    @BusProperty(name = "Saturation", signature = "u")
     int getSaturation() throws BusException;
 
-    @BusProperty (name = "ColorTemp", signature = "u")
+    @BusProperty(name = "ColorTemp", signature = "u")
     void setColorTemp(int in_value) throws BusException;
-    @BusProperty (name = "ColorTemp", signature = "u")
+
+    @BusProperty(name = "ColorTemp", signature = "u")
     int getColorTemp() throws BusException;
 
-    @BusProperty (name = "Brightness", signature = "u")
+    @BusProperty(name = "Brightness", signature = "u")
     void setBrightness(int in_value) throws BusException;
-    @BusProperty (name = "Brightness", signature = "u")
+
+    @BusProperty(name = "Brightness", signature = "u")
     int getBrightness() throws BusException;
 
     /*
@@ -78,6 +84,6 @@ public interface LampState {
      * All signals that use the BusSignal annotation can throw a BusException and should
      * indicate this fact.
      */
-    @BusSignal (name = "LampStateChanged", replySignature = "s")
+    @BusSignal(name = "LampStateChanged", replySignature = "s")
     void lampStateChanged(String LampID) throws BusException;
 }

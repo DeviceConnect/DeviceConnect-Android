@@ -19,8 +19,10 @@ import org.alljoyn.bus.annotation.Position;
 @BusInterface(name = "org.allseen.LSF.LampService")
 public interface LampService {
     public class ClearLampFault_return_value_uu {
-        @Position(0) public int member0 = 0;
-        @Position(1) public int member1 = 0;
+        @Position(0)
+        public int member0 = 0;
+        @Position(1)
+        public int member1 = 0;
     }
 
     /*
@@ -31,7 +33,7 @@ public interface LampService {
      * All methods that use the BusMethod annotation can throw a BusException and should indicate
      * this fact.
      */
-    @BusMethod (name = "ClearLampFault", signature = "u", replySignature = "uu")
+    @BusMethod(name = "ClearLampFault", signature = "u", replySignature = "uu")
     LampService.ClearLampFault_return_value_uu clearLampFault(int LampFaultCodeIn) throws BusException;
 
     /*
@@ -42,10 +44,12 @@ public interface LampService {
      * All properties that use the BusProperty annotation can throw a BusException and should
      * indicate this fact.
      */
-    @BusProperty (name = "Version", signature = "u")
+    @BusProperty(name = "Version", signature = "u")
     int getVersion() throws BusException;
-    @BusProperty (name = "LampServiceVersion", signature = "u")
+
+    @BusProperty(name = "LampServiceVersion", signature = "u")
     int getLampServiceVersion() throws BusException;
-    @BusProperty (name = "LampFaults", signature = "au")
+
+    @BusProperty(name = "LampFaults", signature = "au")
     int[] getLampFaults() throws BusException;
 }

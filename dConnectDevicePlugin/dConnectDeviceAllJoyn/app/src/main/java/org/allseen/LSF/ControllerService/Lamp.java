@@ -24,6 +24,14 @@ import java.util.Map;
  */
 @BusInterface(name = "org.allseen.LSF.ControllerService.Lamp")
 public interface Lamp {
+
+    public class BaseReturnValue {
+        @Position(0)
+        public int responseCode = 0;
+        @Position(1)
+        public String lampID;
+    }
+
     public class GetAllLampIDs_return_value_uas {
         @Position(0)
         public int responseCode = 0;
@@ -31,143 +39,82 @@ public interface Lamp {
         public String[] lampIDs;
     }
 
-    public class GetLampSupportedLanguages_return_value_usas {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class GetLampSupportedLanguages_return_value_usas extends BaseReturnValue {
         @Position(2)
         public String[] supportedLanguages;
     }
 
-    public class GetLampManufacturer_return_value_usss {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class GetLampManufacturer_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String language;
         @Position(3)
         public String manufacturer;
     }
 
-    public class GetLampName_return_value_usss {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class GetLampName_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String language;
         @Position(3)
         public String lampName;
     }
 
-    public class SetLampName_return_value_usss {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class SetLampName_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String language;
     }
 
-    public class GetLampDetails_return_value_usa_sv {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class GetLampDetails_return_value_usa_sv extends BaseReturnValue {
         @Position(2)
         public Map<String, Variant> lampDetails;
     }
 
-    public class GetLampParameters_return_value_usa_sv {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class GetLampParameters_return_value_usa_sv extends BaseReturnValue {
         @Position(2)
         public Map<String, Variant> lampParameters;
     }
 
-    public class GetLampParametersField_return_value_usss {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class GetLampParametersField_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String lampParameterFieldName;
         @Position(3)
         public String lampParameterFieldValue;
     }
 
-    public class GetLampState_return_value_usa_sv {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class GetLampState_return_value_usa_sv extends BaseReturnValue {
         @Position(2)
         public Map<String, Variant> lampState;
     }
 
-    public class GetLampStateField_return_value_usss {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class GetLampStateField_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String lampStateFieldName;
         @Position(3)
         public String lampStateFieldValue;
     }
 
-    public class TransitionLampState_return_value_us {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class TransitionLampState_return_value_us extends BaseReturnValue {
     }
 
-    public class ResetLampState_return_value_us {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class ResetLampState_return_value_us extends BaseReturnValue {
     }
 
-    public class ResetLampStateField_return_value_uss {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class ResetLampStateField_return_value_uss extends BaseReturnValue {
         @Position(2)
         public String lampStateFieldName;
     }
 
-
-    public class GetLampFaults_return_value_usau {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class GetLampFaults_return_value_usau extends BaseReturnValue {
         @Position(2)
         public int[] lampFaults;
     }
 
-    public class ClearLampFaults_return_value_usu {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class ClearLampFaults_return_value_usu extends BaseReturnValue {
         @Position(2)
         public int lampFault;
     }
 
 
-    public class GetLampServiceVersion_return_value_usu {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampID;
+    public class GetLampServiceVersion_return_value_usu extends BaseReturnValue {
         @Position(2)
         public int lampServiceVersion;
     }

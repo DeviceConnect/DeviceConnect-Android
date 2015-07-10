@@ -21,77 +21,49 @@ import org.alljoyn.bus.annotation.Position;
  */
 @BusInterface(name = "org.allseen.LSF.ControllerService.LampGroup")
 public interface LampGroup {
-    public class GetAllLampGroupIDs_return_value_uas {
+
+    public class BaseReturnValue {
         @Position(0)
         public int responseCode = 0;
         @Position(1)
-        public String[] lampGroupIDs;
+        public String lampGroupIDs = null;
     }
 
-    public class GetLampGroupName_return_value_usss {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampGroupID;
+    public class GetAllLampGroupIDs_return_value_uas extends BaseReturnValue {
+    }
+
+    public class GetLampGroupName_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String language;
         @Position(3)
         public String lampGroupName;
     }
 
-    public class SetLampGroupName_return_value_usss {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampGroupID;
+    public class SetLampGroupName_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String language;
     }
 
-    public class CreateLampGroup_return_value_us {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampGroupID;
+    public class CreateLampGroup_return_value_us extends BaseReturnValue {
     }
 
-    public class UpdateLampGroup_return_value_us {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampGroupID;
+    public class UpdateLampGroup_return_value_us extends BaseReturnValue {
     }
 
-    public class DeleteLampGroup_return_value_us {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampGroupID;
+    public class DeleteLampGroup_return_value_us extends BaseReturnValue {
     }
 
-    public class GetLampGroup_return_value_usasas {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampGroupID;
+    public class GetLampGroup_return_value_usasas extends BaseReturnValue {
         @Position(2)
         public String[] lampIDs;
         @Position(3)
         public String[] lampGroupIDs;
     }
 
-    public class ResetLampGroupState_return_value_us {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampGroupID;
+    public class ResetLampGroupState_return_value_us extends BaseReturnValue {
     }
 
-    public class ResetLampGroupStateField_return_value_uss {
-        @Position(0)
-        public int responseCode = 0;
-        @Position(1)
-        public String lampGroupID;
+    public class ResetLampGroupStateField_return_value_uss extends BaseReturnValue {
         @Position(2)
         public String lampGroupStateFieldName;
     }

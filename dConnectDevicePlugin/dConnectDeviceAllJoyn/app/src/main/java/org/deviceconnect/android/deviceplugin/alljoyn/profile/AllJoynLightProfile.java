@@ -77,9 +77,9 @@ public class AllJoynLightProfile extends LightProfile {
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
-            public void onSessionJoined(String busName, short port, int sessionId) {
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
                 // LampDetails details = app.getInterface(serviceId, LampDetails.class);
-                LampState state = app.getInterface(service.busName, sessionId, LampState.class);
+                LampState state = app.getInterface(busName, sessionId, LampState.class);
 
                 List<Bundle> lights = new ArrayList<>();
                 if (state != null) {
@@ -102,7 +102,7 @@ public class AllJoynLightProfile extends LightProfile {
             }
 
             @Override
-            public void onSessionFailed(String busName, short port) {
+            public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
                 getContext().sendBroadcast(response);
             }
@@ -116,8 +116,8 @@ public class AllJoynLightProfile extends LightProfile {
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
-            public void onSessionJoined(String busName, short port, int sessionId) {
-                Lamp lamp = app.getInterface(service.busName, sessionId, Lamp.class);
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                Lamp lamp = app.getInterface(busName, sessionId, Lamp.class);
 
                 List<Bundle> lights = new ArrayList<>();
                 if (lamp != null) {
@@ -170,7 +170,7 @@ public class AllJoynLightProfile extends LightProfile {
             }
 
             @Override
-            public void onSessionFailed(String busName, short port) {
+            public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
                 getContext().sendBroadcast(response);
             }
@@ -213,9 +213,9 @@ public class AllJoynLightProfile extends LightProfile {
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
-            public void onSessionJoined(String busName, short port, int sessionId) {
-                LampState state = app.getInterface(service.busName, sessionId, LampState.class);
-                LampDetails details = app.getInterface(service.busName, sessionId, LampDetails.class);
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                LampState state = app.getInterface(busName, sessionId, LampState.class);
+                LampDetails details = app.getInterface(busName, sessionId, LampDetails.class);
 
                 try {
                     HashMap<String, Variant> newStates = new HashMap<>();
@@ -257,7 +257,7 @@ public class AllJoynLightProfile extends LightProfile {
             }
 
             @Override
-            public void onSessionFailed(String busName, short port) {
+            public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
                 getContext().sendBroadcast(response);
             }
@@ -304,8 +304,8 @@ public class AllJoynLightProfile extends LightProfile {
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
-            public void onSessionJoined(String busName, short port, int sessionId) {
-                LampState state = app.getInterface(service.busName, sessionId, LampState.class);
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                LampState state = app.getInterface(busName, sessionId, LampState.class);
 
                 try {
                     state.setOnOff(false);
@@ -320,7 +320,7 @@ public class AllJoynLightProfile extends LightProfile {
             }
 
             @Override
-            public void onSessionFailed(String busName, short port) {
+            public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
                 getContext().sendBroadcast(response);
             }
@@ -335,8 +335,8 @@ public class AllJoynLightProfile extends LightProfile {
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
-            public void onSessionJoined(String busName, short port, int sessionId) {
-                Lamp lamp = app.getInterface(service.busName, sessionId, Lamp.class);
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                Lamp lamp = app.getInterface(busName, sessionId, Lamp.class);
 
                 try {
                     Map<String, Variant> newStates = new HashMap<>();
@@ -353,7 +353,7 @@ public class AllJoynLightProfile extends LightProfile {
             }
 
             @Override
-            public void onSessionFailed(String busName, short port) {
+            public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
                 getContext().sendBroadcast(response);
             }

@@ -2,14 +2,15 @@ package org.deviceconnect.android.deviceplugin.alljoyn;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 
 public class OneShotSessionHandler {
     private OneShotSessionHandler() {
 
     }
 
-    public static void run(final Context context, final String busName, final short port,
-                           final SessionJoinCallback callback) {
+    public static void run(@NonNull final Context context, @NonNull final String busName,
+                           final short port, @NonNull final SessionJoinCallback callback) {
         final AllJoynDeviceApplication app =
                 (AllJoynDeviceApplication) context.getApplicationContext();
 
@@ -30,8 +31,8 @@ public class OneShotSessionHandler {
     }
 
     public interface SessionJoinCallback {
-        void onSessionJoined(String busName, short port, int sessionId);
+        void onSessionJoined(@NonNull String busName, short port, int sessionId);
 
-        void onSessionFailed(String busName, short port);
+        void onSessionFailed(@NonNull String busName, short port);
     }
 }

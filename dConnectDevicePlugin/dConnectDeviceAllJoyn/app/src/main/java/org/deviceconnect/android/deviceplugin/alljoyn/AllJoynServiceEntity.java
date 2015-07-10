@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.alljoyn;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.alljoyn.about.AboutKeys;
@@ -22,6 +23,7 @@ public class AllJoynServiceEntity {
      * Human-friendly service name.
      */
     public String serviceName;
+    @NonNull
     public String busName;
     public short port;
     public Map<String, Variant> aboutData;
@@ -42,13 +44,15 @@ public class AllJoynServiceEntity {
     public String hardwareVersion;
     public String supportUrl;
 
+    @NonNull
     public BusObjectDescription[] proxyObjects;
     //    public String objPath;
 
     public Integer sessionId;
 
-    public AllJoynServiceEntity(String busName, short port,
-                                Map<String, Variant> aboutData, BusObjectDescription[] proxyObjects) {
+    public AllJoynServiceEntity(@NonNull String busName, short port,
+                                Map<String, Variant> aboutData,
+                                @NonNull BusObjectDescription[] proxyObjects) {
         this.busName = busName;
         this.port = port;
         this.aboutData = aboutData;

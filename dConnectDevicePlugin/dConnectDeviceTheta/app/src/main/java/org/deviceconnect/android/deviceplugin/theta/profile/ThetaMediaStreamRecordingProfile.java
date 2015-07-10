@@ -42,6 +42,10 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     @Override
     protected boolean onPostTakePhoto(final Intent request, final Intent response,
                                       final String serviceId, final String target) {
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
         mClient.execute(new ThetaApiTask() {
             @Override
             public void run(final ThetaApi api) {
@@ -51,7 +55,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                         public void onPhoto(final ThetaPhoto photo) {
                             try {
                                 String uri = mFileMgr.saveFile(photo.mFilename, photo.mData);
-                                String path = mFileMgr.getBasePath().toString() + "/" + photo.mFilename;
+                                String path = "/" + photo.mFilename;
 
                                 setUri(response, uri);
                                 setPath(response, path);
@@ -97,8 +101,8 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
 
     @Override
     protected boolean onPutOnPhoto(Intent request, Intent response, String serviceId, String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
         } else {
@@ -114,8 +118,8 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
 
     @Override
     protected boolean onDeleteOnPhoto(Intent request, Intent response, String serviceId, String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
         } else {
@@ -125,7 +129,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
             } else if (error == EventError.INVALID_PARAMETER) {
                 MessageUtils.setInvalidRequestParameterError(response);
             } else if (error == EventError.FAILED) {
-                MessageUtils.setUnknownError(response, "Failed to uninsert event for db.");
+                MessageUtils.setUnknownError(response, "Failed to delete event from db.");
             } else if (error == EventError.NOT_FOUND) {
                 MessageUtils.setUnknownError(response, "Not found event.");
             } else {
@@ -139,6 +143,10 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     protected boolean onPostRecord(final Intent request, final Intent response,
                                    final String serviceId, final String target,
                                    final Long timeslice) {
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
         mClient.execute(new ThetaApiTask() {
             @Override
             public void run(final ThetaApi api) {
@@ -161,6 +169,10 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     @Override
     protected boolean onPutStop(final Intent request, final Intent response,
                                 final String serviceId, final String target) {
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
         mClient.execute(new ThetaApiTask() {
             @Override
             public void run(final ThetaApi api) {

@@ -1,12 +1,9 @@
 package org.deviceconnect.android.deviceplugin.theta;
 
-import android.util.Log;
-
 import com.theta360.lib.PtpipInitiator;
 import com.theta360.lib.ThetaException;
 import com.theta360.lib.ptpip.entity.ObjectHandles;
 import com.theta360.lib.ptpip.entity.ObjectInfo;
-import com.theta360.lib.ptpip.entity.StorageIds;
 import com.theta360.lib.ptpip.eventlistener.PtpipEventListener;
 
 import java.io.IOException;
@@ -130,6 +127,34 @@ public class ThetaApiClient {
             return data;
         }
     };
+
+    private ThetaDeviceInfo mDeviceInfo;
+
+    public synchronized ThetaDeviceInfo getDevice() {
+        return mDeviceInfo;
+    }
+
+    public synchronized ThetaDeviceInfo getDevice(final String serviceId) {
+        if (mDeviceInfo == null) {
+            return null;
+        }
+        if (!mDeviceInfo.mServiceId.equals(serviceId)) {
+            return null;
+        }
+        return mDeviceInfo;
+    }
+
+    public boolean hasDevice(final String serviceId) {
+        return getDevice(serviceId) != null;
+    }
+
+    public synchronized void setDevice(final ThetaDeviceInfo deviceInfo) {
+        mDeviceInfo = deviceInfo;
+    }
+
+    public synchronized void disposeDevice() {
+        mDeviceInfo = null;
+    }
 
     public void execute(final ThetaApiTask task) {
         mExecutor.execute(new Runnable() {

@@ -44,6 +44,10 @@ public class ThetaFileProfile extends FileProfile {
     @Override
     protected boolean onGetReceive(final Intent request, final Intent response, final String serviceId,
                                    final String path) {
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
         mClient.execute(new ThetaApiTask() {
             @Override
             public void run(final ThetaApi api) {
@@ -68,9 +72,6 @@ public class ThetaFileProfile extends FileProfile {
 
                     if (target != null) {
                         byte[] data = api.getFile(target);
-
-                        Log.d("AAA", "target: filename=" + target.mName + " size=" + data.length);
-
                         setResult(response, DConnectMessage.RESULT_OK);
                         setMIMEType(response, target.mMimeType);
                         setURI(response, filename, data);
@@ -92,6 +93,10 @@ public class ThetaFileProfile extends FileProfile {
     protected boolean onGetList(final Intent request, final Intent response, final String serviceId,
                                 final String path, final String mimeType, final String order,
                                 final Integer offset, final Integer limit) {
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
         mClient.execute(new ThetaApiTask() {
             @Override
             public void run(final ThetaApi api) {

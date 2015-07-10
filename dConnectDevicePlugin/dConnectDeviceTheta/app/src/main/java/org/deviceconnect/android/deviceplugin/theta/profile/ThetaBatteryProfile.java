@@ -29,6 +29,10 @@ public class ThetaBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
         mClient.execute(new ThetaApiTask() {
             @Override
             public void run(final ThetaApi api) {
@@ -49,6 +53,10 @@ public class ThetaBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
         mClient.execute(new ThetaApiTask() {
             @Override
             public void run(final ThetaApi api) {

@@ -223,7 +223,6 @@ public class AllJoynLightProfile extends LightProfile {
                     // NOTE: Arithmetic operations in primitive types may lead to arithmetic
                     // overflow. To retain precision, BigDecimal objects are used.
 
-                    state.getOnOff();
                     newStates.put("OnOff", new Variant(true, "b"));
                     if (details.getColor() && color != null) {
                         int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
@@ -265,10 +264,86 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    private void onPostLightForLampController(Intent request, Intent response,
-                                              AllJoynServiceEntity service, String lightId,
-                                              Float brightness, int[] color) {
+    private void onPostLightForLampController(Intent request, final Intent response,
+                                              AllJoynServiceEntity service, final String lightId,
+                                              final Float brightness, final int[] color) {
+        final AllJoynDeviceApplication app = getApplication();
 
+        OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+            @Override
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                Lamp lamp = app.getInterface(busName, sessionId, Lamp.class);
+
+                try {
+                    Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse =
+                            lamp.getLampDetails(lightId);
+                    if (lampDetailsResponse == null ||
+                            lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response, "Failed to obtain lamp details.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
+                    HashMap<String, Variant> newStates = new HashMap<>();
+
+                    // NOTE: Arithmetic operations in primitive types may lead to arithmetic
+                    // overflow. To retain precision, BigDecimal objects are used.
+
+                    newStates.put("OnOff", new Variant(true, "b"));
+                    if (lampDetailsResponse.lampDetails.containsKey("Color")) {
+                        if (lampDetailsResponse.lampDetails.get("Color").getObject(boolean.class)
+                                && color != null) {
+                            int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
+
+                            newStates.put("Hue", new Variant(hsb[0], "u"));
+                            newStates.put("Saturation", new Variant(hsb[1], "u"));
+                        }
+                    } else {
+                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                "Color support is not described in the lamp details. " +
+                                        "Assuming it is not supported...");
+                    }
+                    if (lampDetailsResponse.lampDetails.containsKey("Dimmable")) {
+                        if (lampDetailsResponse.lampDetails.get("Dimmable").getObject(boolean.class)
+                                && brightness != null) {
+                            // [0, 1] -> [0, 0xffffffff]
+                            BigDecimal tmp = BigDecimal.valueOf(0xffffffffl);
+                            tmp = tmp.multiply(BigDecimal.valueOf(brightness));
+                            long scaledVal = tmp.longValue();
+                            int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
+                            newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                        }
+                    } else {
+                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                "Dim support is not described in the lamp details. " +
+                                        "Assuming it is not supported...");
+                    }
+
+                    Lamp.TransitionLampState_return_value_us transLampStateResponse =
+                            lamp.transitionLampState(lightId, newStates, 10);
+                    if (transLampStateResponse == null ||
+                            transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response, "Failed to change lamp states.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                } catch (BusException e) {
+                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                setResultOK(response);
+                getContext().sendBroadcast(response);
+            }
+
+            @Override
+            public void onSessionFailed(@NonNull String busName, short port) {
+                MessageUtils.setUnknownError(response, "Failed to join session.");
+                getContext().sendBroadcast(response);
+            }
+        };
+        OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
     @Override

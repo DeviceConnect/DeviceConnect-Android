@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.alljoyn;
 
+import android.os.Build;
 import android.os.Debug;
 import android.util.Log;
 
@@ -24,9 +25,10 @@ public class AllJoynDeviceService extends DConnectMessageService
     public void onCreate() {
         super.onCreate();
 
-        Debug.waitForDebugger();
-
-        Log.d("SHIGSHIG", "start");
+        if (BuildConfig.DEBUG) {
+            Debug.waitForDebugger();
+            Log.i(getClass().getSimpleName(), "started");
+        }
 
         addProfile(new AllJoynLightProfile());
     }

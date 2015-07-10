@@ -181,7 +181,7 @@ public class AllJoynDeviceApplication extends Application {
      */
     public <T> T getInterface(@NonNull String serviceId, int sessionId, @NonNull Class<T> ifaceClass) {
         AllJoynServiceEntity service = mAllJoynServiceEntities.get(serviceId);
-        if (service == null) {
+        if (service == null || service.proxyObjects == null) {
             return null;
         }
 

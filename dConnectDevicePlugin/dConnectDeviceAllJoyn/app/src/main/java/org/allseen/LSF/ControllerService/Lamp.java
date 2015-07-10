@@ -120,6 +120,13 @@ public interface Lamp {
         public String lampStateFieldValue;
     }
 
+    public class TransitionLampState_return_value_us {
+        @Position(0)
+        public int responseCode = 0;
+        @Position(1)
+        public String lampID;
+    }
+
     public class ResetLampState_return_value_us {
         @Position(0)
         public int responseCode = 0;
@@ -202,6 +209,9 @@ public interface Lamp {
 
     @BusMethod(name = "GetLampStateField", signature = "ss", replySignature = "usss")
     GetLampStateField_return_value_usss getLampStateField(String lampID, String lampStateFieldName) throws BusException;
+
+    @BusMethod(name = "TransitionLampState", signature = "sa{sv}u", replySignature = "us")
+    TransitionLampState_return_value_us transitionLampState(String lampID, Map<String, Variant> lampState, int transitionPeriod) throws BusException;
 
     @BusMethod(name = "ResetLampState", signature = "s", replySignature = "us")
     ResetLampState_return_value_us resetLampState(String lampID) throws BusException;

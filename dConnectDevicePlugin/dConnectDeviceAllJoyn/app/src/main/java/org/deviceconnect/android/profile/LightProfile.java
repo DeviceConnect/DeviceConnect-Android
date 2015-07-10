@@ -55,14 +55,14 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     protected boolean onPostRequest(final Intent request, final Intent response) {
         if (isNullAttribute(request)) {
             int[] color = new int[3];
-            float brightness;
+            Float brightness;
 
             brightness = getBrightnessParam(request, response);
             if (brightness == -1) {
-                return true;
+                brightness = null;
             }
             if (!getColorParam(request, response, color)) {
-                return true;
+                color = null;
             }
             return onPostLight(request, response, getServiceID(request), getLightID(request),
                     brightness, color);
@@ -85,7 +85,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     @Override
     protected boolean onDeleteRequest(final Intent request, final Intent response) {
         if (isNullAttribute(request)) {
-            return onDeleteLight(request, response, getServiceID(request));
+            return onDeleteLight(request, response, getServiceID(request), getLightID(request));
         } else if (isLightGroupAttribute(request)) {
             return onDeleteLightGroup(request, response, getServiceID(request));
         } else if (isLightGroupClearAttribute(request)) {
@@ -139,7 +139,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      */
     protected boolean onPostLight(final Intent request, final Intent response,
                                   final String serviceId, final String lightId,
-                                  final float brightness, final int[] color) {
+                                  final Float brightness, final int[] color) {
         setUnsupportedError(response);
         return true;
     }
@@ -152,7 +152,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId, String lightId) {
         setUnsupportedError(response);
         return true;
     }
@@ -526,9 +526,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
                 return false;
             }
         } else {
-            color[0] = 0xFF;
-            color[1] = 0xFF;
-            color[2] = 0xFF;
+            return false;
         }
         return true;
     }

@@ -26,7 +26,6 @@ public class AllJoynDeviceService extends DConnectMessageService
         super.onCreate();
 
         if (BuildConfig.DEBUG) {
-            Debug.waitForDebugger();
             Log.i(getClass().getSimpleName(), "started");
         }
 

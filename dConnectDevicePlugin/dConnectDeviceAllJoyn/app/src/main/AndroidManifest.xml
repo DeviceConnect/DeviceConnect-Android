@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.deviceconnect.android.deviceplugin.alljoyn">
+    package="org.deviceconnect.android.deviceplugin.alljoyn" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
@@ -12,16 +12,20 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
-
+        android:theme="@style/AppTheme" >
         <activity
             android:name=".activity.AllJoynSettingActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask" >
         </activity>
 
+        <activity
+            android:name=".activity.AllJoynSettingLIFXActivity"
+            android:launchMode="singleTask" >
+        </activity>
+
         <!-- d-Connect AllJoyn Device Plugin Provider. -->
-        <receiver android:name=".AllJoynDeviceProvider">
+        <receiver android:name=".AllJoynDeviceProvider" >
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/deviceplugin" />
@@ -38,10 +42,11 @@
 
         <service
             android:name=".AllJoynDeviceService"
-            android:exported="true">
-            <!--<service-->
-            <!--android:name=".AllJoynDeviceService"-->
-            <!--android:exported="false">-->
+            android:exported="true" >
+
+            <!-- <service -->
+            <!-- android:name=".AllJoynDeviceService" -->
+            <!-- android:exported="false"> -->
             <intent-filter>
                 <action android:name="org.deviceconnect.action.GET" />
                 <action android:name="org.deviceconnect.action.PUT" />
@@ -51,7 +56,7 @@
         </service>
         <service
             android:name="org.deviceconnect.android.message.DConnectLaunchService"
-            android:exported="true">
+            android:exported="true" >
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:value="enable" />
@@ -65,7 +70,7 @@
 
         <service
             android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false">
+            android:exported="false" >
             <intent-filter>
                 <action android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service" />
             </intent-filter>

@@ -54,6 +54,9 @@ public class LocalOAuthRequest extends DConnectRequest {
     /** アクセストークンの使用フラグ. */
     protected boolean mUseAccessToken;
 
+    /** オリジン有効フラグ. */
+    protected boolean mRequireOrigin;
+
     /** リトライ回数. */
     protected int mRetryCount;
 
@@ -79,6 +82,14 @@ public class LocalOAuthRequest extends DConnectRequest {
      */
     public void setUseAccessToken(final boolean useAccessToken) {
         mUseAccessToken = useAccessToken;
+    }
+
+    /**
+     * オリジン有効フラグを設定する.
+     * @param requireOrigin 有効にする場合はtrue、それ以外はfalse
+     */
+    public void setRequireOrigin(final boolean requireOrigin) {
+        mRequireOrigin = requireOrigin;
     }
 
     /**
@@ -149,6 +160,9 @@ public class LocalOAuthRequest extends DConnectRequest {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, ATTRIBUTE_CREATE_CLIENT);
         request.putExtra(DConnectProfileConstants.PARAM_SERVICE_ID, serviceId);
         String origin = mRequest.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
+        if (!mRequireOrigin && origin == null && getContext() != null) {
+            origin = getContext().getPackageName();
+        }
         request.putExtra(AuthorizationProfileConstants.PARAM_PACKAGE, origin);
 
         // デバイスプラグインに送信

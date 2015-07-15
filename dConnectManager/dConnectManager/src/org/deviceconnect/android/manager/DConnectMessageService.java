@@ -178,7 +178,8 @@ public abstract class DConnectMessageService extends Service
         addProfile(new DConnectSystemProfile(this, mPluginMgr));
 
         // dConnect Managerで処理せず、登録されたデバイスプラグインに処理させるプロファイル
-        setDeliveryProfile(new DConnectDeliveryProfile(mPluginMgr, mLocalOAuth));
+        setDeliveryProfile(new DConnectDeliveryProfile(mPluginMgr, mLocalOAuth,
+            mSettings.requireOrigin()));
 
         mLogger.exiting(this.getClass().getName(), "onCreate");
     }
@@ -613,6 +614,7 @@ public abstract class DConnectMessageService extends Service
         request.setContext(this);
         request.setLocalOAuth(mLocalOAuth);
         request.setUseAccessToken(true);
+        request.setRequireOrigin(true);
         request.setDestination(plugin);
         request.setRequest(intent);
         request.setEvent(event);

@@ -39,7 +39,7 @@ In this guide I will continue to discuss the following.
 
 
 ## dConnectManager
-| プロジェクト名|内容  |
+| Project Name | Content  |
 |:-----------|:---------|
 |dConnectManager| Platform body of DeviceConnect.|
 |dConnectManagerTest|Test of DeviceConnectManager.|
@@ -47,7 +47,7 @@ In this guide I will continue to discuss the following.
 |dConnectServerNanoHttpd|Server of the body of the DeviceConnect.|
 
 ## dConnectSDK
-| プロジェクト名|内容  |
+| Project Name | Content |
 |:-----------|:---------|
 |dConnectApp| DeviceConnect operation check for app.|
 |dConnectSDKForAndroid| SDK of DeviceConnect. DevicePlugin development and SDK to be used for application development.|

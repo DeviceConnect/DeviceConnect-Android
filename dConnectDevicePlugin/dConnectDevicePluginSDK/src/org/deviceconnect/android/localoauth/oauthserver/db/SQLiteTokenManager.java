@@ -36,7 +36,6 @@ package org.deviceconnect.android.localoauth.oauthserver.db;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.deviceconnect.android.localoauth.LocalOAuth2Settings;
@@ -53,11 +52,7 @@ import org.restlet.ext.oauth.internal.Token;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.os.Bundle;
 
-/**
- * tokenManager.
- */
 public class SQLiteTokenManager extends AbstractTokenManager {
 
     /** セッションマップ. */
@@ -251,12 +246,13 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      */
     public Token findToken(final Client client, final String username)  {
         if (mDb != null) {
-            Bundle where = new Bundle();
-            where.putString(SQLiteToken.DATA_TYPE_STRING + "," + SQLiteToken.CLIENTID_FIELD,
-                    client.getClientId());
-            where.putLong(SQLiteToken.DATA_TYPE_LONG + "," + SQLiteToken.USERS_USERID_FIELD,
-                    LocalOAuthOpenHelper.USERS_USER_ID);
-            SQLiteToken[] tokens = dbLoadTokens(mDb, where);
+            String selection = SQLiteToken.CLIENTID_FIELD + "=? and " 
+                    + SQLiteToken.USERS_USERID_FIELD + "=?";
+            String[] selectionArgs = {
+                client.getClientId(),
+                String.valueOf(LocalOAuthOpenHelper.USERS_USER_ID)
+            };
+            SQLiteToken[] tokens = dbLoadTokens(mDb, selection, selectionArgs);
             if (tokens == null) {
                 return null;
             } else if (tokens.length == 1) {
@@ -277,10 +273,9 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      */
     public Token[] findTokens(final String username) {
         if (mDb != null) {
-            Bundle where = new Bundle();
-            where.putLong(SQLiteToken.DATA_TYPE_LONG + "," + SQLiteToken.USERS_USERID_FIELD,
-                    LocalOAuthOpenHelper.USERS_USER_ID);
-            SQLiteToken[] tokens = dbLoadTokens(mDb, where);
+            String selection = SQLiteToken.USERS_USERID_FIELD + "=?";
+            String[] selectionArgs = { String.valueOf(LocalOAuthOpenHelper.USERS_USER_ID) };
+            SQLiteToken[] tokens = dbLoadTokens(mDb, selection, selectionArgs);
             return tokens;
         } else {
             throw new SQLiteException("DBがオープンされていません。");
@@ -295,10 +290,9 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      */
     public Token[] findTokens(final Client client) {
         if (mDb != null) {
-            Bundle where = new Bundle();
-            where.putString(SQLiteToken.DATA_TYPE_STRING + "," + SQLiteToken.CLIENTID_FIELD,
-                    client.getClientId());
-            SQLiteToken[] tokens = dbLoadTokens(mDb, where);
+            String selection = SQLiteToken.CLIENTID_FIELD + "=?";
+            String[] selectionArgs = { client.getClientId() };
+            SQLiteToken[] tokens = dbLoadTokens(mDb, selection, selectionArgs);
             return tokens;
         } else {
             throw new SQLiteException("DBがオープンされていません。");
@@ -314,12 +308,13 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      */
     public void revokeToken(final Client client, final String username) {
         if (mDb != null) {
-            Bundle where = new Bundle();
-            where.putString(SQLiteToken.DATA_TYPE_STRING + "," + SQLiteToken.CLIENTID_FIELD,
-                    client.getClientId());
-            where.putLong(SQLiteToken.DATA_TYPE_LONG + "," + SQLiteToken.USERS_USERID_FIELD,
-                    LocalOAuthOpenHelper.USERS_USER_ID);
-            dbDeleteTokens(mDb, where);
+            String whereClause = SQLiteToken.CLIENTID_FIELD + "=? and "
+                    + SQLiteToken.USERS_USERID_FIELD + "=?";
+            String[] whereArgs = {
+                client.getClientId(),
+                String.valueOf(LocalOAuthOpenHelper.USERS_USER_ID)
+            };
+            dbDeleteTokens(mDb, whereClause, whereArgs);
         } else {
             throw new SQLiteException("DBがオープンされていません。");
         }
@@ -332,10 +327,9 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      */
     public void revokeToken(final long tokenId) {
         if (mDb != null) {
-            Bundle where = new Bundle();
-            where.putLong(SQLiteToken.DATA_TYPE_LONG + "," + SQLiteToken.ID_FIELD,
-                    tokenId);
-            dbDeleteTokens(mDb, where);
+            String whereClause = SQLiteToken.ID_FIELD + "=?";
+            String[] whereArgs = { String.valueOf(tokenId) };
+            dbDeleteTokens(mDb, whereClause, whereArgs);
         } else {
             throw new SQLiteException("DBがオープンされていません。");
         }
@@ -348,10 +342,9 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      */
     public void revokeAllTokens(final String username) {
         if (mDb != null) {
-            Bundle where = new Bundle();
-            where.putLong(SQLiteToken.DATA_TYPE_LONG + "," + SQLiteToken.USERS_USERID_FIELD,
-                    LocalOAuthOpenHelper.USERS_USER_ID);
-            dbDeleteTokens(mDb, where);
+            String whereClause = SQLiteToken.USERS_USERID_FIELD + "=?";
+            String[] whereArgs = { String.valueOf(LocalOAuthOpenHelper.USERS_USER_ID) };
+            dbDeleteTokens(mDb, whereClause, whereArgs);
         } else {
             throw new SQLiteException("DBがオープンされていません。");
         }
@@ -364,10 +357,9 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      */
     public void revokeAllTokens(final Client client)  {
         if (mDb != null) {
-            Bundle where = new Bundle();
-            where.putString(SQLiteToken.DATA_TYPE_STRING + "," + SQLiteToken.CLIENTID_FIELD,
-                    client.getClientId());
-            dbDeleteTokens(mDb, where);
+            String whereClause = SQLiteToken.CLIENTID_FIELD + "=?";
+            String[] whereArgs = { client.getClientId() };
+            dbDeleteTokens(mDb, whereClause, whereArgs);
         } else {
             throw new SQLiteException("DBがオープンされていません。");
         }
@@ -383,9 +375,9 @@ public class SQLiteTokenManager extends AbstractTokenManager {
     @Override
     public Token findTokenByAccessToken(final String accessToken) {
         if (mDb != null) {
-            Bundle bundle = new Bundle();
-            bundle.putString(SQLiteToken.DATA_TYPE_STRING + "," + SQLiteToken.ACCCESS_TOKEN_FIELD, accessToken);
-            SQLiteToken[] tokens = dbLoadTokens(mDb, bundle);
+            String selection = SQLiteToken.ACCCESS_TOKEN_FIELD + "=?";
+            String[] selectionArgs = { accessToken };
+            SQLiteToken[] tokens = dbLoadTokens(mDb, selection, selectionArgs);
 
             if (tokens == null || tokens.length == 0) { /* 該当データなし */
                 return null;
@@ -420,21 +412,21 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      * 指定条件でtokenデータをDBから読み込む.
      * 
      * @param db DBオブジェクト
-     * @param where where条件(key = value)。複数あるときはAnd条件になる。
+     * @param selection selection条件(key = value)。複数あるときはAnd条件になる。
+     * @param selectionArgs ?にバインドする値。
      * @return 条件に一致したtokenデータ配列。該当データが0件ならnull。
      */
-    private SQLiteToken[] dbLoadTokens(final SQLiteDatabase db, final Bundle where) {
+    private SQLiteToken[] dbLoadTokens(final SQLiteDatabase db, final String selection, final String[] selectionArgs) {
 
         SQLiteToken[] result = null;
 
         /* tokensテーブル読み込み */
         String tables = LocalOAuthOpenHelper.TOKENS_TABLE;
         String[] columns = SQLiteToken.TOKEN_ALL_FIELIDS;
-        String selection = getSelection(where);
 
         Cursor c = null;
         try {
-            c = db.query(tables, columns, selection, null, null, null, null);
+            c = db.query(tables, columns, selection, selectionArgs, null, null, null);
             if (c.moveToFirst()) {
                 int count = c.getCount();
                 if (count > 0) {
@@ -509,58 +501,14 @@ public class SQLiteTokenManager extends AbstractTokenManager {
      * 指定条件でtokenデータをDBから削除する.
      * 
      * @param db DBオブジェクト
-     * @param where where条件(key = value)。複数あるときはAnd条件になる。
+     * @param whereClause where条件(key = value)。複数あるときはAnd条件になる。
+     * @param whereArgs ?の値
      */
-    private void dbDeleteTokens(final SQLiteDatabase db, final Bundle where) {
+    private void dbDeleteTokens(final SQLiteDatabase db, final String whereClause, final String[] whereArgs) {
         String table = LocalOAuthOpenHelper.TOKENS_TABLE;
-        String selection = getSelection(where);
-        db.delete(table, selection, null);
+        db.delete(table, whereClause, whereArgs);
     }
 
-    /**
-     * Bundle型の変数に設定したwhere条件をSQLのselection部に設定する文字列に変換して返す.
-     * 
-     * @param where where条件
-     * @return SQLite関数のwhere部に指定する文字列(where=nullならnullを返す)
-     */
-    private String getSelection(final Bundle where) {
-        String selection = null;
-
-        if (where != null) {
-            Set<String> whereKeys = where.keySet();
-            if (whereKeys.size() > 0) {
-                selection = "";
-                int i = 0;
-                for (String strWhereKey : whereKeys) {
-                    String[] splitData = strWhereKey.split(",");
-                    if (splitData == null || splitData.length != 2) {
-                        throw new IllegalArgumentException("whereは { <データタイプ>,<whereキー> } の書式で設定して下さい。");
-                    }
-                    String whereDataType = splitData[0];
-                    String whereKeyData = splitData[1];
-    
-                    if (i > 0) {
-                        selection += " and ";
-                    }
-    
-                    if (whereDataType.equals(SQLiteToken.DATA_TYPE_LONG)) {
-                        long whereValue = where.getLong(strWhereKey);
-                        selection += whereKeyData + " = " + whereValue;
-                    } else if (whereDataType.equals(SQLiteToken.DATA_TYPE_STRING)) {
-                        String whereValue = where.getString(strWhereKey);
-                        selection += whereKeyData + " = '" + whereValue + "'";
-                    } else {
-                        throw new IllegalArgumentException("whereのデータタイプが認識できません。");
-                    }
-    
-                    i++;
-                }
-            }
-        }
-        
-        return selection;
-    }
-    
     /**
      * profileデータを全てdbから読み込む.
      * 

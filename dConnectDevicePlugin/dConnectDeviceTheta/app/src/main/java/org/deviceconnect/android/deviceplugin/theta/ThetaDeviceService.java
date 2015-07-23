@@ -149,7 +149,7 @@ public class ThetaDeviceService extends DConnectMessageService {
         }
     }
 
-    private static ThetaDeviceInfo convertToThetaDeviceInfo(final WifiInfo wifiInfo) {
+    private ThetaDeviceInfo convertToThetaDeviceInfo(final WifiInfo wifiInfo) {
         String ssId = wifiInfo.getSSID().replace("\"", "");
         if (!isTheta(ssId)) {
             return null;
@@ -157,11 +157,11 @@ public class ThetaDeviceService extends DConnectMessageService {
         return new ThetaDeviceInfo(wifiInfo);
     }
 
-    private static boolean isTheta(final String ssId) {
+    private boolean isTheta(final String ssId) {
         if (ssId == null) {
             return false;
         }
-        return ssId.startsWith(PREFIX_SSID);
+        return ssId.startsWith(getString(R.string.theta_ssid_prefix));
     }
 
 }

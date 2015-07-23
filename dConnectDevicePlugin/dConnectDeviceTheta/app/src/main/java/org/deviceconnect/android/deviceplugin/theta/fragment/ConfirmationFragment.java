@@ -1,3 +1,9 @@
+/*
+ ConfirmationFragment
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
 import android.content.Context;
@@ -15,6 +21,11 @@ import org.deviceconnect.android.deviceplugin.theta.R;
 
 import java.util.logging.Logger;
 
+/**
+ * The page for confirmation of the connection between THETA and Android device.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class ConfirmationFragment extends Fragment {
 
     private final Logger mLogger = Logger.getLogger("theta.plugin");

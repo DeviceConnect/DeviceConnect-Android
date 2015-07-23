@@ -1,3 +1,9 @@
+/*
+ ThetaBatteryProfile
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.theta.profile;
 
 import android.content.Intent;
@@ -23,6 +29,11 @@ public class ThetaBatteryProfile extends BatteryProfile {
 
     private final ThetaApiClient mClient;
 
+    /**
+     * Constructor.
+     *
+     * @param client an instance of {@link ThetaApiClient}
+     */
     public ThetaBatteryProfile(final ThetaApiClient client) {
         mClient = client;
     }

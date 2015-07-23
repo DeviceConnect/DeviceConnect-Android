@@ -1,3 +1,9 @@
+/*
+ PhotoModeFragment
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
 import android.os.Bundle;
@@ -8,6 +14,11 @@ import android.view.ViewGroup;
 
 import org.deviceconnect.android.deviceplugin.theta.R;
 
+/**
+ * The page which explains how to boot THETA with photo mode.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class PhotoModeFragment extends Fragment {
 
     @Override

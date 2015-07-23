@@ -1,10 +1,9 @@
 /*
-WiFiStateReceiver
-Copyright (c) 2014 NTT DOCOMO,INC.
-Released under the MIT license
-http://opensource.org/licenses/mit-license.php
-*/
-
+ WiFiStateReceiver
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.theta.receiver;
 
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;

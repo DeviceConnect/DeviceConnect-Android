@@ -1,3 +1,9 @@
+/*
+ ThetaMediaStreamRecordingProfile
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.theta.profile;
 
 import android.content.Intent;
@@ -33,6 +39,12 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     private final ThetaApiClient mClient;
     private final FileManager mFileMgr;
 
+    /**
+     * Constructor.
+     *
+     * @param client an instance of {@link ThetaApiClient}
+     * @param fileMgr an instance of {@link FileManager}
+     */
     public ThetaMediaStreamRecordingProfile(final ThetaApiClient client,
                                             final FileManager fileMgr) {
         mClient = client;

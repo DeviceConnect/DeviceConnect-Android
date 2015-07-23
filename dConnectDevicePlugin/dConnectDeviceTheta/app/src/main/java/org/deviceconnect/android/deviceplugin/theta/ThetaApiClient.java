@@ -1,3 +1,9 @@
+/*
+ ThetaApiClient
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.theta;
 
 import com.theta360.lib.PtpipInitiator;
@@ -130,10 +136,22 @@ public class ThetaApiClient {
 
     private ThetaDeviceInfo mDeviceInfo;
 
+    /**
+     * Obtains the information of THETA which will be connected.
+     *
+     * @return the information of THETA which will be connected.
+     */
     public synchronized ThetaDeviceInfo getDevice() {
         return mDeviceInfo;
     }
 
+    /**
+     * Obtains the information of THETA which will be connected.
+     *
+     * @param serviceId the ID of THETA
+     * @return the information of THETA which will be connected.
+     *         <code>null</code> is returned if the specified THETA is not set.
+     */
     public synchronized ThetaDeviceInfo getDevice(final String serviceId) {
         if (mDeviceInfo == null) {
             return null;
@@ -144,18 +162,42 @@ public class ThetaApiClient {
         return mDeviceInfo;
     }
 
+    /**
+     * Checks the specified THETA is set to this client.
+     *
+     * @param serviceId the ID of THETA
+     * @return <code>true</code> if the specified THETA is set to this client, otherwise <code>false</code>
+     */
     public boolean hasDevice(final String serviceId) {
         return getDevice(serviceId) != null;
     }
 
+    /**
+     * Sets the information of THETA will be connected.
+     *
+     * @param deviceInfo the information of THETA will be connected
+     */
     public synchronized void setDevice(final ThetaDeviceInfo deviceInfo) {
         mDeviceInfo = deviceInfo;
     }
 
+    /**
+     * Disposes the information of THETA.
+     * <p>
+     * Call this method when WiFi is disabled, or other WiFi access point is connected.
+     * </p>
+     */
     public synchronized void disposeDevice() {
         mDeviceInfo = null;
     }
 
+    /**
+     * Requests to execute the specified task.
+     * <p>
+     * {@link ThetaApiTask} will be executed on another thread.
+     * </p>
+     * @param task THETA API Task
+     */
     public void execute(final ThetaApiTask task) {
         mExecutor.execute(new Runnable() {
             @Override

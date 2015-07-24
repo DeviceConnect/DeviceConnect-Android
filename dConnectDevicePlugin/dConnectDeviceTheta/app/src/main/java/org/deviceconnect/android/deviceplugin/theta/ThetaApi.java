@@ -74,4 +74,6 @@ public interface ThetaApi {
      * @throws IOException if a communication between THETA and Android device is failed
      */
     byte[] getFile(ThetaFileInfo info) throws ThetaException, IOException;
+
+    short getRecordingStatus() throws ThetaException, IOException;
 }

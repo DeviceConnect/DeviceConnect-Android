@@ -58,7 +58,8 @@ public class ThetaDeviceService extends DConnectMessageService {
         addProfile(new ThetaFileProfile(mClient, fileMgr));
         addProfile(new ThetaMediaStreamRecordingProfile(mClient, fileMgr));
 
-        fetchThetaDevice();
+        WifiManager wifiMgr = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
+        fetchThetaDevice(wifiMgr.getConnectionInfo());
     }
 
     @Override
@@ -83,15 +84,7 @@ public class ThetaDeviceService extends DConnectMessageService {
             NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
             if (networkInfo.isConnected()) {
                 WifiInfo wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
-                mLogger.info("Connected to WiFi: SSID=" + wifiInfo.getSSID());
-                ThetaDeviceInfo deviceInfo = convertToThetaDeviceInfo(wifiInfo);
-                if (deviceInfo != null) {
-                    mLogger.info("Detected Theta device: SSID=" + wifiInfo.getSSID());
-                    mClient.setDevice(deviceInfo);
-                } else {
-                    mLogger.info("Detected Not-Theta device: SSID=" + wifiInfo.getSSID());
-                    mClient.disposeDevice();
-                }
+                fetchThetaDevice(wifiInfo);
             }
         } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
             int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
@@ -143,24 +136,13 @@ public class ThetaDeviceService extends DConnectMessageService {
         return true;
     }
 
-    private void fetchThetaDevice() {
-        WifiManager wifiMgr = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-        ThetaDeviceInfo deviceInfo = convertToThetaDeviceInfo(wifiInfo);
-        if (deviceInfo != null) {
-            mLogger.info("Fetched Theta device: SSID=" + wifiInfo.getSSID());
-            mClient.setDevice(deviceInfo);
-        } else {
-            mLogger.info("Fetched Not-Theta device: SSID=" + wifiInfo.getSSID());
-        }
-    }
-
-    private ThetaDeviceInfo convertToThetaDeviceInfo(final WifiInfo wifiInfo) {
+    private void fetchThetaDevice(final WifiInfo wifiInfo) {
         String ssId = wifiInfo.getSSID().replace("\"", "");
-        if (!isTheta(ssId)) {
-            return null;
+        if (isTheta(ssId)) {
+            mClient.fetchDevice(wifiInfo);
+        } else {
+            mClient.disposeDevice();
         }
-        return new ThetaDeviceInfo(wifiInfo);
     }
 
     private boolean isTheta(final String ssId) {

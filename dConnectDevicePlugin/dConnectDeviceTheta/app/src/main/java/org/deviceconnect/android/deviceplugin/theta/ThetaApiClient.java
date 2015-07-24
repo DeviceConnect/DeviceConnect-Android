@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.theta;
 
+import android.net.wifi.WifiInfo;
+
 import com.theta360.lib.PtpipInitiator;
 import com.theta360.lib.ThetaException;
 import com.theta360.lib.ptpip.entity.ObjectHandles;
@@ -54,7 +56,7 @@ public class ThetaApiClient {
             final PtpipInitiator initiator = getInitiator();
             final ThetaPhoto[] photo = new ThetaPhoto[1];
             if (BuildConfig.DEBUG) {
-                initiator.setAudioVolume(1); // Mute the sound of shutter.
+                initiator.setAudioVolume(0); // Mute the sound of shutter.
             }
             if (initiator.getStillCaptureMode() == PtpipInitiator.DEVICE_PROP_VALUE_UNDEFINED_CAPTURE_MODE) {
                 throw new IllegalStateException("Theta's current mode is video mode.");
@@ -93,7 +95,7 @@ public class ThetaApiClient {
                 throw new IllegalStateException("Theta's current mode is not video mode.");
             }
             if (BuildConfig.DEBUG) {
-                initiator.setAudioVolume(1); // Mute the sound of shutter.
+                initiator.setAudioVolume(0); // Mute the sound of shutter.
             }
             initiator.initiateOpenCapture();
         }
@@ -101,7 +103,10 @@ public class ThetaApiClient {
         @Override
         public void stopVideoRecording() throws ThetaException, IOException {
             PtpipInitiator initiator = getInitiator();
-            initiator.terminateOpenCapture();
+            final short status = initiator.getCaptureStatus();
+            if (status != PtpipInitiator.DEVICE_PROP_VALUE_CAPTURE_STATUS_WAIT) {
+                initiator.terminateOpenCapture();
+            }
         }
 
         @Override
@@ -119,8 +124,9 @@ public class ThetaApiClient {
                 ObjectInfo objectInfo = initiator.getObjectInfo(objectHandle);
                 String name = objectInfo.getFilename();
                 String mimeType = MIMETYPE_PHOTO;
+                String date = objectInfo.getCaptureDate();
                 int size = objectInfo.getObjectCompressedSize();
-                result.add(new ThetaFileInfo(name, mimeType, size, objectHandle));
+                result.add(new ThetaFileInfo(name, mimeType, date, size, objectHandle));
             }
 
             return result;
@@ -132,6 +138,13 @@ public class ThetaApiClient {
             byte[] data = initiator.getObject(info.mHandle);
             return data;
         }
+
+        @Override
+        public short getRecordingStatus() throws ThetaException, IOException {
+            PtpipInitiator initiator = getInitiator();
+            return initiator.getCaptureStatus();
+        }
+
     };
 
     private ThetaDeviceInfo mDeviceInfo;
@@ -172,13 +185,30 @@ public class ThetaApiClient {
         return getDevice(serviceId) != null;
     }
 
-    /**
-     * Sets the information of THETA will be connected.
-     *
-     * @param deviceInfo the information of THETA will be connected
-     */
-    public synchronized void setDevice(final ThetaDeviceInfo deviceInfo) {
-        mDeviceInfo = deviceInfo;
+    public void fetchDevice(final WifiInfo wifiInfo) {
+        final Object lockObj = this;
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    RecorderInfo recorderInfo;
+                    short mode = getInitiator().getStillCaptureMode();
+                    if (mode == PtpipInitiator.DEVICE_PROP_VALUE_UNDEFINED_CAPTURE_MODE) {
+                        recorderInfo = RecorderInfo.VIDEO;
+                    } else {
+                        recorderInfo = RecorderInfo.PHOTO;
+                    }
+                    synchronized (lockObj) {
+                        mDeviceInfo = new ThetaDeviceInfo(wifiInfo, recorderInfo);
+                    }
+                    PtpipInitiator.close();
+                } catch (ThetaException e) {
+                    // Nothing to do.
+                } catch (IOException e) {
+                    // Nothing to do.
+                }
+            }
+        });
     }
 
     /**

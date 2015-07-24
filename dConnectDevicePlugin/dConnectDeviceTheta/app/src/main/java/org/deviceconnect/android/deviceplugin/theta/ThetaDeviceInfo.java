@@ -26,12 +26,31 @@ public class ThetaDeviceInfo {
     public final String mName;
 
     /**
+     * Information of current recorder.
+     */
+    private final RecorderInfo mRecorderInfo;
+
+    /**
      * Constructor.
      *
      * @param wifiInfo an instance of {@link WifiInfo}
+     * @param recorderInfo an instance of {@link RecorderInfo}
      */
-    ThetaDeviceInfo(final WifiInfo wifiInfo) {
+    ThetaDeviceInfo(final WifiInfo wifiInfo, final RecorderInfo recorderInfo) {
         mServiceId = "theta";
         mName = wifiInfo.getSSID().replace("\"", "");
+        mRecorderInfo = recorderInfo;
+    }
+
+    public RecorderInfo getCurrentRecoderInfo() {
+        return mRecorderInfo;
+    }
+
+    public RecorderInfo getRecorderInfo(final String targetId) {
+        if (targetId == null || targetId.equals(mRecorderInfo.mId)) {
+            return mRecorderInfo;
+        } else {
+            return null;
+        }
     }
 }

@@ -258,8 +258,11 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
             @Override
             public void run(final ThetaApi api) {
                 try {
-                    api.stopVideoRecording();
-                    setResult(response, DConnectMessage.RESULT_OK);
+                    if (api.stopVideoRecording()) {
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    } else {
+                        MessageUtils.setIllegalDeviceStateError(response, "Video recording is stopped already.");
+                    }
                 } catch (ThetaException e) {
                     MessageUtils.setUnknownError(response, e.getMessage());
                 } catch (IOException e) {

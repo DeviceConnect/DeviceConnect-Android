@@ -43,16 +43,18 @@ public interface ThetaApi {
      *
      * @throws ThetaException if an error is occurred when this API is executed on THETA
      * @throws IOException if a communication between THETA and Android device is failed
+     * @return <code>true</code> if video recording has been started newly, otherwise <code>false</code>
      */
-    void startVideoRecording() throws ThetaException, IOException;
+    boolean startVideoRecording() throws ThetaException, IOException;
 
     /**
      * Requests to stop video recording.
      *
      * @throws ThetaException if an error is occurred when this API is executed on THETA
      * @throws IOException if a communication between THETA and Android device is failed
+     * @return <code>true</code> if video recording has been stopped newly, otherwise <code>false</code>
      */
-    void stopVideoRecording() throws ThetaException, IOException;
+    boolean stopVideoRecording() throws ThetaException, IOException;
 
     /**
      * Obtains the list of file information in the default storage of THETA.

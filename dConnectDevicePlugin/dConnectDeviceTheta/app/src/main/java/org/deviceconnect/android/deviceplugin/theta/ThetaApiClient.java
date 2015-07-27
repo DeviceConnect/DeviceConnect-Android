@@ -88,25 +88,32 @@ public class ThetaApiClient {
         }
 
         @Override
-        public void startVideoRecording() throws ThetaException, IOException {
+        public boolean startVideoRecording() throws ThetaException, IOException {
             PtpipInitiator initiator = getInitiator();
             final int mode = initiator.getStillCaptureMode();
             if (mode != PtpipInitiator.DEVICE_PROP_VALUE_UNDEFINED_CAPTURE_MODE) {
                 throw new IllegalStateException("Theta's current mode is not video mode.");
             }
+            final short status = initiator.getCaptureStatus();
+            if (status == PtpipInitiator.DEVICE_PROP_VALUE_CAPTURE_STATUS_CONTINUOUS_SHOOTING_RUNNING) {
+                return false;
+            }
             if (BuildConfig.DEBUG) {
                 initiator.setAudioVolume(0); // Mute the sound of shutter.
             }
             initiator.initiateOpenCapture();
+            return true;
         }
 
         @Override
-        public void stopVideoRecording() throws ThetaException, IOException {
+        public boolean stopVideoRecording() throws ThetaException, IOException {
             PtpipInitiator initiator = getInitiator();
             final short status = initiator.getCaptureStatus();
-            if (status != PtpipInitiator.DEVICE_PROP_VALUE_CAPTURE_STATUS_WAIT) {
-                initiator.terminateOpenCapture();
+            if (status == PtpipInitiator.DEVICE_PROP_VALUE_CAPTURE_STATUS_WAIT) {
+                return false;
             }
+            initiator.terminateOpenCapture();
+            return true;
         }
 
         @Override

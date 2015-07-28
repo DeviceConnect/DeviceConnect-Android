@@ -69,25 +69,34 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                     short status = api.getRecordingStatus();
 
                     List<Bundle> recorders = new LinkedList<Bundle>();
-                    Bundle recorder = new Bundle();
-                    RecorderInfo recorderInfo = deviceInfo.getCurrentRecoderInfo();
-                    setRecorderId(recorder, recorderInfo.mId);
-                    setRecorderName(recorder, recorderInfo.mName);
-                    setRecorderImageWidth(recorder, recorderInfo.mImageWidth);
-                    setRecorderImageHeight(recorder, recorderInfo.mImageHeight);
-                    setRecorderMIMEType(recorder, recorderInfo.mMimeType);
-                    switch (status) {
-                    case RecorderInfo.STATUS_RECORDING:
-                        setRecorderState(recorder, RecorderState.RECORDING);
-                        break;
-                    case RecorderInfo.STATUS_INACTIVE:
-                        setRecorderState(recorder, RecorderState.INACTIVE);
-                        break;
-                    default:
-                        break;
+                    RecorderInfo[] recorderInfoList = {
+                        RecorderInfo.PHOTO,
+                        RecorderInfo.VIDEO
+                    };
+                    for (RecorderInfo recorderInfo : recorderInfoList) {
+                        Bundle recorder = new Bundle();
+                        setRecorderId(recorder, recorderInfo.mId);
+                        setRecorderName(recorder, recorderInfo.mName);
+                        setRecorderImageWidth(recorder, recorderInfo.mImageWidth);
+                        setRecorderImageHeight(recorder, recorderInfo.mImageHeight);
+                        setRecorderMIMEType(recorder, recorderInfo.mMimeType);
+                        if (recorderInfo == deviceInfo.getCurrentRecoderInfo()) {
+                            switch (status) {
+                                case RecorderInfo.STATUS_RECORDING:
+                                    setRecorderState(recorder, RecorderState.RECORDING);
+                                    break;
+                                case RecorderInfo.STATUS_INACTIVE:
+                                    setRecorderState(recorder, RecorderState.INACTIVE);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        } else {
+                            setRecorderState(recorder, RecorderState.INACTIVE);
+                        }
+                        setRecorderConfig(recorder, "");
+                        recorders.add(recorder);
                     }
-                    setRecorderConfig(recorder, "");
-                    recorders.add(recorder);
                     setRecorders(response, recorders.toArray(new Bundle[recorders.size()]));
                     setResult(response, DConnectMessage.RESULT_OK);
                 } catch (ThetaException e) {

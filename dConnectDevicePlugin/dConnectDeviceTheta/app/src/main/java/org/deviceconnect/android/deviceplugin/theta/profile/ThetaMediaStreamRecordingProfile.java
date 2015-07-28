@@ -109,7 +109,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
             MessageUtils.setNotFoundServiceError(response);
             return true;
         }
-        if (deviceInfo.getRecorderInfo(target) == null) {
+        if (deviceInfo.getPhotoRecorderInfo(target) == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }
@@ -129,17 +129,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                                 setResult(response, DConnectMessage.RESULT_OK);
                                 getService().sendResponse(response);
 
-                                List<Event> events = getOnPhotoEventList(photo.mServiceId);
-                                for (Iterator<Event> it = events.iterator(); it.hasNext(); ) {
-                                    Event event = it.next();
-                                    Intent message = EventManager.createEventMessage(event);
-                                    Bundle photoInfo = new Bundle();
-                                    setUri(photoInfo, uri);
-                                    setPath(photoInfo, path);
-                                    setMIMEType(photoInfo, photo.mMimeType);
-                                    setPhoto(message, photoInfo);
-                                    getService().sendEvent(message, event.getAccessToken());
-                                }
+                                sendOnPhotoEvent(photo, uri, path);
                             } catch (IOException e) {
                                 MessageUtils.setUnknownError(response, e.getMessage());
                                 getService().sendResponse(response);
@@ -167,7 +157,8 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     }
 
     @Override
-    protected boolean onPutOnPhoto(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onPutOnPhoto(final Intent request, final Intent response,
+                                   final String serviceId, final String sessionKey) {
         if (!mClient.hasDevice(serviceId)) {
             MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
@@ -176,6 +167,8 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
             } else {
                 MessageUtils.setUnknownError(response);
             }
@@ -184,7 +177,8 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     }
 
     @Override
-    protected boolean onDeleteOnPhoto(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onDeleteOnPhoto(final Intent request, final Intent response,
+                                      final String serviceId, final String sessionKey) {
         if (!mClient.hasDevice(serviceId)) {
             MessageUtils.setNotFoundServiceError(response);
         } else if (sessionKey == null) {
@@ -196,7 +190,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
             } else if (error == EventError.INVALID_PARAMETER) {
                 MessageUtils.setInvalidRequestParameterError(response);
             } else if (error == EventError.FAILED) {
-                MessageUtils.setUnknownError(response, "Failed to delete event from db.");
+                MessageUtils.setUnknownError(response, "Failed to delete event from cache");
             } else if (error == EventError.NOT_FOUND) {
                 MessageUtils.setUnknownError(response, "Not found event.");
             } else {
@@ -215,7 +209,8 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
             MessageUtils.setNotFoundServiceError(response);
             return true;
         }
-        if (deviceInfo.getRecorderInfo(target) == null) {
+        final RecorderInfo recorder = deviceInfo.getVideoRecorderInfo(target);
+        if (recorder == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }
@@ -229,6 +224,8 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 try {
                     api.startVideoRecording();
                     setResult(response, DConnectMessage.RESULT_OK);
+
+                    sendOnRecordingChangeEvent(serviceId, recorder, RecordingState.RECORDING);
                 } catch (IllegalStateException e) {
                     MessageUtils.setIllegalDeviceStateError(response, "Theta's current mode is not video mode.");
                 } catch (ThetaException e) {
@@ -250,7 +247,8 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
             MessageUtils.setNotFoundServiceError(response);
             return true;
         }
-        if (deviceInfo.getRecorderInfo(target) == null) {
+        final RecorderInfo recorder = deviceInfo.getVideoRecorderInfo(target);
+        if (recorder == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }
@@ -260,6 +258,8 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 try {
                     if (api.stopVideoRecording()) {
                         setResult(response, DConnectMessage.RESULT_OK);
+
+                        sendOnRecordingChangeEvent(serviceId, recorder, RecordingState.STOP);
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response, "Video recording is stopped already.");
                     }
@@ -274,8 +274,85 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         return false;
     }
 
+    @Override
+    protected boolean onPutOnRecordingChange(final Intent request, final Intent response,
+                                             final String serviceId, final String sessionKey) {
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else if (sessionKey == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+        } else {
+            EventError error = EventManager.INSTANCE.addEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+        }
+        return true;
+    }
+
+    @Override
+    protected boolean onDeleteOnRecordingChange(final Intent request, final Intent response,
+                                                final String serviceId, final String sessionKey) {
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else if (sessionKey == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "There is no sessionKey.");
+        } else {
+            EventError error = EventManager.INSTANCE.removeEvent(request);
+            if (error == EventError.NONE) {
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (error == EventError.INVALID_PARAMETER) {
+                MessageUtils.setInvalidRequestParameterError(response);
+            } else if (error == EventError.FAILED) {
+                MessageUtils.setUnknownError(response, "Failed to delete event from cache.");
+            } else if (error == EventError.NOT_FOUND) {
+                MessageUtils.setUnknownError(response, "Not found event.");
+            } else {
+                MessageUtils.setUnknownError(response);
+            }
+        }
+        return true;
+    }
+
+    private void sendOnPhotoEvent(final ThetaPhoto photo, final String uri, final String path) {
+        List<Event> events = getOnPhotoEventList(photo.mServiceId);
+        mLogger.info("Send onphoto events: " + events.size());
+        for (Iterator<Event> it = events.iterator(); it.hasNext(); ) {
+            Event event = it.next();
+            Intent message = EventManager.createEventMessage(event);
+            Bundle photoInfo = new Bundle();
+            setUri(photoInfo, uri);
+            setPath(photoInfo, path);
+            setMIMEType(photoInfo, photo.mMimeType);
+            setPhoto(message, photoInfo);
+            getService().sendEvent(message, event.getAccessToken());
+        }
+    }
+
+    private void sendOnRecordingChangeEvent(final String serviceId, final RecorderInfo recorder, final RecordingState state) {
+        List<Event> events = getOnRecordingChangeEventList(serviceId);
+        mLogger.info("Send onrecordingchange events: " + events.size());
+        for (Iterator<Event> it = events.iterator(); it.hasNext(); ) {
+            Event event = it.next();
+            Intent message = EventManager.createEventMessage(event);
+            Bundle media = new Bundle();
+            setStatus(media, state);
+            setMIMEType(media, recorder.mMimeType);
+            setMedia(message, media);
+            getService().sendEvent(message, event.getAccessToken());
+        }
+    }
+
     private List<Event> getOnPhotoEventList(final String serviceId) {
         return EventManager.INSTANCE.getEventList(serviceId, PROFILE_NAME, null, ATTRIBUTE_ON_PHOTO);
+    }
+
+    private List<Event> getOnRecordingChangeEventList(final String serviceId) {
+        return EventManager.INSTANCE.getEventList(serviceId, PROFILE_NAME, null, ATTRIBUTE_ON_RECORDING_CHANGE);
     }
 
     private ThetaDeviceService getService() {

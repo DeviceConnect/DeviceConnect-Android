@@ -68,7 +68,7 @@ public class ThetaApiClient {
                     try {
                         byte[] data = initiator.getObject(handle);
                         ObjectInfo info = initiator.getObjectInfo(handle);
-                        photo[0] = new ThetaPhoto(data, SERVICE_ID, info.getFilename(), MIMETYPE_PHOTO);
+                        photo[0] = new ThetaPhoto(data, info.getFilename(), MIMETYPE_PHOTO, SERVICE_ID);
                     } catch (ThetaException e) {
                         e.printStackTrace();
                     }
@@ -152,6 +152,28 @@ public class ThetaApiClient {
             return initiator.getCaptureStatus();
         }
 
+        @Override
+        public boolean removeFileFromDefaultStorage(final String filename)
+            throws ThetaException, IOException {
+            PtpipInitiator initiator = getInitiator();
+            ObjectHandles objectHandles = initiator.getObjectHandles(
+                PtpipInitiator.PARAMETER_VALUE_DEFAULT,
+                PtpipInitiator.PARAMETER_VALUE_DEFAULT,
+                PtpipInitiator.PARAMETER_VALUE_DEFAULT);
+
+            for (int i = 0; i < objectHandles.size(); i++) {
+                int objectHandle = objectHandles.getObjectHandle(i);
+                ObjectInfo objectInfo = initiator.getObjectInfo(objectHandle);
+                String name = objectInfo.getFilename();
+                if (name.equals(filename)) {
+                    initiator.deleteObject(
+                        objectHandle,
+                        PtpipInitiator.PARAMETER_VALUE_DEFAULT);
+                    return true;
+                }
+            }
+            return false;
+        }
     };
 
     private ThetaDeviceInfo mDeviceInfo;

@@ -62,6 +62,10 @@ public class ThetaFileProfile extends FileProfile {
             getService().sendResponse(response);
             return true;
         }
+        if (!path.startsWith("/")) {
+            MessageUtils.setInvalidRequestParameterError(response, "path must start with '/'.");
+            return true;
+        }
         mClient.execute(new ThetaApiTask() {
             @Override
             public void run(final ThetaApi api) {
@@ -173,7 +177,7 @@ public class ThetaFileProfile extends FileProfile {
                         getContext().sendBroadcast(response);
                         return;
                     }
-                    int end = limit != null ? start + limit : start;
+                    int end = limit != null ? start + limit : list.size();
                     if (end > list.size()) {
                         end = list.size();
                     }
@@ -251,6 +255,48 @@ public class ThetaFileProfile extends FileProfile {
             Collections.reverse(fileInfoList);
         }
         return fileInfoList;
+    }
+
+    @Override
+    protected boolean onDeleteRemove(final Intent request, final Intent response,
+                                     final String serviceId, final String path) {
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+        if (path == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "path must be specified.");
+            getService().sendResponse(response);
+            return true;
+        }
+        if (!path.startsWith("/")) {
+            MessageUtils.setInvalidRequestParameterError(response, "path must start with '/'.");
+            return true;
+        }
+        mClient.execute(new ThetaApiTask() {
+            @Override
+            public void run(final ThetaApi api) {
+                try {
+                    String[] components = path.split("/");
+                    if (components.length == 2) {
+                        String filename = components[1];
+                        if (api.removeFileFromDefaultStorage(filename)) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            MessageUtils.setInvalidRequestParameterError(response, "File not found: " + path);
+                        }
+                    } else {
+                        MessageUtils.setInvalidRequestParameterError(response, "File not found: " + path);
+                    }
+                } catch (ThetaException e) {
+                    MessageUtils.setUnknownError(response, e.getMessage());
+                } catch (IOException e) {
+                    MessageUtils.setUnknownError(response, e.getMessage());
+                }
+                getService().sendResponse(response);
+            }
+        });
+        return false;
     }
 
     private ThetaDeviceService getService() {

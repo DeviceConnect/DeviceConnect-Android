@@ -46,11 +46,29 @@ public class ThetaDeviceInfo {
         return mRecorderInfo;
     }
 
-    public RecorderInfo getRecorderInfo(final String targetId) {
-        if (targetId == null || targetId.equals(mRecorderInfo.mId)) {
-            return mRecorderInfo;
-        } else {
+    public RecorderInfo getVideoRecorderInfo(final String targetId) {
+        if (mRecorderInfo != RecorderInfo.VIDEO) {
             return null;
         }
+        if (targetId == null) {
+            return mRecorderInfo;
+        }
+        if (mRecorderInfo.mId.equals(targetId)) {
+            return mRecorderInfo;
+        }
+        return null;
+    }
+
+    public RecorderInfo getPhotoRecorderInfo(final String targetId) {
+        if (mRecorderInfo != RecorderInfo.PHOTO) {
+            return null;
+        }
+        if (targetId == null) {
+            return mRecorderInfo;
+        }
+        if (mRecorderInfo.mId.equals(targetId)) {
+            return mRecorderInfo;
+        }
+        return null;
     }
 }

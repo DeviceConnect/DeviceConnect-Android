@@ -77,5 +77,21 @@ public interface ThetaApi {
      */
     byte[] getFile(ThetaFileInfo info) throws ThetaException, IOException;
 
+    /**
+     * Obtains the status of recording of THETA.
+     * @return status of recording
+     * @throws ThetaException if an error is occurred when this API is executed on THETA
+     * @throws IOException if a communication between THETA and Android device is failed
+     */
     short getRecordingStatus() throws ThetaException, IOException;
+
+    /**
+     * Removes a file.
+     *
+     * @param filename the name of file to be removed
+     * @return <code>true</code> if the specified file was found and removed, otherwise <code>false</code>
+     * @throws ThetaException if an error is occurred when this API is executed on THETA
+     * @throws IOException if a communication between THETA and Android device is failed
+     */
+    boolean removeFileFromDefaultStorage(String filename) throws ThetaException, IOException;
 }

@@ -88,7 +88,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
         if (isNullAttribute(request)) {
             return onDeleteLight(request, response, getServiceID(request), getLightID(request));
         } else if (isLightGroupAttribute(request)) {
-            return onDeleteLightGroup(request, response, getServiceID(request));
+            return onDeleteLightGroup(request, response, getServiceID(request), getGroupId(request));
         } else if (isLightGroupClearAttribute(request)) {
             return onDeleteLightGroupClear(request, response, getServiceID(request));
         } else {
@@ -222,7 +222,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteLightGroup(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onDeleteLightGroup(final Intent request, final Intent response, final String serviceId, String groupId) {
         setUnsupportedError(response);
         return true;
     }

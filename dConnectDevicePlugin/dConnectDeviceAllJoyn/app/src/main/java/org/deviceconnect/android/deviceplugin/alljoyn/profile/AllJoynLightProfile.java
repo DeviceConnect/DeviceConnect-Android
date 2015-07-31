@@ -435,7 +435,13 @@ public class AllJoynLightProfile extends LightProfile {
                 try {
                     Map<String, Variant> newStates = new HashMap<>();
                     newStates.put("OnOff", new Variant(false, "b"));
+                    Lamp.TransitionLampState_return_value_us transLampStateResponse =
                     lamp.transitionLampState(lightId, newStates, 10);
+                    if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response, "Failed to turn off the light.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
                     getContext().sendBroadcast(response);
@@ -989,8 +995,73 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     @Override
-    protected boolean onDeleteLightGroup(Intent request, Intent response, String serviceId) {
-        return false;
+    protected boolean onDeleteLightGroup(Intent request, Intent response, String serviceId, String groupID) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+            return true;
+        }
+
+        final AllJoynDeviceApplication app = getApplication();
+        final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
+
+        if (service == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        switch (getLampServiceType(service)) {
+
+            case TYPE_LAMP_CONTROLLER: {
+                onDeleteLightGroupForLampController(request, response, service, groupID);
+                return false;
+            }
+
+            case TYPE_SINGLE_LAMP:
+            case TYPE_UNKNOWN:
+            default: {
+                setUnsupportedError(response);
+                return true;
+            }
+
+        }
+    }
+
+    private void onDeleteLightGroupForLampController(Intent request, final Intent response
+            , AllJoynServiceEntity service, final String groupID) {
+        final AllJoynDeviceApplication app = getApplication();
+
+        OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+            @Override
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                LampGroup proxy = app.getInterface(busName, sessionId, LampGroup.class);
+
+                try {
+                    Map<String, Variant> newStates = new HashMap<>();
+                    newStates.put("OnOff", new Variant(false, "b"));
+                    LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
+                    proxy.transitionLampGroupState(groupID, newStates, 10);
+                    if (transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response, "Failed to turn off the light group.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                } catch (BusException e) {
+                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                setResultOK(response);
+                getContext().sendBroadcast(response);
+            }
+
+            @Override
+            public void onSessionFailed(@NonNull String busName, short port) {
+                MessageUtils.setUnknownError(response, "Failed to join session.");
+                getContext().sendBroadcast(response);
+            }
+        };
+        OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
     @Override

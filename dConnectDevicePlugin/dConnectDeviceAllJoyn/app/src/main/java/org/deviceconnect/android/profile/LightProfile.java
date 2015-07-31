@@ -70,7 +70,9 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             return onPostLightGroup(request, response, getServiceID(request), getGroupId(request),
                     brightness, color);
         } else if (isLightGroupCreateAttribute(request)) {
-            return onPostLightGroupCreate(request, response, getServiceID(request));
+            String[] lightIDs = getLightIds(request).split(",");
+            return onPostLightGroupCreate(request, response, getServiceID(request), lightIDs
+                    , getGroupName(request));
         } else {
             return onPostOther(request, response, getServiceID(request));
         }
@@ -90,7 +92,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
         } else if (isLightGroupAttribute(request)) {
             return onDeleteLightGroup(request, response, getServiceID(request), getGroupId(request));
         } else if (isLightGroupClearAttribute(request)) {
-            return onDeleteLightGroupClear(request, response, getServiceID(request));
+            return onDeleteLightGroupClear(request, response, getServiceID(request), getGroupId(request));
         } else {
             return onDeleteOther(request, response, getServiceID(request));
         }
@@ -249,7 +251,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostLightGroupCreate(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onPostLightGroupCreate(final Intent request, final Intent response
+            , final String serviceId, String[] lightIDs, String groupName) {
         setUnsupportedError(response);
         return true;
     }
@@ -262,7 +265,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeleteLightGroupClear(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onDeleteLightGroupClear(final Intent request, final Intent response
+            , final String serviceId, String groupID) {
         setUnsupportedError(response);
         return true;
     }

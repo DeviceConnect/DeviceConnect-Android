@@ -55,6 +55,11 @@ public class AllJoynLightProfile extends LightProfile {
         final AllJoynDeviceApplication app = getApplication();
         final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
 
+        if (service == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
         switch (getLampServiceType(service)) {
             case TYPE_SINGLE_LAMP: {
                 onGetLightForSingleLamp(request, response, service);
@@ -189,6 +194,11 @@ public class AllJoynLightProfile extends LightProfile {
 
         final AllJoynDeviceApplication app = getApplication();
         final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
+
+        if (service == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
 
         switch (getLampServiceType(service)) {
             case TYPE_SINGLE_LAMP: {
@@ -357,6 +367,11 @@ public class AllJoynLightProfile extends LightProfile {
         final AllJoynDeviceApplication app = getApplication();
         final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
 
+        if (service == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
         switch (getLampServiceType(service)) {
             case TYPE_SINGLE_LAMP: {
                 onDeleteLightForSingleLamp(request, response, service, lightId);
@@ -448,6 +463,11 @@ public class AllJoynLightProfile extends LightProfile {
 
         final AllJoynDeviceApplication app = getApplication();
         final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
+
+        if (service == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
 
         switch (getLampServiceType(service)) {
             case TYPE_SINGLE_LAMP: {
@@ -720,7 +740,7 @@ public class AllJoynLightProfile extends LightProfile {
         return true;
     }
 
-    private LampServiceType getLampServiceType(AllJoynServiceEntity service) {
+    private LampServiceType getLampServiceType(@NonNull AllJoynServiceEntity service) {
         if (isSupportingInterfaces(service, "org.allseen.LSF.ControllerService.Lamp")) {
             // Can manager multiple lamps and control each of them.
 

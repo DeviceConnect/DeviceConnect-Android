@@ -1,6 +1,8 @@
 package org.deviceconnect.android.deviceplugin.alljoyn;
 
 import android.app.Application;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -196,6 +198,17 @@ public class AllJoynDeviceApplication extends Application {
             }
         }
         return null;
+    }
+
+    public String getCurrentVersionName() {
+        PackageManager packageManager = getPackageManager();
+
+        try {
+            PackageInfo e = packageManager.getPackageInfo(getPackageName(), 1);
+            return e.versionName;
+        } catch (PackageManager.NameNotFoundException var3) {
+            return "Unknown";
+        }
     }
 
     /**

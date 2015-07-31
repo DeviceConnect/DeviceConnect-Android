@@ -1,11 +1,11 @@
 package org.deviceconnect.android.deviceplugin.alljoyn;
 
-import android.os.Build;
 import android.os.Debug;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.alljoyn.profile.AllJoynLightProfile;
 import org.deviceconnect.android.deviceplugin.alljoyn.profile.AllJoynServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.alljoyn.profile.AllJoynServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.alljoyn.profile.AllJoynSystemProfile;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -17,9 +17,7 @@ import org.deviceconnect.android.profile.SystemProfile;
  *
  * @author NTT DOCOMO, INC.
  */
-public class AllJoynDeviceService extends DConnectMessageService
-//        implements AboutListener
-{
+public class AllJoynDeviceService extends DConnectMessageService {
 
     @Override
     public void onCreate() {
@@ -39,8 +37,7 @@ public class AllJoynDeviceService extends DConnectMessageService
 
     @Override
     protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) {
-        };
+        return new AllJoynServiceInformationProfile(this);
     }
 
     @Override

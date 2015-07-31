@@ -376,8 +376,8 @@ public class AllJoynDeviceApplication extends Application {
 
                 try {
                     mAboutService = AboutServiceImpl.getInstance();
-                    mAboutService.startAboutClient(mBus);
                     mAboutService.addAnnouncementHandler(this, null);
+                    mAboutService.startAboutClient(mBus);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -452,6 +452,10 @@ public class AllJoynDeviceApplication extends Application {
                 if (mPingTimer != null) {
                     mPingTimer.shutdownNow();
                     mPingTimer = null;
+                }
+                if (mDiscoverTimer != null) {
+                    mDiscoverTimer.shutdownNow();
+                    mDiscoverTimer = null;
                 }
                 if (mAboutService != null) {
                     mAboutService.stopAboutClient();

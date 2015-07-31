@@ -67,6 +67,10 @@ public class AllJoynServiceEntity {
      * Flatten <code>aboutData</code> to member fields.
      */
     private void flattenAboutData() {
+        if (aboutData == null || aboutData.size() == 0) {
+            return;
+        }
+
         for (String key : aboutData.keySet()) {
             Variant val = aboutData.get(key);
             try {

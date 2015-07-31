@@ -55,12 +55,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     protected boolean onPostRequest(final Intent request, final Intent response) {
         if (isNullAttribute(request)) {
             int[] color = new int[3];
-            Float brightness;
-
-            brightness = getBrightnessParam(request, response);
-            if (brightness == -1) {
-                brightness = null;
-            }
+            Float brightness = getBrightnessParam(request, response);
             if (!getColorParam(request, response, color)) {
                 color = null;
             }
@@ -105,7 +100,16 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     @Override
     protected boolean onPutRequest(final Intent request, final Intent response) {
         if (isNullAttribute(request)) {
-            return onPutLight(request, response, getServiceID(request));
+            int[] color = new int[3];
+
+            String name = getName(request);
+            Float brightness = getBrightnessParam(request, response);
+            if (!getColorParam(request, response, color)) {
+                color = null;
+            }
+
+            return onPutLight(request, response, getServiceID(request), getLightID(request),
+                    name, brightness, color);
         } else if (isLightGroupAttribute(request)) {
             return onPutLightGroup(request, response, getServiceID(request));
         } else {
@@ -165,7 +169,9 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutLight(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
+                                 String lightId, String name, Float brightness, int[] color
+    ) {
         setUnsupportedError(response);
         return true;
     }
@@ -468,27 +474,27 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      *
      * @param request  request
      * @param response response
-     * @return Brightness parameter, if -1, parameter error.
+     * @return Brightness parameter, or null if parameter error is encountered.
      */
-    private static float getBrightnessParam(final Intent request, final Intent response) {
-        float brightness = 0;
+    private static Float getBrightnessParam(final Intent request, final Intent response) {
         if (getBrightness(request) != null) {
+            float brightness;
             try {
                 brightness = Float.valueOf(getBrightness(request));
                 if (brightness > 1.0 || brightness < 0) {
                     MessageUtils.setInvalidRequestParameterError(response,
                             "brightness should be a value between 0 and 1.0");
-                    return -1;
+                    return null;
                 }
             } catch (NumberFormatException e) {
                 MessageUtils
                         .setInvalidRequestParameterError(response, "brightness should be a value between 0 and 1.0");
-                return -1;
+                return null;
             }
+            return brightness;
         } else {
-            brightness = 1;
+            return null;
         }
-        return brightness;
     }
 
     /**

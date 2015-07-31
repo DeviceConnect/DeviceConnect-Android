@@ -58,7 +58,7 @@ public interface Lamp {
         public String lampName;
     }
 
-    public class SetLampName_return_value_usss extends BaseReturnValue {
+    class SetLampName_return_value_uss extends BaseReturnValue {
         @Position(2)
         public String language;
     }
@@ -140,7 +140,7 @@ public interface Lamp {
     GetLampName_return_value_usss getLampName(String lampID, String language) throws BusException;
 
     @BusMethod(name = "SetLampName", signature = "sss", replySignature = "uss")
-    SetLampName_return_value_usss setLampName(String lampID, String lampName, String language) throws BusException;
+    SetLampName_return_value_uss setLampName(String lampID, String lampName, String language) throws BusException;
 
     @BusMethod(name = "GetLampDetails", signature = "s", replySignature = "usa{sv}")
     GetLampDetails_return_value_usa_sv getLampDetails(String lampID) throws BusException;

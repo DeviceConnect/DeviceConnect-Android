@@ -437,8 +437,216 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     @Override
-    protected boolean onPutLight(Intent request, Intent response, String serviceId) {
-        return false;
+    protected boolean onPutLight(Intent request, Intent response, String serviceId, String lightId,
+                                 String name, Float brightness, int[] color
+    ) {
+        if (serviceId == null || lightId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+            return true;
+        }
+
+        final AllJoynDeviceApplication app = getApplication();
+        final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
+
+        switch (getLampServiceType(service)) {
+            case TYPE_SINGLE_LAMP: {
+                onPutLightForSingleLamp(request, response, service, lightId, name, brightness, color);
+                return false;
+            }
+            case TYPE_LAMP_CONTROLLER: {
+                onPutLightForLampController(request, response, service, lightId, name, brightness, color);
+                return false;
+            }
+            case TYPE_UNKNOWN:
+            default: {
+                setUnsupportedError(response);
+                return true;
+            }
+        }
+
+    }
+
+    // TODO: Implement name change functionality using AllJoyn Config service.
+    private void onPutLightForSingleLamp(Intent request, final Intent response,
+                                         AllJoynServiceEntity service, String lightId,
+                                         String name, final Float brightness, final int[] color) {
+        if (lightId == null) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'lightId' must be specified.");
+            getContext().sendBroadcast(response);
+            return;
+        }
+        if (name == null) {
+
+        }
+        if (brightness != null && (brightness < 0 || brightness > 1)) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'brightness' must be within range [0, 1].");
+            getContext().sendBroadcast(response);
+            return;
+        }
+        if (color != null && color.length != 3) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'color' must be a string representing " +
+                            "an RGB hexadecimal (e.g. ff0000).");
+            getContext().sendBroadcast(response);
+            return;
+        }
+
+        final AllJoynDeviceApplication app = getApplication();
+
+        OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+            @Override
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                LampState state = app.getInterface(busName, sessionId, LampState.class);
+                LampDetails details = app.getInterface(busName, sessionId, LampDetails.class);
+
+                try {
+                    HashMap<String, Variant> newStates = new HashMap<>();
+
+                    // NOTE: Arithmetic operations in primitive types may lead to arithmetic
+                    // overflow. To retain precision, BigDecimal objects are used.
+
+                    if (details.getColor() && color != null) {
+                        int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
+
+                        newStates.put("Hue", new Variant(hsb[0], "u"));
+                        newStates.put("Saturation", new Variant(hsb[1], "u"));
+                    }
+                    if (details.getDimmable() && brightness != null) {
+                        // [0, 1] -> [0, 0xffffffff]
+                        BigDecimal tmp = BigDecimal.valueOf(0xffffffffl);
+                        tmp = tmp.multiply(BigDecimal.valueOf(brightness));
+                        long scaledVal = tmp.longValue();
+                        int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
+                        newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                    }
+
+                    int responseCode = state.transitionLampState(0, newStates, 10);
+                    if (responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response, "Failed to change lamp states.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                } catch (BusException e) {
+                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                setResultOK(response);
+                getContext().sendBroadcast(response);
+            }
+
+            @Override
+            public void onSessionFailed(@NonNull String busName, short port) {
+                MessageUtils.setUnknownError(response, "Failed to join session.");
+                getContext().sendBroadcast(response);
+            }
+        };
+        OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
+    }
+
+    private void onPutLightForLampController(Intent request, final Intent response,
+                                             final AllJoynServiceEntity service, final String lightId,
+                                             final String name, final Float brightness, final int[] color) {
+        if (lightId == null) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'lightId' must be specified.");
+            getContext().sendBroadcast(response);
+            return;
+        }
+        if (brightness != null && (brightness < 0 || brightness > 1)) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'brightness' must be within range [0, 1].");
+            getContext().sendBroadcast(response);
+            return;
+        }
+        if (color != null && color.length != 3) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'color' must be a string representing " +
+                            "an RGB hexadecimal (e.g. ff0000).");
+            getContext().sendBroadcast(response);
+            return;
+        }
+
+        final AllJoynDeviceApplication app = getApplication();
+
+        OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+            @Override
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                Lamp lamp = app.getInterface(busName, sessionId, Lamp.class);
+
+                try {
+                    HashMap<String, Variant> newStates = new HashMap<>();
+
+                    // NOTE: Arithmetic operations in primitive types may lead to arithmetic
+                    // overflow. To retain precision, BigDecimal objects are used.
+
+                    Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse =
+                            lamp.getLampDetails(lightId);
+                    if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp details.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
+                    if (lampDetailsResponse.lampDetails.containsKey("Color")) {
+                        if (lampDetailsResponse.lampDetails.get("Color").getObject(boolean.class)
+                                && color != null) {
+                            int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
+
+                            newStates.put("Hue", new Variant(hsb[0], "u"));
+                            newStates.put("Saturation", new Variant(hsb[1], "u"));
+                        }
+                    }
+                    if (lampDetailsResponse.lampDetails.containsKey("Dimmable")) {
+                        if (lampDetailsResponse.lampDetails.get("Dimmable").getObject(boolean.class)
+                                && brightness != null) {
+                            // [0, 1] -> [0, 0xffffffff]
+                            BigDecimal tmp = BigDecimal.valueOf(0xffffffffl);
+                            tmp = tmp.multiply(BigDecimal.valueOf(brightness));
+                            long scaledVal = tmp.longValue();
+                            int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
+                            newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                        }
+                    }
+
+                    Lamp.TransitionLampState_return_value_us transitionLampStateResponse =
+                            lamp.transitionLampState(lightId, newStates, 10);
+                    if (transitionLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response, "Failed to change lamp states.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
+                    if (name != null) {
+                        Lamp.SetLampName_return_value_uss lampNameResponse =
+                                lamp.setLampName(lightId, name, service.defaultLanguage);
+                        if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
+                            MessageUtils.setUnknownError(response, "Failed to change name.");
+                            getContext().sendBroadcast(response);
+                            return;
+                        }
+                    }
+                } catch (BusException e) {
+                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                setResultOK(response);
+                getContext().sendBroadcast(response);
+            }
+
+            @Override
+            public void onSessionFailed(@NonNull String busName, short port) {
+                MessageUtils.setUnknownError(response, "Failed to join session.");
+                getContext().sendBroadcast(response);
+            }
+        };
+        OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
     @Override

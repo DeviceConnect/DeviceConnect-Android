@@ -23,6 +23,7 @@ import org.deviceconnect.message.DConnectMessage;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -699,20 +700,16 @@ public class AllJoynLightProfile extends LightProfile {
 
     private boolean isSupportingInterfaces(@NonNull AllJoynServiceEntity service,
                                            String... interfaces) {
-        if (service.proxyObjects == null) {
+        if (interfaces == null || interfaces.length == 0
+                || service.proxyObjects == null) {
             return false;
         }
 
         for (String ifaceCheck : interfaces) {
             boolean found = false;
             for (BusObjectDescription busObject : service.proxyObjects) {
-                for (String iface : busObject.interfaces) {
-                    if (iface.equals(ifaceCheck)) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) {
+                if (Arrays.asList(busObject.interfaces).contains(ifaceCheck)) {
+                    found = true;
                     break;
                 }
             }

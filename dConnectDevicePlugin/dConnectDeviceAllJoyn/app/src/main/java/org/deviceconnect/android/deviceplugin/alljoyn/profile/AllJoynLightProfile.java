@@ -9,7 +9,9 @@ import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.Variant;
 import org.alljoyn.services.common.BusObjectDescription;
 import org.allseen.LSF.ControllerService.Lamp;
+import org.allseen.LSF.ControllerService.LampGroup;
 import org.allseen.LSF.LampDetails;
+import org.allseen.LSF.LampService;
 import org.allseen.LSF.LampState;
 import org.allseen.LSF.ResponseCode;
 import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynDeviceApplication;
@@ -25,8 +27,10 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * AllJoynデバイスプラグイン Light プロファイル.
@@ -672,7 +676,216 @@ public class AllJoynLightProfile extends LightProfile {
 
     @Override
     protected boolean onGetLightGroup(Intent request, Intent response, String serviceId) {
-        return false;
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+            return true;
+        }
+
+        final AllJoynDeviceApplication app = getApplication();
+        final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
+
+        if (service == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        switch (getLampServiceType(service)) {
+
+            case TYPE_LAMP_CONTROLLER: {
+                onGetLightGroupForLampController(request, response, service);
+                return false;
+            }
+
+            case TYPE_SINGLE_LAMP:
+            case TYPE_UNKNOWN:
+            default: {
+                setUnsupportedError(response);
+                return true;
+            }
+
+        }
+    }
+
+    private void onGetLightGroupForLampController(Intent request, final Intent response,
+                                                  final AllJoynServiceEntity service) {
+        final AllJoynDeviceApplication app = getApplication();
+
+        OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+            @Override
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                LampGroup proxyLampGroup = app.getInterface(busName, sessionId, LampGroup.class);
+
+                if (proxyLampGroup == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                try {
+                    LampGroup.GetAllLampGroupIDs_return_value_uas allLampGroupIDsResponse =
+                            proxyLampGroup.getAllLampGroupIDs();
+                    if (allLampGroupIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp group IDs.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
+                    //////////////////////////////////////////////////
+                    // Obtain lamp group info.
+                    //
+                    HashMap<String, LampGroupInfo> lampGroups = new HashMap<>();
+                    for (String lampGroupID : allLampGroupIDsResponse.lampGroupIDs) {
+                        LampGroupInfo lampGroupInfo = new LampGroupInfo();
+
+                        lampGroupInfo.ID = lampGroupID;
+
+                        {
+                            LampGroup.GetLampGroupName_return_value_usss lampGroupNameResponse =
+                                    proxyLampGroup.getLampGroupName(lampGroupID, service.defaultLanguage);
+                            if (lampGroupNameResponse.responseCode != ResponseCode.OK.getValue()) {
+                                Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                        "Failed to obtain lamp group name. Skipping this lamp group...");
+                                continue;
+                            }
+                            lampGroupInfo.name = lampGroupNameResponse.lampGroupName;
+                        }
+
+                        {
+                            LampGroup.GetLampGroup_return_value_usasas lampGroupResponse =
+                                    proxyLampGroup.getLampGroup(lampGroupID);
+                            if (lampGroupResponse.responseCode != ResponseCode.OK.getValue()) {
+                                Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                        "Failed to obtain IDs of lamps and lamp groups contained in a lamp group. Skipping this lamp group...");
+                                continue;
+                            }
+                            lampGroupInfo.lampIDs =
+                                    new HashSet<>(Arrays.asList(lampGroupResponse.lampID));
+                            lampGroupInfo.lampGroupIDs =
+                                    new HashSet<>(Arrays.asList(lampGroupResponse.lampGroupIDs));
+                        }
+
+                        lampGroupInfo.config = "";
+
+                        lampGroups.put(lampGroupID, lampGroupInfo);
+                    }
+
+                    //////////////////////////////////////////////////
+                    // Expand lamp IDs contained in lamp groups.
+                    //
+                    for (LampGroupInfo searchTarget : lampGroups.values()) {
+                        for (LampGroupInfo expandTarget : lampGroups.values()) {
+                            if (searchTarget.ID.equals(expandTarget.ID)) {
+                                continue;
+                            }
+                            if (expandTarget.lampGroupIDs.contains(searchTarget.ID)) {
+                                expandTarget.lampIDs.addAll(searchTarget.lampIDs);
+                                expandTarget.lampGroupIDs.addAll(searchTarget.lampGroupIDs);
+                                expandTarget.lampGroupIDs.remove(searchTarget.ID);
+                            }
+                        }
+                    }
+
+                    //////////////////////////////////////////////////
+                    // Obtain lamp info.
+                    //
+                    HashMap<String, LampInfo> lamps = new HashMap<>();
+                    Lamp proxyLamp = app.getInterface(busName, sessionId, Lamp.class);
+                    if (proxyLamp == null) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    for (LampGroupInfo lampGroup : lampGroups.values()) {
+                        for (String lampID : lampGroup.lampIDs) {
+                            if (lamps.containsKey(lampID)) {
+                                continue;
+                            }
+
+                            LampInfo lamp = new LampInfo();
+
+                            lamp.ID = lampID;
+
+                            {
+                                Lamp.GetLampName_return_value_usss lampNameResponse =
+                                        proxyLamp.getLampName(lampID, service.defaultLanguage);
+                                if (lampNameResponse.responseCode == ResponseCode.OK.getValue()) {
+                                    lamp.name = lampNameResponse.lampName;
+                                } else {
+                                    Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                            "Failed to obtain lamp name...");
+                                }
+                            }
+
+                            {
+                                Lamp.GetLampState_return_value_usa_sv lampStateResponse =
+                                        proxyLamp.getLampState(lampID);
+                                if (lampStateResponse.responseCode == ResponseCode.OK.getValue()) {
+                                    if (lampStateResponse.lampState.containsKey("OnOff")) {
+                                        lamp.on = lampStateResponse
+                                                .lampState.get("OnOff").getObject(Boolean.class);
+                                    } else {
+                                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                                "Failed to obtain on/off state...");
+                                    }
+                                } else {
+                                    Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                            "Failed to obtain lamp state...");
+                                }
+                            }
+
+                            lamp.config = "";
+
+                            lamps.put(lampID, lamp);
+                        }
+                    }
+
+                    List<Bundle> lightGroupsBundle = new ArrayList<>();
+                    for (LampGroupInfo lampGroup : lampGroups.values()) {
+                        Bundle lightGroupBundle = new Bundle();
+                        lightGroupBundle.putString(PARAM_GROUP_ID, lampGroup.ID);
+                        lightGroupBundle.putString(PARAM_NAME, lampGroup.name);
+                        List<Bundle> lightsBundle = new ArrayList<>();
+                        for (String lampID : lampGroup.lampIDs) {
+                            LampInfo lamp = lamps.get(lampID);
+
+                            Bundle lightBundle = new Bundle();
+                            lightBundle.putString(PARAM_LIGHT_ID, lamp.ID);
+                            if (lamp.name != null) {
+                                lightBundle.putString(PARAM_NAME, lamp.name);
+                            }
+                            if (lamp.on != null) {
+                                lightBundle.putBoolean(PARAM_ON, lamp.on);
+                            }
+                            lightBundle.putString(PARAM_CONFIG, lamp.config);
+                            lightsBundle.add(lightBundle);
+                        }
+                        lightGroupBundle.putParcelableArray(PARAM_LIGHTS,
+                                lightsBundle.toArray(new Bundle[lightsBundle.size()]));
+                        lightGroupBundle.putString(PARAM_CONFIG, lampGroup.config);
+                        lightGroupsBundle.add(lightGroupBundle);
+                    }
+
+                    response.putExtra(PARAM_LIGHT_GROUPS,
+                            lightGroupsBundle.toArray(new Bundle[lightGroupsBundle.size()]));
+                    setResultOK(response);
+                    getContext().sendBroadcast(response);
+                } catch (BusException e) {
+                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+            }
+
+            @Override
+            public void onSessionFailed(@NonNull String busName, short port) {
+                MessageUtils.setUnknownError(response, "Failed to join session.");
+                getContext().sendBroadcast(response);
+            }
+        };
+        OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
     @Override
@@ -742,7 +955,7 @@ public class AllJoynLightProfile extends LightProfile {
 
     private LampServiceType getLampServiceType(@NonNull AllJoynServiceEntity service) {
         if (isSupportingInterfaces(service, "org.allseen.LSF.ControllerService.Lamp")) {
-            // Can manager multiple lamps and control each of them.
+            // Can manage and control multiple lamps.
 
             return LampServiceType.TYPE_LAMP_CONTROLLER;
         } else if (isSupportingInterfaces(service, "org.allseen.LSF.LampState")) {
@@ -753,4 +966,20 @@ public class AllJoynLightProfile extends LightProfile {
 
         return LampServiceType.TYPE_UNKNOWN;
     }
+
+    private static class LampGroupInfo {
+        public String ID;
+        public String name;
+        public Set<String> lampIDs;
+        public Set<String> lampGroupIDs;
+        public String config;
+    }
+
+    private static class LampInfo {
+        public String ID;
+        public String name;
+        public Boolean on;
+        public String config;
+    }
+
 }

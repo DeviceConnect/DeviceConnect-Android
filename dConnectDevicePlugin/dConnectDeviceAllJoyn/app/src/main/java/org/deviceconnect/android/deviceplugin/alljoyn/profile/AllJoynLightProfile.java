@@ -38,6 +38,8 @@ import java.util.Set;
  */
 public class AllJoynLightProfile extends LightProfile {
 
+    private final static int TRANSITION_PERIOD = 10;
+
     private enum LampServiceType {
         TYPE_SINGLE_LAMP,
         TYPE_LAMP_CONTROLLER,
@@ -87,7 +89,6 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                // LampDetails details = app.getInterface(serviceId, LampDetails.class);
                 LampState state = app.getInterface(busName, sessionId, LampState.class);
 
                 List<Bundle> lights = new ArrayList<>();
@@ -253,7 +254,7 @@ public class AllJoynLightProfile extends LightProfile {
                         newStates.put("Brightness", new Variant(intScaledVal, "u"));
                     }
 
-                    int responseCode = state.transitionLampState(0, newStates, 10);
+                    int responseCode = state.transitionLampState(0, newStates, TRANSITION_PERIOD);
                     if (responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to change lamp states.");
                         getContext().sendBroadcast(response);
@@ -334,7 +335,7 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     Lamp.TransitionLampState_return_value_us transLampStateResponse =
-                            lamp.transitionLampState(lightId, newStates, 10);
+                            lamp.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
                     if (transLampStateResponse == null ||
                             transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to change lamp states.");
@@ -436,7 +437,7 @@ public class AllJoynLightProfile extends LightProfile {
                     Map<String, Variant> newStates = new HashMap<>();
                     newStates.put("OnOff", new Variant(false, "b"));
                     Lamp.TransitionLampState_return_value_us transLampStateResponse =
-                            lamp.transitionLampState(lightId, newStates, 10);
+                            lamp.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
                     if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to turn off the light.");
                         getContext().sendBroadcast(response);
@@ -551,7 +552,7 @@ public class AllJoynLightProfile extends LightProfile {
                         newStates.put("Brightness", new Variant(intScaledVal, "u"));
                     }
 
-                    int responseCode = state.transitionLampState(0, newStates, 10);
+                    int responseCode = state.transitionLampState(0, newStates, TRANSITION_PERIOD);
                     if (responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to change lamp states.");
                         getContext().sendBroadcast(response);
@@ -643,7 +644,7 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     Lamp.TransitionLampState_return_value_us transitionLampStateResponse =
-                            lamp.transitionLampState(lightId, newStates, 10);
+                            lamp.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
                     if (transitionLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to change lamp states.");
                         getContext().sendBroadcast(response);
@@ -968,7 +969,7 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
-                            proxyLampGroup.transitionLampGroupState(groupID, newStates, 10);
+                            proxyLampGroup.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
                     if (transLampGroupStateResponse == null ||
                             transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to change lamp group states.");
@@ -1039,7 +1040,7 @@ public class AllJoynLightProfile extends LightProfile {
                     Map<String, Variant> newStates = new HashMap<>();
                     newStates.put("OnOff", new Variant(false, "b"));
                     LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
-                            proxy.transitionLampGroupState(groupID, newStates, 10);
+                            proxy.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
                     if (transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to turn off the light group.");
                         getContext().sendBroadcast(response);
@@ -1137,7 +1138,7 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
-                            proxyLampGroup.transitionLampGroupState(groupID, newStates, 10);
+                            proxyLampGroup.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
                     if (transLampGroupStateResponse == null ||
                             transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to change lamp group states.");
@@ -1225,8 +1226,8 @@ public class AllJoynLightProfile extends LightProfile {
 
                 try {
                     LampGroup.CreateLampGroup_return_value_us createLampGroupResponse =
-                    proxyLampGroup.createLampGroup(lightIDs, new String[0], groupName
-                            , service.defaultLanguage);
+                            proxyLampGroup.createLampGroup(lightIDs, new String[0], groupName
+                                    , service.defaultLanguage);
                     if (createLampGroupResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to create a light group.");
                         getContext().sendBroadcast(response);
@@ -1302,7 +1303,7 @@ public class AllJoynLightProfile extends LightProfile {
 
                 try {
                     LampGroup.DeleteLampGroup_return_value_us deleteLampGroupResponse =
-                    proxyLampGroup.deleteLampGroup(groupID);
+                            proxyLampGroup.deleteLampGroup(groupID);
                     if (deleteLampGroupResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to delete the light group.");
                         getContext().sendBroadcast(response);

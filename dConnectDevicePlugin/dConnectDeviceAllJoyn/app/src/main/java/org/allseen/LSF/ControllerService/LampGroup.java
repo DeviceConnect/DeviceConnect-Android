@@ -5,11 +5,14 @@
 package org.allseen.LSF.ControllerService;
 
 import org.alljoyn.bus.BusException;
+import org.alljoyn.bus.Variant;
 import org.alljoyn.bus.annotation.BusInterface;
 import org.alljoyn.bus.annotation.BusMethod;
 import org.alljoyn.bus.annotation.BusProperty;
 import org.alljoyn.bus.annotation.BusSignal;
 import org.alljoyn.bus.annotation.Position;
+
+import java.util.Map;
 
 /*
  * The BusInterface annotation is used to tell the code this interface is an AllJoyn
@@ -68,6 +71,23 @@ public interface LampGroup {
         public String[] lampGroupIDs;
     }
 
+    class TransitionLampGroupState_return_value_us extends BaseReturnValue {
+    }
+
+    class PulseLampGroupWithState_return_value_us extends BaseReturnValue {
+    }
+
+    class PulseLampGroupWithPreset_return_value_us extends BaseReturnValue {
+    }
+
+    class TransitionLampGroupStateToPreset_return_value_us extends BaseReturnValue {
+    }
+
+    class TransitionLampGroupStateField_return_value_uss extends BaseReturnValue {
+        @Position(2)
+        public String lampGroupStateFieldName;
+    }
+
     class ResetLampGroupState_return_value_us extends BaseReturnValue {
     }
 
@@ -104,6 +124,21 @@ public interface LampGroup {
 
     @BusMethod(name = "GetLampGroup", signature = "s", replySignature = "usasas")
     GetLampGroup_return_value_usasas getLampGroup(String lampGroupID) throws BusException;
+
+    @BusMethod(name = "TransitionLampGroupState", signature = "sa{sv}u", replySignature = "us")
+    TransitionLampGroupState_return_value_us transitionLampGroupState(String lampGroupID, Map<String, Variant> lampState, int transitionPeriod) throws BusException;
+
+    @BusMethod(name = "PulseLampGroupWithState", signature = "sa{sv}a{sv}uuu", replySignature = "us")
+    PulseLampGroupWithState_return_value_us pulseLampGroupWithState(String lampGroupID, Map<String, Variant> fromLampState, Map<String, Variant> toLampState, int period, int duration, int numPulses) throws BusException;
+
+    @BusMethod(name = "PulseLampGroupWithPreset", signature = "suuuuu", replySignature = "us")
+    PulseLampGroupWithPreset_return_value_us pulseLampGroupWithPreset(String lampGroupID, int fromPresetID, int toPresetID, int period, int duration, int numPulses) throws BusException;
+
+    @BusMethod(name = "TransitionLampGroupStateToPreset", signature = "suu", replySignature = "us")
+    TransitionLampGroupStateToPreset_return_value_us transitionLampGroupStateToPreset(String lampGroupID, int presetID, int transitionPeriod) throws BusException;
+
+    @BusMethod(name = "TransitionLampGroupStateField", signature = "sssu", replySignature = "uss")
+    TransitionLampGroupStateField_return_value_uss transitionLampGroupStateField(String lampGroupID, String lampGroupStateFieldName, String lampGroupStateFieldValue, int transitionPeriod) throws BusException;
 
     @BusMethod(name = "ResetLampGroupState", signature = "s", replySignature = "us")
     ResetLampGroupState_return_value_us resetLampGroupState(String lampGroupID) throws BusException;

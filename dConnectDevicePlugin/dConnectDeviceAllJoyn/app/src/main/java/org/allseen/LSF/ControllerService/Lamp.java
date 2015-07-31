@@ -95,6 +95,20 @@ public interface Lamp {
     class TransitionLampState_return_value_us extends BaseReturnValue {
     }
 
+    class PulseLampWithState_return_value_us extends BaseReturnValue {
+    }
+
+    class TransitionLampStateToPreset_return_value_us extends BaseReturnValue {
+    }
+
+    class PulseLampWithPreset_return_value_us extends BaseReturnValue {
+    }
+
+    class TransitionLampStateField_return_value_uss extends BaseReturnValue {
+        @Position(2)
+        public String lampStateFieldName;
+    }
+
     class ResetLampState_return_value_us extends BaseReturnValue {
     }
 
@@ -158,6 +172,18 @@ public interface Lamp {
 
     @BusMethod(name = "TransitionLampState", signature = "sa{sv}u", replySignature = "us")
     TransitionLampState_return_value_us transitionLampState(String lampID, Map<String, Variant> lampState, int transitionPeriod) throws BusException;
+
+    @BusMethod(name = "PulseLampWithState", signature = "sa{sv}a{sv}uuu", replySignature = "us")
+    PulseLampWithState_return_value_us pulseLampWithState(String lampID, Map<String, Variant> fromLampState, Map<String, Variant> toLampState, int period, int duration, int numPulses) throws BusException;
+
+    @BusMethod(name = "PulseLampWithPreset", signature = "suuuuu", replySignature = "us")
+    PulseLampWithPreset_return_value_us pulseLampWithPreset(String lampID, int fromPresetID, int toPresetID, int period, int duration, int numPulses) throws BusException;
+
+    @BusMethod(name = "TransitionLampStateToPreset", signature = "suu", replySignature = "us")
+    TransitionLampStateToPreset_return_value_us transitionLampStateToPreset(String lampID, int presetID, int transitionPeriod) throws BusException;
+
+    @BusMethod(name = "TransitionLampStateField", signature = "sssu", replySignature = "uss")
+    TransitionLampStateField_return_value_uss transitionLampStateField(String lampID, String lampStateFieldName, String lampStateFieldValue, int transitionPeriod) throws BusException;
 
     @BusMethod(name = "ResetLampState", signature = "s", replySignature = "us")
     ResetLampState_return_value_us resetLampState(String lampID) throws BusException;

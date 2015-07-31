@@ -22,48 +22,56 @@ import org.alljoyn.bus.annotation.Position;
 @BusInterface(name = "org.allseen.LSF.ControllerService.LampGroup")
 public interface LampGroup {
 
-    public class BaseReturnValue {
+    class BaseReturnValue {
         @Position(0)
         public int responseCode = 0;
         @Position(1)
-        public String lampGroupIDs = null;
+        public String lampGroupID;
     }
 
-    public class GetAllLampGroupIDs_return_value_uas extends BaseReturnValue {
+    class GetAllLampGroupIDs_return_value_uas {
+        @Position(0)
+        public int responseCode = 0;
+        @Position(1)
+        public String[] lampGroupIDs;
     }
 
-    public class GetLampGroupName_return_value_usss extends BaseReturnValue {
+    class GetLampGroupName_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String language;
         @Position(3)
         public String lampGroupName;
     }
 
-    public class SetLampGroupName_return_value_usss extends BaseReturnValue {
+    class SetLampGroupName_return_value_uss {
+        @Position(0)
+        public int responseCode = 0;
+        @Position(1)
+        public String lampID;
         @Position(2)
         public String language;
     }
 
-    public class CreateLampGroup_return_value_us extends BaseReturnValue {
+    class CreateLampGroup_return_value_us extends BaseReturnValue {
     }
 
-    public class UpdateLampGroup_return_value_us extends BaseReturnValue {
+    class UpdateLampGroup_return_value_us extends BaseReturnValue {
     }
 
-    public class DeleteLampGroup_return_value_us extends BaseReturnValue {
+    class DeleteLampGroup_return_value_us extends BaseReturnValue {
     }
 
-    public class GetLampGroup_return_value_usasas extends BaseReturnValue {
+    class GetLampGroup_return_value_usasas extends BaseReturnValue {
         @Position(2)
-        public String[] lampIDs;
+        public String[] lampID;
         @Position(3)
         public String[] lampGroupIDs;
     }
 
-    public class ResetLampGroupState_return_value_us extends BaseReturnValue {
+    class ResetLampGroupState_return_value_us extends BaseReturnValue {
     }
 
-    public class ResetLampGroupStateField_return_value_uss extends BaseReturnValue {
+    class ResetLampGroupStateField_return_value_uss extends BaseReturnValue {
         @Position(2)
         public String lampGroupStateFieldName;
     }
@@ -83,7 +91,7 @@ public interface LampGroup {
     GetLampGroupName_return_value_usss getLampGroupName(String lampGroupID, String language) throws BusException;
 
     @BusMethod(name = "SetLampGroupName", signature = "sss", replySignature = "uss")
-    SetLampGroupName_return_value_usss setLampGroupName(String lampGroupID, String lampGroupName, String language) throws BusException;
+    SetLampGroupName_return_value_uss setLampGroupName(String lampGroupID, String lampName, String language) throws BusException;
 
     @BusMethod(name = "CreateLampGroup", signature = "asasss", replySignature = "us")
     CreateLampGroup_return_value_us createLampGroup(String[] lampIDs, String[] lampGroupIDs, String lampGroupName, String language) throws BusException;
@@ -94,7 +102,7 @@ public interface LampGroup {
     @BusMethod(name = "DeleteLampGroup", signature = "s", replySignature = "us")
     DeleteLampGroup_return_value_us deleteLampGroup(String lampGroupID) throws BusException;
 
-    @BusMethod(name = "GetLampGroup", signature = "s", replySignature = "us")
+    @BusMethod(name = "GetLampGroup", signature = "s", replySignature = "usasas")
     GetLampGroup_return_value_usasas getLampGroup(String lampGroupID) throws BusException;
 
     @BusMethod(name = "ResetLampGroupState", signature = "s", replySignature = "us")
@@ -102,7 +110,6 @@ public interface LampGroup {
 
     @BusMethod(name = "ResetLampGroupStateField", signature = "ss", replySignature = "uss")
     ResetLampGroupStateField_return_value_uss resetLampGroupStateField(String lampGroupID, String lampGroupStateFieldName) throws BusException;
-
 
     /*
      * The BusProperty annotation signifies this property should be used as part of the
@@ -116,21 +123,21 @@ public interface LampGroup {
     int getVersion() throws BusException;
 
     /*
-    * The BusSignal annotation signifies this signal should be used as part of the
-    * AllJoyn interface.
-    *
-    * All signals that use the BusSignal annotation can throw a BusException and should
-    * indicate this fact.
-    */
+     * The BusSignal annotation signifies this signal should be used as part of the
+     * AllJoyn interface.
+     *
+     * All signals that use the BusSignal annotation can throw a BusException and should
+     * indicate this fact.
+     */
     @BusSignal(name = "LampGroupsNameChanged", replySignature = "as", sessionless = true)
-    void emitLampGroupsNameChanged(String[] lampGroupsIDs) throws BusException;
+    void lampGroupsNameChanged(String lampGroupsIDs) throws BusException;
 
     @BusSignal(name = "LampGroupsCreated", replySignature = "as", sessionless = true)
-    void emitLampGroupsCreated(String[] lampGroupsIDs) throws BusException;
+    void lampGroupsCreated(String lampGroupsIDs) throws BusException;
 
     @BusSignal(name = "LampGroupsUpdated", replySignature = "as", sessionless = true)
-    void emitLampGroupsUpdated(String[] lampGroupsIDs) throws BusException;
+    void lampGroupsUpdated(String lampGroupsIDs) throws BusException;
 
     @BusSignal(name = "LampGroupsDeleted", replySignature = "as", sessionless = true)
-    void emitLampGroupsDeleted(String[] lampGroupsIDs) throws BusException;
+    void lampGroupsDeleted(String[] lampGroupsIDs) throws BusException;
 }

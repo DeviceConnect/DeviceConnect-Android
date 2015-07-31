@@ -25,33 +25,33 @@ import java.util.Map;
 @BusInterface(name = "org.allseen.LSF.ControllerService.Lamp")
 public interface Lamp {
 
-    public class BaseReturnValue {
+    class BaseReturnValue {
         @Position(0)
         public int responseCode = 0;
         @Position(1)
         public String lampID;
     }
 
-    public class GetAllLampIDs_return_value_uas {
+    class GetAllLampIDs_return_value_uas {
         @Position(0)
         public int responseCode = 0;
         @Position(1)
         public String[] lampIDs;
     }
 
-    public class GetLampSupportedLanguages_return_value_usas extends BaseReturnValue {
+    class GetLampSupportedLanguages_return_value_usas extends BaseReturnValue {
         @Position(2)
         public String[] supportedLanguages;
     }
 
-    public class GetLampManufacturer_return_value_usss extends BaseReturnValue {
+    class GetLampManufacturer_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String language;
         @Position(3)
         public String manufacturer;
     }
 
-    public class GetLampName_return_value_usss extends BaseReturnValue {
+    class GetLampName_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String language;
         @Position(3)
@@ -63,58 +63,57 @@ public interface Lamp {
         public String language;
     }
 
-    public class GetLampDetails_return_value_usa_sv extends BaseReturnValue {
+    class GetLampDetails_return_value_usa_sv extends BaseReturnValue {
         @Position(2)
         public Map<String, Variant> lampDetails;
     }
 
-    public class GetLampParameters_return_value_usa_sv extends BaseReturnValue {
+    class GetLampParameters_return_value_usa_sv {
         @Position(2)
         public Map<String, Variant> lampParameters;
     }
 
-    public class GetLampParametersField_return_value_usss extends BaseReturnValue {
+    class GetLampParametersField_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String lampParameterFieldName;
         @Position(3)
         public String lampParameterFieldValue;
     }
 
-    public class GetLampState_return_value_usa_sv extends BaseReturnValue {
+    class GetLampState_return_value_usa_sv extends BaseReturnValue {
         @Position(2)
         public Map<String, Variant> lampState;
     }
 
-    public class GetLampStateField_return_value_usss extends BaseReturnValue {
+    class GetLampStateField_return_value_usss extends BaseReturnValue {
         @Position(2)
         public String lampStateFieldName;
         @Position(3)
         public String lampStateFieldValue;
     }
 
-    public class TransitionLampState_return_value_us extends BaseReturnValue {
+    class TransitionLampState_return_value_us extends BaseReturnValue {
     }
 
-    public class ResetLampState_return_value_us extends BaseReturnValue {
+    class ResetLampState_return_value_us extends BaseReturnValue {
     }
 
-    public class ResetLampStateField_return_value_uss extends BaseReturnValue {
+    class ResetLampStateField_return_value_uss extends BaseReturnValue {
         @Position(2)
         public String lampStateFieldName;
     }
 
-    public class GetLampFaults_return_value_usau extends BaseReturnValue {
+    class GetLampFaults_return_value_usau extends BaseReturnValue {
         @Position(2)
         public int[] lampFaults;
     }
 
-    public class ClearLampFaults_return_value_usu extends BaseReturnValue {
+    class ClearLampFaults_return_value_usu extends BaseReturnValue {
         @Position(2)
         public int lampFault;
     }
 
-
-    public class GetLampServiceVersion_return_value_usu extends BaseReturnValue {
+    class GetLampServiceVersion_return_value_usu extends BaseReturnValue {
         @Position(2)
         public int lampServiceVersion;
     }
@@ -169,8 +168,8 @@ public interface Lamp {
     @BusMethod(name = "GetLampFaults", signature = "s", replySignature = "usau")
     GetLampFaults_return_value_usau getLampFaults(String lampID) throws BusException;
 
-    @BusMethod(name = "ClearLampFaults", signature = "ss", replySignature = "usu")
-    ClearLampFaults_return_value_usu clearLampFaults(String lampID, String lampFault) throws BusException;
+    @BusMethod(name = "ClearLampFaults", signature = "su", replySignature = "usu")
+    ClearLampFaults_return_value_usu clearLampFaults(String lampID, int lampFault) throws BusException;
 
     @BusMethod(name = "GetLampServiceVersion", signature = "s", replySignature = "usu")
     GetLampServiceVersion_return_value_usu getLampServiceVersion(String lampID) throws BusException;
@@ -187,12 +186,12 @@ public interface Lamp {
     int getVersion() throws BusException;
 
     /*
-    * The BusSignal annotation signifies this signal should be used as part of the
-    * AllJoyn interface.
-    *
-    * All signals that use the BusSignal annotation can throw a BusException and should
-    * indicate this fact.
-    */
+     * The BusSignal annotation signifies this signal should be used as part of the
+     * AllJoyn interface.
+     *
+     * All signals that use the BusSignal annotation can throw a BusException and should
+     * indicate this fact.
+     */
     @BusSignal(name = "LampNameChanged", replySignature = "ss", sessionless = true)
     void emitLampNameChanged(String lampID, String lampName) throws BusException;
 

@@ -30,7 +30,7 @@ public interface ControllerService {
      * this fact.
      */
     @BusMethod(name = "LightingResetControllerService", replySignature = "u")
-    int getLightingResetControllerService() throws BusException;
+    int lightingResetControllerService() throws BusException;
 
     @BusMethod(name = "GetControllerServiceVersion", replySignature = "u")
     int getControllerServiceVersion() throws BusException;
@@ -47,12 +47,12 @@ public interface ControllerService {
     int getVersion() throws BusException;
 
     /*
-    * The BusSignal annotation signifies this signal should be used as part of the
-    * AllJoyn interface.
-    *
-    * All signals that use the BusSignal annotation can throw a BusException and should
-    * indicate this fact.
-    */
+     * The BusSignal annotation signifies this signal should be used as part of the
+     * AllJoyn interface.
+     *
+     * All signals that use the BusSignal annotation can throw a BusException and should
+     * indicate this fact.
+     */
     @BusSignal(name = "ControllerServiceLightingReset", sessionless = true)
-    void emitControllerServiceLightingReset() throws BusException;
+    void controllerServiceLightingReset() throws BusException;
 }

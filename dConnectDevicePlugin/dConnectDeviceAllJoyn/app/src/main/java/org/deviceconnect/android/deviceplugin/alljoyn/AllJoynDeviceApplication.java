@@ -187,8 +187,9 @@ public class AllJoynDeviceApplication extends Application {
             return null;
         }
 
-        // FIXME: 特定のAllJoyn I/Fを備えたBusオブジェクトが1サービスに複数あった場合の対処。
-        // 当面、最初のオブジェクトのI/Fを返す。オブジェクト毎にサービスIDを発行し、別々に取り扱えるようにすべき？
+        // FIXME: Handling of multiple object paths with the specified interface.
+        // For the time being, use the first object path. Should these object paths be arranged
+        // as separate Device Connect services that can be accessed independently?
         for (BusObjectDescription proxyObject : service.proxyObjects) {
             for (String iface : proxyObject.interfaces) {
                 if (ifaceClass.getCanonicalName().equals(iface)) {
@@ -422,9 +423,9 @@ public class AllJoynDeviceApplication extends Application {
                     @Override
                     public void run() {
                         // FIXME: ***** HACK ***** Needs clean up or a better solution.
-                        // About announcements of services that were powered off or nonresponsive to
-                        // pings, somehow return as results of discovery (cached?).
-                        // By initializing AboutService, announcement cache is cleared.
+                        // About announcements of services that were already powered off or
+                        // nonresponsive to pings, somehow return as results of discovery (cached?).
+                        // By re-initializing AboutService, announcement cache is cleared.
                         if (mAboutService != null) {
                             try {
                                 mAboutService.stopAboutClient();
@@ -476,6 +477,11 @@ public class AllJoynDeviceApplication extends Application {
         private void doDiscover(@NonNull ResultReceiver resultReceiver) {
             Log.d(AllJoynHandler.this.getClass().getSimpleName(), "discover");
 
+            // NOTE: the effect of whoImplements() for specific interfaces can stack up, and unless
+            // all stacked-up effects are canceled, service discovery for the specific interfaces
+            // can not be re-performed.
+            // So the number of calls for whoImplements() and cancelWhoImplements() must
+            // be balanced.
             if (!mFirstTime) {
                 for (String[] ifaceSet : SUPPORTED_INTERFACE_SETS) {
                     for (String iface : ifaceSet) {

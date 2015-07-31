@@ -62,7 +62,13 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             return onPostLight(request, response, getServiceID(request), getLightID(request),
                     brightness, color);
         } else if (isLightGroupAttribute(request)) {
-            return onPostLightGroup(request, response, getServiceID(request));
+            int[] color = new int[3];
+            Float brightness = getBrightnessParam(request, response);
+            if (!getColorParam(request, response, color)) {
+                color = null;
+            }
+            return onPostLightGroup(request, response, getServiceID(request), getGroupId(request),
+                    brightness, color);
         } else if (isLightGroupCreateAttribute(request)) {
             return onPostLightGroupCreate(request, response, getServiceID(request));
         } else {
@@ -197,7 +203,9 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostLightGroup(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onPostLightGroup(final Intent request, final Intent response,
+                                       final String serviceId, final String groupId,
+                                       final Float brightness, final int[] color) {
         setUnsupportedError(response);
         return true;
     }

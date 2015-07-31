@@ -11,7 +11,6 @@ import org.alljoyn.services.common.BusObjectDescription;
 import org.allseen.LSF.ControllerService.Lamp;
 import org.allseen.LSF.ControllerService.LampGroup;
 import org.allseen.LSF.LampDetails;
-import org.allseen.LSF.LampService;
 import org.allseen.LSF.LampState;
 import org.allseen.LSF.ResponseCode;
 import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynDeviceApplication;
@@ -889,8 +888,105 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     @Override
-    protected boolean onPostLightGroup(Intent request, Intent response, String serviceId) {
-        return false;
+    protected boolean onPostLightGroup(final Intent request, final Intent response,
+                                       final String serviceId, final String groupId,
+                                       final Float brightness, final int[] color) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+            return true;
+        }
+
+        final AllJoynDeviceApplication app = getApplication();
+        final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
+
+        if (service == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        switch (getLampServiceType(service)) {
+
+            case TYPE_LAMP_CONTROLLER: {
+                onPostLightGroupForLampController(request, response, service, groupId
+                        , brightness, color);
+                return false;
+            }
+
+            case TYPE_SINGLE_LAMP:
+            case TYPE_UNKNOWN:
+            default: {
+                setUnsupportedError(response);
+                return true;
+            }
+
+        }
+    }
+
+    private void onPostLightGroupForLampController(Intent request, final Intent response,
+                                                   AllJoynServiceEntity service,
+                                                   final String groupID, final Float brightness,
+                                                   final int[] color) {
+        final AllJoynDeviceApplication app = getApplication();
+
+        OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+            @Override
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                LampGroup proxyLampGroup = app.getInterface(busName, sessionId, LampGroup.class);
+
+                if (proxyLampGroup == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                try {
+                    HashMap<String, Variant> newStates = new HashMap<>();
+
+                    // NOTE: Arithmetic operations in primitive types may lead to arithmetic
+                    // overflow. To retain precision, BigDecimal objects are used.
+
+                    newStates.put("OnOff", new Variant(true, "b"));
+                    if (color != null) {
+                        int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
+
+                        newStates.put("Hue", new Variant(hsb[0], "u"));
+                        newStates.put("Saturation", new Variant(hsb[1], "u"));
+                    }
+                    if (brightness != null) {
+                        // [0, 1] -> [0, 0xffffffff]
+                        BigDecimal tmp = BigDecimal.valueOf(0xffffffffl);
+                        tmp = tmp.multiply(BigDecimal.valueOf(brightness));
+                        long scaledVal = tmp.longValue();
+                        int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
+                        newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                    }
+
+                    LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
+                    proxyLampGroup.transitionLampGroupState(groupID, newStates, 10);
+                    if (transLampGroupStateResponse == null ||
+                            transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response, "Failed to change lamp group states.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                } catch (BusException e) {
+                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                setResultOK(response);
+                getContext().sendBroadcast(response);
+            }
+
+            @Override
+            public void onSessionFailed(@NonNull String busName, short port) {
+                MessageUtils.setUnknownError(response, "Failed to join session.");
+                getContext().sendBroadcast(response);
+            }
+        };
+        OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
     @Override

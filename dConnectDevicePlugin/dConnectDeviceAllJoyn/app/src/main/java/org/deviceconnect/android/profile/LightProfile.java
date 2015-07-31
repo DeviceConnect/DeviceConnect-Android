@@ -106,18 +106,23 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     @Override
     protected boolean onPutRequest(final Intent request, final Intent response) {
         if (isNullAttribute(request)) {
-            int[] color = new int[3];
-
             String name = getName(request);
             Float brightness = getBrightnessParam(request, response);
+            int[] color = new int[3];
             if (!getColorParam(request, response, color)) {
                 color = null;
             }
-
-            return onPutLight(request, response, getServiceID(request), getLightID(request),
-                    name, brightness, color);
+            return onPutLight(request, response, getServiceID(request), getLightID(request)
+                    , name, brightness, color);
         } else if (isLightGroupAttribute(request)) {
-            return onPutLightGroup(request, response, getServiceID(request));
+            String name = getName(request);
+            Float brightness = getBrightnessParam(request, response);
+            int[] color = new int[3];
+            if (!getColorParam(request, response, color)) {
+                color = null;
+            }
+            return onPutLightGroup(request, response, getServiceID(request), getGroupId(request)
+                    , name, brightness, color);
         } else {
             return onPutOther(request, response, getServiceID(request));
         }
@@ -176,8 +181,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
-                                 String lightId, String name, Float brightness, int[] color
-    ) {
+                                 String lightId, String name, Float brightness, int[] color) {
         setUnsupportedError(response);
         return true;
     }
@@ -231,7 +235,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutLightGroup(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onPutLightGroup(final Intent request, final Intent response, final String serviceId,
+                                      String groupID, String name, Float brightness, int[] color) {
         setUnsupportedError(response);
         return true;
     }

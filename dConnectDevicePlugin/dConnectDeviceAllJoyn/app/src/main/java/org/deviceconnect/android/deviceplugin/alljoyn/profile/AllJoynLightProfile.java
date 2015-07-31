@@ -457,8 +457,7 @@ public class AllJoynLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLight(Intent request, Intent response, String serviceId, String lightId,
-                                 String name, Float brightness, int[] color
-    ) {
+                                 String name, Float brightness, int[] color) {
         if (serviceId == null || lightId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -963,7 +962,7 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
-                    proxyLampGroup.transitionLampGroupState(groupID, newStates, 10);
+                            proxyLampGroup.transitionLampGroupState(groupID, newStates, 10);
                     if (transLampGroupStateResponse == null ||
                             transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to change lamp group states.");
@@ -995,8 +994,112 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     @Override
-    protected boolean onPutLightGroup(Intent request, Intent response, String serviceId) {
-        return false;
+    protected boolean onPutLightGroup(Intent request, Intent response, String serviceId
+            , String groupId, String name, Float brightness, int[] color) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+            return true;
+        }
+
+        final AllJoynDeviceApplication app = getApplication();
+        final AllJoynServiceEntity service = app.getDiscoveredAlljoynServices().get(serviceId);
+
+        if (service == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        switch (getLampServiceType(service)) {
+
+            case TYPE_LAMP_CONTROLLER: {
+                onPutLightGroupForLampController(request, response, service, groupId, name
+                        , brightness, color);
+                return false;
+            }
+
+            case TYPE_SINGLE_LAMP:
+            case TYPE_UNKNOWN:
+            default: {
+                setUnsupportedError(response);
+                return true;
+            }
+
+        }
+    }
+
+    private void onPutLightGroupForLampController(Intent request, final Intent response
+            , final AllJoynServiceEntity service, final String groupID, final String name
+            , final Float brightness, final int[] color) {
+        final AllJoynDeviceApplication app = getApplication();
+
+        OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
+            @Override
+            public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
+                LampGroup proxyLampGroup = app.getInterface(busName, sessionId, LampGroup.class);
+
+                if (proxyLampGroup == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                try {
+                    HashMap<String, Variant> newStates = new HashMap<>();
+
+                    // NOTE: Arithmetic operations in primitive types may lead to arithmetic
+                    // overflow. To retain precision, BigDecimal objects are used.
+
+                    if (color != null) {
+                        int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
+
+                        newStates.put("Hue", new Variant(hsb[0], "u"));
+                        newStates.put("Saturation", new Variant(hsb[1], "u"));
+                    }
+                    if (brightness != null) {
+                        // [0, 1] -> [0, 0xffffffff]
+                        BigDecimal tmp = BigDecimal.valueOf(0xffffffffl);
+                        tmp = tmp.multiply(BigDecimal.valueOf(brightness));
+                        long scaledVal = tmp.longValue();
+                        int intScaledVal = ByteBuffer.allocate(8).putLong(scaledVal).getInt(4);
+                        newStates.put("Brightness", new Variant(intScaledVal, "u"));
+                    }
+
+                    LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
+                            proxyLampGroup.transitionLampGroupState(groupID, newStates, 10);
+                    if (transLampGroupStateResponse == null ||
+                            transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response, "Failed to change lamp group states.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
+                    if (name != null) {
+                        LampGroup.SetLampGroupName_return_value_uss setLampGroupNameResponse =
+                        proxyLampGroup.setLampGroupName(groupID, name, service.defaultLanguage);
+                        if (setLampGroupNameResponse.responseCode != ResponseCode.OK.getValue()) {
+                            MessageUtils.setUnknownError(response, "Failed to change group name.");
+                            getContext().sendBroadcast(response);
+                            return;
+                        }
+                    }
+                } catch (BusException e) {
+                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+
+                setResultOK(response);
+                getContext().sendBroadcast(response);
+            }
+
+            @Override
+            public void onSessionFailed(@NonNull String busName, short port) {
+                MessageUtils.setUnknownError(response, "Failed to join session.");
+                getContext().sendBroadcast(response);
+            }
+        };
+        OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
     @Override

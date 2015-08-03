@@ -89,22 +89,27 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                LampState state = app.getInterface(busName, sessionId, LampState.class);
+                LampState proxy = app.getInterface(busName, sessionId, LampState.class);
+
+                if (proxy == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
                 List<Bundle> lights = new ArrayList<>();
-                if (state != null) {
-                    Bundle light = new Bundle();
-                    try {
-                        light.putString(PARAM_LIGHT_ID, "self");
-                        light.putString(PARAM_NAME, service.serviceName);
-                        light.putString(PARAM_CONFIG, "");
-                        light.putBoolean(PARAM_ON, state.getOnOff());
-                        lights.add(light);
-                    } catch (BusException e) {
-                        MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                        getContext().sendBroadcast(response);
-                        return;
-                    }
+                Bundle light = new Bundle();
+                try {
+                    light.putString(PARAM_LIGHT_ID, "self");
+                    light.putString(PARAM_NAME, service.serviceName);
+                    light.putString(PARAM_CONFIG, "");
+                    light.putBoolean(PARAM_ON, proxy.getOnOff());
+                    lights.add(light);
+                } catch (BusException e) {
+                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                    getContext().sendBroadcast(response);
+                    return;
                 }
                 response.putExtra(PARAM_LIGHTS, lights.toArray(new Bundle[lights.size()]));
                 setResultOK(response);
@@ -127,52 +132,57 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                Lamp lamp = app.getInterface(busName, sessionId, Lamp.class);
+                Lamp proxy = app.getInterface(busName, sessionId, Lamp.class);
+
+                if (proxy == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
                 List<Bundle> lights = new ArrayList<>();
-                if (lamp != null) {
-                    try {
-                        Lamp.GetAllLampIDs_return_value_uas
-                                lampIDsResponse = lamp.getAllLampIDs();
-                        if (lampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
-                            MessageUtils.setUnknownError(response,
-                                    "Failed to obtain lamp IDs.");
-                            getContext().sendBroadcast(response);
-                            return;
-                        }
-                        for (String lampId : lampIDsResponse.lampIDs) {
-                            Bundle light = new Bundle();
-                            light.putString(PARAM_LIGHT_ID, lampId);
-
-                            Lamp.GetLampName_return_value_usss lampNameResponse =
-                                    lamp.getLampName(lampId, service.defaultLanguage);
-                            if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
-                                Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                        "Failed to obtain the lamp name. Skipping this lamp...");
-                                continue;
-                            }
-
-                            Lamp.GetLampState_return_value_usa_sv lampStateResponse =
-                                    lamp.getLampState(lampId);
-                            if (lampStateResponse.responseCode != ResponseCode.OK.getValue()) {
-                                Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                        "Failed to obtain the on/off state. Skipping this lamp...");
-                                continue;
-                            }
-
-                            boolean isOn = lampStateResponse.lampState.get("OnOff")
-                                    .getObject(boolean.class);
-
-                            light.putString(PARAM_NAME, lampNameResponse.lampName);
-                            light.putString(PARAM_CONFIG, "");
-                            light.putBoolean(PARAM_ON, isOn);
-                            lights.add(light);
-                        }
-                    } catch (BusException e) {
-                        MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                try {
+                    Lamp.GetAllLampIDs_return_value_uas
+                            lampIDsResponse = proxy.getAllLampIDs();
+                    if (lampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp IDs.");
                         getContext().sendBroadcast(response);
                         return;
                     }
+                    for (String lampId : lampIDsResponse.lampIDs) {
+                        Bundle light = new Bundle();
+                        light.putString(PARAM_LIGHT_ID, lampId);
+
+                        Lamp.GetLampName_return_value_usss lampNameResponse =
+                                proxy.getLampName(lampId, service.defaultLanguage);
+                        if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Failed to obtain the lamp name. Skipping this lamp...");
+                            continue;
+                        }
+
+                        Lamp.GetLampState_return_value_usa_sv lampStateResponse =
+                                proxy.getLampState(lampId);
+                        if (lampStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Failed to obtain the on/off state. Skipping this lamp...");
+                            continue;
+                        }
+
+                        boolean isOn = lampStateResponse.lampState.get("OnOff")
+                                .getObject(boolean.class);
+
+                        light.putString(PARAM_NAME, lampNameResponse.lampName);
+                        light.putString(PARAM_CONFIG, "");
+                        light.putBoolean(PARAM_ON, isOn);
+                        lights.add(light);
+                    }
+                } catch (BusException e) {
+                    MessageUtils.setUnknownError(response, e.getLocalizedMessage());
+                    getContext().sendBroadcast(response);
+                    return;
                 }
                 response.putExtra(PARAM_LIGHTS, lights.toArray(new Bundle[lights.size()]));
                 setResultOK(response);
@@ -229,8 +239,21 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                LampState state = app.getInterface(busName, sessionId, LampState.class);
-                LampDetails details = app.getInterface(busName, sessionId, LampDetails.class);
+                LampState proxyState = app.getInterface(busName, sessionId, LampState.class);
+                LampDetails proxyDetails = app.getInterface(busName, sessionId, LampDetails.class);
+
+                if (proxyState == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (proxyDetails == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.LampDetails .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
                 try {
                     HashMap<String, Variant> newStates = new HashMap<>();
@@ -239,13 +262,13 @@ public class AllJoynLightProfile extends LightProfile {
                     // overflow. To retain precision, BigDecimal objects are used.
 
                     newStates.put("OnOff", new Variant(true, "b"));
-                    if (details.getColor() && color != null) {
+                    if (proxyDetails.getColor() && color != null) {
                         int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
 
                         newStates.put("Hue", new Variant(hsb[0], "u"));
                         newStates.put("Saturation", new Variant(hsb[1], "u"));
                     }
-                    if (details.getDimmable() && brightness != null) {
+                    if (proxyDetails.getDimmable() && brightness != null) {
                         // [0, 1] -> [0, 0xffffffff]
                         BigDecimal tmp = BigDecimal.valueOf(0xffffffffl);
                         tmp = tmp.multiply(BigDecimal.valueOf(brightness));
@@ -254,7 +277,7 @@ public class AllJoynLightProfile extends LightProfile {
                         newStates.put("Brightness", new Variant(intScaledVal, "u"));
                     }
 
-                    int responseCode = state.transitionLampState(0, newStates, TRANSITION_PERIOD);
+                    int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
                     if (responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to change lamp states.");
                         getContext().sendBroadcast(response);
@@ -287,11 +310,18 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                Lamp lamp = app.getInterface(busName, sessionId, Lamp.class);
+                Lamp proxy = app.getInterface(busName, sessionId, Lamp.class);
+
+                if (proxy == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
                 try {
                     Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse =
-                            lamp.getLampDetails(lightId);
+                            proxy.getLampDetails(lightId);
                     if (lampDetailsResponse == null ||
                             lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to obtain lamp details.");
@@ -335,7 +365,7 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     Lamp.TransitionLampState_return_value_us transLampStateResponse =
-                            lamp.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
+                            proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
                     if (transLampStateResponse == null ||
                             transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to change lamp states.");
@@ -400,10 +430,17 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                LampState state = app.getInterface(busName, sessionId, LampState.class);
+                LampState proxy = app.getInterface(busName, sessionId, LampState.class);
+
+                if (proxy == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
                 try {
-                    state.setOnOff(false);
+                    proxy.setOnOff(false);
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
                     getContext().sendBroadcast(response);
@@ -431,13 +468,20 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                Lamp lamp = app.getInterface(busName, sessionId, Lamp.class);
+                Lamp proxy = app.getInterface(busName, sessionId, Lamp.class);
+
+                if (proxy == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
                 try {
                     Map<String, Variant> newStates = new HashMap<>();
                     newStates.put("OnOff", new Variant(false, "b"));
                     Lamp.TransitionLampState_return_value_us transLampStateResponse =
-                            lamp.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
+                            proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
                     if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to turn off the light.");
                         getContext().sendBroadcast(response);
@@ -528,8 +572,21 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                LampState state = app.getInterface(busName, sessionId, LampState.class);
-                LampDetails details = app.getInterface(busName, sessionId, LampDetails.class);
+                LampState proxyState = app.getInterface(busName, sessionId, LampState.class);
+                LampDetails proxyDetails = app.getInterface(busName, sessionId, LampDetails.class);
+
+                if (proxyState == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                if (proxyDetails == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.LampDetails .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
                 try {
                     HashMap<String, Variant> newStates = new HashMap<>();
@@ -537,13 +594,13 @@ public class AllJoynLightProfile extends LightProfile {
                     // NOTE: Arithmetic operations in primitive types may lead to arithmetic
                     // overflow. To retain precision, BigDecimal objects are used.
 
-                    if (details.getColor() && color != null) {
+                    if (proxyDetails.getColor() && color != null) {
                         int[] hsb = ColorUtil.convertRGB_8_8_8_To_HSB_32_32_32(color);
 
                         newStates.put("Hue", new Variant(hsb[0], "u"));
                         newStates.put("Saturation", new Variant(hsb[1], "u"));
                     }
-                    if (details.getDimmable() && brightness != null) {
+                    if (proxyDetails.getDimmable() && brightness != null) {
                         // [0, 1] -> [0, 0xffffffff]
                         BigDecimal tmp = BigDecimal.valueOf(0xffffffffl);
                         tmp = tmp.multiply(BigDecimal.valueOf(brightness));
@@ -552,7 +609,7 @@ public class AllJoynLightProfile extends LightProfile {
                         newStates.put("Brightness", new Variant(intScaledVal, "u"));
                     }
 
-                    int responseCode = state.transitionLampState(0, newStates, TRANSITION_PERIOD);
+                    int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
                     if (responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to change lamp states.");
                         getContext().sendBroadcast(response);
@@ -605,7 +662,14 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                Lamp lamp = app.getInterface(busName, sessionId, Lamp.class);
+                Lamp proxy = app.getInterface(busName, sessionId, Lamp.class);
+
+                if (proxy == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
                 try {
                     HashMap<String, Variant> newStates = new HashMap<>();
@@ -614,7 +678,7 @@ public class AllJoynLightProfile extends LightProfile {
                     // overflow. To retain precision, BigDecimal objects are used.
 
                     Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse =
-                            lamp.getLampDetails(lightId);
+                            proxy.getLampDetails(lightId);
                     if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp details.");
@@ -644,7 +708,7 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     Lamp.TransitionLampState_return_value_us transitionLampStateResponse =
-                            lamp.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
+                            proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
                     if (transitionLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response, "Failed to change lamp states.");
                         getContext().sendBroadcast(response);
@@ -653,7 +717,7 @@ public class AllJoynLightProfile extends LightProfile {
 
                     if (name != null) {
                         Lamp.SetLampName_return_value_uss lampNameResponse =
-                                lamp.setLampName(lightId, name, service.defaultLanguage);
+                                proxy.setLampName(lightId, name, service.defaultLanguage);
                         if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
                             MessageUtils.setUnknownError(response, "Failed to change name.");
                             getContext().sendBroadcast(response);
@@ -1035,6 +1099,13 @@ public class AllJoynLightProfile extends LightProfile {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
                 LampGroup proxy = app.getInterface(busName, sessionId, LampGroup.class);
+
+                if (proxy == null) {
+                    MessageUtils.setUnknownError(response,
+                            "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
+                    getContext().sendBroadcast(response);
+                    return;
+                }
 
                 try {
                     Map<String, Variant> newStates = new HashMap<>();

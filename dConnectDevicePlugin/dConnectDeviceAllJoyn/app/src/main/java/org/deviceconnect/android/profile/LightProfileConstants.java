@@ -61,6 +61,11 @@ public interface LightProfileConstants extends DConnectProfileConstants {
     String PARAM_COLOR = "color";
 
     /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_FLASHING = "flashing";
+
+    /**
      * インターフェース: {@value} .
      */
     String INTERFACE_GROUP = "group";

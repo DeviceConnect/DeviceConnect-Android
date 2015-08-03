@@ -201,8 +201,8 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     @Override
-    protected boolean onPostLight(Intent request, Intent response, String serviceId, String lightId,
-                                  Float brightness, int[] color) {
+    protected boolean onPostLight(Intent request, Intent response, String serviceId, String lightId
+            , Float brightness, int[] color, long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -219,6 +219,12 @@ public class AllJoynLightProfile extends LightProfile {
         if (lightId == null) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'lightId' must be specified.");
+            return true;
+        }
+
+        if (flashing != null) {
+            MessageUtils.setNotSupportActionError(response
+                    , "Parameter 'flashing' is not supported.");
             return true;
         }
 
@@ -525,8 +531,8 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     @Override
-    protected boolean onPutLight(Intent request, Intent response, String serviceId, String lightId,
-                                 String name, Float brightness, int[] color) {
+    protected boolean onPutLight(Intent request, Intent response, String serviceId, String lightId
+            , String name, Float brightness, int[] color, long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -543,6 +549,12 @@ public class AllJoynLightProfile extends LightProfile {
         if (lightId == null) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'lightId' must be specified.");
+            return true;
+        }
+
+        if (flashing != null) {
+            MessageUtils.setNotSupportActionError(response
+                    , "Parameter 'flashing' is not supported.");
             return true;
         }
 
@@ -989,9 +1001,8 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     @Override
-    protected boolean onPostLightGroup(final Intent request, final Intent response,
-                                       final String serviceId, final String groupId,
-                                       final Float brightness, final int[] color) {
+    protected boolean onPostLightGroup(Intent request, Intent response, String serviceId
+            , String groupId, Float brightness, int[] color, long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -1008,6 +1019,12 @@ public class AllJoynLightProfile extends LightProfile {
         if (groupId == null) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'groupId' must be specified.");
+            return true;
+        }
+
+        if (flashing != null) {
+            MessageUtils.setNotSupportActionError(response
+                    , "Parameter 'flashing' is not supported.");
             return true;
         }
 
@@ -1183,7 +1200,7 @@ public class AllJoynLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLightGroup(Intent request, Intent response, String serviceId
-            , String groupId, String name, Float brightness, int[] color) {
+            , String groupId, String name, Float brightness, int[] color, long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -1200,6 +1217,12 @@ public class AllJoynLightProfile extends LightProfile {
         if (groupId == null) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'groupId' must be specified.");
+            return true;
+        }
+
+        if (flashing != null) {
+            MessageUtils.setNotSupportActionError(response
+                    , "Parameter 'flashing' is not supported.");
             return true;
         }
 

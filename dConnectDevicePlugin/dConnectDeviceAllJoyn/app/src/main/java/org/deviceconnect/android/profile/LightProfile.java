@@ -11,6 +11,8 @@ import android.content.Intent;
 
 import org.deviceconnect.android.message.MessageUtils;
 
+import java.util.ArrayList;
+
 
 /**
  * Light Profile.
@@ -59,16 +61,40 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             if (!getColorParam(request, response, color)) {
                 color = null;
             }
+
+            long[] flashing = null;
+            if (request.hasExtra(PARAM_FLASHING)) {
+                String flashingParam = getFlashing(request);
+                flashing = parseFlashingParam(flashingParam);
+                if (flashing == null) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'flashing' is invalid.");
+                    return true;
+                }
+            }
+
             return onPostLight(request, response, getServiceID(request), getLightID(request),
-                    brightness, color);
+                    brightness, color, flashing);
         } else if (isLightGroupAttribute(request)) {
             int[] color = new int[3];
             Float brightness = getBrightnessParam(request, response);
             if (!getColorParam(request, response, color)) {
                 color = null;
             }
+
+            long[] flashing = null;
+            if (request.hasExtra(PARAM_FLASHING)) {
+                String flashingParam = getFlashing(request);
+                flashing = parseFlashingParam(flashingParam);
+                if (flashing == null) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'flashing' is invalid.");
+                    return true;
+                }
+            }
+
             return onPostLightGroup(request, response, getServiceID(request), getGroupId(request),
-                    brightness, color);
+                    brightness, color, flashing);
         } else if (isLightGroupCreateAttribute(request)) {
             String[] lightIDs = getLightIds(request).split(",");
             return onPostLightGroupCreate(request, response, getServiceID(request), lightIDs
@@ -114,8 +140,20 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             if (!getColorParam(request, response, color)) {
                 color = null;
             }
+
+            long[] flashing = null;
+            if (request.hasExtra(PARAM_FLASHING)) {
+                String flashingParam = getFlashing(request);
+                flashing = parseFlashingParam(flashingParam);
+                if (flashing == null) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'flashing' is invalid.");
+                    return true;
+                }
+            }
+
             return onPutLight(request, response, getServiceID(request), getLightID(request)
-                    , name, brightness, color);
+                    , name, brightness, color, flashing);
         } else if (isLightGroupAttribute(request)) {
             String name = getName(request);
             Float brightness = getBrightnessParam(request, response);
@@ -123,8 +161,20 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             if (!getColorParam(request, response, color)) {
                 color = null;
             }
+
+            long[] flashing = null;
+            if (request.hasExtra(PARAM_FLASHING)) {
+                String flashingParam = getFlashing(request);
+                flashing = parseFlashingParam(flashingParam);
+                if (flashing == null) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'flashing' is invalid.");
+                    return true;
+                }
+            }
+
             return onPutLightGroup(request, response, getServiceID(request), getGroupId(request)
-                    , name, brightness, color);
+                    , name, brightness, color, flashing);
         } else {
             return onPutOther(request, response, getServiceID(request));
         }
@@ -154,9 +204,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param color      ライトの色
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostLight(final Intent request, final Intent response,
-                                  final String serviceId, final String lightId,
-                                  final Float brightness, final int[] color) {
+    protected boolean onPostLight(Intent request, Intent response, String serviceId, String lightId
+            , Float brightness, final int[] color, long[] flashing) {
         setUnsupportedError(response);
         return true;
     }
@@ -182,8 +231,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
-                                 String lightId, String name, Float brightness, int[] color) {
+    protected boolean onPutLight(Intent request, Intent response, String serviceId, String lightId
+            , String name, Float brightness, int[] color, long[] flashing) {
         setUnsupportedError(response);
         return true;
     }
@@ -209,9 +258,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostLightGroup(final Intent request, final Intent response,
-                                       final String serviceId, final String groupId,
-                                       final Float brightness, final int[] color) {
+    protected boolean onPostLightGroup(Intent request, Intent response, String serviceId
+            , String groupId, Float brightness, int[] color, long[] flashing) {
         setUnsupportedError(response);
         return true;
     }
@@ -237,8 +285,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutLightGroup(final Intent request, final Intent response, final String serviceId,
-                                      String groupID, String name, Float brightness, int[] color) {
+    protected boolean onPutLightGroup(Intent request, Intent response, String serviceId
+            , String groupID, String name, Float brightness, int[] color, long[] flashing) {
         setUnsupportedError(response);
         return true;
     }
@@ -486,6 +534,10 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
         return request.getStringExtra(PARAM_COLOR);
     }
 
+    private static String getFlashing(final Intent request) {
+        return request.getStringExtra(PARAM_FLASHING);
+    }
+
     /**
      * Get brightness parameter.
      *
@@ -552,6 +604,60 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             return false;
         }
         return true;
+    }
+
+    /**
+     * フラッシュパターンを文字列から解析し、数値の配列に変換する.<br/>
+     * 数値の前後の半角のスペースは無視される。その他の半角、全角のスペースは不正なフォーマットとして扱われる。
+     *
+     * @param pattern フラッシュパターン文字列。
+     * @return 鳴動パターンの配列。解析できないフォーマットの場合nullを返す。
+     */
+    private static long[] parseFlashingParam(final String pattern) {
+
+        if (pattern.length() == 0) {
+            return null;
+        }
+
+        long[] result = null;
+
+        if (pattern.contains(",")) {
+            String[] times = pattern.split(",");
+            ArrayList<Long> values = new ArrayList<Long>();
+            for (String time : times) {
+                try {
+                    String valueStr = time.trim();
+                    if (valueStr.length() == 0) {
+                        if (values.size() != times.length - 1) {
+                            // 数値の間にスペースがある場合はフォーマットエラー
+                            // ex. 100, , 100
+                            values.clear();
+                        }
+                        break;
+                    }
+                    long value = Long.parseLong(time.trim());
+                    values.add(value);
+                } catch (NumberFormatException ignored) {
+                    values.clear();
+                    break;
+                }
+            }
+
+            if (values.size() != 0) {
+                result = new long[values.size()];
+                for (int i = 0; i < values.size(); ++i) {
+                    result[i] = values.get(i);
+                }
+            }
+        } else {
+            try {
+                long time = Long.parseLong(pattern);
+                result = new long[]{time};
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        return result;
     }
 
 }

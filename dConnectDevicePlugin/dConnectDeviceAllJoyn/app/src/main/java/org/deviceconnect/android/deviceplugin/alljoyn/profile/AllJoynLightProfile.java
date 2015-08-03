@@ -203,7 +203,7 @@ public class AllJoynLightProfile extends LightProfile {
     @Override
     protected boolean onPostLight(Intent request, Intent response, String serviceId, String lightId,
                                   Float brightness, int[] color) {
-        if (serviceId == null || lightId == null) {
+        if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
@@ -213,6 +213,12 @@ public class AllJoynLightProfile extends LightProfile {
 
         if (service == null) {
             MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        if (lightId == null) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'lightId' must be specified.");
             return true;
         }
 
@@ -398,7 +404,7 @@ public class AllJoynLightProfile extends LightProfile {
 
     @Override
     protected boolean onDeleteLight(Intent request, Intent response, String serviceId, String lightId) {
-        if (serviceId == null || lightId == null) {
+        if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
@@ -408,6 +414,12 @@ public class AllJoynLightProfile extends LightProfile {
 
         if (service == null) {
             MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        if (lightId == null) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'lightId' must be specified.");
             return true;
         }
 
@@ -515,7 +527,7 @@ public class AllJoynLightProfile extends LightProfile {
     @Override
     protected boolean onPutLight(Intent request, Intent response, String serviceId, String lightId,
                                  String name, Float brightness, int[] color) {
-        if (serviceId == null || lightId == null) {
+        if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
@@ -525,6 +537,12 @@ public class AllJoynLightProfile extends LightProfile {
 
         if (service == null) {
             MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        if (lightId == null) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'lightId' must be specified.");
             return true;
         }
 
@@ -987,6 +1005,12 @@ public class AllJoynLightProfile extends LightProfile {
             return true;
         }
 
+        if (groupId == null) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'groupId' must be specified.");
+            return true;
+        }
+
         switch (getLampServiceType(service)) {
 
             case TYPE_LAMP_CONTROLLER: {
@@ -1088,6 +1112,12 @@ public class AllJoynLightProfile extends LightProfile {
             return true;
         }
 
+        if (groupID == null) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'groupId' must be specified.");
+            return true;
+        }
+
         switch (getLampServiceType(service)) {
 
             case TYPE_LAMP_CONTROLLER: {
@@ -1164,6 +1194,12 @@ public class AllJoynLightProfile extends LightProfile {
 
         if (service == null) {
             MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        if (groupId == null) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'groupId' must be specified.");
             return true;
         }
 
@@ -1278,6 +1314,17 @@ public class AllJoynLightProfile extends LightProfile {
             return true;
         }
 
+        if (lightIDs == null) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'lightIds' must be specified.");
+            return true;
+        }
+        if (groupName == null) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'groupName' must be specified.");
+            return true;
+        }
+
         switch (getLampServiceType(service)) {
 
             case TYPE_LAMP_CONTROLLER: {
@@ -1354,6 +1401,12 @@ public class AllJoynLightProfile extends LightProfile {
 
         if (service == null) {
             MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        if (groupID == null) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "Parameter 'groupId' must be specified.");
             return true;
         }
 

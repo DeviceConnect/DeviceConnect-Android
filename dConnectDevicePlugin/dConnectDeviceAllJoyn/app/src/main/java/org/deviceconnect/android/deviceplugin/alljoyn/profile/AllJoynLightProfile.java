@@ -85,8 +85,8 @@ public class AllJoynLightProfile extends LightProfile {
         }
     }
 
-    private void onGetLightForSingleLamp(Intent request, final Intent response,
-                                         final AllJoynServiceEntity service) {
+    private void onGetLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
+            , @NonNull final AllJoynServiceEntity service) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -128,8 +128,8 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    private void onGetLightForLampController(Intent request, final Intent response,
-                                             final AllJoynServiceEntity service) {
+    private void onGetLightForLampController(@NonNull Intent request, @NonNull final Intent response
+            , @NonNull final AllJoynServiceEntity service) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -248,9 +248,9 @@ public class AllJoynLightProfile extends LightProfile {
         }
     }
 
-    private void onPostLightForSingleLamp(Intent request, final Intent response,
-                                          final AllJoynServiceEntity service, String lightId,
-                                          final Float brightness, final int[] color) {
+    private void onPostLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
+            , @NonNull final AllJoynServiceEntity service, @NonNull String lightId
+            , final Float brightness, final int[] color) {
         final AllJoynDeviceApplication app = getApplication();
 
         if (!lightId.equals(LIGHT_ID_SELF)) {
@@ -327,9 +327,9 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    private void onPostLightForLampController(Intent request, final Intent response,
-                                              AllJoynServiceEntity service, final String lightId,
-                                              final Float brightness, final int[] color) {
+    private void onPostLightForLampController(@NonNull Intent request, @NonNull final Intent response
+            , @NonNull AllJoynServiceEntity service, @NonNull final String lightId
+            , final Float brightness, final int[] color) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -480,8 +480,8 @@ public class AllJoynLightProfile extends LightProfile {
         }
     }
 
-    private void onDeleteLightForSingleLamp(Intent request, final Intent response,
-                                            final AllJoynServiceEntity service, String lightId) {
+    private void onDeleteLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
+            , @NonNull final AllJoynServiceEntity service, @NonNull String lightId) {
         final AllJoynDeviceApplication app = getApplication();
 
         if (!lightId.equals(LIGHT_ID_SELF)) {
@@ -524,9 +524,9 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    private void onDeleteLightForLampController(Intent request, final Intent response,
-                                                final AllJoynServiceEntity service,
-                                                final String lightId) {
+    private void onDeleteLightForLampController(@NonNull Intent request
+            , @NonNull final Intent response, @NonNull final AllJoynServiceEntity service
+            , @NonNull final String lightId) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -638,9 +638,9 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     // TODO: Implement name change functionality using AllJoyn Config service.
-    private void onPutLightForSingleLamp(Intent request, final Intent response,
-                                         AllJoynServiceEntity service, String lightId,
-                                         String name, final Float brightness, final int[] color) {
+    private void onPutLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
+            , @NonNull AllJoynServiceEntity service, @NonNull String lightId, String name
+            , final Float brightness, final int[] color) {
         if (!lightId.equals(LIGHT_ID_SELF)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "A light with ID specified by 'lightId' not found.");
@@ -733,9 +733,9 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
-    private void onPutLightForLampController(Intent request, final Intent response,
-                                             final AllJoynServiceEntity service, final String lightId,
-                                             final String name, final Float brightness, final int[] color) {
+    private void onPutLightForLampController(@NonNull Intent request, @NonNull final Intent response
+            , @NonNull final AllJoynServiceEntity service, @NonNull final String lightId
+            , final String name, final Float brightness, final int[] color) {
         if (brightness != null && (brightness < 0 || brightness > 1)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'brightness' must be within range [0, 1].");
@@ -890,8 +890,8 @@ public class AllJoynLightProfile extends LightProfile {
         }
     }
 
-    private void onGetLightGroupForLampController(Intent request, final Intent response,
-                                                  final AllJoynServiceEntity service) {
+    private void onGetLightGroupForLampController(@NonNull Intent request
+            , @NonNull final Intent response, @NonNull final AllJoynServiceEntity service) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -1121,10 +1121,9 @@ public class AllJoynLightProfile extends LightProfile {
         }
     }
 
-    private void onPostLightGroupForLampController(Intent request, final Intent response,
-                                                   AllJoynServiceEntity service,
-                                                   final String groupID, final Float brightness,
-                                                   final int[] color) {
+    private void onPostLightGroupForLampController(@NonNull Intent request
+            , @NonNull final Intent response, @NonNull AllJoynServiceEntity service
+            , @NonNull final String groupID, final Float brightness, final int[] color) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -1251,8 +1250,9 @@ public class AllJoynLightProfile extends LightProfile {
         }
     }
 
-    private void onDeleteLightGroupForLampController(Intent request, final Intent response
-            , AllJoynServiceEntity service, final String groupID) {
+    private void onDeleteLightGroupForLampController(@NonNull Intent request
+            , @NonNull final Intent response, @NonNull AllJoynServiceEntity service
+            , @NonNull final String groupID) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -1363,9 +1363,10 @@ public class AllJoynLightProfile extends LightProfile {
         }
     }
 
-    private void onPutLightGroupForLampController(Intent request, final Intent response
-            , final AllJoynServiceEntity service, final String groupID, final String name
-            , final Float brightness, final int[] color) {
+    private void onPutLightGroupForLampController(@NonNull Intent request
+            , @NonNull final Intent response, @NonNull final AllJoynServiceEntity service
+            , @NonNull final String groupID, final String name, final Float brightness
+            , final int[] color) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -1510,8 +1511,9 @@ public class AllJoynLightProfile extends LightProfile {
         }
     }
 
-    private void onPostLightGroupCreateForLampController(Intent request, final Intent response
-            , final AllJoynServiceEntity service, final String[] lightIDs, final String groupName) {
+    private void onPostLightGroupCreateForLampController(@NonNull Intent request
+            , @NonNull final Intent response, @NonNull final AllJoynServiceEntity service
+            , @NonNull final String[] lightIDs, @NonNull final String groupName) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -1594,8 +1596,9 @@ public class AllJoynLightProfile extends LightProfile {
         }
     }
 
-    private void onDeleteLightGroupClearForLampController(Intent request, final Intent response
-            , final AllJoynServiceEntity service, final String groupID) {
+    private void onDeleteLightGroupClearForLampController(@NonNull Intent request
+            , @NonNull final Intent response, @NonNull final AllJoynServiceEntity service
+            , @NonNull final String groupID) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {

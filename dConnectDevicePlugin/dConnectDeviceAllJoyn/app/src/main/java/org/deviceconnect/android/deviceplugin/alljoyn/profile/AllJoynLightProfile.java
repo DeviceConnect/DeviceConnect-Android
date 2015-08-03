@@ -40,6 +40,9 @@ public class AllJoynLightProfile extends LightProfile {
 
     private final static int TRANSITION_PERIOD = 10;
 
+    // TODO: Use property LampID in org.allseen.LSF.LampDetails instead.
+    private static final String LIGHT_ID_SELF = "self";
+
     private enum LampServiceType {
         TYPE_SINGLE_LAMP,
         TYPE_LAMP_CONTROLLER,
@@ -101,7 +104,7 @@ public class AllJoynLightProfile extends LightProfile {
                 List<Bundle> lights = new ArrayList<>();
                 Bundle light = new Bundle();
                 try {
-                    light.putString(PARAM_LIGHT_ID, "self");
+                    light.putString(PARAM_LIGHT_ID, LIGHT_ID_SELF);
                     light.putString(PARAM_NAME, service.serviceName);
                     light.putString(PARAM_CONFIG, "");
                     light.putBoolean(PARAM_ON, proxy.getOnOff());
@@ -250,6 +253,13 @@ public class AllJoynLightProfile extends LightProfile {
                                           final Float brightness, final int[] color) {
         final AllJoynDeviceApplication app = getApplication();
 
+        if (!lightId.equals(LIGHT_ID_SELF)) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "A light with ID specified by 'lightId' not found.");
+            getContext().sendBroadcast(response);
+            return;
+        }
+
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
@@ -335,6 +345,26 @@ public class AllJoynLightProfile extends LightProfile {
                 }
 
                 try {
+                    Lamp.GetAllLampIDs_return_value_uas getAllLampIDsResponse =
+                            proxy.getAllLampIDs();
+                    if (getAllLampIDsResponse == null) {
+                        MessageUtils.setUnknownError(response, "Failed to obtain lamp IDs.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    } else if (getAllLampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp IDs (code: "
+                                        + getAllLampIDsResponse.responseCode + ").");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(lightId)) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "A light with ID specified by 'lightId' not found.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
                     Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse =
                             proxy.getLampDetails(lightId);
                     if (lampDetailsResponse == null ||
@@ -450,6 +480,13 @@ public class AllJoynLightProfile extends LightProfile {
                                             final AllJoynServiceEntity service, String lightId) {
         final AllJoynDeviceApplication app = getApplication();
 
+        if (!lightId.equals(LIGHT_ID_SELF)) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "A light with ID specified by 'lightId' not found.");
+            getContext().sendBroadcast(response);
+            return;
+        }
+
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
@@ -501,6 +538,26 @@ public class AllJoynLightProfile extends LightProfile {
                 }
 
                 try {
+                    Lamp.GetAllLampIDs_return_value_uas getAllLampIDsResponse =
+                            proxy.getAllLampIDs();
+                    if (getAllLampIDsResponse == null) {
+                        MessageUtils.setUnknownError(response, "Failed to obtain lamp IDs.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    } else if (getAllLampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp IDs (code: "
+                                        + getAllLampIDsResponse.responseCode + ").");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(lightId)) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "A light with ID specified by 'lightId' not found.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
                     Map<String, Variant> newStates = new HashMap<>();
                     newStates.put("OnOff", new Variant(false, "b"));
                     Lamp.TransitionLampState_return_value_us transLampStateResponse =
@@ -580,9 +637,9 @@ public class AllJoynLightProfile extends LightProfile {
     private void onPutLightForSingleLamp(Intent request, final Intent response,
                                          AllJoynServiceEntity service, String lightId,
                                          String name, final Float brightness, final int[] color) {
-        if (lightId == null) {
+        if (!lightId.equals(LIGHT_ID_SELF)) {
             MessageUtils.setInvalidRequestParameterError(response,
-                    "Parameter 'lightId' must be specified.");
+                    "A light with ID specified by 'lightId' not found.");
             getContext().sendBroadcast(response);
             return;
         }
@@ -675,12 +732,6 @@ public class AllJoynLightProfile extends LightProfile {
     private void onPutLightForLampController(Intent request, final Intent response,
                                              final AllJoynServiceEntity service, final String lightId,
                                              final String name, final Float brightness, final int[] color) {
-        if (lightId == null) {
-            MessageUtils.setInvalidRequestParameterError(response,
-                    "Parameter 'lightId' must be specified.");
-            getContext().sendBroadcast(response);
-            return;
-        }
         if (brightness != null && (brightness < 0 || brightness > 1)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'brightness' must be within range [0, 1].");
@@ -710,6 +761,26 @@ public class AllJoynLightProfile extends LightProfile {
                 }
 
                 try {
+                    Lamp.GetAllLampIDs_return_value_uas getAllLampIDsResponse =
+                            proxy.getAllLampIDs();
+                    if (getAllLampIDsResponse == null) {
+                        MessageUtils.setUnknownError(response, "Failed to obtain lamp IDs.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    } else if (getAllLampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp IDs (code: "
+                                        + getAllLampIDsResponse.responseCode + ").");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(lightId)) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "A light with ID specified by 'lightId' not found.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
                     HashMap<String, Variant> newStates = new HashMap<>();
 
                     // NOTE: Arithmetic operations in primitive types may lead to arithmetic
@@ -1055,9 +1126,9 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                LampGroup proxyLampGroup = app.getInterface(busName, sessionId, LampGroup.class);
+                LampGroup proxy = app.getInterface(busName, sessionId, LampGroup.class);
 
-                if (proxyLampGroup == null) {
+                if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
                     getContext().sendBroadcast(response);
@@ -1065,6 +1136,26 @@ public class AllJoynLightProfile extends LightProfile {
                 }
 
                 try {
+                    LampGroup.GetAllLampGroupIDs_return_value_uas getAllLampGroupIDsResponse =
+                            proxy.getAllLampGroupIDs();
+                    if (getAllLampGroupIDsResponse == null) {
+                        MessageUtils.setUnknownError(response, "Failed to obtain lamp group IDs.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    } else if (getAllLampGroupIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp IDs (code: "
+                                        + getAllLampGroupIDsResponse.responseCode + ").");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    if (!Arrays.asList(getAllLampGroupIDsResponse.lampGroupIDs).contains(groupID)) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "A light group with ID specified by 'groupId' not found.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
                     HashMap<String, Variant> newStates = new HashMap<>();
 
                     // NOTE: Arithmetic operations in primitive types may lead to arithmetic
@@ -1087,7 +1178,7 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
-                            proxyLampGroup.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
+                            proxy.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
                     if (transLampGroupStateResponse == null ||
                             transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
@@ -1169,6 +1260,26 @@ public class AllJoynLightProfile extends LightProfile {
                 }
 
                 try {
+                    LampGroup.GetAllLampGroupIDs_return_value_uas getAllLampGroupIDsResponse =
+                            proxy.getAllLampGroupIDs();
+                    if (getAllLampGroupIDsResponse == null) {
+                        MessageUtils.setUnknownError(response, "Failed to obtain lamp group IDs.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    } else if (getAllLampGroupIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp IDs (code: "
+                                        + getAllLampGroupIDsResponse.responseCode + ").");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    if (!Arrays.asList(getAllLampGroupIDsResponse.lampGroupIDs).contains(groupID)) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "A light group with ID specified by 'groupId' not found.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
                     Map<String, Variant> newStates = new HashMap<>();
                     newStates.put("OnOff", new Variant(false, "b"));
                     LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
@@ -1252,9 +1363,9 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                LampGroup proxyLampGroup = app.getInterface(busName, sessionId, LampGroup.class);
+                LampGroup proxy = app.getInterface(busName, sessionId, LampGroup.class);
 
-                if (proxyLampGroup == null) {
+                if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
                     getContext().sendBroadcast(response);
@@ -1262,6 +1373,26 @@ public class AllJoynLightProfile extends LightProfile {
                 }
 
                 try {
+                    LampGroup.GetAllLampGroupIDs_return_value_uas getAllLampGroupIDsResponse =
+                            proxy.getAllLampGroupIDs();
+                    if (getAllLampGroupIDsResponse == null) {
+                        MessageUtils.setUnknownError(response, "Failed to obtain lamp group IDs.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    } else if (getAllLampGroupIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp IDs (code: "
+                                        + getAllLampGroupIDsResponse.responseCode + ").");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    if (!Arrays.asList(getAllLampGroupIDsResponse.lampGroupIDs).contains(groupID)) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "A light group with ID specified by 'groupId' not found.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
                     HashMap<String, Variant> newStates = new HashMap<>();
 
                     // NOTE: Arithmetic operations in primitive types may lead to arithmetic
@@ -1283,7 +1414,7 @@ public class AllJoynLightProfile extends LightProfile {
                     }
 
                     LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
-                            proxyLampGroup.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
+                            proxy.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
                     if (transLampGroupStateResponse == null ||
                             transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
@@ -1294,7 +1425,7 @@ public class AllJoynLightProfile extends LightProfile {
 
                     if (name != null) {
                         LampGroup.SetLampGroupName_return_value_uss setLampGroupNameResponse =
-                                proxyLampGroup.setLampGroupName(groupID, name, service.defaultLanguage);
+                                proxy.setLampGroupName(groupID, name, service.defaultLanguage);
                         if (setLampGroupNameResponse.responseCode != ResponseCode.OK.getValue()) {
                             MessageUtils.setUnknownError(response,
                                     "Failed to change group name (code: " + setLampGroupNameResponse.responseCode + ").");
@@ -1457,9 +1588,9 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(@NonNull String busName, short port, int sessionId) {
-                LampGroup proxyLampGroup = app.getInterface(busName, sessionId, LampGroup.class);
+                LampGroup proxy = app.getInterface(busName, sessionId, LampGroup.class);
 
-                if (proxyLampGroup == null) {
+                if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
                     getContext().sendBroadcast(response);
@@ -1467,8 +1598,28 @@ public class AllJoynLightProfile extends LightProfile {
                 }
 
                 try {
+                    LampGroup.GetAllLampGroupIDs_return_value_uas getAllLampGroupIDsResponse =
+                            proxy.getAllLampGroupIDs();
+                    if (getAllLampGroupIDsResponse == null) {
+                        MessageUtils.setUnknownError(response, "Failed to obtain lamp group IDs.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    } else if (getAllLampGroupIDsResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp IDs (code: "
+                                        + getAllLampGroupIDsResponse.responseCode + ").");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    if (!Arrays.asList(getAllLampGroupIDsResponse.lampGroupIDs).contains(groupID)) {
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "A light group with ID specified by 'groupId' not found.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+
                     LampGroup.DeleteLampGroup_return_value_us deleteLampGroupResponse =
-                            proxyLampGroup.deleteLampGroup(groupID);
+                            proxy.deleteLampGroup(groupID);
                     if (deleteLampGroupResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to delete the light group (code: " + deleteLampGroupResponse.responseCode + ").");

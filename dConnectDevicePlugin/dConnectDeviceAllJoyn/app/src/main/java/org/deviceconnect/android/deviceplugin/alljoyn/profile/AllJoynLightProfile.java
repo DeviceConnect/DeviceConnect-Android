@@ -147,7 +147,7 @@ public class AllJoynLightProfile extends LightProfile {
                             lampIDsResponse = proxy.getAllLampIDs();
                     if (lampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
-                                "Failed to obtain lamp IDs.");
+                                "Failed to obtain lamp IDs (code: " + lampIDsResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -159,7 +159,8 @@ public class AllJoynLightProfile extends LightProfile {
                                 proxy.getLampName(lampId, service.defaultLanguage);
                         if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
                             Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                    "Failed to obtain the lamp name. Skipping this lamp...");
+                                    "Failed to obtain the lamp name (code: "
+                                            + lampNameResponse.responseCode + "). Skipping this lamp...");
                             continue;
                         }
 
@@ -167,7 +168,8 @@ public class AllJoynLightProfile extends LightProfile {
                                 proxy.getLampState(lampId);
                         if (lampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                             Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                    "Failed to obtain the on/off state. Skipping this lamp...");
+                                    "Failed to obtain the on/off state (code: "
+                                            + lampStateResponse.responseCode + "). Skipping this lamp...");
                             continue;
                         }
 
@@ -279,7 +281,8 @@ public class AllJoynLightProfile extends LightProfile {
 
                     int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
                     if (responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response, "Failed to change lamp states.");
+                        MessageUtils.setUnknownError(response,
+                                "Failed to change lamp states (code: " + responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -324,7 +327,8 @@ public class AllJoynLightProfile extends LightProfile {
                             proxy.getLampDetails(lightId);
                     if (lampDetailsResponse == null ||
                             lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response, "Failed to obtain lamp details.");
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp details (code: " + lampDetailsResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -368,7 +372,8 @@ public class AllJoynLightProfile extends LightProfile {
                             proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
                     if (transLampStateResponse == null ||
                             transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response, "Failed to change lamp states.");
+                        MessageUtils.setUnknownError(response,
+                                "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -483,7 +488,8 @@ public class AllJoynLightProfile extends LightProfile {
                     Lamp.TransitionLampState_return_value_us transLampStateResponse =
                             proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
                     if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response, "Failed to turn off the light.");
+                        MessageUtils.setUnknownError(response,
+                                "Failed to turn off the light (code: " + transLampStateResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -611,7 +617,9 @@ public class AllJoynLightProfile extends LightProfile {
 
                     int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
                     if (responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response, "Failed to change lamp states.");
+                        MessageUtils.setUnknownError(response,
+                                "Failed to change lamp states (code: "
+                                        + responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -681,7 +689,7 @@ public class AllJoynLightProfile extends LightProfile {
                             proxy.getLampDetails(lightId);
                     if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
-                                "Failed to obtain lamp details.");
+                                "Failed to obtain lamp details (code: " + lampDetailsResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -707,10 +715,11 @@ public class AllJoynLightProfile extends LightProfile {
                         }
                     }
 
-                    Lamp.TransitionLampState_return_value_us transitionLampStateResponse =
+                    Lamp.TransitionLampState_return_value_us transLampStateResponse =
                             proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
-                    if (transitionLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response, "Failed to change lamp states.");
+                    if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -719,7 +728,8 @@ public class AllJoynLightProfile extends LightProfile {
                         Lamp.SetLampName_return_value_uss lampNameResponse =
                                 proxy.setLampName(lightId, name, service.defaultLanguage);
                         if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
-                            MessageUtils.setUnknownError(response, "Failed to change name.");
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to change name (code: " + lampNameResponse.responseCode + ").");
                             getContext().sendBroadcast(response);
                             return;
                         }
@@ -796,7 +806,7 @@ public class AllJoynLightProfile extends LightProfile {
                             proxyLampGroup.getAllLampGroupIDs();
                     if (allLampGroupIDsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
-                                "Failed to obtain lamp group IDs.");
+                                "Failed to obtain lamp group IDs (code: " + allLampGroupIDsResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -815,7 +825,8 @@ public class AllJoynLightProfile extends LightProfile {
                                     proxyLampGroup.getLampGroupName(lampGroupID, service.defaultLanguage);
                             if (lampGroupNameResponse.responseCode != ResponseCode.OK.getValue()) {
                                 Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                        "Failed to obtain lamp group name. Skipping this lamp group...");
+                                        "Failed to obtain lamp group name (code: "
+                                                + lampGroupNameResponse.responseCode + "). Skipping this lamp group...");
                                 continue;
                             }
                             lampGroupInfo.name = lampGroupNameResponse.lampGroupName;
@@ -826,7 +837,9 @@ public class AllJoynLightProfile extends LightProfile {
                                     proxyLampGroup.getLampGroup(lampGroupID);
                             if (lampGroupResponse.responseCode != ResponseCode.OK.getValue()) {
                                 Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                        "Failed to obtain IDs of lamps and lamp groups contained in a lamp group. Skipping this lamp group...");
+                                        "Failed to obtain IDs of lamps and lamp groups contained"
+                                                + " in a lamp group (code: " + lampGroupResponse.responseCode
+                                                + "). Skipping this lamp group...");
                                 continue;
                             }
                             lampGroupInfo.lampIDs =
@@ -884,7 +897,7 @@ public class AllJoynLightProfile extends LightProfile {
                                     lamp.name = lampNameResponse.lampName;
                                 } else {
                                     Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                            "Failed to obtain lamp name...");
+                                            "Failed to obtain lamp name (code: " + lampNameResponse.responseCode + ").");
                                 }
                             }
 
@@ -901,7 +914,7 @@ public class AllJoynLightProfile extends LightProfile {
                                     }
                                 } else {
                                     Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                            "Failed to obtain lamp state...");
+                                            "Failed to obtain lamp state (code: " + lampStateResponse.responseCode + ").");
                                 }
                             }
 
@@ -1036,7 +1049,8 @@ public class AllJoynLightProfile extends LightProfile {
                             proxyLampGroup.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
                     if (transLampGroupStateResponse == null ||
                             transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response, "Failed to change lamp group states.");
+                        MessageUtils.setUnknownError(response,
+                                "Failed to change lamp group states (code: " + transLampGroupStateResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -1113,7 +1127,8 @@ public class AllJoynLightProfile extends LightProfile {
                     LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
                             proxy.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
                     if (transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response, "Failed to turn off the light group.");
+                        MessageUtils.setUnknownError(response,
+                                "Failed to turn off the light group (code: " + transLampGroupStateResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -1212,7 +1227,8 @@ public class AllJoynLightProfile extends LightProfile {
                             proxyLampGroup.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
                     if (transLampGroupStateResponse == null ||
                             transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response, "Failed to change lamp group states.");
+                        MessageUtils.setUnknownError(response,
+                                "Failed to change lamp group states (code: " + transLampGroupStateResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -1221,7 +1237,8 @@ public class AllJoynLightProfile extends LightProfile {
                         LampGroup.SetLampGroupName_return_value_uss setLampGroupNameResponse =
                                 proxyLampGroup.setLampGroupName(groupID, name, service.defaultLanguage);
                         if (setLampGroupNameResponse.responseCode != ResponseCode.OK.getValue()) {
-                            MessageUtils.setUnknownError(response, "Failed to change group name.");
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to change group name (code: " + setLampGroupNameResponse.responseCode + ").");
                             getContext().sendBroadcast(response);
                             return;
                         }
@@ -1300,7 +1317,8 @@ public class AllJoynLightProfile extends LightProfile {
                             proxyLampGroup.createLampGroup(lightIDs, new String[0], groupName
                                     , service.defaultLanguage);
                     if (createLampGroupResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response, "Failed to create a light group.");
+                        MessageUtils.setUnknownError(response,
+                                "Failed to create a light group (code: " + createLampGroupResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }
@@ -1376,7 +1394,8 @@ public class AllJoynLightProfile extends LightProfile {
                     LampGroup.DeleteLampGroup_return_value_us deleteLampGroupResponse =
                             proxyLampGroup.deleteLampGroup(groupID);
                     if (deleteLampGroupResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response, "Failed to delete the light group.");
+                        MessageUtils.setUnknownError(response,
+                                "Failed to delete the light group (code: " + deleteLampGroupResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
                         return;
                     }

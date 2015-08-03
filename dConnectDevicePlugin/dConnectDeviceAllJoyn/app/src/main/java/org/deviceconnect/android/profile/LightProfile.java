@@ -56,10 +56,25 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     @Override
     protected boolean onPostRequest(final Intent request, final Intent response) {
         if (isNullAttribute(request)) {
+            Float brightness = null;
+            String brightnessParam = getBrightness(request);
+            if (brightnessParam != null) {
+                brightness = parseBrightnessParam(brightnessParam);
+                if (brightness == null) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'brightness' must be a value between 0 and 1.0 .");
+                    return true;
+                }
+            }
+
             int[] color = new int[3];
-            Float brightness = getBrightnessParam(request, response);
-            if (!getColorParam(request, response, color)) {
-                color = null;
+            String colorParam = getColor(request);
+            if (colorParam != null) {
+                if (!parseColorParam(colorParam, color)) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'color' is invalid.");
+                    return true;
+                }
             }
 
             long[] flashing = null;
@@ -76,10 +91,25 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             return onPostLight(request, response, getServiceID(request), getLightID(request),
                     brightness, color, flashing);
         } else if (isLightGroupAttribute(request)) {
+            Float brightness = null;
+            String brightnessParam = getBrightness(request);
+            if (brightnessParam != null) {
+                brightness = parseBrightnessParam(brightnessParam);
+                if (brightness == null) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'brightness' must be a value between 0 and 1.0 .");
+                    return true;
+                }
+            }
+
             int[] color = new int[3];
-            Float brightness = getBrightnessParam(request, response);
-            if (!getColorParam(request, response, color)) {
-                color = null;
+            String colorParam = getColor(request);
+            if (colorParam != null) {
+                if (!parseColorParam(colorParam, color)) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'color' is invalid.");
+                    return true;
+                }
             }
 
             long[] flashing = null;
@@ -135,10 +165,26 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     protected boolean onPutRequest(final Intent request, final Intent response) {
         if (isNullAttribute(request)) {
             String name = getName(request);
-            Float brightness = getBrightnessParam(request, response);
+
+            Float brightness = null;
+            String brightnessParam = getBrightness(request);
+            if (brightnessParam != null) {
+                brightness = parseBrightnessParam(brightnessParam);
+                if (brightness == null) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'brightness' must be a value between 0 and 1.0 .");
+                    return true;
+                }
+            }
+
             int[] color = new int[3];
-            if (!getColorParam(request, response, color)) {
-                color = null;
+            String colorParam = getColor(request);
+            if (colorParam != null) {
+                if (!parseColorParam(colorParam, color)) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'color' is invalid.");
+                    return true;
+                }
             }
 
             long[] flashing = null;
@@ -156,10 +202,26 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
                     , name, brightness, color, flashing);
         } else if (isLightGroupAttribute(request)) {
             String name = getName(request);
-            Float brightness = getBrightnessParam(request, response);
+
+            Float brightness = null;
+            String brightnessParam = getBrightness(request);
+            if (brightnessParam != null) {
+                brightness = parseBrightnessParam(brightnessParam);
+                if (brightness == null) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'brightness' must be a value between 0 and 1.0 .");
+                    return true;
+                }
+            }
+
             int[] color = new int[3];
-            if (!getColorParam(request, response, color)) {
-                color = null;
+            String colorParam = getColor(request);
+            if (colorParam != null) {
+                if (!parseColorParam(colorParam, color)) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                            "Parameter 'color' is invalid.");
+                    return true;
+                }
             }
 
             long[] flashing = null;
@@ -541,66 +603,47 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * Get brightness parameter.
      *
-     * @param request  request
-     * @param response response
+     * @param brightnessParam brightness in string expression
      * @return Brightness parameter, or null if parameter error is encountered.
      */
-    private static Float getBrightnessParam(final Intent request, final Intent response) {
-        if (getBrightness(request) != null) {
-            float brightness;
-            try {
-                brightness = Float.valueOf(getBrightness(request));
-                if (brightness > 1.0 || brightness < 0) {
-                    MessageUtils.setInvalidRequestParameterError(response,
-                            "brightness should be a value between 0 and 1.0");
-                    return null;
-                }
-            } catch (NumberFormatException e) {
-                MessageUtils
-                        .setInvalidRequestParameterError(response, "brightness should be a value between 0 and 1.0");
+    private static Float parseBrightnessParam(final String brightnessParam) {
+        float brightness;
+        try {
+            brightness = Float.valueOf(brightnessParam);
+            if (brightness > 1.0 || brightness < 0) {
                 return null;
             }
-            return brightness;
-        } else {
+        } catch (NumberFormatException e) {
             return null;
         }
+        return brightness;
     }
 
     /**
      * Get color parameter.
      *
-     * @param request  request
-     * @param response response
-     * @param color    Color parameter.
+     * @param colorParam color in string expression
+     * @param color      Color parameter.
      * @return true : Success, false : failure.
      */
-    private static boolean getColorParam(final Intent request, final Intent response, final int[] color) {
-        if (getColor(request) != null) {
-            try {
-                String colorParam = getColor(request);
-                String rr = colorParam.substring(0, 2);
-                String gg = colorParam.substring(2, 4);
-                String bb = colorParam.substring(4, 6);
-                if (colorParam.length() == RGB_LENGTH) {
-                    if (rr == null || gg == null || bb == null) {
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        return false;
-                    }
-                    color[0] = Integer.parseInt(rr, 16);
-                    color[1] = Integer.parseInt(gg, 16);
-                    color[2] = Integer.parseInt(bb, 16);
-                } else {
-                    MessageUtils.setInvalidRequestParameterError(response);
+    private static boolean parseColorParam(final String colorParam, final int[] color) {
+        try {
+            String rr = colorParam.substring(0, 2);
+            String gg = colorParam.substring(2, 4);
+            String bb = colorParam.substring(4, 6);
+            if (colorParam.length() == RGB_LENGTH) {
+                if (rr == null || gg == null || bb == null) {
                     return false;
                 }
-            } catch (NumberFormatException e) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return false;
-            } catch (IllegalArgumentException e) {
-                MessageUtils.setInvalidRequestParameterError(response);
+                color[0] = Integer.parseInt(rr, 16);
+                color[1] = Integer.parseInt(gg, 16);
+                color[2] = Integer.parseInt(bb, 16);
+            } else {
                 return false;
             }
-        } else {
+        } catch (NumberFormatException e) {
+            return false;
+        } catch (IllegalArgumentException e) {
             return false;
         }
         return true;

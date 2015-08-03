@@ -27,6 +27,7 @@ import org.alljoyn.services.common.BusObjectDescription;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -219,6 +220,11 @@ public class AllJoynDeviceApplication extends Application {
     // TODO: 非推奨のorg.alljoyn.about周辺のAPIから新しいorg.alljoyn.bus周辺のAPIへ移行する。
     private class AllJoynHandler extends Handler implements AnnouncementHandler {
 
+        /**
+         * If an AllJoyn service is unresponsive for more than this duration, that service is
+         * removed from the discovered service list.
+         */
+        private static final long ALIVE_TIMEOUT = 90000;
         private static final int PING_TIMEOUT = 5000;
         private static final int PING_INTERVAL = 20000;
         private static final int DISCOVER_INTERVAL = 30000;
@@ -392,11 +398,16 @@ public class AllJoynDeviceApplication extends Application {
                             return;
                         }
                         String busName = resultData.getString(PARAM_BUS_NAME);
+                        AllJoynServiceEntity service = mAllJoynServiceEntities.get(busName);
                         if (resultCode != RESULT_OK) {
-                            Log.i(AllJoynHandler.this.getClass().getSimpleName(),
-                                    "No ping from the service with bus name \"" + busName +
-                                            "\". Removing it from discovered services...");
-                            mAllJoynServiceEntities.remove(busName);
+                            if (new Date().getTime() - service.lastAlive.getTime() > ALIVE_TIMEOUT) {
+                                Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                                        "No ping from the service with bus name \"" + busName +
+                                                "\". Removing it from discovered services...");
+                                mAllJoynServiceEntities.remove(busName);
+                            }
+                        } else {
+                            service.lastAlive = new Date();
                         }
                     }
                 };

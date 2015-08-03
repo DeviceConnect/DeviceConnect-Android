@@ -8,6 +8,7 @@ import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.Variant;
 import org.alljoyn.services.common.BusObjectDescription;
 
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -48,7 +49,7 @@ public class AllJoynServiceEntity {
     public BusObjectDescription[] proxyObjects;
     //    public String objPath;
 
-    public Integer sessionId;
+    public Date lastAlive;
 
     public AllJoynServiceEntity(@NonNull String busName, short port,
                                 Map<String, Variant> aboutData,
@@ -57,6 +58,7 @@ public class AllJoynServiceEntity {
         this.port = port;
         this.aboutData = aboutData;
         this.proxyObjects = proxyObjects;
+        this.lastAlive = new Date();
 
         flattenAboutData();
 

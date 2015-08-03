@@ -367,8 +367,12 @@ public class AllJoynLightProfile extends LightProfile {
 
                     Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse =
                             proxy.getLampDetails(lightId);
-                    if (lampDetailsResponse == null ||
-                            lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
+                    if (lampDetailsResponse == null) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to obtain lamp details.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    } else if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp details (code: " + lampDetailsResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
@@ -1179,8 +1183,12 @@ public class AllJoynLightProfile extends LightProfile {
 
                     LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
                             proxy.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
-                    if (transLampGroupStateResponse == null ||
-                            transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                    if (transLampGroupStateResponse == null) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to change lamp group states.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    } else if (transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to change lamp group states (code: " + transLampGroupStateResponse.responseCode + ").");
                         getContext().sendBroadcast(response);
@@ -1415,8 +1423,13 @@ public class AllJoynLightProfile extends LightProfile {
 
                     LampGroup.TransitionLampGroupState_return_value_us transLampGroupStateResponse =
                             proxy.transitionLampGroupState(groupID, newStates, TRANSITION_PERIOD);
-                    if (transLampGroupStateResponse == null ||
-                            transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                    if (transLampGroupStateResponse == null) {
+                        MessageUtils.setUnknownError(response,
+                                "Failed to change lamp group states.");
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    if (transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to change lamp group states (code: " + transLampGroupStateResponse.responseCode + ").");
                         getContext().sendBroadcast(response);

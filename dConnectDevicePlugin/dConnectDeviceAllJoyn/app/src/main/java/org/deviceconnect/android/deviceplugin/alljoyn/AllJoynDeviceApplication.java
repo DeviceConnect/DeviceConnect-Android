@@ -415,21 +415,23 @@ public class AllJoynDeviceApplication extends Application {
                         }
                         String busName = resultData.getString(PARAM_BUS_NAME);
                         AllJoynServiceEntity service = mAllJoynServiceEntities.get(busName);
-                        if (resultCode != RESULT_OK) {
-                            if (new Date().getTime() - service.lastAlive.getTime() > ALIVE_TIMEOUT) {
+                        if (service != null) {
+                            if (resultCode != RESULT_OK) {
+                                if (new Date().getTime() - service.lastAlive.getTime() > ALIVE_TIMEOUT) {
+                                    if (BuildConfig.DEBUG) {
+                                        Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                                                "Ping failed: " + busName +
+                                                        ". Removing it from discovered services...");
+                                    }
+                                    mAllJoynServiceEntities.remove(busName);
+                                }
+                            } else {
                                 if (BuildConfig.DEBUG) {
                                     Log.i(AllJoynHandler.this.getClass().getSimpleName(),
-                                            "Ping failed: " + busName +
-                                                    ". Removing it from discovered services...");
+                                            "Ping succeeded: " + busName + ".");
                                 }
-                                mAllJoynServiceEntities.remove(busName);
+                                service.lastAlive = new Date();
                             }
-                        } else {
-                            if (BuildConfig.DEBUG) {
-                                Log.i(AllJoynHandler.this.getClass().getSimpleName(),
-                                        "Ping succeeded: " + busName + ".");
-                            }
-                            service.lastAlive = new Date();
                         }
                     }
                 };

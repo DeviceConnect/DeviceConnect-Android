@@ -387,6 +387,7 @@ public class AllJoynDeviceApplication extends Application {
 
                 Status status = mBus.connect();
                 if (status != Status.OK) {
+                    Log.e(this.getClass().getSimpleName(), "Failed to connect to a bus.");
                     mBus = null;
                     resultReceiver.send(RESULT_FAILED, null);
                     return;
@@ -397,7 +398,10 @@ public class AllJoynDeviceApplication extends Application {
                     mAboutService.startAboutClient(mBus);
                     mAboutService.addAnnouncementHandler(this, null);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Log.e(this.getClass().getSimpleName(), "Failed to start About client.");
+                    mBus = null;
+                    resultReceiver.send(RESULT_FAILED, null);
+                    return;
                 }
 
                 mPingTimer = Executors.newScheduledThreadPool(3);
@@ -464,7 +468,8 @@ public class AllJoynDeviceApplication extends Application {
                                 mAboutService.startAboutClient(mBus);
                                 mAboutService.addAnnouncementHandler(AllJoynHandler.this, null);
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                Log.e(AllJoynHandler.this.getClass().getSimpleName(),
+                                        "Failed to reset About client.");
                             }
                         }
 
@@ -497,7 +502,8 @@ public class AllJoynDeviceApplication extends Application {
                     mBus = null;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(AllJoynHandler.this.getClass().getSimpleName(),
+                        "Failed to destroy AllJoyn context.");
                 resultReceiver.send(RESULT_FAILED, null);
                 return;
             }

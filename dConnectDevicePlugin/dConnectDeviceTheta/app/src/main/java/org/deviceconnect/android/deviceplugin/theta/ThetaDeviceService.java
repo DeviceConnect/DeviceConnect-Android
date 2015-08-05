@@ -12,6 +12,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.theta360.lib.PtpipInitiator;
 import com.theta360.lib.ThetaException;
@@ -19,8 +20,10 @@ import com.theta360.lib.ThetaException;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaBatteryProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaFileProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaMediaStreamRecordingProfile;
+import org.deviceconnect.android.deviceplugin.theta.profile.ThetaOmnidirectionalImageProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSystemProfile;
+import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -57,6 +60,7 @@ public class ThetaDeviceService extends DConnectMessageService {
         addProfile(new ThetaBatteryProfile(mClient));
         addProfile(new ThetaFileProfile(mClient, fileMgr));
         addProfile(new ThetaMediaStreamRecordingProfile(mClient, fileMgr));
+        addProfile(new ThetaOmnidirectionalImageProfile());
 
         WifiManager wifiMgr = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
         fetchThetaDevice(wifiMgr.getConnectionInfo());
@@ -79,7 +83,7 @@ public class ThetaDeviceService extends DConnectMessageService {
         }
 
         String action = intent.getAction();
-        mLogger.info("onStartCommand: action=" + action);
+        //mLogger.info("onStartCommand: action=" + action);
         if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
             NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
             if (networkInfo.isConnected()) {
@@ -131,6 +135,16 @@ public class ThetaDeviceService extends DConnectMessageService {
             ServiceDiscoveryProfile.setScopes(service, this);
             services.add(service);
         }
+
+        Bundle service = new Bundle();
+        service.putString(ServiceDiscoveryProfile.PARAM_ID, "theta");
+        service.putString(ServiceDiscoveryProfile.PARAM_NAME, "Dummy Theta");
+        service.putString(ServiceDiscoveryProfile.PARAM_TYPE,
+            ServiceDiscoveryProfile.NetworkType.WIFI.getValue());
+        service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+        ServiceDiscoveryProfile.setScopes(service, this);
+        services.add(service);
+
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES, services.toArray(new Bundle[services.size()]));
         return true;

@@ -382,8 +382,8 @@ public class AllJoynDeviceApplication extends Application {
 
                 try {
                     mAboutService = AboutServiceImpl.getInstance();
-                    mAboutService.addAnnouncementHandler(this, null);
                     mAboutService.startAboutClient(mBus);
+                    mAboutService.addAnnouncementHandler(this, null);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

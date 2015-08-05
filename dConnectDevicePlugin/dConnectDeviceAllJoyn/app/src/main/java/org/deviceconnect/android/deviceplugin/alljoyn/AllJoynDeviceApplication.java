@@ -105,7 +105,9 @@ public class AllJoynDeviceApplication extends Application {
     }
 
     public void startLightClient() {
-        Log.d(getClass().getSimpleName(), "startLightClient");
+        if (BuildConfig.DEBUG) {
+            Log.d(getClass().getSimpleName(), "startLightClient");
+        }
         if (mAllJoynHandler == null) {
             HandlerThread busThread = new HandlerThread("AllJoynHandler");
             busThread.start();
@@ -118,8 +120,10 @@ public class AllJoynDeviceApplication extends Application {
             @Override
             protected void onReceiveResult(int resultCode, Bundle resultData) {
                 if (resultCode == RESULT_FAILED) {
-                    Log.w(AllJoynDeviceApplication.class.getSimpleName(),
-                            "AllJoyn init failed, retrying...");
+                    if (BuildConfig.DEBUG) {
+                        Log.w(AllJoynDeviceApplication.class.getSimpleName(),
+                                "AllJoyn init failed, retrying...");
+                    }
                     // Resend
                     mAllJoynHandler.postDelayed(new Runnable() {
                         @Override
@@ -320,12 +324,16 @@ public class AllJoynDeviceApplication extends Application {
             AllJoynServiceEntity service =
                     new AllJoynServiceEntity(busName, port, aboutMap, busObjects);
 
-            Log.i(AllJoynHandler.this.getClass().getSimpleName(),
-                    "Service found: " + service.serviceName);
+            if (BuildConfig.DEBUG) {
+                Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                        "Service found: " + service.serviceName);
+            }
 
             if (!isSupported(busObjects)) {
-                Log.i(AllJoynHandler.this.getClass().getSimpleName(),
-                        "Required I/Fs are missing. Ignoring \"" + service.serviceName + "\"");
+                if (BuildConfig.DEBUG) {
+                    Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                            "Required I/Fs are missing. Ignoring \"" + service.serviceName + "\"");
+                }
                 return;
             }
 
@@ -335,8 +343,10 @@ public class AllJoynDeviceApplication extends Application {
         @Override
         public void onDeviceLost(String busName) {
             // Remove the service
-            Log.d(AllJoynHandler.this.getClass().getSimpleName(),
-                    "onDeviceLost received: device with busName: " + busName + " was lost");
+            if (BuildConfig.DEBUG) {
+                Log.d(AllJoynHandler.this.getClass().getSimpleName(),
+                        "onDeviceLost received: device with busName: " + busName + " was lost");
+            }
             mAllJoynServiceEntities.remove(busName);
         }
 
@@ -367,7 +377,9 @@ public class AllJoynDeviceApplication extends Application {
          * @param resultReceiver
          */
         private void doInitAllJoynContext(@NonNull ResultReceiver resultReceiver) {
-            Log.d(AllJoynHandler.this.getClass().getSimpleName(), "init");
+            if (BuildConfig.DEBUG) {
+                Log.d(AllJoynHandler.this.getClass().getSimpleName(), "init");
+            }
 
             if (mBus == null) {
                 DaemonInit.PrepareDaemon(getApplicationContext());
@@ -401,12 +413,18 @@ public class AllJoynDeviceApplication extends Application {
                         AllJoynServiceEntity service = mAllJoynServiceEntities.get(busName);
                         if (resultCode != RESULT_OK) {
                             if (new Date().getTime() - service.lastAlive.getTime() > ALIVE_TIMEOUT) {
-                                Log.i(AllJoynHandler.this.getClass().getSimpleName(),
-                                        "No ping from the service with bus name \"" + busName +
-                                                "\". Removing it from discovered services...");
+                                if (BuildConfig.DEBUG) {
+                                    Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                                            "Ping failed: " + busName +
+                                                    ". Removing it from discovered services...");
+                                }
                                 mAllJoynServiceEntities.remove(busName);
                             }
                         } else {
+                            if (BuildConfig.DEBUG) {
+                                Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                                        "Ping succeeded: " + busName + ".");
+                            }
                             service.lastAlive = new Date();
                         }
                     }
@@ -414,8 +432,10 @@ public class AllJoynDeviceApplication extends Application {
                 mPingTimer.scheduleAtFixedRate(new Runnable() {
                     @Override
                     public void run() {
-                        Log.i(AllJoynHandler.this.getClass().getSimpleName(),
-                                "Sending pings to discovered services...");
+                        if (BuildConfig.DEBUG) {
+                            Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                                    "Sending pings to discovered services...");
+                        }
 
                         for (AllJoynServiceEntity serviceEntity : mAllJoynServiceEntities.values()) {
                             Message msg = new Message();
@@ -490,7 +510,9 @@ public class AllJoynDeviceApplication extends Application {
          * @param resultReceiver
          */
         private void doDiscover(@NonNull ResultReceiver resultReceiver) {
-            Log.d(AllJoynHandler.this.getClass().getSimpleName(), "discover");
+            if (BuildConfig.DEBUG) {
+                Log.d(AllJoynHandler.this.getClass().getSimpleName(), "discover");
+            }
 
             // NOTE: the effect of whoImplements() for specific interfaces can stack up, and unless
             // all stacked-up effects are canceled, service discovery for the specific interfaces
@@ -526,7 +548,9 @@ public class AllJoynDeviceApplication extends Application {
          */
         private void doJoinSession(@NonNull String sessionHostBusName, short sessionPort,
                                    @NonNull ResultReceiver resultReceiver) {
-            Log.d(AllJoynHandler.this.getClass().getSimpleName(), "joinSession");
+            if (BuildConfig.DEBUG) {
+                Log.d(AllJoynHandler.this.getClass().getSimpleName(), "joinSession");
+            }
 
             SessionOpts sessionOpts = new SessionOpts();
             Mutable.IntegerValue sessionId = new Mutable.IntegerValue();
@@ -556,7 +580,9 @@ public class AllJoynDeviceApplication extends Application {
         }
 
         private void doLeaveSession(int sessionId, @NonNull ResultReceiver resultReceiver) {
-            Log.d(AllJoynHandler.this.getClass().getSimpleName(), "leaveSession");
+            if (BuildConfig.DEBUG) {
+                Log.d(AllJoynHandler.this.getClass().getSimpleName(), "leaveSession");
+            }
 
             Status status = mBus.leaveSession(sessionId);
             if (status == Status.OK) {
@@ -567,7 +593,10 @@ public class AllJoynDeviceApplication extends Application {
         }
 
         private void doPing(final String busName, @NonNull final ResultReceiver resultReceiver) {
-            Log.d(AllJoynHandler.this.getClass().getSimpleName(), "ping the service with bus name \"" + busName + "\"");
+            if (BuildConfig.DEBUG) {
+                Log.d(AllJoynHandler.this.getClass().getSimpleName(),
+                        "ping the service with bus name \"" + busName + "\"");
+            }
 
             final AtomicBoolean finished = new AtomicBoolean(false);
             final Bundle data = new Bundle();

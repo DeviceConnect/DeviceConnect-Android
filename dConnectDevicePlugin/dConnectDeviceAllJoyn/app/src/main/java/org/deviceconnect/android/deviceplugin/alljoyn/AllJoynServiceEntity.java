@@ -129,8 +129,10 @@ public class AllJoynServiceEntity {
                         break;
                 }
             } catch (Exception e) {
-                Log.w(getClass().getSimpleName(), "Failed to parse \"" + key + "\": "
-                        + e.getLocalizedMessage());
+                if (BuildConfig.DEBUG) {
+                    Log.w(getClass().getSimpleName(), "Failed to parse \"" + key + "\": "
+                            + e.getLocalizedMessage());
+                }
             }
         }
     }
@@ -144,8 +146,10 @@ public class AllJoynServiceEntity {
                 Variant val = aboutData.get(AboutKeys.ABOUT_DEVICE_NAME);
                 serviceName = val.getObject(String.class);
             } catch (BusException e) {
-                Log.w(getClass().getSimpleName(),
-                        "Failed to parse about announcement (1).");
+                if (BuildConfig.DEBUG) {
+                    Log.w(getClass().getSimpleName(),
+                            "Failed to parse about announcement.");
+                }
                 serviceName = "Alljoyn service (" + busName.hashCode() + ")";
             }
         } else {

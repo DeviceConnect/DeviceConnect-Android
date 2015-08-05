@@ -15,6 +15,7 @@ import org.allseen.LSF.LampState;
 import org.allseen.LSF.ResponseCode;
 import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynDeviceApplication;
 import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynServiceEntity;
+import org.deviceconnect.android.deviceplugin.alljoyn.BuildConfig;
 import org.deviceconnect.android.deviceplugin.alljoyn.OneShotSessionHandler;
 import org.deviceconnect.android.deviceplugin.alljoyn.util.ColorUtil;
 import org.deviceconnect.android.message.MessageUtils;
@@ -161,18 +162,22 @@ public class AllJoynLightProfile extends LightProfile {
                         Lamp.GetLampName_return_value_usss lampNameResponse =
                                 proxy.getLampName(lampId, service.defaultLanguage);
                         if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
-                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                    "Failed to obtain the lamp name (code: "
-                                            + lampNameResponse.responseCode + "). Skipping this lamp...");
+                            if (BuildConfig.DEBUG) {
+                                Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                        "Failed to obtain the lamp name (code: "
+                                                + lampNameResponse.responseCode + "). Skipping this lamp...");
+                            }
                             continue;
                         }
 
                         Lamp.GetLampState_return_value_usa_sv lampStateResponse =
                                 proxy.getLampState(lampId);
                         if (lampStateResponse.responseCode != ResponseCode.OK.getValue()) {
-                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                    "Failed to obtain the on/off state (code: "
-                                            + lampStateResponse.responseCode + "). Skipping this lamp...");
+                            if (BuildConfig.DEBUG) {
+                                Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                        "Failed to obtain the on/off state (code: "
+                                                + lampStateResponse.responseCode + "). Skipping this lamp...");
+                            }
                             continue;
                         }
 
@@ -394,9 +399,11 @@ public class AllJoynLightProfile extends LightProfile {
                             newStates.put("Saturation", new Variant(hsb[1], "u"));
                         }
                     } else {
-                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                "Color support is not described in the lamp details. " +
-                                        "Assuming it is not supported...");
+                        if (BuildConfig.DEBUG) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Color support is not described in the lamp details. " +
+                                            "Assuming it is not supported...");
+                        }
                     }
                     if (lampDetailsResponse.lampDetails.containsKey("Dimmable")) {
                         if (lampDetailsResponse.lampDetails.get("Dimmable").getObject(boolean.class)
@@ -409,9 +416,11 @@ public class AllJoynLightProfile extends LightProfile {
                             newStates.put("Brightness", new Variant(intScaledVal, "u"));
                         }
                     } else {
-                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                "Dim support is not described in the lamp details. " +
-                                        "Assuming it is not supported...");
+                        if (BuildConfig.DEBUG) {
+                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                    "Dim support is not described in the lamp details. " +
+                                            "Assuming it is not supported...");
+                        }
                     }
 
                     Lamp.TransitionLampState_return_value_us transLampStateResponse =
@@ -929,9 +938,11 @@ public class AllJoynLightProfile extends LightProfile {
                             LampGroup.GetLampGroupName_return_value_usss lampGroupNameResponse =
                                     proxyLampGroup.getLampGroupName(lampGroupID, service.defaultLanguage);
                             if (lampGroupNameResponse.responseCode != ResponseCode.OK.getValue()) {
-                                Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                        "Failed to obtain lamp group name (code: "
-                                                + lampGroupNameResponse.responseCode + "). Skipping this lamp group...");
+                                if (BuildConfig.DEBUG) {
+                                    Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                            "Failed to obtain lamp group name (code: "
+                                                    + lampGroupNameResponse.responseCode + "). Skipping this lamp group...");
+                                }
                                 continue;
                             }
                             lampGroupInfo.name = lampGroupNameResponse.lampGroupName;
@@ -941,10 +952,12 @@ public class AllJoynLightProfile extends LightProfile {
                             LampGroup.GetLampGroup_return_value_usasas lampGroupResponse =
                                     proxyLampGroup.getLampGroup(lampGroupID);
                             if (lampGroupResponse.responseCode != ResponseCode.OK.getValue()) {
-                                Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                        "Failed to obtain IDs of lamps and lamp groups contained"
-                                                + " in a lamp group (code: " + lampGroupResponse.responseCode
-                                                + "). Skipping this lamp group...");
+                                if (BuildConfig.DEBUG) {
+                                    Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                            "Failed to obtain IDs of lamps and lamp groups contained"
+                                                    + " in a lamp group (code: " + lampGroupResponse.responseCode
+                                                    + "). Skipping this lamp group...");
+                                }
                                 continue;
                             }
                             lampGroupInfo.lampIDs =
@@ -1001,8 +1014,10 @@ public class AllJoynLightProfile extends LightProfile {
                                 if (lampNameResponse.responseCode == ResponseCode.OK.getValue()) {
                                     lamp.name = lampNameResponse.lampName;
                                 } else {
-                                    Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                            "Failed to obtain lamp name (code: " + lampNameResponse.responseCode + ").");
+                                    if (BuildConfig.DEBUG) {
+                                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                                "Failed to obtain lamp name (code: " + lampNameResponse.responseCode + ").");
+                                    }
                                 }
                             }
 
@@ -1014,12 +1029,16 @@ public class AllJoynLightProfile extends LightProfile {
                                         lamp.on = lampStateResponse
                                                 .lampState.get("OnOff").getObject(Boolean.class);
                                     } else {
-                                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                                "Failed to obtain on/off state...");
+                                        if (BuildConfig.DEBUG) {
+                                            Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                                    "Failed to obtain on/off state...");
+                                        }
                                     }
                                 } else {
-                                    Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
-                                            "Failed to obtain lamp state (code: " + lampStateResponse.responseCode + ").");
+                                    if (BuildConfig.DEBUG) {
+                                        Log.w(AllJoynLightProfile.this.getClass().getSimpleName(),
+                                                "Failed to obtain lamp state (code: " + lampStateResponse.responseCode + ").");
+                                    }
                                 }
                             }
 

@@ -11,6 +11,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.opengl.SphereRenderer;
 
@@ -19,6 +20,8 @@ import org.deviceconnect.android.deviceplugin.theta.opengl.PixelBuffer;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class RoiDeliveryContext implements SensorEventListener  {
 
@@ -36,7 +39,9 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
     private final SensorManager mSensorMgr;
 
-    private byte[] mRoi;
+    private PixelBuffer mPixelBuffer;
+
+    private final SphereRenderer mRenderer = new SphereRenderer();
 
     private Param mCurrentParam = DEFAULT_PARAM;
 
@@ -44,9 +49,23 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
     private String mSegment;
 
+    private byte[] mRoi = null;
+
+    private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
+
+    private boolean isChangingStereoMode;
+
     public RoiDeliveryContext(final Context context, final OmnidirectionalImage source) {
         mSource = source;
         mSensorMgr = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+    }
+
+    public String getSegment() {
+        return mSegment;
+    }
+
+    public byte[] getRoi() {
+        return mRoi;
     }
 
     public Uri getUri() {
@@ -58,69 +77,93 @@ public class RoiDeliveryContext implements SensorEventListener  {
         mSegment = uri.getLastPathSegment();
     }
 
-    public byte[] getRoi() {
-        return mRoi;
-    }
-
     public Param getCurrentParam() {
         return mCurrentParam;
     }
 
-    public void render(final Param param) {
-        if (param == null) {
-            throw new IllegalArgumentException();
-        }
-        if (param.isVrMode() && !mCurrentParam.isVrMode()) {
-            startVrMode();
-        } else if (!param.isVrMode() && mCurrentParam.isVrMode()) {
-            stopVrMode();
-        }
-        mCurrentParam = param;
+    public void render() {
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                int width = mCurrentParam.getImageWidth();
+                int height = mCurrentParam.getImageHeight();
 
-        int width = param.getImageWidth();
-        int height = param.getImageHeight();
-        PixelBuffer pxBuffer = new PixelBuffer(width, height);
-        Bitmap result;
-        if (param.isStereoMode()) {
-            // TODO: 左右で視点をずらす
-            Param leftParam = param;
-            Param rightParam = param;
+                Bitmap result;
+                if (mCurrentParam.isStereoMode()) {
+                    // TODO: 左右で視点をずらす
+                    Param leftParam = mCurrentParam;
+                    Param rightParam = mCurrentParam;
 
-            pxBuffer.setRenderer(createRenderer(leftParam));
-            Bitmap left = pxBuffer.render();
-            pxBuffer.setRenderer(createRenderer(rightParam));
-            Bitmap right = pxBuffer.render();
+                    changeRendererParam(leftParam, true);
+                    Bitmap left = mPixelBuffer.render();
+                    changeRendererParam(rightParam, true);
+                    Bitmap right = mPixelBuffer.render();
 
-            Bitmap stereo = Bitmap.createBitmap(2 * width, height, Bitmap.Config.ARGB_8888);
-            Canvas offScreen = new Canvas(stereo);
-            offScreen.drawBitmap(left, 0, 0, null);
-            offScreen.drawBitmap(right, width, 0, null);
-            result = stereo;
-        } else {
-            pxBuffer.setRenderer(createRenderer(param));
-            result = pxBuffer.render();
-        }
+                    Bitmap stereo = Bitmap.createBitmap(2 * width, height, Bitmap.Config.ARGB_8888);
+                    Canvas offScreen = new Canvas(stereo);
+                    offScreen.drawBitmap(left, 0, 0, null);
+                    offScreen.drawBitmap(right, width, 0, null);
+                    left.recycle();
+                    right.recycle();
+                    result = stereo;
+                } else {
+                    result = mPixelBuffer.render();
+                }
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        result.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        mRoi = baos.toByteArray();
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                result.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                byte[] roi = baos.toByteArray();
+                result.recycle();
+                //mPixelBuffer.destroy();
+
+                mRoi = roi;
+                if (mListener != null) {
+                    mListener.onUpdate(mSegment, roi);
+                }
+            }
+        });
     }
 
-    private GLSurfaceView.Renderer createRenderer(final Param param) {
-        SphereRenderer renderer = new SphereRenderer();
-        renderer.setCameraPos(
-            (float) param.getCameraX(),
-            (float) param.getCameraY(),
-            (float) param.getCameraZ());
-        renderer.setCameraDirectionByEulerAngle(
-            (float) param.getCameraRoll(),
-            (float) param.getCameraPitch(),
-            (float) param.getCameraYaw());
-        renderer.setCameraFovDegree((float) param.getCameraFov());
-        renderer.setScreenWidth(param.getImageWidth());
-        renderer.setScreenHeight(param.getImageHeight());
-        renderer.setTexture(mSource.getData());
-        return renderer;
+    public void changeRendererParam(final Param param, final boolean isUserRequest) {
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                int width = param.getImageWidth();
+                int height = param.getImageHeight();
+
+                if (isUserRequest) {
+                    if (mPixelBuffer == null) {
+                        mPixelBuffer = new PixelBuffer(width, height);
+                        mRenderer.setTexture(mSource.getData());
+                        mPixelBuffer.setRenderer(mRenderer);
+                    } else if (width != mCurrentParam.getImageWidth() || height != mCurrentParam.getImageHeight()) {
+                        mPixelBuffer.destroy();
+                        mPixelBuffer = new PixelBuffer(width, height);
+                        mRenderer.setTexture(mSource.getData());
+                        mPixelBuffer.setRenderer(mRenderer);
+                    }
+                    if (param.isVrMode()) {
+                        startVrMode();
+                    } else {
+                        stopVrMode();
+                    }
+                }
+
+                mCurrentParam = param;
+
+                mRenderer.setCameraPos(
+                    (float) param.getCameraX(),
+                    (float) param.getCameraY(),
+                    (float) param.getCameraZ());
+                mRenderer.setCameraDirectionByEulerAngle(
+                    (float) param.getCameraRoll(),
+                    (float) param.getCameraPitch(),
+                    (float) param.getCameraYaw());
+                mRenderer.setCameraFovDegree((float) param.getCameraFov());
+                mRenderer.setScreenWidth(param.getImageWidth());
+                mRenderer.setScreenHeight(param.getImageHeight());
+            }
+        });
     }
 
     @Override
@@ -136,6 +179,7 @@ public class RoiDeliveryContext implements SensorEventListener  {
             mInterval += event.timestamp - mSensorEventTimestamp;
             if (mInterval >= ROI_DELIVERY_INTERVAL) {
                 mInterval = 0;
+
                 float[] delta = new float[3];
                 delta[0] = mRotationDelta[2] * 20;
                 delta[1] = mRotationDelta[1] * 20;
@@ -144,14 +188,12 @@ public class RoiDeliveryContext implements SensorEventListener  {
                 changeDirection(delta);
 
                 mRotationDelta = new float[3];
-                mSensorEventTimestamp = event.timestamp;
             }
-        } else {
-            mSensorEventTimestamp = event.timestamp;
         }
         mRotationDelta[0] += event.values[0];
         mRotationDelta[1] += event.values[1];
         mRotationDelta[2] += event.values[2];
+        mSensorEventTimestamp = event.timestamp;
     }
 
     @Override
@@ -164,18 +206,15 @@ public class RoiDeliveryContext implements SensorEventListener  {
         param.addCameraRoll(delta[0]);
         param.addCameraPitch(delta[1]);
         param.addCameraYaw(delta[2]);
-        render(param);
-
-        if (mListener != null) {
-            mListener.onUpdate(mSegment, mRoi);
-        }
+        changeRendererParam(param, false);
+        render();
     }
 
     private boolean startVrMode() {
         List<Sensor> sensors = mSensorMgr.getSensorList(Sensor.TYPE_GYROSCOPE);
         if (sensors.size() > 0) {
             Sensor sensor = sensors.get(0);
-            mSensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI);
             return true;
         } else {
             return false;
@@ -214,9 +253,9 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
         double mSphereSize = 1.0d;
 
-        int mImageWidth = 600;
+        int mImageWidth = 480;
 
-        int mImageHeight = 400;
+        int mImageHeight = 270;
 
         boolean mStereoMode;
 

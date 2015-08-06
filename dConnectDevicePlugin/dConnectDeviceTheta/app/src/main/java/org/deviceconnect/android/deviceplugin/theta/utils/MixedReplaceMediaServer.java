@@ -201,7 +201,7 @@ public class MixedReplaceMediaServer {
      * Inserts the media data into queue.
      * @param media media data
      */
-    public synchronized void offerMedia(final String segment, final byte[] media) {
+    public void offerMedia(final String segment, final byte[] media) {
         if (media == null) {
             return;
         }
@@ -248,7 +248,7 @@ public class MixedReplaceMediaServer {
                     stop();
                 }
             }
-        }).start();
+        }, "MotionJPEG Server Thread").start();
         return getUrl();
     }
     
@@ -368,11 +368,10 @@ public class MixedReplaceMediaServer {
                         mServerEventListener.onConnect(getUrl() + mUri);
                     }
 
+                    String segment = Uri.parse(mUri).getLastPathSegment();
                     while (!mStopFlag) {
-                        String segment = Uri.parse(mUri).getLastPathSegment();
                         BlockingQueue<byte[]> mediaQueue = mMediaQueues.get(segment);
                         if (mediaQueue != null) {
-                            Log.d("AAA", "***** MediaQueue: " + mediaQueue.size());
                             byte[] media = mediaQueue.take();
                             if (media.length > 0) {
                                 sendMedia(media);
@@ -419,7 +418,6 @@ public class MixedReplaceMediaServer {
                     if (BuildConfig.DEBUG) {
                         e.printStackTrace();
                      }
-
                 }
                 mRunnables.remove(this);
             }

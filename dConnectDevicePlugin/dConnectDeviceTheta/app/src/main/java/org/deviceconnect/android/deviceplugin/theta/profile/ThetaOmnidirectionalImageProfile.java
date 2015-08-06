@@ -38,6 +38,9 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Theta Omnidirectional Image Profile.
@@ -45,24 +48,24 @@ import java.util.UUID;
  * @author NTT DOCOMO, INC.
  */
 public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfile
-    implements RoiDeliveryContext.OnChangeListener, SensorEventListener {
-
-    private static final long ROI_DELIVERY_INTERVAL = 200;
-    private long mSensorEventTimestamp;
-    private long mInterval;
-    private float[] mRotationDelta = new float[3];
+    implements RoiDeliveryContext.OnChangeListener {
 
     private final Object lockObj = new Object();
 
     private MixedReplaceMediaServer mServer;
 
+    private Map<String, OmnidirectionalImage> mOmniImages =
+        Collections.synchronizedMap(new HashMap<String, OmnidirectionalImage>());
+
     private Map<String, RoiDeliveryContext> mRoiContexts =
         Collections.synchronizedMap(new HashMap<String, RoiDeliveryContext>());
+
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     @Override
     protected boolean onPutView(final Intent request, final Intent response, final String serviceId,
                                 final String source) {
-        new Thread(new Runnable() {
+        mExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -79,29 +82,23 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                                     if (target != null) {
                                         final Timer timer = new Timer(); // TODO delete
                                         timer.schedule(new TimerTask() {
-
-                                            private static final int MAX_COUNT = 4;
-                                            private int mCount;
-
                                             @Override
                                             public void run() {
-                                                if ((mCount++) < MAX_COUNT) {
-                                                    mServer.offerMedia(key, target.getRoi());
-                                                } else {
-                                                    timer.cancel();
-                                                }
+                                                mServer.offerMedia(key, target.getRoi());
                                             }
-                                        }, 0, 250);
+                                        }, 250, 1000);
                                     }
                                 }
 
                                 @Override
                                 public void onDisconnect(final String uri) {
+                                    Log.d("AAA", "***** onDisconnect");
                                     mRoiContexts.remove(uri);
                                 }
 
                                 @Override
                                 public void onCloseServer() {
+                                    Log.d("AAA", "***** onCloseServer");
                                     mRoiContexts.clear();
                                 }
                             });
@@ -109,13 +106,19 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                         }
                     }
 
-                    RoiDeliveryContext roiContext =
-                        new RoiDeliveryContext(getContext(), new OmnidirectionalImage(source));
+                    OmnidirectionalImage omniImage = mOmniImages.get(source);
+                    if (omniImage == null) {
+                        String origin = getContext().getPackageName();
+                        omniImage = new OmnidirectionalImage(source, origin);
+                    }
+
+                    RoiDeliveryContext roiContext = new RoiDeliveryContext(getContext(), omniImage);
                     String segment = UUID.randomUUID().toString();
                     String uri = mServer.getUrl() + "/" + segment;
                     roiContext.setUri(Uri.parse(uri));
                     roiContext.setOnChangeListener(ThetaOmnidirectionalImageProfile.this);
-                    roiContext.render(RoiDeliveryContext.DEFAULT_PARAM);
+                    roiContext.changeRendererParam(RoiDeliveryContext.DEFAULT_PARAM, true);
+                    roiContext.render();
                     mRoiContexts.put(uri, roiContext);
 
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -132,13 +135,14 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                 }
                 ((ThetaDeviceService) getContext()).sendResponse(response);
             }
-        }).start();
+        });
         return false;
     }
 
     @Override
     protected boolean onDeleteView(final Intent request, final Intent response, final String serviceId,
                                    final String uri) {
+        Log.d("AAA", "******* onDeleteView");
         mRoiContexts.remove(uri);
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
@@ -152,97 +156,23 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
             MessageUtils.setInvalidRequestParameterError(response, "The specified media is not found.");
             return true;
         }
+        setResult(response, DConnectMessage.RESULT_OK);
 
-        new Thread(new Runnable() {
+        mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                String segment = Uri.parse(uri).getLastPathSegment();
-
                 RoiDeliveryContext.Param param = parseParam(request);
-                if (param.isVrMode()) {
-                    if (!startVrMode(roiContext)) {
-                        MessageUtils.setInvalidRequestParameterError(response,
-                            "VR mode cannot be supported because no gyroscope is found.");
-                        ((ThetaDeviceService) getContext()).sendResponse(response);
-                        return;
-                    }
-                }
-                roiContext.render(param);
-                mServer.offerMedia(segment, roiContext.getRoi());
-
-                setResult(response, DConnectMessage.RESULT_OK);
-                ((ThetaDeviceService) getContext()).sendResponse(response);
+                roiContext.changeRendererParam(param, true);
+                roiContext.render();
+                mServer.offerMedia(roiContext.getSegment(), roiContext.getRoi());
             }
-        }).start();
-        return false;
+        });
+        return true;
     }
 
     @Override
     public void onUpdate(final String segment, final byte[] roi) {
         mServer.offerMedia(segment, roi);
-    }
-
-    @Override
-    public void onSensorChanged(final SensorEvent event) {
-//        if (event.sensor.getType() != Sensor.TYPE_GYROSCOPE) {
-//            return;
-//        }
-//
-//        synchronized (this) {
-//            if (mSensorEventTimestamp != 0) {
-//                long interval = event.timestamp - mSensorEventTimestamp;
-//                if (interval >= ROI_DELIVERY_INTERVAL) {
-//                    float[] delta = new float[3];
-//                    delta[0] = mRotationDelta[2] * 20;
-//                    delta[1] = mRotationDelta[1] * 20;
-//                    delta[2] = mRotationDelta[0] * 20;
-//
-//                    for (Map.Entry<String, RoiDeliveryContext> entry : mRoiContexts.entrySet()) {
-//                        RoiDeliveryContext roiContext = entry.getValue();
-//                        if (roiContext.getCurrentParam().isVrMode()) {
-//                            changeDirection(delta, roiContext);
-//                        }
-//                    }
-//
-//                    mRotationDelta = new float[3];
-//                    mSensorEventTimestamp = event.timestamp;
-//                }
-//            } else {
-//                mSensorEventTimestamp = event.timestamp;
-//            }
-//            mRotationDelta[0] += event.values[0];
-//            mRotationDelta[1] += event.values[1];
-//            mRotationDelta[2] += event.values[2];
-//
-//        }
-    }
-
-    @Override
-    public void onAccuracyChanged(final Sensor sensor, final int accuracy) {
-        // Nothing to do.
-    }
-
-    private void changeDirection(final float[] delta, final RoiDeliveryContext roiContext) {
-        RoiDeliveryContext.Param param = roiContext.getCurrentParam();
-        param.addCameraRoll(delta[0]);
-        param.addCameraPitch(delta[1]);
-        param.addCameraYaw(delta[2]);
-        roiContext.render(param);
-
-        String segment = roiContext.getUri().getLastPathSegment();
-        mServer.offerMedia(segment, roiContext.getRoi());
-    }
-
-    private boolean startVrMode(final RoiDeliveryContext roiContext) {
-        SensorManager sensorMgr = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
-        List<Sensor> sensors = sensorMgr.getSensorList(Sensor.TYPE_GYROSCOPE);
-        if (sensors.size() > 0) {
-            Sensor sensor = sensors.get(0);
-            sensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
-            return true;
-        } else {
-            return false;
-        }
     }
 
     private RoiDeliveryContext.Param parseParam(final Intent request) {

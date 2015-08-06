@@ -47,7 +47,7 @@ public class PixelBuffer {
         mEGLConfig = mEGLConfigs[0]; // Best match is probably the first configuration
         mEGLContext = mEGL.eglCreateContext(mEGLDisplay, mEGLConfig, EGL_NO_CONTEXT, new int[] {
                 0x3098, // EGL_CONTEXT_CLIENT_VERSION
-                2, // OpenGL ES 2.0
+                2,      // OpenGL ES 2.0
                 EGL10.EGL_NONE });
 
         mEGLSurface = mEGL.eglCreatePbufferSurface(mEGLDisplay, mEGLConfig, new int[] {
@@ -65,9 +65,6 @@ public class PixelBuffer {
 
     public void destroy() {
         mEGL.eglDestroyContext(mEGLDisplay, mEGLContext);
-        if (mBitmap != null) {
-            mBitmap.recycle();
-        }
     }
 
     public void setRenderer(GLSurfaceView.Renderer renderer) {
@@ -81,19 +78,19 @@ public class PixelBuffer {
 
         // Call the renderer initialization routines
         mRenderer.onSurfaceCreated(mGL, mEGLConfig);
-        mRenderer.onSurfaceChanged(mGL, mWidth, mHeight);
+        //mRenderer.onSurfaceChanged(mGL, mWidth, mHeight);
     }
 
     public Bitmap render() {
         // Do we have a renderer?
         if (mRenderer == null) {
-            Log.e(TAG, "render: Renderer was not set.");
+            Log.e(TAG, "PixelBuffer.render: Renderer was not set.");
             return null;
         }
 
         // Does this thread own the OpenGL context?
         if (!Thread.currentThread().getName().equals(mThreadOwner)) {
-            Log.e(TAG, "render: This thread does not own the OpenGL context.");
+            Log.e(TAG, "PixelBuffer.render: This thread does not own the OpenGL context.");
             return null;
         }
 

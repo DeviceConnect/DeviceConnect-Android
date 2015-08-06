@@ -136,14 +136,14 @@ public class ThetaDeviceService extends DConnectMessageService {
             services.add(service);
         }
 
-        Bundle service = new Bundle();
-        service.putString(ServiceDiscoveryProfile.PARAM_ID, "theta");
-        service.putString(ServiceDiscoveryProfile.PARAM_NAME, "Dummy Theta");
-        service.putString(ServiceDiscoveryProfile.PARAM_TYPE,
-            ServiceDiscoveryProfile.NetworkType.WIFI.getValue());
-        service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
-        ServiceDiscoveryProfile.setScopes(service, this);
-        services.add(service);
+//        Bundle service = new Bundle();
+//        service.putString(ServiceDiscoveryProfile.PARAM_ID, "theta");
+//        service.putString(ServiceDiscoveryProfile.PARAM_NAME, "Dummy Theta");
+//        service.putString(ServiceDiscoveryProfile.PARAM_TYPE,
+//            ServiceDiscoveryProfile.NetworkType.WIFI.getValue());
+//        service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+//        ServiceDiscoveryProfile.setScopes(service, this);
+//        services.add(service);
 
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES, services.toArray(new Bundle[services.size()]));

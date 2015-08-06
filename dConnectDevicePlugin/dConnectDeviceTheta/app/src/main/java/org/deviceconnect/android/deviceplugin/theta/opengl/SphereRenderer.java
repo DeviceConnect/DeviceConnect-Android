@@ -21,7 +21,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class SphereRenderer implements Renderer {
 
     /** Radius of sphere for photo */
-    private static final int TEXTURE_SHELL_RADIUS = 2;
+    private static final int TEXTURE_SHELL_RADIUS = 1;
     /** Number of sphere polygon partitions for photo, which must be an even number */
     private static final int SHELL_DIVIDES = 40;
 
@@ -122,12 +122,6 @@ public class SphereRenderer implements Renderer {
      */
     //@Override
     public void onSurfaceChanged(final GL10 gl, final int width, final int height) {
-//        int _height = height/2;
-//        mScreenAspectRatio = (float) width / (float) (_height == 0 ? 1 : _height);
-//        GLES20.glViewport(0, _height / 2, width, _height);
-//
-//        Matrix.setLookAtM(mViewMatrix, 0, mCameraPos.x(), mCameraPos.y(), mCameraPos.z(), mCameraDirection.x(), mCameraDirection.y(), mCameraDirection.z(), 0.0f, 1.0f, 0.0f);
-//        Matrix.perspectiveM(mProjectionMatrix, 0, mCameraFovDegree, mScreenAspectRatio, Z_NEAR, Z_FAR);
     }
 
     /**

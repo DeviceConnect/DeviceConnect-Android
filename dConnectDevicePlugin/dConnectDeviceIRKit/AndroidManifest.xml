@@ -16,6 +16,7 @@
 
     <application
         android:allowBackup="true"
+        android:name=".IRKitApplication"
         android:icon="@drawable/dconnect_icon"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
@@ -54,6 +55,12 @@
             android:name="org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitDeviceListActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:process=":irkit_service_process" >
         </activity>
 
         <!-- LocalOAuth -->

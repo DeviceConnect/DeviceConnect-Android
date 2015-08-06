@@ -6,8 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit;
 
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import android.content.Intent;
+import android.net.wifi.WifiManager;
+import android.os.Bundle;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.DetectionListener;
 import org.deviceconnect.android.deviceplugin.irkit.network.WiFiUtil;
@@ -26,10 +28,8 @@ import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants.NetworkType;
 
-import android.content.Intent;
-import android.net.wifi.WifiManager;
-import android.os.Bundle;
-import android.util.Log;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * IRKitデバイスプラグインサービス.
@@ -52,7 +52,8 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         
         EventManager.INSTANCE.setController(new MemoryCacheController());
         mDevices = new ConcurrentHashMap<String, IRKitDevice>();
-
+        IRKitApplication app = (IRKitApplication) getApplication();
+        app.setIRKitDevices(mDevices);
         IRKitManager.INSTANCE.init(this);
         IRKitManager.INSTANCE.setDetectionListener(this);
         if (WiFiUtil.isOnWiFi(this)) {
@@ -112,7 +113,7 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
      * @param response レスポンスオブジェクト
      */
     public void prepareServiceDiscoveryResponse(final Intent response) {
-
+        startDetection();
         synchronized (mDevices) {
 
             Bundle[] services = new Bundle[mDevices.size()];
@@ -128,7 +129,6 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
             ServiceDiscoveryProfile.setServices(response, services);
             ServiceDiscoveryProfile.setResult(response, DConnectMessage.RESULT_OK);
         }
-
     }
 
     @Override
@@ -178,6 +178,8 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
             }
         }
 
+        IRKitApplication app = (IRKitApplication) getApplication();
+        app.setIRKitDevices(mDevices);
         if ((!hit && isOnline) || (hit && !isOnline)) {
             Bundle service = createService(device, isOnline);
 

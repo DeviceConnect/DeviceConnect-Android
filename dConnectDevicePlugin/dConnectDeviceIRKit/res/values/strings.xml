@@ -40,6 +40,30 @@
     <string name="alert_message_connected">IRKitがネットワークに接続されていることを確認しました。</string>
     <string name="alert_btn_close">閉じる</string>
 
+    <string name="activity_devicelist_title">IRKit一覧</string>
+    <string name="no_irkit">No Device</string>
+    <string name="open_irkit_settings">IRKit一覧</string>
+    <string name="ind_message_search">検索処理中・・・</string>
+    <string name="open_irkit_register">IRKit登録</string>
+    <string name="open_virtual_device_settings">デバイス管理</string>
+    <string name="add_virtual_device">追加</string>
+    <string name="remove_virtual_device">削除</string>
+    <string name="select_category">カテゴリー選択</string>
+    <string name="select_light">ライト</string>
+    <string name="select_tv">テレビ</string>
+
+    <string name="virtual_device_name">デバイス名</string>
+    <string name="virtual_service_id">ID</string>
+    <string name="virtual_device_category">カテゴリー</string>
+    <string name="cancel">キャンセル</string>
+    <string name="create">作成</string>
+    <string name="register">登録</string>
+
+    <string name="register_ir_description">IRKitと赤外線の準備が完了したら、受信ボタンを押してください。</string>
+    <string name="receive">受信</string>
+    <string name="receiving">赤外線をIRKiに照射してください。</string>
+    <string name="receive_success">正常に赤外線を受信しました。</string>
+    <string name="receive_failure">赤外線の受信に失敗しました。</string>
     <!--
     IRKit Parameters.
     IRKitから取得したAPI KEYを記載してください。

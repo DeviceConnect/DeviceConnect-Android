@@ -8,7 +8,7 @@ import org.deviceconnect.android.deviceplugin.alljoyn.activity.AllJoynSettingAct
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
- * AllJoynデバイスプラグイン System プロファイル。
+ * System profile for AllJoyn.
  *
  * @author NTT DOCOMO, INC.
  */

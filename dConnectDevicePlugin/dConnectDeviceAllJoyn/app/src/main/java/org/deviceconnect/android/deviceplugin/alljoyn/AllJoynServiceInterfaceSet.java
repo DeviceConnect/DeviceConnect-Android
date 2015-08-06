@@ -3,6 +3,11 @@ package org.deviceconnect.android.deviceplugin.alljoyn;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * A container class for interface information of a certain AllJoyn service.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class AllJoynServiceInterfaceSet {
     public final String serviceName;
     public final List<String> interfaces;

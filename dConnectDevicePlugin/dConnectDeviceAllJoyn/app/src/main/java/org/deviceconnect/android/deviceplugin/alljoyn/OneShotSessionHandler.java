@@ -4,6 +4,11 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
+/**
+ * A helper class to perform a one-shot AllJoyn session task.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class OneShotSessionHandler {
 
     private static final int JOIN_RETRY_MAX = 5;

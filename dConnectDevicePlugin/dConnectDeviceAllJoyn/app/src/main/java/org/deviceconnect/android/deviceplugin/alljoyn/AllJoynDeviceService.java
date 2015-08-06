@@ -13,7 +13,7 @@ import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
 /**
- * AllJoynデバイスプラグインサービス。
+ * Device Connect device plug-in for AllJoyn.
  *
  * @author NTT DOCOMO, INC.
  */

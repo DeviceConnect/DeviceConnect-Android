@@ -5,7 +5,9 @@ import android.app.Service;
 import org.deviceconnect.android.message.DConnectMessageServiceProvider;
 
 /**
- * Created by fukui on 6/25/15.
+ * Device Connect service provider for AllJoyn.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class AllJoynDeviceProvider<T extends Service> extends DConnectMessageServiceProvider<Service> {
     @SuppressWarnings("unchecked")

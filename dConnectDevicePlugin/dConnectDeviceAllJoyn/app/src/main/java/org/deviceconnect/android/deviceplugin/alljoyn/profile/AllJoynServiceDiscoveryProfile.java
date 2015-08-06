@@ -14,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * AllJoynデバイスプラグイン System Discovery プロファイル.
+ * System Discovery profile for AllJoyn.
  *
  * @author NTT DOCOMO, INC.
  */

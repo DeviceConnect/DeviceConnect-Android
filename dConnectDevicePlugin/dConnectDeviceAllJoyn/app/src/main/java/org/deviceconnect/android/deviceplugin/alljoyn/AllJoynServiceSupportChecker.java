@@ -15,6 +15,11 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * A utility class to check support AllJoyn services.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class AllJoynServiceSupportChecker {
 
     private AllJoynServiceSupportChecker() {

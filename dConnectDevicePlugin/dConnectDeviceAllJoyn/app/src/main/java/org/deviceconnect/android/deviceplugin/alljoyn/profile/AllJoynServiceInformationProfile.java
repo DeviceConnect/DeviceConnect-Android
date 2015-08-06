@@ -18,6 +18,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Service Information profile for AllJoyn.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class AllJoynServiceInformationProfile extends ServiceInformationProfile {
     public AllJoynServiceInformationProfile(DConnectProfileProvider provider) {
         super(provider);

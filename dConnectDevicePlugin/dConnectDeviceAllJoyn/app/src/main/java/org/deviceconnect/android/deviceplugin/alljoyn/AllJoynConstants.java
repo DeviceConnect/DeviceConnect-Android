@@ -1,5 +1,10 @@
 package org.deviceconnect.android.deviceplugin.alljoyn;
 
+/**
+ * Constants used in AllJoyn plugin.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public interface AllJoynConstants {
 
     /**

@@ -38,8 +38,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * AllJoynデバイスプラグインアプリケーショ。
- * 大域コンテキストを管理する。
+ * Application for AllJoyn.
+ * This class manages the global context of AllJoyn services.
  *
  * @author NTT DOCOMO, INC.
  */

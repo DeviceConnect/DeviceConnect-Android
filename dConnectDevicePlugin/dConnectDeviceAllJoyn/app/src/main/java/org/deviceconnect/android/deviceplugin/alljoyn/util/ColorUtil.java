@@ -4,6 +4,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 
+/**
+ * Color utility.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class ColorUtil {
     private ColorUtil() {
 

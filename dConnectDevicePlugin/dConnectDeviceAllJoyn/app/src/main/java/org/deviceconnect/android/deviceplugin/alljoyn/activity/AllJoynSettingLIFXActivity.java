@@ -10,7 +10,7 @@ import android.view.View;
 import org.deviceconnect.android.deviceplugin.alljoyn.R;
 
 /**
- * 設定アクティビティー: LIFX
+ * Setting activity for LIFX.
  *
  * @author NTT DOCOMO, INC.
  */

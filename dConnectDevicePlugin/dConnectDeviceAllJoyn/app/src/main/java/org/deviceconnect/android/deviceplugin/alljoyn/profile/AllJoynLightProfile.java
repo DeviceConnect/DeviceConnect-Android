@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * AllJoynデバイスプラグイン Light プロファイル.
+ * Light profile for AllJoyn.
  *
  * @author NTT DOCOMO, INC.
  */

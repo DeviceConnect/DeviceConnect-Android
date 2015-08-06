@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 設定アクティビティー。
+ * Setting activity.
  *
  * @author NTT DOCOMO, INC.
  */

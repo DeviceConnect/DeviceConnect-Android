@@ -30,7 +30,7 @@ public class AllJoynServiceEntity {
     public Map<String, Variant> aboutData;
 
     // Flattened data from aboutData
-    public byte[] appId;
+    public String appId;
     public String defaultLanguage;
     public String deviceName;
     public String deviceId;
@@ -78,7 +78,8 @@ public class AllJoynServiceEntity {
             try {
                 switch (key) {
                     case AboutKeys.ABOUT_APP_ID:
-                        appId = val.getObject(byte[].class);
+                        byte[] tmp = val.getObject(byte[].class);
+                        appId = toHexString(tmp);
                         break;
                     case AboutKeys.ABOUT_DEFAULT_LANGUAGE:
                         // If default language is not specified, set it to English.
@@ -135,6 +136,17 @@ public class AllJoynServiceEntity {
                 }
             }
         }
+    }
+
+    private static String toHexString(byte[] bytes) {
+        final char[] hexArray = "0123456789abcdef".toCharArray();
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; ++j) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
     }
 
     /**

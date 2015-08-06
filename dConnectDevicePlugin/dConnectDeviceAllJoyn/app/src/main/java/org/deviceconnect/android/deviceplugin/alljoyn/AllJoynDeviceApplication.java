@@ -181,13 +181,13 @@ public class AllJoynDeviceApplication extends Application {
      * Obtain a proxy to an AllJoyn interface on a service.
      * Through this proxy, properties, methods and signals of the service are accessed.
      *
-     * @param serviceId  service ID
+     * @param busName    service ID
      * @param ifaceClass AllJoyn interface class
      * @param <T>        AllJoyn interface
      * @return a concrete AllJoyn object
      */
-    public <T> T getInterface(@NonNull String serviceId, int sessionId, @NonNull Class<T> ifaceClass) {
-        AllJoynServiceEntity service = mAllJoynServiceEntities.get(serviceId);
+    public <T> T getInterface(@NonNull String busName, int sessionId, @NonNull Class<T> ifaceClass) {
+        AllJoynServiceEntity service = getServiceWithBusName(busName);
         if (service == null || service.proxyObjects == null) {
             return null;
         }
@@ -215,6 +215,15 @@ public class AllJoynDeviceApplication extends Application {
         } catch (PackageManager.NameNotFoundException var3) {
             return "Unknown";
         }
+    }
+
+    public AllJoynServiceEntity getServiceWithBusName(String busName) {
+        for (AllJoynServiceEntity service : mAllJoynServiceEntities.values()) {
+            if (service.busName.equals(busName)) {
+                return service;
+            }
+        }
+        return null;
     }
 
     /**
@@ -337,17 +346,25 @@ public class AllJoynDeviceApplication extends Application {
                 return;
             }
 
-            mAllJoynServiceEntities.put(busName, service);
+            mAllJoynServiceEntities.put(service.appId, service);
         }
 
         @Override
         public void onDeviceLost(String busName) {
             // Remove the service
             if (BuildConfig.DEBUG) {
-                Log.d(AllJoynHandler.this.getClass().getSimpleName(),
-                        "onDeviceLost received: device with busName: " + busName + " was lost");
+                Log.d(AllJoynHandler.this.getClass().getSimpleName(), "onDeviceLost received.");
             }
-            mAllJoynServiceEntities.remove(busName);
+
+            AllJoynServiceEntity service = getServiceWithBusName(busName);
+            if (service != null) {
+                if (BuildConfig.DEBUG) {
+                    Log.i(AllJoynHandler.this.getClass().getSimpleName(),
+                            "Service " + service.serviceName + " is removed.");
+                }
+
+                mAllJoynServiceEntities.remove(service.appId);
+            }
         }
 
         /**
@@ -414,21 +431,21 @@ public class AllJoynDeviceApplication extends Application {
                             return;
                         }
                         String busName = resultData.getString(PARAM_BUS_NAME);
-                        AllJoynServiceEntity service = mAllJoynServiceEntities.get(busName);
+                        AllJoynServiceEntity service = getServiceWithBusName(busName);
                         if (service != null) {
                             if (resultCode != RESULT_OK) {
                                 if (new Date().getTime() - service.lastAlive.getTime() > ALIVE_TIMEOUT) {
                                     if (BuildConfig.DEBUG) {
                                         Log.i(AllJoynHandler.this.getClass().getSimpleName(),
-                                                "Ping failed: " + busName +
+                                                "Ping failed: " + service.serviceName +
                                                         ". Removing it from discovered services...");
                                     }
-                                    mAllJoynServiceEntities.remove(busName);
+                                    mAllJoynServiceEntities.remove(service.appId);
                                 }
                             } else {
                                 if (BuildConfig.DEBUG) {
                                     Log.i(AllJoynHandler.this.getClass().getSimpleName(),
-                                            "Ping succeeded: " + busName + ".");
+                                            "Ping succeeded: " + service.serviceName + ".");
                                 }
                                 service.lastAlive = new Date();
                             }

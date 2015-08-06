@@ -33,7 +33,7 @@ public class AllJoynServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         List<Bundle> services = new LinkedList<>();
         for (AllJoynServiceEntity serviceEntity : app.getDiscoveredAlljoynServices().values()) {
             Bundle service = new Bundle();
-            service.putString(ServiceDiscoveryProfileConstants.PARAM_ID, serviceEntity.busName);
+            service.putString(ServiceDiscoveryProfileConstants.PARAM_ID, serviceEntity.appId);
             service.putString(ServiceDiscoveryProfileConstants.PARAM_NAME, serviceEntity.serviceName);
             // TODO: AllJoynリモートオブジェクトのトランスポート情報を取得できるか調査。
 //                service.putString(ServiceDiscoveryProfileConstants.PARAM_TYPE, "wifi");

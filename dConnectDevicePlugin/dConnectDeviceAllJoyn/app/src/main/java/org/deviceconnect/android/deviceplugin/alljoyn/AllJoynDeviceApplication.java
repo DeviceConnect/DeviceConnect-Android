@@ -476,22 +476,6 @@ public class AllJoynDeviceApplication extends Application {
                 mDiscoverTimer.scheduleAtFixedRate(new Runnable() {
                     @Override
                     public void run() {
-                        // FIXME: ***** HACK ***** Needs clean up or a better solution.
-                        // About announcements of services that were already powered off or
-                        // nonresponsive to pings, somehow return as results of discovery (cached?).
-                        // By re-initializing AboutService, announcement cache is cleared.
-                        if (mAboutService != null) {
-                            try {
-                                mAboutService.stopAboutClient();
-                                mAboutService = AboutServiceImpl.getInstance();
-                                mAboutService.startAboutClient(mBus);
-                                mAboutService.addAnnouncementHandler(AllJoynHandler.this, null);
-                            } catch (Exception e) {
-                                Log.e(AllJoynHandler.this.getClass().getSimpleName(),
-                                        "Failed to reset About client.");
-                            }
-                        }
-
                         performDiscovery();
                     }
                 }, 0, DISCOVER_INTERVAL, TimeUnit.MILLISECONDS);

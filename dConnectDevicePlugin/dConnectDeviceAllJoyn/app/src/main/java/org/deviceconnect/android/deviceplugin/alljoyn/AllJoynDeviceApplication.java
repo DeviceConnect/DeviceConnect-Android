@@ -237,9 +237,9 @@ public class AllJoynDeviceApplication extends Application {
          * If an AllJoyn service is unresponsive for more than this duration, that service is
          * removed from the discovered service list.
          */
-        private static final long ALIVE_TIMEOUT = 90000;
+        private static final long ALIVE_TIMEOUT = 30000;
         private static final int PING_TIMEOUT = 5000;
-        private static final int PING_INTERVAL = 20000;
+        private static final int PING_INTERVAL = 10000;
         private static final int DISCOVER_INTERVAL = 30000;
 
         private BusAttachment mBus;

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">AllJoyn (Device Web API device plug-in)</string>
+    <string name="app_name" translatable="false">AllJoyn 1.0.0</string>
 
     <string name="alljoyn_settings_master_textViewDesc_text">AllJoyn製品には初回設定が必要なものがあります。\n下記から当該製品の初回設定チュートリアルを選択してください。</string>
     <string name="alljoyn_settings_master_textViewTopBar_text">AllJoyn設定</string>

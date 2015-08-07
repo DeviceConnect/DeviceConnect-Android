@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.theta;
 
 import android.net.wifi.WifiInfo;
+import android.util.Log;
 
 import com.theta360.lib.PtpipInitiator;
 import com.theta360.lib.ThetaException;
@@ -261,6 +262,14 @@ public class ThetaApiClient {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    if (BuildConfig.DEBUG) {
+                        Log.e("Theta", e.getMessage());
+                    }
+                    return;
+                }
                 task.run(mThetaApi);
 
                 try {

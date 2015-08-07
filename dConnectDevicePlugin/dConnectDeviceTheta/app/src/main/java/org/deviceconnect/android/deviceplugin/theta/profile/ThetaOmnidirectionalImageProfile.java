@@ -118,7 +118,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                     roiContext.setUri(Uri.parse(uri));
                     roiContext.setOnChangeListener(ThetaOmnidirectionalImageProfile.this);
                     roiContext.changeRendererParam(RoiDeliveryContext.DEFAULT_PARAM, true);
-                    roiContext.render();
+                    roiContext.render(true);
                     mRoiContexts.put(uri, roiContext);
 
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -142,10 +142,16 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     @Override
     protected boolean onDeleteView(final Intent request, final Intent response, final String serviceId,
                                    final String uri) {
-        Log.d("AAA", "******* onDeleteView");
-        mRoiContexts.remove(uri);
-        setResult(response, DConnectMessage.RESULT_OK);
-        return true;
+        RoiDeliveryContext roiContext = mRoiContexts.remove(uri);
+        if (roiContext != null) {
+            roiContext.destroy();
+            mServer.stopMedia(roiContext.getSegment());
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        } else {
+            MessageUtils.setInvalidRequestParameterError(response, "The specified media is not found.");
+            return true;
+        }
     }
 
     @Override
@@ -163,7 +169,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
             public void run() {
                 RoiDeliveryContext.Param param = parseParam(request);
                 roiContext.changeRendererParam(param, true);
-                roiContext.render();
+                roiContext.render(true);
                 mServer.offerMedia(roiContext.getSegment(), roiContext.getRoi());
             }
         });

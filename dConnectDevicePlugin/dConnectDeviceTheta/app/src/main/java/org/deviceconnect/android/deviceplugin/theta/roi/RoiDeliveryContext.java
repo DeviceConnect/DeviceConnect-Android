@@ -3,23 +3,22 @@ package org.deviceconnect.android.deviceplugin.theta.roi;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.Uri;
-import android.opengl.GLSurfaceView;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.opengl.SphereRenderer;
 
 import org.deviceconnect.android.deviceplugin.theta.opengl.PixelBuffer;
+import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
+import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,13 +26,11 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
     public static final Param DEFAULT_PARAM = new Param();
 
-    private static final long ROI_DELIVERY_INTERVAL = 200;
+    private static final float NS2S = 1.0f / 1000000000.0f;
 
-    private long mSensorEventTimestamp;
+    private final float[] mDeltaRotationVector = new float[4];
 
-    private long mInterval;
-
-    private float[] mRotationDelta = new float[3];
+    private long mLastEventTimestamp;
 
     private final OmnidirectionalImage mSource;
 
@@ -52,8 +49,6 @@ public class RoiDeliveryContext implements SensorEventListener  {
     private byte[] mRoi = null;
 
     private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
-
-    private boolean isChangingStereoMode;
 
     public RoiDeliveryContext(final Context context, final OmnidirectionalImage source) {
         mSource = source;
@@ -81,7 +76,16 @@ public class RoiDeliveryContext implements SensorEventListener  {
         return mCurrentParam;
     }
 
-    public void render() {
+    public void destroy() {
+        if (mPixelBuffer != null) {
+            mPixelBuffer.destroy();
+        }
+        if (mSensorMgr != null) {
+            mSensorMgr.unregisterListener(this);
+        }
+    }
+
+    public void render(final boolean isUserRequest) {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -94,9 +98,9 @@ public class RoiDeliveryContext implements SensorEventListener  {
                     Param leftParam = mCurrentParam;
                     Param rightParam = mCurrentParam;
 
-                    changeRendererParam(leftParam, true);
+                    changeRendererParam(leftParam, isUserRequest);
                     Bitmap left = mPixelBuffer.render();
-                    changeRendererParam(rightParam, true);
+                    changeRendererParam(rightParam, isUserRequest);
                     Bitmap right = mPixelBuffer.render();
 
                     Bitmap stereo = Bitmap.createBitmap(2 * width, height, Bitmap.Config.ARGB_8888);
@@ -155,10 +159,12 @@ public class RoiDeliveryContext implements SensorEventListener  {
                     (float) param.getCameraX(),
                     (float) param.getCameraY(),
                     (float) param.getCameraZ());
-                mRenderer.setCameraDirectionByEulerAngle(
-                    (float) param.getCameraRoll(),
-                    (float) param.getCameraPitch(),
-                    (float) param.getCameraYaw());
+                if (isUserRequest) {
+                    mRenderer.setCameraDirectionByEulerAngle(
+                        (float) param.getCameraRoll(),
+                        (float) param.getCameraPitch(),
+                        (float) param.getCameraYaw());
+                }
                 mRenderer.setCameraFovDegree((float) param.getCameraFov());
                 mRenderer.setScreenWidth(param.getImageWidth());
                 mRenderer.setScreenHeight(param.getImageHeight());
@@ -175,39 +181,52 @@ public class RoiDeliveryContext implements SensorEventListener  {
             return;
         }
 
-        if (mSensorEventTimestamp != 0) {
-            mInterval += event.timestamp - mSensorEventTimestamp;
-            if (mInterval >= ROI_DELIVERY_INTERVAL) {
-                mInterval = 0;
+        if (mLastEventTimestamp != 0) {
+            final float dT = (event.timestamp - mLastEventTimestamp) * NS2S;
+            float axisX = event.values[0];
+            float axisY = event.values[1];
+            float axisZ = event.values[2];
+            float omegaMagnitude = (float) Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
 
-                float[] delta = new float[3];
-                delta[0] = mRotationDelta[2] * 20;
-                delta[1] = mRotationDelta[1] * 20;
-                delta[2] = mRotationDelta[0] * 20;
-
-                changeDirection(delta);
-
-                mRotationDelta = new float[3];
+            // Normalize the rotation vector if it's big enough to get the axis
+            if (omegaMagnitude > 0) {
+                axisX /= omegaMagnitude;
+                axisY /= omegaMagnitude;
+                axisZ /= omegaMagnitude;
             }
+
+            Log.d("AAA", "Normalized axisX: " + axisX + " axisY=" + axisY + " axisZ=" + axisZ);
+
+            float thetaOverTwo = omegaMagnitude * dT / 2.0f;
+            float sinThetaOverTwo = (float) Math.sin(thetaOverTwo);
+            float cosThetaOverTwo = (float) Math.cos(thetaOverTwo);
+            mDeltaRotationVector[0] = sinThetaOverTwo * axisX;
+            mDeltaRotationVector[1] = sinThetaOverTwo * axisY;
+            mDeltaRotationVector[2] = sinThetaOverTwo * axisZ;
+            mDeltaRotationVector[3] = cosThetaOverTwo;
+
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    Quaternion q = new Quaternion(
+                        mDeltaRotationVector[3],
+                        new Vector3D(
+                            mDeltaRotationVector[2],
+                            mDeltaRotationVector[1],
+                            mDeltaRotationVector[0]
+                        )
+                    );
+                    mRenderer.rotateCamera(q);
+                    render(false);
+                }
+            });
         }
-        mRotationDelta[0] += event.values[0];
-        mRotationDelta[1] += event.values[1];
-        mRotationDelta[2] += event.values[2];
-        mSensorEventTimestamp = event.timestamp;
+        mLastEventTimestamp = event.timestamp;
     }
 
     @Override
     public void onAccuracyChanged(final Sensor sensor, final int accuracy) {
         // Nothing to do.
-    }
-
-    private void changeDirection(final float[] delta) {
-        Param param = getCurrentParam();
-        param.addCameraRoll(delta[0]);
-        param.addCameraPitch(delta[1]);
-        param.addCameraYaw(delta[2]);
-        changeRendererParam(param, false);
-        render();
     }
 
     private boolean startVrMode() {

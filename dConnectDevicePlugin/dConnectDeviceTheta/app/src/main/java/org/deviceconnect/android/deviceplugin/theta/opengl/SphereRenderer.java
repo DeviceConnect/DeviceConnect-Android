@@ -108,8 +108,8 @@ public class SphereRenderer implements Renderer {
         GLES20.glUniformMatrix4fv(mViewMatrixHandle, 1, false, mViewMatrix, 0);
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,mTextures[0]);
-        GLES20.glUniform1i(mTexHandle,0);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextures[0]);
+        GLES20.glUniform1i(mTexHandle, 0);
 
         mShell.draw(mPositionHandle, mUVHandle);
     }
@@ -236,5 +236,12 @@ public class SphereRenderer implements Renderer {
         float radianY = y * radianPerDegree;
         float radianZ = z * radianPerDegree;
         mCameraDirection = Quaternion.rotateXYZ(DEFAULT_CAMERA_DIRECTION, radianX, radianY, radianZ);
+    }
+
+    public void rotateCamera(final Quaternion q) {
+        Quaternion p = new Quaternion(0, mCameraDirection);
+        Quaternion r = q.conjugate();
+        Quaternion qpr = r.multiply(p).multiply(q);
+        mCameraDirection = qpr.imaginary();
     }
 }

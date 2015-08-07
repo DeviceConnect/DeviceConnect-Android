@@ -27,11 +27,13 @@ import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServe
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.profile.OmnidirectionalImageProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.OmnidirectionalImageProfileConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,14 +138,13 @@ public class ThetaDeviceService extends DConnectMessageService {
             services.add(service);
         }
 
-//        Bundle service = new Bundle();
-//        service.putString(ServiceDiscoveryProfile.PARAM_ID, "theta");
-//        service.putString(ServiceDiscoveryProfile.PARAM_NAME, "Dummy Theta");
-//        service.putString(ServiceDiscoveryProfile.PARAM_TYPE,
-//            ServiceDiscoveryProfile.NetworkType.WIFI.getValue());
-//        service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
-//        ServiceDiscoveryProfile.setScopes(service, this);
-//        services.add(service);
+        Bundle service = new Bundle();
+        service.putString(ServiceDiscoveryProfile.PARAM_ID, "roi");
+        service.putString(ServiceDiscoveryProfile.PARAM_NAME, "ROI Image Service");
+        service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+        service.putStringArray(ServiceDiscoveryProfile.PARAM_SCOPES,
+            new String[] {OmnidirectionalImageProfile.PROFILE_NAME});
+        services.add(service);
 
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES, services.toArray(new Bundle[services.size()]));

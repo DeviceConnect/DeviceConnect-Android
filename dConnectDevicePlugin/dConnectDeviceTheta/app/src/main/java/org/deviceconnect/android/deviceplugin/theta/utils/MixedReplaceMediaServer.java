@@ -213,6 +213,14 @@ public class MixedReplaceMediaServer {
             }
         }
     }
+
+    public void stopMedia(final String segment) {
+        synchronized (mRunnables) {
+            for (ServerRunnable run : mRunnables) {
+                run.stopMedia(segment);
+            }
+        }
+    }
     
     /**
      * Start a mixed replace media server.
@@ -461,11 +469,21 @@ public class MixedReplaceMediaServer {
             mStream.flush();
         }
 
+        private void stopMedia(final String segment) {
+            synchronized (mMediaQueues) {
+                BlockingQueue<byte[]> mediaQueue = mMediaQueues.remove(segment);
+                if (mediaQueue != null) {
+                    mediaQueue.clear();
+                }
+            }
+        }
+
         private void stopAllMedia() {
             synchronized (mMediaQueues) {
                 for (Map.Entry<String, BlockingQueue<byte[]>> entry : mMediaQueues.entrySet()) {
-                    offerMedia(entry.getKey(), new byte[0]);
+                    entry.getValue().clear();
                 }
+                mMediaQueues.clear();
             }
         }
         

@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">Theta 1.0.0</string>
+
+    <string name="theta_ssid_prefix">THETA</string>
+
+    <string name="summary_title">[1/5] 概要</string>
+    <string name="summary_body">THETAとのWiFi接続を行います。\n\n接続するTHETAのSSIDとパスワードを確認してください。\n\nTHETAの底面にある型番がパスワードになります。</string>
+    <string name="photo_mode_title">[2/5] 写真モード</string>
+    <string name="photo_mode_body">THETAの電源ボタンを押すと写真モードで起動します。\n\n電源がONになると、側面の電源ボタンが青色に点灯します。\n\nこの状態では動画の撮影は行えません。一度電源を切り、次の手順を実行する必要があります。</string>
+    <string name="movie_mode_title">[3/5] 動画モード</string>
+    <string name="movie_mode_body">WiFiボタンを押しながら、電源ボタンを押すと動画モードで起動します。\n\n電源がONになると、側面の電源ボタンが青色に点滅します。\n\nこの状態では写真の撮影は行えません。一度電源を切り、前の手順を行う必要があります。</string>
+    <string name="wifi_connection_title">[4/5] Thetaとの接続</string>
+    <string name="wifi_connection_body">端末のWiFI設定画面上でWiFIを有効にして、THETAのSSIDを選択します。</string>
+    <string name="confirmation_title">[5/5] 接続確認</string>
+    <string name="confirmation_body">下に表示されているカメラ検索ボタンを押下してください。</string>
+    <string name="camera_search_button">カメラ検索</string>
+    <string name="camera_search_message_not_found">THETAが見つかりません。</string>
+    <string name="camera_search_message_found">$NAME$ と接続中です。</string>
+    <string name="wifi_settings_button">WiFi設定画面を開く</string>
+
+</resources>

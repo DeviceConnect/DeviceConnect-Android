@@ -256,7 +256,7 @@ public class DevicePluginInfoFragment extends Fragment {
     /**
      * Show a dialog of restart a device plugin.
      */
-    private class StartingDialogFragment extends DialogFragment {
+    public static class StartingDialogFragment extends DialogFragment {
         @Override
         public Dialog onCreateDialog(final Bundle savedInstanceState) {
             String title = getString(R.string.activity_settings_restart_device_plugin_title);

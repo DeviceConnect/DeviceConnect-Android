@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deviceplugin-provider xmlns:android="http://schemas.android.com/apk/res/android">
+    <profile name="servicediscovery" />
+    <profile name="serviceinformation" />
+    <profile name="system" />
+    <profile name="light" >
+        <name lang="ja">ライト</name>
+        <description lang="ja">ライトを制御する</description>
+        <name lang="en">Light</name>
+        <description lang="en">Control lights.</description>
+    </profile>
+</deviceplugin-provider>

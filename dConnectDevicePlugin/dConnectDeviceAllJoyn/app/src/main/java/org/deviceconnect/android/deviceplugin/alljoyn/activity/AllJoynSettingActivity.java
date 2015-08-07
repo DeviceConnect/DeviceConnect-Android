@@ -1,9 +1,11 @@
 package org.deviceconnect.android.deviceplugin.alljoyn.activity;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -34,6 +36,13 @@ public class AllJoynSettingActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.aj_settings_master);
 
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+            actionBar.setTitle("CLOSE");
+        }
+
         mInflator = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 
         ListView listView = (ListView) findViewById(R.id.listView);
@@ -47,6 +56,16 @@ public class AllJoynSettingActivity extends Activity {
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private class SettingListAdapter extends BaseAdapter {

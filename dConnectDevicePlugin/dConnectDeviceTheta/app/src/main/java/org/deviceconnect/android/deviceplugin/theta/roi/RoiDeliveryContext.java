@@ -11,6 +11,7 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.opengl.SphereRenderer;
 
 import org.deviceconnect.android.deviceplugin.theta.opengl.PixelBuffer;
@@ -94,13 +95,12 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
                 Bitmap result;
                 if (mCurrentParam.isStereoMode()) {
-                    // TODO: 左右で視点をずらす
-                    Param leftParam = mCurrentParam;
-                    Param rightParam = mCurrentParam;
+                    float distance = 2.5f / 100.0f; // 5cm
+                    SphereRenderer.Camera[] cameras = mRenderer.getCamera().getCamerasForStereo(distance);
 
-                    changeRendererParam(leftParam, isUserRequest);
+                    mRenderer.setCamera(cameras[0]);
                     Bitmap left = mPixelBuffer.render();
-                    changeRendererParam(rightParam, isUserRequest);
+                    mRenderer.setCamera(cameras[1]);
                     Bitmap right = mPixelBuffer.render();
 
                     Bitmap stereo = Bitmap.createBitmap(2 * width, height, Bitmap.Config.ARGB_8888);
@@ -118,7 +118,6 @@ public class RoiDeliveryContext implements SensorEventListener  {
                 result.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                 byte[] roi = baos.toByteArray();
                 result.recycle();
-                //mPixelBuffer.destroy();
 
                 mRoi = roi;
                 if (mListener != null) {
@@ -155,17 +154,20 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
                 mCurrentParam = param;
 
-                mRenderer.setCameraPos(
+                SphereRenderer.CameraBuilder builder = new SphereRenderer.CameraBuilder();
+                builder.setPosition(new Vector3D(
                     (float) param.getCameraX(),
                     (float) param.getCameraY(),
-                    (float) param.getCameraZ());
+                    (float) param.getCameraZ()));
                 if (isUserRequest) {
-                    mRenderer.setCameraDirectionByEulerAngle(
+                    builder.rotateByByEulerAngle(
                         (float) param.getCameraRoll(),
                         (float) param.getCameraPitch(),
                         (float) param.getCameraYaw());
                 }
-                mRenderer.setCameraFovDegree((float) param.getCameraFov());
+                builder.setFov((float) param.getCameraFov());
+                mRenderer.setCamera(builder.create());
+                mRenderer.setSphereRadius((float) param.getSphereSize());
                 mRenderer.setScreenWidth(param.getImageWidth());
                 mRenderer.setScreenHeight(param.getImageHeight());
             }
@@ -194,8 +196,6 @@ public class RoiDeliveryContext implements SensorEventListener  {
                 axisY /= omegaMagnitude;
                 axisZ /= omegaMagnitude;
             }
-
-            Log.d("AAA", "Normalized axisX: " + axisX + " axisY=" + axisY + " axisZ=" + axisZ);
 
             float thetaOverTwo = omegaMagnitude * dT / 2.0f;
             float sinThetaOverTwo = (float) Math.sin(thetaOverTwo);

@@ -21,7 +21,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class SphereRenderer implements Renderer {
 
     /** Radius of sphere for photo */
-    private static final int TEXTURE_SHELL_RADIUS = 1;
+    private static final float DEFAULT_TEXTURE_SHELL_RADIUS = 1.0f;
     /** Number of sphere polygon partitions for photo, which must be an even number */
     private static final int SHELL_DIVIDES = 40;
 
@@ -52,11 +52,9 @@ public class SphereRenderer implements Renderer {
 
     private int mScreenWidth;
     private int mScreenHeight;
-    private float mCameraFovDegree = 72;
-    private Vector3D mCameraPos = new Vector3D(0.0f, 0.0f, 0.0f);
-    private Vector3D mCameraDirection = new Vector3D(1.0f, 0.0f, 0.0f);
+    private Camera mCamera = new Camera();
 
-    private final UVSphere mShell;
+    private UVSphere mShell;
 
     private Bitmap mTexture;
     private boolean mTextureUpdate = false;
@@ -77,7 +75,7 @@ public class SphereRenderer implements Renderer {
      * Constructor
      */
     public SphereRenderer() {
-        mShell = new UVSphere(TEXTURE_SHELL_RADIUS, SHELL_DIVIDES);
+        mShell = new UVSphere(DEFAULT_TEXTURE_SHELL_RADIUS, SHELL_DIVIDES);
     }
 
 
@@ -100,8 +98,14 @@ public class SphereRenderer implements Renderer {
             mTextureUpdate = false;
         }
 
-        Matrix.setLookAtM(mViewMatrix, 0, mCameraPos.x(), mCameraPos.y(), mCameraPos.z(), mCameraDirection.x(), mCameraDirection.y(), mCameraDirection.z(), 0.0f, 1.0f, 0.0f);
-        Matrix.perspectiveM(mProjectionMatrix, 0, mCameraFovDegree, getScreenAspect(), Z_NEAR, Z_FAR);
+        float x = mCamera.getPosition().x();
+        float y = mCamera.getPosition().y();
+        float z = mCamera.getPosition().z();
+        float frontX = mCamera.getFrontDirection().x();
+        float frontY = mCamera.getFrontDirection().y();
+        float frontZ = mCamera.getFrontDirection().z();
+        Matrix.setLookAtM(mViewMatrix, 0, x, y, z, frontX, frontY, frontZ, 0.0f, 1.0f, 0.0f);
+        Matrix.perspectiveM(mProjectionMatrix, 0, mCamera.mFovDegree, getScreenAspect(), Z_NEAR, Z_FAR);
 
         GLES20.glUniformMatrix4fv(mModelMatrixHandle, 1, false, mModelMatrix, 0);
         GLES20.glUniformMatrix4fv(mProjectionMatrixHandle, 1, false, mProjectionMatrix, 0);
@@ -222,26 +226,134 @@ public class SphereRenderer implements Renderer {
         mScreenHeight = screenHeight;
     }
 
-    public void setCameraFovDegree(float cameraFovDegree) {
-        mCameraFovDegree = cameraFovDegree;
+    public void setSphereRadius(final float radius) {
+        mShell = new UVSphere(radius, SHELL_DIVIDES);
     }
 
-    public void setCameraPos(final float x, final float y, final float z) {
-        mCameraPos = new Vector3D(x, y, z);
+    public Camera getCamera() {
+        return mCamera;
     }
 
-    public void setCameraDirectionByEulerAngle(final float x, final float y, final float z) {
-        float radianPerDegree = ((float) Math.PI) / 180.0f;
-        float radianX = x * radianPerDegree;
-        float radianY = y * radianPerDegree;
-        float radianZ = z * radianPerDegree;
-        mCameraDirection = Quaternion.rotateXYZ(DEFAULT_CAMERA_DIRECTION, radianX, radianY, radianZ);
+    public void setCamera(final Camera camera) {
+        mCamera = camera;
     }
 
     public void rotateCamera(final Quaternion q) {
-        Quaternion p = new Quaternion(0, mCameraDirection);
-        Quaternion r = q.conjugate();
-        Quaternion qpr = r.multiply(p).multiply(q);
-        mCameraDirection = qpr.imaginary();
+        CameraBuilder builder = new CameraBuilder(mCamera);
+        builder.rotate(q);
+        mCamera = builder.create();
+    }
+
+    public static class CameraBuilder {
+        private float mFovDegree;
+        private Vector3D mPosition;
+        private Vector3D mFrontDirection;
+        private Vector3D mRightDirection;
+
+        public CameraBuilder(final Camera camera) {
+            mFovDegree = camera.mFovDegree;
+            mPosition = new Vector3D(camera.mPosition);
+            mFrontDirection = new Vector3D(camera.mFrontDirection);
+            mRightDirection = new Vector3D(camera.mRightDirection);
+        }
+
+        public CameraBuilder() {
+            this(new Camera());
+        }
+
+        public Camera create() {
+            Camera camera = new Camera();
+            camera.mFovDegree = mFovDegree;
+            camera.mPosition = mPosition;
+            camera.mFrontDirection = mFrontDirection;
+            camera.mRightDirection = mRightDirection;
+            return camera;
+        }
+
+        public void setFov(float degree) {
+            mFovDegree = degree;
+        }
+
+        public void setPosition(final Vector3D p) {
+            mPosition = p;
+        }
+
+        public void slideHorizontal(final float delta) {
+            mPosition = new Vector3D(
+                delta * mRightDirection.x() + mPosition.x(),
+                delta * mRightDirection.y() + mPosition.y(),
+                delta * mRightDirection.z() + mPosition.z()
+            );
+        }
+
+        public void rotateByByEulerAngle(final float x, final float y, final float z) {
+            mFrontDirection = rotateByByEulerAngle(mFrontDirection, x, y, z);
+            mRightDirection = rotateByByEulerAngle(mRightDirection, x, y, z);
+        }
+
+        public void rotate(final Quaternion q) {
+            mFrontDirection = rotate(mFrontDirection, q);
+            mRightDirection = rotate(mRightDirection, q);
+        }
+
+        private static Vector3D rotateByByEulerAngle(final Vector3D v, final float x, final float y, final float z) {
+            float radianPerDegree = ((float) Math.PI) / 180.0f;
+            float radianX = x * radianPerDegree;
+            float radianY = y * radianPerDegree;
+            float radianZ = z * radianPerDegree;
+            return Quaternion.rotateXYZ(v, radianX, radianY, radianZ);
+        }
+
+        private static Vector3D rotate(final Vector3D v, final Quaternion q) {
+            Quaternion p = new Quaternion(0, v);
+            Quaternion r = q.conjugate();
+            Quaternion qpr = r.multiply(p).multiply(q);
+            return qpr.imaginary();
+        }
+    }
+
+    public static class Camera {
+        private float mFovDegree;
+        private Vector3D mPosition;
+        private Vector3D mFrontDirection;
+        private Vector3D mRightDirection;
+
+        public Camera() {
+            mFovDegree = 90;
+            mPosition = new Vector3D(0.0f, 0.0f, 0.0f);
+            mFrontDirection = new Vector3D(1.0f, 0.0f, 0.0f);
+            mRightDirection = new Vector3D(0.0f, 0.0f, 1.0f);
+        }
+
+        public Camera(final Camera camera) {
+            mFovDegree = camera.mFovDegree;
+            mPosition = new Vector3D(camera.mPosition);
+            mFrontDirection = new Vector3D(camera.mFrontDirection);
+            mRightDirection = new Vector3D(camera.mRightDirection);
+        }
+
+        public Vector3D getPosition() {
+            return mPosition;
+        }
+
+        public Vector3D getFrontDirection() {
+            return mFrontDirection;
+        }
+
+        public Vector3D getRightDirection() {
+            return mRightDirection;
+        }
+
+        public Camera[] getCamerasForStereo(final float distance) {
+            CameraBuilder leftCamera = new CameraBuilder(this);
+            leftCamera.slideHorizontal(-1 * distance);
+            CameraBuilder rightCamera = new CameraBuilder(this);
+            rightCamera.slideHorizontal(distance);
+
+            return new Camera[] {
+                leftCamera.create(),
+                rightCamera.create()
+            };
+        }
     }
 }

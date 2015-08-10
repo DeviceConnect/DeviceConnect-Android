@@ -11,6 +11,10 @@ public class Vector3D {
         mCoods[2] = z;
     }
 
+    public Vector3D(final Vector3D v) {
+        this(v.mCoods[0], v.mCoods[1], v.mCoods[2]);
+    }
+
     public float x() {
         return mCoods[0];
     }

@@ -92,13 +92,11 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
                                 @Override
                                 public void onDisconnect(final String uri) {
-                                    Log.d("AAA", "***** onDisconnect");
                                     mRoiContexts.remove(uri);
                                 }
 
                                 @Override
                                 public void onCloseServer() {
-                                    Log.d("AAA", "***** onCloseServer");
                                     mRoiContexts.clear();
                                 }
                             });

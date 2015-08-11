@@ -1,5 +1,5 @@
 /*
- DevicePluginListFragment.java
+ IRKitVirtualProfileListFragment.java
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -11,6 +11,9 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -76,7 +79,6 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
         container.setLabel(profile.getName());
         return container;
     }
-
     /**
      *　IRKitデバイスのリストの取得.
      * @return IRKitデバイスのリスト.
@@ -84,7 +86,7 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
     private List<VirtualProfileContainer> createDeviceContainers() {
         List<VirtualProfileContainer> containers = new ArrayList<VirtualProfileContainer>();
 
-        mProfiles = mDBHelper.geVirtualProfiles(mServiceId);
+        mProfiles = mDBHelper.getVirtualProfiles(mServiceId);
         if (mProfiles != null) {
             for (VirtualProfileData device : mProfiles) {
                 containers.add(createContainer(device));
@@ -92,15 +94,31 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
         }
         return containers;
     }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        final MenuItem menuItem = menu.add("CLOSE");
+        menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(final MenuItem item) {
 
+                if (item.getTitle().equals(menuItem.getTitle())) {
+                    getActivity().finish();
+                }
+                return true;
+            }
+        });
+    }
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
             final Bundle savedInstanceState) {
+
         mDBHelper = new IRKitDBHelper(getActivity());
         mVirtualProfileAdapter = new VirtualProfileAdapter(getActivity(), createDeviceContainers());
         View rootView = inflater.inflate(R.layout.fragment_profilelist, container, false);
 
         ListView listView = (ListView) rootView.findViewById(R.id.listview_devicelist);
+        listView.setItemsCanFocus(true);
         listView.setAdapter(mVirtualProfileAdapter);
         TextView title = (TextView) rootView.findViewById(R.id.text_view_number);
         title.setText(mProfiles.get(0).getProfile() + "プロファイル編集");

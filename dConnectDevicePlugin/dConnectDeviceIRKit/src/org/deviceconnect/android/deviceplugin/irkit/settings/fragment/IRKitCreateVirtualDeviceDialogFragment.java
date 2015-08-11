@@ -1,3 +1,9 @@
+/*
+ IRKitCreateVirtualDeviceDialogFragment.java
+ Copyright (c) 2014 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
 import android.app.Activity;
@@ -5,7 +11,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -112,13 +117,11 @@ public class IRKitCreateVirtualDeviceDialogFragment extends DialogFragment {
         IRKitDBHelper helper = new IRKitDBHelper(getActivity());
         VirtualDeviceData device = new VirtualDeviceData();
         TextView serviceIdView = (TextView) rootView.findViewById(R.id.service_id);
-        Log.d("TEST", "s:" + serviceIdView.getText().toString());
         device.setServiceId(serviceIdView.getText().toString());
         device.setCategoryName(mCategory);
         EditText deviceNameLbl = (EditText) rootView.findViewById(R.id.device_name);
         device.setDeviceName(deviceNameLbl.getText().toString());
         long i = helper.addVirtualDevice(device);
-        Log.d("TEST", "i:" + i);
         showAlert(getActivity(), "作成", "デバイスを作成しました。");
         if (mDelegate != null) {
             mDelegate.onCreated();

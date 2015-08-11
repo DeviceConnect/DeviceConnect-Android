@@ -53,13 +53,11 @@
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity"
-            android:label="@string/app_name"
-            android:screenOrientation="portrait" >
+            android:label="@string/app_name" >
         </activity>
         <activity
             android:name="org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitDeviceListActivity"
             android:label="@string/app_name"
-            android:screenOrientation="portrait"
             android:process=":irkit_service_process" >
         </activity>
 

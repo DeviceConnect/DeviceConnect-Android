@@ -1,5 +1,5 @@
 /*
- DevicePluginListFragment.java
+ IRKitVirtualDeviceFragment.java
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -14,6 +14,8 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -109,7 +111,21 @@ public class IRKitVirtualDeviceFragment extends Fragment
         }
         return containers;
     }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        final MenuItem menuItem = menu.add("CLOSE");
+        menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(final MenuItem item) {
 
+                if (item.getTitle().equals(menuItem.getTitle())) {
+                    getActivity().finish();
+                }
+                return true;
+            }
+        });
+    }
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
             final Bundle savedInstanceState) {
@@ -173,6 +189,7 @@ public class IRKitVirtualDeviceFragment extends Fragment
         });
 
         ListView listView = (ListView) rootView.findViewById(R.id.listview_devicelist);
+        listView.setItemsCanFocus(true);
         listView.setAdapter(mVirtualDeviceAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

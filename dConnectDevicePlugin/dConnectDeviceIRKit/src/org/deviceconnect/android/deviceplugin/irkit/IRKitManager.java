@@ -654,6 +654,8 @@ public enum IRKitManager {
         });
     }
 
+
+
     /**
      * 赤外線データを送信する.
      * 

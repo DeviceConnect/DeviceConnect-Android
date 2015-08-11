@@ -193,11 +193,19 @@ public class IRKitDBHelper {
      */
     public synchronized int updateVirtualProfile(final VirtualProfileData profile) {
         ContentValues values = new ContentValues();
+        values.put(VIRTUAL_PROFILE_COL_NAME, profile.getName());
+        values.put(VIRTUAL_PROFILE_COL_SERVICE_ID, profile.getServiceId());
+        values.put(VIRTUAL_PROFILE_COL_PROFILE, profile.getProfile());
+        values.put(VIRTUAL_PROFILE_COL_METHOD, profile.getMethod());
+        values.put(VIRTUAL_PROFILE_COL_URI, profile.getUri());
+
         values.put(VIRTUAL_PROFILE_COL_IR, profile.getIr());
 
-        String whereClause = VIRTUAL_PROFILE_COL_SERVICE_ID + "=?";
+        String whereClause = VIRTUAL_PROFILE_COL_SERVICE_ID + "=? AND "
+                + VIRTUAL_PROFILE_COL_URI + "=? AND "
+                + VIRTUAL_PROFILE_COL_METHOD + "=?";
         String[] whereArgs = {
-                profile.getServiceId()
+                profile.getServiceId(), profile.getUri(), profile.getMethod()
         };
 
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
@@ -267,11 +275,12 @@ public class IRKitDBHelper {
      * @param serviceId 検索するサービスID. 全件取得はnull.
      * @return Virtual Device List
      */
-    public synchronized List<VirtualProfileData> geVirtualProfiles(final String serviceId) {
+    public synchronized List<VirtualProfileData> getVirtualProfiles(final String serviceId) {
         String sql = "SELECT * FROM " + VIRTUAL_PROFILE_TBL_NAME;
         if (serviceId != null) {
             sql += " WHERE " + VIRTUAL_PROFILE_COL_SERVICE_ID + "='" + serviceId + "';";
         }
+
         String[] selectionArgs = {};
 
         SQLiteDatabase db = mDBHelper.getReadableDatabase();

@@ -10,7 +10,11 @@ import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -82,7 +86,8 @@ public class IRKitRegisterIRFragment extends Fragment  {
                                                                 showFailureDialog();
                                                             } else {
                                                                 mProfile.setIr(message);
-                                                                mDBHelper.updateVirtualProfile(mProfile);
+                                                                int i = mDBHelper.updateVirtualProfile(mProfile);
+                                                                Log.d("TEST", "update:" + i);
                                                                 showSuccessDialog();
                                                             }
                                                             dismissProgress();
@@ -109,6 +114,26 @@ public class IRKitRegisterIRFragment extends Fragment  {
         return rootView;
     }
 
+    @Override
+    public void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        final MenuItem menuItem = menu.add("CLOSE");
+        menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(final MenuItem item) {
+
+                if (item.getTitle().equals(menuItem.getTitle())) {
+                    getActivity().finish();
+                }
+                return true;
+            }
+        });
+    }
     /**
      * Virtual Profile を設定する。
      * @param profile virtual Profile

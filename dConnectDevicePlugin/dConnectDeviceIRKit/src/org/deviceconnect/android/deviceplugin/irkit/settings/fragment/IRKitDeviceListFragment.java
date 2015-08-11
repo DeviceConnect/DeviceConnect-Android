@@ -1,5 +1,5 @@
 /*
- DevicePluginListFragment.java
+ IRKitDeviceListFragment.java
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -106,6 +106,7 @@ public class IRKitDeviceListFragment extends Fragment  {
             }
         });
         ListView listView = (ListView) rootView.findViewById(R.id.listview_devicelist);
+        listView.setItemsCanFocus(true);
         listView.setAdapter(mDeviceAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

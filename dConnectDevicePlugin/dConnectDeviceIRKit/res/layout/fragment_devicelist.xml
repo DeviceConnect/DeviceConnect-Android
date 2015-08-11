@@ -18,7 +18,8 @@
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
         android:paddingTop="30dp"
-        android:paddingBottom="50dp">
+        android:paddingBottom="50dp"
+        >
     </ListView>
     <FrameLayout
         android:id="@+id/view_no_origin"

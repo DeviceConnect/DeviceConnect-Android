@@ -63,8 +63,21 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     @Override
+    protected boolean onGetView(final Intent request, final Intent response, final String serviceId,
+                                final String source) {
+        requestView(request, response, serviceId, source, true);
+        return false;
+    }
+
+    @Override
     protected boolean onPutView(final Intent request, final Intent response, final String serviceId,
                                 final String source) {
+        requestView(request, response, serviceId, source, false);
+        return false;
+    }
+
+    private void requestView(final Intent request, final Intent response, final String serviceId,
+                             final String source, final boolean isGet) {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -79,7 +92,12 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                                 public void onConnect(final String uri) {
                                     final String key = Uri.parse(uri).getLastPathSegment();
                                     final RoiDeliveryContext target = mRoiContexts.get(uri);
-                                    if (target != null) {
+                                    if (target == null) {
+                                        return;
+                                    }
+                                    if (isGet) {
+                                        mServer.offerMedia(key, target.getRoi());
+                                    } else {
                                         final Timer timer = new Timer(); // TODO delete
                                         timer.schedule(new TimerTask() {
                                             @Override
@@ -92,7 +110,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
                                 @Override
                                 public void onDisconnect(final String uri) {
-                                    mRoiContexts.remove(uri);
+//                                    mRoiContexts.remove(uri);
                                 }
 
                                 @Override
@@ -116,11 +134,15 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                     roiContext.setUri(Uri.parse(uri));
                     roiContext.setOnChangeListener(ThetaOmnidirectionalImageProfile.this);
                     roiContext.changeRendererParam(RoiDeliveryContext.DEFAULT_PARAM, true);
-                    roiContext.render(true);
+                    roiContext.renderWithBlocking();
                     mRoiContexts.put(uri, roiContext);
 
                     setResult(response, DConnectMessage.RESULT_OK);
-                    setURI(response, uri);
+                    if (isGet) {
+                        setURI(response, uri + "?snapshot");
+                    } else {
+                        setURI(response, uri);
+                    }
                 } catch (MalformedURLException e) {
                     MessageUtils.setInvalidRequestParameterError(response, "uri is malformed: " + source);
                 } catch (FileNotFoundException e) {
@@ -134,13 +156,12 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                 ((ThetaDeviceService) getContext()).sendResponse(response);
             }
         });
-        return false;
     }
 
     @Override
     protected boolean onDeleteView(final Intent request, final Intent response, final String serviceId,
                                    final String uri) {
-        RoiDeliveryContext roiContext = mRoiContexts.remove(uri);
+        RoiDeliveryContext roiContext = mRoiContexts.remove(omitParameters(uri));
         if (roiContext != null) {
             roiContext.destroy();
             mServer.stopMedia(roiContext.getSegment());
@@ -154,7 +175,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     @Override
     protected boolean onPutSettings(final Intent request, final Intent response, final String serviceId) {
-        final String uri = getURI(request);
+        final String uri = omitParameters(getURI(request));
         final RoiDeliveryContext roiContext = mRoiContexts.get(uri);
         if (roiContext == null) {
             MessageUtils.setInvalidRequestParameterError(response, "The specified media is not found.");
@@ -167,8 +188,8 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
             public void run() {
                 RoiDeliveryContext.Param param = parseParam(request);
                 roiContext.changeRendererParam(param, true);
-                roiContext.render(true);
-                mServer.offerMedia(roiContext.getSegment(), roiContext.getRoi());
+                byte[] roi = roiContext.renderWithBlocking();
+                mServer.offerMedia(roiContext.getSegment(), roi);
             }
         });
         return true;
@@ -177,6 +198,14 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     @Override
     public void onUpdate(final String segment, final byte[] roi) {
         mServer.offerMedia(segment, roi);
+    }
+
+    private String omitParameters(final String uri) {
+        int index = uri.indexOf("?");
+        if (index >= 0) {
+            return uri.substring(0, index);
+        }
+        return uri;
     }
 
     private RoiDeliveryContext.Param parseParam(final Intent request) {

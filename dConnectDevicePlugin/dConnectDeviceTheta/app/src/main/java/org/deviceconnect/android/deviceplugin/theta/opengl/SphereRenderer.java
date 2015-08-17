@@ -6,6 +6,8 @@ import android.opengl.GLSurfaceView.Renderer;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.opengl.model.UVSphere;
 
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
@@ -104,7 +106,10 @@ public class SphereRenderer implements Renderer {
         float frontX = mCamera.getFrontDirection().x();
         float frontY = mCamera.getFrontDirection().y();
         float frontZ = mCamera.getFrontDirection().z();
-        Matrix.setLookAtM(mViewMatrix, 0, x, y, z, frontX, frontY, frontZ, 0.0f, 1.0f, 0.0f);
+        float upX = mCamera.getUpperDirection().x();
+        float upY = mCamera.getUpperDirection().y();
+        float upZ = mCamera.getUpperDirection().z();
+        Matrix.setLookAtM(mViewMatrix, 0, x, y, z, frontX, frontY, frontZ, upX, upY, upZ);
         Matrix.perspectiveM(mProjectionMatrix, 0, mCamera.mFovDegree, getScreenAspect(), Z_NEAR, Z_FAR);
 
         GLES20.glUniformMatrix4fv(mModelMatrixHandle, 1, false, mModelMatrix, 0);
@@ -227,7 +232,9 @@ public class SphereRenderer implements Renderer {
     }
 
     public void setSphereRadius(final float radius) {
-        mShell = new UVSphere(radius, SHELL_DIVIDES);
+        if (radius != mShell.getRadius()) {
+            mShell = new UVSphere(radius, SHELL_DIVIDES);
+        }
     }
 
     public Camera getCamera() {
@@ -248,12 +255,14 @@ public class SphereRenderer implements Renderer {
         private float mFovDegree;
         private Vector3D mPosition;
         private Vector3D mFrontDirection;
+        private Vector3D mUpperDirection;
         private Vector3D mRightDirection;
 
         public CameraBuilder(final Camera camera) {
             mFovDegree = camera.mFovDegree;
             mPosition = new Vector3D(camera.mPosition);
             mFrontDirection = new Vector3D(camera.mFrontDirection);
+            mUpperDirection = new Vector3D(camera.mUpperDirection);
             mRightDirection = new Vector3D(camera.mRightDirection);
         }
 
@@ -262,11 +271,10 @@ public class SphereRenderer implements Renderer {
         }
 
         public Camera create() {
-            Camera camera = new Camera();
-            camera.mFovDegree = mFovDegree;
-            camera.mPosition = mPosition;
-            camera.mFrontDirection = mFrontDirection;
-            camera.mRightDirection = mRightDirection;
+            Camera camera = new Camera(mFovDegree, mPosition,
+                mFrontDirection,
+                mUpperDirection,
+                mRightDirection);
             return camera;
         }
 
@@ -286,13 +294,35 @@ public class SphereRenderer implements Renderer {
             );
         }
 
-        public void rotateByByEulerAngle(final float x, final float y, final float z) {
-            mFrontDirection = rotateByByEulerAngle(mFrontDirection, x, y, z);
-            mRightDirection = rotateByByEulerAngle(mRightDirection, x, y, z);
+        public void rotateByEulerAngle(final float roll, final float yaw, final float pitch) {
+            Vector3D lastFrontDirection = mFrontDirection;
+            float radianPerDegree = (float) (Math.PI / 180.0);
+
+            float lat = (90.0f - pitch) * radianPerDegree;
+            float lng = yaw * radianPerDegree;
+            float x = (float) (Math.sin(lat) * Math.cos(lng));
+            float y = (float) (Math.cos(lat));
+            float z = (float) (Math.sin(lat) * Math.sin(lng));
+            mFrontDirection = new Vector3D(x, y, z);
+
+            float dx = mFrontDirection.x() - lastFrontDirection.x();
+            float dy = mFrontDirection.y() - lastFrontDirection.y();
+            float dz = mFrontDirection.z() - lastFrontDirection.z();
+
+            float theta = roll * radianPerDegree;
+            Quaternion q = new Quaternion(
+                (float) Math.cos(theta / 2.0f),
+                mFrontDirection.multiply((float) Math.sin(theta / 2.0f))
+            );
+//            mUpperDirection = mUpperDirection.add(new Vector3D(dx, dy, dz));
+            mUpperDirection = rotate(mUpperDirection, q);
+            mRightDirection = mRightDirection.add(new Vector3D(dx, dy, dz));
+            mRightDirection = rotate(mRightDirection, q);
         }
 
         public void rotate(final Quaternion q) {
             mFrontDirection = rotate(mFrontDirection, q);
+            mUpperDirection = rotate(mUpperDirection, q);
             mRightDirection = rotate(mRightDirection, q);
         }
 
@@ -313,23 +343,34 @@ public class SphereRenderer implements Renderer {
     }
 
     public static class Camera {
-        private float mFovDegree;
-        private Vector3D mPosition;
-        private Vector3D mFrontDirection;
-        private Vector3D mRightDirection;
+        private final float mFovDegree;
+        private final Vector3D mPosition;
+        private final Vector3D mFrontDirection;
+        private final Vector3D mUpperDirection;
+        private final Vector3D mRightDirection;
+
+        public Camera(final float fovDegree, final Vector3D position,
+                      final Vector3D frontDirection, final Vector3D upperDirection,
+                      final Vector3D rightDirection) {
+            mFovDegree = fovDegree;
+            mPosition = position;
+            mFrontDirection = frontDirection;
+            mUpperDirection = upperDirection;
+            mRightDirection = rightDirection;
+        }
 
         public Camera() {
-            mFovDegree = 90;
-            mPosition = new Vector3D(0.0f, 0.0f, 0.0f);
-            mFrontDirection = new Vector3D(1.0f, 0.0f, 0.0f);
-            mRightDirection = new Vector3D(0.0f, 0.0f, 1.0f);
+            this(90, new Vector3D(0.0f, 0.0f, 0.0f),
+                new Vector3D(1.0f, 0.0f, 0.0f),
+                new Vector3D(0.0f, 1.0f, 0.0f),
+                new Vector3D(0.0f, 0.0f, 1.0f));
         }
 
         public Camera(final Camera camera) {
-            mFovDegree = camera.mFovDegree;
-            mPosition = new Vector3D(camera.mPosition);
-            mFrontDirection = new Vector3D(camera.mFrontDirection);
-            mRightDirection = new Vector3D(camera.mRightDirection);
+            this(camera.mFovDegree, new Vector3D(camera.mPosition),
+                new Vector3D(camera.mFrontDirection),
+                new Vector3D(camera.mUpperDirection),
+                new Vector3D(camera.mRightDirection));
         }
 
         public Vector3D getPosition() {
@@ -338,6 +379,10 @@ public class SphereRenderer implements Renderer {
 
         public Vector3D getFrontDirection() {
             return mFrontDirection;
+        }
+
+        public Vector3D getUpperDirection() {
+            return mUpperDirection;
         }
 
         public Vector3D getRightDirection() {

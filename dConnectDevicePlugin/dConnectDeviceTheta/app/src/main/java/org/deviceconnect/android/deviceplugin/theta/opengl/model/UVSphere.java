@@ -2,6 +2,9 @@ package org.deviceconnect.android.deviceplugin.theta.opengl.model;
 
 
 import android.opengl.GLES20;
+import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -23,11 +26,7 @@ public class UVSphere {
 
     private final int vertexStride = COORDS_PER_VERTEX * 4;
     private final int textureStride = TEXTURE_COORDS_PER_VERTEX * 4;
-
-    private UVSphere() {
-        mVertices = new ArrayList<FloatBuffer>();
-        mTextureCoords = new ArrayList<FloatBuffer>();
-    }
+    private final float mRadius;
 
     /**
      * Constructor
@@ -39,7 +38,9 @@ public class UVSphere {
      * @param divide Number of partitions (must be an even number)
      */
     public UVSphere(float radius, int divide) {
-        this();
+        mVertices = new ArrayList<FloatBuffer>();
+        mTextureCoords = new ArrayList<FloatBuffer>();
+        mRadius = radius;
 
         if (radius <= 0 || divide <= 0 || 0 != (divide % 2)) {
             throw new IllegalArgumentException();
@@ -48,6 +49,10 @@ public class UVSphere {
         mStrips = divide/2;
         mStripePointsNum = (divide+1)*2;
         makeSphereVertices(radius, divide);
+    }
+
+    public float getRadius() {
+        return mRadius;
     }
 
 

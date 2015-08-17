@@ -19,6 +19,17 @@ public class OmnidirectionalImageProfile extends DConnectProfile
     }
 
     @Override
+    protected boolean onGetRequest(final Intent request, final Intent response) {
+        String interfaceName = getInterface(request);
+        String attributeName = getAttribute(request);
+        if (interfaceName == null && ATTRIBUTE_ROI.equals(attributeName)) {
+            return onGetView(request, response, getServiceID(request), getSource(request));
+        }
+        MessageUtils.setUnknownAttributeError(response);
+        return true;
+    }
+
+    @Override
     protected boolean onPutRequest(final Intent request, final Intent response) {
         String interfaceName = getInterface(request);
         String attributeName = getAttribute(request);
@@ -39,6 +50,12 @@ public class OmnidirectionalImageProfile extends DConnectProfile
             return onDeleteView(request, response, getServiceID(request), getURI(request));
         }
         MessageUtils.setUnknownAttributeError(response);
+        return true;
+    }
+
+    protected boolean onGetView(final Intent request, final Intent response, final String serviceId,
+                                final String source) {
+        setUnsupportedError(response);
         return true;
     }
 

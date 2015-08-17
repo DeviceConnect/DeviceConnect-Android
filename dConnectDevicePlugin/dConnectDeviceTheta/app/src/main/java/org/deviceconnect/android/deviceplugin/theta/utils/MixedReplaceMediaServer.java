@@ -350,7 +350,7 @@ public class MixedReplaceMediaServer {
         
         @Override
         public void run() {
-            mLogger.fine("accept client.");
+//            mLogger.fine("accept client.");
             mRunnables.add(this);
             try {
                 mStream = mSocket.getOutputStream();
@@ -369,14 +369,36 @@ public class MixedReplaceMediaServer {
                     mStream.write(generateServiceUnavailable().getBytes());
                     mStream.flush();
                 } else {
-                    mStream.write(generateHttpHeader().getBytes());
-                    mStream.flush();
-
                     if (mServerEventListener != null) {
                         mServerEventListener.onConnect(getUrl() + mUri);
                     }
 
                     String segment = Uri.parse(mUri).getLastPathSegment();
+                    if (header.hasParam("snapshot")) {
+                        BlockingQueue<byte[]> mediaQueue = mMediaQueues.get(segment);
+                        byte[] media;
+                        if (mediaQueue != null) {
+                            media = mediaQueue.take();
+                        } else {
+                            media = new byte[0];
+                        }
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("HTTP/1.0 200 OK\r\n");
+                        sb.append("Server: " + mServerName + "\r\n");
+                        sb.append("Connection: keep-alive\r\n");
+                        sb.append("Content-Type: image/jpeg\r\n");
+                        sb.append("Content-Length: " + media.length + "\r\n");
+                        sb.append("\r\n");
+                        mStream.write(sb.toString().getBytes());
+                        mStream.flush();
+                        mStream.write(media);
+                        mStream.flush();
+                        return;
+                    }
+
+                    mStream.write(generateHttpHeader().getBytes());
+                    mStream.flush();
+
                     while (!mStopFlag) {
                         BlockingQueue<byte[]> mediaQueue = mMediaQueues.get(segment);
                         if (mediaQueue != null) {
@@ -407,7 +429,7 @@ public class MixedReplaceMediaServer {
                     }
                 }
             } finally {
-                mLogger.fine("socket close.");
+//                mLogger.fine("socket close.");
                 if (mServerEventListener != null && mUri != null) {
                     mServerEventListener.onDisconnect(getUrl() + mUri);
                 }
@@ -554,7 +576,7 @@ public class MixedReplaceMediaServer {
             if (segment == null) {
                 throw new IOException("Header is invalid format.");
             }
-            return new HttpHeader(uri);
+            return new HttpHeader(uri, params);
         }
         
         /**
@@ -668,13 +690,23 @@ public class MixedReplaceMediaServer {
     private static class HttpHeader {
 
         final String mUri;
+        final Map<String, String> mParams;
 
-        HttpHeader(final String uri) {
+        HttpHeader(final String uri, final Map<String, String> params) {
             mUri = uri;
+            mParams = params;
         }
 
         String getUri() {
             return mUri;
+        }
+
+        String getParam(final String key) {
+            return mParams.get(key);
+        }
+
+        boolean hasParam(final String key) {
+            return getParam(key) != null;
         }
     }
 }

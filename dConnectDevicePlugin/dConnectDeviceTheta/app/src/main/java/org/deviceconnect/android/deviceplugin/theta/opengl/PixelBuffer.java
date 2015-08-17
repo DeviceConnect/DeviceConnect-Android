@@ -3,7 +3,6 @@ package org.deviceconnect.android.deviceplugin.theta.opengl;
 import static javax.microedition.khronos.egl.EGL10.*;
 import static javax.microedition.khronos.opengles.GL10.*;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.IntBuffer;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -17,9 +16,11 @@ import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
+
 public class PixelBuffer {
     private static final String TAG = "PixelBuffer";
-    private static final boolean LIST_CONFIGS = false;
+    private static final boolean LIST_CONFIGS = true;
 
     private final int mWidth;
     private final int mHeight;
@@ -33,28 +34,52 @@ public class PixelBuffer {
     private final String mThreadOwner;
 
     private GLSurfaceView.Renderer mRenderer; // borrow this interface
-    private Bitmap mBitmap;
+    private IntBuffer mIb;
+    private IntBuffer mIbt;
+    private final Bitmap mBitmap;
 
     public PixelBuffer(final int width, final int height) {
         mWidth = width;
         mHeight = height;
+        mIb = IntBuffer.allocate(mWidth * mHeight);
+        mIbt = IntBuffer.allocate(mWidth * mHeight);
+        mBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
 
         // No error checking performed, minimum required code to elucidate logic
         mEGL = (EGL10) EGLContext.getEGL();
+//        checkEGLError(mEGL);
         mEGLDisplay = mEGL.eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        mEGL.eglInitialize(mEGLDisplay, new int[2]);
+//        checkEGLError(mEGL);
+        int[] version = new int[2];
+        mEGL.eglInitialize(mEGLDisplay, version);
+//        checkEGLError(mEGL);
+//        if (BuildConfig.DEBUG) {
+//            Log.d(TAG, "EGL Version: " + version[0] + "." + version[1]);
+//        }
+//        checkEGLError(mEGL);
         mEGLConfigs = chooseConfigs(); // Choosing a config is a little more complicated
         mEGLConfig = mEGLConfigs[0]; // Best match is probably the first configuration
+//        if (BuildConfig.DEBUG) {
+//            Log.d(TAG, "EGL Config: " + mEGLConfig);
+//        }
+//        checkEGLError(mEGL);
         mEGLContext = mEGL.eglCreateContext(mEGLDisplay, mEGLConfig, EGL_NO_CONTEXT, new int[] {
                 0x3098, // EGL_CONTEXT_CLIENT_VERSION
                 2,      // OpenGL ES 2.0
                 EGL10.EGL_NONE });
+//        checkEGLError(mEGL);
+//        if (BuildConfig.DEBUG) {
+//            Log.d(TAG, "EGL Context: " + mEGLContext);
+//        }
 
         mEGLSurface = mEGL.eglCreatePbufferSurface(mEGLDisplay, mEGLConfig, new int[] {
                 EGL_WIDTH, mWidth,
                 EGL_HEIGHT, mHeight,
                 EGL_NONE
             });
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "EGL Surface: " + mEGLSurface);
+        }
 
         mEGL.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext);
         mGL = (GL10) mEGLContext.getGL();
@@ -63,8 +88,20 @@ public class PixelBuffer {
         mThreadOwner = Thread.currentThread().getName();
     }
 
+    private void checkEGLError(EGL10 egl) {
+        int error = egl.eglGetError();
+        if (BuildConfig.DEBUG) {
+            if (error == EGL10.EGL_SUCCESS) {
+                Log.i(TAG, "EGL SUCCESS.");
+            } else {
+                Log.e(TAG, "EGL Error: " + error);
+            }
+        }
+    }
+
     public void destroy() {
         mEGL.eglDestroyContext(mEGLDisplay, mEGLContext);
+        mBitmap.recycle();
     }
 
     public void setRenderer(GLSurfaceView.Renderer renderer) {
@@ -108,6 +145,7 @@ public class PixelBuffer {
             EGL_GREEN_SIZE, 8,
             EGL_BLUE_SIZE, 8,
             EGL_ALPHA_SIZE, 8,
+            EGL_RENDERABLE_TYPE, 4, // OpenGL ES 2.0
             EGL_NONE
         };
 
@@ -153,18 +191,27 @@ public class PixelBuffer {
     }
 
     private void convertToBitmap() {
-        IntBuffer ib = IntBuffer.allocate(mWidth * mHeight);
-        IntBuffer ibt = IntBuffer.allocate(mWidth * mHeight);
-        mGL.glReadPixels(0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, ib);
+        long start = System.currentTimeMillis();
 
-        // Convert upside down mirror-reversed image to right-side up normal image.
-        for (int i = 0; i < mHeight; i++) {
-            for (int j = 0; j < mWidth; j++) {
-                ibt.put((mHeight - i - 1) * mWidth + j, ib.get(i * mWidth + j));
-            }
-        }
- 
-        mBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
-        mBitmap.copyPixelsFromBuffer(ibt);
+        mGL.glReadPixels(0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, mIb);
+
+        Log.i("AAA", "Finished to glReadPixels: " + (System.currentTimeMillis() - start) + " msec");
+        start = System.currentTimeMillis();
+
+//        // Convert upside down mirror-reversed image to right-side up normal image.
+//        for (int i = 0; i < mHeight; i++) {
+//            for (int j = 0; j < mWidth; j++) {
+//                mIbt.put((mHeight - i - 1) * mWidth + j, mIb.get(i * mWidth + j));
+//            }
+//        }
+//
+//        Log.i("AAA", "Finished to convert bitmap: " + (System.currentTimeMillis() - start) + " msec");
+//        start = System.currentTimeMillis();
+//        mBitmap.copyPixelsFromBuffer(mIbt);
+
+        mBitmap.copyPixelsFromBuffer(mIb);
+
+        mIb.clear();
+        mIbt.clear();
     }
 }

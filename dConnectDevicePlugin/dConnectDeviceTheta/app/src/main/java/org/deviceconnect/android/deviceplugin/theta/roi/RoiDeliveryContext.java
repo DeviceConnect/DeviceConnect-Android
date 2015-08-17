@@ -20,8 +20,11 @@ import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class RoiDeliveryContext implements SensorEventListener  {
 
@@ -51,9 +54,13 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
     private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
 
+    private ByteArrayOutputStream mBaos;
+
     public RoiDeliveryContext(final Context context, final OmnidirectionalImage source) {
         mSource = source;
         mSensorMgr = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        mBaos = new ByteArrayOutputStream(
+            mCurrentParam.getImageWidth() * mCurrentParam.getImageHeight());
     }
 
     public String getSegment() {
@@ -86,42 +93,29 @@ public class RoiDeliveryContext implements SensorEventListener  {
         }
     }
 
-    public void render(final boolean isUserRequest) {
+    public byte[] renderWithBlocking()  {
+        Future<byte[]> future = mExecutor.submit(new RenderingTask());
+        try {
+            return future.get();
+        } catch (ExecutionException e) {
+            // Nothing to do.
+        } catch (InterruptedException e) {
+            // Nothing to do.
+        }
+        return null;
+    }
+
+    public void render() {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                int width = mCurrentParam.getImageWidth();
-                int height = mCurrentParam.getImageHeight();
-
-                Bitmap result;
-                if (mCurrentParam.isStereoMode()) {
-                    float distance = 2.5f / 100.0f; // 5cm
-                    SphereRenderer.Camera[] cameras = mRenderer.getCamera().getCamerasForStereo(distance);
-
-                    mRenderer.setCamera(cameras[0]);
-                    Bitmap left = mPixelBuffer.render();
-                    mRenderer.setCamera(cameras[1]);
-                    Bitmap right = mPixelBuffer.render();
-
-                    Bitmap stereo = Bitmap.createBitmap(2 * width, height, Bitmap.Config.ARGB_8888);
-                    Canvas offScreen = new Canvas(stereo);
-                    offScreen.drawBitmap(left, 0, 0, null);
-                    offScreen.drawBitmap(right, width, 0, null);
-                    left.recycle();
-                    right.recycle();
-                    result = stereo;
-                } else {
-                    result = mPixelBuffer.render();
-                }
-
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                result.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                byte[] roi = baos.toByteArray();
-                result.recycle();
-
-                mRoi = roi;
-                if (mListener != null) {
-                    mListener.onUpdate(mSegment, roi);
+                try {
+                    new RenderingTask().call();
+                } catch (Exception e) {
+                    if (BuildConfig.DEBUG) {
+                        Log.e("AAA", "render: ", e);
+                    }
+                    // Nothing to do.
                 }
             }
         });
@@ -144,6 +138,7 @@ public class RoiDeliveryContext implements SensorEventListener  {
                         mPixelBuffer = new PixelBuffer(width, height);
                         mRenderer.setTexture(mSource.getData());
                         mPixelBuffer.setRenderer(mRenderer);
+                        mBaos = new ByteArrayOutputStream(width * height);
                     }
                     if (param.isVrMode()) {
                         startVrMode();
@@ -157,13 +152,13 @@ public class RoiDeliveryContext implements SensorEventListener  {
                 SphereRenderer.CameraBuilder builder = new SphereRenderer.CameraBuilder();
                 builder.setPosition(new Vector3D(
                     (float) param.getCameraX(),
-                    (float) param.getCameraY(),
+                    (float) param.getCameraY() * -1,
                     (float) param.getCameraZ()));
                 if (isUserRequest) {
-                    builder.rotateByByEulerAngle(
+                    builder.rotateByEulerAngle(
                         (float) param.getCameraRoll(),
-                        (float) param.getCameraPitch(),
-                        (float) param.getCameraYaw());
+                        (float) param.getCameraYaw(),
+                        (float) param.getCameraPitch() * -1);
                 }
                 builder.setFov((float) param.getCameraFov());
                 mRenderer.setCamera(builder.create());
@@ -185,6 +180,10 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
         if (mLastEventTimestamp != 0) {
             final float dT = (event.timestamp - mLastEventTimestamp) * NS2S;
+            if (dT < 0.2f) {
+                return;
+            }
+
             float axisX = event.values[0];
             float axisY = event.values[1];
             float axisZ = event.values[2];
@@ -211,13 +210,13 @@ public class RoiDeliveryContext implements SensorEventListener  {
                     Quaternion q = new Quaternion(
                         mDeltaRotationVector[3],
                         new Vector3D(
-                            mDeltaRotationVector[2],
+                            mDeltaRotationVector[2] * -1,
                             mDeltaRotationVector[1],
-                            mDeltaRotationVector[0]
+                            mDeltaRotationVector[0] * -1
                         )
                     );
                     mRenderer.rotateCamera(q);
-                    render(false);
+                    render();
                 }
             });
         }
@@ -395,6 +394,44 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
         public void setVrMode(final boolean isVr) {
             mVrMode = isVr;
+        }
+    }
+
+    private class RenderingTask implements Callable<byte[]> {
+
+        @Override
+        public byte[] call() throws Exception {
+            int width = mCurrentParam.getImageWidth();
+            int height = mCurrentParam.getImageHeight();
+
+            Bitmap result;
+            if (mCurrentParam.isStereoMode()) {
+                float distance = 2.5f / 100.0f; // 5cm
+                SphereRenderer.Camera[] cameras = mRenderer.getCamera().getCamerasForStereo(distance);
+
+                mRenderer.setCamera(cameras[0]);
+                Bitmap left = mPixelBuffer.render();
+                mRenderer.setCamera(cameras[1]);
+                Bitmap right = mPixelBuffer.render();
+
+                Bitmap stereo = Bitmap.createBitmap(2 * width, height, Bitmap.Config.ARGB_8888);
+                Canvas offScreen = new Canvas(stereo);
+                offScreen.drawBitmap(left, 0, 0, null);
+                offScreen.drawBitmap(right, width, 0, null);
+                result = stereo;
+            } else {
+                result = mPixelBuffer.render();
+            }
+
+            mBaos.reset();
+            result.compress(Bitmap.CompressFormat.JPEG, 100, mBaos);
+            byte[] roi = mBaos.toByteArray();
+
+            mRoi = roi;
+            if (mListener != null) {
+                mListener.onUpdate(mSegment, roi);
+            }
+            return roi;
         }
     }
 }

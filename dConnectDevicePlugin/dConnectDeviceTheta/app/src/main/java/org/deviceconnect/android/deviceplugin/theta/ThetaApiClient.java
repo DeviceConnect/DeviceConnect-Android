@@ -12,6 +12,7 @@ import com.theta360.lib.PtpipInitiator;
 import com.theta360.lib.ThetaException;
 import com.theta360.lib.ptpip.entity.ObjectHandles;
 import com.theta360.lib.ptpip.entity.ObjectInfo;
+import com.theta360.lib.ptpip.entity.PtpObject;
 import com.theta360.lib.ptpip.eventlistener.PtpipEventListener;
 
 import java.io.IOException;
@@ -66,7 +67,10 @@ public class ThetaApiClient {
                 @Override
                 public void onObjectAdded(final int handle) {
                     try {
-                        byte[] data = initiator.getObject(handle);
+                        int w = RecorderInfo.PHOTO.mImageWidth;
+                        int h = RecorderInfo.PHOTO.mImageHeight;
+                        PtpObject obj = initiator.getResizedImageObject(handle, w, h);
+                        byte[] data = obj.getDataObject();
                         ObjectInfo info = initiator.getObjectInfo(handle);
                         photo[0] = new ThetaPhoto(data, info.getFilename(), MIMETYPE_PHOTO, SERVICE_ID);
                     } catch (ThetaException e) {

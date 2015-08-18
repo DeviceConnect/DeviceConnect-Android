@@ -180,7 +180,7 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
         if (mLastEventTimestamp != 0) {
             final float dT = (event.timestamp - mLastEventTimestamp) * NS2S;
-            if (dT < 0.2f) {
+            if (dT < 0.1f) {
                 return;
             }
 

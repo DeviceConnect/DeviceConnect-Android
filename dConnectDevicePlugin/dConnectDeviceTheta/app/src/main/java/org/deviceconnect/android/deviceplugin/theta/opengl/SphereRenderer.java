@@ -314,7 +314,6 @@ public class SphereRenderer implements Renderer {
                 (float) Math.cos(theta / 2.0f),
                 mFrontDirection.multiply((float) Math.sin(theta / 2.0f))
             );
-//            mUpperDirection = mUpperDirection.add(new Vector3D(dx, dy, dz));
             mUpperDirection = rotate(mUpperDirection, q);
             mRightDirection = mRightDirection.add(new Vector3D(dx, dy, dz));
             mRightDirection = rotate(mRightDirection, q);
@@ -324,14 +323,6 @@ public class SphereRenderer implements Renderer {
             mFrontDirection = rotate(mFrontDirection, q);
             mUpperDirection = rotate(mUpperDirection, q);
             mRightDirection = rotate(mRightDirection, q);
-        }
-
-        private static Vector3D rotateByByEulerAngle(final Vector3D v, final float x, final float y, final float z) {
-            float radianPerDegree = ((float) Math.PI) / 180.0f;
-            float radianX = x * radianPerDegree;
-            float radianY = y * radianPerDegree;
-            float radianZ = z * radianPerDegree;
-            return Quaternion.rotateXYZ(v, radianX, radianY, radianZ);
         }
 
         private static Vector3D rotate(final Vector3D v, final Quaternion q) {
@@ -364,13 +355,6 @@ public class SphereRenderer implements Renderer {
                 new Vector3D(1.0f, 0.0f, 0.0f),
                 new Vector3D(0.0f, 1.0f, 0.0f),
                 new Vector3D(0.0f, 0.0f, 1.0f));
-        }
-
-        public Camera(final Camera camera) {
-            this(camera.mFovDegree, new Vector3D(camera.mPosition),
-                new Vector3D(camera.mFrontDirection),
-                new Vector3D(camera.mUpperDirection),
-                new Vector3D(camera.mRightDirection));
         }
 
         public Vector3D getPosition() {

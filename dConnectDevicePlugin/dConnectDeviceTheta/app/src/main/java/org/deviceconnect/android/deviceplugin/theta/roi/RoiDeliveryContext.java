@@ -36,11 +36,17 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
     private long mLastEventTimestamp;
 
+    private float mEventInterval;
+
     private final OmnidirectionalImage mSource;
 
     private final SensorManager mSensorMgr;
 
     private PixelBuffer mPixelBuffer;
+
+    private Bitmap mStereoBitmap;
+
+    private Canvas mStereoCanvas;
 
     private final SphereRenderer mRenderer = new SphereRenderer();
 
@@ -133,11 +139,16 @@ public class RoiDeliveryContext implements SensorEventListener  {
                         mPixelBuffer = new PixelBuffer(width, height);
                         mRenderer.setTexture(mSource.getData());
                         mPixelBuffer.setRenderer(mRenderer);
+                        mStereoBitmap = Bitmap.createBitmap(2 * width, height, Bitmap.Config.ARGB_8888);
+                        mStereoCanvas = new Canvas(mStereoBitmap);
+                        mBaos = new ByteArrayOutputStream(width * height);
                     } else if (width != mCurrentParam.getImageWidth() || height != mCurrentParam.getImageHeight()) {
                         mPixelBuffer.destroy();
                         mPixelBuffer = new PixelBuffer(width, height);
                         mRenderer.setTexture(mSource.getData());
                         mPixelBuffer.setRenderer(mRenderer);
+                        mStereoBitmap = Bitmap.createBitmap(2 * width, height, Bitmap.Config.ARGB_8888);
+                        mStereoCanvas = new Canvas(mStereoBitmap);
                         mBaos = new ByteArrayOutputStream(width * height);
                     }
                     if (param.isVrMode()) {
@@ -180,16 +191,13 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
         if (mLastEventTimestamp != 0) {
             final float dT = (event.timestamp - mLastEventTimestamp) * NS2S;
-            if (dT < 0.1f) {
-                return;
-            }
+            mEventInterval += dT;
 
             float axisX = event.values[0];
             float axisY = event.values[1];
             float axisZ = event.values[2];
             float omegaMagnitude = (float) Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
 
-            // Normalize the rotation vector if it's big enough to get the axis
             if (omegaMagnitude > 0) {
                 axisX /= omegaMagnitude;
                 axisY /= omegaMagnitude;
@@ -204,21 +212,19 @@ public class RoiDeliveryContext implements SensorEventListener  {
             mDeltaRotationVector[2] = sinThetaOverTwo * axisZ;
             mDeltaRotationVector[3] = cosThetaOverTwo;
 
-            mExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    Quaternion q = new Quaternion(
-                        mDeltaRotationVector[3],
-                        new Vector3D(
-                            mDeltaRotationVector[2] * -1,
-                            mDeltaRotationVector[1],
-                            mDeltaRotationVector[0] * -1
-                        )
-                    );
-                    mRenderer.rotateCamera(q);
-                    render();
-                }
-            });
+            Quaternion q = new Quaternion(
+                mDeltaRotationVector[3],
+                new Vector3D(
+                    mDeltaRotationVector[2] * -1,
+                    mDeltaRotationVector[1],
+                    mDeltaRotationVector[0] * -1
+                )
+            );
+            mRenderer.rotateCamera(q);
+            if (mEventInterval >= 0.1f) {
+                mEventInterval = 0;
+                render();
+            }
         }
         mLastEventTimestamp = event.timestamp;
     }
@@ -311,13 +317,6 @@ public class RoiDeliveryContext implements SensorEventListener  {
             mCameraYaw = yaw;
         }
 
-        public void addCameraYaw(final double delta) {
-            mCameraYaw += delta;
-            if (mCameraYaw >= 360) {
-                mCameraYaw -= 360;
-            }
-        }
-
         public double getCameraRoll() {
             return mCameraRoll;
         }
@@ -326,26 +325,12 @@ public class RoiDeliveryContext implements SensorEventListener  {
             mCameraRoll = roll;
         }
 
-        public void addCameraRoll(final double delta) {
-            mCameraRoll += delta;
-            if (mCameraRoll >= 360) {
-                mCameraRoll -= 360;
-            }
-        }
-
         public double getCameraPitch() {
             return mCameraPitch;
         }
 
         public void setCameraPitch(final double pitch) {
             mCameraPitch = pitch;
-        }
-
-        public void addCameraPitch(final double delta) {
-            mCameraPitch += delta;
-            if (mCameraPitch >= 360) {
-                mCameraPitch -= 360;
-            }
         }
 
         public double getCameraFov() {
@@ -397,6 +382,13 @@ public class RoiDeliveryContext implements SensorEventListener  {
         }
     }
 
+    private void log(final String message, final SphereRenderer.Camera camera) {
+        Vector3D p = camera.getPosition();
+        Vector3D f = camera.getFrontDirection();
+        Log.d("AAA", message + ": pos=(" + p.x() + ", " + p.y() + ", " + p.z() + ") " +
+            "front=(" + f.x() + ", " + f.y() + ", " + f.z() + ")");
+    }
+
     private class RenderingTask implements Callable<byte[]> {
 
         @Override
@@ -406,6 +398,7 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
             Bitmap result;
             if (mCurrentParam.isStereoMode()) {
+                SphereRenderer.Camera center = mRenderer.getCamera();
                 float distance = 2.5f / 100.0f; // 5cm
                 SphereRenderer.Camera[] cameras = mRenderer.getCamera().getCamerasForStereo(distance);
 
@@ -413,12 +406,11 @@ public class RoiDeliveryContext implements SensorEventListener  {
                 Bitmap left = mPixelBuffer.render();
                 mRenderer.setCamera(cameras[1]);
                 Bitmap right = mPixelBuffer.render();
+                mRenderer.setCamera(center);
 
-                Bitmap stereo = Bitmap.createBitmap(2 * width, height, Bitmap.Config.ARGB_8888);
-                Canvas offScreen = new Canvas(stereo);
-                offScreen.drawBitmap(left, 0, 0, null);
-                offScreen.drawBitmap(right, width, 0, null);
-                result = stereo;
+                mStereoCanvas.drawBitmap(left, 0, 0, null);
+                mStereoCanvas.drawBitmap(right, width, 0, null);
+                result = mStereoBitmap;
             } else {
                 result = mPixelBuffer.render();
             }

@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:text="@string/select_light"
         android:id="@+id/select_light"
-        android:background="#FFB6C1"
+        android:background="@drawable/button_pink"
         />
 
     <Button
@@ -26,13 +26,13 @@
         android:layout_height="wrap_content"
         android:text="@string/select_tv"
         android:id="@+id/select_tv"
-        android:background="#1E90FF"
+        android:background="@drawable/button_blue"
         />
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/alert_btn_close"
-        android:background="#D3D3D3"
+        android:background="@drawable/button_dark"
         android:id="@+id/close" />
 </LinearLayout>

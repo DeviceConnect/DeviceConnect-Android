@@ -112,8 +112,10 @@ public class IRKitDeviceListFragment extends Fragment  {
             @Override
             public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
                 IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
-                activity.startApp(IRKitDeviceListActivity.MANAGE_VIRTUAL_DEVICE_PAGE,
-                        mDevices.get(position).getName());
+                if (mDevices.size() > 0) {
+                    activity.startApp(IRKitDeviceListActivity.MANAGE_VIRTUAL_DEVICE_PAGE,
+                            mDevices.get(position).getName());
+                }
             }
         });
         return rootView;

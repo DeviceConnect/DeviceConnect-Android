@@ -19,6 +19,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
@@ -35,6 +36,7 @@ import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenS
 import org.deviceconnect.android.observer.DConnectObservationService;
 import org.deviceconnect.android.observer.receiver.ObserverReceiver;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -106,6 +108,12 @@ public class SettingsFragment extends PreferenceFragment
             keyword = createKeyword();
         }
 
+        String docRootPath = sp.getString(getString(R.string.key_settings_dconn_document_root_path), null);
+        if (docRootPath == null || docRootPath.length() <= 0) {
+            File file = new File(Environment.getExternalStorageDirectory(), getActivity().getPackageName());
+            docRootPath = file.getPath();
+        }
+
         EditTextPreference editKeywordPreferences = (EditTextPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_keyword));
         editKeywordPreferences.setOnPreferenceChangeListener(this);
@@ -122,7 +130,6 @@ public class SettingsFragment extends PreferenceFragment
         // ホスト名設定
         EditTextPreference editHostPreferences = (EditTextPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_host));
-        editHostPreferences.setOnPreferenceChangeListener(this);
         editHostPreferences.setSummary(editHostPreferences.getText());
 
         // ポート番号設定
@@ -130,6 +137,11 @@ public class SettingsFragment extends PreferenceFragment
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_port));
         mEditPortPreferences.setOnPreferenceChangeListener(this);
         mEditPortPreferences.setSummary(mEditPortPreferences.getText());
+
+        // ドキュメントルートパス
+        EditTextPreference editDocPreferences = (EditTextPreference)
+                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_document_root_path));
+        editDocPreferences.setSummary(docRootPath);
 
         // Local OAuthのON/OFF
         mCheckBoxOauthPreferences = (CheckBoxPreference)
@@ -152,6 +164,7 @@ public class SettingsFragment extends PreferenceFragment
         mCheckBoxOriginBlockingPreferences.setOnPreferenceChangeListener(this);
 
         editHostPreferences.setEnabled(false);
+        editDocPreferences.setEnabled(false);
         boolean enabled = !isDConnectServiceRunning();
         mCheckBoxSslPreferences.setEnabled(enabled);
         mEditPortPreferences.setEnabled(enabled);

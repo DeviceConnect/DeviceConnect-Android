@@ -6,6 +6,18 @@
  */
 package org.deviceconnect.android.deviceplugin.host.camera;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.Executors;
+
+import org.deviceconnect.android.activity.IntentHandlerActivity;
+import org.deviceconnect.android.activity.PermissionRequestActivity;
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.provider.FileManager;
+
 import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -40,18 +52,6 @@ import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import org.deviceconnect.android.activity.IntentHandlerActivity;
-import org.deviceconnect.android.activity.PermissionRequestActivity;
-import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.provider.FileManager;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.Executors;
-
 /**
  * カメラのプレビューをオーバーレイで表示するクラス.
  *
@@ -75,8 +75,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
     private static final String FILE_EXTENSION = ".png";
 
     /** 日付のフォーマット. */
-    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat(
-            "yyyyMMdd_kkmmss", Locale.JAPAN);
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
     /** コンテキスト. */
     private Context mContext;
@@ -136,8 +135,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
      */
     public CameraOverlay(final Context context) {
         mContext = context;
-        mWinMgr = (WindowManager) context.getSystemService(
-                Context.WINDOW_SERVICE);
+        mWinMgr = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         mWorkerThread = new HandlerThread(getClass().getSimpleName());
         mWorkerThread.start();
         mHandler = new Handler(mWorkerThread.getLooper());
@@ -237,13 +235,11 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
         Point size = getDisplaySize();
         int pt = (int) (5 * getScaledDensity());
-        WindowManager.LayoutParams l = new WindowManager.LayoutParams(
-                pt, pt,
+        WindowManager.LayoutParams l = new WindowManager.LayoutParams(pt, pt,
                 WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                    | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                    | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                    | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSLUCENT);
         l.x = -size.x / 2;
         l.y = -size.y / 2;
@@ -265,12 +261,9 @@ public class CameraOverlay implements Camera.PreviewCallback {
             }
         });
 
-        WindowManager.LayoutParams l2 = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                    | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+        WindowManager.LayoutParams l2 = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT);
         l2.x = -size.x / 2;
         l2.y = -size.y / 2;
@@ -287,33 +280,30 @@ public class CameraOverlay implements Camera.PreviewCallback {
         } else {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + mContext.getPackageName()));
-            IntentHandlerActivity.startActivityForResult(mContext, intent,
-                    new ResultReceiver(mHandler) {
-                        @Override
-                        protected void onReceiveResult(int resultCode, Bundle resultData) {
-                            if (Settings.canDrawOverlays(mContext)) {
-                                resultReceiver.send(Activity.RESULT_OK, null);
-                            } else {
-                                resultReceiver.send(Activity.RESULT_CANCELED, null);
-                            }
-                        }
-                    });
+            IntentHandlerActivity.startActivityForResult(mContext, intent, new ResultReceiver(mHandler) {
+                @Override
+                protected void onReceiveResult(int resultCode, Bundle resultData) {
+                    if (Settings.canDrawOverlays(mContext)) {
+                        resultReceiver.send(Activity.RESULT_OK, null);
+                    } else {
+                        resultReceiver.send(Activity.RESULT_CANCELED, null);
+                    }
+                }
+            });
         }
     }
 
     private void checkCameraCapability(@NonNull final ResultReceiver resultReceiver) {
-        if (mContext.checkSelfPermission(Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_GRANTED) {
+        if (mContext.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             resultReceiver.send(Activity.RESULT_OK, null);
         } else {
-            PermissionRequestActivity.requestPermissions(mContext, new String[]{Manifest.permission.CAMERA},
+            PermissionRequestActivity.requestPermissions(mContext, new String[] { Manifest.permission.CAMERA },
                     new ResultReceiver(new Handler()) {
                         @Override
                         protected void onReceiveResult(int resultCode, Bundle resultData) {
-                            String[] permissions =
-                                    resultData.getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
-                            int[] grantResults =
-                                    resultData.getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
+                            String[] permissions = resultData
+                                    .getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
+                            int[] grantResults = resultData.getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
 
                             if (permissions == null || grantResults == null) {
                                 resultReceiver.send(Activity.RESULT_CANCELED, null);
@@ -343,7 +333,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
     public synchronized void hide() {
         if (mCamera != null) {
             mPreview.setCamera(null);
-            mCamera.stopPreview(); 
+            mCamera.stopPreview();
             mCamera.setPreviewCallback(null);
             mCamera.release();
             mCamera = null;
@@ -458,8 +448,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
             return;
         }
         Point size = getDisplaySize();
-        WindowManager.LayoutParams lp = 
-                (WindowManager.LayoutParams) view.getLayoutParams();
+        WindowManager.LayoutParams lp = (WindowManager.LayoutParams) view.getLayoutParams();
         lp.x = -size.x / 2;
         lp.y = -size.y / 2;
         mWinMgr.updateViewLayout(view, lp);
@@ -500,12 +489,10 @@ public class CameraOverlay implements Camera.PreviewCallback {
                         Matrix m = new Matrix();
                         m.setRotate(degree);
 
-                        Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, 
-                                bmp.getWidth(), bmp.getHeight(), m, true);
+                        Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
                         if (rotatedBmp != null) {
                             baos.reset();
-                            if (rotatedBmp.compress(CompressFormat.JPEG,
-                                    JPEG_COMPRESS_QUALITY, baos)) {
+                            if (rotatedBmp.compress(CompressFormat.JPEG, JPEG_COMPRESS_QUALITY, baos)) {
                                 mServer.offerMedia(baos.toByteArray());
                             }
                             rotatedBmp.recycle();

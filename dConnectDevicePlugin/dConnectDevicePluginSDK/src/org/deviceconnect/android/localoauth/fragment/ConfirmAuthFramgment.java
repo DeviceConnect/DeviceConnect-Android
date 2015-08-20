@@ -6,18 +6,6 @@
  */
 package org.deviceconnect.android.localoauth.fragment;
 
-import java.util.Calendar;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import org.deviceconnect.android.R;
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.localoauth.LocalOAuth2Service;
-import org.deviceconnect.android.localoauth.LocalOAuth2Settings;
-import org.deviceconnect.android.localoauth.ScopeUtil;
-import org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity;
-import org.restlet.ext.oauth.internal.AbstractTokenManager;
-
 import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.content.ComponentName;
@@ -38,6 +26,18 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.deviceconnect.android.R;
+import org.deviceconnect.android.localoauth.LocalOAuth2Main;
+import org.deviceconnect.android.localoauth.LocalOAuth2Service;
+import org.deviceconnect.android.localoauth.LocalOAuth2Settings;
+import org.deviceconnect.android.localoauth.ScopeUtil;
+import org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity;
+import org.restlet.ext.oauth.internal.AbstractTokenManager;
+
+import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * 認可ダイアログ.
@@ -61,6 +61,9 @@ public class ConfirmAuthFramgment extends Fragment {
 
     /** 受信用メッセンジャー設定. */
     private Messenger mSelfMessenger;
+
+    /** Flag indicating whether we have done response. */
+    private boolean mDoneResponse;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -225,20 +228,32 @@ public class ConfirmAuthFramgment extends Fragment {
 
     /**
      * 承認ボタンを押下されたときの処理.
+     * <p>
+     * 既にレスポンスを返却している場合には何もしない。
+     * </p>
      */
     public synchronized void approvalProc() {
-        /* Bindを通じてServiceにメッセージを送る */
+        if (mDoneResponse) {
+            return;
+        }
         sendMessage(true);
         getActivity().finish();
+        mDoneResponse = true;
     }
 
     /**
      * 拒否ボタンを押下されたときの処理.
+     * <p>
+     * 既にレスポンスを返却している場合には何もしない。
+     * </p>
      */
     public synchronized void notApprovalProc() {
-        /* Bindを通じてServiceにメッセージを送る */
+        if (mDoneResponse) {
+            return;
+        }
         sendMessage(false);
         getActivity().finish();
+        mDoneResponse = true;
     }
 
     /**

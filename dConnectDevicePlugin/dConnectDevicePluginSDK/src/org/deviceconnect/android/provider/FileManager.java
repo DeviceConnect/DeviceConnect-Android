@@ -6,14 +6,7 @@
  */
 package org.deviceconnect.android.provider;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.logging.Logger;
-
-import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
-
+import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -21,7 +14,24 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ProviderInfo;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.ResultReceiver;
+import android.support.annotation.NonNull;
+
+import org.deviceconnect.android.activity.PermissionRequestActivity;
+import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 
 /**
  * ファイルを管理するためのクラス.
@@ -50,6 +60,12 @@ public class FileManager {
      * ファイルの保存場所.
      */
     private FileLocation mLocation;
+
+    /** 作業用スレッド */
+    private HandlerThread mWorkerThread;
+    
+    /** ハンドラー */
+    private Handler mHandler;
 
     /**
      * コンストラクタ.
@@ -83,6 +99,16 @@ public class FileManager {
         } catch (NameNotFoundException e) {
             throw new RuntimeException("Cannot found provider.");
         }
+
+        mWorkerThread = new HandlerThread(getClass().getSimpleName());
+        mWorkerThread.start();
+        mHandler = new Handler(mWorkerThread.getLooper());
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        mWorkerThread.quit();
     }
 
     /**
@@ -130,42 +156,124 @@ public class FileManager {
      * @param filename ファイル名
      * @param data ファイルデータ
      * @return 保存したファイルへのURI
-     * 
      * @throws IOException ファイルの保存に失敗した場合に発生
      */
     public final String saveFile(final String filename, final byte[] data) throws IOException {
-        File tmpPath = getBasePath();
-        if (!tmpPath.exists()) {
-            if (!tmpPath.mkdirs()) {
-                throw new IOException("Cannot create a folder.");
-            }
-        }
-        Uri u = Uri.parse("file://" + new File(tmpPath, filename).getAbsolutePath());
-        ContentResolver contentResolver = mContext.getContentResolver();
-        OutputStream out = null;
-        try {
-            out = contentResolver.openOutputStream(u, "w");
-            out.write(data);
-            out.flush();
-        } catch (Exception e) {
-            throw new IOException("Failed to save a file." + filename);
-        } finally {
-            if (out != null) {
+        final AtomicReference<String> value = new AtomicReference<>(null);
+        final AtomicReference<IOException> throwable = new AtomicReference<>(null);
+        final CountDownLatch latch = new CountDownLatch(1);
+        checkPermission(new Callback() {
+            @Override
+            public void onSuccess() {
                 try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    File tmpPath = getBasePath();
+                    if (!tmpPath.exists()) {
+                        if (!tmpPath.mkdirs()) {
+                            throwable.set(new IOException("Cannot create a directory."));
+                            value.set(null);
+                            return;
+                        }
+                    }
+                    Uri u = Uri.parse("file://" + new File(tmpPath, filename).getAbsolutePath());
+                    ContentResolver contentResolver = mContext.getContentResolver();
+                    OutputStream out = null;
+                    try {
+                        out = contentResolver.openOutputStream(u, "w");
+                        out.write(data);
+                        out.flush();
+                    } catch (Exception e) {
+                        throwable.set(new IOException("Failed to save a file." + filename));
+                        value.set(null);
+                        return;
+                    } finally {
+                        if (out != null) {
+                            try {
+                                out.close();
+                            } catch (IOException e) {
+                                throwable.set(new IOException("Failed to close a file."));
+                                value.set(null);
+                                return;
+                            }
+                        }
+                    }
+
+                    String contentUri = getContentUri();
+                    if (contentUri == null) {
+                        throwable.set(new IOException("Content URI is null."));
+                        value.set(null);
+                        return;
+                    } else if (!contentUri.endsWith("/")) {
+                        contentUri = contentUri + "/";
+                    }
+
+                    value.set(contentUri + u.getLastPathSegment());
+                } finally {
+                    latch.countDown();
                 }
             }
-        }
 
-        String contentUri = getContentUri();
-        if (contentUri == null) {
-            throw new RuntimeException("Content URI is null.");
-        } else if (!contentUri.endsWith("/")) {
-            contentUri = contentUri + "/";
+            @Override
+            public void onFail() {
+                throwable.set(new IOException("WRITE_EXTERNAL_STORAGE permission not granted."));
+                value.set(null);
+                latch.countDown();
+            }
+        });
+
+        try {
+            latch.await();
+            IOException tmp = throwable.get();
+            if (tmp != null) {
+                throw tmp;
+            }
+            return value.get();
+        } catch (InterruptedException e) {
+            throw new IOException("Process was interrupted.");
         }
-        return contentUri + u.getLastPathSegment();
+    }
+
+    private void checkPermission(@NonNull final Callback callback) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (mContext.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                callback.onSuccess();
+            } else {
+                PermissionRequestActivity.requestPermissions(mContext
+                        , new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}
+                        , new ResultReceiver(mHandler) {
+                    @Override
+                    protected void onReceiveResult(int resultCode, Bundle resultData) {
+                        try {
+                            String[] permissions =
+                                    resultData.getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
+                            int[] grantResults =
+                                    resultData.getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
+
+                            if (permissions == null || grantResults == null) {
+                                callback.onFail();
+                                return;
+                            }
+
+                            for (int i = 0; i < permissions.length; ++i) {
+                                if (permissions[i].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                                        callback.onSuccess();
+                                    } else {
+                                        callback.onFail();
+                                    }
+                                    return;
+                                }
+                            }
+                            callback.onFail();
+                        } catch (Throwable e) {
+                            callback.onFail();
+                        }
+                    }
+                });
+            }
+        } else {
+            callback.onSuccess();
+        }
     }
 
     /**
@@ -176,9 +284,7 @@ public class FileManager {
      * 
      * @param filename ファイル名
      * @param in ストリーム
-     * 
      * @return 保存したファイルへのURI
-     * 
      * @throws IOException ファイルの保存に失敗した場合に発生
      */
     public final String saveFile(final String filename, final InputStream in) throws IOException {
@@ -253,6 +359,7 @@ public class FileManager {
 
     /**
      * デフォルトのフォルダをチェックして、中身を削除する.
+     *
      * @return 削除に成功した場合はtrue、失敗した場合はfalse
      */
     public boolean checkAndRemove() {
@@ -261,6 +368,7 @@ public class FileManager {
 
     /**
      * デフォルトのフォルダまたはファイルをチェックして、中身を削除する.
+     *
      * @param name フォルダ名
      * @return 削除に成功した場合はtrue、失敗した場合はfalse
      */
@@ -270,6 +378,7 @@ public class FileManager {
 
     /**
      * ファイルをチェックして、中身を削除する.
+     *
      * @param file 削除するファイル
      * @return 削除に成功した場合はtrue、失敗した場合はfalse
      */
@@ -288,5 +397,11 @@ public class FileManager {
             }
         }
         return false;
+    }
+
+    private interface Callback {
+        void onSuccess();
+
+        void onFail();
     }
 }

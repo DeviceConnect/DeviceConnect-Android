@@ -191,12 +191,12 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             MediaStreamRecordingProfile.PROFILE_NAME, null,
                             MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
 
-                    for (Event evt : evts) {
-                        Bundle photo = new Bundle();
-                        photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
-                        photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
-                        photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
+                    Bundle photo = new Bundle();
+                    photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
+                    photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
+                    photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
 
+                    for (Event evt : evts) {
                         Intent intent = EventManager.createEventMessage(evt);
                         intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
                         getContext().sendBroadcast(intent);

@@ -7,13 +7,11 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.app.ActivityManager;
+import android.app.Service;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.audio.AudioConst;
@@ -29,10 +27,13 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.app.ActivityManager;
-import android.app.Service;
-import android.content.Intent;
-import android.os.Bundle;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * MediaStream Recording Profile.
@@ -205,6 +206,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         getContext().sendBroadcast(intent);
                     }
                 }
+
                 @Override
                 public void onFailedTakePhoto() {
                     MessageUtils.setUnknownError(response,
@@ -225,16 +227,23 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundService(response);
             return true;
         } else {
-            String uri = ((HostDeviceService) getContext()).startWebServer();
-            if (uri != null) {
+            ((HostDeviceService) getContext()).startWebServer(
+                    new HostDeviceService.OnWebServerStartCallback() {
+                        @Override
+                        public void onStart(@NonNull String uri) {
                 setResult(response, DConnectMessage.RESULT_OK);
                 setUri(response, uri);
-            } else {
+                            getContext().sendBroadcast(response);
+                        }
+
+                        @Override
+                        public void onFail() {
                 MessageUtils.setIllegalServerStateError(response,
                         "Failed to start web server.");
-                return true;
+                            getContext().sendBroadcast(response);
             }
-            return true;
+                    });
+            return false;
         }
     }
 
@@ -401,6 +410,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     /**
      * Generate a file name for video.
+     *
      * @return file name
      */
     private String generateVideoFileName() {
@@ -409,6 +419,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     /**
      * Generate a file name for audio.
+     *
      * @return file name
      */
     private String generateAudioFileName() {

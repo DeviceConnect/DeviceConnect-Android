@@ -6,19 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.host.camera;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
-import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.provider.FileManager;
-
+import android.Manifest;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
@@ -30,7 +24,15 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.ResultReceiver;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
@@ -38,8 +40,21 @@ import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import org.deviceconnect.android.activity.IntentHandlerActivity;
+import org.deviceconnect.android.activity.PermissionRequestActivity;
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.provider.FileManager;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.Executors;
+
 /**
  * カメラのプレビューをオーバーレイで表示するクラス.
+ *
  * @author NTT DOCOMO, INC.
  */
 public class CameraOverlay implements Camera.PreviewCallback {
@@ -69,6 +84,9 @@ public class CameraOverlay implements Camera.PreviewCallback {
     /** ウィンドウ管理クラス. */
     private WindowManager mWinMgr;
 
+    /** 作業用スレッド。 */
+    private HandlerThread mWorkerThread;
+
     /** ハンドラ. */
     private Handler mHandler;
 
@@ -89,7 +107,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     /**
      * 終了フラグ.
-     * <p>
+     * <p/>
      * 撮影が終わった後にOverlayを終了するかチェックする
      */
     private boolean mFinishFlag;
@@ -113,17 +131,27 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     /**
      * コンストラクタ.
+     *
      * @param context コンテキスト
      */
     public CameraOverlay(final Context context) {
         mContext = context;
         mWinMgr = (WindowManager) context.getSystemService(
                 Context.WINDOW_SERVICE);
-        mHandler = new Handler();
+        mWorkerThread = new HandlerThread(getClass().getSimpleName());
+        mWorkerThread.start();
+        mHandler = new Handler(mWorkerThread.getLooper());
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        mWorkerThread.quit();
     }
 
     /**
      * MixedReplaceMediaServerを設定する.
+     *
      * @param server サーバのインスタンス
      */
     public void setServer(final MixedReplaceMediaServer server) {
@@ -132,6 +160,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     /**
      * FileManagerを設定する.
+     *
      * @param mgr FileManagerのインスタンス
      */
     public void setFileManager(final FileManager mgr) {
@@ -140,6 +169,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     /**
      * カメラのオーバーレイが表示されているかを確認する.
+     *
      * @return 表示されている場合はtrue、それ以外はfalse
      */
     public synchronized boolean isShow() {
@@ -149,7 +179,60 @@ public class CameraOverlay implements Camera.PreviewCallback {
     /**
      * Overlayを表示する.
      */
-    public synchronized void show() {
+    public synchronized void show(@NonNull final Callback callback) {
+        Executors.newSingleThreadExecutor().submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        final ResultReceiver cameraCapabilityCallback = new ResultReceiver(mHandler) {
+                            @Override
+                            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                                try {
+                                    if (resultCode == Activity.RESULT_OK) {
+                                        showInternal();
+                                        callback.onSuccess();
+                                    } else {
+                                        callback.onFail();
+                                    }
+                                } catch (Throwable throwable) {
+                                    callback.onFail();
+                                }
+                            }
+                        };
+                        final ResultReceiver overlayDrawingCapabilityCallback = new ResultReceiver(mHandler) {
+                            @Override
+                            protected void onReceiveResult(int resultCode, Bundle resultData) {
+                                try {
+                                    if (resultCode == Activity.RESULT_OK) {
+                                        checkCameraCapability(cameraCapabilityCallback);
+                                    } else {
+                                        callback.onFail();
+                                    }
+                                } catch (Throwable throwable) {
+                                    callback.onFail();
+                                }
+                            }
+                        };
+
+                        checkOverlayDrawingCapability(overlayDrawingCapabilityCallback);
+                    } else {
+                        showInternal();
+                        callback.onSuccess();
+                    }
+                } catch (final Throwable throwable) {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            throw throwable;
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    public void showInternal() {
         mPreview = new Preview(mContext);
 
         Point size = getDisplaySize();
@@ -198,6 +281,62 @@ public class CameraOverlay implements Camera.PreviewCallback {
         mContext.registerReceiver(mOrientReceiver, filter);
     }
 
+    private void checkOverlayDrawingCapability(@NonNull final ResultReceiver resultReceiver) {
+        if (Settings.canDrawOverlays(mContext)) {
+            resultReceiver.send(Activity.RESULT_OK, null);
+        } else {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + mContext.getPackageName()));
+            IntentHandlerActivity.startActivityForResult(mContext, intent,
+                    new ResultReceiver(mHandler) {
+                        @Override
+                        protected void onReceiveResult(int resultCode, Bundle resultData) {
+                            if (Settings.canDrawOverlays(mContext)) {
+                                resultReceiver.send(Activity.RESULT_OK, null);
+                            } else {
+                                resultReceiver.send(Activity.RESULT_CANCELED, null);
+                            }
+                        }
+                    });
+        }
+    }
+
+    private void checkCameraCapability(@NonNull final ResultReceiver resultReceiver) {
+        if (mContext.checkSelfPermission(Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            resultReceiver.send(Activity.RESULT_OK, null);
+        } else {
+            PermissionRequestActivity.requestPermissions(mContext, new String[]{Manifest.permission.CAMERA},
+                    new ResultReceiver(new Handler()) {
+                        @Override
+                        protected void onReceiveResult(int resultCode, Bundle resultData) {
+                            String[] permissions =
+                                    resultData.getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
+                            int[] grantResults =
+                                    resultData.getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
+
+                            if (permissions == null || grantResults == null) {
+                                resultReceiver.send(Activity.RESULT_CANCELED, null);
+                                return;
+                            }
+
+                            for (int i = 0; i < permissions.length; ++i) {
+                                if (permissions[i].equals(Manifest.permission.CAMERA)) {
+                                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                                        resultReceiver.send(Activity.RESULT_OK, null);
+                                        return;
+                                    } else {
+                                        resultReceiver.send(Activity.RESULT_CANCELED, null);
+                                        return;
+                                    }
+                                }
+                            }
+                            resultReceiver.send(Activity.RESULT_CANCELED, null);
+                        }
+                    });
+        }
+    }
+
     /**
      * Overlayを非表示にする.
      */
@@ -223,6 +362,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     /**
      * 写真撮影後にOverlayを非表示にするフラグを設定する.
+     *
      * @param flag trueの場合は撮影後に非表示にする
      */
     public synchronized void setFinishFlag(final boolean flag) {
@@ -231,8 +371,9 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     /**
      * 写真撮影を行う.
-     * <p>
+     * <p/>
      * 写真撮影の結果はlistenerに通知される。
+     *
      * @param listener 撮影結果を通知するリスナー
      */
     public void takePicture(final OnTakePhotoListener listener) {
@@ -246,6 +387,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     /**
      * 写真撮影を行う内部メソッド.
+     *
      * @param listener 撮影結果を通知するリスナー
      */
     private synchronized void takePictureInternal(final OnTakePhotoListener listener) {
@@ -282,8 +424,10 @@ public class CameraOverlay implements Camera.PreviewCallback {
             }
         });
     }
+
     /**
      * Displayの密度を取得する.
+     *
      * @return 密度
      */
     private float getScaledDensity() {
@@ -294,6 +438,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     /**
      * Displayのサイズを取得する.
+     *
      * @return サイズ
      */
     private Point getDisplaySize() {
@@ -305,6 +450,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     /**
      * Viewの座標を画面の左上に移動する.
+     *
      * @param view 座標を移動するView
      */
     private void updatePosition(final View view) {
@@ -321,6 +467,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     /**
      * 新規のファイル名を作成する.
+     *
      * @return ファイル名
      */
     private String createNewFileName() {
@@ -378,6 +525,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
     public interface OnTakePhotoListener {
         /**
          * 写真撮影を行った画像へのURIを通知する.
+         *
          * @param uri URI
          * @param filePath file path.
          */
@@ -387,5 +535,11 @@ public class CameraOverlay implements Camera.PreviewCallback {
          * 写真撮影に失敗したことを通知する.
          */
         void onFailedTakePhoto();
+    }
+
+    public interface Callback {
+        void onSuccess();
+
+        void onFail();
     }
 }

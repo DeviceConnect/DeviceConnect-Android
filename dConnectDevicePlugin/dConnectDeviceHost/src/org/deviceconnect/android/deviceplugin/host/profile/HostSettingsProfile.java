@@ -235,14 +235,45 @@ public class HostSettingsProfile extends SettingsProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
-            if (time == null || time < 0.0) {
-                MessageUtils.setInvalidRequestParameterError(response, "time is invalid.");
-                return true;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.System.canWrite(getContext())) {
+                    onPutDisplaySleepInternal(request, response, serviceId, time);
+                } else {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                            Uri.parse("package:" + getContext().getPackageName()));
+                    IntentHandlerActivity.startActivityForResult(getContext(), intent,
+                            new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                                @Override
+                                protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                                    if (Settings.System.canWrite(getContext())) {
+                                        onPutDisplaySleepInternal(request, response, serviceId, time);
+                                    } else {
+                                        MessageUtils.setIllegalServerStateError(response,
+                                                "WRITE_SETTINGS permisson not granted");
+                                    }
+                                    getContext().sendBroadcast(response);
+                                }
+                            });
+                    return false;
+                }
+            } else {
+                onPutDisplaySleepInternal(request, response, serviceId, time);
             }
-            Settings.System.putInt(getContext().getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, time);
-            setResult(response, DConnectMessage.RESULT_OK);
         }
         return true;
+    }
+
+    private void onPutDisplaySleepInternal(final Intent request, final Intent response, final String serviceId,
+            final Integer time) {
+        if (time == null || time < 0.0) {
+            MessageUtils.setInvalidRequestParameterError(response, "time is invalid.");
+            return;
+        }
+        if (Settings.System.putInt(getContext().getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, time)) {
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else {
+            MessageUtils.setUnknownError(response, "Failed to set display sleep timeout.");
+        }
     }
 
     /**

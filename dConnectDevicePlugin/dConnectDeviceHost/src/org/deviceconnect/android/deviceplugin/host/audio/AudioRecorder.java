@@ -9,6 +9,8 @@ package org.deviceconnect.android.deviceplugin.host.audio;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.deviceconnect.android.activity.PermissionRequestActivity;
 import org.deviceconnect.android.deviceplugin.host.R;
@@ -27,6 +29,7 @@ import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
@@ -58,49 +61,69 @@ public class AudioRecorder extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.audio_main);
 
-        mFileMgr = new FileManager(this);
-
-        mMediaRecorder = new MediaRecorder();
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             final String[] requiredPermissions = new String[] { Manifest.permission.RECORD_AUDIO,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE };
-            PermissionRequestActivity.requestPermissions(this, requiredPermissions, new ResultReceiver(new Handler()) {
-                @Override
-                protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                    String[] permissions = resultData.getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
-                    int[] grantResults = resultData.getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
-
-                    if (permissions == null || permissions.length != requiredPermissions.length || grantResults == null
-                            || grantResults.length != requiredPermissions.length) {
-                        finish();
-                        return;
-                    }
-
-                    int count = requiredPermissions.length;
-                    for (int i = 0; i < permissions.length; ++i) {
-                        if (permissions[i].equals(Manifest.permission.RECORD_AUDIO)
-                                || permissions[i].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                                --count;
-                            } else {
-                                finish();
-                                return;
-                            }
-                        }
-                    }
-
-                    if (count == 0) {
-                        try {
-                            initAudioContext();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            finish();
-                            return;
-                        }
-                    }
+            final List<String> missingPermissions = new ArrayList<>();
+            for (String requiredPermission : requiredPermissions) {
+                if (checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
+                    missingPermissions.add(requiredPermission);
                 }
-            });
+            }
+            if (missingPermissions.size() != 0) {
+                PermissionRequestActivity.requestPermissions(this,
+                        missingPermissions.toArray(new String[missingPermissions.size()]),
+                        new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                            @Override
+                            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                                String[] permissions = resultData
+                                        .getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
+                                int[] grantResults = resultData
+                                        .getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
+
+                                if (permissions == null || permissions.length != missingPermissions.size()
+                                        || grantResults == null || grantResults.length != missingPermissions.size()) {
+                                    finish();
+                                    return;
+                                }
+
+                                int count = missingPermissions.size();
+                                for (String requiredPermission : missingPermissions) {
+                                    for (int i = 0; i < permissions.length; ++i) {
+                                        if (permissions[i].equals(requiredPermission)) {
+                                            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                                                --count;
+                                            } else {
+                                                finish();
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (count == 0) {
+                                    try {
+                                        initAudioContext();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        finish();
+                                        return;
+                                    }
+                                } else {
+                                    finish();
+                                    return;
+                                }
+                            }
+                        });
+            } else {
+                try {
+                    initAudioContext();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    finish();
+                    return;
+                }
+            }
         } else {
             try {
                 initAudioContext();
@@ -113,6 +136,9 @@ public class AudioRecorder extends Activity {
     }
 
     private void initAudioContext() throws IOException {
+        mFileMgr = new FileManager(this);
+
+        mMediaRecorder = new MediaRecorder();
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);

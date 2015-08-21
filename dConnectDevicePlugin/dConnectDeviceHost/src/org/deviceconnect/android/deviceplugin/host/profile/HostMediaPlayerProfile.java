@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import org.deviceconnect.android.activity.PermissionRequestActivity;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.event.EventError;
@@ -21,14 +22,20 @@ import org.deviceconnect.android.profile.MediaPlayerProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
+import android.Manifest;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -37,7 +44,7 @@ import android.webkit.MimeTypeMap;
 
 /**
  * Media Player Profile.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class HostMediaPlayerProfile extends MediaPlayerProfile {
@@ -81,37 +88,23 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         LANGUAGE_ASC,
         /** Language (desc). */
         LANGUAGE_DESC
-    };
+    }
 
     /**
      * AudioのContentProviderのキー一覧を定義する.
      */
-    private static final String[] AUDIO_TABLE_KEYS = {
-        MediaStore.Audio.Media.ALBUM, 
-        MediaStore.Audio.Media.ARTIST,
-        MediaStore.Audio.Media.COMPOSER, 
-        MediaStore.Audio.Media.TITLE, 
-        MediaStore.Audio.Media.DURATION,
-        MediaStore.Audio.Media._ID, 
-        MediaStore.Audio.Media.MIME_TYPE,
-        MediaStore.Audio.Media.DATE_ADDED, 
-        MediaStore.Audio.Media.DISPLAY_NAME
-    };
+    private static final String[] AUDIO_TABLE_KEYS = { MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.COMPOSER, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DURATION,
+            MediaStore.Audio.Media._ID, MediaStore.Audio.Media.MIME_TYPE, MediaStore.Audio.Media.DATE_ADDED,
+            MediaStore.Audio.Media.DISPLAY_NAME };
 
     /**
      * VideoのContentProviderのキー一覧を定義する.
      */
-    private static final String[] VIDEO_TABLE_KEYS = {
-        MediaStore.Video.Media.ALBUM, 
-        MediaStore.Video.Media.ARTIST,
-        MediaStore.Video.Media.LANGUAGE, 
-        MediaStore.Video.Media.TITLE, 
-        MediaStore.Video.Media.DURATION,
-        MediaStore.Video.Media._ID, 
-        MediaStore.Video.Media.MIME_TYPE,
-        MediaStore.Video.Media.DATE_ADDED, 
-        MediaStore.Video.Media.DISPLAY_NAME
-    };
+    private static final String[] VIDEO_TABLE_KEYS = { MediaStore.Video.Media.ALBUM, MediaStore.Video.Media.ARTIST,
+            MediaStore.Video.Media.LANGUAGE, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DURATION,
+            MediaStore.Video.Media._ID, MediaStore.Video.Media.MIME_TYPE, MediaStore.Video.Media.DATE_ADDED,
+            MediaStore.Video.Media.DISPLAY_NAME };
 
     /** Mute Status. */
     private static Boolean sIsMute = false;
@@ -250,10 +243,9 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                 uriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
             }
 
-            ContentResolver cresolver = getContext()
-                    .getApplicationContext().getContentResolver();
+            ContentResolver cresolver = getContext().getApplicationContext().getContentResolver();
             try {
-                cursor = cresolver.query(uriType, param, filter, new String[] {fileName}, null);
+                cursor = cresolver.query(uriType, param, filter, new String[] { fileName }, null);
                 if (cursor.moveToFirst()) {
                     loadMediaData(uriType, cursor, response);
                 }
@@ -269,6 +261,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * cursorからMediaDataを読み込みBundleに格納して返却する.
+     *
      * @param uriType メディアタイプ
      * @param cursor データが格納されているCursor
      * @param response response.
@@ -330,15 +323,14 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * Get display name from URI.
-     * 
+     *
      * @param mUri URI
      * @return name display name.
      */
     private String getDisplayNameFromUri(final Uri mUri) {
         Cursor c = null;
         try {
-            ContentResolver mContentResolver = getContext()
-                    .getApplicationContext().getContentResolver();
+            ContentResolver mContentResolver = getContext().getApplicationContext().getContentResolver();
             c = mContentResolver.query(mUri, null, null, null, null);
             if (c.moveToFirst()) {
                 int index = c.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
@@ -355,34 +347,22 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onGetMediaList(final Intent request, final Intent response,
-            final String serviceId, final String query,
-            final String mimeType, final String[] orders, final Integer offset, final Integer limit) {
+    protected boolean onGetMediaList(final Intent request, final Intent response, final String serviceId,
+            final String query, final String mimeType, final String[] orders, final Integer offset,
+            final Integer limit) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
-            Bundle b = request.getExtras();
-            if (b.getString(PARAM_LIMIT) != null) {
-                if (parseInteger(b.get(PARAM_LIMIT)) == null) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    return true;
-                }
-            }
-            if (b.getString(PARAM_OFFSET) != null) {
-                if (parseInteger(b.get(PARAM_OFFSET)) == null) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    return true;
-                }
-            }
-            getMediaList(response, query, mimeType, orders, offset, limit);
+            return getMediaList(response, query, mimeType, orders, offset, limit);
         }
         return true;
     }
 
     /**
      * Get Media List.
+     *
      * @param response Response
      * @param query Query
      * @param mimeType MIME Type
@@ -390,135 +370,199 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
      * @param offset Offset
      * @param limit Limit
      */
-    private void getMediaList(final Intent response, final String query,
-            final String mimeType, final String[] orders, final Integer offset,
-            final Integer limit) {
-        SortOrder mSort = SortOrder.TITLE_ASC;
-        int counter = 0;
-        if (limit != null) {
-            if (limit < 0) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return;
+    private boolean getMediaList(final Intent response, final String query, final String mimeType,
+            final String[] orders, final Integer offset, final Integer limit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            final String[] requiredPermissions = new String[] { Manifest.permission.READ_EXTERNAL_STORAGE };
+            final List<String> missingPermissions = new ArrayList<>();
+            for (String requiredPermission : requiredPermissions) {
+                if (getContext().checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
+                    missingPermissions.add(requiredPermission);
+                }
+            }
+            if (missingPermissions.size() != 0) {
+                PermissionRequestActivity.requestPermissions(getContext(),
+                        missingPermissions.toArray(new String[missingPermissions.size()]),
+                        new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                            @Override
+                            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                                String[] permissions = resultData
+                                        .getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
+                                int[] grantResults = resultData
+                                        .getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
+
+                                if (permissions == null || permissions.length != missingPermissions.size()
+                                        || grantResults == null || grantResults.length != missingPermissions.size()) {
+                                    MessageUtils.setIllegalServerStateError(response,
+                                            "READ_EXTERNAL_STORAGE permission not granted.");
+                                    getContext().sendBroadcast(response);
+                                    return;
+                                }
+
+                                int count = missingPermissions.size();
+                                for (String requiredPermission : missingPermissions) {
+                                    for (int i = 0; i < permissions.length; ++i) {
+                                        if (permissions[i].equals(requiredPermission)) {
+                                            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                                                --count;
+                                            } else {
+                                                MessageUtils.setIllegalServerStateError(response,
+                                                        "READ_EXTERNAL_STORAGE permission not granted.");
+                                                getContext().sendBroadcast(response);
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (count == 0) {
+                                    getMediaListInternal(response, query, mimeType, orders, offset, limit);
+                                    getContext().sendBroadcast(response);
+                                } else {
+                                    MessageUtils.setIllegalServerStateError(response,
+                                            "READ_EXTERNAL_STORAGE permission not granted.");
+                                    getContext().sendBroadcast(response);
+                                    return;
+                                }
+                            }
+                        });
+                return false;
             }
         }
-        if (offset != null) {
-            if (offset < 0) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return;
+        getMediaListInternal(response, query, mimeType, orders, offset, limit);
+        return true;
+    }
+
+    private void getMediaListInternal(final Intent response, final String query, final String mimeType,
+            final String[] orders, final Integer offset, final Integer limit) {
+        try {
+            SortOrder mSort = SortOrder.TITLE_ASC;
+            int counter = 0;
+            if (limit != null) {
+                if (limit < 0) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return;
+                }
             }
-        }
-
-        // 音楽用のテーブルの項目.
-        String[] mMusicParam = null;
-        String[] mVideoParam = null;
-
-        // URI
-        Uri mMusicUriType = null;
-        Uri mVideoUriType = null;
-
-        // 検索用 Filterを作成.
-        String mVideoFilter = "";
-        String mMusicFilter = "";
-
-        // Orderの処理
-        String mOrderBy = "";
-
-        // 検索用Cursor.
-        Cursor cursorMusic = null;
-        Cursor cursorVideo = null;
-
-        if (mimeType != null) {
-            mVideoFilter = "" + MediaStore.Video.Media.MIME_TYPE + "='" + mimeType + "'";
-            mMusicFilter = "" + MediaStore.Audio.Media.MIME_TYPE + "='" + mimeType + "'";
-        }
-        if (query != null) {
-            if (!mVideoFilter.equals("")) {
-                mVideoFilter += " AND ";
+            if (offset != null) {
+                if (offset < 0) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return;
+                }
             }
-            mVideoFilter += MediaStore.Video.Media.TITLE + " LIKE '%" + query + "%'";
 
-            if (!mMusicFilter.equals("")) {
-                mMusicFilter += " AND ";
+            // 音楽用のテーブルの項目.
+            String[] mMusicParam = null;
+            String[] mVideoParam = null;
+
+            // URI
+            Uri mMusicUriType = null;
+            Uri mVideoUriType = null;
+
+            // 検索用 Filterを作成.
+            String mVideoFilter = "";
+            String mMusicFilter = "";
+
+            // Orderの処理
+            String mOrderBy = "";
+
+            // 検索用Cursor.
+            Cursor cursorMusic = null;
+            Cursor cursorVideo = null;
+
+            if (mimeType != null) {
+                mVideoFilter = "" + MediaStore.Video.Media.MIME_TYPE + "='" + mimeType + "'";
+                mMusicFilter = "" + MediaStore.Audio.Media.MIME_TYPE + "='" + mimeType + "'";
             }
-            mMusicFilter += "(" + MediaStore.Audio.Media.TITLE + " LIKE '%" + query + "%'";
-            mMusicFilter += " OR " + MediaStore.Audio.Media.COMPOSER + " LIKE '%" + query + "%')";
-        }
-        if (orders != null) {
-            if (orders.length == 2) {
-                mOrderBy = orders[0] + " " + orders[1];
-                mSort = getSortOrder(orders[0], orders[1]);
+            if (query != null) {
+                if (!mVideoFilter.equals("")) {
+                    mVideoFilter += " AND ";
+                }
+                mVideoFilter += MediaStore.Video.Media.TITLE + " LIKE '%" + query + "%'";
+
+                if (!mMusicFilter.equals("")) {
+                    mMusicFilter += " AND ";
+                }
+                mMusicFilter += "(" + MediaStore.Audio.Media.TITLE + " LIKE '%" + query + "%'";
+                mMusicFilter += " OR " + MediaStore.Audio.Media.COMPOSER + " LIKE '%" + query + "%')";
+            }
+            if (orders != null) {
+                if (orders.length == 2) {
+                    mOrderBy = orders[0] + " " + orders[1];
+                    mSort = getSortOrder(orders[0], orders[1]);
+                } else {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return;
+                }
             } else {
+                mOrderBy = "title asc";
+                mSort = SortOrder.TITLE_ASC;
+            }
+
+            // 音楽用のテーブルキー設定.
+            mMusicParam = new String[] { MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.ARTIST,
+                    MediaStore.Audio.Media.COMPOSER, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DURATION,
+                    MediaStore.Audio.Media._ID, MediaStore.Audio.Media.MIME_TYPE, MediaStore.Audio.Media.DATE_ADDED };
+            mMusicUriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+
+            // 動画用のテーブルキー設定.
+            mVideoParam = new String[] { MediaStore.Video.Media.ALBUM, MediaStore.Video.Media.ARTIST,
+                    MediaStore.Video.Media.LANGUAGE, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DURATION,
+                    MediaStore.Video.Media._ID, MediaStore.Video.Media.MIME_TYPE, MediaStore.Video.Media.DATE_ADDED };
+
+            mVideoUriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+
+            ContentResolver mContentResolver = this.getContext().getApplicationContext().getContentResolver();
+
+            try {
+                cursorMusic = mContentResolver.query(mMusicUriType, mMusicParam, mMusicFilter, null, mOrderBy);
+                cursorMusic.moveToFirst();
+            } catch (Exception e) {
                 MessageUtils.setInvalidRequestParameterError(response);
+                if (cursorMusic != null) {
+                    cursorMusic.close();
+                }
                 return;
             }
-        } else {
-            mOrderBy = "title asc";
-            mSort = SortOrder.TITLE_ASC;
-        }
 
-        // 音楽用のテーブルキー設定.
-        mMusicParam = new String[] {MediaStore.Audio.Media.ALBUM, MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.COMPOSER, MediaStore.Audio.Media.TITLE, MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media._ID, MediaStore.Audio.Media.MIME_TYPE, MediaStore.Audio.Media.DATE_ADDED};
-        mMusicUriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-
-        // 動画用のテーブルキー設定.
-        mVideoParam = new String[] {MediaStore.Video.Media.ALBUM, MediaStore.Video.Media.ARTIST,
-                MediaStore.Video.Media.LANGUAGE, MediaStore.Video.Media.TITLE, MediaStore.Video.Media.DURATION,
-                MediaStore.Video.Media._ID, MediaStore.Video.Media.MIME_TYPE, MediaStore.Video.Media.DATE_ADDED};
-
-        mVideoUriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-
-        ContentResolver mContentResolver = this.getContext().getApplicationContext().getContentResolver();
-
-        try {
-            cursorMusic = mContentResolver.query(mMusicUriType, mMusicParam, mMusicFilter, null, mOrderBy);
-            cursorMusic.moveToFirst();
-        } catch (Exception e) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            if (cursorMusic != null) {
-                cursorMusic.close();
+            ArrayList<MediaList> mList = new ArrayList<MediaList>();
+            if (cursorMusic.getCount() > 0) {
+                counter = getMusicList(cursorMusic, mList);
             }
-            return;
-        }
 
-        ArrayList<MediaList> mList = new ArrayList<MediaList>();
-        if (cursorMusic.getCount() > 0) {
-            counter = getMusicList(cursorMusic, mList);
-        }
-
-        try {
-            cursorVideo = mContentResolver.query(mVideoUriType, mVideoParam, mVideoFilter, null, mOrderBy);
-            cursorVideo.moveToFirst();
-        } catch (Exception e) {
-            MessageUtils.setInvalidRequestParameterError(response);
-            if (cursorMusic != null) {
-                cursorMusic.close();
+            try {
+                cursorVideo = mContentResolver.query(mVideoUriType, mVideoParam, mVideoFilter, null, mOrderBy);
+                cursorVideo.moveToFirst();
+            } catch (Exception e) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                if (cursorMusic != null) {
+                    cursorMusic.close();
+                }
+                if (cursorVideo != null) {
+                    cursorVideo.close();
+                }
+                return;
             }
-            if (cursorVideo != null) {
-                cursorVideo.close();
+
+            if (cursorVideo.getCount() > 0) {
+                counter = getVideoList(cursorVideo, mList);
             }
-            return;
+
+            List<Bundle> list = new ArrayList<Bundle>();
+            counter = getMediaDataList(mList, list, offset, limit, mSort);
+            setCount(response, counter);
+            setMedia(response, list.toArray(new Bundle[list.size()]));
+            setResult(response, DConnectMessage.RESULT_OK);
+            cursorMusic.close();
+            cursorVideo.close();
+        } catch (Throwable throwable) {
+            MessageUtils.setUnknownError(response, "Failed to get a media list.");
         }
-
-        if (cursorVideo.getCount() > 0) {
-            counter = getVideoList(cursorVideo, mList);
-        }
-
-        List<Bundle> list = new ArrayList<Bundle>();
-        counter = getMediaDataList(mList, list, offset, limit, mSort);
-        setCount(response, counter);
-        setMedia(response, list.toArray(new Bundle[list.size()]));
-        setResult(response, DConnectMessage.RESULT_OK);
-        cursorMusic.close();
-        cursorVideo.close();
-
-        return;
-
     }
 
     /**
      * Get Music List.
+     *
      * @param cursorMusic Cursor Music
      * @param list List
      * @return counter Music data count.
@@ -542,6 +586,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * Get Video List.
+     *
      * @param cursorVideo Cursor Video
      * @param list List
      * @return counter Video data count.
@@ -565,6 +610,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * Get Media List.
+     *
      * @param orglist original list.
      * @param medialist Media list.
      * @param offset Offset.
@@ -572,8 +618,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
      * @param sortflag Sort flag.
      * @return counter Video data count.
      */
-    private int getMediaDataList(final ArrayList<MediaList> orglist, final List<Bundle> medialist,
-            final Integer offset, final Integer limit, final SortOrder sortflag) {
+    private int getMediaDataList(final ArrayList<MediaList> orglist, final List<Bundle> medialist, final Integer offset,
+            final Integer limit, final SortOrder sortflag) {
 
         switch (sortflag) {
         case DURATION_ASC:
@@ -627,14 +673,14 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         } else {
             mOffset = offset;
         }
-        
+
         int mLimit = 0;
         if (limit == null) {
             mLimit = orglist.size();
         } else {
             mLimit = limit + mOffset;
         }
-        
+
         for (int i = mOffset; i < mLimit; i++) {
             Bundle medium = new Bundle();
             String mComp = null;
@@ -723,8 +769,8 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     }
 
     @Override
-    protected boolean onPutSeek(final Intent request, final Intent response,
-                                     final String serviceId, final Integer pos) {
+    protected boolean onPutSeek(final Intent request, final Intent response, final String serviceId,
+            final Integer pos) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
@@ -865,7 +911,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * ファイル名からMIMEタイプ取得.
-     * 
+     *
      * @param path パス
      * @return MIME-TYPE
      */
@@ -883,7 +929,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * 数値かどうかをチェックする.
-     * 
+     *
      * @param value チェックしたいID
      * @return 数値の場合はtrue、そうでない場合はfalse
      */
@@ -898,7 +944,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * サービスIDをチェックする.
-     * 
+     *
      * @param serviceId サービスID
      * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
@@ -908,7 +954,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * サービスIDが空の場合のエラーを作成する.
-     * 
+     *
      * @param response レスポンスを格納するIntent
      */
     private void createEmptyServiceId(final Intent response) {
@@ -917,7 +963,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * デバイスが発見できなかった場合のエラーを作成する.
-     * 
+     *
      * @param response レスポンスを格納するIntent
      */
     private void createNotFoundService(final Intent response) {
@@ -926,17 +972,17 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * ファイルパスからメディアIDを取得する.
-     * 
+     *
      * @param context コンテキスト
      * @param path パス
      * @return MediaID
      */
     public static long mediaIdFromPath(final Context context, final String path) {
         long id = 0;
-        String[] mParam = {BaseColumns._ID};
-        String[] mArgs = new String[] {path};
+        String[] mParam = { BaseColumns._ID };
+        String[] mArgs = new String[] { path };
         Cursor mAudioCursor = null;
-        
+
         // Audio
         Uri mAudioUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String mFilter = MediaStore.Audio.AudioColumns.DATA + " LIKE ?";
@@ -1009,7 +1055,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         return id;
     }
-    
+
     /**
      * Media list class.
      */
@@ -1030,10 +1076,10 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         private String mLanguage;
         /** Video flag. */
         private boolean mIsVideo;
-        
+
         /**
          * Constructor.
-         * 
+         *
          * @param id Id.
          * @param type Mime type.
          * @param title Title.
@@ -1057,7 +1103,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Get Id.
-         * 
+         *
          * @return Id.
          */
         public String getId() {
@@ -1066,7 +1112,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Set Id.
-         * 
+         *
          * @param id Id.
          */
         public void setId(final String id) {
@@ -1075,7 +1121,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Get mime type.
-         * 
+         *
          * @return Mime type.
          */
         public String getType() {
@@ -1084,6 +1130,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Set mime type.
+         *
          * @param type mime type.
          */
         public void setType(final String type) {
@@ -1092,7 +1139,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Get title.
-         * 
+         *
          * @return Title.
          */
         public String getTitle() {
@@ -1101,7 +1148,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Set title.
-         * 
+         *
          * @param title Title.
          */
         public void setTitle(final String title) {
@@ -1110,7 +1157,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Get artist.
-         * 
+         *
          * @return Artist.
          */
         public String getArtist() {
@@ -1119,7 +1166,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Set artist.
-         * 
+         *
          * @param artist Artist.
          */
         public void setArtist(final String artist) {
@@ -1128,7 +1175,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Get duration.
-         * 
+         *
          * @return Duration.
          */
         public int getDuration() {
@@ -1137,7 +1184,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Set duration.
-         * 
+         *
          * @param duration Duration.
          */
         public void setDuration(final int duration) {
@@ -1146,7 +1193,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Get composer.
-         * 
+         *
          * @return Composer.
          */
         public String getComposer() {
@@ -1155,7 +1202,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Set composer.
-         * 
+         *
          * @param composer Composer.
          */
         public void setComposer(final String composer) {
@@ -1164,7 +1211,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Get language.
-         * 
+         *
          * @return Language.
          */
         public String getLanguage() {
@@ -1173,7 +1220,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Set language.
-         * 
+         *
          * @param language Language.
          */
         public void setLanguage(final String language) {
@@ -1182,6 +1229,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Get Video flag.
+         *
          * @return the mIsVideo.
          */
         public boolean isVideo() {
@@ -1190,13 +1238,14 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
         /**
          * Set video flag.
+         *
          * @param isvideo the isVideo to set.
          */
         public void setVideo(final boolean isvideo) {
             this.mIsVideo = isvideo;
         }
     }
-    
+
     /**
      * Duration sorting comparator.
      */
@@ -1282,10 +1331,10 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             return compareData(lhs.getType(), rhs.getType());
         }
     }
-    
+
     /**
      * Data compare.
-     * 
+     *
      * @param data1 Data1.
      * @param data2 Data2.
      * @return result.
@@ -1310,50 +1359,37 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
 
     /**
      * Get sort order.
-     * 
+     *
      * @param order1 sort column.
      * @param order2 asc / desc.
      * @return SortOrder flag.
      */
     public SortOrder getSortOrder(final String order1, final String order2) {
-        if (order1.compareToIgnoreCase("id") == 0
-                && order2.compareToIgnoreCase("desc") == 0) {
+        if (order1.compareToIgnoreCase("id") == 0 && order2.compareToIgnoreCase("desc") == 0) {
             return SortOrder.ID_DESC;
-        } else if (order1.compareToIgnoreCase("id") == 0
-                && order2.compareToIgnoreCase("asc") == 0) {
+        } else if (order1.compareToIgnoreCase("id") == 0 && order2.compareToIgnoreCase("asc") == 0) {
             return SortOrder.ID_ASC;
-        } else if (order1.compareToIgnoreCase("duration") == 0
-                && order2.compareToIgnoreCase("desc") == 0) {
+        } else if (order1.compareToIgnoreCase("duration") == 0 && order2.compareToIgnoreCase("desc") == 0) {
             return SortOrder.DURATION_DESC;
-        } else if (order1.compareToIgnoreCase("duration") == 0
-                && order2.compareToIgnoreCase("asc") == 0) {
+        } else if (order1.compareToIgnoreCase("duration") == 0 && order2.compareToIgnoreCase("asc") == 0) {
             return SortOrder.DURATION_ASC;
-        } else if (order1.compareToIgnoreCase("artist") == 0
-                && order2.compareToIgnoreCase("desc") == 0) {
+        } else if (order1.compareToIgnoreCase("artist") == 0 && order2.compareToIgnoreCase("desc") == 0) {
             return SortOrder.ARTIST_DESC;
-        } else if (order1.compareToIgnoreCase("artist") == 0
-                && order2.compareToIgnoreCase("asc") == 0) {
+        } else if (order1.compareToIgnoreCase("artist") == 0 && order2.compareToIgnoreCase("asc") == 0) {
             return SortOrder.ARTIST_ASC;
-        } else if (order1.compareToIgnoreCase("composer") == 0
-                && order2.compareToIgnoreCase("desc") == 0) {
+        } else if (order1.compareToIgnoreCase("composer") == 0 && order2.compareToIgnoreCase("desc") == 0) {
             return SortOrder.COMPOSER_DESC;
-        } else if (order1.compareToIgnoreCase("composer") == 0
-                && order2.compareToIgnoreCase("asc") == 0) {
+        } else if (order1.compareToIgnoreCase("composer") == 0 && order2.compareToIgnoreCase("asc") == 0) {
             return SortOrder.COMPOSER_ASC;
-        } else if (order1.compareToIgnoreCase("language") == 0
-                && order2.compareToIgnoreCase("desc") == 0) {
+        } else if (order1.compareToIgnoreCase("language") == 0 && order2.compareToIgnoreCase("desc") == 0) {
             return SortOrder.LANGUAGE_DESC;
-        } else if (order1.compareToIgnoreCase("language") == 0
-                && order2.compareToIgnoreCase("asc") == 0) {
+        } else if (order1.compareToIgnoreCase("language") == 0 && order2.compareToIgnoreCase("asc") == 0) {
             return SortOrder.LANGUAGE_ASC;
-        } else if (order1.compareToIgnoreCase("mime") == 0
-                && order2.compareToIgnoreCase("desc") == 0) {
+        } else if (order1.compareToIgnoreCase("mime") == 0 && order2.compareToIgnoreCase("desc") == 0) {
             return SortOrder.MIME_DESC;
-        } else if (order1.compareToIgnoreCase("mime") == 0
-                && order2.compareToIgnoreCase("asc") == 0) {
+        } else if (order1.compareToIgnoreCase("mime") == 0 && order2.compareToIgnoreCase("asc") == 0) {
             return SortOrder.MIME_ASC;
-        } else if (order1.compareToIgnoreCase("title") == 0
-                && order2.compareToIgnoreCase("desc") == 0) {
+        } else if (order1.compareToIgnoreCase("title") == 0 && order2.compareToIgnoreCase("desc") == 0) {
             return SortOrder.TITLE_DESC;
         } else {
             return SortOrder.TITLE_ASC;

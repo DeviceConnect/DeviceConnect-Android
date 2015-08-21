@@ -10,10 +10,11 @@ package org.deviceconnect.android.deviceplugin.host.audio;
 import java.io.File;
 import java.io.IOException;
 
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.activity.PermissionRequestActivity;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.provider.FileManager;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -21,8 +22,12 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
 import android.view.MotionEvent;
@@ -56,6 +61,58 @@ public class AudioRecorder extends Activity {
         mFileMgr = new FileManager(this);
 
         mMediaRecorder = new MediaRecorder();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            final String[] requiredPermissions = new String[] { Manifest.permission.RECORD_AUDIO,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE };
+            PermissionRequestActivity.requestPermissions(this, requiredPermissions, new ResultReceiver(new Handler()) {
+                @Override
+                protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                    String[] permissions = resultData.getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
+                    int[] grantResults = resultData.getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
+
+                    if (permissions == null || permissions.length != requiredPermissions.length || grantResults == null
+                            || grantResults.length != requiredPermissions.length) {
+                        finish();
+                        return;
+                    }
+
+                    int count = requiredPermissions.length;
+                    for (int i = 0; i < permissions.length; ++i) {
+                        if (permissions[i].equals(Manifest.permission.RECORD_AUDIO)
+                                || permissions[i].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                                --count;
+                            } else {
+                                finish();
+                                return;
+                            }
+                        }
+                    }
+
+                    if (count == 0) {
+                        try {
+                            initAudioContext();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            finish();
+                            return;
+                        }
+                    }
+                }
+            });
+        } else {
+            try {
+                initAudioContext();
+            } catch (Exception e) {
+                e.printStackTrace();
+                finish();
+                return;
+            }
+        }
+    }
+
+    private void initAudioContext() throws IOException {
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
@@ -63,24 +120,18 @@ public class AudioRecorder extends Activity {
         Intent intent = getIntent();
         if (intent != null) {
             mFileName = intent.getStringExtra(AudioConst.EXTRA_FINE_NAME);
-        }
-        if (mFileName == null) {
-            finish();
         } else {
+            finish();
+            return;
+        }
+        if (mFileName != null) {
             mFile = new File(mFileMgr.getBasePath(), mFileName);
             mMediaRecorder.setOutputFile(mFile.toString());
-                try {
-                    mMediaRecorder.prepare();
-                } catch (IllegalStateException e) {
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
-                } catch (IOException e) {
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
-                }
+            mMediaRecorder.prepare();
             mMediaRecorder.start();
+        } else {
+            finish();
+            return;
         }
     }
 
@@ -116,6 +167,7 @@ public class AudioRecorder extends Activity {
 
     /**
      * Check the existence of file.
+     * 
      * @return true is exist
      */
     private boolean checkAudioFile() {

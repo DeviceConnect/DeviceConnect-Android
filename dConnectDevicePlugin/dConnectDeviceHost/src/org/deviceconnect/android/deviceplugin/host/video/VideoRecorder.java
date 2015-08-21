@@ -8,12 +8,15 @@
 package org.deviceconnect.android.deviceplugin.host.video;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.deviceconnect.android.activity.PermissionRequestActivity;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.provider.FileManager;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -21,10 +24,15 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
 import android.view.KeyEvent;
@@ -43,7 +51,7 @@ import android.widget.Button;
 public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
 
     /** MediaRecorder. */
-    private MediaRecorder mRecorder;
+    private MediaRecorder mMediaRecorder;
 
     /** SurfaceHolder. */
     private SurfaceHolder mHolder;
@@ -62,7 +70,8 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
 
     /** Ready flag. */
     private Boolean mIsReady = false;
-    
+    private boolean mIsInitialized = false;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,8 +82,6 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surface_view);
         mHolder = surfaceView.getHolder();
         mHolder.addCallback(this);
-
-        mFileMgr = new FileManager(this);
 
         Button stopBtn = (Button) findViewById(R.id.btn_stop);
         stopBtn.setOnClickListener(new OnClickListener() {
@@ -94,9 +101,88 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         filter.addAction(VideoConst.SEND_HOSTDP_TO_VIDEO);
         registerReceiver(mMyReceiver, filter);
 
-        mCamera = getCameraInstance();
-        mRecorder = new MediaRecorder();
+        if (!mIsInitialized) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                final String[] requiredPermissions = new String[] { Manifest.permission.CAMERA,
+                        Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE };
+                final List<String> missingPermissions = new ArrayList<>();
+                for (String requiredPermission : requiredPermissions) {
+                    if (checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
+                        missingPermissions.add(requiredPermission);
+                    }
+                }
+                if (missingPermissions.size() != 0) {
+                    PermissionRequestActivity.requestPermissions(this,
+                            missingPermissions.toArray(new String[missingPermissions.size()]),
+                            new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                                @Override
+                                protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                                    String[] permissions = resultData
+                                            .getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
+                                    int[] grantResults = resultData
+                                            .getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
 
+                                    if (permissions == null || permissions.length != missingPermissions.size()
+                                            || grantResults == null
+                                            || grantResults.length != missingPermissions.size()) {
+                                        finish();
+                                        return;
+                                    }
+
+                                    int count = missingPermissions.size();
+                                    for (String requiredPermission : missingPermissions) {
+                                        for (int i = 0; i < permissions.length; ++i) {
+                                            if (permissions[i].equals(requiredPermission)) {
+                                                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                                                    --count;
+                                                } else {
+                                                    finish();
+                                                    return;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (count == 0) {
+                                        try {
+                                            initVideoContext();
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            finish();
+                                            return;
+                                        }
+                                    } else {
+                                        finish();
+                                        return;
+                                    }
+                                }
+                            });
+                } else {
+                    try {
+                        initVideoContext();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        finish();
+                        return;
+                    }
+                }
+            } else {
+                try {
+                    initVideoContext();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    finish();
+                    return;
+                }
+            }
+        }
+    }
+
+    private void initVideoContext() {
+        mFileMgr = new FileManager(this);
+
+        mMediaRecorder = new MediaRecorder();
+        mCamera = getCameraInstance();
         mCamera.unlock();
 
         Intent intent = getIntent();
@@ -104,17 +190,19 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
             mFileName = intent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
         }
         if (mFileName != null) {
-            mRecorder.setCamera(mCamera);
+            mMediaRecorder.setCamera(mCamera);
             mFile = new File(mFileMgr.getBasePath(), mFileName);
-            mRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-            mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-            mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
-            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-            mRecorder.setOutputFile(mFile.toString());
+            mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+            mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+            mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
+            mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mMediaRecorder.setOutputFile(mFile.toString());
         } else {
             finish();
         }
+
+        mIsInitialized = true;
     }
 
     @Override
@@ -123,6 +211,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
 
         releaseMediaRecorder();
         releaseCamera();
+        mIsInitialized = false;
 
         if (mHolder != null) {
             mHolder = null;
@@ -148,6 +237,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
 
     /**
      * Check the existence of file.
+     * 
      * @return true is exist
      */
     private boolean checkVideoFile() {
@@ -158,13 +248,13 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
      * MediaRecorderを解放.
      */
     private void releaseMediaRecorder() {
-        if (mRecorder != null) {
+        if (mMediaRecorder != null) {
             if (mIsReady) {
-                mRecorder.stop();
+                mMediaRecorder.stop();
             }
-            mRecorder.reset();
-            mRecorder.release();
-            mRecorder = null;
+            mMediaRecorder.reset();
+            mMediaRecorder.release();
+            mMediaRecorder = null;
             mIsReady = false;
         }
     }
@@ -175,9 +265,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
      * @return cameraのインスタンス
      */
     private synchronized Camera getCameraInstance() {
-        Camera c = null;
-        c = Camera.open();
-        return c;
+        return Camera.open();
     }
 
     /**
@@ -197,21 +285,24 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceChanged(final SurfaceHolder holder, final int format, final int width, final int height) {
-        mHolder = holder;
-        mRecorder.setPreviewDisplay(mHolder.getSurface());
-        try {
-            mRecorder.prepare();
-        } catch (IllegalStateException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
+        if (mIsInitialized) {
+            try {
+                mHolder = holder;
+
+                if (mIsReady) {
+                    mMediaRecorder.setPreviewDisplay(null);
+                }
+
+                mMediaRecorder.setPreviewDisplay(mHolder.getSurface());
+                mMediaRecorder.prepare();
+                mMediaRecorder.start();
+                mIsReady = true;
+            } catch (Throwable throwable) {
+                if (BuildConfig.DEBUG) {
+                    throwable.printStackTrace();
+                }
             }
         }
-        mRecorder.start();
-        mIsReady = true;
     }
 
     @Override

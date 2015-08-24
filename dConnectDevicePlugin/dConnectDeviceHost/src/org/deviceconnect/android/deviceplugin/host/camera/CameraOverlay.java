@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.host.camera;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -370,27 +369,34 @@ public class CameraOverlay implements Camera.PreviewCallback {
         mPreview.takePicture(new Camera.PictureCallback() {
             @Override
             public void onPictureTaken(final byte[] data, final Camera camera) {
-                String fileName = createNewFileName();
-                String pictureUri = null;
-                try {
-                    pictureUri = mFileMgr.saveFile(fileName, data);
-                    String filePath = mFileMgr.getBasePath().getAbsolutePath() + "/" + fileName;
-                    if (listener != null) {
-                        listener.onTakenPhoto(pictureUri, filePath);
+                mFileMgr.saveFile(createNewFileName(), data, new FileManager.SaveFileCallback() {
+                    @Override
+                    public void onSuccess(@NonNull final String uri) {
+                        String filePath = mFileMgr.getBasePath().getAbsolutePath() + "/" + uri;
+                        if (listener != null) {
+                            listener.onTakenPhoto(uri, filePath);
+                        }
+                        common();
                     }
-                } catch (IOException e) {
-                    if (listener != null) {
-                        listener.onFailedTakePhoto();
-                    }
-                }
 
-                synchronized (CameraOverlay.this) {
-                    if (mFinishFlag) {
-                        hide();
-                    } else if (mCamera != null) {
-                        mCamera.startPreview();
+                    @Override
+                    public void onFail(@NonNull final Throwable throwable) {
+                        if (listener != null) {
+                            listener.onFailedTakePhoto();
+                        }
+                        common();
                     }
-                }
+
+                    private void common() {
+                        synchronized (CameraOverlay.this) {
+                            if (mFinishFlag) {
+                                hide();
+                            } else if (mCamera != null) {
+                                mCamera.startPreview();
+                            }
+                        }
+                    }
+                });
             }
         });
     }

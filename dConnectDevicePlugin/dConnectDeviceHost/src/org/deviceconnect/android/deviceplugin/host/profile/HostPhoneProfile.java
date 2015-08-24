@@ -6,12 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.deviceconnect.android.activity.PermissionRequestActivity;
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -22,14 +20,12 @@ import org.deviceconnect.message.DConnectMessage;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.ResultReceiver;
+import android.support.annotation.NonNull;
 
 /**
  * Phoneプロファイル.
@@ -53,62 +49,23 @@ public class HostPhoneProfile extends PhoneProfile {
         } else {
             if (phoneNumber != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    final String[] requiredPermissions = new String[] { Manifest.permission.CALL_PHONE };
-                    final List<String> missingPermissions = new ArrayList<>();
-                    for (String requiredPermission : requiredPermissions) {
-                        if (getContext().checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
-                            missingPermissions.add(requiredPermission);
-                        }
-                    }
-                    if (missingPermissions.size() != 0) {
-                        PermissionRequestActivity.requestPermissions(getContext(),
-                                missingPermissions.toArray(new String[missingPermissions.size()]),
-                                new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                                    @Override
-                                    protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                                        String[] permissions = resultData
-                                                .getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
-                                        int[] grantResults = resultData
-                                                .getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
+                    PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
+                            new String[] { Manifest.permission.CALL_PHONE },
+                            new PermissionUtility.PermissionRequestCallback() {
+                                @Override
+                                public void onSuccess() {
+                                    onPostCallInternal(request, response, phoneNumber);
+                                    getContext().sendBroadcast(response);
+                                }
 
-                                        if (permissions == null || permissions.length != missingPermissions.size()
-                                                || grantResults == null
-                                                || grantResults.length != missingPermissions.size()) {
-                                            MessageUtils.setIllegalServerStateError(response,
-                                                    "CALL_PHONE permission not granted.");
-                                            getContext().sendBroadcast(response);
-                                            return;
-                                        }
-
-                                        int count = missingPermissions.size();
-                                        for (String requiredPermission : missingPermissions) {
-                                            for (int i = 0; i < permissions.length; ++i) {
-                                                if (permissions[i].equals(requiredPermission)) {
-                                                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                                                        --count;
-                                                    } else {
-                                                        MessageUtils.setIllegalServerStateError(response,
-                                                                "CALL_PHONE permission not granted.");
-                                                        getContext().sendBroadcast(response);
-                                                        return;
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        if (count == 0) {
-                                            onPostCallInternal(request, response, phoneNumber);
-                                            getContext().sendBroadcast(response);
-                                        } else {
-                                            MessageUtils.setIllegalServerStateError(response,
-                                                    "CALL_PHONE permission not granted.");
-                                            getContext().sendBroadcast(response);
-                                            return;
-                                        }
-                                    }
-                                });
-                        return false;
-                    }
+                                @Override
+                                public void onFail(@NonNull String deniedPermission) {
+                                    MessageUtils.setIllegalServerStateError(response,
+                                            "CALL_PHONE permission not granted.");
+                                    getContext().sendBroadcast(response);
+                                }
+                            });
+                    return false;
                 }
                 onPostCallInternal(request, response, phoneNumber);
             } else {

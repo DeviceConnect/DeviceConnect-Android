@@ -15,18 +15,15 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.deviceconnect.android.activity.PermissionRequestActivity;
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.profile.FileDescriptorProfileConstants.Flag;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 
 /**
@@ -163,56 +160,19 @@ public class FileDataManager {
             @NonNull final ReadFileCallback callback) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Context context = mFileManager.getContext();
+            PermissionUtility.requestPermissions(context, new Handler(Looper.getMainLooper()),
+                    new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            readFileInternal(file, position, length, callback);
+                        }
 
-            final String[] requiredPermissions = new String[] { Manifest.permission.READ_EXTERNAL_STORAGE };
-            final List<String> missingPermissions = new ArrayList<>();
-            for (String requiredPermission : requiredPermissions) {
-                if (context.checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
-                    missingPermissions.add(requiredPermission);
-                }
-            }
-            if (missingPermissions.size() != 0) {
-                PermissionRequestActivity.requestPermissions(context,
-                        missingPermissions.toArray(new String[missingPermissions.size()]),
-                        new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                            @Override
-                            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                                String[] permissions = resultData
-                                        .getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
-                                int[] grantResults = resultData
-                                        .getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
-
-                                if (permissions == null || permissions.length != missingPermissions.size()
-                                        || grantResults == null || grantResults.length != missingPermissions.size()) {
-                                    callback.onFail();
-                                    return;
-                                }
-
-                                int count = missingPermissions.size();
-                                for (String requiredPermission : missingPermissions) {
-                                    for (int i = 0; i < permissions.length; ++i) {
-                                        if (permissions[i].equals(requiredPermission)) {
-                                            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                                                --count;
-                                            } else {
-                                                callback.onFail();
-                                                return;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if (count == 0) {
-                                    readFileInternal(file, position, length, callback);
-                                } else {
-                                    callback.onFail();
-                                    return;
-                                }
-                            }
-                        });
-            } else {
-                readFileInternal(file, position, length, callback);
-            }
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
+                            callback.onFail();
+                        }
+                    });
         } else {
             readFileInternal(file, position, length, callback);
         }
@@ -272,56 +232,19 @@ public class FileDataManager {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Context context = mFileManager.getContext();
+            PermissionUtility.requestPermissions(context, new Handler(Looper.getMainLooper()),
+                    new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            writeFileInternal(file, data, pos, callback);
+                        }
 
-            final String[] requiredPermissions = new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE };
-            final List<String> missingPermissions = new ArrayList<>();
-            for (String requiredPermission : requiredPermissions) {
-                if (context.checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
-                    missingPermissions.add(requiredPermission);
-                }
-            }
-            if (missingPermissions.size() != 0) {
-                PermissionRequestActivity.requestPermissions(context,
-                        missingPermissions.toArray(new String[missingPermissions.size()]),
-                        new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                            @Override
-                            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                                String[] permissions = resultData
-                                        .getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
-                                int[] grantResults = resultData
-                                        .getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
-
-                                if (permissions == null || permissions.length != missingPermissions.size()
-                                        || grantResults == null || grantResults.length != missingPermissions.size()) {
-                                    callback.onFail();
-                                    return;
-                                }
-
-                                int count = missingPermissions.size();
-                                for (String requiredPermission : missingPermissions) {
-                                    for (int i = 0; i < permissions.length; ++i) {
-                                        if (permissions[i].equals(requiredPermission)) {
-                                            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                                                --count;
-                                            } else {
-                                                callback.onFail();
-                                                return;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if (count == 0) {
-                                    writeFileInternal(file, data, pos, callback);
-                                } else {
-                                    callback.onFail();
-                                    return;
-                                }
-                            }
-                        });
-            } else {
-                writeFileInternal(file, data, pos, callback);
-            }
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
+                            callback.onFail();
+                        }
+                    });
         } else {
             writeFileInternal(file, data, pos, callback);
         }

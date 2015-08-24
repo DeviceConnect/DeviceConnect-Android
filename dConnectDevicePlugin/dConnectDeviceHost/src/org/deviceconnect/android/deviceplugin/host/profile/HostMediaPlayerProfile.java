@@ -12,7 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-import org.deviceconnect.android.activity.PermissionRequestActivity;
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.event.EventError;
@@ -27,7 +27,6 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -35,9 +34,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.ResultReceiver;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
@@ -373,61 +372,23 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
     private boolean getMediaList(final Intent response, final String query, final String mimeType,
             final String[] orders, final Integer offset, final Integer limit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            final String[] requiredPermissions = new String[] { Manifest.permission.READ_EXTERNAL_STORAGE };
-            final List<String> missingPermissions = new ArrayList<>();
-            for (String requiredPermission : requiredPermissions) {
-                if (getContext().checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
-                    missingPermissions.add(requiredPermission);
-                }
-            }
-            if (missingPermissions.size() != 0) {
-                PermissionRequestActivity.requestPermissions(getContext(),
-                        missingPermissions.toArray(new String[missingPermissions.size()]),
-                        new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                            @Override
-                            protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                                String[] permissions = resultData
-                                        .getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
-                                int[] grantResults = resultData
-                                        .getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
+            PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
+                    new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            getMediaListInternal(response, query, mimeType, orders, offset, limit);
+                            getContext().sendBroadcast(response);
+                        }
 
-                                if (permissions == null || permissions.length != missingPermissions.size()
-                                        || grantResults == null || grantResults.length != missingPermissions.size()) {
-                                    MessageUtils.setIllegalServerStateError(response,
-                                            "READ_EXTERNAL_STORAGE permission not granted.");
-                                    getContext().sendBroadcast(response);
-                                    return;
-                                }
-
-                                int count = missingPermissions.size();
-                                for (String requiredPermission : missingPermissions) {
-                                    for (int i = 0; i < permissions.length; ++i) {
-                                        if (permissions[i].equals(requiredPermission)) {
-                                            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                                                --count;
-                                            } else {
-                                                MessageUtils.setIllegalServerStateError(response,
-                                                        "READ_EXTERNAL_STORAGE permission not granted.");
-                                                getContext().sendBroadcast(response);
-                                                return;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if (count == 0) {
-                                    getMediaListInternal(response, query, mimeType, orders, offset, limit);
-                                    getContext().sendBroadcast(response);
-                                } else {
-                                    MessageUtils.setIllegalServerStateError(response,
-                                            "READ_EXTERNAL_STORAGE permission not granted.");
-                                    getContext().sendBroadcast(response);
-                                    return;
-                                }
-                            }
-                        });
-                return false;
-            }
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
+                            MessageUtils.setIllegalServerStateError(response,
+                                    "READ_EXTERNAL_STORAGE permission not granted.");
+                            getContext().sendBroadcast(response);
+                        }
+                    });
+            return false;
         }
         getMediaListInternal(response, query, mimeType, orders, offset, limit);
         return true;

@@ -14,7 +14,7 @@ import java.util.Locale;
 import java.util.concurrent.Executors;
 
 import org.deviceconnect.android.activity.IntentHandlerActivity;
-import org.deviceconnect.android.activity.PermissionRequestActivity;
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -24,7 +24,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
@@ -294,37 +293,18 @@ public class CameraOverlay implements Camera.PreviewCallback {
     }
 
     private void checkCameraCapability(@NonNull final ResultReceiver resultReceiver) {
-        if (mContext.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            resultReceiver.send(Activity.RESULT_OK, null);
-        } else {
-            PermissionRequestActivity.requestPermissions(mContext, new String[] { Manifest.permission.CAMERA },
-                    new ResultReceiver(new Handler()) {
-                        @Override
-                        protected void onReceiveResult(int resultCode, Bundle resultData) {
-                            String[] permissions = resultData
-                                    .getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
-                            int[] grantResults = resultData.getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
+        PermissionUtility.requestPermissions(mContext, new Handler(), new String[] { Manifest.permission.CAMERA },
+                new PermissionUtility.PermissionRequestCallback() {
+                    @Override
+                    public void onSuccess() {
+                        resultReceiver.send(Activity.RESULT_OK, null);
+                    }
 
-                            if (permissions == null || grantResults == null) {
-                                resultReceiver.send(Activity.RESULT_CANCELED, null);
-                                return;
-                            }
-
-                            for (int i = 0; i < permissions.length; ++i) {
-                                if (permissions[i].equals(Manifest.permission.CAMERA)) {
-                                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                                        resultReceiver.send(Activity.RESULT_OK, null);
-                                        return;
-                                    } else {
-                                        resultReceiver.send(Activity.RESULT_CANCELED, null);
-                                        return;
-                                    }
-                                }
-                            }
-                            resultReceiver.send(Activity.RESULT_CANCELED, null);
-                        }
-                    });
-        }
+                    @Override
+                    public void onFail(@NonNull String deniedPermission) {
+                        resultReceiver.send(Activity.RESULT_CANCELED, null);
+                    }
+                });
     }
 
     /**

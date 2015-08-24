@@ -6,6 +6,17 @@
  */
 package org.deviceconnect.android.provider;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
+
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
+
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -15,23 +26,10 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ProviderInfo;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
-
-import org.deviceconnect.android.activity.PermissionRequestActivity;
-import org.deviceconnect.android.provider.FileLocationParser.FileLocation;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Logger;
 
 /**
  * ファイルを管理するためのクラス.
@@ -63,7 +61,7 @@ public class FileManager {
 
     /** 作業用スレッド */
     private HandlerThread mWorkerThread;
-    
+
     /** ハンドラー */
     private Handler mHandler;
 
@@ -148,8 +146,8 @@ public class FileManager {
     /**
      * ファイルを保存して、アクセスするためのContentURIを返却する.
      * 
-     * ここで、保存すると返り値にURIが返ってくる。 このURIをFile Profileのuriの値としてDevice Connect Managerに
-     * 渡す事で、ファイルのやり取りができるようになる。
+     * ここで、保存すると返り値にURIが返ってくる。 このURIをFile Profileのuriの値としてDevice Connect
+     * Managerに 渡す事で、ファイルのやり取りができるようになる。
      * 
      * TODO 既に同じ名前のファイルが存在する場合の処理を考慮すること。
      * 
@@ -234,43 +232,19 @@ public class FileManager {
 
     private void checkPermission(@NonNull final Callback callback) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (mContext.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                callback.onSuccess();
-            } else {
-                PermissionRequestActivity.requestPermissions(mContext
-                        , new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}
-                        , new ResultReceiver(mHandler) {
-                    @Override
-                    protected void onReceiveResult(int resultCode, Bundle resultData) {
-                        try {
-                            String[] permissions =
-                                    resultData.getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
-                            int[] grantResults =
-                                    resultData.getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
+            PermissionUtility.requestPermissions(mContext, mHandler,
+                    new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            callback.onSuccess();
+                        }
 
-                            if (permissions == null || grantResults == null) {
-                                callback.onFail();
-                                return;
-                            }
-
-                            for (int i = 0; i < permissions.length; ++i) {
-                                if (permissions[i].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                                        callback.onSuccess();
-                                    } else {
-                                        callback.onFail();
-                                    }
-                                    return;
-                                }
-                            }
-                            callback.onFail();
-                        } catch (Throwable e) {
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
                             callback.onFail();
                         }
-                    }
-                });
-            }
+                    });
         } else {
             callback.onSuccess();
         }
@@ -279,8 +253,8 @@ public class FileManager {
     /**
      * ファイルを保存する.
      * 
-     * ここで、保存すると返り値にURIが返ってくる。 このURIをFile Profileのuriの値としてDevice Connect Managerに
-     * 渡す事で、ファイルのやり取りができるようになる。
+     * ここで、保存すると返り値にURIが返ってくる。 このURIをFile Profileのuriの値としてDevice Connect
+     * Managerに 渡す事で、ファイルのやり取りができるようになる。
      * 
      * @param filename ファイル名
      * @param in ストリーム

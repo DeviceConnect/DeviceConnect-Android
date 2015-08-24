@@ -8,10 +8,8 @@
 package org.deviceconnect.android.deviceplugin.host.video;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.deviceconnect.android.activity.PermissionRequestActivity;
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.provider.FileManager;
@@ -24,7 +22,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaRecorder;
@@ -32,9 +29,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
+import android.support.annotation.NonNull;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -103,69 +100,26 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
 
         if (!mIsInitialized) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                final String[] requiredPermissions = new String[] { Manifest.permission.CAMERA,
-                        Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE };
-                final List<String> missingPermissions = new ArrayList<>();
-                for (String requiredPermission : requiredPermissions) {
-                    if (checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED) {
-                        missingPermissions.add(requiredPermission);
-                    }
-                }
-                if (missingPermissions.size() != 0) {
-                    PermissionRequestActivity.requestPermissions(this,
-                            missingPermissions.toArray(new String[missingPermissions.size()]),
-                            new ResultReceiver(new Handler(Looper.getMainLooper())) {
-                                @Override
-                                protected void onReceiveResult(final int resultCode, final Bundle resultData) {
-                                    String[] permissions = resultData
-                                            .getStringArray(PermissionRequestActivity.EXTRA_PERMISSIONS);
-                                    int[] grantResults = resultData
-                                            .getIntArray(PermissionRequestActivity.EXTRA_GRANT_RESULTS);
-
-                                    if (permissions == null || permissions.length != missingPermissions.size()
-                                            || grantResults == null
-                                            || grantResults.length != missingPermissions.size()) {
-                                        finish();
-                                        return;
-                                    }
-
-                                    int count = missingPermissions.size();
-                                    for (String requiredPermission : missingPermissions) {
-                                        for (int i = 0; i < permissions.length; ++i) {
-                                            if (permissions[i].equals(requiredPermission)) {
-                                                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                                                    --count;
-                                                } else {
-                                                    finish();
-                                                    return;
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    if (count == 0) {
-                                        try {
-                                            initVideoContext();
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                            finish();
-                                            return;
-                                        }
-                                    } else {
-                                        finish();
-                                        return;
-                                    }
+                PermissionUtility.requestPermissions(this, new Handler(Looper.getMainLooper()),
+                        new String[] { Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO,
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                        new PermissionUtility.PermissionRequestCallback() {
+                            @Override
+                            public void onSuccess() {
+                                try {
+                                    initVideoContext();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    finish();
+                                    return;
                                 }
-                            });
-                } else {
-                    try {
-                        initVideoContext();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        finish();
-                        return;
-                    }
-                }
+                            }
+
+                            @Override
+                            public void onFail(@NonNull String deniedPermission) {
+                                finish();
+                            }
+                        });
             } else {
                 try {
                     initVideoContext();

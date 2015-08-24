@@ -19,12 +19,17 @@ import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
 public class RoiDeliveryContext implements SensorEventListener  {
 
@@ -32,7 +37,9 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
     private static final float NS2S = 1.0f / 1000000000.0f;
 
-    private final float[] mDeltaRotationVector = new float[4];
+    private static final int MATRIX_SIZE = 16;
+
+    private static final long EXPIRE_INTERVAL = 10 * 1000;
 
     private long mLastEventTimestamp;
 
@@ -41,6 +48,10 @@ public class RoiDeliveryContext implements SensorEventListener  {
     private final OmnidirectionalImage mSource;
 
     private final SensorManager mSensorMgr;
+
+    private Timer mExpireTimer;
+
+    private Timer mDeliveryTimer;
 
     private PixelBuffer mPixelBuffer;
 
@@ -52,7 +63,7 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
     private Param mCurrentParam = DEFAULT_PARAM;
 
-    private Uri mUri;
+    private String mUri;
 
     private String mSegment;
 
@@ -61,6 +72,20 @@ public class RoiDeliveryContext implements SensorEventListener  {
     private final ExecutorService mExecutor = Executors.newFixedThreadPool(1);
 
     private ByteArrayOutputStream mBaos;
+
+    private OnChangeListener mListener;
+
+    private boolean mIsMagSensor;
+
+    private boolean mIsAccSensor;
+
+    private float[] mMagneticValues;
+
+    private float[] mAccelerometerValues;
+
+    private Quaternion mCurrentRotation = new Quaternion(1, new Vector3D(0, 0, 0));
+
+    private Logger mLogger = Logger.getLogger("theta.dplugin");
 
     public RoiDeliveryContext(final Context context, final OmnidirectionalImage source) {
         mSource = source;
@@ -77,13 +102,13 @@ public class RoiDeliveryContext implements SensorEventListener  {
         return mRoi;
     }
 
-    public Uri getUri() {
+    public String getUri() {
         return mUri;
     }
 
-    public void setUri(final Uri uri) {
-        mUri = uri;
-        mSegment = uri.getLastPathSegment();
+    public void setUri(final String uriString) {
+        mUri = uriString;
+        mSegment = Uri.parse(uriString).getLastPathSegment();
     }
 
     public Param getCurrentParam() {
@@ -91,12 +116,18 @@ public class RoiDeliveryContext implements SensorEventListener  {
     }
 
     public void destroy() {
-        if (mPixelBuffer != null) {
-            mPixelBuffer.destroy();
-        }
-        if (mSensorMgr != null) {
-            mSensorMgr.unregisterListener(this);
-        }
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                stopDeliveryTimer();
+                if (mPixelBuffer != null) {
+                    mPixelBuffer.destroy();
+                }
+                if (mSensorMgr != null) {
+                    mSensorMgr.unregisterListener(RoiDeliveryContext.this);
+                }
+            }
+        });
     }
 
     public byte[] renderWithBlocking()  {
@@ -180,47 +211,74 @@ public class RoiDeliveryContext implements SensorEventListener  {
         });
     }
 
+    private int radianToDegree(float rad){
+        return (int) Math.floor( Math.toDegrees(rad) ) ;
+    }
+
     @Override
     public void onSensorChanged(final SensorEvent event) {
-        if (event.sensor.getType() != Sensor.TYPE_GYROSCOPE) {
-            return;
-        }
-        if (!mCurrentParam.isVrMode()) {
-            return;
+        if (BuildConfig.DEBUG) {
+            mLogger.info("onSensorChanged");
         }
 
         if (mLastEventTimestamp != 0) {
-            final float dT = (event.timestamp - mLastEventTimestamp) * NS2S;
-            mEventInterval += dT;
+            float EPSILON = 0.000000001f;
+            float[] vGyroscope = new float[3];
+            float[] deltaVGyroscope = new float[4];
+            Quaternion qGyroscopeDelta;
+            float dT = (event.timestamp - mLastEventTimestamp) * NS2S;
 
-            float axisX = event.values[0];
-            float axisY = event.values[1];
-            float axisZ = event.values[2];
-            float omegaMagnitude = (float) Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
+            System.arraycopy(event.values, 0, vGyroscope, 0, vGyroscope.length);
+            float tmp = vGyroscope[2];
+            vGyroscope[2] = vGyroscope[0] * -1;
+            vGyroscope[0] = tmp;
 
-            if (omegaMagnitude > 0) {
-                axisX /= omegaMagnitude;
-                axisY /= omegaMagnitude;
-                axisZ /= omegaMagnitude;
+            float magnitude = (float) Math.sqrt(Math.pow(vGyroscope[0], 2)
+                + Math.pow(vGyroscope[1], 2) + Math.pow(vGyroscope[2], 2));
+            if (magnitude > EPSILON)
+            {
+                vGyroscope[0] /= magnitude;
+                vGyroscope[1] /= magnitude;
+                vGyroscope[2] /= magnitude;
             }
 
-            float thetaOverTwo = omegaMagnitude * dT / 2.0f;
+            float thetaOverTwo = magnitude * dT / 2.0f;
             float sinThetaOverTwo = (float) Math.sin(thetaOverTwo);
             float cosThetaOverTwo = (float) Math.cos(thetaOverTwo);
-            mDeltaRotationVector[0] = sinThetaOverTwo * axisX;
-            mDeltaRotationVector[1] = sinThetaOverTwo * axisY;
-            mDeltaRotationVector[2] = sinThetaOverTwo * axisZ;
-            mDeltaRotationVector[3] = cosThetaOverTwo;
 
-            Quaternion q = new Quaternion(
-                mDeltaRotationVector[3],
+            deltaVGyroscope[0] = sinThetaOverTwo * vGyroscope[0];
+            deltaVGyroscope[1] = sinThetaOverTwo * vGyroscope[1];
+            deltaVGyroscope[2] = sinThetaOverTwo * vGyroscope[2];
+            deltaVGyroscope[3] = cosThetaOverTwo;
+
+            qGyroscopeDelta = new Quaternion(deltaVGyroscope[3],
                 new Vector3D(
-                    mDeltaRotationVector[2] * -1,
-                    mDeltaRotationVector[1],
-                    mDeltaRotationVector[0] * -1
-                )
-            );
-            mRenderer.rotateCamera(q);
+                    deltaVGyroscope[0],
+                    deltaVGyroscope[1],
+                    deltaVGyroscope[2]
+                ));
+            mCurrentRotation = qGyroscopeDelta.multiply(mCurrentRotation);
+
+            float[] qvOrientation = new float[4];
+            qvOrientation[0] = mCurrentRotation.imaginary().x();
+            qvOrientation[1] = mCurrentRotation.imaginary().y();
+            qvOrientation[2] = mCurrentRotation.imaginary().z();
+            qvOrientation[3] = mCurrentRotation.real();
+
+            float[] rmGyroscope = new float[9];
+            SensorManager.getRotationMatrixFromVector(rmGyroscope,
+                qvOrientation);
+
+            float[] vOrientation = new float[3];
+            SensorManager.getOrientation(rmGyroscope, vOrientation);
+
+
+            SphereRenderer.Camera currentCamera = mRenderer.getCamera();
+            SphereRenderer.CameraBuilder newCamera = new SphereRenderer.CameraBuilder(currentCamera);
+            newCamera.rotate(mCurrentRotation);
+            mRenderer.setCamera(newCamera.create());
+
+            mEventInterval += dT;
             if (mEventInterval >= 0.1f) {
                 mEventInterval = 0;
                 render();
@@ -235,28 +293,92 @@ public class RoiDeliveryContext implements SensorEventListener  {
     }
 
     private boolean startVrMode() {
-        List<Sensor> sensors = mSensorMgr.getSensorList(Sensor.TYPE_GYROSCOPE);
-        if (sensors.size() > 0) {
-            Sensor sensor = sensors.get(0);
-            mSensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_UI);
-            return true;
-        } else {
+        // Reset current rotation.
+        mCurrentRotation = new Quaternion(1, new Vector3D(0, 0, 0));
+
+        List<Sensor> sensors = mSensorMgr.getSensorList(Sensor.TYPE_ALL);
+        if (sensors.size() == 0) {
+            mLogger.warning("Failed to start VR mode: any sensor is NOT found.");
             return false;
         }
+        for (Sensor sensor : sensors) {
+            if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                mLogger.info("Started VR mode: GYROSCOPE sensor is found.");
+                mSensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+                return true;
+            }
+        }
+        mLogger.warning("Failed to start VR mode: GYROSCOPE sensor is NOT found.");
+        return false;
     }
 
     private void stopVrMode() {
         mSensorMgr.unregisterListener(this);
     }
 
-    private OnChangeListener mListener;
+    public void startExpireTimer() {
+        if (mExpireTimer != null) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        Date expireTime = new Date(now + EXPIRE_INTERVAL);
+        mExpireTimer = new Timer();
+        mExpireTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                mExpireTimer.cancel();
+                mExpireTimer = null;
+                if (mListener != null) {
+                    mListener.onExpire(RoiDeliveryContext.this);
+                }
+            }
+        }, expireTime);
+    }
+
+    public void stopExpireTimer() {
+        if (mExpireTimer != null) {
+            mExpireTimer.cancel();
+            mExpireTimer = null;
+        }
+    }
+
+    public void restartExpireTimer() {
+        stopExpireTimer();
+        startExpireTimer();
+    }
+
+    public void startDeliveryTimer() {
+        if (mDeliveryTimer != null) {
+            return;
+        }
+        mDeliveryTimer = new Timer();
+        mDeliveryTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (mListener != null) {
+                    mListener.onUpdate(RoiDeliveryContext.this, getRoi());
+                }
+            }
+        }, 250, 1000);
+    }
+
+    public void stopDeliveryTimer() {
+        if (mDeliveryTimer != null) {
+            mDeliveryTimer.cancel();
+            mDeliveryTimer = null;
+        }
+    }
 
     public void setOnChangeListener(final OnChangeListener listener) {
         mListener = listener;
     }
 
     public static interface OnChangeListener {
-        void onUpdate(String segment, byte[] roi);
+
+        void onUpdate(RoiDeliveryContext roiContext, byte[] roi);
+
+        void onExpire(RoiDeliveryContext roiContext);
+
     }
 
     public static class Param {
@@ -382,19 +504,11 @@ public class RoiDeliveryContext implements SensorEventListener  {
         }
     }
 
-    private void log(final String message, final SphereRenderer.Camera camera) {
-        Vector3D p = camera.getPosition();
-        Vector3D f = camera.getFrontDirection();
-        Log.d("AAA", message + ": pos=(" + p.x() + ", " + p.y() + ", " + p.z() + ") " +
-            "front=(" + f.x() + ", " + f.y() + ", " + f.z() + ")");
-    }
-
     private class RenderingTask implements Callable<byte[]> {
 
         @Override
         public byte[] call() throws Exception {
             int width = mCurrentParam.getImageWidth();
-            int height = mCurrentParam.getImageHeight();
 
             Bitmap result;
             if (mCurrentParam.isStereoMode()) {
@@ -421,7 +535,7 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
             mRoi = roi;
             if (mListener != null) {
-                mListener.onUpdate(mSegment, roi);
+                mListener.onUpdate(RoiDeliveryContext.this, roi);
             }
             return roi;
         }

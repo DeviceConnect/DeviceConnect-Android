@@ -12,6 +12,7 @@ import org.deviceconnect.android.deviceplugin.theta.opengl.model.UVSphere;
 
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
+import org.restlet.representation.StringRepresentation;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -96,7 +97,6 @@ public class SphereRenderer implements Renderer {
 
         if (mTextureUpdate && null != mTexture && !mTexture.isRecycled()) {
             loadTexture(mTexture);
-            //mTexture.recycle();
             mTextureUpdate = false;
         }
 
@@ -245,18 +245,13 @@ public class SphereRenderer implements Renderer {
         mCamera = camera;
     }
 
-    public void rotateCamera(final Quaternion q) {
-        CameraBuilder builder = new CameraBuilder(mCamera);
-        builder.rotate(q);
-        mCamera = builder.create();
-    }
-
     public static class CameraBuilder {
         private float mFovDegree;
         private Vector3D mPosition;
         private Vector3D mFrontDirection;
         private Vector3D mUpperDirection;
         private Vector3D mRightDirection;
+        private Quaternion mAttitude;
 
         public CameraBuilder(final Camera camera) {
             mFovDegree = camera.mFovDegree;
@@ -264,6 +259,9 @@ public class SphereRenderer implements Renderer {
             mFrontDirection = new Vector3D(camera.mFrontDirection);
             mUpperDirection = new Vector3D(camera.mUpperDirection);
             mRightDirection = new Vector3D(camera.mRightDirection);
+            if (camera.mAttitude != null) {
+                mAttitude = new Quaternion(camera.mAttitude);
+            }
         }
 
         public CameraBuilder() {
@@ -274,7 +272,8 @@ public class SphereRenderer implements Renderer {
             Camera camera = new Camera(mFovDegree, mPosition,
                 mFrontDirection,
                 mUpperDirection,
-                mRightDirection);
+                mRightDirection,
+                mAttitude);
             return camera;
         }
 
@@ -320,9 +319,9 @@ public class SphereRenderer implements Renderer {
         }
 
         public void rotate(final Quaternion q) {
-            mFrontDirection = rotate(mFrontDirection, q);
-            mUpperDirection = rotate(mUpperDirection, q);
-            mRightDirection = rotate(mRightDirection, q);
+            mFrontDirection = rotate(new Vector3D(1, 0, 0), q);
+            mUpperDirection = rotate(new Vector3D(0, 1, 0), q);
+            mRightDirection = rotate(new Vector3D(0, 0, 1), q);
         }
 
         private static Vector3D rotate(final Vector3D v, final Quaternion q) {
@@ -339,22 +338,26 @@ public class SphereRenderer implements Renderer {
         private final Vector3D mFrontDirection;
         private final Vector3D mUpperDirection;
         private final Vector3D mRightDirection;
+        private final Quaternion mAttitude;
 
         public Camera(final float fovDegree, final Vector3D position,
                       final Vector3D frontDirection, final Vector3D upperDirection,
-                      final Vector3D rightDirection) {
+                      final Vector3D rightDirection,
+                      final Quaternion attitude) {
             mFovDegree = fovDegree;
             mPosition = position;
             mFrontDirection = frontDirection;
             mUpperDirection = upperDirection;
             mRightDirection = rightDirection;
+            mAttitude = attitude;
         }
 
         public Camera() {
             this(90, new Vector3D(0.0f, 0.0f, 0.0f),
                 new Vector3D(1.0f, 0.0f, 0.0f),
                 new Vector3D(0.0f, 1.0f, 0.0f),
-                new Vector3D(0.0f, 0.0f, 1.0f));
+                new Vector3D(0.0f, 0.0f, 1.0f),
+                Quaternion.quaternionFromAxisAndAngle(new Vector3D(1.0f, 0.0f, 0.0f), 0));
         }
 
         public Vector3D getPosition() {

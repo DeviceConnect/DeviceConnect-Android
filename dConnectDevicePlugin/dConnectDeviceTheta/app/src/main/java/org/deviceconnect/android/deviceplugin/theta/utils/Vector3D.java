@@ -11,6 +11,12 @@ public class Vector3D {
         mCoods[2] = z;
     }
 
+    public Vector3D(final float[] coods) {
+        for (int i = 0; i < mCoods.length; i++) {
+            mCoods[i] = coods[i];
+        }
+    }
+
     public Vector3D(final Vector3D v) {
         this(v.mCoods[0], v.mCoods[1], v.mCoods[2]);
     }
@@ -27,12 +33,24 @@ public class Vector3D {
         return mCoods[2];
     }
 
-    public float length() {
+    public float norm() {
         float v = 0;
         for (int i = 0; i < SIZE; i++) {
             v += Math.pow(mCoods[i], 2);
         }
         return (float) Math.sqrt(v);
+    }
+
+    public Vector3D normalize() {
+        float norm = norm();
+        if (norm == 0) {
+            return this;
+        }
+        float[] coods = new float[SIZE];
+        for (int i = 0; i < mCoods.length; i++) {
+            coods[i] = mCoods[i] / norm;
+        }
+        return new Vector3D(coods);
     }
 
     public Vector3D add(final Vector3D that) {

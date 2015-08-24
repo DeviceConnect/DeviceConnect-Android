@@ -46,8 +46,6 @@ import java.util.logging.Logger;
  */
 public class ThetaDeviceService extends DConnectMessageService {
 
-    private static final String PREFIX_SSID = "THETA";
-
     private final Logger mLogger = Logger.getLogger("theta.dplugin");
 
     private final ThetaApiClient mClient = new ThetaApiClient();
@@ -85,7 +83,6 @@ public class ThetaDeviceService extends DConnectMessageService {
         }
 
         String action = intent.getAction();
-        //mLogger.info("onStartCommand: action=" + action);
         if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
             NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
             if (networkInfo.isConnected()) {
@@ -139,8 +136,10 @@ public class ThetaDeviceService extends DConnectMessageService {
         }
 
         Bundle service = new Bundle();
-        service.putString(ServiceDiscoveryProfile.PARAM_ID, "roi");
-        service.putString(ServiceDiscoveryProfile.PARAM_NAME, "ROI Image Service");
+        service.putString(ServiceDiscoveryProfile.PARAM_ID,
+            ThetaOmnidirectionalImageProfile.SERVICE_ID);
+        service.putString(ServiceDiscoveryProfile.PARAM_NAME,
+            ThetaOmnidirectionalImageProfile.SERVICE_NAME);
         service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
         service.putStringArray(ServiceDiscoveryProfile.PARAM_SCOPES,
             new String[] {OmnidirectionalImageProfile.PROFILE_NAME});
@@ -152,6 +151,9 @@ public class ThetaDeviceService extends DConnectMessageService {
     }
 
     private void fetchThetaDevice(final WifiInfo wifiInfo) {
+        if (wifiInfo == null) {
+            return;
+        }
         String ssId = wifiInfo.getSSID().replace("\"", "");
         if (isTheta(ssId)) {
             mClient.fetchDevice(wifiInfo);

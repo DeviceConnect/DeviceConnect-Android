@@ -9,6 +9,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.opengl.SphereRenderer;
@@ -48,7 +49,11 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfile
-    implements RoiDeliveryContext.OnChangeListener {
+    implements RoiDeliveryContext.OnChangeListener, MixedReplaceMediaServer.ServerEventListener {
+
+    public static final String SERVICE_ID = "roi";
+
+    public static final String SERVICE_NAME = "ROI Image Service";
 
     private final Object lockObj = new Object();
 
@@ -65,59 +70,34 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     @Override
     protected boolean onGetView(final Intent request, final Intent response, final String serviceId,
                                 final String source) {
-        requestView(request, response, serviceId, source, true);
+        requestView(response, serviceId, source, true);
         return false;
     }
 
     @Override
     protected boolean onPutView(final Intent request, final Intent response, final String serviceId,
                                 final String source) {
-        requestView(request, response, serviceId, source, false);
+        requestView(response, serviceId, source, false);
         return false;
     }
 
-    private void requestView(final Intent request, final Intent response, final String serviceId,
+    private void requestView(final Intent response, final String serviceId,
                              final String source, final boolean isGet) {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
+                if (!checkServiceId(serviceId)) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    ((ThetaDeviceService) getContext()).sendResponse(response);
+                    return;
+                }
                 try {
                     synchronized (lockObj) {
                         if (mServer == null) {
                             mServer = new MixedReplaceMediaServer();
                             mServer.setServerName("ThetaDevicePlugin Server");
                             mServer.setContentType("image/jpeg");
-                            mServer.setServerEventListener(new MixedReplaceMediaServer.ServerEventListener() {
-                                @Override
-                                public void onConnect(final String uri) {
-                                    final String key = Uri.parse(uri).getLastPathSegment();
-                                    final RoiDeliveryContext target = mRoiContexts.get(uri);
-                                    if (target == null) {
-                                        return;
-                                    }
-                                    if (isGet) {
-                                        mServer.offerMedia(key, target.getRoi());
-                                    } else {
-                                        final Timer timer = new Timer(); // TODO delete
-                                        timer.schedule(new TimerTask() {
-                                            @Override
-                                            public void run() {
-                                                mServer.offerMedia(key, target.getRoi());
-                                            }
-                                        }, 250, 1000);
-                                    }
-                                }
-
-                                @Override
-                                public void onDisconnect(final String uri) {
-//                                    mRoiContexts.remove(uri);
-                                }
-
-                                @Override
-                                public void onCloseServer() {
-                                    mRoiContexts.clear();
-                                }
-                            });
+                            mServer.setServerEventListener(ThetaOmnidirectionalImageProfile.this);
                             mServer.start();
                         }
                     }
@@ -126,15 +106,17 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                     if (omniImage == null) {
                         String origin = getContext().getPackageName();
                         omniImage = new OmnidirectionalImage(source, origin);
+                        mOmniImages.put(source, omniImage);
                     }
 
                     RoiDeliveryContext roiContext = new RoiDeliveryContext(getContext(), omniImage);
                     String segment = UUID.randomUUID().toString();
                     String uri = mServer.getUrl() + "/" + segment;
-                    roiContext.setUri(Uri.parse(uri));
+                    roiContext.setUri(uri);
                     roiContext.setOnChangeListener(ThetaOmnidirectionalImageProfile.this);
                     roiContext.changeRendererParam(RoiDeliveryContext.DEFAULT_PARAM, true);
                     roiContext.renderWithBlocking();
+                    roiContext.startExpireTimer();
                     mRoiContexts.put(uri, roiContext);
 
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -161,20 +143,29 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     @Override
     protected boolean onDeleteView(final Intent request, final Intent response, final String serviceId,
                                    final String uri) {
+        if (!checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+        if (uri == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "uri is not specified.");
+            return true;
+        }
         RoiDeliveryContext roiContext = mRoiContexts.remove(omitParameters(uri));
         if (roiContext != null) {
             roiContext.destroy();
             mServer.stopMedia(roiContext.getSegment());
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        } else {
-            MessageUtils.setInvalidRequestParameterError(response, "The specified media is not found.");
-            return true;
         }
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
     }
 
     @Override
     protected boolean onPutSettings(final Intent request, final Intent response, final String serviceId) {
+        if (!checkServiceId(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
         final String uri = omitParameters(getURI(request));
         final RoiDeliveryContext roiContext = mRoiContexts.get(uri);
         if (roiContext == null) {
@@ -196,8 +187,53 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     }
 
     @Override
-    public void onUpdate(final String segment, final byte[] roi) {
-        mServer.offerMedia(segment, roi);
+    public byte[] onConnect(final MixedReplaceMediaServer.Request request) {
+        final String uri = request.getUri();
+        final RoiDeliveryContext target = mRoiContexts.get(uri);
+        if (target == null) {
+            return null;
+        }
+        if (request.isGet()) {
+            target.restartExpireTimer();
+        } else {
+            target.stopExpireTimer();
+            target.startDeliveryTimer();
+        }
+        return target.getRoi();
+    }
+
+    @Override
+    public void onDisconnect(final MixedReplaceMediaServer.Request request) {
+        if (!request.isGet()) {
+            RoiDeliveryContext roiContext = mRoiContexts.remove(request.getUri());
+            if (roiContext != null) {
+                roiContext.destroy();
+            }
+        }
+    }
+
+    @Override
+    public void onCloseServer() {
+        mRoiContexts.clear();
+    }
+
+    @Override
+    public void onUpdate(final RoiDeliveryContext roiContext, final byte[] roi) {
+        mServer.offerMedia(roiContext.getSegment(), roi);
+    }
+
+    @Override
+    public void onExpire(final RoiDeliveryContext roiContext) {
+        mServer.stopMedia(roiContext.getSegment());
+        mRoiContexts.remove(roiContext.getUri());
+        roiContext.destroy();
+    }
+
+    private boolean checkServiceId(final String serviceId) {
+        if (TextUtils.isEmpty(serviceId)) {
+            return false;
+        }
+        return serviceId.equals(SERVICE_ID);
     }
 
     private String omitParameters(final String uri) {

@@ -1,11 +1,13 @@
 package org.deviceconnect.android.deviceplugin.theta.utils;
 
 
-import android.util.Log;
-
 public class Quaternion {
     private final float mReal;
     private final Vector3D mImaginary;
+
+    public Quaternion(final Quaternion q) {
+        this(q.real(), q.imaginary());
+    }
 
     public Quaternion(final float real, final Vector3D imaginary) {
         mReal = real;
@@ -47,17 +49,16 @@ public class Quaternion {
         return v;
     }
 
-    public static Vector3D rotate(final Vector3D point, final Vector3D axis, final float radian) {
-        Quaternion P = new Quaternion(0, point);
+    public Vector3D rotate(final Vector3D target) {
+        Quaternion P = new Quaternion(0, target);
+        Quaternion Q = this;
+        Quaternion R = this.conjugate();
+        return R.multiply(P).multiply(Q).imaginary();
+    }
 
-        float c = (float) Math.cos(radian / 2.0f);
-        float s = (float) Math.sin(radian / 2.0f);
-        Quaternion Q = new Quaternion(c, axis.multiply(s));
-        Quaternion R = Q.conjugate();
-
-        Quaternion PR = R.multiply(P);
-        Quaternion QPR = PR.multiply(Q);
-        return QPR.imaginary();
+    public static Vector3D rotate(final Vector3D point, final Vector3D nonNormalizedAxis, final float radian) {
+        Quaternion Q = quaternionFromAxisAndAngle(nonNormalizedAxis.normalize(), radian);
+        return Q.rotate(point);
     }
 
     public static Vector3D rotateXYZ(final Vector3D point, final float rotateX, final float rotateY,
@@ -71,5 +72,11 @@ public class Quaternion {
         result = Quaternion.rotate(result, axisY, rotateY);
         result = Quaternion.rotate(result, axisZ, rotateZ);
         return result;
+    }
+
+    public static Quaternion quaternionFromAxisAndAngle(final Vector3D normalizedAxis, final float radian) {
+        float c = (float) Math.cos(radian / 2.0f);
+        float s = (float) Math.sin(radian / 2.0f);
+        return new Quaternion(c, normalizedAxis.multiply(s));
     }
 }

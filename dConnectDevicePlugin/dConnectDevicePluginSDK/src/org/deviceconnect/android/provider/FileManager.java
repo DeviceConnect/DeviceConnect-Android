@@ -10,8 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
 import org.deviceconnect.android.activity.PermissionUtility;
@@ -109,6 +107,46 @@ public class FileManager {
         mWorkerThread.quit();
     }
 
+    private void checkWritePermission(@NonNull final CheckPermissionCallback callback) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PermissionUtility.requestPermissions(mContext, mHandler,
+                    new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            callback.onSuccess();
+                        }
+
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
+                            callback.onFail();
+                        }
+                    });
+        } else {
+            callback.onSuccess();
+        }
+    }
+
+    private void checkReadPermission(@NonNull final CheckPermissionCallback callback) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PermissionUtility.requestPermissions(mContext, mHandler,
+                    new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            callback.onSuccess();
+                        }
+
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
+                            callback.onFail();
+                        }
+                    });
+        } else {
+            callback.onSuccess();
+        }
+    }
+
     /**
      * ファイルを管理するためのベースとなるパスを取得する.
      * 
@@ -155,99 +193,42 @@ public class FileManager {
      * @param data ファイルデータ
      * @return 保存したファイルへのURI
      * @throws IOException ファイルの保存に失敗した場合に発生
+     * @deprecated use FileManager#saveFile(String, byte[], SaveFileCallback)
+     *             instead.
      */
+    @Deprecated
     public final String saveFile(final String filename, final byte[] data) throws IOException {
-        final AtomicReference<String> value = new AtomicReference<>(null);
-        final AtomicReference<IOException> throwable = new AtomicReference<>(null);
-        final CountDownLatch latch = new CountDownLatch(1);
-        checkPermission(new Callback() {
-            @Override
-            public void onSuccess() {
+        File tmpPath = getBasePath();
+        if (!tmpPath.exists()) {
+            if (!tmpPath.mkdirs()) {
+                throw new IOException("Cannot create a folder.");
+            }
+        }
+        Uri u = Uri.parse("file://" + new File(tmpPath, filename).getAbsolutePath());
+        ContentResolver contentResolver = mContext.getContentResolver();
+        OutputStream out = null;
+        try {
+            out = contentResolver.openOutputStream(u, "w");
+            out.write(data);
+            out.flush();
+        } catch (Exception e) {
+            throw new IOException("Failed to save a file." + filename);
+        } finally {
+            if (out != null) {
                 try {
-                    File tmpPath = getBasePath();
-                    if (!tmpPath.exists()) {
-                        if (!tmpPath.mkdirs()) {
-                            throwable.set(new IOException("Cannot create a directory."));
-                            value.set(null);
-                            return;
-                        }
-                    }
-                    Uri u = Uri.parse("file://" + new File(tmpPath, filename).getAbsolutePath());
-                    ContentResolver contentResolver = mContext.getContentResolver();
-                    OutputStream out = null;
-                    try {
-                        out = contentResolver.openOutputStream(u, "w");
-                        out.write(data);
-                        out.flush();
-                    } catch (Exception e) {
-                        throwable.set(new IOException("Failed to save a file." + filename));
-                        value.set(null);
-                        return;
-                    } finally {
-                        if (out != null) {
-                            try {
-                                out.close();
-                            } catch (IOException e) {
-                                throwable.set(new IOException("Failed to close a file."));
-                                value.set(null);
-                                return;
-                            }
-                        }
-                    }
-
-                    String contentUri = getContentUri();
-                    if (contentUri == null) {
-                        throwable.set(new IOException("Content URI is null."));
-                        value.set(null);
-                        return;
-                    } else if (!contentUri.endsWith("/")) {
-                        contentUri = contentUri + "/";
-                    }
-
-                    value.set(contentUri + u.getLastPathSegment());
-                } finally {
-                    latch.countDown();
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-
-            @Override
-            public void onFail() {
-                throwable.set(new IOException("WRITE_EXTERNAL_STORAGE permission not granted."));
-                value.set(null);
-                latch.countDown();
-            }
-        });
-
-        try {
-            latch.await();
-            IOException tmp = throwable.get();
-            if (tmp != null) {
-                throw tmp;
-            }
-            return value.get();
-        } catch (InterruptedException e) {
-            throw new IOException("Process was interrupted.");
         }
-    }
-
-    private void checkPermission(@NonNull final Callback callback) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PermissionUtility.requestPermissions(mContext, mHandler,
-                    new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
-                    new PermissionUtility.PermissionRequestCallback() {
-                        @Override
-                        public void onSuccess() {
-                            callback.onSuccess();
-                        }
-
-                        @Override
-                        public void onFail(@NonNull String deniedPermission) {
-                            callback.onFail();
-                        }
-                    });
-        } else {
-            callback.onSuccess();
+        String contentUri = getContentUri();
+        if (contentUri == null) {
+            throw new RuntimeException("Content URI is null.");
+        } else if (!contentUri.endsWith("/")) {
+            contentUri = contentUri + "/";
         }
+        return contentUri + u.getLastPathSegment();
     }
 
     /**
@@ -260,7 +241,10 @@ public class FileManager {
      * @param in ストリーム
      * @return 保存したファイルへのURI
      * @throws IOException ファイルの保存に失敗した場合に発生
+     * @deprecated use FileManager#saveFile(String, InputStream,
+     *             SaveFileCallback) instead.
      */
+    @Deprecated
     public final String saveFile(final String filename, final InputStream in) throws IOException {
         File tmpPath = getBasePath();
         if (!tmpPath.exists()) {
@@ -300,6 +284,131 @@ public class FileManager {
     }
 
     /**
+     * ファイルを保存して、アクセスするためのContentURIを返却する.
+     *
+     * ここで、保存すると返り値にURIが返ってくる。 このURIをFile Profileのuriの値としてDevice Connect
+     * Managerに 渡す事で、ファイルのやり取りができるようになる。
+     *
+     * TODO 既に同じ名前のファイルが存在する場合の処理を考慮すること。
+     *
+     * @param filename ファイル名
+     * @param data ファイルデータ
+     * @param callback コールバック
+     */
+    public final void saveFile(@NonNull final String filename, @NonNull final byte[] data,
+            @NonNull final SaveFileCallback callback) {
+        checkWritePermission(new CheckPermissionCallback() {
+            @Override
+            public void onSuccess() {
+                File tmpPath = getBasePath();
+                if (!tmpPath.exists()) {
+                    if (!tmpPath.mkdirs()) {
+                        callback.onFail(new IOException("Cannot create a directory."));
+                        return;
+                    }
+                }
+                Uri u = Uri.parse("file://" + new File(tmpPath, filename).getAbsolutePath());
+                ContentResolver contentResolver = mContext.getContentResolver();
+                OutputStream out = null;
+                try {
+                    out = contentResolver.openOutputStream(u, "w");
+                    out.write(data);
+                    out.flush();
+                } catch (Exception e) {
+                    callback.onFail(new IOException("Failed to save a file." + filename));
+                    return;
+                } finally {
+                    if (out != null) {
+                        try {
+                            out.close();
+                        } catch (IOException e) {
+                            callback.onFail(new IOException("Failed to close a file."));
+                            return;
+                        }
+                    }
+                }
+
+                String contentUri = getContentUri();
+                if (contentUri == null) {
+                    callback.onFail(new IOException("Content URI is null."));
+                    return;
+                } else if (!contentUri.endsWith("/")) {
+                    contentUri = contentUri + "/";
+                }
+                callback.onSuccess(contentUri + u.getLastPathSegment());
+            }
+
+            @Override
+            public void onFail() {
+                callback.onFail(new IOException("Permission WRITE_EXTERNAL_STORAGE not granted."));
+            }
+        });
+    }
+
+    /**
+     * ファイルを保存する.
+     *
+     * ここで、保存すると返り値にURIが返ってくる。 このURIをFile Profileのuriの値としてDevice Connect
+     * Managerに 渡す事で、ファイルのやり取りができるようになる。
+     *
+     * @param filename ファイル名
+     * @param in ストリーム
+     * @param callback コールバック
+     */
+    public final void saveFile(@NonNull final String filename, @NonNull final InputStream in,
+            @NonNull final SaveFileCallback callback) {
+        checkWritePermission(new CheckPermissionCallback() {
+            @Override
+            public void onSuccess() {
+                File tmpPath = getBasePath();
+                if (!tmpPath.exists()) {
+                    if (!tmpPath.mkdirs()) {
+                        callback.onFail(new IOException("Cannot create a folder."));
+                        return;
+                    }
+                }
+                Uri u = Uri.parse("file://" + new File(tmpPath, filename).getAbsolutePath());
+                ContentResolver contentResolver = mContext.getContentResolver();
+                OutputStream out = null;
+                try {
+                    out = contentResolver.openOutputStream(u, "w");
+                    int len;
+                    byte[] data = new byte[BUF_SIZE];
+                    while ((len = in.read(data)) > 0) {
+                        out.write(data, 0, len);
+                    }
+                } catch (Exception e) {
+                    callback.onFail(new IOException("Failed to save a file." + filename));
+                    return;
+                } finally {
+                    if (out != null) {
+                        try {
+                            out.close();
+                        } catch (IOException e) {
+                            callback.onFail(new IOException("Failed to close a file."));
+                            return;
+                        }
+                    }
+                }
+
+                String contentUri = getContentUri();
+                if (contentUri == null) {
+                    callback.onFail(new IOException("Content URI is null."));
+                    return;
+                } else if (!contentUri.endsWith("/")) {
+                    contentUri = contentUri + "/";
+                }
+                callback.onSuccess(contentUri + u.getLastPathSegment());
+            }
+
+            @Override
+            public void onFail() {
+                callback.onFail(new IOException("Permission WRITE_EXTERNAL_STORAGE not granted."));
+            }
+        });
+    }
+
+    /**
      * 有効期限の期間を指定する.
      * 
      * デフォルトでは、300000(5分)が設定してある。 あまり長い時間を指定するとキャッシュが消えないので注意が必要。
@@ -318,7 +427,10 @@ public class FileManager {
      * 
      * @param name 削除するファイル名
      * @return ファイルの削除に成功した場合はtrue、それ以外はfalse
+     * @deprecated use FileManager#removeFile(String, RemoveFileCallback)
+     *             instead.
      */
+    @Deprecated
     public boolean removeFile(final String name) {
         File file = new File(getBasePath(), name);
         if (file.isDirectory()) {
@@ -332,10 +444,43 @@ public class FileManager {
     }
 
     /**
+     * 指定された名前のファイルを削除する.
+     *
+     * @param name 削除するファイル名
+     * @return ファイルの削除に成功した場合はtrue、それ以外はfalse
+     */
+    public void removeFile(@NonNull final String name, @NonNull final RemoveFileCallback callback) {
+        final File file = new File(getBasePath(), name);
+        if (file.isDirectory()) {
+            callback.onFail(new IOException("Directory can not be removed."));
+        } else if (file.isFile()) {
+            checkWritePermission(new CheckPermissionCallback() {
+                @Override
+                public void onSuccess() {
+                    if (file.delete()) {
+                        callback.onSuccess();
+                    } else {
+                        callback.onFail(new IOException("Failed to remove the file."));
+                    }
+                }
+
+                @Override
+                public void onFail() {
+                    callback.onFail(new IOException("Permission WRITE_EXTERNAL_STORAGE not granted."));
+                }
+            });
+        } else {
+            callback.onFail(new IOException("Unknown type."));
+        }
+    }
+
+    /**
      * デフォルトのフォルダをチェックして、中身を削除する.
      *
      * @return 削除に成功した場合はtrue、失敗した場合はfalse
+     * @deprecated use FileManager#checkAndRemove(RemoveFileCallback) instead.
      */
+    @Deprecated
     public boolean checkAndRemove() {
         return checkAndRemove(getBasePath());
     }
@@ -345,7 +490,10 @@ public class FileManager {
      *
      * @param name フォルダ名
      * @return 削除に成功した場合はtrue、失敗した場合はfalse
+     * @deprecated use FileManager#checkAndRemove(String, RemoveFileCallback)
+     *             instead.
      */
+    @Deprecated
     public boolean checkAndRemove(final String name) {
         return checkAndRemove(new File(getBasePath(), name));
     }
@@ -355,7 +503,10 @@ public class FileManager {
      *
      * @param file 削除するファイル
      * @return 削除に成功した場合はtrue、失敗した場合はfalse
+     * @deprecated use FileManager#checkAndRemove(File, RemoveFileCallback)
+     *             instead.
      */
+    @Deprecated
     public boolean checkAndRemove(final File file) {
         if (file.isDirectory()) {
             File[] files = file.listFiles();
@@ -373,9 +524,118 @@ public class FileManager {
         return false;
     }
 
-    private interface Callback {
+    /**
+     * デフォルトのフォルダをチェックして、中身を削除する.
+     *
+     * @param callback コールバック
+     */
+    public void checkAndRemove(@NonNull final RemoveFileCallback callback) {
+        checkAndRemove(getBasePath(), callback);
+    }
+
+    /**
+     * デフォルトのフォルダまたはファイルをチェックして、中身を削除する.
+     *
+     * @param name フォルダ名
+     * @param callback コールバック
+     */
+    public void checkAndRemove(@NonNull final String name, @NonNull final RemoveFileCallback callback) {
+        checkAndRemove(new File(getBasePath(), name), callback);
+    }
+
+    /**
+     * ファイルをチェックして、中身を削除する.
+     *
+     * @param file 削除するファイル
+     * @param callback コールバック
+     */
+    public void checkAndRemove(@NonNull final File file, @NonNull final RemoveFileCallback callback) {
+        checkWritePermission(new CheckPermissionCallback() {
+            @Override
+            public void onSuccess() {
+                if (file.isDirectory()) {
+                    for (File childFile : file.listFiles()) {
+                        if (!checkAndRemoveInternal(childFile, callback)) {
+                            return;
+                        }
+                    }
+                    callback.onSuccess();
+                } else if (file.isFile()) {
+                    long modified = file.lastModified();
+                    if (System.currentTimeMillis() - modified > mExpire) {
+                        if (file.delete()) {
+                            callback.onSuccess();
+                        } else {
+                            callback.onFail(new IOException("Failed to remove the file."));
+                        }
+                    } else {
+                        callback.onSuccess();
+                    }
+                } else {
+                    callback.onFail(new IOException("Unknown type."));
+                }
+            }
+
+            @Override
+            public void onFail() {
+                callback.onFail(new IOException("Permission WRITE_EXTERNAL_STORAGE not granted."));
+            }
+        });
+    }
+
+    private boolean checkAndRemoveInternal(@NonNull final File file, @NonNull final RemoveFileCallback callback) {
+        if (file.isDirectory()) {
+            for (File childFile : file.listFiles()) {
+                if (!checkAndRemoveInternal(childFile, callback)) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (file.isFile()) {
+            long modified = file.lastModified();
+            if (System.currentTimeMillis() - modified > mExpire) {
+                if (file.delete()) {
+                    return true;
+                } else {
+                    callback.onFail(new IOException("Failed to remove file: " + file));
+                    return false;
+                }
+            } else {
+                return true;
+            }
+        } else {
+            callback.onFail(new IOException("Unknown type."));
+            return false;
+        }
+    }
+
+    private interface CheckPermissionCallback {
         void onSuccess();
 
         void onFail();
+    }
+
+    public interface SaveFileCallback {
+        /**
+         * 
+         * @param uri 保存したファイルへのURI
+         */
+        void onSuccess(@NonNull String uri);
+
+        /**
+         *
+         * @param throwable 失敗原因を記述するThrowable
+         */
+        void onFail(@NonNull Throwable throwable);
+    }
+
+    public interface RemoveFileCallback {
+        void onSuccess();
+
+        /**
+         *
+         * @param throwable 失敗原因を記述するThrowable
+         */
+        void onFail(@NonNull Throwable throwable);
     }
 }

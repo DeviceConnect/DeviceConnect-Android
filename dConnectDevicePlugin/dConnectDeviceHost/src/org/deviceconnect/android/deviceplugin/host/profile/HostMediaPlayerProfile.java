@@ -189,18 +189,33 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             if (checkInteger(mediaId)) {
                 ((HostDeviceService) getContext()).putMediaId(response, mediaId);
             } else {
-                FileManager mFileManager = new FileManager(this.getContext());
+                PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
+                        new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                        new PermissionUtility.PermissionRequestCallback() {
+                            @Override
+                            public void onSuccess() {
+                                FileManager mFileManager = new FileManager(getContext());
 
-                long newMediaId = mediaIdFromPath(this.getContext(), mFileManager.getBasePath() + mediaId);
-                if (newMediaId == -1) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    return true;
-                }
-                ((HostDeviceService) getContext()).putMediaId(response, "" + newMediaId);
+                                long newMediaId = mediaIdFromPath(getContext(), mFileManager.getBasePath() + mediaId);
+                                if (newMediaId == -1) {
+                                    MessageUtils.setInvalidRequestParameterError(response);
+                                    getContext().sendBroadcast(response);
+                                    return;
+                                }
+                                ((HostDeviceService) getContext()).putMediaId(response, "" + newMediaId);
+                                getContext().sendBroadcast(response);
+                            }
+
+                            @Override
+                            public void onFail(@NonNull String deniedPermission) {
+                                MessageUtils.setIllegalServerStateError(response,
+                                        "Permission READ_EXTERNAL_STORAGE not granted.");
+                                getContext().sendBroadcast(response);
+                            }
+                        });
+
+                return false;
             }
-
-            return false;
-
         }
 
         return true;
@@ -216,46 +231,68 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         } else if (TextUtils.isEmpty(mediaId)) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            // Query table parameter.
-            String[] param = null;
-            // URI
-            Uri uriType = null;
-            // Query filter.
-            String filter = "_display_name=?";
-            // Query cursor.
-            Cursor cursor = null;
+            PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
+                    new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            onGetMediaInternal(request, response, serviceId, mediaId);
+                        }
 
-            // Get media path.
-            Uri uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
-            String fileName = getDisplayNameFromUri(uri);
-            if (fileName == null) {
-                uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
-                fileName = getDisplayNameFromUri(uri);
-                if (fileName == null) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    return true;
-                }
-                param = AUDIO_TABLE_KEYS;
-                uriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-            } else {
-                param = VIDEO_TABLE_KEYS;
-                uriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-            }
-
-            ContentResolver cresolver = getContext().getApplicationContext().getContentResolver();
-            try {
-                cursor = cresolver.query(uriType, param, filter, new String[] { fileName }, null);
-                if (cursor.moveToFirst()) {
-                    loadMediaData(uriType, cursor, response);
-                }
-                setResult(response, DConnectMessage.RESULT_OK);
-            } finally {
-                if (cursor != null) {
-                    cursor.close();
-                }
-            }
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
+                            MessageUtils.setIllegalServerStateError(response,
+                                    "Permission READ_EXTERNAL_STORAGE not granted.");
+                            getContext().sendBroadcast(response);
+                        }
+                    });
+            return false;
         }
         return true;
+    }
+
+    private void onGetMediaInternal(final Intent request, final Intent response, final String serviceId,
+            final String mediaId) {
+        // Query table parameter.
+        String[] param = null;
+        // URI
+        Uri uriType = null;
+        // Query filter.
+        String filter = "_display_name=?";
+        // Query cursor.
+        Cursor cursor = null;
+
+        // Get media path.
+        Uri uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+        String fileName = getDisplayNameFromUri(uri);
+        if (fileName == null) {
+            uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.valueOf(mediaId));
+            fileName = getDisplayNameFromUri(uri);
+            if (fileName == null) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                getContext().sendBroadcast(response);
+                return;
+            }
+            param = AUDIO_TABLE_KEYS;
+            uriType = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        } else {
+            param = VIDEO_TABLE_KEYS;
+            uriType = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        }
+
+        ContentResolver cresolver = getContext().getApplicationContext().getContentResolver();
+        try {
+            cursor = cresolver.query(uriType, param, filter, new String[] { fileName }, null);
+            if (cursor.moveToFirst()) {
+                loadMediaData(uriType, cursor, response);
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+        getContext().sendBroadcast(response);
     }
 
     /**

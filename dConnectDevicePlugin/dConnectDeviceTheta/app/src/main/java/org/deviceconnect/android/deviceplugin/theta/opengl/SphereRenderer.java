@@ -23,9 +23,11 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class SphereRenderer implements Renderer {
 
-    /** Radius of sphere for photo */
+    /** Distance of left and right eye: 2.5 * 2 = 5cm. */
+    private static final float DISTANCE_EYES = 2.5f / 100.0f;
+    /** Radius of sphere for photo. */
     private static final float DEFAULT_TEXTURE_SHELL_RADIUS = 1.0f;
-    /** Number of sphere polygon partitions for photo, which must be an even number */
+    /** Number of sphere polygon partitions for photo, which must be an even number. */
     private static final int SHELL_DIVIDES = 40;
 
     private final String VSHADER_SRC =
@@ -51,10 +53,9 @@ public class SphereRenderer implements Renderer {
     private static final float Z_NEAR = 0.1f;
     private static final float Z_FAR = 1000.0f;
 
-    private static final Vector3D DEFAULT_CAMERA_DIRECTION = new Vector3D(1.0f, 0.0f, 0.0f);
-
     private int mScreenWidth;
     private int mScreenHeight;
+    private boolean mIsStereo;
     private Camera mCamera = new Camera();
 
     private UVSphere mShell;
@@ -81,16 +82,27 @@ public class SphereRenderer implements Renderer {
         mShell = new UVSphere(DEFAULT_TEXTURE_SHELL_RADIUS, SHELL_DIVIDES);
     }
 
-
     /**
      * onDrawFrame Method
      * @param gl GLObject (not used)
      */
-    //@Override
+    @Override
     public void onDrawFrame(final GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-        GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);
 
+        if (mIsStereo) {
+            SphereRenderer.Camera[] cameras = mCamera.getCamerasForStereo(DISTANCE_EYES);
+            GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);
+            draw(cameras[0]);
+            GLES20.glViewport(mScreenWidth, 0, mScreenWidth, mScreenHeight);
+            draw(cameras[1]);
+        } else {
+            GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);
+            draw(mCamera);
+        }
+    }
+
+    private void draw(final Camera camera) {
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.setIdentityM(mViewMatrix, 0);
         Matrix.setIdentityM(mProjectionMatrix, 0);
@@ -100,17 +112,17 @@ public class SphereRenderer implements Renderer {
             mTextureUpdate = false;
         }
 
-        float x = mCamera.getPosition().x();
-        float y = mCamera.getPosition().y();
-        float z = mCamera.getPosition().z();
-        float frontX = mCamera.getFrontDirection().x();
-        float frontY = mCamera.getFrontDirection().y();
-        float frontZ = mCamera.getFrontDirection().z();
-        float upX = mCamera.getUpperDirection().x();
-        float upY = mCamera.getUpperDirection().y();
-        float upZ = mCamera.getUpperDirection().z();
+        float x = camera.getPosition().x();
+        float y = camera.getPosition().y();
+        float z = camera.getPosition().z();
+        float frontX = camera.getFrontDirection().x();
+        float frontY = camera.getFrontDirection().y();
+        float frontZ = camera.getFrontDirection().z();
+        float upX = camera.getUpperDirection().x();
+        float upY = camera.getUpperDirection().y();
+        float upZ = camera.getUpperDirection().z();
         Matrix.setLookAtM(mViewMatrix, 0, x, y, z, frontX, frontY, frontZ, upX, upY, upZ);
-        Matrix.perspectiveM(mProjectionMatrix, 0, mCamera.mFovDegree, getScreenAspect(), Z_NEAR, Z_FAR);
+        Matrix.perspectiveM(mProjectionMatrix, 0, camera.mFovDegree, getScreenAspect(), Z_NEAR, Z_FAR);
 
         GLES20.glUniformMatrix4fv(mModelMatrixHandle, 1, false, mModelMatrix, 0);
         GLES20.glUniformMatrix4fv(mProjectionMatrixHandle, 1, false, mProjectionMatrix, 0);
@@ -129,7 +141,7 @@ public class SphereRenderer implements Renderer {
      * @param width Screen width
      * @param height Screen height
      */
-    //@Override
+    @Override
     public void onSurfaceChanged(final GL10 gl, final int width, final int height) {
     }
 
@@ -138,7 +150,7 @@ public class SphereRenderer implements Renderer {
      * @param gl GLObject (not used)
      * @param config EGL Setting Object
      */
-    //@Override
+    @Override
     public void onSurfaceCreated(final GL10 gl, final EGLConfig config) {
 
         int vShader;
@@ -235,6 +247,10 @@ public class SphereRenderer implements Renderer {
         if (radius != mShell.getRadius()) {
             mShell = new UVSphere(radius, SHELL_DIVIDES);
         }
+    }
+
+    public void setStereoMode(final boolean isStereo) {
+        mIsStereo = isStereo;
     }
 
     public Camera getCamera() {

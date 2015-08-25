@@ -37,8 +37,6 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
     private static final float NS2S = 1.0f / 1000000000.0f;
 
-    private static final int MATRIX_SIZE = 16;
-
     private static final long EXPIRE_INTERVAL = 10 * 1000;
 
     private long mLastEventTimestamp;
@@ -55,10 +53,6 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
     private PixelBuffer mPixelBuffer;
 
-    private Bitmap mStereoBitmap;
-
-    private Canvas mStereoCanvas;
-
     private final SphereRenderer mRenderer = new SphereRenderer();
 
     private Param mCurrentParam = DEFAULT_PARAM;
@@ -74,14 +68,6 @@ public class RoiDeliveryContext implements SensorEventListener  {
     private ByteArrayOutputStream mBaos;
 
     private OnChangeListener mListener;
-
-    private boolean mIsMagSensor;
-
-    private boolean mIsAccSensor;
-
-    private float[] mMagneticValues;
-
-    private float[] mAccelerometerValues;
 
     private Quaternion mCurrentRotation = new Quaternion(1, new Vector3D(0, 0, 0));
 
@@ -109,10 +95,6 @@ public class RoiDeliveryContext implements SensorEventListener  {
     public void setUri(final String uriString) {
         mUri = uriString;
         mSegment = Uri.parse(uriString).getLastPathSegment();
-    }
-
-    public Param getCurrentParam() {
-        return mCurrentParam;
     }
 
     public void destroy() {
@@ -167,19 +149,15 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
                 if (isUserRequest) {
                     if (mPixelBuffer == null) {
-                        mPixelBuffer = new PixelBuffer(width, height);
+                        mPixelBuffer = new PixelBuffer(width, height, param.isStereoMode());
                         mRenderer.setTexture(mSource.getData());
                         mPixelBuffer.setRenderer(mRenderer);
-                        mStereoBitmap = Bitmap.createBitmap(2 * width, height, Bitmap.Config.ARGB_8888);
-                        mStereoCanvas = new Canvas(mStereoBitmap);
                         mBaos = new ByteArrayOutputStream(width * height);
-                    } else if (width != mCurrentParam.getImageWidth() || height != mCurrentParam.getImageHeight()) {
+                    } else if (isDisplaySizeChanged(param)) {
                         mPixelBuffer.destroy();
-                        mPixelBuffer = new PixelBuffer(width, height);
+                        mPixelBuffer = new PixelBuffer(width, height, param.isStereoMode());
                         mRenderer.setTexture(mSource.getData());
                         mPixelBuffer.setRenderer(mRenderer);
-                        mStereoBitmap = Bitmap.createBitmap(2 * width, height, Bitmap.Config.ARGB_8888);
-                        mStereoCanvas = new Canvas(mStereoBitmap);
                         mBaos = new ByteArrayOutputStream(width * height);
                     }
                     if (param.isVrMode()) {
@@ -207,20 +185,19 @@ public class RoiDeliveryContext implements SensorEventListener  {
                 mRenderer.setSphereRadius((float) param.getSphereSize());
                 mRenderer.setScreenWidth(param.getImageWidth());
                 mRenderer.setScreenHeight(param.getImageHeight());
+                mRenderer.setStereoMode(param.isStereoMode());
             }
         });
     }
 
-    private int radianToDegree(float rad){
-        return (int) Math.floor( Math.toDegrees(rad) ) ;
+    private boolean isDisplaySizeChanged(final Param newParam) {
+        return newParam.isStereoMode() != mCurrentParam.isStereoMode()
+            || newParam.getImageWidth() != mCurrentParam.getImageWidth()
+            || newParam.getImageHeight() != mCurrentParam.getImageHeight();
     }
 
     @Override
     public void onSensorChanged(final SensorEvent event) {
-        if (BuildConfig.DEBUG) {
-            mLogger.info("onSensorChanged");
-        }
-
         if (mLastEventTimestamp != 0) {
             float EPSILON = 0.000000001f;
             float[] vGyroscope = new float[3];
@@ -271,7 +248,6 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
             float[] vOrientation = new float[3];
             SensorManager.getOrientation(rmGyroscope, vOrientation);
-
 
             SphereRenderer.Camera currentCamera = mRenderer.getCamera();
             SphereRenderer.CameraBuilder newCamera = new SphereRenderer.CameraBuilder(currentCamera);
@@ -508,26 +484,8 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
         @Override
         public byte[] call() throws Exception {
-            int width = mCurrentParam.getImageWidth();
-
-            Bitmap result;
-            if (mCurrentParam.isStereoMode()) {
-                SphereRenderer.Camera center = mRenderer.getCamera();
-                float distance = 2.5f / 100.0f; // 5cm
-                SphereRenderer.Camera[] cameras = mRenderer.getCamera().getCamerasForStereo(distance);
-
-                mRenderer.setCamera(cameras[0]);
-                Bitmap left = mPixelBuffer.render();
-                mRenderer.setCamera(cameras[1]);
-                Bitmap right = mPixelBuffer.render();
-                mRenderer.setCamera(center);
-
-                mStereoCanvas.drawBitmap(left, 0, 0, null);
-                mStereoCanvas.drawBitmap(right, width, 0, null);
-                result = mStereoBitmap;
-            } else {
-                result = mPixelBuffer.render();
-            }
+            mPixelBuffer.render();
+            Bitmap result = mPixelBuffer.convertToBitmap();
 
             mBaos.reset();
             result.compress(Bitmap.CompressFormat.JPEG, 100, mBaos);

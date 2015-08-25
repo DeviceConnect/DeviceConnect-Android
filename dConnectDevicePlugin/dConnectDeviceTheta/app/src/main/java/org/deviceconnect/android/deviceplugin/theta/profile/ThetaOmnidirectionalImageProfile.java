@@ -1,45 +1,26 @@
 package org.deviceconnect.android.deviceplugin.theta.profile;
 
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.net.Uri;
+import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
-
-import org.deviceconnect.android.deviceplugin.theta.opengl.SphereRenderer;
 
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
 import org.deviceconnect.android.deviceplugin.theta.roi.OmnidirectionalImage;
 import org.deviceconnect.android.deviceplugin.theta.roi.RoiDeliveryContext;
 import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
-import org.deviceconnect.android.deviceplugin.theta.opengl.PixelBuffer;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.OmnidirectionalImageProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -55,6 +36,8 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     public static final String SERVICE_NAME = "ROI Image Service";
 
+    private static final List<ParamDefinition> ROI_PARAM_DEFINITIONS;
+
     private final Object lockObj = new Object();
 
     private MixedReplaceMediaServer mServer;
@@ -66,6 +49,23 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         Collections.synchronizedMap(new HashMap<String, RoiDeliveryContext>());
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    static {
+        List<ParamDefinition> def = new ArrayList<ParamDefinition>();
+        def.add(new DoubleParamDefinition(PARAM_X, null, null));
+        def.add(new DoubleParamDefinition(PARAM_Y, null, null));
+        def.add(new DoubleParamDefinition(PARAM_Z, null, null));
+        def.add(new DoubleParamDefinition(PARAM_ROLL, 0.0, 360.0));
+        def.add(new DoubleParamDefinition(PARAM_YAW, 0.0, 360.0));
+        def.add(new DoubleParamDefinition(PARAM_PITCH, 0.0, 360.0));
+        def.add(new DoubleParamDefinition(PARAM_FOV, 0.0, 180.0));
+        def.add(new DoubleParamDefinition(PARAM_SPHERE_SIZE, 0.0, null));
+        def.add(new DoubleParamDefinition(PARAM_WIDTH, 0.0, null));
+        def.add(new DoubleParamDefinition(PARAM_HEIGHT, 0.0, null));
+        def.add(new BooleanParamDefinition(PARAM_STEREO));
+        def.add(new BooleanParamDefinition(PARAM_VR));
+        ROI_PARAM_DEFINITIONS = def;
+    }
 
     @Override
     protected boolean onGetView(final Intent request, final Intent response, final String serviceId,
@@ -128,7 +128,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                 } catch (MalformedURLException e) {
                     MessageUtils.setInvalidRequestParameterError(response, "uri is malformed: " + source);
                 } catch (FileNotFoundException e) {
-                    MessageUtils.setUnknownError(response, "Image is not found: " + source);
+                    MessageUtils.setInvalidRequestParameterError(response, "Image is not found: " + source);
                 } catch (IOException e) {
                     MessageUtils.setUnknownError(response, e.getMessage());
                 } catch (Throwable e) {
@@ -161,13 +161,20 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     }
 
     @Override
-    protected boolean onPutSettings(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onPutSettings(final Intent request, final Intent response, final String serviceId,
+                                    final String uri) {
         if (!checkServiceId(serviceId)) {
             MessageUtils.setNotFoundServiceError(response);
             return true;
         }
-        final String uri = omitParameters(getURI(request));
-        final RoiDeliveryContext roiContext = mRoiContexts.get(uri);
+        if (uri == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "uri is not specified.");
+            return true;
+        }
+        if (!validateRequest(request, response)) {
+            return true;
+        }
+        final RoiDeliveryContext roiContext = mRoiContexts.get(omitParameters(uri));
         if (roiContext == null) {
             MessageUtils.setInvalidRequestParameterError(response, "The specified media is not found.");
             return true;
@@ -237,6 +244,9 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     }
 
     private String omitParameters(final String uri) {
+        if (uri == null) {
+            return null;
+        }
         int index = uri.indexOf("?");
         if (index >= 0) {
             return uri.substring(0, index);
@@ -259,9 +269,6 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         Boolean vr = getVR(request);
 
         RoiDeliveryContext.Param param = new RoiDeliveryContext.Param();
-        if (vr != null) {
-            param.setVrMode(vr);
-        }
         if (x != null) {
             param.setCameraX(x);
         }
@@ -295,6 +302,135 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         if (stereo != null) {
             param.setStereoMode(stereo);
         }
+        if (vr != null) {
+            param.setVrMode(vr);
+        }
         return param;
+    }
+
+    private static boolean validateRequest(final Intent request, final Intent response) {
+        Bundle extras = request.getExtras();
+        if (extras == null) {
+            MessageUtils.setUnknownError(response, "request has no parameter.");
+            return false;
+        }
+        for (ParamDefinition definition : ROI_PARAM_DEFINITIONS) {
+            if (!definition.validate(extras, response)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static abstract class ParamDefinition {
+
+        protected final String mName;
+
+        protected final boolean mIsOptional;
+
+        protected ParamDefinition(final String name, final boolean isOptional) {
+            mName = name;
+            mIsOptional = isOptional;
+        }
+
+        public abstract boolean validate(final Bundle extras, final Intent response);
+    }
+
+    private static class BooleanParamDefinition extends ParamDefinition {
+
+        public BooleanParamDefinition(final String name, final boolean isOptional) {
+            super(name, isOptional);
+        }
+
+        public BooleanParamDefinition(final String name) {
+            this(name, true);
+        }
+
+        @Override
+        public boolean validate(final Bundle extras, final Intent response) {
+            Object value = extras.get(mName);
+            if (value == null) {
+                if (mIsOptional) {
+                    return true;
+                } else {
+                    MessageUtils.setInvalidRequestParameterError(response, mName + " is not specified.");
+                    return false;
+                }
+            }
+            if (value instanceof Boolean) {
+                return true;
+            } else if (value instanceof String) {
+                try {
+                    Boolean.parseBoolean((String) value);
+                } catch (NumberFormatException e) {
+                    // Nothing to do.
+                }
+            }
+            MessageUtils.setInvalidRequestParameterError(response, "Format of " + mName + " is invalid.");
+            return false;
+        }
+    }
+
+    private static class DoubleParamDefinition extends ParamDefinition {
+
+        private final Double mMin;
+
+        private final Double mMax;
+
+        public DoubleParamDefinition(final String name, final boolean isOptional,
+                                     final Double min, final Double max) {
+            super(name, isOptional);
+            mMin = min;
+            mMax = max;
+        }
+
+        public DoubleParamDefinition(final String name, final Double min, final Double max) {
+            this(name, true, min, max);
+        }
+
+        @Override
+        public boolean validate(final Bundle extras, final Intent response) {
+            Object value = extras.get(mName);
+            if (value == null) {
+                if (mIsOptional) {
+                    return true;
+                } else {
+                    MessageUtils.setInvalidRequestParameterError(response, mName + " is not specified.");
+                    return false;
+                }
+            }
+            if (value instanceof Double) {
+                if (validateRange(((Double) value).doubleValue())) {
+                    return true;
+                } else {
+                    MessageUtils.setInvalidRequestParameterError(response, mName + " is out of range.");
+                    return false;
+                }
+            } else if (value instanceof String) {
+                try {
+                    double doubleValue = Double.parseDouble((String) value);
+                    if (validateRange(doubleValue)) {
+                        return true;
+                    } else {
+                        MessageUtils.setInvalidRequestParameterError(response, mName + " is out of range.");
+                        return false;
+                    }
+                } catch (NumberFormatException e) {
+                    // Nothing to do.
+                }
+            }
+            MessageUtils.setInvalidRequestParameterError(response, "Format of " + mName + " is invalid.");
+            return false;
+        }
+
+        private boolean validateRange(double value) {
+            if (mMin != null && mMin > value) {
+                return false;
+            }
+            if (mMax != null && mMax < value) {
+                return false;
+            }
+            return true;
+        }
     }
 }

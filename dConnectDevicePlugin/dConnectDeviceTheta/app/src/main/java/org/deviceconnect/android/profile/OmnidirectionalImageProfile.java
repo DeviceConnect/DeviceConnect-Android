@@ -36,7 +36,7 @@ public class OmnidirectionalImageProfile extends DConnectProfile
         if (interfaceName == null && ATTRIBUTE_ROI.equals(attributeName)) {
             return onPutView(request, response, getServiceID(request), getSource(request));
         } else if (INTERFACE_ROI.equals(interfaceName) && ATTRIBUTE_SETTINGS.equals(attributeName)) {
-            return onPutSettings(request, response, getServiceID(request));
+            return onPutSettings(request, response, getServiceID(request), getURI(request));
         }
         MessageUtils.setUnknownAttributeError(response);
         return true;
@@ -71,7 +71,8 @@ public class OmnidirectionalImageProfile extends DConnectProfile
         return true;
     }
 
-    protected boolean onPutSettings(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onPutSettings(final Intent request, final Intent response, final String serviceId,
+                                    final String uri) {
         setUnsupportedError(response);
         return true;
     }

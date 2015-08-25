@@ -23,8 +23,8 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class SphereRenderer implements Renderer {
 
-    /** Distance of left and right eye: 2.5 * 2 = 5cm. */
-    private static final float DISTANCE_EYES = 2.5f / 100.0f;
+    /** Distance of left and right eye: {@value} cm. */
+    private static final float DISTANCE_EYES = 10.0f / 100.0f;
     /** Radius of sphere for photo. */
     private static final float DEFAULT_TEXTURE_SHELL_RADIUS = 1.0f;
     /** Number of sphere polygon partitions for photo, which must be an even number. */
@@ -394,9 +394,9 @@ public class SphereRenderer implements Renderer {
 
         public Camera[] getCamerasForStereo(final float distance) {
             CameraBuilder leftCamera = new CameraBuilder(this);
-            leftCamera.slideHorizontal(-1 * distance);
+            leftCamera.slideHorizontal(-1 * (distance / 2.0f));
             CameraBuilder rightCamera = new CameraBuilder(this);
-            rightCamera.slideHorizontal(distance);
+            rightCamera.slideHorizontal((distance / 2.0f));
 
             return new Camera[] {
                 leftCamera.create(),

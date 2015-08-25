@@ -4,7 +4,6 @@ package org.deviceconnect.android.deviceplugin.theta.roi;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -20,7 +19,6 @@ import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;

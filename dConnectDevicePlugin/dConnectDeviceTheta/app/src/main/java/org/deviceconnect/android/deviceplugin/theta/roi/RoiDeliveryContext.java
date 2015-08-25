@@ -2,6 +2,7 @@ package org.deviceconnect.android.deviceplugin.theta.roi;
 
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.hardware.Sensor;
@@ -43,6 +44,8 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
     private float mEventInterval;
 
+    private int mDisplayOrientation;
+
     private final OmnidirectionalImage mSource;
 
     private final SensorManager mSensorMgr;
@@ -74,6 +77,7 @@ public class RoiDeliveryContext implements SensorEventListener  {
     private Logger mLogger = Logger.getLogger("theta.dplugin");
 
     public RoiDeliveryContext(final Context context, final OmnidirectionalImage source) {
+        mDisplayOrientation = context.getResources().getConfiguration().orientation;
         mSource = source;
         mSensorMgr = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         mBaos = new ByteArrayOutputStream(
@@ -228,12 +232,22 @@ public class RoiDeliveryContext implements SensorEventListener  {
             deltaVGyroscope[2] = sinThetaOverTwo * vGyroscope[2];
             deltaVGyroscope[3] = cosThetaOverTwo;
 
-            qGyroscopeDelta = new Quaternion(deltaVGyroscope[3],
-                new Vector3D(
-                    deltaVGyroscope[0],
-                    deltaVGyroscope[1],
-                    deltaVGyroscope[2]
-                ));
+            if (mDisplayOrientation == Configuration.ORIENTATION_PORTRAIT) {
+                qGyroscopeDelta = new Quaternion(deltaVGyroscope[3],
+                    new Vector3D(
+                        deltaVGyroscope[0],
+                        deltaVGyroscope[1],
+                        deltaVGyroscope[2]
+                    ));
+            } else {
+                qGyroscopeDelta = new Quaternion(deltaVGyroscope[3],
+                    new Vector3D(
+                        deltaVGyroscope[0],
+                        deltaVGyroscope[2],
+                        deltaVGyroscope[1] * -1
+                    ));
+            }
+
             mCurrentRotation = qGyroscopeDelta.multiply(mCurrentRotation);
 
             float[] qvOrientation = new float[4];

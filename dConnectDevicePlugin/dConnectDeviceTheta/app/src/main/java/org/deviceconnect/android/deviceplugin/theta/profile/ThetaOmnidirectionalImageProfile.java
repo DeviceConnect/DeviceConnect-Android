@@ -362,6 +362,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
             } else if (value instanceof String) {
                 try {
                     Boolean.parseBoolean((String) value);
+                    return true;
                 } catch (NumberFormatException e) {
                     // Nothing to do.
                 }

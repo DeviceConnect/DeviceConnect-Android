@@ -152,19 +152,12 @@ public class SphereRenderer implements Renderer {
      */
     @Override
     public void onSurfaceCreated(final GL10 gl, final EGLConfig config) {
-
-        int vShader;
-        int fShader;
-        int program;
-
-        vShader = loadShader(GLES20.GL_VERTEX_SHADER, VSHADER_SRC);
-        fShader = loadShader(GLES20.GL_FRAGMENT_SHADER, FSHADER_SRC);
-
-        program = GLES20.glCreateProgram();
+        int vShader = loadShader(GLES20.GL_VERTEX_SHADER, VSHADER_SRC);
+        int fShader = loadShader(GLES20.GL_FRAGMENT_SHADER, FSHADER_SRC);
+        int program = GLES20.glCreateProgram();
         GLES20.glAttachShader(program, vShader);
         GLES20.glAttachShader(program, fShader);
         GLES20.glLinkProgram(program);
-
         GLES20.glUseProgram(program);
 
         mPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");

@@ -338,6 +338,9 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     private static class BooleanParamDefinition extends ParamDefinition {
 
+        private static final String TRUE = "true";
+        private static final String FALSE = "false";
+
         public BooleanParamDefinition(final String name, final boolean isOptional) {
             super(name, isOptional);
         }
@@ -360,8 +363,13 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
             if (value instanceof Boolean) {
                 return true;
             } else if (value instanceof String) {
+                String stringValue = (String) value;
+                if (!TRUE.equals(stringValue) && !FALSE.equals(stringValue)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "Format of " + mName + " is invalid.");
+                    return false;
+                }
                 try {
-                    Boolean.parseBoolean((String) value);
+                    Boolean.parseBoolean(stringValue);
                     return true;
                 } catch (NumberFormatException e) {
                     // Nothing to do.

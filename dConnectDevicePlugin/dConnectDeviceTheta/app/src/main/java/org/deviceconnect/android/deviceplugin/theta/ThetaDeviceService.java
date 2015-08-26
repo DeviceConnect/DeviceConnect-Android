@@ -154,7 +154,11 @@ public class ThetaDeviceService extends DConnectMessageService {
         if (wifiInfo == null) {
             return;
         }
-        String ssId = wifiInfo.getSSID().replace("\"", "");
+        String ssId = wifiInfo.getSSID();
+        if (ssId == null) {
+            return;
+        }
+        ssId = ssId.replace("\"", "");
         if (isTheta(ssId)) {
             mClient.fetchDevice(wifiInfo);
         } else {

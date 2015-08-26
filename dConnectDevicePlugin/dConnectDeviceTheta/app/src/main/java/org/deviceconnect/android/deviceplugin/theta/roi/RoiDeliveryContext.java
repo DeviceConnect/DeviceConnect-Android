@@ -10,6 +10,9 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.Uri;
 import android.util.Log;
+import android.view.Display;
+import android.view.Surface;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.opengl.SphereRenderer;
@@ -42,7 +45,7 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
     private float mEventInterval;
 
-    private int mDisplayOrientation;
+    private int mDisplayRotation;
 
     private final OmnidirectionalImage mSource;
 
@@ -75,7 +78,9 @@ public class RoiDeliveryContext implements SensorEventListener  {
     private Logger mLogger = Logger.getLogger("theta.dplugin");
 
     public RoiDeliveryContext(final Context context, final OmnidirectionalImage source) {
-        mDisplayOrientation = context.getResources().getConfiguration().orientation;
+        WindowManager windowMgr = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        mDisplayRotation = windowMgr.getDefaultDisplay().getRotation();
+
         mSource = source;
         mSensorMgr = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         mBaos = new ByteArrayOutputStream(
@@ -230,21 +235,33 @@ public class RoiDeliveryContext implements SensorEventListener  {
             deltaVGyroscope[2] = sinThetaOverTwo * vGyroscope[2];
             deltaVGyroscope[3] = cosThetaOverTwo;
 
-            if (mDisplayOrientation == Configuration.ORIENTATION_PORTRAIT) {
-                qGyroscopeDelta = new Quaternion(deltaVGyroscope[3],
-                    new Vector3D(
-                        deltaVGyroscope[0],
-                        deltaVGyroscope[1],
-                        deltaVGyroscope[2]
-                    ));
-            } else {
-                qGyroscopeDelta = new Quaternion(deltaVGyroscope[3],
-                    new Vector3D(
-                        deltaVGyroscope[0],
-                        deltaVGyroscope[2],
-                        deltaVGyroscope[1] * -1
-                    ));
+            float[] delta = new float[3];
+            switch (mDisplayRotation) {
+            case Surface.ROTATION_0:
+                delta[0] = deltaVGyroscope[0];
+                delta[1] = deltaVGyroscope[1];
+                delta[2] = deltaVGyroscope[2];
+                break;
+            case Surface.ROTATION_90:
+                delta[0] = deltaVGyroscope[0];
+                delta[1] = deltaVGyroscope[2] * -1;
+                delta[2] = deltaVGyroscope[1];
+                break;
+            case Surface.ROTATION_180:
+                delta[0] = deltaVGyroscope[0];
+                delta[1] = deltaVGyroscope[1] * -1;
+                delta[2] = deltaVGyroscope[2];
+                break;
+            case Surface.ROTATION_270:
+                delta[0] = deltaVGyroscope[0];
+                delta[1] = deltaVGyroscope[2];
+                delta[2] = deltaVGyroscope[1] * -1;
+                break;
+            default:
+                break;
             }
+
+            qGyroscopeDelta = new Quaternion(deltaVGyroscope[3], new Vector3D(delta));
 
             mCurrentRotation = qGyroscopeDelta.multiply(mCurrentRotation);
 

@@ -6,6 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.utils;
 
+import android.net.Uri;
+
+import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -30,66 +34,64 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
-
-import android.net.Uri;
-import android.util.Log;
-
 /**
  * Mixed Replace Media Server.
+ *
  * @author NTT DOCOMO, INC.
  */
 public class MixedReplaceMediaServer {
 
-    /** Logger. */
+    /**
+     * Logger.
+     */
     private Logger mLogger = Logger.getLogger("theta.dplugin");
-    
+
     /**
      * Max value of cache of media.
      */
     private static final int MAX_MEDIA_CACHE = 2;
-    
+
     /**
      * Max value of client.
      */
     private static final int MAX_CLIENT_SIZE = 8;
-    
+
     /**
      * Port of the Socket.
      */
     private int mPort = -1;
-    
+
     /**
      * The boundary of a multipart.
      */
     private String mBoundary = UUID.randomUUID().toString();
-    
+
     /**
      * Content type.
      * Default is "image/jpg".
      */
     private String mContentType = "image/jpeg";
-    
+
     /**
      * Stop flag.
      */
     private boolean mIsServerStopped;
-    
+
     /**
      * Name of web server.
      */
     private String mServerName = "DevicePlugin Server";
-    
+
     /**
      * Server Socket.
      */
     private ServerSocket mServerSocket;
-    
+
     /**
      * Manage a thread.
      */
     private final ExecutorService mExecutor = Executors.newFixedThreadPool(MAX_CLIENT_SIZE);
-    
+
     /**
      * List a Server Runnable.
      */
@@ -99,9 +101,10 @@ public class MixedReplaceMediaServer {
      * Server Event Listener.
      */
     private ServerEventListener mServerEventListener;
-    
+
     /**
      * Set a boundary.
+     *
      * @param boundary boundary of a multipart
      */
     public void setBoundary(final String boundary) {
@@ -113,36 +116,40 @@ public class MixedReplaceMediaServer {
         }
         mBoundary = boundary;
     }
-    
+
     /**
      * Get a boundary.
+     *
      * @return boundary
      */
     public String getBoundary() {
         return mBoundary;
     }
-    
+
     /**
      * Set a content type.
      * <p>
      * Default is "image/jpg".
      * </p>
+     *
      * @param contentType content type
      */
     public void setContentType(final String contentType) {
         mContentType = contentType;
     }
-    
+
     /**
      * Get a content type.
+     *
      * @return content type
      */
     public String getContentType() {
         return mContentType;
     }
-    
+
     /**
      * Set a port of web server.
+     *
      * @param port port of a web server
      */
     public void setPort(final int port) {
@@ -151,17 +158,19 @@ public class MixedReplaceMediaServer {
         }
         mPort = port;
     }
-    
+
     /**
      * Get a port of web server.
+     *
      * @return port
      */
     public int getPort() {
         return mPort;
     }
-    
+
     /**
      * Set a name of server.
+     *
      * @param name name of server
      */
     public void setServerName(final String name) {
@@ -170,17 +179,19 @@ public class MixedReplaceMediaServer {
         }
         mServerName = name;
     }
-    
+
     /**
      * Get a name of server.
+     *
      * @return name of server
      */
     public String getServerName() {
         return mServerName;
     }
-    
+
     /**
      * Get a url of server.
+     *
      * @return url
      */
     public String getUrl() {
@@ -189,9 +200,10 @@ public class MixedReplaceMediaServer {
         }
         return "http://localhost:" + mServerSocket.getLocalPort();
     }
-    
+
     /**
      * Get a server running status.
+     *
      * @return server status
      */
     public synchronized boolean isRunning() {
@@ -200,6 +212,7 @@ public class MixedReplaceMediaServer {
 
     /**
      * Inserts the media data into queue.
+     *
      * @param media media data
      */
     public void offerMedia(final String segment, final byte[] media) {
@@ -222,12 +235,13 @@ public class MixedReplaceMediaServer {
             }
         }
     }
-    
+
     /**
      * Start a mixed replace media server.
      * <p>
      * If a port is not set, looking for a port that is not used between 9000 to 10000, set to server.
      * </p>
+     *
      * @return the local IP address of this server or {@code null} if this server cannot start.
      */
     public synchronized String start() {
@@ -260,9 +274,10 @@ public class MixedReplaceMediaServer {
         }, "MotionJPEG Server Thread").start();
         return getUrl();
     }
-    
+
     /**
      * Open a server socket that looking for a port that can be used.
+     *
      * @return ServerSocket
      * @throws java.io.IOException if an error occurs while open socket.
      */
@@ -280,7 +295,7 @@ public class MixedReplaceMediaServer {
             throw new IOException("Cannot open server socket.");
         }
     }
-    
+
     /**
      * Stop a mixed replace media server.
      */
@@ -301,7 +316,7 @@ public class MixedReplaceMediaServer {
                 mServerSocket = null;
             } catch (IOException e) {
                 if (BuildConfig.DEBUG) {
-                   e.printStackTrace();
+                    e.printStackTrace();
                 }
             }
         }
@@ -310,7 +325,7 @@ public class MixedReplaceMediaServer {
         }
         mLogger.fine("MixedReplaceMediaServer is stop.");
     }
-    
+
     /**
      * Class of Server.
      */
@@ -319,12 +334,12 @@ public class MixedReplaceMediaServer {
          * Defined buffer size.
          */
         private static final int BUF_SIZE = 8192;
-        
+
         /**
          * Socket.
          */
         private final Socket mSocket;
-        
+
         /**
          * Stream for writing.
          */
@@ -348,12 +363,13 @@ public class MixedReplaceMediaServer {
 
         /**
          * Constructor.
+         *
          * @param socket socket
          */
         public ServerRunnable(final Socket socket) {
             mSocket = socket;
         }
-        
+
         @Override
         public void run() {
             mLogger.fine("accept client.");
@@ -458,7 +474,7 @@ public class MixedReplaceMediaServer {
                     } catch (IOException e) {
                         if (BuildConfig.DEBUG) {
                             e.printStackTrace();
-                         }
+                        }
                     }
                 }
                 try {
@@ -466,16 +482,17 @@ public class MixedReplaceMediaServer {
                 } catch (IOException e) {
                     if (BuildConfig.DEBUG) {
                         e.printStackTrace();
-                     }
+                    }
                 }
                 mRunnables.remove(this);
             }
         }
-        
+
         /**
          * Inserts the media data into queue.
+         *
          * @param segment the segment of URI of media
-         * @param media the media to add
+         * @param media   the media to add
          * @return true if the media data was added to this queue, else false
          */
         private boolean offerMedia(final String segment, final byte[] media) {
@@ -495,6 +512,7 @@ public class MixedReplaceMediaServer {
 
         /**
          * Send a media data.
+         *
          * @param media media data
          * @throws java.io.IOException if an error occurs while sending media data.
          */
@@ -528,9 +546,10 @@ public class MixedReplaceMediaServer {
                 mMediaQueues.clear();
             }
         }
-        
+
         /**
          * Decode a Http header.
+         *
          * @param buf buffer of http header
          * @param len buffer size
          * @return HTTP header
@@ -586,7 +605,7 @@ public class MixedReplaceMediaServer {
                     int p = line.indexOf(':');
                     if (p >= 0) {
                         headers.put(line.substring(0, p).trim().toLowerCase(Locale.US),
-                                line.substring(p + 1).trim());
+                            line.substring(p + 1).trim());
                     }
                     line = in.readLine();
                 }
@@ -598,11 +617,12 @@ public class MixedReplaceMediaServer {
             }
             return new HttpHeader(uri, params);
         }
-        
+
         /**
          * Decode of uri param.
+         *
          * @param params uri
-         * @param p 
+         * @param p
          */
         private void decodeParams(final String params, final Map<String, String> p) {
             if (params == null) {
@@ -620,9 +640,10 @@ public class MixedReplaceMediaServer {
                 }
             }
         }
-        
+
         /**
          * Decode of uri.
+         *
          * @param str uri
          * @return The decoded URI
          */
@@ -634,9 +655,10 @@ public class MixedReplaceMediaServer {
             }
         }
     }
-    
+
     /**
      * Generate a http header.
+     *
      * @return http header
      */
     private String generateHttpHeader() {
@@ -654,9 +676,10 @@ public class MixedReplaceMediaServer {
         sb.append("--" + mBoundary + "\r\n");
         return sb.toString();
     }
-    
+
     /**
      * Generate a Bad Request.
+     *
      * @return Bad Request
      */
     private String generateBadRequest() {
@@ -665,6 +688,7 @@ public class MixedReplaceMediaServer {
 
     /**
      * Generate a Not Found.
+     *
      * @return Bad Request
      */
     private String generateNotFound() {
@@ -673,22 +697,25 @@ public class MixedReplaceMediaServer {
 
     /**
      * Generate a Internal Serve rError.
+     *
      * @return Internal Server Error
      */
     private String generateInternalServerError() {
         return generateErrorHeader("500");
     }
-    
+
     /**
      * Generate a Service Unavailable.
+     *
      * @return Service Unavailable
      */
     private String generateServiceUnavailable() {
         return generateErrorHeader("503");
     }
-    
+
     /**
      * Generate a error http header.
+     *
      * @param status Status
      * @return http header
      */

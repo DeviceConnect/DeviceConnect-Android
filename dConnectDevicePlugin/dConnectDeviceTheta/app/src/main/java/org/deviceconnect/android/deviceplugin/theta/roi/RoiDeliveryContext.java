@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.theta.roi;
 
 
 import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -16,14 +15,12 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.Uri;
 import android.util.Log;
-import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
-import org.deviceconnect.android.deviceplugin.theta.opengl.SphereRenderer;
-
 import org.deviceconnect.android.deviceplugin.theta.opengl.PixelBuffer;
+import org.deviceconnect.android.deviceplugin.theta.opengl.SphereRenderer;
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
 
@@ -39,7 +36,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
-public class RoiDeliveryContext implements SensorEventListener  {
+public class RoiDeliveryContext implements SensorEventListener {
 
     public static final Param DEFAULT_PARAM = new Param();
 
@@ -125,7 +122,7 @@ public class RoiDeliveryContext implements SensorEventListener  {
         });
     }
 
-    public byte[] renderWithBlocking()  {
+    public byte[] renderWithBlocking() {
         Future<byte[]> future = mExecutor.submit(new RenderingTask());
         try {
             return future.get();
@@ -225,8 +222,7 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
             float magnitude = (float) Math.sqrt(Math.pow(vGyroscope[0], 2)
                 + Math.pow(vGyroscope[1], 2) + Math.pow(vGyroscope[2], 2));
-            if (magnitude > EPSILON)
-            {
+            if (magnitude > EPSILON) {
                 vGyroscope[0] /= magnitude;
                 vGyroscope[1] /= magnitude;
                 vGyroscope[2] /= magnitude;
@@ -243,28 +239,28 @@ public class RoiDeliveryContext implements SensorEventListener  {
 
             float[] delta = new float[3];
             switch (mDisplayRotation) {
-            case Surface.ROTATION_0:
-                delta[0] = deltaVGyroscope[0];
-                delta[1] = deltaVGyroscope[1];
-                delta[2] = deltaVGyroscope[2];
-                break;
-            case Surface.ROTATION_90:
-                delta[0] = deltaVGyroscope[0];
-                delta[1] = deltaVGyroscope[2] * -1;
-                delta[2] = deltaVGyroscope[1];
-                break;
-            case Surface.ROTATION_180:
-                delta[0] = deltaVGyroscope[0];
-                delta[1] = deltaVGyroscope[1] * -1;
-                delta[2] = deltaVGyroscope[2];
-                break;
-            case Surface.ROTATION_270:
-                delta[0] = deltaVGyroscope[0];
-                delta[1] = deltaVGyroscope[2];
-                delta[2] = deltaVGyroscope[1] * -1;
-                break;
-            default:
-                break;
+                case Surface.ROTATION_0:
+                    delta[0] = deltaVGyroscope[0];
+                    delta[1] = deltaVGyroscope[1];
+                    delta[2] = deltaVGyroscope[2];
+                    break;
+                case Surface.ROTATION_90:
+                    delta[0] = deltaVGyroscope[0];
+                    delta[1] = deltaVGyroscope[2] * -1;
+                    delta[2] = deltaVGyroscope[1];
+                    break;
+                case Surface.ROTATION_180:
+                    delta[0] = deltaVGyroscope[0];
+                    delta[1] = deltaVGyroscope[1] * -1;
+                    delta[2] = deltaVGyroscope[2];
+                    break;
+                case Surface.ROTATION_270:
+                    delta[0] = deltaVGyroscope[0];
+                    delta[1] = deltaVGyroscope[2];
+                    delta[2] = deltaVGyroscope[1] * -1;
+                    break;
+                default:
+                    break;
             }
 
             qGyroscopeDelta = new Quaternion(deltaVGyroscope[3], new Vector3D(delta));

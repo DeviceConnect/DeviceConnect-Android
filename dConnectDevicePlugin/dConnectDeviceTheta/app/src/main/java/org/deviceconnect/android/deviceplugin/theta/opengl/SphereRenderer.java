@@ -13,12 +13,9 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.opengl.model.UVSphere;
-
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
-import org.restlet.representation.StringRepresentation;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -29,11 +26,17 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class SphereRenderer implements Renderer {
 
-    /** Distance of left and right eye: {@value} cm. */
+    /**
+     * Distance of left and right eye: {@value} cm.
+     */
     private static final float DISTANCE_EYES = 10.0f / 100.0f;
-    /** Radius of sphere for photo. */
+    /**
+     * Radius of sphere for photo.
+     */
     private static final float DEFAULT_TEXTURE_SHELL_RADIUS = 1.0f;
-    /** Number of sphere polygon partitions for photo, which must be an even number. */
+    /**
+     * Number of sphere polygon partitions for photo, which must be an even number.
+     */
     private static final int SHELL_DIVIDES = 40;
 
     private final String VSHADER_SRC =
@@ -90,6 +93,7 @@ public class SphereRenderer implements Renderer {
 
     /**
      * onDrawFrame Method
+     *
      * @param gl GLObject (not used)
      */
     @Override
@@ -182,6 +186,7 @@ public class SphereRenderer implements Renderer {
 
     /**
      * Sets the texture for the sphere
+     *
      * @param texture Photo object for texture
      */
     public void setTexture(Bitmap texture) {
@@ -191,6 +196,7 @@ public class SphereRenderer implements Renderer {
 
     /**
      * Acquires the set texture
+     *
      * @return Photo object for texture
      */
     public Bitmap getTexture() {
@@ -213,6 +219,7 @@ public class SphereRenderer implements Renderer {
 
     /**
      * Texture setting method
+     *
      * @param texture Setting texture
      */
     public void loadTexture(final Bitmap texture) {
@@ -227,7 +234,7 @@ public class SphereRenderer implements Renderer {
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, texture, 0);
     }
 
-    private int loadShader(final int type, final String shaderCode){
+    private int loadShader(final int type, final String shaderCode) {
         int shader = GLES20.glCreateShader(type);
         GLES20.glShaderSource(shader, shaderCode);
         GLES20.glCompileShader(shader);

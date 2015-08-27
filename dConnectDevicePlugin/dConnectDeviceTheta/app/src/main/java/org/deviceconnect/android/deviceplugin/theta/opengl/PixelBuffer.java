@@ -6,8 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.opengl;
 
-import static javax.microedition.khronos.egl.EGL10.*;
-import static javax.microedition.khronos.opengles.GL10.*;
+import android.graphics.Bitmap;
+import android.opengl.GLSurfaceView;
+import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 
 import java.nio.IntBuffer;
 
@@ -18,11 +21,20 @@ import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
 import javax.microedition.khronos.opengles.GL10;
 
-import android.graphics.Bitmap;
-import android.opengl.GLSurfaceView;
-import android.util.Log;
-
-import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
+import static javax.microedition.khronos.egl.EGL10.EGL_ALPHA_SIZE;
+import static javax.microedition.khronos.egl.EGL10.EGL_BLUE_SIZE;
+import static javax.microedition.khronos.egl.EGL10.EGL_DEFAULT_DISPLAY;
+import static javax.microedition.khronos.egl.EGL10.EGL_DEPTH_SIZE;
+import static javax.microedition.khronos.egl.EGL10.EGL_GREEN_SIZE;
+import static javax.microedition.khronos.egl.EGL10.EGL_HEIGHT;
+import static javax.microedition.khronos.egl.EGL10.EGL_NONE;
+import static javax.microedition.khronos.egl.EGL10.EGL_NO_CONTEXT;
+import static javax.microedition.khronos.egl.EGL10.EGL_RED_SIZE;
+import static javax.microedition.khronos.egl.EGL10.EGL_RENDERABLE_TYPE;
+import static javax.microedition.khronos.egl.EGL10.EGL_STENCIL_SIZE;
+import static javax.microedition.khronos.egl.EGL10.EGL_WIDTH;
+import static javax.microedition.khronos.opengles.GL10.GL_RGBA;
+import static javax.microedition.khronos.opengles.GL10.GL_UNSIGNED_BYTE;
 
 public class PixelBuffer {
 

@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.theta.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.theta360.lib.ThetaException;
 

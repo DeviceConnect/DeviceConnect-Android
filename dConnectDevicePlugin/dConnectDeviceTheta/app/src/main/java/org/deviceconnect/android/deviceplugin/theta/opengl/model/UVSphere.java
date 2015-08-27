@@ -8,9 +8,6 @@ package org.deviceconnect.android.deviceplugin.theta.opengl.model;
 
 
 import android.opengl.GLES20;
-import android.util.Log;
-
-import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -40,6 +37,7 @@ public class UVSphere {
      * The longitude is created from the number of partitions which is half the number of
      * latitude lines 1 and the number of polygons which is double the number of
      * partitions set in the radius specified as the origin coordinates.
+     *
      * @param radius Radius
      * @param divide Number of partitions (must be an even number)
      */
@@ -52,8 +50,8 @@ public class UVSphere {
             throw new IllegalArgumentException();
         }
 
-        mStrips = divide/2;
-        mStripePointsNum = (divide+1)*2;
+        mStrips = divide / 2;
+        mStripePointsNum = (divide + 1) * 2;
         makeSphereVertices(radius, divide);
     }
 
@@ -64,6 +62,7 @@ public class UVSphere {
 
     /**
      * Sphere drawing method
+     *
      * @param mPositionHandle Handler value tied to gl_Position in vertex shader
      * @param mUVHandle Handler value tied to the UV coordinates provided to the fragment shader via the varyig variable
      */
@@ -96,42 +95,40 @@ public class UVSphere {
         float ey = 0.0f;
         float ez = 0.0f;
 
-        for(int i = 0; i < divide/2; ++i)
-        {
-            altitude      = (float) (Math.PI/2.0 -    i    * (Math.PI*2) / divide);
-            altitudeDelta = (float) (Math.PI/2.0 - (i + 1) * (Math.PI*2) / divide);
+        for (int i = 0; i < divide / 2; ++i) {
+            altitude = (float) (Math.PI / 2.0 - i * (Math.PI * 2) / divide);
+            altitudeDelta = (float) (Math.PI / 2.0 - (i + 1) * (Math.PI * 2) / divide);
 
 
-            float[] vertices = new float[divide*6+6];
-            float[] texCoords = new float[divide*4+4];
+            float[] vertices = new float[divide * 6 + 6];
+            float[] texCoords = new float[divide * 4 + 4];
 
-            for(int j = 0; j <= divide; ++j)
-            {
-                azimuth = (float) (Math.PI - (j * (Math.PI*2) / divide));
+            for (int j = 0; j <= divide; ++j) {
+                azimuth = (float) (Math.PI - (j * (Math.PI * 2) / divide));
 
                 // first point
                 ex = (float) (Math.cos(altitudeDelta) * Math.cos(azimuth));
-                ey = (float)  Math.sin(altitudeDelta);
+                ey = (float) Math.sin(altitudeDelta);
                 ez = (float) (Math.cos(altitudeDelta) * Math.sin(azimuth));
 
-                vertices[6*j+0] = radius * ex;
-                vertices[6*j+1] = radius * ey;
-                vertices[6*j+2] = radius * ez;
+                vertices[6 * j + 0] = radius * ex;
+                vertices[6 * j + 1] = radius * ey;
+                vertices[6 * j + 2] = radius * ez;
 
-                texCoords[4*j+0] = 1.0f-(j/(float)divide);
-                texCoords[4*j+1] = 2*(i+1)/(float)divide;
+                texCoords[4 * j + 0] = 1.0f - (j / (float) divide);
+                texCoords[4 * j + 1] = 2 * (i + 1) / (float) divide;
 
                 // second point
                 ex = (float) (Math.cos(altitude) * Math.cos(azimuth));
                 ey = (float) Math.sin(altitude);
                 ez = (float) (Math.cos(altitude) * Math.sin(azimuth));
 
-                vertices[6*j+3] = radius * ex;
-                vertices[6*j+4] = radius * ey;
-                vertices[6*j+5] = radius * ez;
+                vertices[6 * j + 3] = radius * ex;
+                vertices[6 * j + 4] = radius * ey;
+                vertices[6 * j + 5] = radius * ez;
 
-                texCoords[4*j+2] = 1.0f-(j/(float)divide);
-                texCoords[4*j+3] = 2*i/(float)divide;
+                texCoords[4 * j + 2] = 1.0f - (j / (float) divide);
+                texCoords[4 * j + 3] = 2 * i / (float) divide;
             }
 
             mVertices.add(makeFloatBufferFromArray(vertices));
@@ -144,7 +141,7 @@ public class UVSphere {
 
     private FloatBuffer makeFloatBufferFromArray(float[] array) {
 
-        FloatBuffer fb = ByteBuffer.allocateDirect(array.length*Float.SIZE).order(ByteOrder.nativeOrder()).asFloatBuffer();
+        FloatBuffer fb = ByteBuffer.allocateDirect(array.length * Float.SIZE).order(ByteOrder.nativeOrder()).asFloatBuffer();
         fb.put(array);
         fb.position(0);
 

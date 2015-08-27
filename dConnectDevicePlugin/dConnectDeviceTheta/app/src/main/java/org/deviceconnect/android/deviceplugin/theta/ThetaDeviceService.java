@@ -12,7 +12,6 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.theta360.lib.PtpipInitiator;
 import com.theta360.lib.ThetaException;
@@ -23,7 +22,6 @@ import org.deviceconnect.android.deviceplugin.theta.profile.ThetaMediaStreamReco
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaOmnidirectionalImageProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSystemProfile;
-import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -33,7 +31,6 @@ import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.OmnidirectionalImageProfileConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,15 +89,15 @@ public class ThetaDeviceService extends DConnectMessageService {
         } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
             int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
             switch (state) {
-            case WifiManager.WIFI_STATE_DISABLED:
-                mLogger.info("WiFi state: disabled.");
-                mClient.disposeDevice();
-                break;
-            case WifiManager.WIFI_STATE_ENABLED:
-                mLogger.info("WiFi state: enabled.");
-                break;
-            default:
-                break;
+                case WifiManager.WIFI_STATE_DISABLED:
+                    mLogger.info("WiFi state: disabled.");
+                    mClient.disposeDevice();
+                    break;
+                case WifiManager.WIFI_STATE_ENABLED:
+                    mLogger.info("WiFi state: enabled.");
+                    break;
+                default:
+                    break;
             }
         }
         return super.onStartCommand(intent, flags, startId);
@@ -113,7 +110,8 @@ public class ThetaDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) {};
+        return new ServiceInformationProfile(this) {
+        };
     }
 
     @Override

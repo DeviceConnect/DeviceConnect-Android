@@ -15,7 +15,9 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 /**
- * UV sphere model class
+ * UV sphere model class.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class UVSphere {
 

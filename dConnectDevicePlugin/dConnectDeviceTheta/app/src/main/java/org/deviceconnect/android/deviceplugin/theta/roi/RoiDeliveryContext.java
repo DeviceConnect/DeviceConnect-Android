@@ -36,8 +36,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
+/**
+ * ROI Image Delivery Context.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class RoiDeliveryContext implements SensorEventListener {
 
+    /**
+     * The default parameter of ROI Settings API.
+     */
     public static final Param DEFAULT_PARAM = new Param();
 
     private static final float NS2S = 1.0f / 1000000000.0f;
@@ -80,6 +88,12 @@ public class RoiDeliveryContext implements SensorEventListener {
 
     private Logger mLogger = Logger.getLogger("theta.dplugin");
 
+    /**
+     * Constructor.
+     *
+     * @param context an instance of {@link Context}
+     * @param source an instance of {@link OmnidirectionalImage} to create ROI image
+     */
     public RoiDeliveryContext(final Context context, final OmnidirectionalImage source) {
         WindowManager windowMgr = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         mDisplayRotation = windowMgr.getDefaultDisplay().getRotation();
@@ -90,21 +104,21 @@ public class RoiDeliveryContext implements SensorEventListener {
             mCurrentParam.getImageWidth() * mCurrentParam.getImageHeight());
     }
 
-    public String getSegment() {
-        return mSegment;
-    }
-
     public byte[] getRoi() {
         return mRoi;
+    }
+
+    public void setUri(final String uriString) {
+        mUri = uriString;
+        mSegment = Uri.parse(uriString).getLastPathSegment();
     }
 
     public String getUri() {
         return mUri;
     }
 
-    public void setUri(final String uriString) {
-        mUri = uriString;
-        mSegment = Uri.parse(uriString).getLastPathSegment();
+    public String getSegment() {
+        return mSegment;
     }
 
     public void destroy() {
@@ -402,13 +416,13 @@ public class RoiDeliveryContext implements SensorEventListener {
 
         double mCameraPitch;
 
-        double mCameraFov = 90;
+        double mCameraFov = 90.0d;
 
         double mSphereSize = 1.0d;
 
-        int mImageWidth = 480;
+        int mImageWidth = 600;
 
-        int mImageHeight = 270;
+        int mImageHeight = 400;
 
         boolean mStereoMode;
 

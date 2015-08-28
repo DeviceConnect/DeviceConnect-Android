@@ -17,6 +17,11 @@ import android.widget.Button;
 
 import org.deviceconnect.android.deviceplugin.theta.R;
 
+/**
+ * The page which has the button to open WiFi settings window.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class WifiConnectionFragment extends Fragment {
 
     @Override

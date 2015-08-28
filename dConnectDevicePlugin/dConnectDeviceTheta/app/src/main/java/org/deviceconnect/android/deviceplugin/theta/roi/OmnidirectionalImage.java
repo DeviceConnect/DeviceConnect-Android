@@ -18,12 +18,23 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.IntBuffer;
 
+/**
+ * Representation of an omnidirectional image.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class OmnidirectionalImage {
 
-    private final String mMimeType = "image/jpeg";
     private final String mUri;
     private final Bitmap mBitmap;
 
+    /**
+     * Constructor.
+     *
+     * @param uri URI of an omnidirectional image.
+     * @param requestOrigin Origin (RFC6454) as an HTTP client which gets an omnidirectional image.
+     * @throws IOException if URL connection is failed.
+     */
     public OmnidirectionalImage(final String uri, final String requestOrigin) throws IOException {
         mUri = uri;
 
@@ -52,16 +63,20 @@ public class OmnidirectionalImage {
         }
     }
 
+    /**
+     * Gets the URI of this omnidirectional image.
+     * @return the URI of this omnidirectional image
+     */
     public String getUri() {
         return mUri;
     }
 
+    /**
+     * Gets the bitmap data of this omnidirectional image.
+     * @return the bitmap data of this omnidirectional image.
+     */
     Bitmap getData() {
         return mBitmap;
-    }
-
-    void destroy() {
-        mBitmap.recycle();
     }
 
 }

@@ -59,8 +59,8 @@ public class SphereRenderer implements Renderer {
             "  gl_FragColor = texture2D(uTex, vUV);\n" +
             "}\n";
 
-    private static final float Z_NEAR = 0.1f;
-    private static final float Z_FAR = 1000.0f;
+    public static final float Z_NEAR = 0.1f;
+    public static final float Z_FAR = 1000.0f;
 
     private int mScreenWidth;
     private int mScreenHeight;

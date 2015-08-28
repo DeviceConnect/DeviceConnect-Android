@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
+import org.deviceconnect.android.deviceplugin.theta.opengl.SphereRenderer;
+import org.deviceconnect.android.deviceplugin.theta.opengl.model.UVSphere;
 import org.deviceconnect.android.deviceplugin.theta.roi.OmnidirectionalImage;
 import org.deviceconnect.android.deviceplugin.theta.roi.RoiDeliveryContext;
 import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
@@ -38,8 +40,14 @@ import java.util.concurrent.Executors;
 public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfile
     implements RoiDeliveryContext.OnChangeListener, MixedReplaceMediaServer.ServerEventListener {
 
+    /**
+     * The service ID of ROI Image Service.
+     */
     public static final String SERVICE_ID = "roi";
 
+    /**
+     * The name of ROI Image Service.
+     */
     public static final String SERVICE_NAME = "ROI Image Service";
 
     private static final List<ParamDefinition> ROI_PARAM_DEFINITIONS;
@@ -58,16 +66,51 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     static {
         List<ParamDefinition> def = new ArrayList<ParamDefinition>();
-        def.add(new DoubleParamDefinition(PARAM_X, null, null));
-        def.add(new DoubleParamDefinition(PARAM_Y, null, null));
-        def.add(new DoubleParamDefinition(PARAM_Z, null, null));
-        def.add(new DoubleParamDefinition(PARAM_ROLL, 0.0, 360.0));
-        def.add(new DoubleParamDefinition(PARAM_YAW, 0.0, 360.0));
-        def.add(new DoubleParamDefinition(PARAM_PITCH, 0.0, 360.0));
-        def.add(new DoubleParamDefinition(PARAM_FOV, 0.0, 180.0));
-        def.add(new DoubleParamDefinition(PARAM_SPHERE_SIZE, 0.0, null));
-        def.add(new DoubleParamDefinition(PARAM_WIDTH, 0.0, null));
-        def.add(new DoubleParamDefinition(PARAM_HEIGHT, 0.0, null));
+        def.add(new DoubleParamDefinition(PARAM_X, null));
+        def.add(new DoubleParamDefinition(PARAM_Y, null));
+        def.add(new DoubleParamDefinition(PARAM_Z, null));
+        def.add(new DoubleParamDefinition(PARAM_ROLL, new DoubleParamRange() {
+            @Override
+            public boolean validate(final double v) {
+                return 0.0 <= v && v < 360.0;
+            }
+        }));
+        def.add(new DoubleParamDefinition(PARAM_YAW, new DoubleParamRange() {
+            @Override
+            public boolean validate(final double v) {
+                return 0.0 <= v && v < 360.0;
+            }
+        }));
+        def.add(new DoubleParamDefinition(PARAM_PITCH, new DoubleParamRange() {
+            @Override
+            public boolean validate(final double v) {
+                return 0.0 <= v && v < 360.0;
+            }
+        }));
+        def.add(new DoubleParamDefinition(PARAM_FOV, new DoubleParamRange() {
+            @Override
+            public boolean validate(final double v) {
+                return 0.0 < v && v < 180.0;
+            }
+        }));
+        def.add(new DoubleParamDefinition(PARAM_SPHERE_SIZE, new DoubleParamRange() {
+            @Override
+            public boolean validate(final double v) {
+                return SphereRenderer.Z_NEAR < v && v < SphereRenderer.Z_FAR;
+            }
+        }));
+        def.add(new DoubleParamDefinition(PARAM_WIDTH, new DoubleParamRange() {
+            @Override
+            public boolean validate(final double v) {
+                return 0.0 < v;
+            }
+        }));
+        def.add(new DoubleParamDefinition(PARAM_HEIGHT, new DoubleParamRange() {
+            @Override
+            public boolean validate(final double v) {
+                return 0.0 < v;
+            }
+        }));
         def.add(new BooleanParamDefinition(PARAM_STEREO));
         def.add(new BooleanParamDefinition(PARAM_VR));
         ROI_PARAM_DEFINITIONS = def;
@@ -388,19 +431,16 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     private static class DoubleParamDefinition extends ParamDefinition {
 
-        private final Double mMin;
-
-        private final Double mMax;
+        private DoubleParamRange mRange;
 
         public DoubleParamDefinition(final String name, final boolean isOptional,
-                                     final Double min, final Double max) {
+                                     final DoubleParamRange range) {
             super(name, isOptional);
-            mMin = min;
-            mMax = max;
+            mRange = range;
         }
 
-        public DoubleParamDefinition(final String name, final Double min, final Double max) {
-            this(name, true, min, max);
+        public DoubleParamDefinition(final String name, final DoubleParamRange range) {
+            this(name, true, range);
         }
 
         @Override
@@ -439,13 +479,14 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         }
 
         private boolean validateRange(double value) {
-            if (mMin != null && mMin > value) {
-                return false;
+            if (mRange == null) {
+                return true;
             }
-            if (mMax != null && mMax < value) {
-                return false;
-            }
-            return true;
+            return mRange.validate(value);
         }
+    }
+
+    private static interface DoubleParamRange {
+        boolean validate(double value);
     }
 }

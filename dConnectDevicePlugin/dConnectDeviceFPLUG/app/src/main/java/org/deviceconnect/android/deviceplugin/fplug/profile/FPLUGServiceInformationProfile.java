@@ -23,11 +23,11 @@ public class FPLUGServiceInformationProfile extends ServiceInformationProfile {
 
     @Override
     protected ConnectState getBluetoothState(String serviceId) {
-        return isConnected() ? ConnectState.ON : ConnectState.OFF;
+        return isConnected(serviceId) ? ConnectState.ON : ConnectState.OFF;
     }
 
-    private boolean isConnected() {
-        return ((FPLUGApplication) getContext().getApplicationContext()).isConnectedAnyFPLUG();
+    private boolean isConnected(String address) {
+        return ((FPLUGApplication) getContext().getApplicationContext()).isConnectedFPlug(address);
     }
 
 }

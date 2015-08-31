@@ -87,15 +87,9 @@ public class FPLUGApplication extends Application {
         return list;
     }
 
-    public synchronized boolean isConnectedAnyFPLUG() {
-        boolean connected = false;
-        for (Map.Entry<String, FPLUGController> entry : mControllerMap.entrySet()) {
-            connected = entry.getValue().isConnected();
-            if (connected) {
-                break;
-            }
-        }
-        return connected;
+    public synchronized boolean isConnectedFPlug(String address) {
+        FPLUGController controller = getFPLUGController(address);
+        return controller != null && controller.isConnected();
     }
 
     private void startConnectionTimer() {

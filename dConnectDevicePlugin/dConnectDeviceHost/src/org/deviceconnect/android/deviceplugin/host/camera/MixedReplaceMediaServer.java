@@ -552,14 +552,10 @@ public class MixedReplaceMediaServer {
         sb.append("Expires: 0\r\n");
         sb.append("Cache-Control: no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0\r\n");
         sb.append("Pragma: no-cache\r\n");
-        sb.append("Access-Control-Allow-Origin: *\r\n");
-        sb.append("Access-Control-Allow-Headers: XMLHttpRequest\r\n");
-
-        sb.append("Content-Type: application/octet-stream\r\n");
-//        sb.append("Content-Type: multipart/x-mixed-replace; ");
-//        sb.append("boundary=" + mBoundary + "\r\n");
+        sb.append("Content-Type: multipart/x-mixed-replace; ");
+        sb.append("boundary=" + mBoundary + "\r\n");
         sb.append("\r\n");
-//        sb.append("--" + mBoundary + "\r\n");
+        sb.append("--" + mBoundary + "\r\n");
         return sb.toString();
     }
     

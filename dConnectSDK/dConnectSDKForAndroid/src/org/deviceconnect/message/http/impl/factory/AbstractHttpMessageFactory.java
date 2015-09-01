@@ -6,17 +6,6 @@
  */
 package org.deviceconnect.message.http.impl.factory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.SequenceInputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -31,11 +20,11 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.james.mime4j.MimeException;
-import org.apache.james.mime4j.descriptor.BodyDescriptor;
-import org.apache.james.mime4j.message.SimpleContentHandler;
-import org.apache.james.mime4j.parser.Field;
-import org.apache.james.mime4j.parser.MimeEntityConfig;
+import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
+import org.apache.james.mime4j.stream.BodyDescriptor;
+import org.apache.james.mime4j.stream.Field;
+import org.apache.james.mime4j.stream.MimeConfig;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.HttpHeaders;
 import org.deviceconnect.message.basic.message.BasicDConnectMessage;
@@ -43,6 +32,17 @@ import org.deviceconnect.message.basic.message.DConnectRequestMessage;
 import org.deviceconnect.message.basic.message.DConnectResponseMessage;
 import org.deviceconnect.message.factory.MessageFactory;
 import org.json.JSONException;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.SequenceInputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * HTTPメッセージファクトリ.
@@ -136,7 +136,7 @@ public abstract class AbstractHttpMessageFactory<M extends HttpMessage>
         HttpEntity entity = getHttpEntity(message);
         if (entity != null) {
 
-            MimeStreamParser parser = new MimeStreamParser(new MimeEntityConfig());
+            MimeStreamParser parser = new MimeStreamParser(new MimeConfig());
             MultipartContentHandler handler = new MultipartContentHandler(dmessage);
             parser.setContentHandler(handler);
 
@@ -263,7 +263,7 @@ public abstract class AbstractHttpMessageFactory<M extends HttpMessage>
     /**
      * マルチパートコンテントハンドラー.
      */
-    private class MultipartContentHandler extends SimpleContentHandler {
+    private class MultipartContentHandler extends AbstractContentHandler {
 
         /**
          * メッセージ.
@@ -324,38 +324,36 @@ public abstract class AbstractHttpMessageFactory<M extends HttpMessage>
         }
 
         @Override
-        public void headers(final org.apache.james.mime4j.message.Header header) {
-            
+        public void field(Field field) throws MimeException {
+            super.field(field);
+
             if (mMultipartFlg && mBodyPartFlg) {
-                for (Field field: header.getFields()) {
-                    if (field.getName().equalsIgnoreCase("Content-Disposition")) {
-                        
-                        String body = field.getBody();
-                        String[] attrs = body.split(";");
-                        for (String attr : attrs) {
-                            if (attr.contains("filename")) {
-                                mFileFlg = true;
-                            } else if (attr.contains("name")) {
-                                String[] values = attr.split("=");
-                                if (values.length == 2) {
-                                    mName = values[1].replaceAll("\"", "");
-                                }
+                if (field.getName().equalsIgnoreCase("Content-Disposition")) {
+                    String body = field.getBody();
+                    String[] attrs = body.split(";");
+                    for (String attr : attrs) {
+                        if (attr.contains("filename")) {
+                            mFileFlg = true;
+                        } else if (attr.contains("name")) {
+                            String[] values = attr.split("=");
+                            if (values.length == 2) {
+                                mName = values[1].replaceAll("\"", "");
                             }
-                            
                         }
                     }
-                    mLogger.fine("header: " + field.getName() + ":" + field.getBody());
                 }
+                mLogger.fine("header: " + field.getName() + ":" + field.getBody());
             }
         }
 
         @Override
-        public void bodyDecoded(final BodyDescriptor bd, final InputStream is)
-                throws IOException {
-            mLogger.entering(getClass().getName(), "bodyDecoded", new Object[] {bd, is});
+        public void body(BodyDescriptor bd, InputStream is) throws MimeException, IOException {
+            super.body(bd, is);
+
+            mLogger.entering(getClass().getName(), "body", new Object[] {bd, is});
 
             byte[] bytes = loadBytes(is);
-            
+
             if (mMultipartFlg && mName != null) {
                 if (mFileFlg) {
                     mMessage.put(mName, bytes);
@@ -390,9 +388,9 @@ public abstract class AbstractHttpMessageFactory<M extends HttpMessage>
 
             mName = null;
             mFileFlg = false;
-            mLogger.exiting(getClass().getName(), "bodyDecoded");
+            mLogger.exiting(getClass().getName(), "body");
         }
-        
+
         /**
          * 指定された文字列を解析し、キーバリュー形式で格納する.
          * 

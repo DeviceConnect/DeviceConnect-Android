@@ -84,7 +84,7 @@ public class SettingsFragment extends PreferenceFragment
         mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
                 "android-support-v4.jar", R.raw.andorid_support_v4));
         mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
-                "apache-mime4j-0.6.jar", R.raw.apache_mime4j));
+                "apache-mime4j-0.7.2.jar", R.raw.apache_mime4j));
         mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
                 "android-support-v4-preferencefragment", R.raw.android_support_v4_preferencefragment));
         mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(

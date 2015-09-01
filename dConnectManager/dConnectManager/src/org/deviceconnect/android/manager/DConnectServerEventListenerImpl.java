@@ -6,6 +6,30 @@
  */
 package org.deviceconnect.android.manager;
 
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+
+import org.apache.james.mime4j.MimeException;
+import org.apache.james.mime4j.parser.AbstractContentHandler;
+import org.apache.james.mime4j.parser.MimeStreamParser;
+import org.apache.james.mime4j.stream.BodyDescriptor;
+import org.apache.james.mime4j.stream.Field;
+import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
+import org.deviceconnect.android.manager.util.DConnectUtil;
+import org.deviceconnect.android.provider.FileManager;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.deviceconnect.profile.FileProfileConstants;
+import org.deviceconnect.server.DConnectServerError;
+import org.deviceconnect.server.DConnectServerEventListener;
+import org.deviceconnect.server.http.HttpRequest;
+import org.deviceconnect.server.http.HttpResponse;
+import org.deviceconnect.server.http.HttpResponse.StatusCode;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,30 +45,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
-
-import org.apache.james.mime4j.MimeException;
-import org.apache.james.mime4j.descriptor.BodyDescriptor;
-import org.apache.james.mime4j.parser.AbstractContentHandler;
-import org.apache.james.mime4j.parser.Field;
-import org.apache.james.mime4j.parser.MimeStreamParser;
-import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
-import org.deviceconnect.android.manager.util.DConnectUtil;
-import org.deviceconnect.android.provider.FileManager;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.deviceconnect.profile.FileProfileConstants;
-import org.deviceconnect.server.DConnectServerError;
-import org.deviceconnect.server.DConnectServerEventListener;
-import org.deviceconnect.server.http.HttpRequest;
-import org.deviceconnect.server.http.HttpResponse;
-import org.deviceconnect.server.http.HttpResponse.StatusCode;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.app.Service;
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 
 /**
  * Webサーバからのイベントを受領するクラス.
@@ -484,7 +484,7 @@ public class DConnectServerEventListenerImpl implements
                 /** 処理の状態を格納する変数. */
                 private int mState;
                 @Override
-                public void body(final BodyDescriptor bd, final InputStream in) 
+                public void body(final BodyDescriptor bd, final InputStream in)
                         throws MimeException, IOException {
                     if (mName != null) {
                         if (mState == STATE_VALUE) {

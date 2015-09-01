@@ -29,6 +29,7 @@
     <string name="activity_settings_ssl">SSL</string>
     <string name="activity_settings_host">Host</string>
     <string name="activity_settings_port">Port</string>
+    <string name="activity_settings_document_root">Document Root Path</string>
     <string name="activity_settings_default_host">localhost</string>
     <string name="activity_settings_default_port">4035</string>
     <string name="activity_settings_local_oauth">Local OAuth</string>
@@ -72,6 +73,7 @@
     <string name="key_settings_dconn_ssl">settings_dconn_ssl</string>
     <string name="key_settings_dconn_host">settings_dconn_host</string>
     <string name="key_settings_dconn_port">settings_dconn_port</string>
+    <string name="key_settings_dconn_document_root_path">settings_dconn_document_root_path</string>
     <string name="key_settings_dconn_local_oauth">settings_dconn_local_oauth</string>
     <string name="key_settings_list_access_token">settings_list_access_token</string>
     <string name="key_settings_dconn_observation_interval">key_settings_dconn_observation_interval</string>

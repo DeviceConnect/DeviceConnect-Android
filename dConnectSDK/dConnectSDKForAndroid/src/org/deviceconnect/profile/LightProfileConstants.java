@@ -1,16 +1,17 @@
 /*
 LightProfileConstants
-Copyright (c) 2014 NTT DOCOMO,INC.
+Copyright (c) 2015 NTT DOCOMO,INC.
 Released under the MIT license
 http://opensource.org/licenses/mit-license.php
 */
-
-package org.deviceconnect.android.original.profile;
+package org.deviceconnect.profile;
 
 import org.deviceconnect.profile.DConnectProfileConstants;
 
 /**
- * ライトプロファイルパラメータ定義.
+ * Light Profile API 定数群.<br/>
+ * Light Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
+ * 
  * @author NTT DOCOMO, INC.
  */
 public interface LightProfileConstants extends DConnectProfileConstants {
@@ -59,6 +60,11 @@ public interface LightProfileConstants extends DConnectProfileConstants {
      * パラメータ: {@value} .
      */
     String PARAM_COLOR = "color";
+
+    /**
+     * パラメータ: {@value}.
+     */
+    String PARAM_FLASHING = "flashing";
 
     /**
      * インターフェース: {@value} .

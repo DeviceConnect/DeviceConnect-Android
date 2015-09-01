@@ -57,7 +57,7 @@ public class ThetaApiClient {
             final PtpipInitiator initiator = getInitiator();
             final ThetaPhoto[] photo = new ThetaPhoto[1];
             if (BuildConfig.DEBUG) {
-                initiator.setAudioVolume(0); // Mute the sound of shutter.
+                initiator.setAudioVolume(1);
             }
             if (initiator.getStillCaptureMode() == PtpipInitiator.DEVICE_PROP_VALUE_UNDEFINED_CAPTURE_MODE) {
                 throw new IllegalStateException("Theta's current mode is video mode.");
@@ -103,7 +103,7 @@ public class ThetaApiClient {
                 return false;
             }
             if (BuildConfig.DEBUG) {
-                initiator.setAudioVolume(0); // Mute the sound of shutter.
+                initiator.setAudioVolume(1);
             }
             initiator.initiateOpenCapture();
             return true;

@@ -497,22 +497,35 @@ public class HostFileProfile extends FileProfile {
         } else if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response);
         } else {
-            File mBaseDir = mFileManager.getBasePath();
-            File mMakeDir = new File(mBaseDir, path);
+            getFileManager().checkWritePermission(new FileManager.CheckPermissionCallback() {
+                @Override
+                public void onSuccess() {
+                    File mBaseDir = mFileManager.getBasePath();
+                    File mMakeDir = new File(mBaseDir, path);
 
-            if (mMakeDir.isDirectory()) {
-                setResult(response, DConnectMessage.RESULT_ERROR);
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "can not make dir, \"" + mMakeDir + "\" already exist.");
-            } else {
-                boolean isMakeDir = mMakeDir.mkdirs();
-                if (isMakeDir) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } else {
-                    setResult(response, DConnectMessage.RESULT_ERROR);
-                    MessageUtils.setInvalidRequestParameterError(response, "can not make dir :" + mMakeDir);
+                    if (mMakeDir.isDirectory()) {
+                        setResult(response, DConnectMessage.RESULT_ERROR);
+                        MessageUtils.setInvalidRequestParameterError(response,
+                                "can not make dir, \"" + mMakeDir + "\" already exist.");
+                    } else {
+                        boolean isMakeDir = mMakeDir.mkdirs();
+                        if (isMakeDir) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            setResult(response, DConnectMessage.RESULT_ERROR);
+                            MessageUtils.setInvalidRequestParameterError(response, "can not make dir :" + mMakeDir);
+                        }
+                    }
                 }
-            }
+
+                @Override
+                public void onFail() {
+                    MessageUtils.setIllegalServerStateError(response,
+                            "Permission WRITE_EXTERNAL_STORAGE not granted.");
+                    getContext().sendBroadcast(response);
+                }
+            });
+            return false;
         }
 
         return true;

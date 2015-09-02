@@ -69,7 +69,7 @@ public class HueLightProfile extends LightProfile {
         }
         setLights(response, lightList);
         sendResultOK(response);
-        return false;
+        return true;
     }
 
     @Override
@@ -229,7 +229,7 @@ public class HueLightProfile extends LightProfile {
                         code + "  message = " + message;
                 MessageUtils.setUnknownError(response, errMsg);
                 mErrorFlag = true;
-                countDownLatch.countDown();
+                countDown();
             }
         };
 

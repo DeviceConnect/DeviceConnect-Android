@@ -92,15 +92,15 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             try {
                 color = getColor(request);
             } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "color is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
 
-            Double brightness = getBrightness(request);
-            if (checkBrightness(brightness)) {
-                MessageUtils.setInvalidRequestParameterError(response, 
-                        "brightness should be a value between 0 and 1.0");
+            Double brightness;
+            try {
+                brightness = getBrightness(request);
+            } catch (Exception e) {
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
 
@@ -108,8 +108,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             try {
                 flashing = getFlashing(request);
             } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "flashing is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
             return onPostLight(request, response, serviceId, lightId, color, brightness, flashing);
@@ -121,15 +120,15 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             try {
                 color = getColor(request);
             } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "color is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
 
-            Double brightness = getBrightness(request);
-            if (checkBrightness(brightness)) {
-                MessageUtils.setInvalidRequestParameterError(response, 
-                        "brightness should be a value between 0 and 1.0");
+            Double brightness;
+            try {
+                brightness = getBrightness(request);
+            } catch (Exception e) {
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
 
@@ -137,16 +136,26 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             try {
                 flashing = getFlashing(request);
             } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "flashing is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
             return onPostLightGroup(request, response, serviceId, groupId, color, brightness, flashing);
         } else if (isLightGroupCreateAttribute(request)) {
             String serviceId = getServiceID(request);
             String[] lightIds = getLightIds(request);
-            String name = getGroupName(request);
-            return onPostLightGroupCreate(request, response, serviceId, lightIds, name);
+            String groupName = getGroupName(request);
+
+            if (lightIds == null || lightIds.length == 0) {
+                MessageUtils.setInvalidRequestParameterError(response, "lightIds is not specified.");
+                return true;
+            }
+
+            if (groupName == null || groupName.length() == 0) {
+                MessageUtils.setInvalidRequestParameterError(response, "groupName is not specified.");
+                return true;
+            }
+
+            return onPostLightGroupCreate(request, response, serviceId, lightIds, groupName);
         } else {
             return onPostOther(request, response);
         }
@@ -178,19 +187,24 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             String lightId = getLightId(request);
             String name = getName(request);
 
+            if (name == null || name.length() == 0) {
+                MessageUtils.setInvalidRequestParameterError(response, "name is not specified.");
+                return true;
+            }
+
             Integer color;
             try {
                 color = getColor(request);
             } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "color is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
 
-            Double brightness = getBrightness(request);
-            if (checkBrightness(brightness)) {
-                MessageUtils.setInvalidRequestParameterError(response, 
-                        "brightness should be a value between 0 and 1.0");
+            Double brightness;
+            try {
+                brightness = getBrightness(request);
+            } catch (Exception e) {
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
 
@@ -198,8 +212,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             try {
                 flashing = getFlashing(request);
             } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "flashing is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
             return onPutLight(request, response, serviceId, lightId, name, color, brightness, flashing);
@@ -208,19 +221,24 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             String groupId = getGroupId(request);
             String name = getName(request);
 
+            if (name == null || name.length() == 0) {
+                MessageUtils.setInvalidRequestParameterError(response, "name is not specified.");
+                return true;
+            }
+
             Integer color;
             try {
                 color = getColor(request);
             } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "color is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
 
-            Double brightness = getBrightness(request);
-            if (checkBrightness(brightness)) {
-                MessageUtils.setInvalidRequestParameterError(response, 
-                        "brightness should be a value between 0 and 1.0");
+            Double brightness;
+            try {
+                brightness = getBrightness(request);
+            } catch (Exception e) {
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
 
@@ -228,8 +246,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             try {
                 flashing = getFlashing(request);
             } catch (Exception e) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "flashing is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
                 return true;
             }
             return onPutLightGroup(request, response, serviceId, groupId, name, color, brightness, flashing);
@@ -507,7 +524,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param brightness 明るさ
      * @return 範囲外の場合はtrue、それ以外はfalse
      */
-    private boolean checkBrightness(final Double brightness) {
+    private static boolean checkBrightness(final Double brightness) {
         return (brightness != null && (brightness < 0.0 || brightness > 1.0));
     }
 
@@ -651,6 +668,9 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
         if (color == null) {
             return null;
         }
+        if (color.length() != 6) {
+            throw new IllegalArgumentException("color is invalid.");
+        }
         try {
             int r = Integer.parseInt(color.substring(0, 2), 16);
             int g = Integer.parseInt(color.substring(2, 4), 16);
@@ -668,9 +688,33 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * </p>
      * @param request リクエスト
      * @return ライトの明るさ
+     * @throws IllegalArgumentException brightnessのフォーマットが不正な場合に発生
      */
     public static final Double getBrightness(final Intent request) {
-        return parseDouble(request, PARAM_BRIGHTNESS);
+        Bundle bundle = request.getExtras();
+        if (bundle == null) {
+            return null;
+        }
+
+        Object param = bundle.get(PARAM_BRIGHTNESS);
+        if (param == null) {
+            return null;
+        }
+
+        try {
+            Double brightness = null;
+            if (param instanceof String) {
+                brightness = Double.parseDouble((String) param);
+            } else {
+                brightness = (Double) param;
+            }
+            if (checkBrightness(brightness)) {
+                throw new IllegalArgumentException("brightness should be a value between 0 and 1.0");
+            }
+            return brightness;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("brightness is invalid.");
+        }
     }
 
     /**
@@ -686,12 +730,19 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
         if (flashing == null) {
             return null;
         }
+        if (flashing.length() == 0) {
+            throw new IllegalArgumentException("flashing is invalid.");
+        }
         String[] split = flashing.split(",");
         int[] list = new int[split.length];
         for (int i = 0; i < split.length; i++) {
-            list[i] = Integer.parseInt(split[i]);
-            if (list[i] <= 0) {
-                throw new IllegalArgumentException("flashing is error.");
+            try {
+                list[i] = Integer.parseInt(split[i]);
+                if (list[i] <= 0) {
+                    throw new IllegalArgumentException("flashing is negative value.");
+                }
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("flashing is invalid.");
             }
         }
         return list;

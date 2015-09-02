@@ -37,6 +37,7 @@
                 android:id="@+id/init"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_margin="8dp"
                 android:background="@drawable/button_blue"
                 android:paddingLeft="8dp"
                 android:paddingRight="8dp"
@@ -55,6 +56,6 @@
         <ListView
             android:id="@+id/list"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
     </LinearLayout>
 </LinearLayout>

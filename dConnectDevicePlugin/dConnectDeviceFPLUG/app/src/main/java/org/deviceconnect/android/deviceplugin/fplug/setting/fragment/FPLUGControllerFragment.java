@@ -62,6 +62,7 @@ public class FPLUGControllerFragment extends Fragment {
         ListView list = (ListView) root.findViewById(R.id.list);
         ItemAdapter adapter = new ItemAdapter(getActivity(), createItems());
         list.setAdapter(adapter);
+        list.setItemsCanFocus(true);
         mAdapter = adapter;
     }
 

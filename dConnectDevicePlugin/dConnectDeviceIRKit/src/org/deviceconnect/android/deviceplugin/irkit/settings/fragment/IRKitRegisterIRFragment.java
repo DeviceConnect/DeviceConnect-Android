@@ -10,7 +10,6 @@ import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,6 +26,9 @@ import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
 import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitDeviceListActivity;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -84,10 +86,11 @@ public class IRKitRegisterIRFragment extends Fragment  {
 
                                                             if (message == null) {
                                                                 showFailureDialog();
+                                                            } else if (!checkData(message)) {
+                                                                showFailureDialog();
                                                             } else {
                                                                 mProfile.setIr(message);
                                                                 int i = mDBHelper.updateVirtualProfile(mProfile);
-                                                                Log.d("TEST", "update:" + i);
                                                                 showSuccessDialog();
                                                             }
                                                             dismissProgress();
@@ -193,5 +196,24 @@ public class IRKitRegisterIRFragment extends Fragment  {
                 "赤外線取得失敗",
                 "赤外線の取得に失敗しました。");
 
+    }
+    /**
+     * 送られてきたデータがIRKitに対応しているかチェックを行う.
+     * @param message データ
+     * @return フォーマットが問題ない場合はtrue、それ以外はfalse
+     */
+    private boolean checkData(final String message) {
+        if (message == null || message.length() == 0) {
+            return false;
+        }
+        try {
+            JSONObject json = new JSONObject(message);
+            String format = json.getString("format");
+            int freq = json.getInt("freq");
+            JSONArray datas = json.getJSONArray("data");
+            return (format != null && freq > 0 && datas != null);
+        } catch (JSONException e) {
+            return false;
+        }
     }
 }

@@ -104,7 +104,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
                 return true;
             }
 
-            int[] flashing;
+            long[] flashing;
             try {
                 flashing = getFlashing(request);
             } catch (Exception e) {
@@ -132,7 +132,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
                 return true;
             }
 
-            int[] flashing;
+            long[] flashing;
             try {
                 flashing = getFlashing(request);
             } catch (Exception e) {
@@ -208,7 +208,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
                 return true;
             }
 
-            int[] flashing;
+            long[] flashing;
             try {
                 flashing = getFlashing(request);
             } catch (Exception e) {
@@ -242,7 +242,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
                 return true;
             }
 
-            int[] flashing;
+            long[] flashing;
             try {
                 flashing = getFlashing(request);
             } catch (Exception e) {
@@ -298,7 +298,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId, final Integer color, final Double brightness, final int[] flashing) {
+            final String lightId, final Integer color, final Double brightness, final long[] flashing) {
         MessageUtils.setNotSupportAttributeError(response);
         return true;
     }
@@ -340,7 +340,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId, final String name, final Integer color, final Double brightness, final int[] flashing) {
+            final String lightId, final String name, final Integer color, final Double brightness, final long[] flashing) {
         MessageUtils.setNotSupportAttributeError(response);
         return true;
     }
@@ -380,7 +380,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPostLightGroup(final Intent request, final Intent response, final String serviceId,
-            final String groupId, final Integer color, final Double brightness, final int[] flashing) {
+            final String groupId, final Integer color, final Double brightness, final long[] flashing) {
         MessageUtils.setNotSupportAttributeError(response);
         return true;
     }
@@ -422,7 +422,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutLightGroup(final Intent request, final Intent response, final String serviceId,
-            final String groupId, final String name, final Integer color, final Double brightness, final int[] flashing) {
+            final String groupId, final String name, final Integer color, final Double brightness, final long[] flashing) {
         MessageUtils.setNotSupportAttributeError(response);
         return true;
     }
@@ -725,7 +725,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param request リクエスト
      * @return 点滅間隔
      */
-    public static final int[] getFlashing(final Intent request) {
+    public static final long[] getFlashing(final Intent request) {
         String flashing = request.getStringExtra(PARAM_FLASHING);
         if (flashing == null) {
             return null;
@@ -734,7 +734,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
             throw new IllegalArgumentException("flashing is invalid.");
         }
         String[] split = flashing.split(",");
-        int[] list = new int[split.length];
+        long[] list = new long[split.length];
         for (int i = 0; i < split.length; i++) {
             try {
                 list[i] = Integer.parseInt(split[i]);

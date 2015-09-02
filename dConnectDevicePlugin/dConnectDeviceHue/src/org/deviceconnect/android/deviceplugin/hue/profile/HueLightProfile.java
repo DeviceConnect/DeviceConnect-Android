@@ -63,7 +63,7 @@ public class HueLightProfile extends LightProfile {
             Bundle light = new Bundle();
             setLightId(light, phLight.getIdentifier());
             setName(light, phLight.getName());
-            setOn(light, phState.isOn());
+            setOn(light, phState != null ? phState.isOn() : false);
             setConfig(light, "");
             lightList.add(light);
         }
@@ -74,7 +74,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId, final Integer color, final Double brightness, final int[] flashing) {
+            final String lightId, final Integer color, final Double brightness, final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -174,7 +174,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId, final String name, final Integer color, final Double brightness, final int[] flashing) {
+            final String lightId, final String name, final Integer color, final Double brightness, final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -316,7 +316,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLightGroup(final Intent request, final Intent response, final String serviceId,
-            final String groupId, final Integer color, final Double brightness, final int[] flashing) {
+            final String groupId, final Integer color, final Double brightness, final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -431,7 +431,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLightGroup(final Intent request, final Intent response, final String serviceId,
-            final String groupId, final String name, final Integer color, final Double brightness, final int[] flashing) {
+            final String groupId, final String name, final Integer color, final Double brightness, final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -730,7 +730,6 @@ public class HueLightProfile extends LightProfile {
      * ライトのアダプター.
      * 
      * @author NTT DOCOMO, INC.
-     * 
      */
     private static class PHLightAdapter implements PHLightListener {
 
@@ -763,7 +762,6 @@ public class HueLightProfile extends LightProfile {
      * ライトグループのアダプター.
      * 
      * @author NTT DOCOMO, INC.
-     * 
      */
     private static class PHGroupAdapter implements PHGroupListener {
         @Override

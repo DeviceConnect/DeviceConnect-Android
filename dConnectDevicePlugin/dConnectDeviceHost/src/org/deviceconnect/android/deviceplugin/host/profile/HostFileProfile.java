@@ -154,108 +154,124 @@ public class HostFileProfile extends FileProfile {
                         currentTop = false;
                     }
 
-                    File[] respFileList = tmpDir.listFiles();
-                    if (respFileList == null) {
-                        setResult(response, DConnectMessage.RESULT_ERROR);
-                        MessageUtils.setInvalidRequestParameterError(response, "Dir is not exist:" + tmpDir);
-                        getContext().sendBroadcast(response);
-                    } else if (order != null && !order.endsWith("desc") && !order.endsWith("asc")) {
-                        MessageUtils.setInvalidRequestParameterError(response);
-                        getContext().sendBroadcast(response);
-                    } else {
-                        // Set arraylist from respFileList
-                        ArrayList<FileAttribute> filelist = new ArrayList<FileAttribute>();
-                        filelist = setArryList(respFileList, filelist);
-
-                        // Sort
-                        filelist = sortFilelist(order, filelist);
-
-                        List<Bundle> resp = new ArrayList<Bundle>();
-                        Bundle respParam = new Bundle();
-
-                        // ..のフォルダを追加(常時)
-                        if (!currentTop) {
-                            String tmpPath = path;
-                            if (mPath != null) {
-                                tmpPath = mPath;
-                            }
-                            File parentDir = new File(tmpPath + "/..");
-                            String path = parentDir.getPath().replaceAll("" + mFileManager.getBasePath(), "");
-                            String name = parentDir.getName();
-                            Long size = parentDir.length();
-                            String mineType = "folder/dir";
-                            int filetype = 1;
-                            String date = mDataFormat.format(parentDir.lastModified());
-                            FileAttribute fa = new FileAttribute(path, name, mineType, filetype, size, date);
-                            respParam = addResponseParamToArray(fa, respParam);
-                            resp.add((Bundle) respParam.clone());
-                        }
-
-                        ArrayList<FileAttribute> tmpfilelist = new ArrayList<FileAttribute>();
-                        if (order != null && order.endsWith("desc")) {
-                            int last = filelist.size();
-                            for (int i = last - 1; i >= 0; i--) {
-                                tmpfilelist.add(filelist.get(i));
-                            }
-                            filelist = tmpfilelist;
-                        }
-
-                        int counter = 0;
-                        int tmpLimit = 0;
-                        int tmpOffset = 0;
-                        if (limit != null) {
-                            if (limit >= 0) {
-                                tmpLimit = limit;
+                    final File finalTmpDir = tmpDir;
+                    final Boolean finalCurrentTop = currentTop;
+                    final String finalMPath = mPath;
+                    getFileManager().checkReadPermission(new FileManager.CheckPermissionCallback() {
+                        @Override
+                        public void onSuccess() {
+                            File[] respFileList = finalTmpDir.listFiles();
+                            if (respFileList == null) {
+                                setResult(response, DConnectMessage.RESULT_ERROR);
+                                MessageUtils.setInvalidRequestParameterError(response,
+                                        "Dir is not exist:" + finalTmpDir);
+                                getContext().sendBroadcast(response);
+                            } else if (order != null && !order.endsWith("desc") && !order.endsWith("asc")) {
+                                MessageUtils.setInvalidRequestParameterError(response);
+                                getContext().sendBroadcast(response);
                             } else {
-                                MessageUtils.setInvalidRequestParameterError(response);
-                                getContext().sendBroadcast(response);
-                                return;
-                            }
-                        } else {
-                            if (request.getStringExtra(PARAM_LIMIT) != null) {
-                                MessageUtils.setInvalidRequestParameterError(response);
-                                getContext().sendBroadcast(response);
-                                return;
-                            }
-                        }
-                        if (offset != null) {
-                            if (offset >= 0) {
-                                tmpOffset = offset;
-                            } else {
-                                MessageUtils.setInvalidRequestParameterError(response);
-                                getContext().sendBroadcast(response);
-                                return;
-                            }
-                        } else {
-                            if (request.getStringExtra(PARAM_OFFSET) != null) {
-                                MessageUtils.setInvalidRequestParameterError(response);
-                                getContext().sendBroadcast(response);
-                                return;
-                            }
-                        }
-                        if (tmpOffset > filelist.size()) {
-                            MessageUtils.setInvalidRequestParameterError(response);
-                            getContext().sendBroadcast(response);
-                            return;
-                        }
-                        int limitCounter = tmpLimit + tmpOffset;
+                                // Set arraylist from respFileList
+                                ArrayList<FileAttribute> filelist = new ArrayList<FileAttribute>();
+                                filelist = setArryList(respFileList, filelist);
 
-                        for (FileAttribute fa : filelist) {
-                            if (limit == null || (limit != null && limitCounter > counter)) {
-                                respParam = addResponseParamToArray(fa, respParam);
-                                if (offset == null || (offset != null && counter >= offset)) {
+                                // Sort
+                                filelist = sortFilelist(order, filelist);
+
+                                List<Bundle> resp = new ArrayList<Bundle>();
+                                Bundle respParam = new Bundle();
+
+                                // ..のフォルダを追加(常時)
+                                if (!finalCurrentTop) {
+                                    String tmpPath = path;
+                                    if (finalMPath != null) {
+                                        tmpPath = finalMPath;
+                                    }
+                                    File parentDir = new File(tmpPath + "/..");
+                                    String path = parentDir.getPath().replaceAll("" + mFileManager.getBasePath(), "");
+                                    String name = parentDir.getName();
+                                    Long size = parentDir.length();
+                                    String mineType = "folder/dir";
+                                    int filetype = 1;
+                                    String date = mDataFormat.format(parentDir.lastModified());
+                                    FileAttribute fa = new FileAttribute(path, name, mineType, filetype, size, date);
+                                    respParam = addResponseParamToArray(fa, respParam);
                                     resp.add((Bundle) respParam.clone());
                                 }
+
+                                ArrayList<FileAttribute> tmpfilelist = new ArrayList<FileAttribute>();
+                                if (order != null && order.endsWith("desc")) {
+                                    int last = filelist.size();
+                                    for (int i = last - 1; i >= 0; i--) {
+                                        tmpfilelist.add(filelist.get(i));
+                                    }
+                                    filelist = tmpfilelist;
+                                }
+
+                                int counter = 0;
+                                int tmpLimit = 0;
+                                int tmpOffset = 0;
+                                if (limit != null) {
+                                    if (limit >= 0) {
+                                        tmpLimit = limit;
+                                    } else {
+                                        MessageUtils.setInvalidRequestParameterError(response);
+                                        getContext().sendBroadcast(response);
+                                        return;
+                                    }
+                                } else {
+                                    if (request.getStringExtra(PARAM_LIMIT) != null) {
+                                        MessageUtils.setInvalidRequestParameterError(response);
+                                        getContext().sendBroadcast(response);
+                                        return;
+                                    }
+                                }
+                                if (offset != null) {
+                                    if (offset >= 0) {
+                                        tmpOffset = offset;
+                                    } else {
+                                        MessageUtils.setInvalidRequestParameterError(response);
+                                        getContext().sendBroadcast(response);
+                                        return;
+                                    }
+                                } else {
+                                    if (request.getStringExtra(PARAM_OFFSET) != null) {
+                                        MessageUtils.setInvalidRequestParameterError(response);
+                                        getContext().sendBroadcast(response);
+                                        return;
+                                    }
+                                }
+                                if (tmpOffset > filelist.size()) {
+                                    MessageUtils.setInvalidRequestParameterError(response);
+                                    getContext().sendBroadcast(response);
+                                    return;
+                                }
+                                int limitCounter = tmpLimit + tmpOffset;
+
+                                for (FileAttribute fa : filelist) {
+                                    if (limit == null || (limit != null && limitCounter > counter)) {
+                                        respParam = addResponseParamToArray(fa, respParam);
+                                        if (offset == null || (offset != null && counter >= offset)) {
+                                            resp.add((Bundle) respParam.clone());
+                                        }
+                                    }
+                                    counter++;
+                                }
+
+                                // 結果を非同期で返信
+                                setResult(response, IntentDConnectMessage.RESULT_OK);
+                                response.putExtra(PARAM_COUNT, filelist.size());
+                                response.putExtra(PARAM_FILES, resp.toArray(new Bundle[resp.size()]));
+                                getContext().sendBroadcast(response);
                             }
-                            counter++;
                         }
 
-                        // 結果を非同期で返信
-                        setResult(response, IntentDConnectMessage.RESULT_OK);
-                        response.putExtra(PARAM_COUNT, filelist.size());
-                        response.putExtra(PARAM_FILES, resp.toArray(new Bundle[resp.size()]));
-                        getContext().sendBroadcast(response);
-                    }
+                        @Override
+                        public void onFail() {
+                            MessageUtils.setIllegalServerStateError(response,
+                                    "Permission READ_EXTERNAL_STORAGE not granted.");
+                            getContext().sendBroadcast(response);
+                        }
+                    });
                 }
             }).start();
         }

@@ -57,17 +57,17 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        List<Bundle> lightsParam = new ArrayList<Bundle>();
-        for (PHLight light : bridge.getResourceCache().getAllLights()) {
-            PHLightState state = light.getLastKnownLightState();
-            Bundle lightParam = new Bundle();
-            setLightId(lightParam, light.getIdentifier());
-            setName(lightParam, light.getName());
-            setOn(lightParam, state.isOn());
-            setConfig(lightParam, "");
-            lightsParam.add(lightParam);
+        List<Bundle> lightList = new ArrayList<Bundle>();
+        for (PHLight phLight : bridge.getResourceCache().getAllLights()) {
+            PHLightState phState = phLight.getLastKnownLightState();
+            Bundle light = new Bundle();
+            setLightId(light, phLight.getIdentifier());
+            setName(light, phLight.getName());
+            setOn(light, phState.isOn());
+            setConfig(light, "");
+            lightList.add(light);
         }
-        setLights(response, lightsParam);
+        setLights(response, lightList);
         sendResultOK(response);
         return false;
     }
@@ -164,7 +164,7 @@ public class HueLightProfile extends LightProfile {
             }
             @Override
             public void onError(final int code, final String message) {
-                String errMsg = "ライトの状態更新に失敗しました hue:code = " + Integer.toString(code) + "  message = " + message;
+                String errMsg = "ライトの状態更新に失敗しました hue:code = " + code + "  message = " + message;
                 MessageUtils.setUnknownError(response, errMsg);
                 sendResultERR(response);
             }
@@ -226,7 +226,7 @@ public class HueLightProfile extends LightProfile {
             @Override
             public void onError(final int code, final String message) {
                 String errMsg = "ライトの状態更新に失敗しました hue:code = " + 
-                        Integer.toString(code) + "  message = " + message;
+                        code + "  message = " + message;
                 MessageUtils.setUnknownError(response, errMsg);
                 mErrorFlag = true;
                 countDownLatch.countDown();
@@ -286,32 +286,30 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        List<Bundle> groupsParam = new ArrayList<Bundle>();
-        Map<String, PHLight> allLights = bridge.getResourceCache().getLights();
-        for (PHGroup group : bridge.getResourceCache().getAllGroups()) {
-            Bundle groupParam = new Bundle();
-            setGroupId(groupParam, group.getIdentifier());
-            setGroupName(groupParam, group.getName());
-            List<Bundle> lightsParam = new ArrayList<Bundle>();
-            for (String lightId : group.getLightIdentifiers()) {
-                PHLight light = allLights.get(lightId);
-                if (light != null) {
-                    Bundle lightParam = new Bundle();
-                    setLightId(lightParam, lightId);
-                    setName(lightParam, lightId);
-                    PHLightState state = light.getLastKnownLightState();
-                    if (state != null) {
-                        setOn(lightParam, state.isOn().booleanValue());
-                    }
-                    setConfig(lightParam, "");
-                    lightsParam.add(lightParam);
+        List<Bundle> groupList = new ArrayList<Bundle>();
+        Map<String, PHLight> phAllLights = bridge.getResourceCache().getLights();
+        for (PHGroup phGroup : bridge.getResourceCache().getAllGroups()) {
+            List<Bundle> lightList = new ArrayList<Bundle>();
+            for (String lightId : phGroup.getLightIdentifiers()) {
+                PHLight phLight = phAllLights.get(lightId);
+                if (phLight != null) {
+                    PHLightState state = phLight.getLastKnownLightState();
+                    Bundle light = new Bundle();
+                    setLightId(light, lightId);
+                    setName(light, lightId);
+                    setOn(light, state != null ? state.isOn() : false);
+                    setConfig(light, "");
+                    lightList.add(light);
                 }
             }
-            setLights(groupParam, lightsParam);
-            setGroupConfig(groupParam, "");
-            groupsParam.add(groupParam);
+            Bundle group = new Bundle();
+            setGroupId(group, phGroup.getIdentifier());
+            setGroupName(group, phGroup.getName());
+            setLights(group, lightList);
+            setGroupConfig(group, "");
+            groupList.add(group);
         }
-        setLightGroups(response, groupsParam);
+        setLightGroups(response, groupList);
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }
@@ -367,7 +365,7 @@ public class HueLightProfile extends LightProfile {
         bridge.setLightStateForGroup(group.getIdentifier(), lightState, new PHGroupAdapter() {
             @Override
             public void onError(final int code, final String message) {
-                String msg = "ライトの状態更新に失敗しました hue:code = " + Integer.toString(code) + "  message = " + message;
+                String msg = "ライトの状態更新に失敗しました hue:code = " + code + "  message = " + message;
                 MessageUtils.setUnknownError(response, msg);
                 sendResultERR(response);
             }
@@ -417,7 +415,7 @@ public class HueLightProfile extends LightProfile {
         bridge.setLightStateForGroup(group.getIdentifier(), lightState, new PHGroupAdapter() {
             @Override
             public void onError(final int code, final String message) {
-                String msg = "ライトの状態更新に失敗しました hue:code = " + Integer.toString(code) + "  message = " + message;
+                String msg = "ライトの状態更新に失敗しました hue:code = " + code + "  message = " + message;
                 MessageUtils.setUnknownError(response, msg);
                 sendResultERR(response);
             }
@@ -470,7 +468,7 @@ public class HueLightProfile extends LightProfile {
 
             @Override
             public void onError(final int code, final String message) {
-                String errMsg = "グループの名称変更に失敗しました hue:code = " + Integer.toString(code) + "  message = " + message;
+                String errMsg = "グループの名称変更に失敗しました hue:code = " + code + "  message = " + message;
                 MessageUtils.setUnknownError(response, errMsg);
                 sendResultERR(response);
             }
@@ -511,7 +509,7 @@ public class HueLightProfile extends LightProfile {
 
             @Override
             public void onError(final int code, final String msg) {
-                String errMsg = "グループ作成に失敗しました hue:code = " + Integer.toString(code) + "  message = " + msg;
+                String errMsg = "グループ作成に失敗しました hue:code = " + code + "  message = " + msg;
                 if (code == HUE_SDK_ERROR_301) {
                     MessageUtils.setUnknownError(response, "グループが作成できる上限に達しています");
                 } else {
@@ -549,7 +547,7 @@ public class HueLightProfile extends LightProfile {
 
             @Override
             public void onError(final int code, final String msg) {
-                String errMsg = "グループ削除に失敗しました hue:code = " + Integer.toString(code) + "  message = " + msg;
+                String errMsg = "グループ削除に失敗しました hue:code = " + code + "  message = " + msg;
                 MessageUtils.setUnknownError(response, errMsg);
                 sendResultERR(response);
             }
@@ -627,15 +625,6 @@ public class HueLightProfile extends LightProfile {
     }
 
     /**
-     * Error レスポンス設定.
-     * 
-     * @param response response
-     */
-    private void setResultERR(final Intent response) {
-        setResult(response, DConnectMessage.RESULT_ERROR);
-    }
-
-    /**
      * 成功レスポンス送信.
      * 
      * @param response response
@@ -652,7 +641,7 @@ public class HueLightProfile extends LightProfile {
      * @param response エラーレスポンス
      */
     private void sendResultERR(final Intent response) {
-        setResultERR(response);
+        setResult(response, DConnectMessage.RESULT_ERROR);
         HueDeviceService service = (HueDeviceService) getContext();
         service.sendResponse(response);
     }
@@ -714,6 +703,7 @@ public class HueLightProfile extends LightProfile {
         final float mX;
         /** 色相のY座標. */
         final float mY;
+
         /**
          * コンストラクタ.
          * @param rgb RGB
@@ -725,6 +715,14 @@ public class HueLightProfile extends LightProfile {
             float[] xy = PHUtilities.calculateXYFromRGB(mR, mG, mB, MODEL);
             mX = xy[0];
             mY = xy[1];
+        }
+
+        /**
+         * コンストラクタ.
+         * @param rgb RGB
+         */
+        Color(final Integer rgb) {
+            this(rgb != null ? rgb : 0xFFFFFF);
         }
     }
 

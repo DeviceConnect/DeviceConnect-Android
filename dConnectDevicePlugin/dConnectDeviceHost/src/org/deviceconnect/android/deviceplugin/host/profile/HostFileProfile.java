@@ -516,6 +516,7 @@ public class HostFileProfile extends FileProfile {
                             MessageUtils.setInvalidRequestParameterError(response, "can not make dir :" + mMakeDir);
                         }
                     }
+                    getContext().sendBroadcast(response);
                 }
 
                 @Override
@@ -560,6 +561,7 @@ public class HostFileProfile extends FileProfile {
                             MessageUtils.setUnknownError(response, "can not delete dir :" + mDeleteDir);
                         }
                     }
+                    getContext().sendBroadcast(response);
                 }
 
                 @Override

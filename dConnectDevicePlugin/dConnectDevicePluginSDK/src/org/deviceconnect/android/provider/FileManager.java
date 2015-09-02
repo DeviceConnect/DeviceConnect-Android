@@ -107,7 +107,12 @@ public class FileManager {
         mWorkerThread.quit();
     }
 
-    private void checkWritePermission(@NonNull final CheckPermissionCallback callback) {
+    /**
+     * ファイルシステムへの書き込み権限をチェックし、必要であればユーザに権限のリクエストを行う。
+     *
+     * @param callback コールバック
+     */
+    public void checkWritePermission(@NonNull final CheckPermissionCallback callback) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PermissionUtility.requestPermissions(mContext, mHandler,
                     new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
@@ -127,7 +132,12 @@ public class FileManager {
         }
     }
 
-    private void checkReadPermission(@NonNull final CheckPermissionCallback callback) {
+    /**
+     * ファイルシステムへの読み込み権限をチェックし、必要であればユーザに権限のリクエストを行う。
+     * 
+     * @param callback コールバック
+     */
+    public void checkReadPermission(@NonNull final CheckPermissionCallback callback) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PermissionUtility.requestPermissions(mContext, mHandler,
                     new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
@@ -609,7 +619,7 @@ public class FileManager {
         }
     }
 
-    private interface CheckPermissionCallback {
+    public interface CheckPermissionCallback {
         void onSuccess();
 
         void onFail();

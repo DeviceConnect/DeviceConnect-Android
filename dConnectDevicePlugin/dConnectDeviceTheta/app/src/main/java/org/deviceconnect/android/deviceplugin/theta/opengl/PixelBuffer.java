@@ -36,6 +36,11 @@ import static javax.microedition.khronos.egl.EGL10.EGL_WIDTH;
 import static javax.microedition.khronos.opengles.GL10.GL_RGBA;
 import static javax.microedition.khronos.opengles.GL10.GL_UNSIGNED_BYTE;
 
+/**
+ * Pixel Buffer.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class PixelBuffer {
 
     private static final String TAG = "PixelBuffer";
@@ -51,7 +56,7 @@ public class PixelBuffer {
     private final GL10 mGL;
     private final String mThreadOwner;
 
-    private GLSurfaceView.Renderer mRenderer; // borrow this interface
+    private GLSurfaceView.Renderer mRenderer;
     private IntBuffer mIb;
     private IntBuffer mIbt;
     private final Bitmap mBitmap;

@@ -23,6 +23,8 @@ import javax.microedition.khronos.opengles.GL10;
 
 /**
  * Renderer class for photo display.
+ *
+ * @author NTT DOCOMO, INC.
  */
 public class SphereRenderer implements Renderer {
 

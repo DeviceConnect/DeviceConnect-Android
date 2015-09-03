@@ -41,6 +41,13 @@ import com.philips.lighting.model.PHLightState;
  */
 public class HueLightProfile extends LightProfile {
 
+    /** hue minimum brightness value. */
+    private static final int HUE_BRIGHTNESS_MIN_VALUE = 1;
+    /** hue maximum brightness value. */
+    private static final int HUE_BRIGHTNESS_MAX_VALUE = 255;
+    /** hue SDK maximum brightness value. */
+    private static final int HUE_BRIGHTNESS_TUNED_MAX_VALUE = 254;
+
     /** エラーコード301. */
     private static final int HUE_SDK_ERROR_301 = 301;
 
@@ -661,20 +668,13 @@ public class HueLightProfile extends LightProfile {
         }
     }
 
-    /** hue minimum brightness value. */
-    private static final int HUE_BRIGHTNESS_MIN_VALUE = 1;
-    /** hue maximum brightness value. */
-    private static final int HUE_BRIGHTNESS_MAX_VALUE = 255;
-    /** hue SDK maximum brightness value. */
-    private static final int HUE_BRIGHTNESS_TUNED_MAX_VALUE = 254;
-
     /**
      * Calculate brightness parameter.
      * 
      * @param color Color parameters.
      * @return brightness Brightness parameter.
      */
-    private static int calcBrightnessParam(final int[] color) {
+    private int calcBrightnessParam(final int[] color) {
         int brightness = Math.max(color[0], color[1]);
         brightness = Math.max(brightness, color[2]);
         if (brightness < HUE_BRIGHTNESS_MIN_VALUE) {

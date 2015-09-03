@@ -276,11 +276,21 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * ライト点灯リクエストハンドラー.
      * 
      * <p>
+     * colorが<code>null</code>の場合には省略されたので、デバイスのデフォルトの色を使用すること。<br>
      * colorは以下のように使用する。<br>
-     * 値は[0〜255]の範囲になっている。<br>
-     * int r = Color.red(color);<br>
-     * int g = Color.green(color);<br>
-     * int b = Color.blue(color);<br>
+     * int red = Color.red(color);<br>
+     * int green = Color.green(color);<br>
+     * int blue = Color.blue(color);<br>
+     * 各値は[0〜255]の範囲になっている。<br>
+     * </p>
+     * 
+     * <p>
+     * brightnessが<code>null</code>の場合には、省略されたので、デバイスのデフォルトの明るさを使用すること。<br>
+     * </p>
+     * 
+     * <p>
+     * flashingがnullの場合には省略されたので、点滅はせずに点灯し続けること。<br>
+     * flashingには、点灯・消灯が交互に格納されている。
      * </p>
      * 
      * <p>
@@ -293,7 +303,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @param lightId ライトID
      * @param color 色情報
-     * @param brightness 明るさ
+     * @param brightness 明るさ (0.0〜1.0)
      * @param flashing 点滅情報
      * @return レスポンスパラメータを送信するか否か
      */
@@ -325,6 +335,23 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * ライト情報更新リクエストハンドラー.
      * <p>
+     * colorが<code>null</code>の場合には省略されたので、デバイスのデフォルトの色を使用すること。<br>
+     * colorは以下のように使用する。<br>
+     * int red = Color.red(color);<br>
+     * int green = Color.green(color);<br>
+     * int blue = Color.blue(color);<br>
+     * 各値は[0〜255]の範囲になっている。<br>
+     * </p>
+     * 
+     * <p>
+     * brightnessが<code>null</code>の場合には、省略されたので、デバイスのデフォルトの明るさを使用すること。<br>
+     * </p>
+     * 
+     * <p>
+     * flashingがnullの場合には省略されたので、点滅はせずに点灯し続けること。<br>
+     * flashingには、点灯・消灯が交互に格納されている。
+     * </p>
+     * <p>
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
@@ -335,7 +362,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param lightId ライトID
      * @param name ライト名
      * @param color 色情報
-     * @param brightness 明るさ
+     * @param brightness 明るさ (0.0〜1.0)
      * @param flashing 点滅情報
      * @return レスポンスパラメータを送信するか否か
      */
@@ -366,6 +393,23 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * ライトグループ点灯リクエストハンドラー.
      * <p>
+     * colorが<code>null</code>の場合には省略されたので、デバイスのデフォルトの色を使用すること。<br>
+     * colorは以下のように使用する。<br>
+     * int red = Color.red(color);<br>
+     * int green = Color.green(color);<br>
+     * int blue = Color.blue(color);<br>
+     * 各値は[0〜255]の範囲になっている。<br>
+     * </p>
+     * 
+     * <p>
+     * brightnessが<code>null</code>の場合には、省略されたので、デバイスのデフォルトの明るさを使用すること。<br>
+     * </p>
+     * 
+     * <p>
+     * flashingがnullの場合には省略されたので、点滅はせずに点灯し続けること。<br>
+     * flashingには、点灯・消灯が交互に格納されている。
+     * </p>
+     * <p>
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
@@ -375,7 +419,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param serviceId サービスID
      * @param groupId グループID
      * @param color 色情報
-     * @param brightness 明るさ
+     * @param brightness 明るさ (0.0〜1.0)
      * @param flashing 点滅情報
      * @return レスポンスパラメータを送信するか否か
      */
@@ -407,6 +451,23 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * ライトグループ情報更新リクエストハンドラー.
      * <p>
+     * colorが<code>null</code>の場合には省略されたので、デバイスのデフォルトの色を使用すること。<br>
+     * colorは以下のように使用する。<br>
+     * int red = Color.red(color);<br>
+     * int green = Color.green(color);<br>
+     * int blue = Color.blue(color);<br>
+     * 各値は[0〜255]の範囲になっている。<br>
+     * </p>
+     * 
+     * <p>
+     * brightnessが<code>null</code>の場合には、省略されたので、デバイスのデフォルトの明るさを使用すること。<br>
+     * </p>
+     * 
+     * <p>
+     * flashingが<code>null</code>の場合には省略されたので、点滅はせずに点灯し続けること。<br>
+     * flashingには、点灯・消灯が交互に格納されている。
+     * </p>
+     * <p>
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
@@ -417,7 +478,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param groupId グループID
      * @param name グループ名前
      * @param color 色情報
-     * @param brightness 明るさ
+     * @param brightness 明るさ (0.0〜1.0)
      * @param flashing 点滅情報
      * @return レスポンスパラメータを送信するか否か
      */
@@ -624,12 +685,12 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     }
 
     /**
-     * リクエストからnameを取得する.
+     * リクエストからライト名を取得する.
      * <p>
-     * nameが省略された場合にはnullを返却する。
+     * ライト名が省略された場合にはnullを返却する。
      * </p>
      * @param request リクエスト
-     * @return name
+     * @return ライト名
      */
     public static final String getName(final Intent request) {
         return request.getStringExtra(PARAM_NAME);
@@ -724,6 +785,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * </p>
      * @param request リクエスト
      * @return 点滅間隔
+     * @throws IllegalArgumentException flashingのフォーマットが不正な場合に発生
      */
     public static final long[] getFlashing(final Intent request) {
         String flashing = request.getStringExtra(PARAM_FLASHING);

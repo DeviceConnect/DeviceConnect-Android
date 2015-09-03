@@ -128,6 +128,10 @@
     <string name="activity_warning_ok">OK</string>
     <string name="activity_warning_disable">次から表示しない</string>
 
+    <!-- ================= DConnectObservationService ================= -->
+    <string name="service_observation_warning">警告</string>
+    <string name="service_observation_msg_no_permission">ファイル読み込み権限が拒否されたため、ポート監視が中断されました。</string>
+
     <!-- =================     DebugActivity     ================= -->
 
     <string name="contents"></string>

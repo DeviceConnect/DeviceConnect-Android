@@ -128,6 +128,10 @@
     <string name="activity_warning_ok">OK</string>
     <string name="activity_warning_disable">Do not display from the next time</string>
 
+    <!-- ================= DConnectObservationService ================= -->
+    <string name="service_observation_warning">Warning</string>
+    <string name="service_observation_msg_no_permission">Port observation was interrupted due to lack of file read permission.</string>
+
     <!-- =================     DebugActivity     ================= -->
 
     <string name="contents"></string>

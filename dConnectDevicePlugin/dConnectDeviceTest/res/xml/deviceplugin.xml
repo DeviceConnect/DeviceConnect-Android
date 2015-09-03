@@ -92,7 +92,13 @@
         <name lang="en">Media Player (for test)</name>
         <description lang="en">Accesses media player feature. (for test)</description>
     </profile>
-
+    <profile name="light" expireperiod="86400000">
+        <name lang="ja">ライト制御 (テスト用)</name>
+        <description lang="ja">ライト制御機能を提供する (テスト用)</description>
+        <name lang="en">Light (for test)</name>
+        <description lang="en">Control the light feature. (for test)</description>
+    </profile>
+    
     <!-- Unique Profile -->
     <profile name="unique" expireperiod="86400000">
         <name lang="ja">独自プロファイル</name>

@@ -240,7 +240,7 @@ public class TestLightProfile extends LightProfile {
             createNotFoundService(response);
         } else if (!checkGroupId(groupId)) {
             MessageUtils.setInvalidRequestParameterError(response, "groupId is invalid.");
-        } else if (!checkName(name)) {
+        } else if (!checkGroupName(name)) {
             MessageUtils.setInvalidRequestParameterError(response, "name is invalid.");
         } else if (!checkColor(color)) {
             MessageUtils.setInvalidRequestParameterError(response, "color is invalid.");

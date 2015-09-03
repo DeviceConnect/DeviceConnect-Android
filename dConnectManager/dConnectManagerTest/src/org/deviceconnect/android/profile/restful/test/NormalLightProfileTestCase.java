@@ -286,7 +286,7 @@ public class NormalLightProfileTestCase extends RESTfulDConnectTestCase implemen
         builder.addParameter(AuthorizationProfile.PARAM_ACCESS_TOKEN, getAccessToken());
         builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
         builder.addParameter(LightProfile.PARAM_GROUP_ID, LIGHT_GROUP_ID);
-        builder.addParameter(LightProfile.PARAM_NAME, LIGHT_NEW_NAME);
+        builder.addParameter(LightProfile.PARAM_NAME, LIGHT_NEW_GROUP_NAME);
         builder.addParameter(LightProfile.PARAM_COLOR, convertColor(LIGHT_COLOR));
         builder.addParameter(LightProfile.PARAM_BRIGHTNESS, String.valueOf(LIGHT_BRIGHTNESS));
         builder.addParameter(LightProfile.PARAM_FLASHING, convertFlashing(LIGHT_FLASHING));

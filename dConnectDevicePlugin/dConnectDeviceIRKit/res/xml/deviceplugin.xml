@@ -5,5 +5,7 @@
     <profile name="serviceinformation" />
     <profile name="system" />
     <profile name="remote_controller" />
-    
+    <profile name="light" />
+    <profile name="tv" />
+
 </deviceplugin-provider>

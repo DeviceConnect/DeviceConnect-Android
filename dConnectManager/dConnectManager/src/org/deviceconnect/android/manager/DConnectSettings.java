@@ -8,6 +8,9 @@ package org.deviceconnect.android.manager;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Environment;
+
+import java.io.File;
 
 /**
  * DConnectの設定を保持するクラス.
@@ -24,6 +27,8 @@ public final class DConnectSettings {
     private int mPort = DEFAULT_PORT;
     /** ホスト名. */
     private String mHost = DEFAULT_HOST;
+    /** ドキュメントルートパス. */
+    private String mDocumentRootPath;
     /** SSL使用フラグ. */
     private boolean mSSL = false;
 
@@ -68,9 +73,15 @@ public final class DConnectSettings {
      * @param context コンテキスト
      */
     public void load(final Context context) {
+        File file = new File(Environment.getExternalStorageDirectory(), context.getPackageName());
+        if (!file.exists()) {
+            file.mkdir();
+        }
+
         SharedPreferences sp = context.getSharedPreferences(context.getPackageName() + "_preferences",
                 Context.MODE_MULTI_PROCESS);
         setHost(sp.getString(context.getString(R.string.key_settings_dconn_host), DConnectSettings.DEFAULT_HOST));
+        setDocumentRootPath(sp.getString(context.getString(R.string.key_settings_dconn_document_root_path), file.getAbsolutePath()));
         setSSL(sp.getBoolean(context.getString(R.string.key_settings_dconn_ssl), false));
         setUseALocalOAuth(sp.getBoolean(context.getString(R.string.key_settings_dconn_local_oauth), true));
         setAllowExternalIP(sp.getBoolean(context.getString(R.string.key_settings_dconn_allow_external_ip), false));
@@ -83,12 +94,14 @@ public final class DConnectSettings {
                     context.getString(R.string.key_settings_dconn_observation_interval),
                     String.valueOf(DEFAULT_INTERVAL))));
         } catch (NumberFormatException e) {
-            setObservationInterval(DConnectSettings.DEFAULT_INTERVAL);
+            setObservationInterval(DEFAULT_INTERVAL);
         }
         try {
-            setPort(Integer.parseInt(sp.getString(context.getString(R.string.key_settings_dconn_port), "4035")));
+            setPort(Integer.parseInt(sp.getString(
+                    context.getString(R.string.key_settings_dconn_port),
+                    String.valueOf(DEFAULT_PORT))));
         } catch (NumberFormatException e) {
-            setPort(DConnectSettings.DEFAULT_PORT);
+            setPort(DEFAULT_PORT);
         }
     }
 
@@ -122,6 +135,22 @@ public final class DConnectSettings {
      */
     public void setHost(final String host) {
         this.mHost = host;
+    }
+
+    /**
+     * ドキュメントルートパスを取得する.
+     * @return ドキュメントルートパス
+     */
+    public String getDocumentRootPath() {
+        return mDocumentRootPath;
+    }
+
+    /**
+     * ドキュメントルートパスを設定する.
+     * @param documentRootPath パス
+     */
+    public void setDocumentRootPath(final String documentRootPath) {
+        mDocumentRootPath = documentRootPath;
     }
 
     /**

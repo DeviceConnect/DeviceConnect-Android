@@ -274,7 +274,6 @@ public class ThetaApiClient {
                     }
                     return;
                 }
-
                 task.run(mThetaApi);
 
                 try {

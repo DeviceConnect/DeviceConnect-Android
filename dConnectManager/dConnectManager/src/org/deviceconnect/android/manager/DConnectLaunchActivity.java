@@ -36,8 +36,8 @@ import android.widget.TextView;
  */
 public class DConnectLaunchActivity extends Activity {
 
-    /** The name of URI scheme for launching Device Connect Manager. */
-    private static final String SCHEME_LAUNCH = "dconnect";
+    /** The names of URI scheme for launching Device Connect Manager. */
+    private static final String[] SCHEMES_LAUNCH = {"dconnect", "gotapi"};
 
     /** The HMAC manager. */
     private HmacManager mHmacManager;
@@ -79,7 +79,7 @@ public class DConnectLaunchActivity extends Activity {
         toggleButton(isDConnectServiceRunning());
 
         Intent intent = getIntent();
-        if (intent != null && SCHEME_LAUNCH.equals(intent.getScheme())) {
+        if (intent != null && isSchemeForLaunch(intent.getScheme())) {
             String key = intent.getStringExtra(IntentDConnectMessage.EXTRA_KEY);
             String origin = intent.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
             mLogger.info("Requested to update HMAC key from intent: origin=" + origin + ", key=" + key);
@@ -107,6 +107,20 @@ public class DConnectLaunchActivity extends Activity {
                 return;
             }
         }
+    }
+
+    /**
+     * Checks whether the specified scheme is for launching the Manager or not.
+     * @param receivedScheme the name of custom URI scheme received from an app.
+     * @return <code>true</code> if the specified scheme is for launching the Manager, otherwise <code>false</code>
+     */
+    private boolean isSchemeForLaunch(final String receivedScheme) {
+        for (String scheme : SCHEMES_LAUNCH) {
+            if (scheme.equals(receivedScheme)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

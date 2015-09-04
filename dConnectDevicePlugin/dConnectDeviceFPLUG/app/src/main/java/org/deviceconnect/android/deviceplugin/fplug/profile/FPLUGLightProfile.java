@@ -37,28 +37,21 @@ public class FPLUGLightProfile extends LightProfile {
 
         FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
         List<FPLUGController> fplugs = app.getConnectedController();
-        if (fplugs.size() == 0) {
+        FPLUGController fplug = app.getConnectedController(serviceId);
+        if (fplugs == null) {
             MessageUtils.setNotFoundServiceError(response, "Not found fplug: " + serviceId);
             return true;
         }
 
-        Bundle lightParam = null;
-        for (FPLUGController fplug : fplugs) {
-            if (fplug.getAddress().equals(serviceId)) {
-                lightParam = new Bundle();
-                setLightId(lightParam, fplug.getAddress());
-                setName(lightParam, "F-PLUG LED");
-                setConfig(lightParam, "");
-                setOn(lightParam, false);//f-plug's status can not be take. So always OFF.
-                break;
-            }
-        }
-
+        Bundle lightParam = new Bundle();
+        setLightId(lightParam, fplug.getAddress());
+        setName(lightParam, "F-PLUG LED");
+        setConfig(lightParam, "");
+        setOn(lightParam, false);//f-plug's status can not be take. So always OFF.
         List<Bundle> lightParams = new ArrayList<>();
-        if (lightParam != null) {
-            lightParams.add(lightParam);
-        }
+        lightParams.add(lightParam);
         setLights(response, lightParams);
+
         sendResultOK(response);
         return true;
     }
@@ -78,7 +71,7 @@ public class FPLUGLightProfile extends LightProfile {
         }
 
         FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getFPLUGController(lightId);
+        FPLUGController controller = app.getConnectedController(lightId);
         if (controller == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
             return true;
@@ -116,7 +109,7 @@ public class FPLUGLightProfile extends LightProfile {
             return true;
         }
         FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getFPLUGController(lightId);
+        FPLUGController controller = app.getConnectedController(lightId);
         if (controller == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
             return true;

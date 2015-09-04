@@ -19,11 +19,13 @@ import com.theta360.lib.ThetaException;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaBatteryProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaFileProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaMediaStreamRecordingProfile;
+import org.deviceconnect.android.deviceplugin.theta.profile.ThetaOmnidirectionalImageProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSystemProfile;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.profile.OmnidirectionalImageProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
@@ -41,8 +43,6 @@ import java.util.logging.Logger;
  */
 public class ThetaDeviceService extends DConnectMessageService {
 
-    private static final String PREFIX_SSID = "THETA";
-
     private final Logger mLogger = Logger.getLogger("theta.dplugin");
 
     private final ThetaApiClient mClient = new ThetaApiClient();
@@ -57,6 +57,7 @@ public class ThetaDeviceService extends DConnectMessageService {
         addProfile(new ThetaBatteryProfile(mClient));
         addProfile(new ThetaFileProfile(mClient, fileMgr));
         addProfile(new ThetaMediaStreamRecordingProfile(mClient, fileMgr));
+        addProfile(new ThetaOmnidirectionalImageProfile());
 
         WifiManager wifiMgr = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
         fetchThetaDevice(wifiMgr.getConnectionInfo());
@@ -79,7 +80,6 @@ public class ThetaDeviceService extends DConnectMessageService {
         }
 
         String action = intent.getAction();
-        mLogger.info("onStartCommand: action=" + action);
         if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
             NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
             if (networkInfo.isConnected()) {
@@ -89,15 +89,15 @@ public class ThetaDeviceService extends DConnectMessageService {
         } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
             int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
             switch (state) {
-            case WifiManager.WIFI_STATE_DISABLED:
-                mLogger.info("WiFi state: disabled.");
-                mClient.disposeDevice();
-                break;
-            case WifiManager.WIFI_STATE_ENABLED:
-                mLogger.info("WiFi state: enabled.");
-                break;
-            default:
-                break;
+                case WifiManager.WIFI_STATE_DISABLED:
+                    mLogger.info("WiFi state: disabled.");
+                    mClient.disposeDevice();
+                    break;
+                case WifiManager.WIFI_STATE_ENABLED:
+                    mLogger.info("WiFi state: enabled.");
+                    break;
+                default:
+                    break;
             }
         }
         return super.onStartCommand(intent, flags, startId);
@@ -110,7 +110,8 @@ public class ThetaDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) {};
+        return new ServiceInformationProfile(this) {
+        };
     }
 
     @Override
@@ -131,13 +132,31 @@ public class ThetaDeviceService extends DConnectMessageService {
             ServiceDiscoveryProfile.setScopes(service, this);
             services.add(service);
         }
+
+        Bundle service = new Bundle();
+        service.putString(ServiceDiscoveryProfile.PARAM_ID,
+            ThetaOmnidirectionalImageProfile.SERVICE_ID);
+        service.putString(ServiceDiscoveryProfile.PARAM_NAME,
+            ThetaOmnidirectionalImageProfile.SERVICE_NAME);
+        service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+        service.putStringArray(ServiceDiscoveryProfile.PARAM_SCOPES,
+            new String[] {OmnidirectionalImageProfile.PROFILE_NAME});
+        services.add(service);
+
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES, services.toArray(new Bundle[services.size()]));
         return true;
     }
 
     private void fetchThetaDevice(final WifiInfo wifiInfo) {
-        String ssId = wifiInfo.getSSID().replace("\"", "");
+        if (wifiInfo == null) {
+            return;
+        }
+        String ssId = wifiInfo.getSSID();
+        if (ssId == null) {
+            return;
+        }
+        ssId = ssId.replace("\"", "");
         if (isTheta(ssId)) {
             mClient.fetchDevice(wifiInfo);
         } else {

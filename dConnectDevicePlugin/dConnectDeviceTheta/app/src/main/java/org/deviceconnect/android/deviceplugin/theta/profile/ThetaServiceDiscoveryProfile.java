@@ -21,6 +21,7 @@ public class ThetaServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     /**
      * Constructor.
+     *
      * @param provider an instance of {@link DConnectProfileProvider}
      */
     public ThetaServiceDiscoveryProfile(final DConnectProfileProvider provider) {

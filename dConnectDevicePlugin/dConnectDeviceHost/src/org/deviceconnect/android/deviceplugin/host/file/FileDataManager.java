@@ -335,18 +335,37 @@ public class FileDataManager {
             return;
         }
 
-        mLastModifiedDate = System.currentTimeMillis();
-        mFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+        mFileManager.checkReadPermission(new FileManager.CheckPermissionCallback() {
             @Override
-            public void run() {
-                List<File> files = checkUpdateFile();
-                if (files.size() > 0) {
-                    if (mModifiedListener != null) {
-                        mModifiedListener.onWatchFile(files);
+            public void onSuccess() {
+                mLastModifiedDate = System.currentTimeMillis();
+                mFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+                    @Override
+                    public void run() {
+                        getUpdatedFiles(new CheckUpdatedFilesCallback() {
+                            @Override
+                            public void onSuccess(@NonNull List<File> files) {
+                                if (files.size() > 0) {
+                                    if (mModifiedListener != null) {
+                                        mModifiedListener.onWatchFile(files);
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onFail() {
+
+                            }
+                        });
                     }
-                }
+                }, PERIOD, PERIOD, TimeUnit.SECONDS);
             }
-        }, PERIOD, PERIOD, TimeUnit.SECONDS);
+
+            @Override
+            public void onFail() {
+
+            }
+        });
     }
 
     /**
@@ -362,14 +381,24 @@ public class FileDataManager {
     /**
      * ファイルの更新チェックを行う.
      * 
-     * @return 更新されたファイル一覧
+     * @param callback 更新チェックの結果が返却されるコールバック
      */
-    public synchronized List<File> checkUpdateFile() {
-        List<File> files = new ArrayList<File>();
-        File mBaseDir = mFileManager.getBasePath();
-        checkUpdateFile(mBaseDir, files);
-        mLastModifiedDate = System.currentTimeMillis();
-        return files;
+    public synchronized void getUpdatedFiles(final CheckUpdatedFilesCallback callback) {
+        mFileManager.checkReadPermission(new FileManager.CheckPermissionCallback() {
+            @Override
+            public void onSuccess() {
+                List<File> files = new ArrayList<File>();
+                File mBaseDir = mFileManager.getBasePath();
+                getUpdatedFiles(mBaseDir, files);
+                mLastModifiedDate = System.currentTimeMillis();
+                callback.onSuccess(files);
+            }
+
+            @Override
+            public void onFail() {
+                callback.onFail();
+            }
+        });
     }
 
     /**
@@ -380,11 +409,11 @@ public class FileDataManager {
      * @param file 更新確認を行うファイル
      * @param modifyFiles 更新されたファイルを追加するリスト
      */
-    private void checkUpdateFile(final File file, final List<File> modifyFiles) {
+    private void getUpdatedFiles(final File file, final List<File> modifyFiles) {
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             for (File f : files) {
-                checkUpdateFile(f, modifyFiles);
+                getUpdatedFiles(f, modifyFiles);
             }
         }
 
@@ -424,6 +453,12 @@ public class FileDataManager {
 
     public interface WriteFileCallback {
         void onSuccess();
+
+        void onFail();
+    }
+
+    public interface CheckUpdatedFilesCallback {
+        void onSuccess(@NonNull List<File> files);
 
         void onFail();
     }

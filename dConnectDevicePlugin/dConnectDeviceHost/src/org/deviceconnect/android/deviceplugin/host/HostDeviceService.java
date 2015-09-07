@@ -127,7 +127,6 @@ public class HostDeviceService extends DConnectMessageService {
         // ファイル管理クラスの作成
         mFileMgr = new FileManager(this);
         mFileDataManager = new FileDataManager(mFileMgr);
-        mFileDataManager.startTimer();
 
         // add supported profiles
         addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));

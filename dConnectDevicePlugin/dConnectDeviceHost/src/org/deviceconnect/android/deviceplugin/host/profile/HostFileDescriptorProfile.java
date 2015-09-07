@@ -226,14 +226,27 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
             createNotFoundService(response);
         } else {
             FileDataManager mgr = getFileDataManager();
-            List<File> files = mgr.checkUpdateFile();
-            if (files != null && files.size() > 0) {
-                Bundle f = createFile(files.get(0));
-                if (f != null) {
-                    setFile(response, f);
+            mgr.getUpdatedFiles(new FileDataManager.CheckUpdatedFilesCallback() {
+                @Override
+                public void onSuccess(@NonNull List<File> files) {
+                    if (files.size() > 0) {
+                        Bundle f = createFile(files.get(0));
+                        if (f != null) {
+                            setFile(response, f);
+                        }
+                    }
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    getContext().sendBroadcast(response);
                 }
-            }
-            setResult(response, DConnectMessage.RESULT_OK);
+
+                @Override
+                public void onFail() {
+                    MessageUtils.setIllegalServerStateError(response,
+                            "READ_EXTERNAL_STORAGE permission not granted.");
+                    getContext().sendBroadcast(response);
+                }
+            });
+            return false;
         }
         return true;
     }
@@ -250,6 +263,10 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
         } else {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
+                List<Event> events = EventManager.INSTANCE.getEventList(request);
+                if (events.size() == 1) {
+                    mFileDataManager.startTimer();
+                }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not register event.");
@@ -270,6 +287,10 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
         } else {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
+                List<Event> events = EventManager.INSTANCE.getEventList(request);
+                if (events.size() == 0) {
+                    mFileDataManager.stopTimer();
+                }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
                 MessageUtils.setError(response, ERROR_VALUE_IS_NULL, "Can not unregister event.");

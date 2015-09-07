@@ -21,7 +21,7 @@ dependencies {
     compile project(':dconnect-server-nano-httpd')
     compile 'org.apache.httpcomponents:httpmime:4.5'
     compile 'org.apache.httpcomponents:httpcore:4.4.1'
-    compile 'org.apache.james:apache-mime4j:0.6'
+    compile 'org.apache.james:apache-mime4j:+'
     compile 'commons-codec:commons-codec:1.9'
 }
 
@@ -35,6 +35,7 @@ dependencies {
  * HttpClient, thus it suppresses warnings.
  */
 configurations {
+    all*.exclude group: 'org.apache.httpcomponents', module: 'httpmime'
     all*.exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     all*.exclude group: 'commons-logging', module: 'commons-logging'
 }
@@ -51,6 +52,9 @@ android {
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/DEPENDENCIES.txt'
     }
     buildTypes {
         release {

@@ -6,20 +6,6 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import static android.content.Context.WIFI_SERVICE;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.manager.DevicePluginManager;
-import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
-import org.deviceconnect.android.observer.DConnectObservationService;
-import org.deviceconnect.android.observer.receiver.ObserverReceiver;
-
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -34,10 +20,10 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
-import android.os.Environment;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
@@ -60,7 +46,6 @@ import java.util.Random;
 
 import static android.content.Context.WIFI_SERVICE;
 
->>>>>>> master
 /**
  * 設定画面Fragment.
  * 
@@ -136,8 +121,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             docRootPath = file.getPath();
         }
 
-        EditTextPreference editKeywordPreferences = (EditTextPreference)
-                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_keyword));
         editKeywordPreferences.setOnPreferenceChangeListener(this);
         editKeywordPreferences.setSummary(keyword);
         editKeywordPreferences.setDefaultValue(keyword);

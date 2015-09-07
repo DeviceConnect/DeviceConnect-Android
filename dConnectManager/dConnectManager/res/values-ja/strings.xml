@@ -29,7 +29,6 @@
     <string name="activity_settings_ssl">SSL</string>
     <string name="activity_settings_host">Host</string>
     <string name="activity_settings_port">Port</string>
-    <string name="activity_settings_document_root">ドキュメントルートパス</string>
     <string name="activity_settings_default_host">localhost</string>
     <string name="activity_settings_default_port">4035</string>
     <string name="activity_settings_local_oauth">Local OAuth</string>
@@ -61,6 +60,11 @@
     <string name="activity_settings_yes">はい</string>
     <string name="activity_settings_no">いいえ</string>
     <string name="activity_settings_close">閉じる</string>
+
+    <string name="activity_settings_web_server_settings">Webサーバ設定</string>
+    <string name="activity_settings_web_server_default_host">localhost</string>
+    <string name="activity_settings_web_server_default_port">8080</string>
+    <string name="activity_settings_web_server_document_root">ドキュメントルートパス</string>
     
     <!-- ================= SharedPreferences ================= -->
 
@@ -83,7 +87,10 @@
     <string name="key_settings_dconn_whitelist_origin_blocking">settings_whitelist_origin_blocking</string>
     <string name="key_settings_list_device_plugin">settings_list_device_plugin</string>
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
-
+    <string name="key_settings_web_server_host">key_settings_web_server_host</string>
+    <string name="key_settings_web_server_port">key_settings_web_server_port</string>
+    <string name="key_settings_web_server_document_root_path">key_settings_web_server_document_root_path</string>
+    
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Originホワイトリスト</string>
     <string name="no_origin">ユーザーによって許可されている\nOriginはありません。</string>

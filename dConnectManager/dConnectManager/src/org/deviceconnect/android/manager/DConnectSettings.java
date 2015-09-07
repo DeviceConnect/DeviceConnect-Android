@@ -88,7 +88,7 @@ public final class DConnectSettings {
         SharedPreferences sp = context.getSharedPreferences(context.getPackageName() + "_preferences",
                 Context.MODE_MULTI_PROCESS);
         setHost(sp.getString(context.getString(R.string.key_settings_dconn_host), DConnectSettings.DEFAULT_HOST));
-        setDocumentRootPath(sp.getString(context.getString(R.string.key_settings_dconn_document_root_path),
+        setDocumentRootPath(sp.getString(context.getString(R.string.key_settings_web_server_document_root_path),
                 file.getAbsolutePath()));
         setSSL(sp.getBoolean(context.getString(R.string.key_settings_dconn_ssl), false));
         setUseALocalOAuth(sp.getBoolean(context.getString(R.string.key_settings_dconn_local_oauth), true));

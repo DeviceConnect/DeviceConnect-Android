@@ -110,7 +110,7 @@ public class SettingsFragment extends PreferenceFragment
             keyword = createKeyword();
         }
 
-        String docRootPath = sp.getString(getString(R.string.key_settings_dconn_document_root_path), null);
+        String docRootPath = sp.getString(getString(R.string.key_settings_web_server_document_root_path), null);
         if (docRootPath == null || docRootPath.length() <= 0) {
             File file = new File(Environment.getExternalStorageDirectory(), getActivity().getPackageName());
             docRootPath = file.getPath();

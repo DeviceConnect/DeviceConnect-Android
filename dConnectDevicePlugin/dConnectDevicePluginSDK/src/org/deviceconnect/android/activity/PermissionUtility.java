@@ -1,6 +1,7 @@
 package org.deviceconnect.android.activity;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,7 +27,8 @@ public class PermissionUtility {
             callback.onSuccess();
             return;
         }
-        for (final String permission : mPermissionSet) {
+        Set<String> tmp = new HashSet<>(mPermissionSet);
+        for (final String permission : tmp) {
             if (context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
                 mPermissionSet.remove(permission);
             }

@@ -20,11 +20,11 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.james.mime4j.MimeException;
-import org.apache.james.mime4j.descriptor.BodyDescriptor;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
-import org.apache.james.mime4j.parser.Field;
-import org.apache.james.mime4j.parser.MimeEntityConfig;
 import org.apache.james.mime4j.parser.MimeStreamParser;
+import org.apache.james.mime4j.stream.BodyDescriptor;
+import org.apache.james.mime4j.stream.Field;
+import org.apache.james.mime4j.stream.MimeConfig;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.HttpHeaders;
 import org.deviceconnect.message.basic.message.BasicDConnectMessage;
@@ -136,7 +136,7 @@ public abstract class AbstractHttpMessageFactory<M extends HttpMessage>
         HttpEntity entity = getHttpEntity(message);
         if (entity != null) {
 
-            MimeStreamParser parser = new MimeStreamParser(new MimeEntityConfig());
+            MimeStreamParser parser = new MimeStreamParser(new MimeConfig());
             MultipartContentHandler handler = new MultipartContentHandler(dmessage);
             parser.setContentHandler(handler);
 

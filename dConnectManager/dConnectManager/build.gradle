@@ -21,7 +21,7 @@ dependencies {
     compile project(':dconnect-server-nano-httpd')
     compile 'org.apache.httpcomponents:httpmime:4.5'
     compile 'org.apache.httpcomponents:httpcore:4.4.1'
-    compile 'org.apache.james:apache-mime4j:+'
+    compile 'org.apache.james:apache-mime4j-core:0.7.2'
     compile 'commons-codec:commons-codec:1.9'
 }
 

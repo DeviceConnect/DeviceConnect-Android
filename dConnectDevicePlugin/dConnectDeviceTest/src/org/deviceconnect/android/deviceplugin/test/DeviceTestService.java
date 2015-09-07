@@ -14,6 +14,7 @@ import org.deviceconnect.android.deviceplugin.test.profile.TestConnectProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestFileDescriptorProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestFileProfile;
+import org.deviceconnect.android.deviceplugin.test.profile.TestLightProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.test.profile.TestNotificationProfile;
@@ -65,6 +66,7 @@ public class DeviceTestService extends DConnectMessageService {
         addProfile(new TestConnectProfile());
         addProfile(new TestProximityProfile());
         addProfile(new TestDeviceOrientationProfile());
+        addProfile(new TestLightProfile());
 
         // 独自プロファイル
         addProfile(new TestUniqueProfile());

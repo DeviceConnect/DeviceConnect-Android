@@ -6,23 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.jmdns.JmDNS;
-import javax.jmdns.ServiceEvent;
-import javax.jmdns.ServiceInfo;
-import javax.jmdns.ServiceListener;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.MulticastLock;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -44,13 +34,23 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Context;
-import android.content.ContextWrapper;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.net.wifi.WifiManager.MulticastLock;
-import android.telephony.TelephonyManager;
-import android.util.Log;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceInfo;
+import javax.jmdns.ServiceListener;
 
 /**
  * IRKitの操作をするクラス.
@@ -229,6 +229,12 @@ public enum IRKitManager {
         mServices = new ConcurrentHashMap<String, IRKitDevice>();
     }
 
+    /**
+     * IRkitデバイスのリストを返す.
+     */
+    public ConcurrentHashMap<String, IRKitDevice> getIRKitDevices() {
+        return mServices;
+    }
     /**
      * 指定されたHostとPathへのGETリクエストを生成する.
      * 
@@ -459,7 +465,7 @@ public enum IRKitManager {
         mServices.remove(device.getName());
         
         if (BuildConfig.DEBUG) {
-            Log.d("", "Lost Device : " + device);
+            Log.d("IRKit", "Lost Device : " + device);
         }
         
         if (mDetectionListener != null) {
@@ -647,6 +653,8 @@ public enum IRKitManager {
             }
         });
     }
+
+
 
     /**
      * 赤外線データを送信する.
@@ -1133,7 +1141,6 @@ public enum IRKitManager {
                 } else {
                     mRemoveHandler.refresh();
                 }
-                
                 mDetectionListener.onFoundDevice(device);
             }
         }

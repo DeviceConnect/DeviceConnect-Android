@@ -6,8 +6,7 @@
  */
 package org.deviceconnect.android.manager;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import android.content.Intent;
 
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.DConnectMessage;
@@ -17,7 +16,8 @@ import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Intent;
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * dConnect Manager本体.
@@ -99,11 +99,12 @@ public class DConnectService extends DConnectMessageService {
 
         DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
         builder.port(mSettings.getPort()).isSsl(mSettings.isSSL())
-            .documentRootPath(getFilesDir().getAbsolutePath());
+            .documentRootPath(mSettings.getDocumentRootPath());
 
         if (!mSettings.allowExternalIP()) {
             ArrayList<String> list = new ArrayList<String>();
             list.add("127.0.0.1");
+            list.add("::1");
             builder.ipWhiteList(list);
         }
 
@@ -111,6 +112,7 @@ public class DConnectService extends DConnectMessageService {
         mLogger.fine("Port: " + mSettings.getPort());
         mLogger.fine("SSL: " + mSettings.isSSL());
         mLogger.fine("External IP: " + mSettings.allowExternalIP());
+        mLogger.fine("Document Root: " + mSettings.getDocumentRootPath());
 
         if (mWebServer == null) {
             mWebServer = new DConnectServerNanoHttpd(builder.build(), this);

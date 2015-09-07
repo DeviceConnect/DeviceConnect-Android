@@ -29,6 +29,7 @@
     <string name="activity_settings_ssl">SSL</string>
     <string name="activity_settings_host">Host</string>
     <string name="activity_settings_port">Port</string>
+    <string name="activity_settings_document_root">ドキュメントルートパス</string>
     <string name="activity_settings_default_host">localhost</string>
     <string name="activity_settings_default_port">4035</string>
     <string name="activity_settings_local_oauth">Local OAuth</string>

@@ -6,14 +6,14 @@
  */
 package org.deviceconnect.android.localoauth.activity;
 
-import org.deviceconnect.android.R;
-import org.deviceconnect.android.localoauth.fragment.ConfirmAuthFramgment;
-
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Window;
+
+import org.deviceconnect.android.R;
+import org.deviceconnect.android.localoauth.fragment.ConfirmAuthFramgment;
 
 /**
  * 認証確認画面.
@@ -66,15 +66,31 @@ public class ConfirmAuthActivity extends Activity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        notApproval();
+    }
+
+    @Override
     public boolean onKeyDown(final int keyCode, final KeyEvent event) {
         if (keyCode != KeyEvent.KEYCODE_BACK) {
             return super.onKeyDown(keyCode, event);
         } else {
-            FragmentManager mgr = getFragmentManager();
-            ConfirmAuthFramgment fragment = (ConfirmAuthFramgment) mgr
-                    .findFragmentById(R.id.container);
-            fragment.notApprovalProc();
+            notApproval();
             return false;
         }
+    }
+
+    /**
+     * バックキーやホームボタンで終了されたときに拒否の通知をを行う.
+     * <p>
+     * 既にレスポンスを返却している場合には何もしない。
+     * </p>
+     */
+    private void notApproval() {
+        FragmentManager mgr = getFragmentManager();
+        ConfirmAuthFramgment fragment = (ConfirmAuthFramgment) mgr
+                .findFragmentById(R.id.container);
+        fragment.notApprovalProc();
     }
 }

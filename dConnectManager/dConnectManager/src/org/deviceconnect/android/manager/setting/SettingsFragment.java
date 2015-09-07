@@ -37,6 +37,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
+import android.os.Environment;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
@@ -44,6 +45,22 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 
+import org.deviceconnect.android.manager.DConnectService;
+import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
+import org.deviceconnect.android.observer.DConnectObservationService;
+import org.deviceconnect.android.observer.receiver.ObserverReceiver;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import static android.content.Context.WIFI_SERVICE;
+
+>>>>>>> master
 /**
  * 設定画面Fragment.
  * 
@@ -86,16 +103,18 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
         // オープソースのリストを準備
         mOpenSourceList = new ArrayList<OpenSourceSoftware>();
-        mOpenSourceList.add(
-                OpenSourceLicenseFragment.createOpenSourceSoftware("android-support-v4.jar", R.raw.andorid_support_v4));
-        mOpenSourceList
-                .add(OpenSourceLicenseFragment.createOpenSourceSoftware("apache-mime4j-0.6.jar", R.raw.apache_mime4j));
-        mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware("android-support-v4-preferencefragment",
-                R.raw.android_support_v4_preferencefragment));
-        mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware("Java WebSocket", R.raw.java_websocket));
+        mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
+                "android-support-v4.jar", R.raw.andorid_support_v4));
+        mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
+                "apache-mime4j-0.7.2.jar", R.raw.apache_mime4j));
+        mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
+                "android-support-v4-preferencefragment", R.raw.android_support_v4_preferencefragment));
+        mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
+                "Java WebSocket", R.raw.java_websocket));
 
-        PreferenceScreen versionPreferences = (PreferenceScreen) getPreferenceScreen()
-                .findPreference(getString(R.string.key_settings_about_appinfo));
+        PreferenceScreen versionPreferences = (PreferenceScreen)
+                getPreferenceScreen().findPreference(
+                        getString(R.string.key_settings_about_appinfo));
         try {
             versionPreferences.setSummary(
                     (getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0).versionName));
@@ -111,6 +130,14 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
         EditTextPreference editKeywordPreferences = (EditTextPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_keyword));
+        String docRootPath = sp.getString(getString(R.string.key_settings_dconn_document_root_path), null);
+        if (docRootPath == null || docRootPath.length() <= 0) {
+            File file = new File(Environment.getExternalStorageDirectory(), getActivity().getPackageName());
+            docRootPath = file.getPath();
+        }
+
+        EditTextPreference editKeywordPreferences = (EditTextPreference)
+                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_keyword));
         editKeywordPreferences.setOnPreferenceChangeListener(this);
         editKeywordPreferences.setSummary(keyword);
         editKeywordPreferences.setDefaultValue(keyword);
@@ -133,6 +160,11 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 .findPreference(getString(R.string.key_settings_dconn_port));
         mEditPortPreferences.setOnPreferenceChangeListener(this);
         mEditPortPreferences.setSummary(mEditPortPreferences.getText());
+
+        // ドキュメントルートパス
+        EditTextPreference editDocPreferences = (EditTextPreference)
+                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_document_root_path));
+        editDocPreferences.setSummary(docRootPath);
 
         // Local OAuthのON/OFF
         mCheckBoxOauthPreferences = (CheckBoxPreference) getPreferenceScreen()
@@ -160,6 +192,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mObserverPreferences.setOnPreferenceChangeListener(this);
 
         editHostPreferences.setEnabled(false);
+        editDocPreferences.setEnabled(false);
         boolean enabled = !isDConnectServiceRunning();
         mCheckBoxSslPreferences.setEnabled(enabled);
         mEditPortPreferences.setEnabled(enabled);

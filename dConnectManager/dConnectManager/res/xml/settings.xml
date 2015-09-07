@@ -31,6 +31,10 @@
             android:key="@string/key_settings_dconn_port"
             android:summary="@string/activity_settings_default_port"
             android:title="@string/activity_settings_port" />
+        <EditTextPreference
+            android:inputType="number"
+            android:key="@string/key_settings_dconn_document_root_path"
+            android:title="@string/activity_settings_document_root" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_security" >
         <CheckBoxPreference

@@ -16,7 +16,7 @@ import com.theta360.lib.PtpipInitiator;
 public class RecorderInfo {
 
     public static final RecorderInfo PHOTO = new RecorderInfo(
-        "0", "THETA", "image/jpeg", 3584, 1792);
+        "0", "THETA", "image/jpeg", 2048, 1024);
 
     public static final RecorderInfo VIDEO = new RecorderInfo(
         "1", "THETA", "video/mov", 1920, 1080);

@@ -6,15 +6,15 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.profile;
 
-import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+
+import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitDeviceListActivity;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
-
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
 
 /**
  * IRKit System Profile.
@@ -24,7 +24,7 @@ public class IRKitSystemProfile extends SystemProfile {
 
     @Override
     protected Class<? extends Activity> getSettingPageActivity(final Intent request, final Bundle param) {
-        return IRKitSettingActivity.class;
+        return IRKitDeviceListActivity.class;
     }
 
     @Override

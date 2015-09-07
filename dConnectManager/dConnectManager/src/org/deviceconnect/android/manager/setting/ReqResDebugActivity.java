@@ -6,15 +6,27 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.AssetManager;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -62,27 +74,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.AssetManager;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.ListView;
-import android.widget.Spinner;
-import android.widget.Toast;
-import android.widget.ToggleButton;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Device Connect RESTfulAPIのリクエストとレスポンスを見るための画面を持つActivity.

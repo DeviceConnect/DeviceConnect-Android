@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.receiver;
 
-import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
+import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
 
 /**
  * WiFi Event Receiver.

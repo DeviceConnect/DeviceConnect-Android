@@ -99,6 +99,8 @@ public class CameraOverlay implements Camera.PreviewCallback {
     /** 使用するカメラのインスタンス. */
     private Camera mCamera;
 
+    private Object mCameraLock = new Object();
+
     /** 画像を送るサーバ. */
     private MixedReplaceMediaServer mServer;
 
@@ -229,7 +231,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
     }
 
     public void showInternal() {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
+        mHandler.post(new Runnable() {
             @Override
             public void run() {
                 mPreview = new Preview(mContext);
@@ -314,24 +316,26 @@ public class CameraOverlay implements Camera.PreviewCallback {
     /**
      * Overlayを非表示にする.
      */
-    public synchronized void hide() {
-        if (mCamera != null) {
-            mPreview.setCamera(null);
-            mCamera.stopPreview();
-            mCamera.setPreviewCallback(null);
-            mCamera.release();
-            mCamera = null;
+    public void hide() {
+        synchronized (mCameraLock) {
+            if (mCamera != null) {
+                mPreview.setCamera(null);
+                mCamera.stopPreview();
+                mCamera.setPreviewCallback(null);
+                mCamera.release();
+                mCamera = null;
+            }
+            if (mPreview != null) {
+                mWinMgr.removeView(mPreview);
+                mPreview = null;
+            }
+            if (mTextView != null) {
+                mWinMgr.removeView(mTextView);
+                mTextView = null;
+            }
+            mContext.unregisterReceiver(mOrientReceiver);
+            mFinishFlag = false;
         }
-        if (mPreview != null) {
-            mWinMgr.removeView(mPreview);
-            mPreview = null;
-        }
-        if (mTextView != null) {
-            mWinMgr.removeView(mTextView);
-            mTextView = null;
-        }
-        mContext.unregisterReceiver(mOrientReceiver);
-        mFinishFlag = false;
     }
 
     /**
@@ -456,45 +460,49 @@ public class CameraOverlay implements Camera.PreviewCallback {
 
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
-        camera.setPreviewCallback(null);
+        synchronized (mCameraLock) {
+            if (mCamera != null && mCamera.equals(camera)) {
+                mCamera.setPreviewCallback(null);
 
-        if (mServer != null) {
-            int format = mPreview.getPreviewFormat();
-            int width = mPreview.getPreviewWidth();
-            int height = mPreview.getPreviewHeight();
+                if (mServer != null) {
+                    int format = mPreview.getPreviewFormat();
+                    int width = mPreview.getPreviewWidth();
+                    int height = mPreview.getPreviewHeight();
 
-            YuvImage yuvimage = new YuvImage(data, format, width, height, null);
-            Rect rect = new Rect(0, 0, width, height);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            if (yuvimage.compressToJpeg(rect, JPEG_COMPRESS_QUALITY, baos)) {
-                byte[] jdata = baos.toByteArray();
+                    YuvImage yuvimage = new YuvImage(data, format, width, height, null);
+                    Rect rect = new Rect(0, 0, width, height);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    if (yuvimage.compressToJpeg(rect, JPEG_COMPRESS_QUALITY, baos)) {
+                        byte[] jdata = baos.toByteArray();
 
-                int degree = mPreview.getCameraDisplayOrientation(mContext);
-                if (degree == 0) {
-                    mServer.offerMedia(jdata);
-                } else {
-                    BitmapFactory.Options bitmapFatoryOptions = new BitmapFactory.Options();
-                    bitmapFatoryOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
-                    Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFatoryOptions);
-                    if (bmp != null) {
-                        Matrix m = new Matrix();
-                        m.setRotate(degree);
+                        int degree = mPreview.getCameraDisplayOrientation(mContext);
+                        if (degree == 0) {
+                            mServer.offerMedia(jdata);
+                        } else {
+                            BitmapFactory.Options bitmapFatoryOptions = new BitmapFactory.Options();
+                            bitmapFatoryOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                            Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFatoryOptions);
+                            if (bmp != null) {
+                                Matrix m = new Matrix();
+                                m.setRotate(degree);
 
-                        Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
-                        if (rotatedBmp != null) {
-                            baos.reset();
-                            if (rotatedBmp.compress(CompressFormat.JPEG, JPEG_COMPRESS_QUALITY, baos)) {
-                                mServer.offerMedia(baos.toByteArray());
+                                Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
+                                if (rotatedBmp != null) {
+                                    baos.reset();
+                                    if (rotatedBmp.compress(CompressFormat.JPEG, JPEG_COMPRESS_QUALITY, baos)) {
+                                        mServer.offerMedia(baos.toByteArray());
+                                    }
+                                    rotatedBmp.recycle();
+                                }
+                                bmp.recycle();
                             }
-                            rotatedBmp.recycle();
                         }
-                        bmp.recycle();
                     }
                 }
+
+                mCamera.setPreviewCallback(this);
             }
         }
-
-        camera.setPreviewCallback(this);
     }
 
     /**

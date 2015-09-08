@@ -229,47 +229,52 @@ public class CameraOverlay implements Camera.PreviewCallback {
     }
 
     public void showInternal() {
-        mPreview = new Preview(mContext);
-
-        Point size = getDisplaySize();
-        int pt = (int) (5 * getScaledDensity());
-        WindowManager.LayoutParams l = new WindowManager.LayoutParams(pt, pt,
-                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT);
-        l.x = -size.x / 2;
-        l.y = -size.y / 2;
-        mWinMgr.addView(mPreview, l);
-
-        mCamera = Camera.open();
-        mPreview.switchCamera(mCamera);
-        mCamera.setPreviewCallback(this);
-
-        mTextView = new TextView(mContext);
-        mTextView.setText(R.string.overlay_preview);
-        mTextView.setTextColor(Color.RED);
-        mTextView.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-        mTextView.setClickable(true);
-        mTextView.setOnClickListener(new OnClickListener() {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
-            public void onClick(final View v) {
-                hide();
+            public void run() {
+                mPreview = new Preview(mContext);
+
+                Point size = getDisplaySize();
+                int pt = (int) (5 * getScaledDensity());
+                WindowManager.LayoutParams l = new WindowManager.LayoutParams(pt, pt,
+                        WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                                | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                        PixelFormat.TRANSLUCENT);
+                l.x = -size.x / 2;
+                l.y = -size.y / 2;
+                mWinMgr.addView(mPreview, l);
+
+                mCamera = Camera.open();
+                mPreview.switchCamera(mCamera);
+                mCamera.setPreviewCallback(CameraOverlay.this);
+
+                mTextView = new TextView(mContext);
+                mTextView.setText(R.string.overlay_preview);
+                mTextView.setTextColor(Color.RED);
+                mTextView.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+                mTextView.setClickable(true);
+                mTextView.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(final View v) {
+                        hide();
+                    }
+                });
+
+                WindowManager.LayoutParams l2 = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+                        WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                        PixelFormat.TRANSLUCENT);
+                l2.x = -size.x / 2;
+                l2.y = -size.y / 2;
+                mWinMgr.addView(mTextView, l2);
+
+                IntentFilter filter = new IntentFilter();
+                filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
+                mContext.registerReceiver(mOrientReceiver, filter);
             }
         });
-
-        WindowManager.LayoutParams l2 = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT);
-        l2.x = -size.x / 2;
-        l2.y = -size.y / 2;
-        mWinMgr.addView(mTextView, l2);
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
-        mContext.registerReceiver(mOrientReceiver, filter);
     }
 
     private void checkOverlayDrawingCapability(@NonNull final ResultReceiver resultReceiver) {

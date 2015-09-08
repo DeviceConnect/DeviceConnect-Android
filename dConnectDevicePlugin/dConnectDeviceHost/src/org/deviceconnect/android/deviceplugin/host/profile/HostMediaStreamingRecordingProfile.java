@@ -29,10 +29,14 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 
 /**
@@ -272,37 +276,63 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 return true;
             }
 
-            FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
+            final FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
             String className = getClassnameOfTopActivity();
 
             if (target == null || target.equals(VIDEO_TARGET_ID)) {
                 if (VideoRecorder.class.getName().equals(className)) {
-                    MessageUtils.setIllegalDeviceStateError(response, "Running video recoder, yet");
+                    MessageUtils.setIllegalDeviceStateError(response, "Video recorder is already running.");
                     return true;
                 }
-                String filename = generateVideoFileName();
+                final String filename = generateVideoFileName();
                 Intent intent = new Intent();
                 intent.setClass(getContext(), VideoRecorder.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra(VideoConst.EXTRA_FILE_NAME, filename);
+                intent.putExtra(VideoConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                    @Override
+                    protected void onReceiveResult(int resultCode, Bundle resultData) {
+                        if (resultCode == Activity.RESULT_OK) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            setPath(response, "/" + filename);
+                            setUri(response, mgr.getContentUri() + "/" + filename);
+                        } else {
+                            String msg =
+                                    resultData.getString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
+                            MessageUtils.setIllegalServerStateError(response, msg);
+                        }
+                        getContext().sendBroadcast(response);
+                    }
+                });
                 getContext().startActivity(intent);
-                setResult(response, DConnectMessage.RESULT_OK);
-                setPath(response, "/" + filename);
-                setUri(response, mgr.getContentUri() + "/" + filename);
+                return false;
             } else if (target.equals(AUDIO_TARGET_ID)) {
                 if (AudioRecorder.class.getName().equals(className)) {
-                    MessageUtils.setIllegalDeviceStateError(response, "Running video recoder, yet");
+                    MessageUtils.setIllegalDeviceStateError(response, "Audio recorder is already running.");
                     return true;
                 }
-                String filename = generateAudioFileName();
+                final String filename = generateAudioFileName();
                 Intent intent = new Intent();
                 intent.setClass(getContext(), AudioRecorder.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra(AudioConst.EXTRA_FINE_NAME, filename);
+                intent.putExtra(AudioConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                    @Override
+                    protected void onReceiveResult(int resultCode, Bundle resultData) {
+                        if (resultCode == Activity.RESULT_OK) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            setPath(response, "/" + filename);
+                            setUri(response, mgr.getContentUri() + "/" + filename);
+                        } else {
+                            String msg =
+                            resultData.getString(AudioConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
+                            MessageUtils.setIllegalServerStateError(response, msg);
+                        }
+                        getContext().sendBroadcast(response);
+                    }
+                });
                 getContext().startActivity(intent);
-                setResult(response, DConnectMessage.RESULT_OK);
-                setPath(response, "/" + filename);
-                setUri(response, mgr.getContentUri() + "/" + filename);
+                return false;
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
             }

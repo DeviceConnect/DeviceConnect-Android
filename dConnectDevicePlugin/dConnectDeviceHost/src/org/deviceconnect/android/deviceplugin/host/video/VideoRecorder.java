@@ -29,6 +29,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ResultReceiver;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Video;
 import android.support.annotation.NonNull;
@@ -69,6 +70,12 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
     private Boolean mIsReady = false;
     private boolean mIsInitialized = false;
 
+    /** 開始インテント。 */
+    private Intent mIntent;
+
+    /** コールバック。 */
+    private ResultReceiver mCallback;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,6 +105,17 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         filter.addAction(VideoConst.SEND_HOSTDP_TO_VIDEO);
         registerReceiver(mMyReceiver, filter);
 
+        mIntent = getIntent();
+        if (mIntent == null) {
+            finish();
+            return;
+        }
+        mCallback = mIntent.getParcelableExtra(VideoConst.EXTRA_CALLBACK);
+        if (mCallback == null) {
+            finish();
+            return;
+        }
+
         if (!mIsInitialized) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 PermissionUtility.requestPermissions(this, new Handler(Looper.getMainLooper()),
@@ -109,14 +127,23 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
                                 try {
                                     initVideoContext();
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    // e.printStackTrace();
+                                    Bundle data = new Bundle();
+                                    data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE,
+                                            e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
+                                    mCallback.send(Activity.RESULT_CANCELED, data);
                                     finish();
                                     return;
                                 }
+                                mCallback.send(Activity.RESULT_OK, null);
                             }
 
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
+                                Bundle data = new Bundle();
+                                data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE,
+                                        "Permission " + deniedPermission + " not granted.");
+                                mCallback.send(Activity.RESULT_CANCELED, data);
                                 finish();
                             }
                         });
@@ -124,7 +151,11 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
                 try {
                     initVideoContext();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    // e.printStackTrace();
+                    Bundle data = new Bundle();
+                    data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE,
+                            e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
+                    mCallback.send(Activity.RESULT_CANCELED, data);
                     finish();
                     return;
                 }
@@ -139,10 +170,7 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         mCamera = getCameraInstance();
         mCamera.unlock();
 
-        Intent intent = getIntent();
-        if (intent != null) {
-            mFileName = intent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
-        }
+        mFileName = mIntent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
         if (mFileName != null) {
             mMediaRecorder.setCamera(mCamera);
             mFile = new File(mFileMgr.getBasePath(), mFileName);
@@ -153,7 +181,11 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
             mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             mMediaRecorder.setOutputFile(mFile.toString());
         } else {
+            Bundle data = new Bundle();
+            data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "File name must be specified.");
+            mCallback.send(Activity.RESULT_CANCELED, data);
             finish();
+            return;
         }
 
         mIsInitialized = true;

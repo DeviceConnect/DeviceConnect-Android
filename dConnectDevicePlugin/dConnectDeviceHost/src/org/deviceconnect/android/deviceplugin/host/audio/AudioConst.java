@@ -43,8 +43,6 @@ public final class AudioConst {
     /** コマンド名. */
     public static final String EXTRA_NAME = "command";
 
-    /** ファイル名. */
-    public static final String EXTRA_FINE_NAME = "filename";
     /** 再生. */
     public static final String EXTRA_NAME_AUDIO_RECORD_START = "start";
 
@@ -56,6 +54,15 @@ public final class AudioConst {
 
     /** Resume. */
     public static final String EXTRA_NAME_AUDIO_RECORD_RESUME = "resume";
+
+    /** ファイル名. */
+    public static final String EXTRA_FINE_NAME = "filename";
+
+    /** コールバック */
+    public static final String EXTRA_CALLBACK = "callback";
+
+    /** コールバックのエラーメッセージ。 */
+    public static final String EXTRA_CALLBACK_ERROR_MESSAGE = "callback_error_message";
 
     /** フォーマット名. */
     public static final String FORMAT_TYPE = ".3gp";

@@ -6,21 +6,6 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import static android.content.Context.WIFI_SERVICE;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import org.deviceconnect.android.manager.DConnectService;
-import org.deviceconnect.android.manager.DevicePlugin;
-import org.deviceconnect.android.manager.DevicePluginManager;
-import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
-import org.deviceconnect.android.observer.DConnectObservationService;
-import org.deviceconnect.android.observer.receiver.ObserverReceiver;
-
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlertDialog;
@@ -42,6 +27,21 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
+
+import org.deviceconnect.android.manager.DConnectService;
+import org.deviceconnect.android.manager.DevicePlugin;
+import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
+import org.deviceconnect.android.observer.DConnectObservationService;
+import org.deviceconnect.android.observer.receiver.ObserverReceiver;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import static android.content.Context.WIFI_SERVICE;
 
 /**
  * 設定画面Fragment.
@@ -171,6 +171,7 @@ public class SettingsFragment extends PreferenceFragment
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_host));
 
         mWebPortPreferences = getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_port));
+        mWebPortPreferences.setOnPreferenceChangeListener(this);
 
         editHostPreferences.setEnabled(false);
         editDocPreferences.setEnabled(false);

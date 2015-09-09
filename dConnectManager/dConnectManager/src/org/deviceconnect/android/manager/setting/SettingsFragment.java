@@ -77,6 +77,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private CheckBoxPreference mCheckBoxOriginBlockingPreferences;
     /** ポート監視設定チェックボックス。 */
     private CheckBoxPreference mObserverPreferences;
+    /** Webサーバのポート設定テキストエディッタ. */
+    private Preference mWebPortPreferences;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -115,7 +117,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
         EditTextPreference editKeywordPreferences = (EditTextPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_keyword));
-        String docRootPath = sp.getString(getString(R.string.key_settings_dconn_document_root_path), null);
+        String docRootPath = sp.getString(getString(R.string.key_settings_web_server_document_root_path), null);
         if (docRootPath == null || docRootPath.length() <= 0) {
             File file = new File(Environment.getExternalStorageDirectory(), getActivity().getPackageName());
             docRootPath = file.getPath();
@@ -144,11 +146,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mEditPortPreferences.setOnPreferenceChangeListener(this);
         mEditPortPreferences.setSummary(mEditPortPreferences.getText());
 
-        // ドキュメントルートパス
-        EditTextPreference editDocPreferences = (EditTextPreference)
-                getPreferenceScreen().findPreference(getString(R.string.key_settings_dconn_document_root_path));
-        editDocPreferences.setSummary(docRootPath);
-
         // Local OAuthのON/OFF
         mCheckBoxOauthPreferences = (CheckBoxPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_local_oauth));
@@ -174,15 +171,23 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 .findPreference(getString(R.string.key_settings_dconn_observer_on_off));
         mObserverPreferences.setOnPreferenceChangeListener(this);
 
+        // Webサーバ
+
+        // ドキュメントルートパス
+        EditTextPreference editDocPreferences = (EditTextPreference)
+                getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_document_root_path));
+        editDocPreferences.setSummary(docRootPath);
+
+        EditTextPreference editWebHostPreferences = (EditTextPreference)
+                getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_host));
+
+        mWebPortPreferences = getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_port));
+        mWebPortPreferences.setOnPreferenceChangeListener(this);
+
         editHostPreferences.setEnabled(false);
         editDocPreferences.setEnabled(false);
-        boolean enabled = !isDConnectServiceRunning();
-        mCheckBoxSslPreferences.setEnabled(enabled);
-        mEditPortPreferences.setEnabled(enabled);
-        mCheckBoxOauthPreferences.setEnabled(enabled);
-        mCheckBoxExternalPreferences.setEnabled(enabled);
-        mCheckBoxRequireOriginPreferences.setEnabled(enabled);
-        mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
+        editWebHostPreferences.setEnabled(false);
+        setEnabled(!isDConnectServiceRunning());
     }
 
     @Override
@@ -205,13 +210,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mObserverPreferences.setChecked(isObservationServices());
 
         // 各dConnectManagerの設定
-        boolean enabled = !isDConnectServiceRunning();
-        mCheckBoxSslPreferences.setEnabled(enabled);
-        mEditPortPreferences.setEnabled(enabled);
-        mCheckBoxOauthPreferences.setEnabled(enabled);
-        mCheckBoxExternalPreferences.setEnabled(enabled);
-        mCheckBoxRequireOriginPreferences.setEnabled(enabled);
-        mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
+        setEnabled(!isDConnectServiceRunning());
 
         showIPAddress();
     }
@@ -220,7 +219,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public boolean onPreferenceChange(final Preference preference, final Object newValue) {
         final String key = preference.getKey();
         if (preference instanceof EditTextPreference) {
-            if (getString(R.string.key_settings_dconn_port).equals(key)) {
+            if (getString(R.string.key_settings_dconn_port).equals(key) || 
+                    getString(R.string.key_settings_web_server_port).equals(key)) {
                 String value = newValue.toString();
                 try {
                     // 入力値が整数かチェックする
@@ -235,12 +235,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         } else if (preference instanceof SwitchPreference) {
             if (getString(R.string.key_settings_dconn_server_on_off).equals(key)) {
                 boolean checked = ((Boolean) newValue).booleanValue();
-                mCheckBoxSslPreferences.setEnabled(!checked);
-                mCheckBoxOauthPreferences.setEnabled(!checked);
-                mCheckBoxExternalPreferences.setEnabled(!checked);
-                mCheckBoxRequireOriginPreferences.setEnabled(!checked);
-                mCheckBoxOriginBlockingPreferences.setEnabled(!checked);
-                mEditPortPreferences.setEnabled(!checked);
+                setEnabled(!checked);
                 // dConnectManagerのON/OFF
                 Intent intent = new Intent(getActivity(), DConnectService.class);
                 if (checked) {
@@ -389,6 +384,20 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
+     * UIの有効・無効を設定する.
+     * @param enabled trueの場合は有効、falseの場合は無効
+     */
+    private void setEnabled(final boolean enabled) {
+        mCheckBoxSslPreferences.setEnabled(enabled);
+        mEditPortPreferences.setEnabled(enabled);
+        mCheckBoxOauthPreferences.setEnabled(enabled);
+        mCheckBoxExternalPreferences.setEnabled(enabled);
+        mCheckBoxRequireOriginPreferences.setEnabled(enabled);
+        mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
+        mWebPortPreferences.setEnabled(enabled);
+    }
+
+    /**
      * DConnectServiceが動作しているか確認する.
      * 
      * @return 起動中の場合はtrue、それ以外はfalse
@@ -498,12 +507,17 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private void showIPAddress() {
         WifiManager wifiManager = (WifiManager) this.getActivity().getSystemService(WIFI_SERVICE);
         int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
-        final String formatedIpAddress = String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
-                (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+        String formatedIpAddress = String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+              (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
 
         // Set Host IP Address.
         EditTextPreference editHostPreferences = (EditTextPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_host));
         editHostPreferences.setSummary(formatedIpAddress);
+        
+        // Set Host IP Address.
+        EditTextPreference webHostPref = (EditTextPreference)
+                getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_host));
+        webHostPref.setSummary(formatedIpAddress);
     }
 }

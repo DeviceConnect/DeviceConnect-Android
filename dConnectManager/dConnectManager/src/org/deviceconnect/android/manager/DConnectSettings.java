@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.manager;
 
+import java.io.File;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
-
-import java.io.File;
 
 /**
  * DConnectの設定を保持するクラス.
@@ -21,14 +21,14 @@ public final class DConnectSettings {
     public static final String DEFAULT_HOST = "localhost";
     /** デフォルトのポート番号を定義. */
     public static final int DEFAULT_PORT = 4035;
+    /** Webサーバのデフォルトポート番号を定義. */
+    public static final int DEFALUT_WEB_PORT = 8080;
     /** デフォルトのインターバルを定義. */
     public static final int DEFAULT_INTERVAL = 1000 * 60 * 5;
     /** ポート番号. */
     private int mPort = DEFAULT_PORT;
     /** ホスト名. */
     private String mHost = DEFAULT_HOST;
-    /** ドキュメントルートパス. */
-    private String mDocumentRootPath;
     /** SSL使用フラグ. */
     private boolean mSSL = false;
 
@@ -46,6 +46,13 @@ public final class DConnectSettings {
 
     /** 監視時間を定義. */
     private int mObservationInterval;
+
+    /** ドキュメントルートパス. */
+    private String mDocumentRootPath;
+    /** Webサーバのホスト名. */
+    private String mWebHost = DEFAULT_HOST;
+    /** Webサーバのポート番号. */
+    private int mWebPort = DEFALUT_WEB_PORT;
 
     /** このクラスの唯一のインスタンス. */
     private static DConnectSettings sInstance;
@@ -81,14 +88,14 @@ public final class DConnectSettings {
         SharedPreferences sp = context.getSharedPreferences(context.getPackageName() + "_preferences",
                 Context.MODE_MULTI_PROCESS);
         setHost(sp.getString(context.getString(R.string.key_settings_dconn_host), DConnectSettings.DEFAULT_HOST));
-        setDocumentRootPath(sp.getString(context.getString(R.string.key_settings_dconn_document_root_path), file.getAbsolutePath()));
+        setDocumentRootPath(sp.getString(context.getString(R.string.key_settings_web_server_document_root_path),
+                file.getAbsolutePath()));
         setSSL(sp.getBoolean(context.getString(R.string.key_settings_dconn_ssl), false));
         setUseALocalOAuth(sp.getBoolean(context.getString(R.string.key_settings_dconn_local_oauth), true));
         setAllowExternalIP(sp.getBoolean(context.getString(R.string.key_settings_dconn_allow_external_ip), false));
-        setRequireOrigin(
-                sp.getBoolean(context.getString(R.string.key_settings_dconn_require_origin), true));
-        setBlockingOrigin(
-                sp.getBoolean(context.getString(R.string.key_settings_dconn_whitelist_origin_blocking), false));
+        setRequireOrigin(sp.getBoolean(context.getString(R.string.key_settings_dconn_require_origin), true));
+        setBlockingOrigin(sp
+                .getBoolean(context.getString(R.string.key_settings_dconn_whitelist_origin_blocking), false));
         try {
             setObservationInterval(Integer.parseInt(sp.getString(
                     context.getString(R.string.key_settings_dconn_observation_interval),
@@ -102,6 +109,13 @@ public final class DConnectSettings {
                     String.valueOf(DEFAULT_PORT))));
         } catch (NumberFormatException e) {
             setPort(DEFAULT_PORT);
+        }
+        try {
+            setWebPort(Integer.parseInt(sp.getString(
+                    context.getString(R.string.key_settings_web_server_port),
+                    String.valueOf(DEFALUT_WEB_PORT))));
+        } catch (NumberFormatException e) {
+            setPort(DEFALUT_WEB_PORT);
         }
     }
 
@@ -245,6 +259,30 @@ public final class DConnectSettings {
      */
     public void setBlockingOrigin(final boolean enabled) {
         this.mWhitelistEnabled = enabled;
+    }
+
+    /**
+     * Webサーバのポート番号を取得する.
+     * @return ポート番号
+     */
+    public int getWebPort() {
+        return mWebPort;
+    }
+
+    /**
+     * Webサーバのポート番号を設定する.
+     * @param port ポート番号
+     */
+    public void setWebPort(final int port) {
+        mWebPort = port;
+    }
+
+    /**
+     * Webサーバのホスト名を取得する.
+     * @return ホスト名
+     */
+    public String getWebHost() {
+        return mWebHost;
     }
 
     /**

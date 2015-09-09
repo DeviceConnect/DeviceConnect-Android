@@ -29,7 +29,7 @@ public class FPLUGHumidityProfile extends HumidityProfile {
         String serviceId = getServiceID(request);
 
         FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getFPLUGController(serviceId);
+        FPLUGController controller = app.getConnectedController(serviceId);
         if (controller == null) {
             MessageUtils.setNotFoundServiceError(response, "Not found fplug: " + serviceId);
             return true;

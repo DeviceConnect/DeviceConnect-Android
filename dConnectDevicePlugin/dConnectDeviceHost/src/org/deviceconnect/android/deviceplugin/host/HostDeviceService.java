@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay;
 import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServer;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
@@ -50,6 +51,7 @@ import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.PhoneProfileConstants.CallState;
 
+import android.Manifest;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -68,7 +70,9 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -229,6 +233,7 @@ public class HostDeviceService extends DConnectMessageService {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
         mFileDataManager.stopTimer();
     }
 
@@ -1036,22 +1041,34 @@ public class HostDeviceService extends DConnectMessageService {
      * @param listener 写真撮影の結果を通知するリスナー
      */
     public void takePicture(final CameraOverlay.OnTakePhotoListener listener) {
-        if (!mCameraOverlay.isShow()) {
-            mCameraOverlay.show(new CameraOverlay.Callback() {
-                @Override
-                public void onSuccess() {
-                    mCameraOverlay.setFinishFlag(true);
-                    mCameraOverlay.takePicture(listener);
-                }
+        PermissionUtility.requestPermissions(this, new Handler(Looper.getMainLooper()),
+                new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                new PermissionUtility.PermissionRequestCallback() {
+                    @Override
+                    public void onSuccess() {
+                        if (!mCameraOverlay.isShow()) {
+                            mCameraOverlay.show(new CameraOverlay.Callback() {
+                                @Override
+                                public void onSuccess() {
+                                    mCameraOverlay.setFinishFlag(true);
+                                    mCameraOverlay.takePicture(listener);
+                                }
 
-                @Override
-                public void onFail() {
-                    listener.onFailedTakePhoto();
-                }
-            });
-        } else {
-            mCameraOverlay.takePicture(listener);
-        }
+                                @Override
+                                public void onFail() {
+                                    listener.onFailedTakePhoto();
+                                }
+                            });
+                        } else {
+                            mCameraOverlay.takePicture(listener);
+                        }
+                    }
+
+                    @Override
+                    public void onFail(@NonNull String deniedPermission) {
+                        listener.onFailedTakePhoto();
+                    }
+                });
     }
 
     /**

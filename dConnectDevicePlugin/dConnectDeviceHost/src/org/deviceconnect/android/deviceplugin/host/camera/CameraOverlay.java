@@ -234,47 +234,51 @@ public class CameraOverlay implements Camera.PreviewCallback {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                mPreview = new Preview(mContext);
+                try {
+                    mPreview = new Preview(mContext);
 
-                Point size = getDisplaySize();
-                int pt = (int) (5 * getScaledDensity());
-                WindowManager.LayoutParams l = new WindowManager.LayoutParams(pt, pt,
-                        WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                                | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                        PixelFormat.TRANSLUCENT);
-                l.x = -size.x / 2;
-                l.y = -size.y / 2;
-                mWinMgr.addView(mPreview, l);
+                    Point size = getDisplaySize();
+                    int pt = (int) (5 * getScaledDensity());
+                    WindowManager.LayoutParams l = new WindowManager.LayoutParams(pt, pt,
+                            WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                                    | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                                    | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                            PixelFormat.TRANSLUCENT);
+                    l.x = -size.x / 2;
+                    l.y = -size.y / 2;
+                    mWinMgr.addView(mPreview, l);
 
-                mCamera = Camera.open();
-                mPreview.switchCamera(mCamera);
-                mCamera.setPreviewCallback(CameraOverlay.this);
+                    mCamera = Camera.open();
+                    mPreview.switchCamera(mCamera);
+                    mCamera.setPreviewCallback(CameraOverlay.this);
 
-                mTextView = new TextView(mContext);
-                mTextView.setText(R.string.overlay_preview);
-                mTextView.setTextColor(Color.RED);
-                mTextView.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-                mTextView.setClickable(true);
-                mTextView.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(final View v) {
-                        hide();
-                    }
-                });
+                    mTextView = new TextView(mContext);
+                    mTextView.setText(R.string.overlay_preview);
+                    mTextView.setTextColor(Color.RED);
+                    mTextView.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+                    mTextView.setClickable(true);
+                    mTextView.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(final View v) {
+                            hide();
+                        }
+                    });
 
-                WindowManager.LayoutParams l2 = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
-                        WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                        PixelFormat.TRANSLUCENT);
-                l2.x = -size.x / 2;
-                l2.y = -size.y / 2;
-                mWinMgr.addView(mTextView, l2);
+                    WindowManager.LayoutParams l2 = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
+                            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                            PixelFormat.TRANSLUCENT);
+                    l2.x = -size.x / 2;
+                    l2.y = -size.y / 2;
+                    mWinMgr.addView(mTextView, l2);
 
-                IntentFilter filter = new IntentFilter();
-                filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
-                mContext.registerReceiver(mOrientReceiver, filter);
+                    IntentFilter filter = new IntentFilter();
+                    filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
+                    mContext.registerReceiver(mOrientReceiver, filter);
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
             }
         });
     }
@@ -299,7 +303,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
     }
 
     private void checkCameraCapability(@NonNull final ResultReceiver resultReceiver) {
-        PermissionUtility.requestPermissions(mContext, new Handler(), new String[] { Manifest.permission.CAMERA },
+        PermissionUtility.requestPermissions(mContext, new Handler(), new String[]{Manifest.permission.CAMERA},
                 new PermissionUtility.PermissionRequestCallback() {
                     @Override
                     public void onSuccess() {
@@ -317,25 +321,37 @@ public class CameraOverlay implements Camera.PreviewCallback {
      * Overlayを非表示にする.
      */
     public void hide() {
-        synchronized (mCameraLock) {
-            if (mCamera != null) {
-                mPreview.setCamera(null);
-                mCamera.stopPreview();
-                mCamera.setPreviewCallback(null);
-                mCamera.release();
-                mCamera = null;
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    synchronized (mCameraLock) {
+                        if (mCamera != null) {
+                            mPreview.setCamera(null);
+                            mCamera.stopPreview();
+                            mCamera.setPreviewCallback(null);
+                            mCamera.release();
+                            mCamera = null;
+                        }
+                        if (mPreview != null) {
+                            mWinMgr.removeView(mPreview);
+                            mPreview = null;
+                        }
+                        if (mTextView != null) {
+                            mWinMgr.removeView(mTextView);
+                            mTextView = null;
+                        }
+                        try {
+                            mContext.unregisterReceiver(mOrientReceiver);
+                        } catch (IllegalArgumentException ignored) {
+                        }
+                        mFinishFlag = false;
+                    }
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
             }
-            if (mPreview != null) {
-                mWinMgr.removeView(mPreview);
-                mPreview = null;
-            }
-            if (mTextView != null) {
-                mWinMgr.removeView(mTextView);
-                mTextView = null;
-            }
-            mContext.unregisterReceiver(mOrientReceiver);
-            mFinishFlag = false;
-        }
+        });
     }
 
     /**
@@ -369,45 +385,51 @@ public class CameraOverlay implements Camera.PreviewCallback {
      * @param listener 撮影結果を通知するリスナー
      */
     private synchronized void takePictureInternal(final OnTakePhotoListener listener) {
-        if (mPreview == null || mCamera == null) {
-            if (listener != null) {
-                listener.onFailedTakePhoto();
+        synchronized (mCameraLock) {
+            if (mPreview == null || mCamera == null) {
+                if (listener != null) {
+                    listener.onFailedTakePhoto();
+                }
+                return;
             }
-            return;
-        }
-        mPreview.takePicture(new Camera.PictureCallback() {
-            @Override
-            public void onPictureTaken(final byte[] data, final Camera camera) {
-                mFileMgr.saveFile(createNewFileName(), data, new FileManager.SaveFileCallback() {
-                    @Override
-                    public void onSuccess(@NonNull final String uri) {
-                        String filePath = mFileMgr.getBasePath().getAbsolutePath() + "/" + uri;
-                        if (listener != null) {
-                            listener.onTakenPhoto(uri, filePath);
-                        }
-                        common();
+            mPreview.takePicture(new Camera.PictureCallback() {
+                @Override
+                public void onPictureTaken(final byte[] data, final Camera camera) {
+                    if (data == null) {
+                        listener.onFailedTakePhoto();
                     }
 
-                    @Override
-                    public void onFail(@NonNull final Throwable throwable) {
-                        if (listener != null) {
-                            listener.onFailedTakePhoto();
+                    mFileMgr.saveFile(createNewFileName(), data, new FileManager.SaveFileCallback() {
+                        @Override
+                        public void onSuccess(@NonNull final String uri) {
+                            String filePath = mFileMgr.getBasePath().getAbsolutePath() + "/" + uri;
+                            if (listener != null) {
+                                listener.onTakenPhoto(uri, filePath);
+                            }
+                            common();
                         }
-                        common();
-                    }
 
-                    private void common() {
-                        synchronized (CameraOverlay.this) {
-                            if (mFinishFlag) {
-                                hide();
-                            } else if (mCamera != null) {
-                                mCamera.startPreview();
+                        @Override
+                        public void onFail(@NonNull final Throwable throwable) {
+                            if (listener != null) {
+                                listener.onFailedTakePhoto();
+                            }
+                            common();
+                        }
+
+                        private void common() {
+                            synchronized (CameraOverlay.this) {
+                                if (mFinishFlag) {
+                                    hide();
+                                } else if (mCamera != null) {
+                                    mCamera.startPreview();
+                                }
                             }
                         }
-                    }
-                });
-            }
-        });
+                    });
+                }
+            });
+        }
     }
 
     /**
@@ -443,10 +465,15 @@ public class CameraOverlay implements Camera.PreviewCallback {
             return;
         }
         Point size = getDisplaySize();
-        WindowManager.LayoutParams lp = (WindowManager.LayoutParams) view.getLayoutParams();
+        final WindowManager.LayoutParams lp = (WindowManager.LayoutParams) view.getLayoutParams();
         lp.x = -size.x / 2;
         lp.y = -size.y / 2;
-        mWinMgr.updateViewLayout(view, lp);
+        view.post(new Runnable() {
+            @Override
+            public void run() {
+                mWinMgr.updateViewLayout(view, lp);
+            }
+        });
     }
 
     /**

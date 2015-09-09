@@ -6,22 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
-import org.deviceconnect.android.event.EventError;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.MediaPlayerProfile;
-import org.deviceconnect.android.provider.FileManager;
-import org.deviceconnect.message.DConnectMessage;
-
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -40,6 +24,22 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
+
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.MediaPlayerProfile;
+import org.deviceconnect.android.provider.FileManager;
+import org.deviceconnect.message.DConnectMessage;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Media Player Profile.
@@ -391,6 +391,19 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
+            Bundle b = request.getExtras();
+            if (b.getString(PARAM_LIMIT) != null) {
+                if (parseInteger(b.get(PARAM_LIMIT)) == null) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return true;
+                }
+            }
+            if (b.getString(PARAM_OFFSET) != null) {
+                if (parseInteger(b.get(PARAM_OFFSET)) == null) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    return true;
+                }
+            }
             return getMediaList(response, query, mimeType, orders, offset, limit);
         }
         return true;
@@ -410,7 +423,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             final String[] orders, final Integer offset, final Integer limit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
-                    new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     new PermissionUtility.PermissionRequestCallback() {
                         @Override
                         public void onSuccess() {

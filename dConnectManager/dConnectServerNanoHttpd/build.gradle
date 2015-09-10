@@ -17,6 +17,7 @@ allprojects {
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
+    compile project(':dconnect-server')
 }
 
 

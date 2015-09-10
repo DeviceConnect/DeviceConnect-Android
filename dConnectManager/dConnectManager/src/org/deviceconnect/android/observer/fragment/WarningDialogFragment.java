@@ -7,9 +7,11 @@
 package org.deviceconnect.android.observer.fragment;
 
 import java.util.List;
+
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.observer.DConnectObservationService;
 import org.deviceconnect.android.observer.receiver.ObserverReceiver;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -22,6 +24,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -108,6 +112,11 @@ public class WarningDialogFragment extends DialogFragment {
             Intent i = new Intent();
             i.setAction(DConnectObservationService.ACTION_START);
             i.setClass(getActivity(), ObserverReceiver.class);
+            i.putExtra(DConnectObservationService.PARAM_RESULT_RECEIVER, new ResultReceiver(new Handler()) {
+                @Override
+                protected void onReceiveResult(int resultCode, Bundle resultData) {
+                }
+            });
             getActivity().sendBroadcast(i);
         }
         getActivity().finish();

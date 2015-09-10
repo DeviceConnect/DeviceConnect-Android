@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    buildToolsVersion '23.0.0'
 
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.fplug"
@@ -18,8 +18,8 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-
     }
+
     productFlavors {
         product {
             buildConfigField "boolean", "IS_TEST", "false"
@@ -28,22 +28,21 @@ android {
             buildConfigField "boolean", "IS_TEST", "true"
         }
     }
+
     packagingOptions {
         exclude 'LICENSE.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
     }
 
 }
 
 dependencies {
-    configurations {
-        all*.exclude group: 'com.android.support', module: 'support-v4'
-    }
-
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':dconnect-device-plugin-sdk')
+    compile 'com.android.support:appcompat-v7:21.0.3'
     compile 'com.google.code.gson:gson:2.3.1'
-
     androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.0'
 }

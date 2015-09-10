@@ -23,12 +23,14 @@ import org.deviceconnect.android.profile.NotificationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
@@ -80,16 +82,20 @@ public class HostNotificationProfile extends NotificationProfile {
                 int iconType = 0;
                 String title = "";
                 if (type == NotificationType.PHONE) {
-                    iconType = R.drawable.notification_00;
+                    iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                            R.drawable.notification_00 : R.drawable.notification_00_post_lollipop;
                     title = "PHONE";
                 } else if (type == NotificationType.MAIL) {
-                    iconType = R.drawable.notification_01;
+                    iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                            R.drawable.notification_01 : R.drawable.notification_01_post_lollipop;
                     title = "MAIL";
                 } else if (type == NotificationType.SMS) {
-                    iconType = R.drawable.notification_02;
+                    iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                            R.drawable.notification_02 : R.drawable.notification_02_post_lollipop;
                     title = "SMS";
                 } else if (type == NotificationType.EVENT) {
-                    iconType = R.drawable.notification_03;
+                    iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                            R.drawable.notification_03 : R.drawable.notification_03_post_lollipop;
                     title = "EVENT";
                 } else {
                     MessageUtils.setInvalidRequestParameterError(response,
@@ -120,12 +126,24 @@ public class HostNotificationProfile extends NotificationProfile {
                     PendingIntent mPendingIntent = PendingIntent.getBroadcast(getContext(),
                             notifyId, notifyIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                    NotificationCompat.Builder notificationBuilder =
-                            new NotificationCompat.Builder(this.getContext())
-                            .setSmallIcon(iconType)
-                            .setContentTitle("" + title)
-                            .setContentText(encodeBody)
-                            .setContentIntent(mPendingIntent);
+                    Notification notification;
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                        NotificationCompat.Builder notificationBuilder =
+                                new NotificationCompat.Builder(this.getContext())
+                                        .setSmallIcon(iconType)
+                                        .setContentTitle("" + title)
+                                        .setContentText(encodeBody)
+                                        .setContentIntent(mPendingIntent);
+                        notification = notificationBuilder.build();
+                    } else {
+                        Notification.Builder notificationBuilder =
+                                new Notification.Builder(this.getContext())
+                                        .setSmallIcon(Icon.createWithResource(getContext(), iconType))
+                                        .setContentTitle("" + title)
+                                        .setContentText(encodeBody)
+                                        .setContentIntent(mPendingIntent);
+                        notification = notificationBuilder.build();
+                    }
 
                     // Get an instance of the NotificationManager service
                     NotificationManager mNotification = (NotificationManager) getContext()
@@ -133,7 +151,7 @@ public class HostNotificationProfile extends NotificationProfile {
 
                     // Build the notification and issues it with notification
                     // manager.
-                    mNotification.notify(notifyId, notificationBuilder.build());
+                    mNotification.notify(notifyId, notification);
 
                     response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, notifyId);
                     setResult(response, IntentDConnectMessage.RESULT_OK);

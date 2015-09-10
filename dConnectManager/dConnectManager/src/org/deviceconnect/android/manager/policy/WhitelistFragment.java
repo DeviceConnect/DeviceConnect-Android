@@ -28,8 +28,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.provider.Browser;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -133,6 +133,7 @@ public class WhitelistFragment extends Fragment {
 
         /**
          * Constructor.
+         * 
          * @param context Context
          * @param origins The list of origins.
          */
@@ -144,6 +145,7 @@ public class WhitelistFragment extends Fragment {
 
         /**
          * Sets item at the specified index.
+         * 
          * @param index an index in this list
          * @param item an instance of {@link OriginInfo}
          */
@@ -215,6 +217,7 @@ public class WhitelistFragment extends Fragment {
 
     /**
      * Shows a popup on the screen of Android device.
+     * 
      * @param text the text message.
      */
     private void showPopup(final String text) {
@@ -232,6 +235,7 @@ public class WhitelistFragment extends Fragment {
 
     /**
      * Deletes an origin.
+     * 
      * @param origin an origin.
      * @throws WhitelistException if the origin can not be removed.
      */
@@ -244,6 +248,7 @@ public class WhitelistFragment extends Fragment {
 
     /**
      * Adds an origin to be allowed.
+     * 
      * @param originExp an string expression of an origin to be allowed.
      * @param title the title of origin.
      * @throws WhitelistException if the origin can not be stored.
@@ -258,6 +263,7 @@ public class WhitelistFragment extends Fragment {
 
     /**
      * Updates an origin to be allowed.
+     * 
      * @param index an index in whitelist
      * @param info the information of an origin
      * @throws WhitelistException if the origin can not be stored.
@@ -271,6 +277,7 @@ public class WhitelistFragment extends Fragment {
 
     /**
      * Opens the origin deletion dialog.
+     * 
      * @param origin an origin to be deleted.
      */
     private void openDeleteDialog(final OriginInfo origin) {
@@ -280,21 +287,20 @@ public class WhitelistFragment extends Fragment {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(origin.getTitle());
-        builder.setMessage(strGuidance)
-                .setPositiveButton(strPositive, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int which) {
-                        try {
-                            deleteOrigin(origin);
-                        } catch (WhitelistException e) {
-                            showPopup(e.getMessage());
-                        }
-                    }
-                }).setNegativeButton(strNegative, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int which) {
-                    }
-                }).setCancelable(true);
+        builder.setMessage(strGuidance).setPositiveButton(strPositive, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog, final int which) {
+                try {
+                    deleteOrigin(origin);
+                } catch (WhitelistException e) {
+                    showPopup(e.getMessage());
+                }
+            }
+        }).setNegativeButton(strNegative, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog, final int which) {
+            }
+        }).setCancelable(true);
         builder.create().show();
     }
 
@@ -305,53 +311,98 @@ public class WhitelistFragment extends Fragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setCancelable(true);
         builder.setTitle(R.string.dialog_add_origin_title);
-        builder.setItems(R.array.whitelist_menu_origin, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-                dialog.dismiss();
-                Context context = getActivity();
-                if (context == null) {
-                    return;
-                }
-                switch (which) {
-                case 0:
-                    openListDialog(context, getAllBookmarksOfChrome());
-                    break;
-                case 1:
-                    openListDialog(context, getInstalledNativeApplications());
-                    break;
-                case 2:
-                    ManualEntryDialogBuilder builder = new ManualEntryDialogBuilder(context);
-                    builder.mDialogTitle = getString(R.string.dialog_add_origin_title);
-                    builder.mDefaultOrigin = "";
-                    builder.mDefaultOriginTitle = "";
-                    builder.mPositiveButtonName = getString(R.string.dialog_add_origin_positive);
-                    builder.mNegativeButtonName = getString(R.string.dialog_add_origin_negative);
-                    builder.mListener = new OnEntryListener() {
-                        @Override
-                        public void onEntry(final String origin, final String title) {
-                            try {
-                                addOrigin(origin, title);
-                                mLogger.info("Updated origin=" + origin + " title=" + title);
-                            } catch (WhitelistException e) {
-                                mLogger.log(Level.WARNING, "Failed to add origin.", e);
-                                showPopup(e.getMessage());
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            builder.setItems(R.array.whitelist_menu_origin_pre_marshmallow, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
+                    dialog.dismiss();
+                    Context context = getActivity();
+                    if (context == null) {
+                        return;
+                    }
+                    switch (which) {
+                    case 0:
+                        openListDialog(context, getAllBookmarksOfChrome());
+                        break;
+                    case 1:
+                        openListDialog(context, getInstalledNativeApplications());
+                        break;
+                    case 2:
+                        ManualEntryDialogBuilder builder = new ManualEntryDialogBuilder(context);
+                        builder.mDialogTitle = getString(R.string.dialog_add_origin_title);
+                        builder.mDefaultOrigin = "";
+                        builder.mDefaultOriginTitle = "";
+                        builder.mPositiveButtonName = getString(R.string.dialog_add_origin_positive);
+                        builder.mNegativeButtonName = getString(R.string.dialog_add_origin_negative);
+                        builder.mListener = new OnEntryListener() {
+                            @Override
+                            public void onEntry(final String origin, final String title) {
+                                try {
+                                    addOrigin(origin, title);
+                                    mLogger.info("Updated origin=" + origin + " title=" + title);
+                                } catch (WhitelistException e) {
+                                    mLogger.log(Level.WARNING, "Failed to add origin.", e);
+                                    showPopup(e.getMessage());
+                                }
                             }
-                        }
-                    };
-                    builder.create().show();
-                    break;
-                default:
-                    // nothing to do
-                    break;
+                        };
+                        builder.create().show();
+                        break;
+                    default:
+                        // nothing to do
+                        break;
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            builder.setItems(R.array.whitelist_menu_origin_post_marshmallow, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
+                    dialog.dismiss();
+                    Context context = getActivity();
+                    if (context == null) {
+                        return;
+                    }
+                    switch (which) {
+                    case 0:
+                        openListDialog(context, getInstalledNativeApplications());
+                        break;
+                    case 1:
+                        ManualEntryDialogBuilder builder = new ManualEntryDialogBuilder(context);
+                        builder.mDialogTitle = getString(R.string.dialog_add_origin_title);
+                        builder.mDefaultOrigin = "";
+                        builder.mDefaultOriginTitle = "";
+                        builder.mPositiveButtonName = getString(R.string.dialog_add_origin_positive);
+                        builder.mNegativeButtonName = getString(R.string.dialog_add_origin_negative);
+                        builder.mListener = new OnEntryListener() {
+                            @Override
+                            public void onEntry(final String origin, final String title) {
+                                try {
+                                    addOrigin(origin, title);
+                                    mLogger.info("Updated origin=" + origin + " title=" + title);
+                                } catch (WhitelistException e) {
+                                    mLogger.log(Level.WARNING, "Failed to add origin.", e);
+                                    showPopup(e.getMessage());
+                                }
+                            }
+                        };
+                        builder.create().show();
+                        break;
+                    default:
+                        // nothing to do
+                        break;
+                    }
+                }
+            });
+        }
+
         builder.create().show();
     }
 
     /**
      * Opens a dialog for the list of known application information.
+     * 
      * @param context the context
      * @param list the list of known application information.
      */
@@ -380,22 +431,27 @@ public class WhitelistFragment extends Fragment {
 
     /**
      * Gets all bookmarks of Chrome for Android.
+     * 
+     * This method works properly only in SDK version 22 or below.
+     *
      * @return all bookmarks of Chrome for Android
      */
     private List<KnownApplicationInfo> getAllBookmarksOfChrome() {
+        String columnTitle = "title";
+        String columnURL = "url";
+        String columnFavicon = "favicon";
+        String selectionBookmark = "bookmark";
+
         ContentResolver resolver = getActivity().getContentResolver();
         Uri uri = Uri.parse(getString(R.string.chrome_bookmark_provider_url));
-        Cursor c = resolver.query(uri, new String[] {
-                Browser.BookmarkColumns.TITLE,
-                Browser.BookmarkColumns.URL,
-                Browser.BookmarkColumns.FAVICON
-            }, android.provider.Browser.BookmarkColumns.BOOKMARK, null, null);
+        Cursor c = resolver.query(uri, new String[] { columnTitle, columnURL, columnFavicon }, selectionBookmark, null,
+                null);
         List<KnownApplicationInfo> bookmarks = new ArrayList<WhitelistFragment.KnownApplicationInfo>();
         if (c.moveToFirst()) {
             do {
-                final int titleIndex = c.getColumnIndex(Browser.BookmarkColumns.TITLE);
-                final int urlIndex = c.getColumnIndex(Browser.BookmarkColumns.URL);
-                final int iconIndex = c.getColumnIndex(Browser.BookmarkColumns.FAVICON);
+                final int titleIndex = c.getColumnIndex(columnTitle);
+                final int urlIndex = c.getColumnIndex(columnURL);
+                final int iconIndex = c.getColumnIndex(columnFavicon);
                 if (titleIndex < 0 || urlIndex < 0 || iconIndex < 0) {
                     continue;
                 }
@@ -414,6 +470,7 @@ public class WhitelistFragment extends Fragment {
 
     /**
      * Gets information of all applications installed in the Android device.
+     * 
      * @return information of all applications installed
      */
     private List<KnownApplicationInfo> getInstalledNativeApplications() {
@@ -433,19 +490,24 @@ public class WhitelistFragment extends Fragment {
 
         /**
          * Gets the name of the application.
+         * 
          * @return the name of the application
          */
         String getName();
 
         /**
          * Gets the origin of the application.
-         * @return the origin of the application. if origin cannot be derived, returns <code>null</code>
+         * 
+         * @return the origin of the application. if origin cannot be derived,
+         *         returns <code>null</code>
          */
         String getOrigin();
 
         /**
          * Gets binary data of the icon.
-         * @return binary data of the icon. if the icon is not registered, returns <code>null</code>
+         * 
+         * @return binary data of the icon. if the icon is not registered,
+         *         returns <code>null</code>
          */
         Drawable getIcon();
     }
@@ -463,6 +525,7 @@ public class WhitelistFragment extends Fragment {
 
         /**
          * Constructor.
+         * 
          * @param title The title of the web site
          * @param url The URL of the web site
          * @param icon The binary data of the favicon
@@ -513,15 +576,16 @@ public class WhitelistFragment extends Fragment {
     private class InstalledNativeApplicationInfo implements KnownApplicationInfo {
         /** The Information of the installed native application. */
         final ApplicationInfo mAppInfo;
-        
+
         /**
          * Constructor.
+         * 
          * @param info The Information of the installed native application
          */
         InstalledNativeApplicationInfo(final ApplicationInfo info) {
             mAppInfo = info;
         }
-        
+
         @Override
         public String getName() {
             return mAppInfo.loadLabel(getActivity().getPackageManager()).toString();
@@ -536,7 +600,7 @@ public class WhitelistFragment extends Fragment {
         public Drawable getIcon() {
             return getActivity().getPackageManager().getApplicationIcon(mAppInfo);
         }
-        
+
     }
 
     /**
@@ -550,6 +614,7 @@ public class WhitelistFragment extends Fragment {
 
         /**
          * Constructor.
+         * 
          * @param context Context
          * @param list The list of book-marks
          */
@@ -576,7 +641,7 @@ public class WhitelistFragment extends Fragment {
             ImageView imageIcon = (ImageView) view.findViewById(R.id.image_app_icon);
             Drawable icon = info.getIcon();
             if (icon == null) {
-                icon = new BitmapDrawable(BitmapFactory.decodeByteArray(new byte[]{}, 0, 0));
+                icon = new BitmapDrawable(BitmapFactory.decodeByteArray(new byte[] {}, 0, 0));
             }
             imageIcon.setImageDrawable(icon);
             TextView textTitle = (TextView) view.findViewById(R.id.text_app_title);
@@ -628,6 +693,7 @@ public class WhitelistFragment extends Fragment {
 
         /**
          * Creates an dialog.
+         * 
          * @return an instance of {@link AlertDialog}
          */
         AlertDialog create() {
@@ -639,30 +705,28 @@ public class WhitelistFragment extends Fragment {
             editTitle.setText(mDefaultOriginTitle);
             mBuilder.setTitle(mDialogTitle);
             mBuilder.setView(root);
-            mBuilder.setPositiveButton(mPositiveButtonName,
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(final DialogInterface dialog, final int which) {
-                            String origin = editOrigin.getText().toString();
-                            String title = editTitle.getText().toString();
-                            if (TextUtils.isEmpty(origin)) {
-                                create().show();
-                                return;
-                            }
-                            if (TextUtils.isEmpty(title)) {
-                                title = origin;
-                            }
-                            if (mListener != null) {
-                                mListener.onEntry(origin, title);
-                            }
-                        }
-                    });
-            mBuilder.setNegativeButton(mNegativeButtonName,
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(final DialogInterface dialog, final int which) {
-                        }
-                    });
+            mBuilder.setPositiveButton(mPositiveButtonName, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
+                    String origin = editOrigin.getText().toString();
+                    String title = editTitle.getText().toString();
+                    if (TextUtils.isEmpty(origin)) {
+                        create().show();
+                        return;
+                    }
+                    if (TextUtils.isEmpty(title)) {
+                        title = origin;
+                    }
+                    if (mListener != null) {
+                        mListener.onEntry(origin, title);
+                    }
+                }
+            });
+            mBuilder.setNegativeButton(mNegativeButtonName, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
+                }
+            });
             mBuilder.setCancelable(true);
             return mBuilder.create();
         }
@@ -675,6 +739,7 @@ public class WhitelistFragment extends Fragment {
 
         /**
          * Receives a manual entry event.
+         * 
          * @param origin the string expression of an origin
          * @param title the title of an origin
          */

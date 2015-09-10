@@ -82,7 +82,7 @@ public class DConnectApplication extends Application {
      * ホスト名を取得する.
      * @return ホスト名
      */
-    public String getHost() {
+    public String getHostName() {
         final SharedPreferences prefs = PreferenceManager
             .getDefaultSharedPreferences(getApplicationContext());
         String host = prefs.getString(

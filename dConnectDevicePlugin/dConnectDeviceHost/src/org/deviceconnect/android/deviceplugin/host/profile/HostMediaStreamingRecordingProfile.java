@@ -29,14 +29,19 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
+import android.support.annotation.NonNull;
 
 /**
  * MediaStream Recording Profile.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProfile {
@@ -71,8 +76,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     private static final String AUDIO_TARGET_NAME = "AndroidHost Audio Recorder";
 
     /** 日付のフォーマット. */
-    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat(
-            "yyyyMMdd_kkmmss", Locale.JAPAN);
+    private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
     @Override
     protected boolean onGetMediaRecorder(final Intent request, final Intent response, final String serviceId) {
@@ -136,8 +140,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     protected boolean onPutOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, 
-                    "sessionKey does not exist.");
+            MessageUtils.setInvalidRequestParameterError(response, "sessionKey does not exist.");
         }
 
         EventError error = EventManager.INSTANCE.addEvent(request);
@@ -153,8 +156,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     protected boolean onDeleteOnPhoto(final Intent request, final Intent response, final String serviceId,
             final String sessionKey) {
         if (sessionKey == null) {
-            MessageUtils.setInvalidRequestParameterError(response, 
-                    "sessionKey does not exist.");
+            MessageUtils.setInvalidRequestParameterError(response, "sessionKey does not exist.");
         }
 
         EventError error = EventManager.INSTANCE.removeEvent(request);
@@ -177,8 +179,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         } else {
             if (target != null && !PHOTO_TARGET_ID.equals(target)) {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "target is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
 
@@ -189,26 +190,26 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     setResult(response, DConnectMessage.RESULT_OK);
                     setUri(response, uri);
                     getContext().sendBroadcast(response);
-                    
+
                     List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
                             MediaStreamRecordingProfile.PROFILE_NAME, null,
                             MediaStreamRecordingProfile.ATTRIBUTE_ON_PHOTO);
 
-                    for (Event evt : evts) {
-                        Bundle photo = new Bundle();
-                        photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
-                        photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
-                        photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
+                    Bundle photo = new Bundle();
+                    photo.putString(MediaStreamRecordingProfile.PARAM_URI, uri);
+                    photo.putString(MediaStreamRecordingProfile.PARAM_PATH, filePath);
+                    photo.putString(MediaStreamRecordingProfile.PARAM_MIME_TYPE, "image/png");
 
+                    for (Event evt : evts) {
                         Intent intent = EventManager.createEventMessage(evt);
                         intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
                         getContext().sendBroadcast(intent);
                     }
                 }
+
                 @Override
                 public void onFailedTakePhoto() {
-                    MessageUtils.setUnknownError(response,
-                            "Failed to take a photo");
+                    MessageUtils.setUnknownError(response, "Failed to take a photo");
                     getContext().sendBroadcast(response);
                 }
             });
@@ -225,16 +226,21 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundService(response);
             return true;
         } else {
-            String uri = ((HostDeviceService) getContext()).startWebServer();
-            if (uri != null) {
-                setResult(response, DConnectMessage.RESULT_OK);
-                setUri(response, uri);
-            } else {
-                MessageUtils.setIllegalServerStateError(response,
-                        "Failed to start web server.");
-                return true;
-            }
-            return true;
+            ((HostDeviceService) getContext()).startWebServer(new HostDeviceService.OnWebServerStartCallback() {
+                @Override
+                public void onStart(@NonNull String uri) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    setUri(response, uri);
+                    getContext().sendBroadcast(response);
+                }
+
+                @Override
+                public void onFail() {
+                    MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
+                    getContext().sendBroadcast(response);
+                }
+            });
+            return false;
         }
     }
 
@@ -266,47 +272,69 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         } else {
 
             if (timeslice != null && timeslice <= 0) {
-                MessageUtils.setInvalidRequestParameterError(response, 
-                        "timeslice is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, "timeslice is invalid.");
                 return true;
             }
 
-            FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
+            final FileManager mgr = ((HostDeviceService) getContext()).getFileManager();
             String className = getClassnameOfTopActivity();
 
             if (target == null || target.equals(VIDEO_TARGET_ID)) {
                 if (VideoRecorder.class.getName().equals(className)) {
-                    MessageUtils.setIllegalDeviceStateError(response,
-                            "Running video recoder, yet");
+                    MessageUtils.setIllegalDeviceStateError(response, "Video recorder is already running.");
                     return true;
                 }
-                String filename = generateVideoFileName();
+                final String filename = generateVideoFileName();
                 Intent intent = new Intent();
                 intent.setClass(getContext(), VideoRecorder.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra(VideoConst.EXTRA_FILE_NAME, filename);
+                intent.putExtra(VideoConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                    @Override
+                    protected void onReceiveResult(int resultCode, Bundle resultData) {
+                        if (resultCode == Activity.RESULT_OK) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            setPath(response, "/" + filename);
+                            setUri(response, mgr.getContentUri() + "/" + filename);
+                        } else {
+                            String msg =
+                                    resultData.getString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
+                            MessageUtils.setIllegalServerStateError(response, msg);
+                        }
+                        getContext().sendBroadcast(response);
+                    }
+                });
                 getContext().startActivity(intent);
-                setResult(response, DConnectMessage.RESULT_OK);
-                setPath(response, "/" + filename);
-                setUri(response, mgr.getContentUri() + "/" + filename);
+                return false;
             } else if (target.equals(AUDIO_TARGET_ID)) {
                 if (AudioRecorder.class.getName().equals(className)) {
-                    MessageUtils.setIllegalDeviceStateError(response,
-                            "Running video recoder, yet");
+                    MessageUtils.setIllegalDeviceStateError(response, "Audio recorder is already running.");
                     return true;
                 }
-                String filename = generateAudioFileName();
+                final String filename = generateAudioFileName();
                 Intent intent = new Intent();
                 intent.setClass(getContext(), AudioRecorder.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra(AudioConst.EXTRA_FINE_NAME, filename);
+                intent.putExtra(AudioConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                    @Override
+                    protected void onReceiveResult(int resultCode, Bundle resultData) {
+                        if (resultCode == Activity.RESULT_OK) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            setPath(response, "/" + filename);
+                            setUri(response, mgr.getContentUri() + "/" + filename);
+                        } else {
+                            String msg =
+                            resultData.getString(AudioConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
+                            MessageUtils.setIllegalServerStateError(response, msg);
+                        }
+                        getContext().sendBroadcast(response);
+                    }
+                });
                 getContext().startActivity(intent);
-                setResult(response, DConnectMessage.RESULT_OK);
-                setPath(response, "/" + filename);
-                setUri(response, mgr.getContentUri() + "/" + filename);
+                return false;
             } else {
-                MessageUtils.setInvalidRequestParameterError(response, 
-                        "target is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
             }
 
             return true;
@@ -315,7 +343,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     @Override
     protected boolean onPutStop(final Intent request, final Intent response, final String serviceId,
-                                final String target) {
+            final String target) {
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
@@ -346,7 +374,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     @Override
     protected boolean onPutPause(final Intent request, final Intent response, final String serviceId,
-                            final String target) {
+            final String target) {
 
         if (serviceId == null) {
             createEmptyServiceId(response);
@@ -401,6 +429,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     /**
      * Generate a file name for video.
+     *
      * @return file name
      */
     private String generateVideoFileName() {
@@ -409,6 +438,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     /**
      * Generate a file name for audio.
+     *
      * @return file name
      */
     private String generateAudioFileName() {
@@ -417,7 +447,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     /**
      * サービスIDをチェックする.
-     * 
+     *
      * @param serviceId サービスID
      * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
@@ -430,7 +460,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     /**
      * 画面の一番上にでているActivityのクラス名を取得.
-     * 
+     *
      * @return クラス名
      */
     private String getClassnameOfTopActivity() {
@@ -441,7 +471,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     /**
      * デバイスが発見できなかった場合のエラーを作成する.
-     * 
+     *
      * @param response レスポンスを格納するIntent
      */
     private void createNotFoundService(final Intent response) {
@@ -450,7 +480,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     /**
      * サービスIDをチェックする.
-     * 
+     *
      * @param serviceId サービスID
      * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
      */
@@ -460,7 +490,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     /**
      * サービスIDが空の場合のエラーを作成する.
-     * 
+     *
      * @param response レスポンスを格納するIntent
      */
     private void createEmptyServiceId(final Intent response) {

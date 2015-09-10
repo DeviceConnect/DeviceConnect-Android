@@ -58,6 +58,12 @@ public final class VideoConst {
     /** ファイル名. */
     public static final String EXTRA_FILE_NAME = "filename";
 
+    /** コールバック */
+    public static final String EXTRA_CALLBACK = "callback";
+
+    /** コールバックのエラーメッセージ。 */
+    public static final String EXTRA_CALLBACK_ERROR_MESSAGE = "callback_error_message";
+
     /** Video起動のAction名. */
     public static final String SEND_HOSTDP_TO_VIDEOPLAYER =
             "org.deviceconnect.android.intent.action.SEND_HOSTDP_TO_VIDEOPLAYER";

@@ -108,8 +108,12 @@
     <string name="dialog_origin_manual_entry_item_title">Title</string>
     <string name="dialog_origin_manual_entry_item_origin">Origin</string>
     <string name="dialog_origin_manual_entry_message">Please enter an origin at least.</string>
-    <string-array name="whitelist_menu_origin">
+    <string-array name="whitelist_menu_origin_pre_marshmallow">
         <item>from the bookmark of Chrome</item>
+        <item>from the installed app.</item>
+        <item>from manual entry</item>
+    </string-array>
+    <string-array name="whitelist_menu_origin_post_marshmallow">
         <item>from the installed app.</item>
         <item>from manual entry</item>
     </string-array>
@@ -136,6 +140,10 @@
     <string name="activity_warning_mess">Manager could not started because other application is using the port.</string>
     <string name="activity_warning_ok">OK</string>
     <string name="activity_warning_disable">Do not display from the next time</string>
+
+    <!-- ================= DConnectObservationService ================= -->
+    <string name="service_observation_warning">Warning</string>
+    <string name="service_observation_msg_no_permission">Port observation was interrupted due to lack of file read permission.</string>
 
     <!-- =================     DebugActivity     ================= -->
 

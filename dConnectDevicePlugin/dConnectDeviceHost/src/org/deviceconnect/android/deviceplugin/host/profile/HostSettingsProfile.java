@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SettingsProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -19,6 +20,12 @@ import org.deviceconnect.message.DConnectMessage;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
 import android.provider.Settings;
 
 /**
@@ -34,9 +41,8 @@ public class HostSettingsProfile extends SettingsProfile {
     /**
      * 日付フォーマット.
      */
-    private SimpleDateFormat mDateFormat = 
-            new SimpleDateFormat("yyyy'-'MM'-'dd' 'kk':'mm':'ss'+0900'",
-                    Locale.getDefault());
+    private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy'-'MM'-'dd' 'kk':'mm':'ss'+0900'",
+            Locale.getDefault());
 
     @Override
     protected boolean onGetSoundVolume(final Intent request, final Intent response, final String serviceId,
@@ -46,8 +52,7 @@ public class HostSettingsProfile extends SettingsProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
-            AudioManager manager = (AudioManager) getContext()
-                    .getSystemService(Context.AUDIO_SERVICE);
+            AudioManager manager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
 
             double volume = 0.0;
             double maxVolume = 1.0;
@@ -77,11 +82,9 @@ public class HostSettingsProfile extends SettingsProfile {
                 setResult(response, DConnectMessage.RESULT_OK);
                 setVolumeLevel(response, volume / maxVolume);
             } else if (kind == VolumeKind.OTHER) {
-                MessageUtils.setNotSupportAttributeError(response,
-                        "volume type is not support.");
+                MessageUtils.setNotSupportAttributeError(response, "volume type is not support.");
             } else {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "type is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, "type is invalid.");
             }
         }
         return true;
@@ -109,8 +112,8 @@ public class HostSettingsProfile extends SettingsProfile {
         } else {
             // 自動調整ボタンが有効な場合 0が変える
             // 端末画面の明るさを取得(0～255)
-            double level = Settings.System.getInt(getContext().getContentResolver(),
-                    Settings.System.SCREEN_BRIGHTNESS, 0);
+            double level = Settings.System.getInt(getContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS,
+                    0);
             double maxLevel = MAX_LIGHT_LEVEL;
             setLightLevel(response, level / maxLevel);
             setResult(response, DConnectMessage.RESULT_OK);
@@ -125,8 +128,8 @@ public class HostSettingsProfile extends SettingsProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
-            int timeout = Settings.System.getInt(getContext().getContentResolver(),
-                    Settings.System.SCREEN_OFF_TIMEOUT, 0);
+            int timeout = Settings.System.getInt(getContext().getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT,
+                    0);
             setTime(response, timeout);
             setResult(response, DConnectMessage.RESULT_OK);
         }
@@ -142,13 +145,11 @@ public class HostSettingsProfile extends SettingsProfile {
             createNotFoundService(response);
         } else {
             if (level == null || level < 0.0 || level > 1.0) {
-                MessageUtils.setInvalidRequestParameterError(response, 
-                        "level is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, "level is invalid.");
                 return true;
             }
 
-            AudioManager manager = (AudioManager) getContext()
-                    .getSystemService(Context.AUDIO_SERVICE);
+            AudioManager manager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
             double maxVolume = 1;
             if (kind == VolumeKind.ALARM) {
                 maxVolume = manager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
@@ -171,53 +172,108 @@ public class HostSettingsProfile extends SettingsProfile {
                 manager.setStreamVolume(AudioManager.STREAM_MUSIC, (int) (maxVolume * level), 1);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (kind == VolumeKind.OTHER) {
-                MessageUtils.setNotSupportAttributeError(response,
-                        "volume type is not support.");
+                MessageUtils.setNotSupportAttributeError(response, "volume type is not support.");
             } else {
-                MessageUtils.setInvalidRequestParameterError(response,
-                        "type is invalid.");
+                MessageUtils.setInvalidRequestParameterError(response, "type is invalid.");
             }
         }
         return true;
     }
 
     @Override
-    protected boolean onPutDisplayLight(final Intent request, final Intent response,
-            final String serviceId, final Double level) {
+    protected boolean onPutDisplayLight(final Intent request, final Intent response, final String serviceId,
+            final Double level) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
-            if (level == null || level < 0 || level > 1.0) {
-                MessageUtils.setInvalidRequestParameterError(response, 
-                        "level is invalid.");
-                return true;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.System.canWrite(getContext())) {
+                    onPutDisplayLightInternal(request, response, serviceId, level);
+                } else {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                            Uri.parse("package:" + getContext().getPackageName()));
+                    IntentHandlerActivity.startActivityForResult(getContext(), intent,
+                            new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                                @Override
+                                protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                                    if (Settings.System.canWrite(getContext())) {
+                                        onPutDisplayLightInternal(request, response, serviceId, level);
+                                    } else {
+                                        MessageUtils.setIllegalServerStateError(response,
+                                                "WRITE_SETTINGS permisson not granted");
+                                    }
+                                    getContext().sendBroadcast(response);
+                                }
+                            });
+                    return false;
+                }
+            } else {
+                onPutDisplayLightInternal(request, response, serviceId, level);
             }
-            Settings.System.putInt(getContext().getContentResolver(),
-                    Settings.System.SCREEN_BRIGHTNESS, (int) (MAX_LIGHT_LEVEL * level));
-            setResult(response, DConnectMessage.RESULT_OK);
         }
         return true;
     }
 
+    private void onPutDisplayLightInternal(final Intent request, final Intent response, final String serviceId,
+            final Double level) {
+        if (level == null || level < 0 || level > 1.0) {
+            MessageUtils.setInvalidRequestParameterError(response, "level is invalid.");
+            return;
+        }
+        Settings.System.putInt(getContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS,
+                (int) (MAX_LIGHT_LEVEL * level));
+        setResult(response, DConnectMessage.RESULT_OK);
+    }
+
     @Override
-    protected boolean onPutDisplaySleep(final Intent request, final Intent response,
-            final String serviceId, final Integer time) {
+    protected boolean onPutDisplaySleep(final Intent request, final Intent response, final String serviceId,
+            final Integer time) {
         if (serviceId == null) {
             createEmptyServiceId(response);
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
-            if (time == null || time < 0.0) {
-                MessageUtils.setInvalidRequestParameterError(response, 
-                        "time is invalid.");
-                return true;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (Settings.System.canWrite(getContext())) {
+                    onPutDisplaySleepInternal(request, response, serviceId, time);
+                } else {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS,
+                            Uri.parse("package:" + getContext().getPackageName()));
+                    IntentHandlerActivity.startActivityForResult(getContext(), intent,
+                            new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                                @Override
+                                protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                                    if (Settings.System.canWrite(getContext())) {
+                                        onPutDisplaySleepInternal(request, response, serviceId, time);
+                                    } else {
+                                        MessageUtils.setIllegalServerStateError(response,
+                                                "WRITE_SETTINGS permisson not granted");
+                                    }
+                                    getContext().sendBroadcast(response);
+                                }
+                            });
+                    return false;
+                }
+            } else {
+                onPutDisplaySleepInternal(request, response, serviceId, time);
             }
-            Settings.System.putInt(getContext().getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, time);
-            setResult(response, DConnectMessage.RESULT_OK);
         }
         return true;
+    }
+
+    private void onPutDisplaySleepInternal(final Intent request, final Intent response, final String serviceId,
+            final Integer time) {
+        if (time == null || time < 0.0) {
+            MessageUtils.setInvalidRequestParameterError(response, "time is invalid.");
+            return;
+        }
+        if (Settings.System.putInt(getContext().getContentResolver(), Settings.System.SCREEN_OFF_TIMEOUT, time)) {
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else {
+            MessageUtils.setUnknownError(response, "Failed to set display sleep timeout.");
+        }
     }
 
     /**

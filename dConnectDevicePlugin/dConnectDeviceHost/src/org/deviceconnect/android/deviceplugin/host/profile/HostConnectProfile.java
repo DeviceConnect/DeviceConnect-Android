@@ -129,7 +129,6 @@ public class HostConnectProfile extends ConnectProfile {
             createNotFoundService(response);
         } else {
             setEnabledOfWiFi(request, response, true);
-            setResult(response, IntentDConnectMessage.RESULT_OK);
         }
         return true;
     }
@@ -171,7 +170,6 @@ public class HostConnectProfile extends ConnectProfile {
         } else if (!checkServiceId(serviceId)) {
             createNotFoundService(response);
         } else {
-            setResult(response, DConnectMessage.RESULT_OK);
             setEnabledOfWiFi(request, response, false);
         }
         return true;
@@ -349,11 +347,18 @@ public class HostConnectProfile extends ConnectProfile {
      * @param enabled WiFi接続状態
      */
     protected void setEnabledOfWiFi(final Intent request, final Intent response, final boolean enabled) {
-
-        setResult(response, IntentDConnectMessage.RESULT_OK);
-
         WifiManager wifiMgr = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
-        wifiMgr.setWifiEnabled(enabled);
+        if (wifiMgr.setWifiEnabled(enabled)) {
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+        } else {
+            String msg;
+            if (enabled) {
+                msg = "Failed to enable WiFi.";
+            } else {
+                msg = "Failed to disable WiFi.";
+            }
+            MessageUtils.setUnknownError(response, msg);
+        }
     }
 
     /**

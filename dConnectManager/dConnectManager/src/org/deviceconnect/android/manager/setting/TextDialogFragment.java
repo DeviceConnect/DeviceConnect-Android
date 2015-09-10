@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Logger;
 
-import org.apache.http.protocol.HTTP;
 import org.deviceconnect.android.manager.R;
 
 import android.app.AlertDialog;
@@ -40,8 +39,7 @@ public class TextDialogFragment extends DialogFragment {
         InputStream is = null;
         try {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
-            is = getActivity().getResources().openRawResource(
-                    getArguments().getInt(Intent.EXTRA_TEXT));
+            is = getActivity().getResources().openRawResource(getArguments().getInt(Intent.EXTRA_TEXT));
             byte[] buf = new byte[BUFFER_SIZE];
             while (true) {
                 int len = is.read(buf);
@@ -50,7 +48,7 @@ public class TextDialogFragment extends DialogFragment {
                 }
                 os.write(buf, 0, len);
             }
-            text.setText(new String(os.toByteArray(), HTTP.UTF_8));
+            text.setText(new String(os.toByteArray(), "UTF_8"));
         } catch (IOException e) {
             mLogger.warning(e.toString());
         } finally {

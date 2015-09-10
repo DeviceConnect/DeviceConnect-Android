@@ -35,7 +35,6 @@ dependencies {
  * HttpClient, thus it suppresses warnings.
  */
 configurations {
-    all*.exclude group: 'org.apache.httpcomponents', module: 'httpmime'
     all*.exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     all*.exclude group: 'commons-logging', module: 'commons-logging'
 }

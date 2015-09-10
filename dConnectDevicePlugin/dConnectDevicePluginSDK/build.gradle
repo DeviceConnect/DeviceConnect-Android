@@ -72,7 +72,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository url: "file://${repo.absolutePath}"
-            pom.version = '1.0.0'
+            pom.version = '1.0.1'
             pom.groupId = 'org.deviceconnect'
             pom.artifactId = 'dconnect-device-plugin-sdk'
         }

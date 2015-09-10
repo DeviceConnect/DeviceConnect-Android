@@ -499,7 +499,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * @param response レスポンスパラメータ
      * @param serviceId サービスID
      * @param lightIds 追加するライトのID一覧
-     * @param groupName グループ名前
+     * @param name グループ名前
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPostLightGroupCreate(final Intent request, final Intent response,

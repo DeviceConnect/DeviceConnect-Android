@@ -346,6 +346,10 @@ public class AllJoynDeviceApplication extends Application {
                 return;
             }
 
+            if (mAllJoynServiceEntities.containsKey(service.appId)) {
+                AllJoynServiceEntity oldService = mAllJoynServiceEntities.get(service.appId);
+                service.lastAlive = oldService.lastAlive;
+            }
             mAllJoynServiceEntities.put(service.appId, service);
         }
 

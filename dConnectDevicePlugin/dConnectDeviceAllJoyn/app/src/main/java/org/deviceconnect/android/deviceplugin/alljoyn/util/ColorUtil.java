@@ -38,15 +38,15 @@ public class ColorUtil {
             } else {
                 tmp -= 6 * Math.floor(tmp / 6.0);
             }
-            hue = BigDecimal.valueOf(60 * tmp);
+            hue = BigDecimal.valueOf(tmp);
         } else if (maxChroma == rgb[1]) {
-            hue = BigDecimal.valueOf((int) (60 * ((rgb[2] - rgb[0]) / (float) diff + 2)));
+            hue = BigDecimal.valueOf((rgb[2] - rgb[0]) / (float) diff + 2);
         } else {
-            hue = BigDecimal.valueOf((int) (60 * ((rgb[0] - rgb[1]) / (float) diff + 4)));
+            hue = BigDecimal.valueOf((rgb[0] - rgb[1]) / (float) diff + 4);
         }
         // [0, 360] -> [0, 0xffffffff]
         hue = hue.multiply(BigDecimal.valueOf(0xffffffffL));
-        hue = hue.divide(BigDecimal.valueOf(360), RoundingMode.FLOOR);
+        hue = hue.divide(BigDecimal.valueOf(6), RoundingMode.FLOOR);
         hsb[0] = ByteBuffer.allocate(8).putLong(hue.longValue()).getInt(4);
 
         // Saturation

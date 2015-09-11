@@ -6,6 +6,20 @@
  */
 package org.deviceconnect.server.nanohttpd;
 
+import android.content.Context;
+
+import org.deviceconnect.server.DConnectServer;
+import org.deviceconnect.server.DConnectServerConfig;
+import org.deviceconnect.server.DConnectServerError;
+import org.deviceconnect.server.http.HttpRequest;
+import org.deviceconnect.server.http.HttpResponse;
+import org.deviceconnect.server.nanohttpd.logger.AndroidHandler;
+import org.deviceconnect.server.nanohttpd.security.Firewall;
+import org.deviceconnect.server.nanohttpd.util.KeyStoreManager;
+import org.deviceconnect.server.websocket.DConnectWebSocket;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -27,19 +41,6 @@ import java.util.logging.SimpleFormatter;
 
 import javax.net.ssl.SSLServerSocketFactory;
 
-import org.deviceconnect.server.DConnectServer;
-import org.deviceconnect.server.DConnectServerConfig;
-import org.deviceconnect.server.DConnectServerError;
-import org.deviceconnect.server.http.HttpRequest;
-import org.deviceconnect.server.http.HttpResponse;
-import org.deviceconnect.server.nanohttpd.logger.AndroidHandler;
-import org.deviceconnect.server.nanohttpd.security.Firewall;
-import org.deviceconnect.server.nanohttpd.util.KeyStoreManager;
-import org.deviceconnect.server.websocket.DConnectWebSocket;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.content.Context;
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
@@ -124,7 +125,8 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         MIME_TYPES.put("jpeg", "image/jpeg");
         MIME_TYPES.put("png", "image/png");
         MIME_TYPES.put("js", "application/javascript");
-
+        // ローカルサーバ使用時にapkをダウンロードするのに必要
+        MIME_TYPES.put("apk", "application/vnd.android.package-archive");
         // lighttpdには指定していないが使いそうなものなので入れておく
         MIME_TYPES.put("gif", "image/gif");
         MIME_TYPES.put("zip", "application/octet-stream");

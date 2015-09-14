@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Kadecot 2.0.0</string>
+
+    <string name="summary_title">[1/4] 概要</string>
+    <string name="summary_body">Kadecot プラグインを動作させるために、以下の手順でKadecotの設定を行います。\n\n・Kadecotインストール\n\n・Kadecotサーバー起動確認</string>
+    <string name="install_kadecot_title">[2/4] Kadecotインストール</string>
+    <string name="install_kadecot_body">スマートデバイスにKadecotがインストールされていることを確認して下さい。\n\nインストールされていない場合は以下のリンクからインストールして下さい。</string>
+    <string name="check_kadecot_server_title">[3/4] Kadecotサーバー起動確認</string>
+    <string name="check_kadecot_server_body">Kadecotを起動して、「SERVER ON」と表示されているか確認して下さい。\n\n「SERVER OFF」の時はスライドボタンをタップして「SERVER ON」として下さい。</string>
+    <string name="finish_title">[4/4] 設定完了</string>
+    <string name="finish_body">以上で、Kadecotの設定が完了しました。</string>
+</resources>

@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotHomeAirConditioner;
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotResult;
@@ -130,33 +129,9 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
 
     @Override
     protected boolean onGetAirConditioner(final Intent request, final Intent response, final String serviceId) {
-        Log.d("ABC", "serviceId : " + getServiceID(request));
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            KadecotResult result = requestKadecotServer(response, serviceId, KadecotHomeAirConditioner.POWERSTATE_GET);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-               if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_OPERATIONSTATUS)) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        switch (propertyValue) {
-                            case "48":  setPowerStatus(response, "ON");         break;
-                            case "49":  setPowerStatus(response, "OFF");        break;
-                            default:    setPowerStatus(response, "UNKNOWN");    break;
-                        }
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }
@@ -199,29 +174,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            KadecotResult result = requestKadecotServer(response, serviceId, KadecotHomeAirConditioner.POWERSAVING_GET);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-                if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_POWERSAVINGOPERATIONSETTING)) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        switch (propertyValue) {
-                            case "65":  setOperationPowerSaving(response, "PowerSaving");   break;
-                            case "66":  setOperationPowerSaving(response, "Normal");        break;
-                            default:    setOperationPowerSaving(response, "UNKNOWN");       break;
-                        }
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }
@@ -264,34 +216,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            KadecotResult result = requestKadecotServer(response, serviceId,
-                    KadecotHomeAirConditioner.OPERATIONMODE_GET);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-                if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_OPERATIONMODESETTING)) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        switch (propertyValue) {
-                            case "64":  setOperationModeSetting(response, "Other");             break;
-                            case "65":  setOperationModeSetting(response, "Automatic");         break;
-                            case "66":  setOperationModeSetting(response, "Cooling");           break;
-                            case "67":  setOperationModeSetting(response, "Heating");           break;
-                            case "68":  setOperationModeSetting(response, "Dehumidification");  break;
-                            case "69":  setOperationModeSetting(response, "AirCirculator");     break;
-                            default:    setOperationModeSetting(response, "UNKNOWN");           break;
-                        }
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }
@@ -338,30 +262,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            KadecotResult result = requestKadecotServer(response, serviceId,
-                    KadecotHomeAirConditioner.ROOMTEMPERATURE_GET);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-                if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_MEASUREDVALUEOFROOMTEMPERATURE)) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        int value = Integer.parseInt(propertyValue);
-                        if ((value & 0x80) == 0x80) {
-                            value = ((~(value) & 0x7F) + 1) * -1;
-                        }
-                        setRoomTemperature(response, String.valueOf(value));
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }
@@ -404,26 +304,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            KadecotResult result = requestKadecotServer(response, serviceId,
-                    KadecotHomeAirConditioner.TEMPERATUREVALUE_GET);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-                if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_SETTEMPERATUREVALUE)) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        setTemperatureValue(response, propertyValue);
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }
@@ -462,40 +342,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            KadecotResult result = requestKadecotServer(response, serviceId, KadecotHomeAirConditioner.AIRFLOW_GET);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-                if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_AIRFLOWRATESETTING)) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        setAirFlowAuto(response, "false");
-                        switch (propertyValue) {
-                            case "49":  setAirFlowValue(response, "0.12");  break;
-                            case "50":  setAirFlowValue(response, "0.25");  break;
-                            case "51":  setAirFlowValue(response, "0.38");  break;
-                            case "52":  setAirFlowValue(response, "0.51");  break;
-                            case "53":  setAirFlowValue(response, "0.64");  break;
-                            case "54":  setAirFlowValue(response, "0.77");  break;
-                            case "55":  setAirFlowValue(response, "0.90");  break;
-                            case "56":  setAirFlowValue(response, "1.0");   break;
-                            case "65":
-                                setAirFlowValue(response, "0.0");
-                                setAirFlowAuto(response, "true");
-                                break;
-                            default:    setAirFlowValue(response, "-1.0");  break;
-                        }
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }
@@ -549,44 +395,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            KadecotDeviceService service = (KadecotDeviceService) getContext();
-            String[] element = service.getElementFromServiceId(serviceId);
-            if (element[IDX_PREFIX].equals(PREFIX_KADECOT) && element[IDX_DEVICEID] != null
-                    && element[IDX_PROFILENAME].equals(PROFILE_NAME)) {
-                String epc = getEpc(request);
-                if (epc == null) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    return true;
-                }
-                String urlstr = "content://com.sonycsl.kadecot.json.provider/jsonp/v1/devices/"
-                        + element[IDX_DEVICEID] + "?procedure=get&params={\"propertyName\":\"" + epc + "\"}";
-                Cursor cursor = getContext().getContentResolver().query(Uri.parse(urlstr), null, null, null, null);
-                if (cursor != null) {
-                    cursor.moveToFirst();
-                    String result = cursor.getString(0);
-                    String propertyName = service.getPropertyName(result);
-                    String propertyValue = service.getPropertyValue(result);
-                    if (propertyName != null && propertyValue != null) {
-                        if (result.equals(NO_RESULT)) {
-                            MessageUtils.setNotSupportAttributeError(response,
-                                    "This device not support 'get' procedure.");
-                        } else {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            setEpc(response, propertyName);
-                            setValue(response, propertyValue);
-                        }
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                    cursor.close();
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            } else {
-                createInvalidKadecotResponseError(response);
-            }
-*/
         }
         return true;
     }
@@ -644,29 +452,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            KadecotResult result = requestKadecotServer(response, serviceId, KadecotHomeAirConditioner.POWERSTATE_ON);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-                if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_OPERATIONSTATUS)) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        switch (propertyValue) {
-                            case "48":  setResult(response, DConnectMessage.RESULT_OK);     break;
-                            case "49":  setResult(response, DConnectMessage.RESULT_ERROR);  break;
-                            default:    createInvalidKadecotResponseError(response);        break;
-                        }
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }
@@ -709,44 +494,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            int index;
-            String status = getPowerSaving(request);
-            if (status == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return true;
-            }
-
-            switch (status) {
-                case "Normal":      index = KadecotHomeAirConditioner.POWERSAVING_OFF; break;
-                case "PowerSaving": index = KadecotHomeAirConditioner.POWERSAVING_ON;  break;
-                default:
-                    MessageUtils.setUnknownError(response, "Invalid parameter (KadecotHomeAirConditioner).");
-                    return true;
-            }
-
-            KadecotResult result = requestKadecotServer(response, serviceId, index);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-                if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_POWERSAVINGOPERATIONSETTING)) {
-                        String powersaving = getPowerSaving(request);
-                        switch (propertyValue) {
-                            case "65":  checkResult(response, powersaving, "PowerSaving");  break;
-                            case "66":  checkResult(response, powersaving, "Normal");       break;
-                            default:    createInvalidKadecotResponseError(response);        break;
-                        }
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }
@@ -805,52 +552,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            int index;
-            String status = getOperationModeSetting(request);
-            if (status == null) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return true;
-            }
-
-            switch (getOperationModeSetting(request)) {
-                case "Other":               index = KadecotHomeAirConditioner.OPERATIONMODE_OTHER; break;
-                case "Automatic":           index = KadecotHomeAirConditioner.OPERATIONMODE_AUTO;  break;
-                case "Cooling":             index = KadecotHomeAirConditioner.OPERATIONMODE_COOL;  break;
-                case "Heating":             index = KadecotHomeAirConditioner.OPERATIONMODE_HEAT;  break;
-                case "Dehumidification":    index = KadecotHomeAirConditioner.OPERATIONMODE_DRY;   break;
-                case "AirCirculator":       index = KadecotHomeAirConditioner.OPERATIONMODE_WIND;  break;
-                default:
-                    MessageUtils.setUnknownError(response, "Invalid parameter (KadecotHomeAirConditioner).");
-                    return true;
-            }
-
-            KadecotResult result = requestKadecotServer(response, serviceId, index);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-                if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_OPERATIONMODESETTING)) {
-                        String mode = getOperationModeSetting(request);
-                        switch (propertyValue) {
-                            case "64":  checkResult(response, mode, "Other");               break;
-                            case "65":  checkResult(response, mode, "Automatic");           break;
-                            case "66":  checkResult(response, mode, "Cooling");             break;
-                            case "67":  checkResult(response, mode, "Heating");             break;
-                            case "68":  checkResult(response, mode, "Dehumidification");    break;
-                            case "69":  checkResult(response, mode, "AirCirculator");       break;
-                            default:    createInvalidKadecotResponseError(response);        break;
-                        }
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }
@@ -917,35 +618,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            int value = getTemperatureValue(request);
-            if (value == -1 || value < 0 || value > 50) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return true;
-            }
-
-            KadecotResult result = requestKadecotServer(response, serviceId,
-                    KadecotHomeAirConditioner.TEMPERATUREVALUE_SET, value);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-                if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_SETTEMPERATUREVALUE)) {
-                        if (Integer.parseInt(propertyValue) == value) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            setResult(response, DConnectMessage.RESULT_ERROR);
-                        }
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }
@@ -994,93 +666,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            if (isNullAirFlowValue(request) && isNullAirFlowAuto(request)) {
-                MessageUtils.setInvalidRequestParameterError(response);
-                return true;
-            }
-
-            boolean auto = getAirFlowAuto(request);
-            int param;
-
-            if (auto) {
-                param = KadecotHomeAirConditioner.AIRFLOW_AUTO;
-            } else {
-                float value = getAirFlowValue(request);
-                if (value >= 0.0 && value < 0.12) {
-                    param = KadecotHomeAirConditioner.AIRFLOW_LV1;
-                } else if (value >= 0.12 && value < 0.25) {
-                    param = KadecotHomeAirConditioner.AIRFLOW_LV2;
-                } else if (value >= 0.25 && value < 0.38) {
-                    param = KadecotHomeAirConditioner.AIRFLOW_LV3;
-                } else if (value >= 0.38 && value < 0.51) {
-                    param = KadecotHomeAirConditioner.AIRFLOW_LV4;
-                } else if (value >= 0.51 && value < 0.64) {
-                    param = KadecotHomeAirConditioner.AIRFLOW_LV5;
-                } else if (value >= 0.64 && value < 0.77) {
-                    param = KadecotHomeAirConditioner.AIRFLOW_LV6;
-                } else if (value >= 0.77 && value < 0.90) {
-                    param = KadecotHomeAirConditioner.AIRFLOW_LV7;
-                } else if (value >= 0.90 && value <= 1.0) {
-                    param = KadecotHomeAirConditioner.AIRFLOW_LV8;
-                } else {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    return true;
-                }
-            }
-
-            KadecotResult result = requestKadecotServer(response, serviceId, param);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-                if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_AIRFLOWRATESETTING)) {
-                        if (propertyName.equals(KadecotHomeAirConditioner.PROP_AIRFLOWRATESETTING)) {
-                            switch (propertyValue) {
-                                case "49":
-                                    checkResult(response, param, KadecotHomeAirConditioner.AIRFLOW_LV1);
-                                    break;
-                                case "50":
-                                    checkResult(response, param, KadecotHomeAirConditioner.AIRFLOW_LV2);
-                                    break;
-                                case "51":
-                                    checkResult(response, param, KadecotHomeAirConditioner.AIRFLOW_LV3);
-                                    break;
-                                case "52":
-                                    checkResult(response, param, KadecotHomeAirConditioner.AIRFLOW_LV4);
-                                    break;
-                                case "53":
-                                    checkResult(response, param, KadecotHomeAirConditioner.AIRFLOW_LV5);
-                                    break;
-                                case "54":
-                                    checkResult(response, param, KadecotHomeAirConditioner.AIRFLOW_LV6);
-                                    break;
-                                case "55":
-                                    checkResult(response, param, KadecotHomeAirConditioner.AIRFLOW_LV7);
-                                    break;
-                                case "56":
-                                    checkResult(response, param, KadecotHomeAirConditioner.AIRFLOW_LV8);
-                                    break;
-                                case "65":
-                                    checkResult(response, param, KadecotHomeAirConditioner.AIRFLOW_AUTO);
-                                    break;
-                                default:
-                                    createInvalidKadecotResponseError(response);
-                                    break;
-                            }
-                        } else {
-                            createInvalidKadecotResponseError(response);
-                        }
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }
@@ -1188,48 +773,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-/*
-            KadecotDeviceService service = (KadecotDeviceService) getContext();
-            String[] element = service.getElementFromServiceId(serviceId);
-            if (element[IDX_PREFIX].equals(PREFIX_KADECOT) && element[IDX_DEVICEID] != null
-                    && element[IDX_PROFILENAME].equals(PROFILE_NAME)) {
-                String epc = getEpc(request);
-                String value = getEpcValue(request);
-                if (epc == null || value == null) {
-                    MessageUtils.setInvalidRequestParameterError(response);
-                    return true;
-                }
-
-                String urlstr = "content://com.sonycsl.kadecot.json.provider/jsonp/v1/devices/"
-                        + element[IDX_DEVICEID] + "?procedure=set&params={\"propertyName\":\"" + epc
-                        + "\",\"propertyValue\":[" + value + "]}";
-
-                Cursor cursor = getContext().getContentResolver().query(Uri.parse(urlstr), null, null, null, null);
-                if (cursor != null) {
-                    cursor.moveToFirst();
-                    String result = cursor.getString(0);
-                    String propertyName = service.getPropertyName(result);
-                    String propertyValue = service.getPropertyValue(result);
-                    if (propertyName != null && propertyValue != null) {
-                        if (result.equals(NO_RESULT)) {
-                            MessageUtils.setNotSupportAttributeError(response,
-                                    "This device not support 'get' procedure.");
-                        } else {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            setEpc(response, propertyName);
-                            setValue(response, propertyValue);
-                        }
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                    cursor.close();
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            } else {
-                createInvalidKadecotResponseError(response);
-            }
-*/
         }
         return true;
     }
@@ -1291,28 +834,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (checkServiceId(serviceId, response)) {
             new KadecotServerQueryTask().execute(request, response);
             return false;
-  /*
-            KadecotResult result = requestKadecotServer(response, serviceId, KadecotHomeAirConditioner.POWERSTATE_OFF);
-            if (result != null) {
-                String propertyName = result.getPropertyName();
-                String propertyValue = result.getPropertyValue();
-                if (propertyName != null && propertyValue != null) {
-                    if (propertyName.equals(KadecotHomeAirConditioner.PROP_OPERATIONSTATUS)) {
-                        switch (propertyValue) {
-                            case "48":  setResult(response, DConnectMessage.RESULT_ERROR);  break;
-                            case "49":  setResult(response, DConnectMessage.RESULT_OK);     break;
-                            default:    createInvalidKadecotResponseError(response);        break;
-                        }
-                    } else if (result.getServerResult().equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response, "This device not support 'get' procedure.");
-                    } else {
-                        createInvalidKadecotResponseError(response);
-                    }
-                } else {
-                    createInvalidKadecotResponseError(response);
-                }
-            }
-*/
         }
         return true;
     }

@@ -150,7 +150,8 @@ public class KadecotDeviceService extends DConnectMessageService {
                                 service.putString(ServiceDiscoveryProfile.PARAM_ID, kadecotDevice.getServiceId());
                                 String deviceName = kadecotDevice.getNickname();
                                 if (deviceName != null) {
-                                    service.putString(ServiceDiscoveryProfile.PARAM_NAME, deviceName);
+                                    service.putString(ServiceDiscoveryProfile.PARAM_NAME, deviceName + "_"
+                                            + kadecotDevice.getDeviceId());
                                 } else {
                                     service.putString(ServiceDiscoveryProfile.PARAM_NAME,
                                             object.exchangeServiceId(kadecotDevice.getDeviceType()) + " (Kadecot)");

@@ -14,37 +14,42 @@
         android:textColor="#ffffff"
         android:textSize="20sp"/>
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/iv04"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:src="@drawable/img03"/>
-
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:layout_marginTop="16dp"
-            android:text="@string/frag03_light_howto"
-            android:textColor="#666666"
-            android:textSize="18sp"/>
-
-        <Button
-            android:id="@+id/btnSearchLight"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@drawable/button_blue"
-            android:text="@string/frag03_light_btn"
-            android:textColor="#FFFFFF"/>
-    </LinearLayout>
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <ImageView
+                android:id="@+id/iv04"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/img03"/>
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/frag03_light_howto"
+                android:textColor="#666666"
+                android:textSize="18sp"/>
+
+            <Button
+                android:id="@+id/btnSearchLight"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/button_blue"
+                android:text="@string/frag03_light_btn"
+                android:textColor="#FFFFFF"/>
+        </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>

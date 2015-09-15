@@ -121,6 +121,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
         mPhHueSDK.getNotificationManager().registerSDKListener(mListener);
     }
 
+    @SuppressLint("InflateParams")
     @Override
     public View onCreateView(final LayoutInflater inflater,
             final ViewGroup container, final Bundle savedInstanceState) {
@@ -138,6 +139,9 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
             ListView listView = (ListView) rootView.findViewById(R.id.bridge_list2);
             listView.setOnItemClickListener(this);
             listView.setAdapter(mAdapter);
+
+            View headerView = inflater.inflate(R.layout.hue_fragment_01_header, null, false);
+            listView.addHeaderView(headerView, null, false);
 
             // アクセスポイントのキャッシュを取得.
             mPhHueSDK.getAccessPointsFound();
@@ -256,7 +260,7 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
         @Override
         public Object getItem(final int position) {
-            return mAccessPoint.get(position);
+            return mAccessPoint.get(position - 1);
         }
 
         @Override

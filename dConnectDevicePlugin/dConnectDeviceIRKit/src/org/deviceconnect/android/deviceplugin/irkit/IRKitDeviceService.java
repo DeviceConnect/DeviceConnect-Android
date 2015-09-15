@@ -301,7 +301,13 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         ServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
         ServiceDiscoveryProfile.setState(service, online);
         ServiceDiscoveryProfile.setOnline(service, online);
-        ServiceDiscoveryProfile.setScopes(service, this);
+        ArrayList<String> scopes = new ArrayList<String>();
+        for (String profile : IRKitServiceInformationProfile.IRKIT_PROFILES) {
+            scopes.add(profile);
+        }
+        service.putStringArray(ServiceDiscoveryProfileConstants.PARAM_SCOPES,
+                scopes.toArray(new String[scopes.size()]));
+
         return service;
     }
 

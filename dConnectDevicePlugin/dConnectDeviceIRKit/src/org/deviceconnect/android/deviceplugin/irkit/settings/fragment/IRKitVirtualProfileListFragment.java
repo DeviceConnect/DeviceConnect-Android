@@ -77,6 +77,7 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
     private VirtualProfileContainer createContainer(final VirtualProfileData profile) {
         VirtualProfileContainer container = new VirtualProfileContainer();
         container.setLabel(profile.getName());
+        container.setRegister((profile.getIr() != null));
         return container;
     }
     /**
@@ -154,6 +155,8 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
     static class VirtualProfileContainer {
         /** ラベル. */
         private String mLabel;
+        /** 更新・登録判定. */
+        private boolean mIsRegister;
 
         /**
          * デバイスラベルの取得.
@@ -175,6 +178,23 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
             } else {
                 mLabel = label;
             }
+        }
+        /**
+         * 赤外線が登録されているかどうか.
+         *
+         * @return true:登録済み false:登録されていない.
+         */
+        public boolean isRegister() {
+            return mIsRegister;
+        }
+
+        /**
+         * 赤外線が登録されているかの設定.
+         *
+         * @param isRegister 登録されているか.
+         */
+        public void setRegister(final boolean isRegister) {
+           mIsRegister = isRegister;
         }
     }
 
@@ -215,6 +235,13 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
 
             Button registerBtn = (Button) cv.findViewById(R.id.btn_register_ir);
             registerBtn.setTag(position);
+            if (device.isRegister()) {
+                registerBtn.setBackgroundResource(R.drawable.button_orange);
+                registerBtn.setText("更新");
+            } else {
+                registerBtn.setBackgroundResource(R.drawable.button_blue);
+                registerBtn.setText("登録");
+            }
             registerBtn.setOnClickListener(new View.OnClickListener() {
 
                 @Override

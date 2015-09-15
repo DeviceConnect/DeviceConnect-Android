@@ -93,15 +93,31 @@ public class IRKitDBHelper {
      * サポートする TV のAPI 名.
      */
     private static final String IRKIT_TV_API_NAMES[] = {"TV電源ON", "TV電源OFF", "チャンネル+",
-                                                            "チャンネル-", "音量+", "音量-",
+                                                            "チャンネル-",
+                                                            "1", "2", "3", "4",
+                                                            "5", "6", "7", "8","9", "10",
+                                                            "11", "12",
+                                                            "音量+", "音量-",
                                                              "地デジ", "BS", "CS"};
     /**
      * サポートする TV のURI.
      */
-    private static final String IRKIT_TV_API_URIS[] = {"/tv", "/tv", "/tv/channel?control=next",
-                                                          "/tv/channel?control=previous",
-                                                          "/tv/volume?control=up",
-                                                          "/tv/volume?control=down",
+    private static final String IRKIT_TV_API_URIS[] = {"/tv", "/tv", "/tv/channel?action=next",
+                                                          "/tv/channel?action=previous",
+                                                          "/tv/channel?tuning=1",
+                                                          "/tv/channel?tuning=2",
+                                                          "/tv/channel?tuning=3",
+                                                          "/tv/channel?tuning=4",
+                                                          "/tv/channel?tuning=5",
+                                                          "/tv/channel?tuning=6",
+                                                          "/tv/channel?tuning=7",
+                                                          "/tv/channel?tuning=8",
+                                                          "/tv/channel?tuning=9",
+                                                          "/tv/channel?tuning=10",
+                                                          "/tv/channel?tuning=11",
+                                                          "/tv/channel?tuning=12",
+                                                          "/tv/volume?action=up",
+                                                          "/tv/volume?action=down",
                                                           "/tv/broadcastwave?select=DTV",
                                                           "/tv/broadcastwave?select=BS",
                                                           "/tv/broadcastwave?select=CS"};
@@ -109,6 +125,10 @@ public class IRKitDBHelper {
      * サポートする TV の HTTP Methods.
      */
     private static final String IRKIT_TV_API_HTTP_METHODS[] = {"PUT", "DELETE", "PUT",
+                                                             "PUT", "PUT", "PUT",
+                                                             "PUT", "PUT", "PUT",
+                                                             "PUT", "PUT", "PUT",
+                                                             "PUT", "PUT", "PUT",
                                                              "PUT", "PUT", "PUT",
                                                              "PUT", "PUT", "PUT"};
 

@@ -68,6 +68,6 @@
     IRKit Parameters.
     IRKitから取得したAPI KEYを記載してください。
      -->
-    <string name="apikey">D3FEA7C4CD824FDDB1C0D730D33EF03E</string>
+    <string name="apikey">[YOUR API KEY]</string>
 
 </resources>

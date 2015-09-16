@@ -27,6 +27,7 @@ import org.deviceconnect.profile.ConnectProfileConstants;
 import org.deviceconnect.profile.DeviceOrientationProfileConstants;
 import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants;
+import org.deviceconnect.profile.LightProfileConstants;
 import org.deviceconnect.profile.MediaPlayerProfileConstants;
 import org.deviceconnect.profile.MediaStreamRecordingProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
@@ -95,6 +96,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
             DeviceOrientationProfileConstants.PROFILE_NAME,
             FileDescriptorProfileConstants.PROFILE_NAME,
             FileProfileConstants.PROFILE_NAME,
+            LightProfileConstants.PROFILE_NAME,
             MediaStreamRecordingProfileConstants.PROFILE_NAME,
             MediaPlayerProfileConstants.PROFILE_NAME,
             NotificationProfileConstants.PROFILE_NAME,

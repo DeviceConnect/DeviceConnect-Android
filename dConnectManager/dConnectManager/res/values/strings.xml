@@ -61,7 +61,12 @@
     <string name="activity_settings_yes">Yes</string>
     <string name="activity_settings_no">No</string>
     <string name="activity_settings_close">Close</string>
-    
+
+    <string name="activity_settings_web_server_settings">Setting of Web Server</string>
+    <string name="activity_settings_web_server_default_host">localhost</string>
+    <string name="activity_settings_web_server_default_port">8080</string>
+    <string name="activity_settings_web_server_document_root">Document Root Path</string>
+
     <!-- ================= SharedPreferences ================= -->
 
     <string name="key_settings_about_appinfo">settings_about_appinfo</string>
@@ -73,7 +78,6 @@
     <string name="key_settings_dconn_ssl">settings_dconn_ssl</string>
     <string name="key_settings_dconn_host">settings_dconn_host</string>
     <string name="key_settings_dconn_port">settings_dconn_port</string>
-    <string name="key_settings_dconn_document_root_path">settings_dconn_document_root_path</string>
     <string name="key_settings_dconn_local_oauth">settings_dconn_local_oauth</string>
     <string name="key_settings_list_access_token">settings_list_access_token</string>
     <string name="key_settings_dconn_observation_interval">key_settings_dconn_observation_interval</string>
@@ -84,7 +88,10 @@
     <string name="key_settings_dconn_whitelist_origin_blocking">settings_whitelist_origin_blocking</string>
     <string name="key_settings_list_device_plugin">settings_list_device_plugin</string>
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
-
+    <string name="key_settings_web_server_host">key_settings_web_server_host</string>
+    <string name="key_settings_web_server_port">key_settings_web_server_port</string>
+    <string name="key_settings_web_server_document_root_path">key_settings_web_server_document_root_path</string>
+    
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Whitelist of Origin</string>
     <string name="no_origin">No allowed origin by user.</string>

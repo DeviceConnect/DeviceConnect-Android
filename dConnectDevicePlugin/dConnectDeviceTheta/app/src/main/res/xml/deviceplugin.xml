@@ -7,5 +7,11 @@
     <profile name="mediastream_recording" />
     <profile name="file" />
     <profile name="battery" />
+    <profile name="omnidirectional_image">
+        <name lang="ja">全方位画像</name>
+        <description lang="ja">全方位画像からROI画像を生成する。</description>
+        <name lang="en">Omnidirectional Image</name>
+        <description lang="en">Generates an ROI image from an omnidirectional image.</description>
+    </profile>
     
 </deviceplugin-provider>

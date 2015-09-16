@@ -31,10 +31,6 @@
             android:key="@string/key_settings_dconn_port"
             android:summary="@string/activity_settings_default_port"
             android:title="@string/activity_settings_port" />
-        <EditTextPreference
-            android:inputType="number"
-            android:key="@string/key_settings_dconn_document_root_path"
-            android:title="@string/activity_settings_document_root" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_security" >
         <CheckBoxPreference
@@ -84,6 +80,20 @@
             android:key="@string/key_settings_dconn_keyword"
             android:summary="@string/activity_settings_default_keyword"
             android:title="@string/activity_settings_keyword" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/activity_settings_web_server_settings" >
+        <EditTextPreference
+            android:key="@string/key_settings_web_server_host"
+            android:summary="@string/activity_settings_web_server_default_host"
+            android:title="@string/activity_settings_host" />
+        <EditTextPreference
+            android:inputType="number"
+            android:key="@string/key_settings_web_server_port"
+            android:summary="@string/activity_settings_web_server_default_port"
+            android:title="@string/activity_settings_port" />
+        <EditTextPreference
+            android:key="@string/key_settings_web_server_document_root_path"
+            android:title="@string/activity_settings_web_server_document_root" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_about" >
         <PreferenceScreen

@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.irkit.profile;
 
 import android.content.Intent;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
@@ -169,7 +168,6 @@ public class IRKitTVProfile extends DConnectProfile {
                 }
                 control = control + PARAM_TUNING + "=" + request.getExtras().getString(PARAM_TUNING);
             }
-            Log.d("TEST", "control:" + control);
             return sendTVRequest(serviceId, "PUT", control, response);
         } else if (attribute.equals(ATTRIBUTE_VOLUME)) {
             String control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_VOLUME

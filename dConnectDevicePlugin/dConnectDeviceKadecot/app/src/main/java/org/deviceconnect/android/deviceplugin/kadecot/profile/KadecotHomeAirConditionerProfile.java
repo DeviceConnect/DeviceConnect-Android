@@ -123,10 +123,6 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     static final int IDX_PROFILENAME = 2;
 
 
-/*
-    protected KadecotResult requestKadecotServer(final Intent response, final String serviceId, final int property) {
-*/
-
     @Override
     protected boolean onGetAirConditioner(final Intent request, final Intent response, final String serviceId) {
         if (checkServiceId(serviceId, response)) {

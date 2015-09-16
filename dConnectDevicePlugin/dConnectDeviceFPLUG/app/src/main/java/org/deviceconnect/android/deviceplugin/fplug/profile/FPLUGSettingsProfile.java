@@ -45,7 +45,7 @@ public class FPLUGSettingsProfile extends SettingsProfile {
             Log.d("Settings", "calendar:" + calendar.toString());
         }
         FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getFPLUGController(serviceId);
+        FPLUGController controller = app.getConnectedController(serviceId);
         if (controller == null) {
             MessageUtils.setUnknownError(response, "F-PLUG not connected");
             sendResultError(response);

@@ -77,6 +77,11 @@ public class FPLUGApplication extends Application {
         return mControllerMap.get(address);
     }
 
+    public synchronized FPLUGController getConnectedController(String address) {
+        FPLUGController controller = getFPLUGController(address);
+        return controller != null && controller.isConnected() ? controller : null;
+    }
+
     public synchronized List<FPLUGController> getConnectedController() {
         List<FPLUGController> list = new ArrayList<>();
         for (Map.Entry<String, FPLUGController> entry : mControllerMap.entrySet()) {

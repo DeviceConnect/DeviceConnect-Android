@@ -52,7 +52,7 @@ public class FPLUGPowerMeterProfile extends PowerMeterProfile {
             calendar = Calendar.getInstance();
         }
         FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getFPLUGController(serviceId);
+        FPLUGController controller = app.getConnectedController(serviceId);
         if (controller == null) {
             MessageUtils.setUnknownError(response, "F-PLUG not connected");
             sendResultError(response);
@@ -88,7 +88,7 @@ public class FPLUGPowerMeterProfile extends PowerMeterProfile {
     protected boolean onGetInstantaneousPowerValue(Intent request, final Intent response) {
         final String serviceId = request.getStringExtra(PARAM_SERVICE_ID);
         FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getFPLUGController(serviceId);
+        FPLUGController controller = app.getConnectedController(serviceId);
         if (controller == null) {
             MessageUtils.setUnknownError(response, "F-PLUG not connected");
             sendResultError(response);

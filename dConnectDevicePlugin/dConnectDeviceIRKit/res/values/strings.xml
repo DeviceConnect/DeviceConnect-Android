@@ -61,13 +61,13 @@
 
     <string name="register_ir_description">IRKitと赤外線の準備が完了したら、受信ボタンを押してください。</string>
     <string name="receive">受信</string>
-    <string name="receiving">赤外線をIRKiに照射してください。</string>
+    <string name="receiving">赤外線をIRKitに照射してください。</string>
     <string name="receive_success">正常に赤外線を受信しました。</string>
     <string name="receive_failure">赤外線の受信に失敗しました。</string>
     <!--
     IRKit Parameters.
     IRKitから取得したAPI KEYを記載してください。
      -->
-    <string name="apikey">[YOUR API KEY]</string>
+    <string name="apikey">D3FEA7C4CD824FDDB1C0D730D33EF03E</string>
 
 </resources>

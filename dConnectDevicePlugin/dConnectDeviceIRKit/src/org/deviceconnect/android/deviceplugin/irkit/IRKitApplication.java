@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.irkit;
 
 import android.app.Application;
-import android.graphics.Point;
 import android.util.SparseArray;
 
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ public class IRKitApplication extends Application {
     /**
      * IRKitのListViewの位置.
      */
-    private SparseArray<Point> mListViewPosition = new SparseArray<Point>();
+    private SparseArray<ListViewPosition> mListViewPosition = new SparseArray<ListViewPosition>();
     /**
      * IRKiのデバイスを保持する.
      */
@@ -51,7 +50,7 @@ public class IRKitApplication extends Application {
      * @param offset ListViewのoffset
      */
     public void setListViewPosition(final int page, final int pos, final int offset) {
-        mListViewPosition.put(page, new Point(pos, offset));
+        mListViewPosition.put(page, new ListViewPosition(pos, offset));
     }
 
     /**
@@ -59,7 +58,54 @@ public class IRKitApplication extends Application {
      * @param page 設定画面のページ
      * @return
      */
-    public Point getListViewPosition(final int page) {
+    public ListViewPosition getListViewPosition(final int page) {
         return mListViewPosition.get(page);
+    }
+
+
+    /**
+     * ListViewの位置情報を削除する.
+     */
+    public void removeAllListViewPostion() {
+        mListViewPosition.clear();
+    }
+    /**
+     * ListViewの位置を保持するクラス.
+     */
+    public class ListViewPosition {
+        /**
+         * ListViewのPosition.
+         */
+        private int mPos;
+        /**
+         * ListViewのOffset.
+         */
+        private int mOffset;
+
+        /**
+         * コンストラクタ.
+         * @param pos Position
+         * @param offset Offset
+         */
+        public ListViewPosition(final int pos, final int offset) {
+            mPos = pos;
+            mOffset = offset + 10;
+        }
+
+        /**
+         * positionの取得.
+         * @return position
+         */
+        public int getPosition() {
+            return mPos;
+        }
+
+        /**
+         * offsetの取得.
+         * @return Offset
+         */
+        public int getOffset() {
+            return mOffset;
+        }
     }
 }

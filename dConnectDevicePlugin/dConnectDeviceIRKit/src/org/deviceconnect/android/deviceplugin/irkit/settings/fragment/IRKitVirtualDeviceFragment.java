@@ -11,7 +11,6 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -71,10 +70,11 @@ public class IRKitVirtualDeviceFragment extends Fragment
         super.onResume();
         IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
         IRKitApplication application = activity.getIRKitApplication();
-        Point p = application.getListViewPosition(
-                IRKitDeviceListActivity.MANAGE_VIRTUAL_DEVICE_PAGE);
+        IRKitApplication.ListViewPosition p = application.getListViewPosition(
+                IRKitDeviceListActivity.MANAGE_VIRTUAL_PROFILE_PAGE);
         if (mListView != null && p != null) {
-            mListView.setSelectionFromTop(p.x, p.y);
+            mListView.requestFocusFromTouch();
+            mListView.setSelectionFromTop(p.getPosition(), p.getOffset());
         }
         mIsRemoved = false;
         updateVirtualDeviceList();
@@ -218,10 +218,9 @@ public class IRKitVirtualDeviceFragment extends Fragment
                 activity.startApp(IRKitDeviceListActivity.MANAGE_VIRTUAL_PROFILE_PAGE,
                         mVirtuals.get(position).getServiceId());
                 IRKitApplication application = activity.getIRKitApplication();
-                int pos = mListView.getFirstVisiblePosition();
                 int yOffset = mListView.getChildAt(0).getTop();
                 application.setListViewPosition(
-                        IRKitDeviceListActivity.MANAGE_VIRTUAL_DEVICE_PAGE, pos, yOffset);
+                        IRKitDeviceListActivity.MANAGE_VIRTUAL_DEVICE_PAGE, position, yOffset);
             }
         });
         return rootView;

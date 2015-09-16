@@ -59,6 +59,12 @@ public class IRKitDeviceListActivity extends Activity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        getIRKitApplication().removeAllListViewPostion();
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (currentPage) {
             case REGISTER_IR_PAGE:

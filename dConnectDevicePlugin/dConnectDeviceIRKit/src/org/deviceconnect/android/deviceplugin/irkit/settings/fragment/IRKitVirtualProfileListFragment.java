@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
 import android.app.Fragment;
 import android.content.Context;
-import android.graphics.Point;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -64,10 +63,11 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
         super.onResume();
         IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
         IRKitApplication application = activity.getIRKitApplication();
-        Point p = application.getListViewPosition(
+        IRKitApplication.ListViewPosition p = application.getListViewPosition(
                 IRKitDeviceListActivity.MANAGE_VIRTUAL_PROFILE_PAGE);
         if (mListView != null && p != null) {
-            mListView.setSelectionFromTop(p.x, p.y);
+            mListView.requestFocusFromTouch();
+            mListView.setSelectionFromTop(p.getPosition(), p.getOffset());
         }
         updateProfileList();
     }
@@ -266,10 +266,11 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
                     IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
                     activity.startRegisterPageApp(profile);
                     IRKitApplication application = activity.getIRKitApplication();
-                    int position = mListView.getFirstVisiblePosition();
                     int yOffset = mListView.getChildAt(0).getTop();
                     application.setListViewPosition(
-                            IRKitDeviceListActivity.MANAGE_VIRTUAL_PROFILE_PAGE, position, yOffset);
+                            IRKitDeviceListActivity.MANAGE_VIRTUAL_PROFILE_PAGE,
+                            pos,
+                            yOffset);
 
                 }
             });

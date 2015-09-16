@@ -127,7 +127,6 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
      * @param response レスポンスオブジェクト
      */
     public void prepareServiceDiscoveryResponse(final Intent response) {
-        startDetection();
         synchronized (mDevices) {
 
             List<Bundle> services = new ArrayList<Bundle>();

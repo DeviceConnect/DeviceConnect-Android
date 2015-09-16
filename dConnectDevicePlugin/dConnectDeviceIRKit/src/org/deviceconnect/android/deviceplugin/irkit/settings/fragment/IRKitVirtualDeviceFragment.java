@@ -101,16 +101,26 @@ public class IRKitVirtualDeviceFragment extends Fragment
     private List<VirtualDeviceContainer> createDeviceContainers() {
         List<VirtualDeviceContainer> containers = new ArrayList<VirtualDeviceContainer>();
         mVirtuals = mDBHelper.getVirtualDevices(null);
+        initRemoveFlags();
         if (mVirtuals != null) {
-            for (int i = 0; i < mVirtuals.size(); i++) {
-                mIsRemoves.add(false);
-            }
             for (VirtualDeviceData device : mVirtuals) {
                 containers.add(createContainer(device));
             }
         }
         return containers;
     }
+
+    /**
+     * Virtual Deviceの削除フラグを初期化する。
+     */
+    private void initRemoveFlags() {
+        mIsRemoves.clear();
+
+        for (int i = 0; i < mVirtuals.size(); i++) {
+            mIsRemoves.add(false);
+        }
+    }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         final MenuItem menuItem = menu.add("CLOSE");
@@ -269,11 +279,13 @@ public class IRKitVirtualDeviceFragment extends Fragment
                 }
             }
         }
+
         if (isRemoved) {
             IRKitCreateVirtualDeviceDialogFragment.showAlert(getActivity(), "削除", "削除に成功しました。");
         } else {
             IRKitCreateVirtualDeviceDialogFragment.showAlert(getActivity(), "削除", "削除に失敗しました。");
         }
+        initRemoveFlags();
     }
 
     /**

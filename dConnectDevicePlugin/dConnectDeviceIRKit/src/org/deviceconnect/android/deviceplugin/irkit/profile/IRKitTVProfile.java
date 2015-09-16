@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.irkit.profile;
 
 import android.content.Intent;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
@@ -58,7 +59,7 @@ public class IRKitTVProfile extends DConnectProfile {
     /**
      * パラメータ: {@value}.
      */
-    public static final String PARAM_CONTROL = "control";
+    public static final String PARAM_ACTION = "action";
 
     /**
      * パラメータ: {@value}.
@@ -155,12 +156,24 @@ public class IRKitTVProfile extends DConnectProfile {
             String tv = "/" + PROFILE_NAME;
             return sendTVRequest(serviceId, "PUT", tv, response);
         } else if (attribute.equals(ATTRIBUTE_CHANNEL)){
-            String control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_CHANNEL
-                    + "?" + PARAM_CONTROL + "=" +  request.getExtras().getString(PARAM_CONTROL);
+            String control = null;
+            if (request.getExtras().getString(PARAM_ACTION) != null) {
+                control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_CHANNEL
+                        + "?" + PARAM_ACTION + "=" + request.getExtras().getString(PARAM_ACTION);
+            }
+            if (request.getExtras().getString(PARAM_TUNING) != null) {
+                if (request.getExtras().getString(PARAM_ACTION) == null) {
+                    control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_CHANNEL + "?";
+                } else {
+                    control = control + "&";
+                }
+                control = control + PARAM_TUNING + "=" + request.getExtras().getString(PARAM_TUNING);
+            }
+            Log.d("TEST", "control:" + control);
             return sendTVRequest(serviceId, "PUT", control, response);
         } else if (attribute.equals(ATTRIBUTE_VOLUME)) {
             String control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_VOLUME
-                    + "?" + PARAM_CONTROL + "=" +  request.getExtras().getString(PARAM_CONTROL);
+                    + "?" + PARAM_ACTION + "=" +  request.getExtras().getString(PARAM_ACTION);
             return sendTVRequest(serviceId, "PUT", control, response);
         } else if (attribute.equals(ATTRIBUTE_BROADCASTWAVE)) {
             String select = "/" + PROFILE_NAME + "/" + ATTRIBUTE_BROADCASTWAVE

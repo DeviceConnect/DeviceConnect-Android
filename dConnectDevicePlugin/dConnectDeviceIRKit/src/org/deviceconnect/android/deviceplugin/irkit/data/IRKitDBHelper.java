@@ -247,7 +247,6 @@ public class IRKitDBHelper {
         String[] whereArgs = {
                 device.getServiceId()
         };
-
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             int isDeleteProfile = db.delete(VIRTUAL_PROFILE_TBL_NAME, whereClause, whereArgs);

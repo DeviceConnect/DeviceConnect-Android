@@ -14,7 +14,9 @@ public class IRKitApplication extends Application {
      */
     private List<IRKitDevice> mDevices;
 
-
+    /**
+     * IRKitのListViewの位置.
+     */
     /**
      * IRKiのデバイスを保持する.
      */

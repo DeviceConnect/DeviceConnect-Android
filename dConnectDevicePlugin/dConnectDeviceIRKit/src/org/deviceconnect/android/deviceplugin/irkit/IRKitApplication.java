@@ -1,6 +1,8 @@
 package org.deviceconnect.android.deviceplugin.irkit;
 
 import android.app.Application;
+import android.graphics.Point;
+import android.util.SparseArray;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,7 @@ public class IRKitApplication extends Application {
     /**
      * IRKitのListViewの位置.
      */
+    private SparseArray<Point> mListViewPosition = new SparseArray<Point>();
     /**
      * IRKiのデバイスを保持する.
      */
@@ -38,5 +41,25 @@ public class IRKitApplication extends Application {
      */
     public List<IRKitDevice> getIRKitDevices() {
         return mDevices;
+    }
+
+
+    /**
+     * 設定画面のページごとのListViewの位置を保持する.
+     * @param page 設定画面のページ
+     * @param pos ListViewのposition
+     * @param offset ListViewのoffset
+     */
+    public void setListViewPosition(final int page, final int pos, final int offset) {
+        mListViewPosition.put(page, new Point(pos, offset));
+    }
+
+    /**
+     * 設定画面のページごとのListViewの位置を返す.
+     * @param page 設定画面のページ
+     * @return
+     */
+    public Point getListViewPosition(final int page) {
+        return mListViewPosition.get(page);
     }
 }

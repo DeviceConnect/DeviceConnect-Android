@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 
+import org.deviceconnect.android.deviceplugin.irkit.IRKitApplication;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitDeviceListFragment;
@@ -159,4 +160,13 @@ public class IRKitDeviceListActivity extends Activity {
         t.commit();
 
     }
+
+    /**
+     * IRKitApplicationを返す.
+     * @return IRKitApplication
+     */
+    public IRKitApplication getIRKitApplication() {
+        return (IRKitApplication) getApplication();
+    }
+
 }

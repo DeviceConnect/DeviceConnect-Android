@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -41,6 +42,8 @@ public class IRKitDeviceListFragment extends Fragment  {
     private DeviceAdapter mDeviceAdapter;
     /** Devices. */
     private List<IRKitDevice> mDevices;
+    /** ListView. */
+    private ListView mListView;
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +53,14 @@ public class IRKitDeviceListFragment extends Fragment  {
     @Override
     public void onResume() {
         super.onResume();
+        IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
+        IRKitApplication application = activity.getIRKitApplication();
+        Point p = application.getListViewPosition(
+                IRKitDeviceListActivity.TOP_PAGE);
+        if (mListView != null && p != null) {
+            mListView.setSelectionFromTop(p.x, p.y);
+        }
+
         updateDeviceList();
     }
 
@@ -60,8 +71,7 @@ public class IRKitDeviceListFragment extends Fragment  {
     private List<IRKitDevice> getIRKitDevices() {
         IRKitDeviceListActivity activity =
                 (IRKitDeviceListActivity) getActivity();
-        IRKitApplication application =
-                (IRKitApplication) activity.getApplication();
+        IRKitApplication application = activity.getIRKitApplication();
         return application.getIRKitDevices();
     }
     /**
@@ -105,16 +115,22 @@ public class IRKitDeviceListFragment extends Fragment  {
                 openDeviceSetting();
             }
         });
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_devicelist);
-        listView.setItemsCanFocus(true);
-        listView.setAdapter(mDeviceAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView = (ListView) rootView.findViewById(R.id.listview_devicelist);
+        mListView.setItemsCanFocus(true);
+        mListView.setAdapter(mDeviceAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
                 IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
                 if (mDevices.size() > 0) {
                     activity.startApp(IRKitDeviceListActivity.MANAGE_VIRTUAL_DEVICE_PAGE,
                             mDevices.get(position).getName());
+                    IRKitApplication application = activity.getIRKitApplication();
+                    int pos = mListView.getFirstVisiblePosition();
+                    int yOffset = mListView.getChildAt(0).getTop();
+                    application.setListViewPosition(
+                            IRKitDeviceListActivity.TOP_PAGE, pos, yOffset);
+
                 }
             }
         });

@@ -11,6 +11,7 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -28,6 +29,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.deviceconnect.android.deviceplugin.irkit.IRKitApplication;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualDeviceData;
@@ -56,7 +58,8 @@ public class IRKitVirtualDeviceFragment extends Fragment
     private boolean mIsRemoved;
     /** 削除フラグリスト. */
     private List<Boolean> mIsRemoves;
-
+    /** ListView. */
+    private ListView mListView;
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +69,13 @@ public class IRKitVirtualDeviceFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
+        IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
+        IRKitApplication application = activity.getIRKitApplication();
+        Point p = application.getListViewPosition(
+                IRKitDeviceListActivity.MANAGE_VIRTUAL_DEVICE_PAGE);
+        if (mListView != null && p != null) {
+            mListView.setSelectionFromTop(p.x, p.y);
+        }
         mIsRemoved = false;
         updateVirtualDeviceList();
     }
@@ -198,15 +208,20 @@ public class IRKitVirtualDeviceFragment extends Fragment
             }
         });
 
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_devicelist);
-        listView.setItemsCanFocus(true);
-        listView.setAdapter(mVirtualDeviceAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView = (ListView) rootView.findViewById(R.id.listview_devicelist);
+        mListView.setItemsCanFocus(true);
+        mListView.setAdapter(mVirtualDeviceAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
                 IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
                 activity.startApp(IRKitDeviceListActivity.MANAGE_VIRTUAL_PROFILE_PAGE,
                         mVirtuals.get(position).getServiceId());
+                IRKitApplication application = activity.getIRKitApplication();
+                int pos = mListView.getFirstVisiblePosition();
+                int yOffset = mListView.getChildAt(0).getTop();
+                application.setListViewPosition(
+                        IRKitDeviceListActivity.MANAGE_VIRTUAL_DEVICE_PAGE, pos, yOffset);
             }
         });
         return rootView;

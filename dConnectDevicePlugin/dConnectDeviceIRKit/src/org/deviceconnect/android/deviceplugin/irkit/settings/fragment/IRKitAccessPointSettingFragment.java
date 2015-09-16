@@ -6,17 +6,17 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
-import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.WiFiSecurityType;
-import org.deviceconnect.android.deviceplugin.irkit.R;
-import org.deviceconnect.android.deviceplugin.irkit.network.WiFiUtil;
-import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity;
-
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RadioGroup;
+
+import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.WiFiSecurityType;
+import org.deviceconnect.android.deviceplugin.irkit.R;
+import org.deviceconnect.android.deviceplugin.irkit.network.WiFiUtil;
+import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity;
 
 /**
  * IRKit が接続するアクセスポイントの SSID、セキュリティー、パスワード等を入力するフラグメント.
@@ -98,32 +98,32 @@ public class IRKitAccessPointSettingFragment extends IRKitBaseFragment {
      * @param activity アクティビティ
      */
     private void saveInfo(final Bundle outState, final IRKitSettingActivity activity) {
-        
+
         View root = getView();
         if (root == null) {
             return;
         }
-        
+
         EditText ssidText = (EditText) root.findViewById(R.id.inputSSID);
         EditText passwordText = (EditText) root.findViewById(R.id.inputPassword);
         RadioGroup radioGroup = (RadioGroup) root.findViewById(R.id.radioGroupSecurity);
-        
+
         if (activity != null) {
             activity.setSSID(ssidText.getText().toString().trim());
             activity.setPassword(passwordText.getText().toString());
             WiFiSecurityType type = null;
             int typeId = radioGroup.getCheckedRadioButtonId();
             switch (typeId) {
-            case R.id.radioButton1:
-                type = WiFiSecurityType.NONE;
-                break;
-            case R.id.radioButton2:
-                type = WiFiSecurityType.WEP;
-                break;
-            case R.id.radioButton3:
-            default:
-                type = WiFiSecurityType.WPA2;
-                break;
+                case R.id.radioButton1:
+                    type = WiFiSecurityType.NONE;
+                    break;
+                case R.id.radioButton2:
+                    type = WiFiSecurityType.WEP;
+                    break;
+                case R.id.radioButton3:
+                default:
+                    type = WiFiSecurityType.WPA2;
+                    break;
             }
             activity.setSecType(type);
         } else {
@@ -131,13 +131,14 @@ public class IRKitAccessPointSettingFragment extends IRKitBaseFragment {
             outState.putString(KEY_TYPE, passwordText.getText().toString());
             outState.putInt(KEY_TYPE, radioGroup.getCheckedRadioButtonId());
         }
-        
+
     }
+
 
     @Override
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
         saveInfo(outState, null);
     }
-    
+
 }

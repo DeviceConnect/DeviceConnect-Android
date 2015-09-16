@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.profile;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -13,8 +15,6 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
-
-import android.content.Intent;
 
 /**
  * IRKit Network Service Discovery Profile.

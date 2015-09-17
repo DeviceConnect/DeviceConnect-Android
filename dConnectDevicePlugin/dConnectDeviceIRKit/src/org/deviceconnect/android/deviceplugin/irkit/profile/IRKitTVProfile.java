@@ -58,7 +58,7 @@ public class IRKitTVProfile extends DConnectProfile {
     /**
      * パラメータ: {@value}.
      */
-    public static final String PARAM_ACTION = "action";
+    public static final String PARAM_CONTROL = "control";
 
     /**
      * パラメータ: {@value}.
@@ -156,12 +156,12 @@ public class IRKitTVProfile extends DConnectProfile {
             return sendTVRequest(serviceId, "PUT", tv, response);
         } else if (attribute.equals(ATTRIBUTE_CHANNEL)){
             String control = null;
-            if (request.getExtras().getString(PARAM_ACTION) != null) {
+            if (request.getExtras().getString(PARAM_CONTROL) != null) {
                 control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_CHANNEL
-                        + "?" + PARAM_ACTION + "=" + request.getExtras().getString(PARAM_ACTION);
+                        + "?" + PARAM_CONTROL + "=" + request.getExtras().getString(PARAM_CONTROL);
             }
             if (request.getExtras().getString(PARAM_TUNING) != null) {
-                if (request.getExtras().getString(PARAM_ACTION) == null) {
+                if (request.getExtras().getString(PARAM_CONTROL) == null) {
                     control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_CHANNEL + "?";
                 } else {
                     control = control + "&";
@@ -171,7 +171,7 @@ public class IRKitTVProfile extends DConnectProfile {
             return sendTVRequest(serviceId, "PUT", control, response);
         } else if (attribute.equals(ATTRIBUTE_VOLUME)) {
             String control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_VOLUME
-                    + "?" + PARAM_ACTION + "=" +  request.getExtras().getString(PARAM_ACTION);
+                    + "?" + PARAM_CONTROL + "=" +  request.getExtras().getString(PARAM_CONTROL);
             return sendTVRequest(serviceId, "PUT", control, response);
         } else if (attribute.equals(ATTRIBUTE_BROADCASTWAVE)) {
             String select = "/" + PROFILE_NAME + "/" + ATTRIBUTE_BROADCASTWAVE

@@ -102,8 +102,8 @@ public class IRKitDBHelper {
     /**
      * サポートする TV のURI.
      */
-    private static final String IRKIT_TV_API_URIS[] = {"/tv", "/tv", "/tv/channel?action=next",
-                                                          "/tv/channel?action=previous",
+    private static final String IRKIT_TV_API_URIS[] = {"/tv", "/tv", "/tv/channel?control=next",
+                                                          "/tv/channel?control=previous",
                                                           "/tv/channel?tuning=1",
                                                           "/tv/channel?tuning=2",
                                                           "/tv/channel?tuning=3",
@@ -116,8 +116,8 @@ public class IRKitDBHelper {
                                                           "/tv/channel?tuning=10",
                                                           "/tv/channel?tuning=11",
                                                           "/tv/channel?tuning=12",
-                                                          "/tv/volume?action=up",
-                                                          "/tv/volume?action=down",
+                                                          "/tv/volume?control=up",
+                                                          "/tv/volume?control=down",
                                                           "/tv/broadcastwave?select=DTV",
                                                           "/tv/broadcastwave?select=BS",
                                                           "/tv/broadcastwave?select=CS"};

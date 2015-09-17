@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.apache.http.protocol.HTTP;
 import org.deviceconnect.android.manager.R;
 
 import android.app.AlertDialog;
@@ -47,12 +46,11 @@ public class OpenSourceLicenseFragment extends DialogFragment {
         ListView lv = new ListView(getActivity());
         lv.setId(android.R.id.list);
         lv.setDrawSelectorOnTop(false);
-        lframe.addView(lv, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        lframe.addView(lv,
+                new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         lframe.setBackgroundColor(getResources().getColor(android.R.color.background_light));
 
-        ArrayAdapter<Parcelable> adapter =
-                new SoftwareArrayAdapter(getActivity(), R.layout.item_open_source_licenses);
+        ArrayAdapter<Parcelable> adapter = new SoftwareArrayAdapter(getActivity(), R.layout.item_open_source_licenses);
         if (getArguments() != null && getArguments().containsKey(EXTRA_OSS)) {
             adapter.addAll(getArguments().getParcelableArrayList(EXTRA_OSS));
         }
@@ -75,12 +73,12 @@ public class OpenSourceLicenseFragment extends DialogFragment {
 
     /**
      * OpenSourceSoftwareインスタンスを作成する.
+     * 
      * @param software ソフトウェア名
      * @param resId リソースID
      * @return OpenSourceSoftwareインスタンス
      */
-    public static OpenSourceSoftware createOpenSourceSoftware(
-            final String software, final int resId) {
+    public static OpenSourceSoftware createOpenSourceSoftware(final String software, final int resId) {
         return new OpenSourceSoftware(software, resId);
     }
 
@@ -112,11 +110,11 @@ public class OpenSourceLicenseFragment extends DialogFragment {
         /**
          * Parcelableクリエイター.
          */
-        public static final Parcelable.Creator<OpenSourceSoftware> CREATOR =
-                new Parcelable.Creator<OpenSourceSoftware>() {
+        public static final Parcelable.Creator<OpenSourceSoftware> CREATOR = new Parcelable.Creator<OpenSourceSoftware>() {
             public OpenSourceSoftware createFromParcel(final Parcel in) {
                 return new OpenSourceSoftware(in);
             }
+
             public OpenSourceSoftware[] newArray(final int size) {
                 return new OpenSourceSoftware[size];
             }
@@ -124,6 +122,7 @@ public class OpenSourceLicenseFragment extends DialogFragment {
 
         /**
          * コンストラクタ.
+         * 
          * @param software ソフトウェア名
          * @param resId リソースID
          */
@@ -134,6 +133,7 @@ public class OpenSourceLicenseFragment extends DialogFragment {
 
         /**
          * Parcelableコンストラクタ.
+         * 
          * @param in 入力
          */
         private OpenSourceSoftware(final Parcel in) {
@@ -154,6 +154,7 @@ public class OpenSourceLicenseFragment extends DialogFragment {
 
         /**
          * ソフトウェア名を取得する.
+         * 
          * @return ソフトウェア名
          */
         public String getSoftwareName() {
@@ -162,6 +163,7 @@ public class OpenSourceLicenseFragment extends DialogFragment {
 
         /**
          * ライセンステキストを取得する.
+         * 
          * @return ライセンステキスト
          */
         public String getLicenseText() {
@@ -170,6 +172,7 @@ public class OpenSourceLicenseFragment extends DialogFragment {
 
         /**
          * ライセンステキストを読み込む.
+         * 
          * @param context コンテキスト
          * @throws IOException I/Oエラーが発生した場合
          */
@@ -194,7 +197,7 @@ public class OpenSourceLicenseFragment extends DialogFragment {
                     }
                     os.write(buf, 0, len);
                 }
-                mLicenseText = new String(os.toByteArray(), HTTP.UTF_8);
+                mLicenseText = new String(os.toByteArray(), "UTF-8");
             } finally {
                 if (is != null) {
                     try {
@@ -221,13 +224,13 @@ public class OpenSourceLicenseFragment extends DialogFragment {
 
         /**
          * コンストラクタ.
+         * 
          * @param context コンテキスト
          * @param resource レイアウトリソースID
          */
         public SoftwareArrayAdapter(final Context context, final int resource) {
             super(context, resource);
-            mLogger.entering(getClass().getName(), "SoftwareArrayAdapter",
-                    new Object[] {context, resource});
+            mLogger.entering(getClass().getName(), "SoftwareArrayAdapter", new Object[] { context, resource });
 
             mResourceId = resource;
 
@@ -236,15 +239,14 @@ public class OpenSourceLicenseFragment extends DialogFragment {
 
         /**
          * コンストラクタ.
+         * 
          * @param context コンテキスト
          * @param resource レイアウトリソースID
          * @param objects サービスリスト
          */
-        public SoftwareArrayAdapter(
-                final Context context, final int resource, final List<Parcelable> objects) {
+        public SoftwareArrayAdapter(final Context context, final int resource, final List<Parcelable> objects) {
             super(context, resource, objects);
-            mLogger.entering(getClass().getName(), "SoftwareArrayAdapter",
-                    new Object[] {context, resource, objects});
+            mLogger.entering(getClass().getName(), "SoftwareArrayAdapter", new Object[] { context, resource, objects });
 
             mResourceId = resource;
 
@@ -253,15 +255,14 @@ public class OpenSourceLicenseFragment extends DialogFragment {
 
         /**
          * コンストラクタ.
+         * 
          * @param context コンテキスト
          * @param resource レイアウトリソースID
          * @param objects サービスリスト
          */
-        public SoftwareArrayAdapter(
-                final Context context, final int resource, final OpenSourceSoftware[] objects) {
+        public SoftwareArrayAdapter(final Context context, final int resource, final OpenSourceSoftware[] objects) {
             super(context, resource, objects);
-            mLogger.entering(getClass().getName(), "SoftwareArrayAdapter",
-                    new Object[] {context, resource, objects});
+            mLogger.entering(getClass().getName(), "SoftwareArrayAdapter", new Object[] { context, resource, objects });
 
             mResourceId = resource;
 
@@ -270,8 +271,7 @@ public class OpenSourceLicenseFragment extends DialogFragment {
 
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
-            mLogger.entering(getClass().getName(), "getView",
-                    new Object[] {position, convertView, parent});
+            mLogger.entering(getClass().getName(), "getView", new Object[] { position, convertView, parent });
 
             View view;
             if (convertView != null) {

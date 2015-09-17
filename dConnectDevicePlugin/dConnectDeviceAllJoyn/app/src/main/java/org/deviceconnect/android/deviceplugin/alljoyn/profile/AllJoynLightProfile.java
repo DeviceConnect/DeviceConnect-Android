@@ -44,6 +44,11 @@ public class AllJoynLightProfile extends LightProfile {
     // TODO: Use property LampID in org.allseen.LSF.LampDetails instead.
     private static final String LIGHT_ID_SELF = "self";
 
+    /**
+     * RGBの文字列の長さ.
+     */
+    private static final int RGB_LENGTH = 6;
+
     private enum LampServiceType {
         TYPE_SINGLE_LAMP,
         TYPE_LAMP_CONTROLLER,
@@ -209,8 +214,9 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     @Override
-    protected boolean onPostLight(Intent request, Intent response, String serviceId, String lightId
-            , Float brightness, int[] color, long[] flashing) {
+    protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
+                                  final String lightId, final Integer color, final Double brightness,
+                                  final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -235,14 +241,22 @@ public class AllJoynLightProfile extends LightProfile {
                     , "Parameter 'flashing' is not supported.");
             return true;
         }
-
+        int[] colors = new int[3];
+        String colorParam = getColorString(request);
+        if (colorParam != null) {
+            if (!parseColorParam(colorParam, colors)) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "Parameter 'color' is invalid.");
+                return true;
+            }
+        }
         switch (getLampServiceType(service)) {
             case TYPE_SINGLE_LAMP: {
-                onPostLightForSingleLamp(request, response, service, lightId, brightness, color);
+                onPostLightForSingleLamp(request, response, service, lightId, brightness, colors);
                 return false;
             }
             case TYPE_LAMP_CONTROLLER: {
-                onPostLightForLampController(request, response, service, lightId, brightness, color);
+                onPostLightForLampController(request, response, service, lightId, brightness, colors);
                 return false;
             }
             case TYPE_UNKNOWN:
@@ -255,7 +269,7 @@ public class AllJoynLightProfile extends LightProfile {
 
     private void onPostLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
             , @NonNull final AllJoynServiceEntity service, @NonNull String lightId
-            , final Float brightness, final int[] color) {
+            , final Double brightness, final int[] color) {
         final AllJoynDeviceApplication app = getApplication();
 
         if (!lightId.equals(LIGHT_ID_SELF)) {
@@ -334,7 +348,7 @@ public class AllJoynLightProfile extends LightProfile {
 
     private void onPostLightForLampController(@NonNull Intent request, @NonNull final Intent response
             , @NonNull AllJoynServiceEntity service, @NonNull final String lightId
-            , final Float brightness, final int[] color) {
+            , final Double brightness, final int[] color) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -601,8 +615,9 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     @Override
-    protected boolean onPutLight(Intent request, Intent response, String serviceId, String lightId
-            , String name, Float brightness, int[] color, long[] flashing) {
+    protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
+                                 final String lightId, final String name, final Integer color,
+                                 final Double brightness, final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -627,14 +642,22 @@ public class AllJoynLightProfile extends LightProfile {
                     , "Parameter 'flashing' is not supported.");
             return true;
         }
-
+        int[] colors = new int[3];
+        String colorParam = getColorString(request);
+        if (colorParam != null) {
+            if (!parseColorParam(colorParam, colors)) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "Parameter 'color' is invalid.");
+                return true;
+            }
+        }
         switch (getLampServiceType(service)) {
             case TYPE_SINGLE_LAMP: {
-                onPutLightForSingleLamp(request, response, service, lightId, name, brightness, color);
+                onPutLightForSingleLamp(request, response, service, lightId, name, brightness, colors);
                 return false;
             }
             case TYPE_LAMP_CONTROLLER: {
-                onPutLightForLampController(request, response, service, lightId, name, brightness, color);
+                onPutLightForLampController(request, response, service, lightId, name, brightness, colors);
                 return false;
             }
             case TYPE_UNKNOWN:
@@ -649,7 +672,7 @@ public class AllJoynLightProfile extends LightProfile {
     // TODO: Implement name change functionality using AllJoyn Config service.
     private void onPutLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
             , @NonNull AllJoynServiceEntity service, @NonNull String lightId, String name
-            , final Float brightness, final int[] color) {
+            , final Double brightness, final int[] color) {
         if (!lightId.equals(LIGHT_ID_SELF)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "A light with ID specified by 'lightId' not found.");
@@ -744,7 +767,7 @@ public class AllJoynLightProfile extends LightProfile {
 
     private void onPutLightForLampController(@NonNull Intent request, @NonNull final Intent response
             , @NonNull final AllJoynServiceEntity service, @NonNull final String lightId
-            , final String name, final Float brightness, final int[] color) {
+            , final String name, final Double brightness, final int[] color) {
         if (brightness != null && (brightness < 0 || brightness > 1)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'brightness' must be within range [0, 1].");
@@ -1095,8 +1118,9 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     @Override
-    protected boolean onPostLightGroup(Intent request, Intent response, String serviceId
-            , String groupId, Float brightness, int[] color, long[] flashing) {
+    protected boolean onPostLightGroup(final Intent request, final Intent response, final String serviceId,
+                                       final String groupId, final Integer color, final Double brightness,
+                                       final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -1121,12 +1145,20 @@ public class AllJoynLightProfile extends LightProfile {
                     , "Parameter 'flashing' is not supported.");
             return true;
         }
-
+        int[] colors = new int[3];
+        String colorParam = getColorString(request);
+        if (colorParam != null) {
+            if (!parseColorParam(colorParam, colors)) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "Parameter 'color' is invalid.");
+                return true;
+            }
+        }
         switch (getLampServiceType(service)) {
 
             case TYPE_LAMP_CONTROLLER: {
                 onPostLightGroupForLampController(request, response, service, groupId
-                        , brightness, color);
+                        , brightness, colors);
                 return false;
             }
 
@@ -1142,7 +1174,7 @@ public class AllJoynLightProfile extends LightProfile {
 
     private void onPostLightGroupForLampController(@NonNull Intent request
             , @NonNull final Intent response, @NonNull AllJoynServiceEntity service
-            , @NonNull final String groupID, final Float brightness, final int[] color) {
+            , @NonNull final String groupID, final Double brightness, final int[] color) {
         final AllJoynDeviceApplication app = getApplication();
 
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
@@ -1337,8 +1369,9 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     @Override
-    protected boolean onPutLightGroup(Intent request, Intent response, String serviceId
-            , String groupId, String name, Float brightness, int[] color, long[] flashing) {
+    protected boolean onPutLightGroup(final Intent request, final Intent response, final String serviceId,
+                                      final String groupId, final String name, final Integer color,
+                                      final Double brightness, final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -1363,12 +1396,20 @@ public class AllJoynLightProfile extends LightProfile {
                     , "Parameter 'flashing' is not supported.");
             return true;
         }
-
+        int[] colors = new int[3];
+        String colorParam = getColorString(request);
+        if (colorParam != null) {
+            if (!parseColorParam(colorParam, colors)) {
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "Parameter 'color' is invalid.");
+                return true;
+            }
+        }
         switch (getLampServiceType(service)) {
 
             case TYPE_LAMP_CONTROLLER: {
                 onPutLightGroupForLampController(request, response, service, groupId, name
-                        , brightness, color);
+                        , brightness, colors);
                 return false;
             }
 
@@ -1384,7 +1425,7 @@ public class AllJoynLightProfile extends LightProfile {
 
     private void onPutLightGroupForLampController(@NonNull Intent request
             , @NonNull final Intent response, @NonNull final AllJoynServiceEntity service
-            , @NonNull final String groupID, final String name, final Float brightness
+            , @NonNull final String groupID, final String name, final Double brightness
             , final int[] color) {
         final AllJoynDeviceApplication app = getApplication();
 
@@ -1747,6 +1788,99 @@ public class AllJoynLightProfile extends LightProfile {
         public String name;
         public Boolean on;
         public String config;
+    }
+    /**
+     * リクエストからcolorパラメータを取得する.
+     *
+     * @param request リクエスト
+     * @return colorパラメータ
+     */
+    private String getColorString(final Intent request) {
+        return request.getStringExtra(PARAM_COLOR);
+    }
+
+    /**
+     * Get color parameter.
+     *
+     * @param colorParam color in string expression
+     * @param color      Color parameter.
+     * @return true : Success, false : failure.
+     */
+    private static boolean parseColorParam(final String colorParam, final int[] color) {
+        try {
+            String rr = colorParam.substring(0, 2);
+            String gg = colorParam.substring(2, 4);
+            String bb = colorParam.substring(4, 6);
+            if (colorParam.length() == RGB_LENGTH) {
+                if (rr == null || gg == null || bb == null) {
+                    return false;
+                }
+                color[0] = Integer.parseInt(rr, 16);
+                color[1] = Integer.parseInt(gg, 16);
+                color[2] = Integer.parseInt(bb, 16);
+            } else {
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            return false;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * フラッシュパターンを文字列から解析し、数値の配列に変換する.<br/>
+     * 数値の前後の半角のスペースは無視される。その他の半角、全角のスペースは不正なフォーマットとして扱われる。
+     *
+     * @param pattern フラッシュパターン文字列。
+     * @return 鳴動パターンの配列。解析できないフォーマットの場合nullを返す。
+     */
+    private static long[] parseFlashingParam(final String pattern) {
+
+        if (pattern.length() == 0) {
+            return null;
+        }
+
+        long[] result = null;
+
+        if (pattern.contains(",")) {
+            String[] times = pattern.split(",");
+            ArrayList<Long> values = new ArrayList<Long>();
+            for (String time : times) {
+                try {
+                    String valueStr = time.trim();
+                    if (valueStr.length() == 0) {
+                        if (values.size() != times.length - 1) {
+                            // 数値の間にスペースがある場合はフォーマットエラー
+                            // ex. 100, , 100
+                            values.clear();
+                        }
+                        break;
+                    }
+                    long value = Long.parseLong(time.trim());
+                    values.add(value);
+                } catch (NumberFormatException ignored) {
+                    values.clear();
+                    break;
+                }
+            }
+
+            if (values.size() != 0) {
+                result = new long[values.size()];
+                for (int i = 0; i < values.size(); ++i) {
+                    result[i] = values.get(i);
+                }
+            }
+        } else {
+            try {
+                long time = Long.parseLong(pattern);
+                result = new long[]{time};
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        return result;
     }
 
 }

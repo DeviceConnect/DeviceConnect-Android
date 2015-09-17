@@ -140,6 +140,20 @@ public enum EventManager {
     }
 
     /**
+     * 指定されたイベント用のリクエストからイベント情報の一覧を取得する.
+     *
+     * @param request イベント解除リクエスト
+     * @return イベントの一覧
+     */
+    public List<Event> getEventList(final Intent request) {
+        return getEventList(
+                request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID),
+                request.getStringExtra(DConnectMessage.EXTRA_PROFILE),
+                request.getStringExtra(DConnectMessage.EXTRA_INTERFACE),
+                request.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE));
+    }
+
+    /**
      * 指定されたサービスIDとAPIに紐づくイベント情報の一覧を取得する.
      * 
      * @param serviceId サービスID

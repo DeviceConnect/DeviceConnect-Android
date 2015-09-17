@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay;
 import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServer;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
@@ -24,6 +25,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostConnectProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileDescriptorProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostFileProfile;
+import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaPlayerProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostMediaStreamingRecordingProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostNotificationProfile;
@@ -33,7 +35,6 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostServiceDiscoveryP
 import org.deviceconnect.android.deviceplugin.host.profile.HostSettingsProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
-import org.deviceconnect.android.deviceplugin.host.profile.HostKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
 import org.deviceconnect.android.deviceplugin.host.video.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.video.VideoPlayer;
@@ -50,6 +51,7 @@ import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.PhoneProfileConstants.CallState;
 
+import android.Manifest;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -67,14 +69,18 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.RemoteException;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.webkit.MimeTypeMap;
 
 /**
  * Host Device Service.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class HostDeviceService extends DConnectMessageService {
@@ -115,9 +121,6 @@ public class HostDeviceService extends DConnectMessageService {
     public void onCreate() {
 
         super.onCreate();
-        
-        // Get application class instance.
-        mApp = (HostDeviceApplication) this.getApplication();
 
         // Get application class instance.
         mApp = (HostDeviceApplication) this.getApplication();
@@ -128,7 +131,6 @@ public class HostDeviceService extends DConnectMessageService {
         // ファイル管理クラスの作成
         mFileMgr = new FileManager(this);
         mFileDataManager = new FileDataManager(mFileMgr);
-        mFileDataManager.startTimer();
 
         // add supported profiles
         addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
@@ -231,12 +233,13 @@ public class HostDeviceService extends DConnectMessageService {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
         mFileDataManager.stopTimer();
     }
 
     /**
      * Get a instance of FileManager.
-     * 
+     *
      * @return FileManager
      */
     public FileManager getFileManager() {
@@ -347,7 +350,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * ServiceIDを設定.
-     * 
+     *
      * @param serviceId サービスID
      */
     public void setServiceId(final String serviceId) {
@@ -357,7 +360,7 @@ public class HostDeviceService extends DConnectMessageService {
     /**
      * Battery Profile<br>
      * バッテリーレベルを取得.
-     * 
+     *
      * @return バッテリーレベル
      */
     public int getBatteryLevel() {
@@ -368,7 +371,7 @@ public class HostDeviceService extends DConnectMessageService {
     /**
      * Battery Profile<br>
      * バッテリーステータスを取得.
-     * 
+     *
      * @return バッテリーレベル
      */
     public int getBatteryStatus() {
@@ -379,7 +382,7 @@ public class HostDeviceService extends DConnectMessageService {
     /**
      * Battery Profile<br>
      * バッテリーレベルを取得.
-     * 
+     *
      * @return バッテリーレベル
      */
     public int getBatteryScale() {
@@ -393,6 +396,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * ファイル操作管理クラスを取得する.
+     *
      * @return FileDataManager
      */
     public FileDataManager getFileDataManager() {
@@ -453,7 +457,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * 再生するメディアをセットする(Idから).
-     * 
+     *
      * @param response レスポンス
      * @param mediaId MediaID
      */
@@ -515,19 +519,15 @@ public class HostDeviceService extends DConnectMessageService {
                 });
 
                 if (response != null) {
-                    response.putExtra(DConnectMessage.EXTRA_RESULT,
-                            DConnectMessage.RESULT_OK);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:"
-                            + filePath);
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:" + filePath);
                     sendOnStatusChangeEvent("media");
                     sendBroadcast(response);
                 }
             } catch (IOException e) {
                 if (response != null) {
-                    response.putExtra(DConnectMessage.EXTRA_RESULT,
-                            DConnectMessage.EXTRA_ERROR_CODE);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE,
-                            "can't not mount:" + filePath);
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
                     sendBroadcast(response);
                 }
             }
@@ -559,44 +559,34 @@ public class HostDeviceService extends DConnectMessageService {
                 fis.close();
 
                 if (response != null) {
-                    response.putExtra(DConnectMessage.EXTRA_RESULT,
-                            DConnectMessage.RESULT_OK);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:"
-                            + filePath);
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:" + filePath);
                     sendOnStatusChangeEvent("media");
                     sendBroadcast(response);
                 }
             } catch (IllegalArgumentException e) {
                 if (response != null) {
-                    response.putExtra(DConnectMessage.EXTRA_RESULT,
-                            DConnectMessage.EXTRA_ERROR_CODE);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE,
-                            "can't not mount:" + filePath);
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
                     sendBroadcast(response);
                 }
             } catch (IllegalStateException e) {
                 if (response != null) {
-                    response.putExtra(DConnectMessage.EXTRA_RESULT,
-                            DConnectMessage.EXTRA_ERROR_CODE);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE,
-                            "can't not mount:" + filePath);
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
                     sendBroadcast(response);
                 }
             } catch (IOException e) {
                 if (response != null) {
-                    response.putExtra(DConnectMessage.EXTRA_RESULT,
-                            DConnectMessage.EXTRA_ERROR_CODE);
-                    response.putExtra(DConnectMessage.EXTRA_VALUE,
-                            "can't not mount:" + filePath);
+                    response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
+                    response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
                     sendBroadcast(response);
                 }
             }
         } else {
             if (response != null) {
-                response.putExtra(DConnectMessage.EXTRA_RESULT,
-                        DConnectMessage.EXTRA_ERROR_CODE);
-                response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not open:"
-                        + filePath);
+                response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
+                response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not open:" + filePath);
                 sendBroadcast(response);
             }
         }
@@ -604,7 +594,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * onStatusChange Eventの登録.
-     * 
+     *
      * @param response レスポンス
      * @param serviceId サービスID
      */
@@ -618,7 +608,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * onStatusChange Eventの解除.
-     * 
+     *
      * @param response レスポンス
      */
     public void unregisterOnStatusChange(final Intent response) {
@@ -630,7 +620,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * 状態変化のイベントを通知.
-     * 
+     *
      * @param status ステータス
      */
     public void sendOnStatusChangeEvent(final String status) {
@@ -669,7 +659,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * URIからパスを取得.
-     * 
+     *
      * @param mUri URI
      * @return パス
      */
@@ -687,7 +677,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * Mediaの再再生.
-     * 
+     *
      * @return SessionID
      */
     public int resumeMedia() {
@@ -715,7 +705,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * メディアの再生.
-     * 
+     *
      * @return セッションID
      */
     public int playMedia() {
@@ -724,8 +714,7 @@ public class HostDeviceService extends DConnectMessageService {
                 if (mMediaStatus == MEDIA_PLAYER_STOP) {
                     mMediaPlayer.prepare();
                 }
-                if (mMediaStatus == MEDIA_PLAYER_STOP
-                        || mMediaStatus == MEDIA_PLAYER_PAUSE
+                if (mMediaStatus == MEDIA_PLAYER_STOP || mMediaStatus == MEDIA_PLAYER_PAUSE
                         || mMediaStatus == MEDIA_PLAYER_PLAY) {
                     mMediaPlayer.seekTo(0);
                     mMyCurrentMediaPosition = 0;
@@ -777,12 +766,11 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * メディアの一時停止.
-     * 
+     *
      * @return セッションID
      */
     public int pauseMedia() {
-        if (mSetMediaType == MEDIA_TYPE_MUSIC
-                && mMediaStatus != MEDIA_PLAYER_STOP
+        if (mSetMediaType == MEDIA_TYPE_MUSIC && mMediaStatus != MEDIA_PLAYER_STOP
                 && mMediaStatus != MEDIA_PLAYER_SET) {
             try {
                 mMediaStatus = MEDIA_PLAYER_PAUSE;
@@ -809,7 +797,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * ポジションを返す.
-     * 
+     *
      * @return 現在のポジション
      */
     public int getMediaPos() {
@@ -832,7 +820,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * Video ポジションを返す為のIntentを設定.
-     * 
+     *
      * @param response 応答用Intent.
      */
     public void setVideoMediaPosRes(final Intent response) {
@@ -869,9 +857,9 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * ポジションを変える.
-     * 
+     *
      * @param response レスポンス
-     * @param pos ポジション　
+     * @param pos ポジション
      */
     public void setMediaPos(final Intent response, final int pos) {
         if (pos > mMyCurrentMediaDuration) {
@@ -897,6 +885,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * メディアの停止.
+     *
      * @param response レスポンス
      */
     public void stopMedia(final Intent response) {
@@ -929,7 +918,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * Play Status.
-     * 
+     *
      * @param response レスポンス
      */
     public void getPlayStatus(final Intent response) {
@@ -988,7 +977,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * カメラが使用されているか確認する.
-     * 
+     *
      * @return カメラが使用されている場合はtrue、それ以外はfalse
      */
     public boolean isShowCamera() {
@@ -997,26 +986,38 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * Start a web server.
-     * 
-     * @return url of web server or null if this server cannot start.
+     *
+     * @param callback a callback to return the result.
      */
-    public String startWebServer() {
+    public void startWebServer(final OnWebServerStartCallback callback) {
         synchronized (mLockObj) {
             if (mServer == null) {
                 mServer = new MixedReplaceMediaServer();
                 mServer.setServerName("HostDevicePlugin Server");
                 mServer.setContentType("image/jpg");
-                String ip = mServer.start();
+                final String ip = mServer.start();
 
                 if (!mCameraOverlay.isShow()) {
-                    mCameraOverlay.show();
-                }
-                mCameraOverlay.setFinishFlag(false);
-                mCameraOverlay.setServer(mServer);
+                    mCameraOverlay.show(new CameraOverlay.Callback() {
+                        @Override
+                        public void onSuccess() {
+                            mCameraOverlay.setFinishFlag(false);
+                            mCameraOverlay.setServer(mServer);
+                            callback.onStart(ip);
+                        }
 
-                return ip;
+                        @Override
+                        public void onFail() {
+                            callback.onFail();
+                        }
+                    });
+                } else {
+                    mCameraOverlay.setFinishFlag(false);
+                    mCameraOverlay.setServer(mServer);
+                    callback.onStart(ip);
+                }
             } else {
-                return mServer.getUrl();
+                callback.onStart(mServer.getUrl());
             }
         }
     }
@@ -1036,20 +1037,42 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * 写真撮影を行う.
-     * 
+     *
      * @param listener 写真撮影の結果を通知するリスナー
      */
     public void takePicture(final CameraOverlay.OnTakePhotoListener listener) {
-        if (!mCameraOverlay.isShow()) {
-            mCameraOverlay.show();
-            mCameraOverlay.setFinishFlag(true);
-        }
-        mCameraOverlay.takePicture(listener);
+        PermissionUtility.requestPermissions(this, new Handler(Looper.getMainLooper()),
+                new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                new PermissionUtility.PermissionRequestCallback() {
+                    @Override
+                    public void onSuccess() {
+                        if (!mCameraOverlay.isShow()) {
+                            mCameraOverlay.show(new CameraOverlay.Callback() {
+                                @Override
+                                public void onSuccess() {
+                                    mCameraOverlay.setFinishFlag(true);
+                                    mCameraOverlay.takePicture(listener);
+                                }
+
+                                @Override
+                                public void onFail() {
+                                    listener.onFailedTakePhoto();
+                                }
+                            });
+                        } else {
+                            mCameraOverlay.takePicture(listener);
+                        }
+                    }
+
+                    @Override
+                    public void onFail(@NonNull String deniedPermission) {
+                        listener.onFailedTakePhoto();
+                    }
+                });
     }
 
     /**
      * mDNSで端末検索.
-     * 
      */
     private void searchDeviceByBonjour() {
         // cacheがfalseの場合は、検索開始
@@ -1057,8 +1080,8 @@ public class HostDeviceService extends DConnectMessageService {
         new Thread(new Runnable() {
             public void run() {
 
-                android.net.wifi.WifiManager wifi
-                        = (android.net.wifi.WifiManager) getSystemService(android.content.Context.WIFI_SERVICE);
+                android.net.wifi.WifiManager wifi = (android.net.wifi.WifiManager) getSystemService(
+                        android.content.Context.WIFI_SERVICE);
                 WifiManager.MulticastLock lock = wifi.createMulticastLock(HOST_MULTICAST);
                 lock.setReferenceCounted(true);
                 lock.acquire();
@@ -1069,7 +1092,6 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * mDNSで引っかかるように端末を起動.
-     * 
      */
     private void invokeDeviceByBonjour() {
         // cacheがfalseの場合は、検索開始
@@ -1077,8 +1099,8 @@ public class HostDeviceService extends DConnectMessageService {
         new Thread(new Runnable() {
             public void run() {
 
-                android.net.wifi.WifiManager wifi
-                        = (android.net.wifi.WifiManager) getSystemService(android.content.Context.WIFI_SERVICE);
+                android.net.wifi.WifiManager wifi = (android.net.wifi.WifiManager) getSystemService(
+                        android.content.Context.WIFI_SERVICE);
                 WifiManager.MulticastLock lock = wifi.createMulticastLock(HOST_MULTICAST);
                 lock.setReferenceCounted(true);
                 lock.acquire();
@@ -1124,7 +1146,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * onClickの登録.
-     * 
+     *
      * @param response レスポンス
      * @param serviceId サービスID
      * @param sessionKey セッションキー
@@ -1137,7 +1159,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * onClickの削除.
-     * 
+     *
      * @param response レスポンス
      * @param serviceId サービスID
      * @param sessionKey セッションキー
@@ -1150,7 +1172,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * ファイルからMIME Typeを取得.
-     * 
+     *
      * @param path パス
      * @return MineType
      */
@@ -1169,7 +1191,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * 画面の一番上にでているActivityのクラス名を取得.
-     * 
+     *
      * @return クラス名
      */
     private String getClassnameOfTopActivity() {
@@ -1180,7 +1202,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * Get touch cache.
-     * 
+     *
      * @param attr Attribute.
      * @return Touch cache data.
      */
@@ -1190,11 +1212,28 @@ public class HostDeviceService extends DConnectMessageService {
 
     /**
      * Get keyevent cache.
-     * 
+     *
      * @param attr Attribute.
      * @return KeyEvent cache data.
      */
     public Bundle getKeyEventCache(final String attr) {
         return mApp.getKeyEventCache(attr);
+    }
+
+    /**
+     * Callback interface used to receive the result of starting a web server.
+     */
+    public interface OnWebServerStartCallback {
+        /**
+         * Called when a web server successfully started.
+         *
+         * @param uri An ever-updating, static image URI.
+         */
+        void onStart(@NonNull String uri);
+
+        /**
+         * Called when a web server failed to start.
+         */
+        void onFail();
     }
 }

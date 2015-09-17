@@ -75,7 +75,7 @@ public class ProximityProfileFragment extends SmartDeviceFragment {
                     } else {
                         builder.setScheme("http");
                     }
-                    builder.setHost(getHost());
+                    builder.setHost(getHostName());
                     builder.setPort(getPort());
                     builder.setProfile(ProximityProfileConstants.PROFILE_NAME);
                     builder.setAttribute(ProximityProfileConstants.ATTRIBUTE_ON_DEVICE_PROXIMITY);
@@ -127,7 +127,7 @@ public class ProximityProfileFragment extends SmartDeviceFragment {
                     } else {
                         builder.setScheme("http");
                     }
-                    builder.setHost(getHost());
+                    builder.setHost(getHostName());
                     builder.setPort(getPort());
                     builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
                     builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);

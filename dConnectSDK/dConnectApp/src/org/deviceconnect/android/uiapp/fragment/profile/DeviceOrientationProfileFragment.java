@@ -74,7 +74,7 @@ public class DeviceOrientationProfileFragment extends SmartDeviceFragment {
                     } else {
                         builder.setScheme("http");
                     }
-                    builder.setHost(getHost());
+                    builder.setHost(getHostName());
                     builder.setPort(getPort());
                     builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
                     builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
@@ -127,7 +127,7 @@ public class DeviceOrientationProfileFragment extends SmartDeviceFragment {
                     } else {
                         builder.setScheme("http");
                     }
-                    builder.setHost(getHost());
+                    builder.setHost(getHostName());
                     builder.setPort(getPort());
                     builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
                     builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);

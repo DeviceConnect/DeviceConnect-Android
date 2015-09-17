@@ -13,7 +13,7 @@ import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -22,12 +22,8 @@ import java.util.List;
  * Lightプロファイル.
  * @author NTT DOCOMO, INC.
  */
-public class IRKitLightProfile extends DConnectProfile {
+public class IRKitLightProfile extends LightProfile {
 
-    /**
-     * プロファイル名.
-     */
-    public static final String PROFILE_NAME = "light";
 
     /**
      * ライトのID.
@@ -41,53 +37,9 @@ public class IRKitLightProfile extends DConnectProfile {
     private static final String LIGHT_NAME = "照明";
 
 
-    /**
-     * パラメータ: {@value} .
-     */
-    public static final String PARAM_LIGHT_ID = "lightId";
-
-    /**
-     * パラメータ: {@value} .
-     */
-    public static final String PARAM_NAME = "name";
-
-    /**
-     * パラメータ: {@value} .
-     */
-    public static final String PARAM_ON = "on";
-
-    /**
-     * パラメータ: {@value} .
-     */
-    public static final String PARAM_LIGHTS = "lights";
-
-    /**
-     * パラメータ: {@value} .
-     */
-    public static final String PARAM_COLOR = "color";
-
-    /**
-     * パラメータ: {@value} .
-     */
-    public static final String PARAM_FLASHING = "flashing";
-
-    /**
-     * パラメータ: {@value} .
-     */
-    public static final String PARAM_BRIGHTNESS = "brightness";
-    
-    /** 
-     * brightnessの最大値.
-     */
-    public static final int MAX_BRIGHTNESS = 255;
 
     @Override
-    public String getProfileName() {
-        return PROFILE_NAME;
-    }
-
-    @Override
-    protected boolean onGetRequest(final Intent request, final Intent response) {
+    protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
 
         Bundle[] lights = new Bundle[1];
         lights[0] = new Bundle();
@@ -100,16 +52,15 @@ public class IRKitLightProfile extends DConnectProfile {
     }
 
     @Override
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-
-        String serviceId = getServiceID(request);
+    protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
+                                  final String lightId, final Integer color, final Double brightness,
+                                  final long[] flashing) {
         return sendLightRequest(serviceId, "POST", response);
     }
 
     @Override
-    protected boolean onDeleteRequest(final Intent request, final Intent response) {
-
-        String serviceId = getServiceID(request);
+    protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
+                                    final String lightId) {
         return sendLightRequest(serviceId, "DELETE", response);
     }
 

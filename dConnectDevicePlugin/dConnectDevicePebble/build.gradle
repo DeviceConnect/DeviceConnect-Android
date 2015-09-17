@@ -4,7 +4,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.2.3'
+        classpath 'com.android.tools.build:gradle:1.3.0'
     }
 }
 
@@ -25,14 +25,14 @@ configurations {
     all*.exclude group: 'com.getpebble', module: 'pebblekit'
 }
 dependencies {
-    compile fileTree(dir: 'libs', include: '*.jar')
-    compile 'com.getpebble:pebblekit:2.6.0'
+    compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-device-plugin-sdk')
+    compile 'com.getpebble:pebblekit:2.6.0'
 }
 android {
 
     compileSdkVersion 19
-    buildToolsVersion "21.1.2"
+    buildToolsVersion '23.0.0'
 
     defaultConfig {
         minSdkVersion 14
@@ -58,6 +58,12 @@ android {
         }
         debug.setRoot('build-types/debug')
         release.setRoot('build-types/release')
+    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
     }
 
 }

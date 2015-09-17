@@ -15,11 +15,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.profile.FileDescriptorProfileConstants.Flag;
 
-import android.util.Log;
+import android.Manifest;
+import android.content.Context;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
 
 /**
  * ファイル操作を行うクラス.
@@ -38,8 +43,7 @@ public class FileDataManager {
     /**
      * ファイル更新タイマー.
      */
-    private ScheduledExecutorService mExecutor = 
-            Executors.newSingleThreadScheduledExecutor();
+    private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
 
     /**
      * ファイル更新タイマーキャンセル用Future.
@@ -55,7 +59,6 @@ public class FileDataManager {
      * ファイルの更新通知用リスナー.
      */
     private FileModifiedListener mModifiedListener;
-    
 
     /**
      * ファイルマネージャー.
@@ -69,6 +72,7 @@ public class FileDataManager {
 
     /**
      * コンストラクタ.
+     * 
      * @param mgr ファイルマネージャー
      */
     public FileDataManager(final FileManager mgr) {
@@ -77,6 +81,7 @@ public class FileDataManager {
 
     /**
      * パスを変換する.
+     * 
      * @param file パス変換するファイル
      * @return ファイル名
      */
@@ -86,12 +91,13 @@ public class FileDataManager {
         String base = mBaseDir.getAbsolutePath();
         if (path.startsWith(base)) {
             return path.substring(base.length() + 1);
-        } 
+        }
         return null;
     }
 
     /**
      * ファイルを開く.
+     * 
      * @param path 開くファイルのパス
      * @param flag フラグ
      * @return FileDataオブジェクト
@@ -118,9 +124,10 @@ public class FileDataManager {
         }
         return file;
     }
-    
+
     /**
      * ファイルを閉じる.
+     * 
      * @param path 閉じるファイルのパス
      * @return 閉じるのに成功した場合はtrue、それ以外はfalse
      */
@@ -128,96 +135,157 @@ public class FileDataManager {
         FileData file = mFiles.remove(path);
         return file != null;
     }
-    
+
     /**
      * 指定されたFileデータを取得する.
      * <p>
      * 指定されたパスのファイルが存在しない場合にはnullを返却する.
+     * 
      * @param path パス
      * @return FileDataオブジェクト
      */
     public FileData getFileData(final String path) {
         return mFiles.get(path);
     }
-    
+
     /**
      * ファイルを読み込む.
+     * 
      * @param file 読み込むファイル
      * @param position 読み込む位置
      * @param length 読み込む長さ
      * @return 読み込んだデータ
      */
-    public String readFile(final FileData file, final int position, final int length) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        FileInputStream fis = null;
+    public void readFile(@NonNull final FileData file, final int position, final int length,
+            @NonNull final ReadFileCallback callback) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Context context = mFileManager.getContext();
+            PermissionUtility.requestPermissions(context, new Handler(Looper.getMainLooper()),
+                    new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            readFileInternal(file, position, length, callback);
+                        }
+
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
+                            callback.onFail();
+                        }
+                    });
+        } else {
+            readFileInternal(file, position, length, callback);
+        }
+    }
+
+    /**
+     * @see FileDataManager#readFile(FileData, int, int, ReadFileCallback)
+     */
+    private void readFileInternal(@NonNull FileData file, int position, int length,
+            @NonNull ReadFileCallback callback) {
         try {
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int count = 0;
-            int len = 0;
-            fis = new FileInputStream(file.getPath());
-            fis.skip(position);
-            while (((len = fis.read(buffer)) != -1)) {
-                if (count + len < length) {
-                    baos.write(buffer, 0, len);
-                } else {
-                    int l = length - count;
-                    baos.write(buffer, 0, l);
-                    break;
-                }
-                count += len;
-            }
-            return new String(baos.toByteArray());
-        } catch (FileNotFoundException e) {
-            return null;
-        } catch (IOException e) {
-            return null;
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    // no operation
-                    if (BuildConfig.DEBUG) {
-                        Log.e("Host", "", e);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            FileInputStream fis = null;
+            try {
+                byte[] buffer = new byte[BUFFER_SIZE];
+                int count = 0;
+                int len = 0;
+                fis = new FileInputStream(file.getPath());
+                fis.skip(position);
+                while (((len = fis.read(buffer)) != -1)) {
+                    if (count + len < length) {
+                        baos.write(buffer, 0, len);
+                    } else {
+                        int l = length - count;
+                        baos.write(buffer, 0, l);
+                        break;
                     }
+                    count += len;
+                }
+                callback.onSuccess(new String(baos.toByteArray()));
+            } catch (FileNotFoundException e) {
+                callback.onFail();
+                return;
+            } catch (IOException e) {
+                callback.onFail();
+                return;
+            } finally {
+                if (fis != null) {
+                    fis.close();
                 }
             }
+        } catch (Throwable throwable) {
+            callback.onFail();
         }
     }
 
     /**
      * ファイルにデータを書き込む.
+     *
      * @param file 書き込み先のファイル
      * @param data 書き込むデータ
      * @param pos 書き込む位置
-     * @return 書き込みに成功した場合はtrue、それ以外はfalse
+     * @param callback
      */
-    public boolean writeFile(final FileData file, final byte[] data, final int pos) {
-        FileOutputStream fos = null;
+    public void writeFile(@NonNull final FileData file, @NonNull final byte[] data, final int pos,
+            @NonNull final WriteFileCallback callback) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Context context = mFileManager.getContext();
+            PermissionUtility.requestPermissions(context, new Handler(Looper.getMainLooper()),
+                    new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                    new PermissionUtility.PermissionRequestCallback() {
+                        @Override
+                        public void onSuccess() {
+                            writeFileInternal(file, data, pos, callback);
+                        }
+
+                        @Override
+                        public void onFail(@NonNull String deniedPermission) {
+                            callback.onFail();
+                        }
+                    });
+        } else {
+            writeFileInternal(file, data, pos, callback);
+        }
+    }
+
+    /**
+     * ファイルにデータを書き込む.
+     *
+     * @param file 書き込み先のファイル
+     * @param data 書き込むデータ
+     * @param pos 書き込む位置
+     * @param callback
+     * @see FileDataManager#writeFile(FileData, byte[], int, WriteFileCallback)
+     */
+    private void writeFileInternal(@NonNull FileData file, @NonNull byte[] data, int pos,
+            @NonNull WriteFileCallback callback) {
         try {
-            fos = new FileOutputStream(file.getPath());
-            fos.write(data, pos, data.length - pos);
-        } catch (FileNotFoundException e) {
-            return false;
-        } catch (IOException e) {
-            return false;
-        } finally {
-            if (fos != null) {
-                try {
+            FileOutputStream fos = null;
+            try {
+                fos = new FileOutputStream(file.getPath());
+                fos.write(data, pos, data.length - pos);
+            } catch (FileNotFoundException e) {
+                callback.onFail();
+                return;
+            } catch (IOException e) {
+                callback.onFail();
+                return;
+            } finally {
+                if (fos != null) {
                     fos.close();
-                } catch (IOException e) {
-                    // no operation
-                    if (BuildConfig.DEBUG) {
-                        Log.e("Host", "", e);
-                    }
                 }
             }
+            callback.onSuccess();
+        } catch (Throwable throwable) {
+            callback.onFail();
         }
-        return true;
     }
-    
+
     /**
      * Readモードでファイルを開く.
+     * 
      * @param path パス
      * @param flag フラグ
      * @return FileDataオブジェクト
@@ -239,6 +307,7 @@ public class FileDataManager {
 
     /**
      * Read/Writeモードでファイルを開く.
+     * 
      * @param path パス
      * @param flag フラグ
      * @return FileDataオブジェクト
@@ -266,18 +335,37 @@ public class FileDataManager {
             return;
         }
 
-        mLastModifiedDate = System.currentTimeMillis();
-        mFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+        mFileManager.checkReadPermission(new FileManager.CheckPermissionCallback() {
             @Override
-            public void run() {
-                List<File> files = checkUpdateFile();
-                if (files.size() > 0) {
-                    if (mModifiedListener != null) {
-                        mModifiedListener.onWatchFile(files);
+            public void onSuccess() {
+                mLastModifiedDate = System.currentTimeMillis();
+                mFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
+                    @Override
+                    public void run() {
+                        getUpdatedFiles(new CheckUpdatedFilesCallback() {
+                            @Override
+                            public void onSuccess(@NonNull List<File> files) {
+                                if (files.size() > 0) {
+                                    if (mModifiedListener != null) {
+                                        mModifiedListener.onWatchFile(files);
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onFail() {
+
+                            }
+                        });
                     }
-                }
+                }, PERIOD, PERIOD, TimeUnit.SECONDS);
             }
-        }, PERIOD, PERIOD, TimeUnit.SECONDS);
+
+            @Override
+            public void onFail() {
+
+            }
+        });
     }
 
     /**
@@ -292,28 +380,40 @@ public class FileDataManager {
 
     /**
      * ファイルの更新チェックを行う.
-     * @return 更新されたファイル一覧
+     * 
+     * @param callback 更新チェックの結果が返却されるコールバック
      */
-    public synchronized List<File> checkUpdateFile() {
-        List<File> files = new ArrayList<File>();
-        File mBaseDir = mFileManager.getBasePath();
-        checkUpdateFile(mBaseDir, files);
-        mLastModifiedDate = System.currentTimeMillis();
-        return files;
+    public synchronized void getUpdatedFiles(final CheckUpdatedFilesCallback callback) {
+        mFileManager.checkReadPermission(new FileManager.CheckPermissionCallback() {
+            @Override
+            public void onSuccess() {
+                List<File> files = new ArrayList<File>();
+                File mBaseDir = mFileManager.getBasePath();
+                getUpdatedFiles(mBaseDir, files);
+                mLastModifiedDate = System.currentTimeMillis();
+                callback.onSuccess(files);
+            }
+
+            @Override
+            public void onFail() {
+                callback.onFail();
+            }
+        });
     }
 
     /**
      * ファイルが更新されている場合には、リストに追加する.
      * <p>
      * ファイルがディレクトリの場合には、中のファイルも再起的に行う。
+     * 
      * @param file 更新確認を行うファイル
      * @param modifyFiles 更新されたファイルを追加するリスト
      */
-    private void checkUpdateFile(final File file, final List<File> modifyFiles) {
+    private void getUpdatedFiles(final File file, final List<File> modifyFiles) {
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             for (File f : files) {
-                checkUpdateFile(f, modifyFiles);
+                getUpdatedFiles(f, modifyFiles);
             }
         }
 
@@ -326,6 +426,7 @@ public class FileDataManager {
 
     /**
      * ファイル更新通知リスナーを設定する.
+     * 
      * @param listener リスナー
      */
     public void setFileModifiedListener(final FileModifiedListener listener) {
@@ -338,8 +439,27 @@ public class FileDataManager {
     public interface FileModifiedListener {
         /**
          * ファイルの更新が発見された場合に通知される.
+         * 
          * @param files 更新されたファイル
          */
         void onWatchFile(List<File> files);
+    }
+
+    public interface ReadFileCallback {
+        void onSuccess(@NonNull String data);
+
+        void onFail();
+    }
+
+    public interface WriteFileCallback {
+        void onSuccess();
+
+        void onFail();
+    }
+
+    public interface CheckUpdatedFilesCallback {
+        void onSuccess(@NonNull List<File> files);
+
+        void onFail();
     }
 }

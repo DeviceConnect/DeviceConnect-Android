@@ -134,8 +134,8 @@ public abstract class SmartDeviceFragment extends Fragment {
      * ホスト名を取得する.
      * @return ホスト名
      */
-    public String getHost() {
-        return ((DConnectApplication) getActivity().getApplication()).getHost();
+    public String getHostName() {
+        return ((DConnectApplication) getActivity().getApplication()).getHostName();
     }
 
     /**

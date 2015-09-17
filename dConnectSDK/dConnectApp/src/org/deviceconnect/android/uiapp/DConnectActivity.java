@@ -237,7 +237,7 @@ public class DConnectActivity extends FragmentPagerActivity {
      * @return ホスト名
      */
     private String getHost() {
-        return ((DConnectApplication) getApplication()).getHost();
+        return ((DConnectApplication) getApplication()).getHostName();
     }
 
     /**

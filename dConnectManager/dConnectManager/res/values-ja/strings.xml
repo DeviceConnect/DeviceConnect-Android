@@ -108,8 +108,12 @@
     <string name="dialog_origin_manual_entry_item_title">タイトル</string>
     <string name="dialog_origin_manual_entry_item_origin">Origin</string>
     <string name="dialog_origin_manual_entry_message">少なくともOriginを入力してください。</string>
-    <string-array name="whitelist_menu_origin">
+    <string-array name="whitelist_menu_origin_pre_marshmallow">
         <item>Chromeのブックマークから追加</item>
+        <item>インストール済みのアプリを追加</item>
+        <item>手入力で追加</item>
+    </string-array>
+    <string-array name="whitelist_menu_origin_post_marshmallow">
         <item>インストール済みのアプリを追加</item>
         <item>手入力で追加</item>
     </string-array>
@@ -136,6 +140,10 @@
     <string name="activity_warning_mess">DeviceConnect以外のアプリケーションがポートを利用しているため、d-Connectを起動することができません。</string>
     <string name="activity_warning_ok">OK</string>
     <string name="activity_warning_disable">次から表示しない</string>
+
+    <!-- ================= DConnectObservationService ================= -->
+    <string name="service_observation_warning">警告</string>
+    <string name="service_observation_msg_no_permission">ファイル読み込み権限が拒否されたため、ポート監視が中断されました。</string>
 
     <!-- =================     DebugActivity     ================= -->
 

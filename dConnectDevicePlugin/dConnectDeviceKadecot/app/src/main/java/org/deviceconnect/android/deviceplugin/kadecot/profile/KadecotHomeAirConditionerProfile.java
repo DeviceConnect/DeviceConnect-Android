@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotHomeAirConditioner;
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.KadecotResult;
@@ -17,6 +18,10 @@ import org.deviceconnect.android.deviceplugin.kadecot.KadecotDeviceService;
 import org.deviceconnect.android.deviceplugin.kadecot.profile.original.AirConditionerProfile;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
 
 
 /**
@@ -406,36 +411,72 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         String[] element = service.getElementFromServiceId(getServiceID(request));
         if (element[IDX_PREFIX].equals(PREFIX_KADECOT) && element[IDX_DEVICEID] != null
                 && element[IDX_PROFILENAME].equals(PROFILE_NAME)) {
-            String epc = getEpc(request);
-            if (epc == null) {
+            String strEpcs = getEpc(request);
+            if (strEpcs == null) {
                 MessageUtils.setInvalidRequestParameterError(response);
                 getContext().sendBroadcast(response);
                 return;
             }
-            String urlstr = "content://com.sonycsl.kadecot.json.provider/jsonp/v1/devices/"
-                    + element[IDX_DEVICEID] + "?procedure=get&params={\"propertyName\":\"" + epc + "\"}";
-            Cursor cursor = getContext().getContentResolver().query(Uri.parse(urlstr), null, null, null, null);
-            if (cursor != null) {
-                cursor.moveToFirst();
-                String result = cursor.getString(0);
-                String propertyName = service.getPropertyName(result);
-                String propertyValue = service.getPropertyValue(result);
-                if (propertyName != null && propertyValue != null) {
-                    if (result.equals(NO_RESULT)) {
-                        MessageUtils.setNotSupportAttributeError(response,
-                                "This device not support 'get' procedure.");
-                    } else {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                        setEpc(response, propertyName);
-                        setValue(response, propertyValue);
+
+            Pattern p = Pattern.compile(",");
+            String[] epcs = p.split(strEpcs);
+            List<Bundle> dataList = new ArrayList<>();
+            Bundle resultData = new Bundle();
+
+            for (int i = 0; i < epcs.length; i++) {
+                String strValue = epcs[i].trim();
+                if (strValue != null) {
+                    try {
+                        int checkInt = Integer.decode(strValue);
+                        epcs[i] = "0x" + Integer.toHexString(checkInt);
+                    } catch (NumberFormatException e) {
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        getContext().sendBroadcast(response);
+                        return;
                     }
                 } else {
-                    createInvalidKadecotResponseError(response);
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    getContext().sendBroadcast(response);
+                    return;
                 }
-                cursor.close();
-            } else {
-                createInvalidKadecotResponseError(response);
             }
+
+            for (String epc : epcs) {
+                String urlstr = "content://com.sonycsl.kadecot.json.provider/jsonp/v1/devices/"
+                        + element[IDX_DEVICEID] + "?procedure=get&params={\"propertyName\":\"" + epc + "\"}";
+                Cursor cursor = getContext().getContentResolver().query(Uri.parse(urlstr), null, null, null, null);
+                if (cursor != null) {
+                    cursor.moveToFirst();
+                    String result = cursor.getString(0);
+                    String propertyName = service.getPropertyName(result);
+                    String propertyValue = service.getPropertyValue(result);
+                    if (propertyName != null && propertyValue != null) {
+                        if (result.equals(NO_RESULT)) {
+                            cursor.close();
+                            MessageUtils.setNotSupportAttributeError(response,
+                                    "This device not support 'get' procedure.");
+                            getContext().sendBroadcast(response);
+                            return;
+                        } else {
+                            resultData.putString(PARAM_EPC, propertyName);
+                            resultData.putString(PARAM_VALUE, propertyValue);
+                            dataList.add((Bundle) resultData.clone());
+                        }
+                    } else {
+                        cursor.close();
+                        createInvalidKadecotResponseError(response);
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                    cursor.close();
+                } else {
+                    createInvalidKadecotResponseError(response);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+            response.putExtra(PARAM_PROPERTIES, dataList.toArray(new Bundle[dataList.size()]));
         } else {
             createInvalidKadecotResponseError(response);
         }

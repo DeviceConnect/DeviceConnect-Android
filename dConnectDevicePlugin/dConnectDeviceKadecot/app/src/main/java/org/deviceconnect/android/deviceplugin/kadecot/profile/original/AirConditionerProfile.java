@@ -628,18 +628,7 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      * @return Epc parameter.
      */
     public static String getEpc(final Intent request) {
-        String strValue = request.getStringExtra(PARAM_EPC);
-        if (strValue != null) {
-            try {
-                int checkInt = Integer.decode(strValue);
-                return "0x" + Integer.toHexString(checkInt);
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-                return null;
-            }
-        } else {
-            return null;
-        }
+        return request.getStringExtra(PARAM_EPC);
     }
 
     /**

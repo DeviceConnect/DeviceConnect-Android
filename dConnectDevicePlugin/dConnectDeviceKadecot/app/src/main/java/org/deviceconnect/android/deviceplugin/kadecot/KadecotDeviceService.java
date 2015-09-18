@@ -50,13 +50,7 @@ public class KadecotDeviceService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
 
-        if (BuildConfig.DEBUG) {
-            android.os.Debug.waitForDebugger();
-        }
-
         mApp = (KadecotDeviceApplication) this.getApplication();
-
-//        EventManager.INSTANCE.setController(new MemoryCacheController());
 
         addProfile(new KadecotHomeAirConditionerProfile());
         addProfile(new KadecotLightProfile());

@@ -6,16 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.ble;
 
-import android.bluetooth.BluetoothDevice;
-import android.content.Context;
-import android.os.Build;
-import android.os.Handler;
-import android.util.Log;
-
-import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
-import org.deviceconnect.android.deviceplugin.hvc.ble.adapter.NewBleDeviceAdapterImpl;
-import org.deviceconnect.android.deviceplugin.hvc.ble.adapter.OldBleDeviceAdapterImpl;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +16,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hvc.ble.adapter.NewBleDeviceAdapterImpl;
+import org.deviceconnect.android.deviceplugin.hvc.ble.adapter.OldBleDeviceAdapterImpl;
+
+import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.os.Build;
+import android.os.Handler;
+import android.util.Log;
 
 /**
  * This class to detect the BLE device.
@@ -234,6 +234,11 @@ public class BleDeviceDetector {
                     public void onLeScan(final BluetoothDevice device, final int rssi) {
                         devices.add(device);
                     }
+
+                    @Override
+                    public void onFail() {
+
+                    }
                 };
         
         final Timer timer = new Timer();
@@ -351,6 +356,11 @@ public class BleDeviceDetector {
                     if (!mDevices.contains(device)) {
                         mDevices.add(device);
                     }
+                }
+
+                @Override
+                public void onFail() {
+
                 }
             };
 

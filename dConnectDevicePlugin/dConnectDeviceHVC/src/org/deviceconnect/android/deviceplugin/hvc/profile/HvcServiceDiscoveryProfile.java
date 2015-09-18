@@ -9,16 +9,26 @@ package org.deviceconnect.android.deviceplugin.hvc.profile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import android.Manifest;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
 /**
  * HVC DevicePlugin, Network Service Discovery Profile.
@@ -27,12 +37,24 @@ import android.os.Bundle;
  */
 public class HvcServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
+    private static final int DISCOVERY_WAIT = 6000;
+    
+    private final HandlerThread mWorkerThread;
+    
     /**
      * Constructor.
      * @param provider profile provider
      */
     public HvcServiceDiscoveryProfile(final DConnectProfileProvider provider) {
         super(provider);
+        mWorkerThread = new HandlerThread(getClass().getSimpleName() + "_" + this.hashCode());
+        mWorkerThread.start();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        mWorkerThread.quit();
     }
 
     @Override
@@ -44,18 +66,61 @@ public class HvcServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             setResult(response, DConnectMessage.RESULT_OK);
             return true;
         }
+
+        final Runnable perform = new Runnable() {
+            @Override
+            public void run() {
+                // get device list.
+                List<BluetoothDevice> devices = ((HvcDeviceService) getContext()).getHvcDeviceList();
+
+                // set response.
+                List<Bundle> services = new ArrayList<Bundle>();
+                for (BluetoothDevice device : devices) {
+                    services.add(toBundle(device));
+                }
+                setResult(response, DConnectMessage.RESULT_OK);
+                setServices(response, services);
+            }
+        };
         
-        // get device list.
-        List<BluetoothDevice> devices = ((HvcDeviceService) getContext()).getHvcDeviceList();
-        
-        // set response.
-        List<Bundle> services = new ArrayList<Bundle>();
-        for (BluetoothDevice device : devices) {
-            services.add(toBundle(device));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            perform.run();
+            return true;
+        } else {
+            if (getContext().checkSelfPermission(
+                    Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    && getContext().checkSelfPermission(
+                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                perform.run();
+                return true;
+            } else {
+                PermissionUtility.requestPermissions(getContext(), new Handler(mWorkerThread.getLooper()),
+                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_FINE_LOCATION},
+                        new PermissionUtility.PermissionRequestCallback() {
+                            @Override
+                            public void onSuccess() {
+                                // Wait for discovered device cache list to be
+                                // filled up.
+                                Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        perform.run();
+                                        getContext().sendBroadcast(response);
+                                    }
+                                }, DISCOVERY_WAIT, TimeUnit.MILLISECONDS);
+                            }
+
+                            @Override
+                            public void onFail(@NonNull String deniedPermission) {
+                                MessageUtils.setIllegalServerStateError(response,
+                                        "Bluetooth LE scan requires permissions ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION.");
+                                getContext().sendBroadcast(response);
+                            }
+                        });
+                return false;
+            }
         }
-        setResult(response, DConnectMessage.RESULT_OK);
-        setServices(response, services);
-        return true;
     }
 
 

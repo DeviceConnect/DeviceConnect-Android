@@ -30,7 +30,7 @@ android {
             storePassword 'Y9A6warG'
         }
     }
-    compileSdkVersion 21
+    compileSdkVersion 23
     buildToolsVersion '23.0.0'
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
@@ -38,7 +38,7 @@ android {
     }
     defaultConfig {
         minSdkVersion 18
-        targetSdkVersion 21
+        targetSdkVersion 23
     }
     buildTypes {
         release {

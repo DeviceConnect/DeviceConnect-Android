@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.heartrate.ble.adapter;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -16,6 +17,7 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.ParcelUuid;
 
@@ -34,6 +36,7 @@ import java.util.UUID;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
 
+    private final Context mContext;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBleScanner;
     private BleDeviceScanCallback mCallback;
@@ -42,6 +45,7 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
     };
 
     public NewBleDeviceAdapterImpl(final Context context) {
+        mContext = context;
         BluetoothManager manager = BleUtils.getManager(context);
         mBluetoothAdapter = manager.getAdapter();
         mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
@@ -62,6 +66,17 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
         ScanSettings settings = new ScanSettings.Builder().build();
 
         mBleScanner.startScan(filters, settings, mScanCallback);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            mBleScanner.startScan(filters, settings, mScanCallback);
+        } else {
+            // Unless required permissions were acquired, scan does not start.
+            if (mContext.checkSelfPermission(
+                    Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    && mContext.checkSelfPermission(
+                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                mBleScanner.startScan(filters, settings, mScanCallback);
+            }
+        }
     }
 
     @Override
@@ -103,6 +118,7 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
 
         @Override
         public void onScanFailed(final int errorCode) {
+            mCallback.onFail();
         }
     };
 }

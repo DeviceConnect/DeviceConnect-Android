@@ -203,6 +203,11 @@ public class BleDeviceDetector {
                     public void onLeScan(final BluetoothDevice device, final int rssi) {
                         devices.add(device);
                     }
+
+                    @Override
+                    public void onFail() {
+
+                    }
                 };
         mHandler.postDelayed(new Runnable() {
             @Override
@@ -313,6 +318,11 @@ public class BleDeviceDetector {
                     if (!mDevices.contains(device)) {
                         mDevices.add(device);
                     }
+                }
+
+                @Override
+                public void onFail() {
+
                 }
             };
 

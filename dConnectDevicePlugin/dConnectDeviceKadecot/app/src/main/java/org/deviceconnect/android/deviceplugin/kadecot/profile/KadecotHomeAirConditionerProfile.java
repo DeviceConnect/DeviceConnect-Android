@@ -554,7 +554,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
             case "Normal":      index = KadecotHomeAirConditioner.POWERSAVING_OFF; break;
             case "PowerSaving": index = KadecotHomeAirConditioner.POWERSAVING_ON;  break;
             default:
-                MessageUtils.setUnknownError(response, "Invalid parameter (KadecotHomeAirConditioner).");
+                MessageUtils.setInvalidRequestParameterError(response);
                 getContext().sendBroadcast(response);
                 return;
         }
@@ -616,7 +616,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
             case "Dehumidification":    index = KadecotHomeAirConditioner.OPERATIONMODE_DRY;   break;
             case "AirCirculator":       index = KadecotHomeAirConditioner.OPERATIONMODE_WIND;  break;
             default:
-                MessageUtils.setUnknownError(response, "Invalid parameter (KadecotHomeAirConditioner).");
+                MessageUtils.setInvalidRequestParameterError(response);
                 getContext().sendBroadcast(response);
                 return;
         }
@@ -726,22 +726,22 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (auto) {
             param = KadecotHomeAirConditioner.AIRFLOW_AUTO;
         } else {
-            float value = getAirFlowValue(request);
-            if (value >= 0.0 && value < 0.12) {
+            int value = (int)(getAirFlowValue(request) * 100);
+            if (value >= 0 && value < 12) {
                 param = KadecotHomeAirConditioner.AIRFLOW_LV1;
-            } else if (value >= 0.12 && value < 0.25) {
+            } else if (value >= 12 && value < 25) {
                 param = KadecotHomeAirConditioner.AIRFLOW_LV2;
-            } else if (value >= 0.25 && value < 0.38) {
+            } else if (value >= 25 && value < 38) {
                 param = KadecotHomeAirConditioner.AIRFLOW_LV3;
-            } else if (value >= 0.38 && value < 0.51) {
+            } else if (value >= 38 && value < 51) {
                 param = KadecotHomeAirConditioner.AIRFLOW_LV4;
-            } else if (value >= 0.51 && value < 0.64) {
+            } else if (value >= 51 && value < 64) {
                 param = KadecotHomeAirConditioner.AIRFLOW_LV5;
-            } else if (value >= 0.64 && value < 0.77) {
+            } else if (value >= 64 && value < 77) {
                 param = KadecotHomeAirConditioner.AIRFLOW_LV6;
-            } else if (value >= 0.77 && value < 0.90) {
+            } else if (value >= 77 && value < 90) {
                 param = KadecotHomeAirConditioner.AIRFLOW_LV7;
-            } else if (value >= 0.90 && value <= 1.0) {
+            } else if (value >= 90 && value <= 100) {
                 param = KadecotHomeAirConditioner.AIRFLOW_LV8;
             } else {
                 MessageUtils.setInvalidRequestParameterError(response);

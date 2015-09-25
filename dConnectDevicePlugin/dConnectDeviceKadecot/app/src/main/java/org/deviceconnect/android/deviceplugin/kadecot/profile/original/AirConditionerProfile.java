@@ -588,6 +588,10 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      */
     public static float getAirFlowValue(final Intent request) {
         String strValue = request.getStringExtra(PARAM_AIRFLOWVALUE);
+        if (strValue == null) {
+            return -1;
+        }
+
         try {
             return Float.parseFloat(strValue);
         } catch (NumberFormatException e) {
@@ -613,6 +617,10 @@ public class AirConditionerProfile extends DConnectProfile implements AirConditi
      */
     public static boolean getAirFlowAuto(final Intent request) {
         String auto = request.getStringExtra(PARAM_AIRFLOWAUTO);
+        if (auto == null) {
+            return false;
+        }
+
         switch (auto) {
             case "true":
             case "True":

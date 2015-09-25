@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,7 +20,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.deviceconnect.android.deviceplugin.irkit.BuildConfig;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitApplication;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.IRKitDBHelper;
@@ -54,6 +52,7 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
         setHasOptionsMenu(true);
     }
 
@@ -109,7 +108,7 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
     }
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        final MenuItem menuItem = menu.add("CLOSE");
+        final MenuItem menuItem = menu.add(getString(R.string.menu_close));
         menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
@@ -134,7 +133,7 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
         mListView.setItemsCanFocus(true);
         mListView.setAdapter(mVirtualProfileAdapter);
         TextView title = (TextView) rootView.findViewById(R.id.text_view_number);
-        title.setText(mProfiles.get(0).getProfile() + "プロファイル編集");
+        title.setText(getString(R.string.edit_profile, mProfiles.get(0).getProfile()));
         return rootView;
     }
 
@@ -232,7 +231,7 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
             View cv = convertView;
-            if (convertView == null) {
+            if (cv == null) {
                 cv = mInflater.inflate(R.layout.item_irkit_profile_list, parent, false);
             } else {
                 cv = convertView;
@@ -249,19 +248,16 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
             registerBtn.setTag(position);
             if (device.isRegister()) {
                 registerBtn.setBackgroundResource(R.drawable.button_orange);
-                registerBtn.setText("更新");
+                registerBtn.setText(getString(R.string.virtual_device_update));
             } else {
                 registerBtn.setBackgroundResource(R.drawable.button_blue);
-                registerBtn.setText("登録");
+                registerBtn.setText(getString(R.string.virtual_device_register));
             }
             registerBtn.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View view) {
                     int pos = ((Integer) view.getTag()).intValue();
-                    if (BuildConfig.DEBUG) {
-                        Log.d("IRKit", "pos:" + pos);
-                    }
                     VirtualProfileData profile = mProfiles.get(pos);
                     IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
                     activity.startRegisterPageApp(profile);

@@ -43,6 +43,7 @@ public class IRKitDeviceListFragment extends Fragment  {
     private List<IRKitDevice> mDevices;
     /** ListView. */
     private ListView mListView;
+
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -239,7 +240,7 @@ public class IRKitDeviceListFragment extends Fragment  {
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
             View cv = convertView;
-            if (convertView == null) {
+            if (cv == null) {
                 cv = mInflater.inflate(R.layout.item_irkitdevice_list, parent, false);
             } else {
                 cv = convertView;

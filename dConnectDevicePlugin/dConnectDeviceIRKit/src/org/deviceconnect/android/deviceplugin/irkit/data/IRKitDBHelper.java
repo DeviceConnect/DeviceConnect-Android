@@ -289,6 +289,35 @@ public class IRKitDBHelper {
         return devices;
     }
 
+
+    /**
+     * Virtual Device Listの取得.
+     * @param serviceId 検索するサービスID
+     * @return Virtual Device List
+     */
+    public synchronized List<VirtualDeviceData> getVirtualDevicesByServiceId(final String serviceId) {
+        String sql = "SELECT * FROM " + VIRTUAL_DEVICE_TBL_NAME;
+        if (serviceId != null) {
+            sql += " WHERE " + VIRTUAL_PROFILE_COL_SERVICE_ID + " LIKE '" + serviceId + "%';";
+        }
+        String[] selectionArgs = {};
+
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery(sql, selectionArgs);
+
+        List<VirtualDeviceData> devices = new ArrayList<VirtualDeviceData>();
+        boolean next = cursor.moveToFirst();
+        while (next) {
+            VirtualDeviceData device = new VirtualDeviceData();
+            device.setServiceId(cursor.getString(cursor.getColumnIndex(VIRTUAL_DEVICE_COL_SERVICE_ID)));
+            device.setDeviceName(cursor.getString(cursor.getColumnIndex(VIRTUAL_DEVICE_COL_DEVICE_NAME)));
+            device.setCategoryName(cursor.getString(cursor.getColumnIndex(VIRTUAL_DEVICE_COL_CATEGORY_NAME)));
+            devices.add(device);
+            next = cursor.moveToNext();
+        }
+        return devices;
+    }
+
     /**
      * Virtual Profile Listの取得.
      * @param serviceId 検索するサービスID. 全件取得はnull.

@@ -55,7 +55,9 @@ public class IRKitDeviceListActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startApp(TOP_PAGE, null);
+        if (null == savedInstanceState) {
+            startApp(TOP_PAGE, null);
+        }
     }
 
     @Override

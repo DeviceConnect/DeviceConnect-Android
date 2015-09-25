@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <string name="app_name">IRKit 2.1.1</string>
+    <string name="app_name">IRKit 2.1.0</string>
     <string name="no_device">No device</string>
     <string name="hint_ssid">SSID</string>
     <string name="column_ssid">SSID</string>
@@ -26,7 +25,7 @@
     <string name="preference_ssid_name">access_point_ssid</string>
     <string name="preference_password_name">access_point_password</string>
     <string name="preference_irkit_name">irkit_name</string>
-    
+
     <string name="ind_message_prepare">処理中・・・</string>
     <string name="alert_title_error">エラー</string>
     <string name="alert_title_prepared">準備完了</string>
@@ -52,18 +51,38 @@
     <string name="select_light">ライト</string>
     <string name="select_tv">テレビ</string>
 
+    <string name="remove_virtual_device_title">削除</string>
+    <string name="remove_virtual_device_success">削除に成功しました。</string>
+    <string name="remove_virtual_device_failure">削除に失敗しました。</string>
+    <string name="remove_virtual_select_device">削除するデバイスを一つ選んでください。</string>
+
+    <string name="virtual_device_title">デバイス作成</string>
     <string name="virtual_device_name">デバイス名</string>
     <string name="virtual_service_id">ID</string>
     <string name="virtual_device_category">カテゴリー</string>
-    <string name="cancel">キャンセル</string>
-    <string name="create">作成</string>
-    <string name="register">登録</string>
+    <string name="virtual_device_delete_cancel">キャンセル</string>
+    <string name="virtual_device_create">作成</string>
+    <string name="virtual_device_register"> 登録 </string>
+    <string name="virtual_device_update"> 更新 </string>
+    <string name="created_virtual_device">デバイスを作成しました。</string>
+
+    <string name="dialog_ok">OK</string>
+
+    <string name="edit_profile">%1$sプロファイルの編集</string>
+
+    <string name="menu_close">CLOSE</string>
 
     <string name="register_ir_description">IRKitと赤外線の準備が完了したら、受信ボタンを押してください。</string>
     <string name="receive">受信</string>
-    <string name="receiving">赤外線をIRKitに照射してください。</string>
+    <string name="receiving">赤外線をIRKiに照射してください。</string>
     <string name="receive_success">正常に赤外線を受信しました。</string>
     <string name="receive_failure">赤外線の受信に失敗しました。</string>
+
+    <string name="receive_success_title">赤外線取得成功</string>
+    <string name="receive_success_message">赤外線の取得に成功しました。</string>
+    <string name="receive_failure_title">赤外線取得失敗</string>
+    <string name="receive_failure_message">赤外線の取得に失敗しました。</string>
+
     <!--
     IRKit Parameters.
     IRKitから取得したAPI KEYを記載してください。

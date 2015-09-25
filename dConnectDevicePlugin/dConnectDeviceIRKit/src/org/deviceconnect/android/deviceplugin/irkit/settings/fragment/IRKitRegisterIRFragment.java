@@ -40,29 +40,27 @@ public class IRKitRegisterIRFragment extends Fragment  {
 
     /** Virtual Profile. */
     private VirtualProfileData mProfile;
-    /**
-     * インジケーター.
-     */
+    /** インジケーター. */
     private ProgressDialog mIndView;
     /** IRKit のデバイス.*/
     private IRKitDevice mDevice;
     /** DB helper. */
     private IRKitDBHelper mDBHelper;
 
-
     @SuppressLint("InflateParams")
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-            final Bundle savedInstanceState) {
+                             final Bundle savedInstanceState) {
+        setRetainInstance(true);
+
         mDBHelper = new IRKitDBHelper(getActivity());
         View rootView = inflater.inflate(R.layout.fragment_register_ir, null);
         TextView titleView = (TextView) rootView.findViewById(R.id.text_view_number);
-        titleView.setText(mProfile.getProfile() + "プロファイルの編集");
+        titleView.setText(getString(R.string.edit_profile, mProfile.getProfile()));
         TextView apiView = (TextView) rootView.findViewById(R.id.api_name);
         apiView.setText(mProfile.getName());
         final Button registerIR = (Button) rootView.findViewById(R.id.register_ir);
         registerIR.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View view) {
                 showProgress();
@@ -77,13 +75,15 @@ public class IRKitRegisterIRFragment extends Fragment  {
                                 public void run() {
                                     IRKitManager.INSTANCE.fetchMessage(mDevice.getIp(),
                                             new IRKitManager.GetMessageCallback() {
-
                                                 @Override
                                                 public void onGetMessage(final String message) {
+                                                    if (getActivity() == null) {
+                                                        return;
+                                                    }
+
                                                     getActivity().runOnUiThread(new Runnable() {
                                                         @Override
                                                         public void run() {
-
                                                             if (message == null) {
                                                                 showFailureDialog();
                                                             } else if (!checkData(message)) {
@@ -94,12 +94,10 @@ public class IRKitRegisterIRFragment extends Fragment  {
                                                                 showSuccessDialog();
                                                             }
                                                             dismissProgress();
-
                                                         }
                                                     });
                                                 }
                                             });
-
                                 }
                             }, 5000);
                             break;
@@ -122,14 +120,14 @@ public class IRKitRegisterIRFragment extends Fragment  {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
     }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        final MenuItem menuItem = menu.add("CLOSE");
+        final MenuItem menuItem = menu.add(getString(R.string.menu_close));
         menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(final MenuItem item) {
-
                 if (item.getTitle().equals(menuItem.getTitle())) {
                     getActivity().finish();
                 }
@@ -137,6 +135,7 @@ public class IRKitRegisterIRFragment extends Fragment  {
             }
         });
     }
+
     /**
      * Virtual Profile を設定する。
      * @param profile virtual Profile
@@ -156,6 +155,7 @@ public class IRKitRegisterIRFragment extends Fragment  {
                 (IRKitApplication) activity.getApplication();
         return application.getIRKitDevices();
     }
+
     /**
      * 赤外線照射中のダイアログを出す。
      */
@@ -182,9 +182,8 @@ public class IRKitRegisterIRFragment extends Fragment  {
      */
     private void showSuccessDialog() {
         IRKitCreateVirtualDeviceDialogFragment.showAlert(getActivity(),
-                "赤外線取得成功",
-                "赤外線の取得に成功しました。");
-
+                getString(R.string.receive_success_title),
+                getString(R.string.receive_success_message));
     }
 
     /**
@@ -193,10 +192,10 @@ public class IRKitRegisterIRFragment extends Fragment  {
      */
     private void showFailureDialog() {
         IRKitCreateVirtualDeviceDialogFragment.showAlert(getActivity(),
-                "赤外線取得失敗",
-                "赤外線の取得に失敗しました。");
-
+                getString(R.string.receive_failure_title),
+                getString(R.string.receive_failure_message));
     }
+
     /**
      * 送られてきたデータがIRKitに対応しているかチェックを行う.
      * @param message データ

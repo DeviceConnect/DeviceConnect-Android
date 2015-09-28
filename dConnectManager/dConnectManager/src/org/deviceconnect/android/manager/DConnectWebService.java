@@ -34,7 +34,10 @@ public class DConnectWebService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
         mSettings = DConnectSettings.getInstance();
+        mSettings.load(this);
+
         startWebServer();
     }
 

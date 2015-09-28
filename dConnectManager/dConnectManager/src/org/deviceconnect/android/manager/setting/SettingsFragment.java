@@ -32,6 +32,7 @@ import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 
 import org.deviceconnect.android.manager.DConnectService;
+import org.deviceconnect.android.manager.DConnectWebService;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.R;
@@ -184,6 +185,17 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mWebPortPreferences = getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_port));
         mWebPortPreferences.setOnPreferenceChangeListener(this);
 
+
+        // dConnectManagerの起動チェック
+        SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_dconn_server_on_off));
+        serverPreferences.setOnPreferenceChangeListener(this);
+
+        // Webサーバの起動チェック
+        SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_web_server_on_off));
+        webPreferences.setOnPreferenceChangeListener(this);
+
         editHostPreferences.setEnabled(false);
         editDocPreferences.setEnabled(false);
         editWebHostPreferences.setEnabled(false);
@@ -200,17 +212,21 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public void onResume() {
         super.onResume();
 
-        // dConnectManagerの起動チェック
+        boolean isDConnectRunning = isDConnectServiceRunning();
+        boolean isWebRunning = isWebServiceRunning();
+
         SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_server_on_off));
-        serverPreferences.setOnPreferenceChangeListener(this);
-        serverPreferences.setChecked(isDConnectServiceRunning());
+        serverPreferences.setChecked(isDConnectRunning);
+        setEnabled(!isDConnectRunning);
+
+        SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_web_server_on_off));
+        webPreferences.setChecked(isWebRunning);
+        setWebUIEnabled(!isWebRunning);
 
         // 監視サービスの起動チェック
         mObserverPreferences.setChecked(isObservationServices());
-
-        // 各dConnectManagerの設定
-        setEnabled(!isDConnectServiceRunning());
 
         showIPAddress();
     }
@@ -225,12 +241,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 try {
                     // 入力値が整数かチェックする
                     Integer.parseInt(value);
-                    ((EditTextPreference) preference).setSummary(value);
+                    preference.setSummary(value);
                 } catch (NumberFormatException e) {
                     return true;
                 }
             } else {
-                ((EditTextPreference) preference).setSummary(newValue.toString());
+                preference.setSummary(newValue.toString());
             }
         } else if (preference instanceof SwitchPreference) {
             if (getString(R.string.key_settings_dconn_server_on_off).equals(key)) {
@@ -238,6 +254,15 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 setEnabled(!checked);
                 // dConnectManagerのON/OFF
                 Intent intent = new Intent(getActivity(), DConnectService.class);
+                if (checked) {
+                    getActivity().startService(intent);
+                } else {
+                    getActivity().stopService(intent);
+                }
+            } else if (getString(R.string.key_settings_web_server_on_off).equals(key)) {
+                boolean checked = ((Boolean) newValue).booleanValue();
+                setWebUIEnabled(!checked);
+                Intent intent = new Intent(getActivity(), DConnectWebService.class);
                 if (checked) {
                     getActivity().startService(intent);
                 } else {
@@ -394,6 +419,13 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mCheckBoxExternalPreferences.setEnabled(enabled);
         mCheckBoxRequireOriginPreferences.setEnabled(enabled);
         mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
+    }
+
+    /**
+     * UIの有効・無効を設定する.
+     * @param enabled trueの場合は有効、falseの場合は無効
+     */
+    private void setWebUIEnabled(final boolean enabled) {
         mWebPortPreferences.setEnabled(enabled);
     }
 
@@ -404,6 +436,15 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      */
     private boolean isDConnectServiceRunning() {
         return isServiceRunning(getActivity(), DConnectService.class);
+    }
+
+    /**
+     * DConnectWebServiceが動作しているか確認する.
+     *
+     * @return 起動中の場合はtrue、それ以外はfalse
+     */
+    private boolean isWebServiceRunning() {
+        return isServiceRunning(getActivity(), DConnectWebService.class);
     }
 
     /**

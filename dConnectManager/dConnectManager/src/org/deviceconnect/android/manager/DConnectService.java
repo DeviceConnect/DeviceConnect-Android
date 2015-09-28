@@ -6,8 +6,7 @@
  */
 package org.deviceconnect.android.manager;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import android.content.Intent;
 
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.DConnectMessage;
@@ -17,7 +16,8 @@ import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Intent;
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * dConnect Manager本体.
@@ -40,9 +40,6 @@ public class DConnectService extends DConnectMessageService {
     /** RESTfulサーバからのイベントを受領するリスナー. */
     private DConnectServerEventListenerImpl mWebServerListener;
 
-    /** Webサーバ. */
-    private DConnectServer mWebServer;
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -51,8 +48,6 @@ public class DConnectService extends DConnectMessageService {
 
         // RESTfulサーバ起動
         startRESTfulServer();
-        // Webサーバ起動
-        startWebServer();
 
         mLogger.exiting(this.getClass().getName(), "onCreate");
     }
@@ -62,8 +57,6 @@ public class DConnectService extends DConnectMessageService {
         super.onDestroy();
         // RESTfulサーバ停止
         stopRESTfulServer();
-        // Webサーバ停止
-        stopWebServer();
     }
 
     @Override
@@ -119,7 +112,6 @@ public class DConnectService extends DConnectMessageService {
         mLogger.fine("Port: " + mSettings.getPort());
         mLogger.fine("SSL: " + mSettings.isSSL());
         mLogger.fine("External IP: " + mSettings.allowExternalIP());
-        mLogger.fine("Document Root: " + mSettings.getDocumentRootPath());
 
         if (mRESTfulServer == null) {
             mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), this);
@@ -135,30 +127,6 @@ public class DConnectService extends DConnectMessageService {
         if (mRESTfulServer != null) {
             mRESTfulServer.shutdown();
             mRESTfulServer = null;
-        }
-    }
-
-    /**
-     * Webサーバを起動する.
-     */
-    private void startWebServer() {
-        DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
-        builder.port(mSettings.getWebPort()).isSsl(mSettings.isSSL())
-            .documentRootPath(mSettings.getDocumentRootPath());
-
-        if (mWebServer == null) {
-            mWebServer = new DConnectServerNanoHttpd(builder.build(), this);
-            mWebServer.start();
-        }
-    }
-
-    /**
-     * Webサーバを停止する.
-     */
-    private void stopWebServer() {
-        if (mWebServer != null) {
-            mWebServer.shutdown();
-            mWebServer = null;
         }
     }
 }

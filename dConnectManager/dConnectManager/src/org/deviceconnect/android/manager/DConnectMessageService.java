@@ -6,13 +6,12 @@
  */
 package org.deviceconnect.android.manager;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import android.app.Service;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.text.TextUtils;
 
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -46,12 +45,13 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
-import android.app.Service;
-import android.content.ComponentName;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.IBinder;
-import android.text.TextUtils;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * DConnectMessageを受信するサービス.
@@ -151,7 +151,7 @@ public abstract class DConnectMessageService extends Service
         mFileMgr = new FileManager(this);
 
         // Local OAuthの初期化
-        LocalOAuth2Main.initialize(this);
+        LocalOAuth2Main.initialize(getApplicationContext());
 
         // デバイスプラグインとのLocal OAuth情報
         mLocalOAuth = new DConnectLocalOAuth(this);

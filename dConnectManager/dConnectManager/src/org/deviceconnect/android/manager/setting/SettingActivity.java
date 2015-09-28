@@ -35,5 +35,6 @@ public class SettingActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        LocalOAuth2Main.destroy();
     }
 }

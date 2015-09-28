@@ -15,7 +15,7 @@ import android.text.TextUtils;
 
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.db.DBCacheController;
+import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.ClientPackageInfo;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
@@ -134,7 +134,7 @@ public abstract class DConnectMessageService extends Service
         mLogger.entering(this.getClass().getName(), "onCreate");
 
         // イベント管理クラスの初期化
-        EventManager.INSTANCE.setController(new DBCacheController(this));
+        EventManager.INSTANCE.setController(new MemoryCacheController());
 
         // DConnect設定
         mSettings = DConnectSettings.getInstance();

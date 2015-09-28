@@ -428,6 +428,11 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 if (strValue != null) {
                     try {
                         int checkInt = Integer.decode(strValue);
+                        if (checkInt < 0x0 || checkInt >= 0x100) {
+                            MessageUtils.setInvalidRequestParameterError(response);
+                            getContext().sendBroadcast(response);
+                            return;
+                        }
                         epcs[i] = "0x" + Integer.toHexString(checkInt);
                     } catch (NumberFormatException e) {
                         MessageUtils.setInvalidRequestParameterError(response);
@@ -831,6 +836,52 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 MessageUtils.setInvalidRequestParameterError(response);
                 getContext().sendBroadcast(response);
                 return;
+            }
+
+            try {
+                int checkInt = Integer.decode(epc);
+                if (checkInt < 0x0 || checkInt >= 0x100) {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+                epc = "0x" + Integer.toHexString(checkInt);
+            } catch (NumberFormatException e) {
+                MessageUtils.setInvalidRequestParameterError(response);
+                getContext().sendBroadcast(response);
+                return;
+            }
+
+            Pattern p = Pattern.compile(",");
+            String[] values = p.split(value);
+            for (int i = 0; i < values.length; i++) {
+                String strValue = values[i].trim();
+                if (strValue != null) {
+                    try {
+                        int checkInt = Integer.decode(strValue);
+                        if (checkInt < 0x0 || checkInt >= 0x100) {
+                            MessageUtils.setInvalidRequestParameterError(response);
+                            getContext().sendBroadcast(response);
+                            return;
+                        }
+                        values[i] = "0x" + Integer.toHexString(checkInt);
+                    } catch (NumberFormatException e) {
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        getContext().sendBroadcast(response);
+                        return;
+                    }
+                } else {
+                    MessageUtils.setInvalidRequestParameterError(response);
+                    getContext().sendBroadcast(response);
+                    return;
+                }
+            }
+            value = "";
+            for (int i = 0; i < values.length; i++) {
+                if (i != 0) {
+                    value += ",";
+                }
+                value += values[i];
             }
 
             String urlstr = "content://com.sonycsl.kadecot.json.provider/jsonp/v1/devices/"

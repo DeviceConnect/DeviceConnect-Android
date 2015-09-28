@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">IRKit 2.1.0</string>
+    <string name="app_name">IRKit 2.1.1</string>
     <string name="no_device">No device</string>
     <string name="hint_ssid">SSID</string>
     <string name="column_ssid">SSID</string>

@@ -6,6 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.host.camera;
 
+import android.net.Uri;
+
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,10 +33,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
-
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-
-import android.net.Uri;
 
 /**
  * Mixed Replace Media Server.
@@ -426,7 +426,7 @@ public class MixedReplaceMediaServer {
         private void sendMedia(final byte[] media) throws IOException {
             StringBuilder sb = new StringBuilder();
             sb.append("--" + mBoundary + "\r\n");
-            sb.append("Content-type: " + mContentType + "\r\n");
+            sb.append("Content-Type: " + mContentType + "\r\n");
             sb.append("Content-Length: " + media.length + "\r\n");
             sb.append("\r\n");
             mStream.write(sb.toString().getBytes());
@@ -555,7 +555,6 @@ public class MixedReplaceMediaServer {
         sb.append("Content-Type: multipart/x-mixed-replace; ");
         sb.append("boundary=" + mBoundary + "\r\n");
         sb.append("\r\n");
-        sb.append("--" + mBoundary + "\r\n");
         return sb.toString();
     }
     

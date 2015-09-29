@@ -6,19 +6,12 @@
  */
 package org.deviceconnect.android.deviceplugin.host.camera;
 
-import java.io.ByteArrayOutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.Executors;
-
-import org.deviceconnect.android.activity.IntentHandlerActivity;
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.provider.FileManager;
-
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -26,12 +19,10 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.net.Uri;
@@ -43,12 +34,23 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.WindowManager;
-import android.widget.TextView;
+
+import org.deviceconnect.android.activity.IntentHandlerActivity;
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.provider.FileManager;
+
+import java.io.ByteArrayOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.Executors;
 
 /**
  * カメラのプレビューをオーバーレイで表示するクラス.
@@ -56,6 +58,16 @@ import android.widget.TextView;
  * @author NTT DOCOMO, INC.
  */
 public class CameraOverlay implements Camera.PreviewCallback {
+    /**
+     * オーバーレイ削除用アクションを定義.
+     */
+    public static final String DELETE_PREVIEW_ACTION = "org.deviceconnect.android.deviceplugin.host.DELETE_PREVIEW";
+
+    /**
+     * NotificationIDを定義.
+     */
+    private static final int NOTIFICATION_ID = 1010;
+
     /**
      * 写真を取るまでの待機時間を定義.
      */
@@ -93,9 +105,6 @@ public class CameraOverlay implements Camera.PreviewCallback {
     /** プレビュー画面. */
     private Preview mPreview;
 
-    /** 表示用のテキスト. */
-    private TextView mTextView;
-
     /** 使用するカメラのインスタンス. */
     private Camera mCamera;
 
@@ -123,7 +132,6 @@ public class CameraOverlay implements Camera.PreviewCallback {
             String action = intent.getAction();
             if (Intent.ACTION_CONFIGURATION_CHANGED.equals(action)) {
                 updatePosition(mPreview);
-                updatePosition(mTextView);
             }
         }
     };
@@ -171,7 +179,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
      * @return 表示されている場合はtrue、それ以外はfalse
      */
     public synchronized boolean isShow() {
-        return mPreview != null && mTextView != null;
+        return mPreview != null;
     }
 
     /**
@@ -241,7 +249,8 @@ public class CameraOverlay implements Camera.PreviewCallback {
                     int pt = (int) (5 * getScaledDensity());
                     WindowManager.LayoutParams l = new WindowManager.LayoutParams(pt, pt,
                             WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                                    | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                                     | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                                     | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                             PixelFormat.TRANSLUCENT);
@@ -253,29 +262,11 @@ public class CameraOverlay implements Camera.PreviewCallback {
                     mPreview.switchCamera(mCamera);
                     mCamera.setPreviewCallback(CameraOverlay.this);
 
-                    mTextView = new TextView(mContext);
-                    mTextView.setText(R.string.overlay_preview);
-                    mTextView.setTextColor(Color.RED);
-                    mTextView.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-                    mTextView.setClickable(true);
-                    mTextView.setOnClickListener(new OnClickListener() {
-                        @Override
-                        public void onClick(final View v) {
-                            hide();
-                        }
-                    });
-
-                    WindowManager.LayoutParams l2 = new WindowManager.LayoutParams(WindowManager.LayoutParams.WRAP_CONTENT,
-                            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
-                            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                            PixelFormat.TRANSLUCENT);
-                    l2.x = -size.x / 2;
-                    l2.y = -size.y / 2;
-                    mWinMgr.addView(mTextView, l2);
-
                     IntentFilter filter = new IntentFilter();
                     filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
                     mContext.registerReceiver(mOrientReceiver, filter);
+
+                    sendNotification();
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                 }
@@ -309,7 +300,6 @@ public class CameraOverlay implements Camera.PreviewCallback {
                     public void onSuccess() {
                         resultReceiver.send(Activity.RESULT_OK, null);
                     }
-
                     @Override
                     public void onFail(@NonNull String deniedPermission) {
                         resultReceiver.send(Activity.RESULT_CANCELED, null);
@@ -326,6 +316,8 @@ public class CameraOverlay implements Camera.PreviewCallback {
             public void run() {
                 try {
                     synchronized (mCameraLock) {
+                        hideNotification();
+
                         if (mCamera != null) {
                             mPreview.setCamera(null);
                             mCamera.stopPreview();
@@ -337,13 +329,11 @@ public class CameraOverlay implements Camera.PreviewCallback {
                             mWinMgr.removeView(mPreview);
                             mPreview = null;
                         }
-                        if (mTextView != null) {
-                            mWinMgr.removeView(mTextView);
-                            mTextView = null;
-                        }
+
                         try {
                             mContext.unregisterReceiver(mOrientReceiver);
                         } catch (IllegalArgumentException ignored) {
+                            // do nothing.
                         }
                         mFinishFlag = false;
                     }
@@ -352,6 +342,55 @@ public class CameraOverlay implements Camera.PreviewCallback {
                 }
             }
         });
+    }
+
+    /**
+     * Notificationを削除する.
+     */
+    private void hideNotification() {
+        NotificationManager manager = (NotificationManager) mContext
+                .getSystemService(Service.NOTIFICATION_SERVICE);
+        manager.cancel(NOTIFICATION_ID);
+    }
+
+    /**
+     * Notificationを送信する.
+     */
+    private void sendNotification() {
+        PendingIntent contentIntent = createPendingIntent();
+        Notification notification = createNotification(contentIntent);
+        NotificationManager manager = (NotificationManager) mContext
+                .getSystemService(Service.NOTIFICATION_SERVICE);
+        manager.notify(NOTIFICATION_ID, notification);
+    }
+
+    /**
+     * Notificationを作成する.
+     * @param pendingIntent Notificationがクリックされたときに起動するIntent
+     * @return Notification
+     */
+    private Notification createNotification(final PendingIntent pendingIntent) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext.getApplicationContext());
+        builder.setContentIntent(pendingIntent);
+        builder.setTicker(mContext.getString(R.string.overlay_preview_ticker));
+        builder.setSmallIcon(R.drawable.dconnect_icon);
+        builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title));
+        builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
+        builder.setWhen(System.currentTimeMillis());
+        builder.setAutoCancel(true);
+        return builder.build();
+    }
+
+    /**
+     * PendingIntentを作成する.
+     * @return PendingIntent
+     */
+    private PendingIntent createPendingIntent() {
+        Intent intent = new Intent(mContext, HostDeviceService.class);
+        intent.setAction(DELETE_PREVIEW_ACTION);
+        PendingIntent contentIntent = PendingIntent.getService(
+                mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        return contentIntent;
     }
 
     /**

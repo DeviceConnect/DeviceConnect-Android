@@ -425,21 +425,15 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
 
             for (int i = 0; i < epcs.length; i++) {
                 String strValue = epcs[i].trim();
-                if (strValue != null) {
-                    try {
-                        int checkInt = Integer.decode(strValue);
-                        if (checkInt < 0x0 || checkInt >= 0x100) {
-                            MessageUtils.setInvalidRequestParameterError(response);
-                            getContext().sendBroadcast(response);
-                            return;
-                        }
-                        epcs[i] = "0x" + Integer.toHexString(checkInt);
-                    } catch (NumberFormatException e) {
+                try {
+                    int checkInt = Integer.decode(strValue);
+                    if (checkInt < 0x0 || checkInt >= 0x100) {
                         MessageUtils.setInvalidRequestParameterError(response);
                         getContext().sendBroadcast(response);
                         return;
                     }
-                } else {
+                    epcs[i] = "0x" + Integer.toHexString(checkInt);
+                } catch (NumberFormatException e) {
                     MessageUtils.setInvalidRequestParameterError(response);
                     getContext().sendBroadcast(response);
                     return;
@@ -731,7 +725,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         if (auto) {
             param = KadecotHomeAirConditioner.AIRFLOW_AUTO;
         } else {
-            int value = (int)(getAirFlowValue(request) * 100);
+            int value = (int) (getAirFlowValue(request) * 100);
             if (value >= 0 && value < 12) {
                 param = KadecotHomeAirConditioner.AIRFLOW_LV1;
             } else if (value >= 12 && value < 25) {
@@ -856,37 +850,31 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
             String[] values = p.split(value);
             for (int i = 0; i < values.length; i++) {
                 String strValue = values[i].trim();
-                if (strValue != null) {
-                    try {
-                        int checkInt = Integer.decode(strValue);
-                        if (checkInt < 0x0 || checkInt >= 0x100) {
-                            MessageUtils.setInvalidRequestParameterError(response);
-                            getContext().sendBroadcast(response);
-                            return;
-                        }
-                        values[i] = "0x" + Integer.toHexString(checkInt);
-                    } catch (NumberFormatException e) {
+                try {
+                    int checkInt = Integer.decode(strValue);
+                    if (checkInt < 0x0 || checkInt >= 0x100) {
                         MessageUtils.setInvalidRequestParameterError(response);
                         getContext().sendBroadcast(response);
                         return;
                     }
-                } else {
+                    values[i] = "0x" + Integer.toHexString(checkInt);
+                } catch (NumberFormatException e) {
                     MessageUtils.setInvalidRequestParameterError(response);
                     getContext().sendBroadcast(response);
                     return;
                 }
             }
-            value = "";
+            StringBuilder buf = new StringBuilder();
             for (int i = 0; i < values.length; i++) {
                 if (i != 0) {
-                    value += ",";
+                    buf.append(",");
                 }
-                value += values[i];
+                buf.append(values[i]);
             }
 
             String urlstr = "content://com.sonycsl.kadecot.json.provider/jsonp/v1/devices/"
                     + element[IDX_DEVICEID] + "?procedure=set&params={\"propertyName\":\"" + epc
-                    + "\",\"propertyValue\":[" + value + "]}";
+                    + "\",\"propertyValue\":[" + buf.toString() + "]}";
 
             Cursor cursor = getContext().getContentResolver().query(Uri.parse(urlstr), null, null, null, null);
             if (cursor != null) {

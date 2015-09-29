@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <PreferenceCategory android:title="@string/activity_settings_server_on_off" >
-        <SwitchPreference
+        <org.deviceconnect.android.manager.setting.SwitchPreference
             android:key="@string/key_settings_dconn_server_on_off"
             android:summaryOff="@string/activity_settings_dconnect_disabled"
             android:summaryOn="@string/activity_settings_dconnect_enabled"
@@ -82,6 +82,11 @@
             android:title="@string/activity_settings_keyword" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_web_server_settings" >
+        <org.deviceconnect.android.manager.setting.SwitchPreference
+            android:key="@string/key_settings_web_server_on_off"
+            android:summaryOff="@string/activity_settings_dconnect_disabled"
+            android:summaryOn="@string/activity_settings_dconnect_enabled"
+            android:title="@string/activity_settings_web_server" />
         <EditTextPreference
             android:key="@string/key_settings_web_server_host"
             android:summary="@string/activity_settings_web_server_default_host"

@@ -63,6 +63,7 @@
     <string name="activity_settings_close">閉じる</string>
 
     <string name="activity_settings_web_server_settings">Webサーバ設定</string>
+    <string name="activity_settings_web_server">Webサーバ</string>
     <string name="activity_settings_web_server_default_host">localhost</string>
     <string name="activity_settings_web_server_default_port">8080</string>
     <string name="activity_settings_web_server_document_root">ドキュメントルートパス</string>
@@ -88,6 +89,7 @@
     <string name="key_settings_dconn_whitelist_origin_blocking">settings_whitelist_origin_blocking</string>
     <string name="key_settings_list_device_plugin">settings_list_device_plugin</string>
     <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
+    <string name="key_settings_web_server_on_off">key_settings_web_server_on_off</string>
     <string name="key_settings_web_server_host">key_settings_web_server_host</string>
     <string name="key_settings_web_server_port">key_settings_web_server_port</string>
     <string name="key_settings_web_server_document_root_path">key_settings_web_server_document_root_path</string>

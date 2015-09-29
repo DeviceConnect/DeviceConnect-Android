@@ -17,5 +17,5 @@
     <string name="overlay_preview">PREVIEW</string>
     <string name="overlay_preview_ticker">カメラを起動します</string>
     <string name="overlay_preview_content_title">カメラ撮影中</string>
-    <string name="overlay_preview_content_message">タップすることで撮影を停止することができます。</string>
+    <string name="overlay_preview_content_message">タップして撮影を停止します。</string>
 </resources>

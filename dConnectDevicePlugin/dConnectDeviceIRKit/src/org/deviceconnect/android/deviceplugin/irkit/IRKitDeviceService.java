@@ -44,6 +44,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author NTT DOCOMO, INC.
  */
 public class IRKitDeviceService extends DConnectMessageService implements DetectionListener {
+
+    /**
+     * IRKitの検知を再スタートさせるためのアクションを定義.
+     */
+    public static final String ACTION_RESTART_DETECTION_IRKIT = "action.ACTION_RESTART_DETECTION_IRKIT";
+
     /**
      * 検知したデバイス群.
      */
@@ -82,24 +88,25 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
-        super.onStartCommand(intent, flags, startId);
-
         if (intent != null) {
-
             String action = intent.getAction();
-
             if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
                 if (!WiFiUtil.isOnWiFi(this) && IRKitManager.INSTANCE.isDetecting()) {
                     stopDetection();
                 } else if (WiFiUtil.isOnWiFi(this) && WiFiUtil.isChangedSSID(this, mCurrentSSID)) {
-                    stopDetection();
-                    startDetection();
+                    restartDetection();
                 }
+                return START_STICKY;
+            } else if (ACTION_RESTART_DETECTION_IRKIT.equals(action)) {
+                if (WiFiUtil.isOnWiFi(this)) {
+                    restartDetection();
+                } else {
+                    stopDetection();
+                }
+                return START_STICKY;
             }
-
         }
-
-        return START_STICKY;
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -325,5 +332,15 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         mCurrentSSID = null;
         mDevices.clear();
         IRKitManager.INSTANCE.stopDetection();
+    }
+
+    private void restartDetection() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                stopDetection();
+                startDetection();
+            }
+        }).start();
     }
 }

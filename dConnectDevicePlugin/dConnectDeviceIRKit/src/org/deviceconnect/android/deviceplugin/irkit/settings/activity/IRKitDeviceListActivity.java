@@ -16,6 +16,7 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitApplication;
+import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitDeviceListFragment;
@@ -39,14 +40,17 @@ public class IRKitDeviceListActivity extends Activity {
      * Virtual Device 管理ページ.
      */
     public static final int MANAGE_VIRTUAL_DEVICE_PAGE = 1;
+
     /**
      * Virtual Profile 管理ページ.
      */
     public static final int MANAGE_VIRTUAL_PROFILE_PAGE = 2;
+
     /**
      * Ir 登録ページ.
      */
     public static final int REGISTER_IR_PAGE = 3;
+
     /**
      * 今表示されているページ番号
      */

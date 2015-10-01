@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
@@ -23,12 +24,16 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitApplication;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitDevice;
+import org.deviceconnect.android.deviceplugin.irkit.IRKitDeviceService;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitDeviceListActivity;
 import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * IRKit デバイスリスト fragment.
@@ -43,6 +48,8 @@ public class IRKitDeviceListFragment extends Fragment  {
     private List<IRKitDevice> mDevices;
     /** ListView. */
     private ListView mListView;
+    /** Threa管理クラス. */
+    private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -116,6 +123,13 @@ public class IRKitDeviceListFragment extends Fragment  {
                 openDeviceSetting();
             }
         });
+        Button detectButton = (Button) rootView.findViewById(R.id.detect_irkit);
+        detectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View view) {
+                restartIRKitDetection();
+            }
+        });
         mListView = (ListView) rootView.findViewById(R.id.listview_devicelist);
         mListView.setItemsCanFocus(true);
         mListView.setAdapter(mDeviceAdapter);
@@ -137,8 +151,6 @@ public class IRKitDeviceListFragment extends Fragment  {
         });
         return rootView;
     }
-
-
 
     /**
      * Update device list.
@@ -168,6 +180,39 @@ public class IRKitDeviceListFragment extends Fragment  {
         Intent intent = new Intent();
         intent.setClass(getActivity(), IRKitSettingActivity.class);
         startActivity(intent);
+    }
+
+    /**
+     * IRKitの検知を再スタートさせるためのコマンドを送信する.
+     */
+    private void restartIRKitDetection() {
+        Intent intent = new Intent();
+        intent.setClass(getActivity(), IRKitDeviceService.class);
+        intent.setAction(IRKitDeviceService.ACTION_RESTART_DETECTION_IRKIT);
+        getActivity().startService(intent);
+
+        String title = getString(R.string.activity_devicelist_detect_title);
+        String message = getString(R.string.activity_devicelist_detect_message);
+
+        final IRKitProgressDialogFragment dialog = IRKitProgressDialogFragment.newInstance(title, message);
+        dialog.show(getFragmentManager(), "dialog");
+
+        mExecutorService.schedule(new Runnable() {
+            @Override
+            public void run() {
+                updateDeviceList();
+
+                Activity activity = getActivity();
+                if (activity != null) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            dialog.dismiss();
+                        }
+                    });
+                }
+            }
+        }, 10, TimeUnit.SECONDS);
     }
 
     /**

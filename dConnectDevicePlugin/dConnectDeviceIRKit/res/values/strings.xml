@@ -40,6 +40,10 @@
     <string name="alert_btn_close">閉じる</string>
 
     <string name="activity_devicelist_title">IRKit一覧</string>
+    <string name="activity_devicelist_detect_title">IRKitを検索</string>
+    <string name="activity_devicelist_detect_message">登録されているIRKitを検索しています</string>
+    <string name="activity_devicelist_detect_irkit">IRKit検索</string>
+
     <string name="no_irkit">No Device</string>
     <string name="open_irkit_settings">IRKit一覧</string>
     <string name="ind_message_search">検索処理中・・・</string>

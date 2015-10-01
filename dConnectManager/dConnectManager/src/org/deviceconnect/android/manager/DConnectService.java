@@ -7,6 +7,8 @@
 package org.deviceconnect.android.manager;
 
 import android.content.Intent;
+import android.os.IBinder;
+import android.os.RemoteException;
 
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.DConnectMessage;
@@ -41,22 +43,26 @@ public class DConnectService extends DConnectMessageService {
     private DConnectServerEventListenerImpl mWebServerListener;
 
     @Override
+    public IBinder onBind(final Intent intent) {
+        return (IBinder) mBinder;
+    }
+
+    @Override
+    public boolean onUnbind(final Intent intent) {
+        return super.onUnbind(intent);
+    }
+
+    @Override
     public void onCreate() {
         super.onCreate();
-
         mLogger.entering(this.getClass().getName(), "onCreate");
-
-        // RESTfulサーバ起動
-        startRESTfulServer();
-
         mLogger.exiting(this.getClass().getName(), "onCreate");
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
-        // RESTfulサーバ停止
         stopRESTfulServer();
+        super.onDestroy();
     }
 
     @Override
@@ -94,6 +100,8 @@ public class DConnectService extends DConnectMessageService {
      * HTTPサーバを開始する.
      */
     private void startRESTfulServer() {
+        mSettings.load(this);
+
         mWebServerListener = new DConnectServerEventListenerImpl(this);
         mWebServerListener.setFileManager(mFileMgr);
 
@@ -129,4 +137,51 @@ public class DConnectService extends DConnectMessageService {
             mRESTfulServer = null;
         }
     }
+
+    /**
+     * DConnectManagerを起動する.
+     */
+    private synchronized void startInternal() {
+        if (!mRunningFlag) {
+            mRunningFlag = true;
+            startDConnect();
+            startRESTfulServer();
+        }
+    }
+
+    /**
+     * DConnectManagerを停止する.
+     */
+    private synchronized void stopInternal() {
+        if (mRunningFlag) {
+            mRunningFlag = false;
+            stopRESTfulServer();
+            stopDConnect();
+        }
+    }
+
+    /**
+     * バインドするためのスタブクラス.
+     */
+    private final IDConnectService mBinder = new IDConnectService.Stub()  {
+        @Override
+        public IBinder asBinder() {
+            return null;
+        }
+
+        @Override
+        public boolean isRunning() throws RemoteException {
+            return mRunningFlag;
+        }
+
+        @Override
+        public void start() throws RemoteException {
+            startInternal();
+        }
+
+        @Override
+        public void stop() throws RemoteException {
+            stopInternal();
+        }
+    };
 }

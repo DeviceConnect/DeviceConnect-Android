@@ -6,28 +6,29 @@
  */
 package org.deviceconnect.android.manager;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.List;
-import java.util.logging.Logger;
-
-import org.deviceconnect.android.manager.hmac.HmacManager;
-import org.deviceconnect.android.manager.setting.SettingActivity;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningServiceInfo;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import org.deviceconnect.android.manager.hmac.HmacManager;
+import org.deviceconnect.android.manager.setting.SettingActivity;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.logging.Logger;
 
 /**
  * Device Connect Manager Launch Activity.
@@ -66,6 +67,15 @@ public class DConnectLaunchActivity extends Activity {
                 finish();
             }
         });
+
+        Intent i1 = new Intent();
+        i1.setClass(this, DConnectService.class);
+        startService(i1);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
@@ -76,7 +86,6 @@ public class DConnectLaunchActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        toggleButton(isDConnectServiceRunning());
 
         Intent intent = getIntent();
         if (intent != null && isSchemeForLaunch(intent.getScheme())) {
@@ -104,9 +113,17 @@ public class DConnectLaunchActivity extends Activity {
             } catch (UnsupportedEncodingException e) {
                 // nothing to do.
                 mLogger.warning("Failed to decode origin=" + origin);
-                return;
             }
         }
+
+        Intent bindIntent = new Intent(IDConnectService.class.getName());
+        bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onPause() {
+        unbindService(mServiceConnection);
+        super.onPause();
     }
 
     /**
@@ -135,7 +152,14 @@ public class DConnectLaunchActivity extends Activity {
             mLaunchOrStopButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View v) {
-                    stopService(new Intent(DConnectLaunchActivity.this, DConnectService.class));
+                    if (mDConnectService != null) {
+                        try {
+                            mDConnectService.stop();
+                        } catch (RemoteException e) {
+                            // do nothing
+                            mLogger.warning("Failed to stop service");
+                        }
+                    }
                     finish();
                 }
             });
@@ -145,7 +169,14 @@ public class DConnectLaunchActivity extends Activity {
             mLaunchOrStopButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(final View v) {
-                    startService(new Intent(DConnectLaunchActivity.this, DConnectService.class));
+                    if (mDConnectService != null) {
+                        try {
+                            mDConnectService.start();
+                        } catch (RemoteException e) {
+                            // do nothing
+                            mLogger.warning("Failed to start service");
+                        }
+                    }
                     finish();
                 }
             });
@@ -171,28 +202,32 @@ public class DConnectLaunchActivity extends Activity {
     }
 
     /**
-     * Checks whether {@link DConnectService} is running or not.
-     * @return <code>true</code> if {@link DConnectService} is running, otherwise <code>false</code>.
+     * DConnectServiceを操作するクラス.
      */
-    private boolean isDConnectServiceRunning() {
-        return isServiceRunning(this, DConnectService.class);
-    }
+    private IDConnectService mDConnectService;
 
     /**
-     * Checks whether the specified service is running or not.
-     * @param c an instance of {@link Context}
-     * @param cls the class of the specified service.
-     * @return <code>true</code> if the specified service is running, otherwise <code>false</code>.
+     * DConnectServiceと接続するためのクラス.
      */
-    private boolean isServiceRunning(final Context c, final Class<?> cls) {
-        ActivityManager am = (ActivityManager) c.getSystemService(Context.ACTIVITY_SERVICE);
-        List<RunningServiceInfo> runningService = am.getRunningServices(Integer.MAX_VALUE);
-        for (RunningServiceInfo i : runningService) {
-            if (cls.getName().equals(i.service.getClassName())) {
-                return true;
-            }
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(final ComponentName name, final IBinder service) {
+            mDConnectService = (IDConnectService) service;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        boolean running = mDConnectService.isRunning();
+                        toggleButton(running);
+                    } catch (RemoteException e) {
+                        mLogger.warning("Failed to get service");
+                    }
+                }
+            });
         }
-        return false;
-    }
-
+        @Override
+        public void onServiceDisconnected(final ComponentName name) {
+            mDConnectService = null;
+        }
+    };
 }

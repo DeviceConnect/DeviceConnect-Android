@@ -147,6 +147,8 @@
     <string name="service_observation_warning">Warning</string>
     <string name="service_observation_msg_no_permission">Port observation was interrupted due to lack of file read permission.</string>
 
+    <string name="service_web_server">Web Server</string>
+
     <!-- =================     DebugActivity     ================= -->
 
     <string name="contents"></string>

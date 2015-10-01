@@ -6,11 +6,13 @@
  */
 package org.deviceconnect.android.manager;
 
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 
 import org.deviceconnect.android.event.Event;
@@ -35,6 +37,7 @@ import org.deviceconnect.android.manager.request.DConnectRequest;
 import org.deviceconnect.android.manager.request.DConnectRequestManager;
 import org.deviceconnect.android.manager.request.DiscoveryDeviceRequest;
 import org.deviceconnect.android.manager.request.RegisterNetworkServiceDiscovery;
+import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
@@ -67,6 +70,9 @@ public abstract class DConnectMessageService extends Service
     private static final String ORIGIN_FILE = "file://";
     /** 常に許可するオリジン一覧. */
     private static final String[] IGNORED_ORIGINS = {ORIGIN_FILE};
+
+    /** Notification ID.*/
+    private static final int ONGOING_NOTIFICATION_ID = 4035;
 
     /** サービスIDやセッションキーを分割するセパレータ. */
     public static final String SEPARATOR = ".";
@@ -113,6 +119,9 @@ public abstract class DConnectMessageService extends Service
     /** ホワイトリスト管理クラス. */
     private Whitelist mWhitelist;
 
+    /** サーバの起動状態. */
+    protected boolean mRunningFlag;
+
     @Override
     public IBinder onBind(final Intent intent) {
         return null;
@@ -131,44 +140,28 @@ public abstract class DConnectMessageService extends Service
         } else {
             mLogger.setLevel(Level.OFF);
         }
+
         mLogger.entering(this.getClass().getName(), "onCreate");
 
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
+        // Local OAuthの初期化
+        LocalOAuth2Main.initialize(getApplicationContext());
+
         // DConnect設定
         mSettings = DConnectSettings.getInstance();
         mSettings.load(this);
 
-        mLogger.info("Settings");
-        mLogger.info("    SSL: " + mSettings.isSSL());
-        mLogger.info("    Host: " + mSettings.getHost());
-        mLogger.info("    Port: " + mSettings.getPort());
-        mLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
-        mLogger.info("    OriginBlock: " + mSettings.isBlockingOrigin());
-
         // ファイル管理クラス
         mFileMgr = new FileManager(this);
-
-        // Local OAuthの初期化
-        LocalOAuth2Main.initialize(getApplicationContext());
 
         // デバイスプラグインとのLocal OAuth情報
         mLocalOAuth = new DConnectLocalOAuth(this);
 
-        // HMAC管理クラス
-        mHmacManager = new HmacManager(this);
-
-        // ホワイトリスト管理クラス
-        mWhitelist = new Whitelist(this);
-
-        // リクエスト管理クラスの作成
-        mRequestManager = new DConnectRequestManager();
-
         // デバイスプラグイン管理クラスの作成
         mPluginMgr = new DevicePluginManager(this, mDConnectDomain);
         mPluginMgr.setEventListener(this);
-        mPluginMgr.createDevicePluginList();
 
         // プロファイルの追加
         addProfile(new AuthorizationProfile());
@@ -179,20 +172,18 @@ public abstract class DConnectMessageService extends Service
 
         // dConnect Managerで処理せず、登録されたデバイスプラグインに処理させるプロファイル
         setDeliveryProfile(new DConnectDeliveryProfile(mPluginMgr, mLocalOAuth,
-            mSettings.requireOrigin()));
+                mSettings.requireOrigin()));
 
         mLogger.exiting(this.getClass().getName(), "onCreate");
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         mLogger.entering(this.getClass().getName(), "onDestroy");
-        // リクエストを削除
-        mRequestManager.shutdown();
-        // Local OAuthの後始末
+        stopDConnect();
         LocalOAuth2Main.destroy();
         mLogger.exiting(this.getClass().getName(), "onDestroy");
+        super.onDestroy();
     }
 
     @Override
@@ -201,6 +192,10 @@ public abstract class DConnectMessageService extends Service
         if (intent == null) {
             mLogger.warning("intent is null.");
             mLogger.exiting(this.getClass().getName(), "onStartCommand");
+            return START_STICKY;
+        }
+
+        if (!mRunningFlag) {
             return START_STICKY;
         }
 
@@ -568,6 +563,43 @@ public abstract class DConnectMessageService extends Service
     }
 
     /**
+     * DConnectManagerを起動する。
+     */
+    protected synchronized void startDConnect() {
+        mRunningFlag = true;
+
+        // 設定の更新
+        mSettings.load(this);
+
+        mLogger.info("Settings");
+        mLogger.info("    SSL: " + mSettings.isSSL());
+        mLogger.info("    Host: " + mSettings.getHost());
+        mLogger.info("    Port: " + mSettings.getPort());
+        mLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
+        mLogger.info("    OriginBlock: " + mSettings.isBlockingOrigin());
+
+        // HMAC管理クラス
+        mHmacManager = new HmacManager(this);
+        // ホワイトリスト管理クラス
+        mWhitelist = new Whitelist(this);
+        // リクエスト管理クラスの作成
+        mRequestManager = new DConnectRequestManager();
+        // デバイスプラグインの更新
+        mPluginMgr.createDevicePluginList();
+        showNotification();
+    }
+
+    /**
+     * DConnectManagerを停止する.
+     */
+    protected synchronized void stopDConnect() {
+        mRunningFlag = false;
+
+        mRequestManager.shutdown();
+        hideNotification();
+    }
+
+    /**
      * 各デバイスプラグインにリクエストを受け渡す.
      * 
      * ここで、アクセストークンをリクエストに付加する。
@@ -586,7 +618,7 @@ public abstract class DConnectMessageService extends Service
      * 
      * デバイスプラグインから送られてくるサービスIDは、デバイスプラグインの中でIDになっている。
      * dConnect ManagerでデバイスプラグインのIDをサービスIDに付加することでDNSっぽい動きを実現する。
-     * 
+     *
      * @param event イベントメッセージ用Intent
      * @param plugin 送信元のデバイスプラグイン
      */
@@ -595,6 +627,30 @@ public abstract class DConnectMessageService extends Service
                 .getStringExtra(IntentDConnectMessage.EXTRA_SERVICE_ID);
         event.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID,
                 mPluginMgr.appendServiceId(plugin, serviceId));
+    }
+
+    /**
+     * サービスをフォアグランドに設定する。
+     */
+    private void showNotification() {
+        Intent notificationIntent = new Intent(getApplicationContext(), SettingActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                getApplicationContext(), 0, notificationIntent, 0);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+        builder.setContentIntent(pendingIntent);
+        builder.setTicker(getString(R.string.app_name));
+        builder.setContentTitle(getString(R.string.app_name));
+        builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort());
+        builder.setSmallIcon(R.drawable.icon);
+
+        startForeground(ONGOING_NOTIFICATION_ID, builder.build());
+    }
+
+    /**
+     * フォアグランドを停止する。
+     */
+    private void hideNotification() {
+        stopForeground(true);
     }
 
     /**

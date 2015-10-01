@@ -118,8 +118,19 @@
         <!-- Device Connect Manager本体のサービス. -->
         <service
             android:name="org.deviceconnect.android.manager.DConnectService"
-            android:exported="false"
-            android:process=":dconnect_process">
+            android:exported="false">
+            <intent-filter>
+                <action android:name="org.deviceconnect.android.manager.IDConnectService"/>
+            </intent-filter>
+        </service>
+
+        <!-- Webサーバを管理するサービス -->
+        <service
+            android:name="org.deviceconnect.android.manager.DConnectWebService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="org.deviceconnect.android.manager.IDConnectWebService"/>
+            </intent-filter>
         </service>
 
         <!-- Device Connectのファイルを管理するProvider. -->
@@ -131,12 +142,6 @@
                 android:name="filelocation"
                 android:resource="@xml/filelocation"/>
         </provider>
-
-        <!-- Webサーバを管理するサービス -->
-        <service
-            android:name="org.deviceconnect.android.manager.DConnectWebService"
-            android:exported="false"
-            android:process=":dconnect_process"/>
 
         <!-- LocalOAuth -->
         <!-- Local OAuth 認可ダイアログ用Activity. -->
@@ -157,6 +162,7 @@
             android:name="org.deviceconnect.android.manager.setting.DevicePluginListActivity"
             android:label="@string/app_name">
         </activity>
+
         <!-- Device Plug-in Information Activity. -->
         <activity
             android:name="org.deviceconnect.android.manager.setting.DevicePluginInfoActivity"
@@ -166,8 +172,7 @@
         <!-- Local OAuth 認可処理用サービス. -->
         <service
             android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false"
-            android:process=":dconnect_process">
+            android:exported="false">
         </service>
 
         <!-- Device Connect監視サービス. -->

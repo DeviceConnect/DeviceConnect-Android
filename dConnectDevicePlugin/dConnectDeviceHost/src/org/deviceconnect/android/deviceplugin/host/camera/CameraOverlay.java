@@ -552,9 +552,9 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         if (degree == 0) {
                             mServer.offerMedia(jdata);
                         } else {
-                            BitmapFactory.Options bitmapFatoryOptions = new BitmapFactory.Options();
-                            bitmapFatoryOptions.inPreferredConfig = Bitmap.Config.ARGB_8888;
-                            Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFatoryOptions);
+                            BitmapFactory.Options bitmapFactoryOptions = new BitmapFactory.Options();
+                            bitmapFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
+                            Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFactoryOptions);
                             if (bmp != null) {
                                 Matrix m = new Matrix();
                                 m.setRotate(degree);

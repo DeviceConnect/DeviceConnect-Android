@@ -310,7 +310,7 @@ public class MixedReplaceMediaServer {
         /**
          * Defined buffer size.
          */
-        private static final int BUF_SIZE = 8192;
+        private static final int BUF_SIZE = 1024;
         
         /**
          * Socket.
@@ -346,7 +346,6 @@ public class MixedReplaceMediaServer {
                 InputStream in = mSocket.getInputStream();
                 int len = in.read(buf, 0, BUF_SIZE);
                 if (len == -1) {
-                    // error
                     return;
                 }
                 decodeHeader(buf, len);
@@ -424,12 +423,10 @@ public class MixedReplaceMediaServer {
          * @throws IOException if an error occurs while sending media data.
          */
         private void sendMedia(final byte[] media) throws IOException {
-            StringBuilder sb = new StringBuilder();
-            sb.append("--" + mBoundary + "\r\n");
-            sb.append("Content-Type: " + mContentType + "\r\n");
-            sb.append("Content-Length: " + media.length + "\r\n");
-            sb.append("\r\n");
-            mStream.write(sb.toString().getBytes());
+            mStream.write(("--" + mBoundary + "\r\n").getBytes());
+            mStream.write(("Content-Type: " + mContentType + "\r\n").getBytes());
+            mStream.write(("Content-Length: " + media.length + "\r\n").getBytes());
+            mStream.write("\r\n".getBytes());
             mStream.write(media);
             mStream.write("\r\n\r\n".getBytes());
             mStream.flush();

@@ -57,7 +57,8 @@ import java.util.concurrent.Executors;
  *
  * @author NTT DOCOMO, INC.
  */
-public class CameraOverlay implements Camera.PreviewCallback {
+@SuppressWarnings("deprecation")
+public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallback {
     /**
      * オーバーレイ削除用アクションを定義.
      */
@@ -108,7 +109,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
     /** 使用するカメラのインスタンス. */
     private Camera mCamera;
 
-    private Object mCameraLock = new Object();
+    private final Object mCameraLock = new Object();
 
     /** 画像を送るサーバ. */
     private MixedReplaceMediaServer mServer;
@@ -261,6 +262,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
                     mCamera = Camera.open();
                     mPreview.switchCamera(mCamera);
                     mCamera.setPreviewCallback(CameraOverlay.this);
+                    mCamera.setErrorCallback(CameraOverlay.this);
 
                     IntentFilter filter = new IntentFilter();
                     filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
@@ -316,6 +318,8 @@ public class CameraOverlay implements Camera.PreviewCallback {
             public void run() {
                 try {
                     synchronized (mCameraLock) {
+                        mFinishFlag = false;
+
                         hideNotification();
 
                         if (mCamera != null) {
@@ -325,17 +329,13 @@ public class CameraOverlay implements Camera.PreviewCallback {
                             mCamera.release();
                             mCamera = null;
                         }
+
                         if (mPreview != null) {
                             mWinMgr.removeView(mPreview);
                             mPreview = null;
                         }
 
-                        try {
-                            mContext.unregisterReceiver(mOrientReceiver);
-                        } catch (IllegalArgumentException ignored) {
-                            // do nothing.
-                        }
-                        mFinishFlag = false;
+                        mContext.unregisterReceiver(mOrientReceiver);
                     }
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
@@ -359,8 +359,10 @@ public class CameraOverlay implements Camera.PreviewCallback {
     private void sendNotification() {
         PendingIntent contentIntent = createPendingIntent();
         Notification notification = createNotification(contentIntent);
+        notification.flags = Notification.FLAG_NO_CLEAR;
         NotificationManager manager = (NotificationManager) mContext
                 .getSystemService(Service.NOTIFICATION_SERVICE);
+        manager.cancel(NOTIFICATION_ID);
         manager.notify(NOTIFICATION_ID, notification);
     }
 
@@ -377,7 +379,7 @@ public class CameraOverlay implements Camera.PreviewCallback {
         builder.setContentTitle(mContext.getString(R.string.overlay_preview_content_title));
         builder.setContentText(mContext.getString(R.string.overlay_preview_content_message));
         builder.setWhen(System.currentTimeMillis());
-        builder.setAutoCancel(true);
+        builder.setAutoCancel(false);
         return builder.build();
     }
 
@@ -522,6 +524,11 @@ public class CameraOverlay implements Camera.PreviewCallback {
      */
     private String createNewFileName() {
         return FILENAME_PREFIX + mSimpleDateFormat.format(new Date()) + FILE_EXTENSION;
+    }
+
+    @Override
+    public void onError(final int error, final Camera camera) {
+        hide();
     }
 
     @Override

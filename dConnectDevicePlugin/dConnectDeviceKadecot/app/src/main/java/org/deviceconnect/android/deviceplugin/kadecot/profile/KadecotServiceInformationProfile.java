@@ -62,7 +62,6 @@ public class KadecotServiceInformationProfile extends ServiceInformationProfile 
                 ENLObject object = ((KadecotDeviceService) getContext()).getKadecotDeviceApplication().getENLObject();
                 ArrayList<String> scopes = object.getScopesFromProfileName(element[IDX_PROFILENAME]);
                 if (scopes != null) {
-                    Log.d("ABC", "scopes : " + scopes);
                     setDefaultServiceInformation(response, serviceId);
                     setSupports(response, scopes.toArray(new String[0]));
                 } else {
@@ -123,7 +122,7 @@ public class KadecotServiceInformationProfile extends ServiceInformationProfile 
      */
     private void setDefaultServiceInformation(final Intent response, final String serviceId) {
         Bundle connect = new Bundle();
-        setWifiState(connect, true);
+        setWifiState(connect, getWifiState(serviceId));
         setBluetoothState(connect, getBluetoothState(serviceId));
         setNFCState(connect, getNFCState(serviceId));
         setBLEState(connect, getBLEState(serviceId));

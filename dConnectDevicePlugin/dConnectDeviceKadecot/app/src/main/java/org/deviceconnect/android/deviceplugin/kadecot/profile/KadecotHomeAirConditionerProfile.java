@@ -364,13 +364,13 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                     setResult(response, DConnectMessage.RESULT_OK);
                     setAirFlowAuto(response, "false");
                     switch (propertyValue) {
-                        case "49":  setAirFlowValue(response, "0.12");  break;
-                        case "50":  setAirFlowValue(response, "0.25");  break;
-                        case "51":  setAirFlowValue(response, "0.38");  break;
-                        case "52":  setAirFlowValue(response, "0.51");  break;
-                        case "53":  setAirFlowValue(response, "0.64");  break;
-                        case "54":  setAirFlowValue(response, "0.77");  break;
-                        case "55":  setAirFlowValue(response, "0.90");  break;
+                        case "49":  setAirFlowValue(response, "0.11");  break;
+                        case "50":  setAirFlowValue(response, "0.24");  break;
+                        case "51":  setAirFlowValue(response, "0.37");  break;
+                        case "52":  setAirFlowValue(response, "0.50");  break;
+                        case "53":  setAirFlowValue(response, "0.63");  break;
+                        case "54":  setAirFlowValue(response, "0.76");  break;
+                        case "55":  setAirFlowValue(response, "0.89");  break;
                         case "56":  setAirFlowValue(response, "1.0");   break;
                         case "65":
                             setAirFlowValue(response, "0.0");

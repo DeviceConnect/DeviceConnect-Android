@@ -321,12 +321,18 @@ public class IRKitDBHelper {
     /**
      * Virtual Profile Listの取得.
      * @param serviceId 検索するサービスID. 全件取得はnull.
+     * @param profile Profile
      * @return Virtual Device List
      */
-    public synchronized List<VirtualProfileData> getVirtualProfiles(final String serviceId) {
+    public synchronized List<VirtualProfileData> getVirtualProfiles(final String serviceId,
+                                                                    final String profile) {
         String sql = "SELECT * FROM " + VIRTUAL_PROFILE_TBL_NAME;
-        if (serviceId != null) {
+        if (serviceId != null && profile != null) {
+            sql += " WHERE " + VIRTUAL_PROFILE_COL_SERVICE_ID + "='" + serviceId + "'" +
+                    " AND " + VIRTUAL_PROFILE_COL_PROFILE + "='" + profile + "';";
+        } else if (serviceId != null && profile == null) {
             sql += " WHERE " + VIRTUAL_PROFILE_COL_SERVICE_ID + "='" + serviceId + "';";
+
         }
 
         String[] selectionArgs = {};
@@ -337,15 +343,15 @@ public class IRKitDBHelper {
         List<VirtualProfileData> profiles = new ArrayList<VirtualProfileData>();
         boolean next = cursor.moveToFirst();
         while (next) {
-            VirtualProfileData profile = new VirtualProfileData();
-            profile.setId(cursor.getInt(cursor.getColumnIndex(BaseColumns._ID)));
-            profile.setServiceId(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_SERVICE_ID)));
-            profile.setName(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_NAME)));
-            profile.setProfile(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_PROFILE)));
-            profile.setMethod(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_METHOD)));
-            profile.setUri(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_URI)));
-            profile.setIr(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_IR)));
-            profiles.add(profile);
+            VirtualProfileData p = new VirtualProfileData();
+            p.setId(cursor.getInt(cursor.getColumnIndex(BaseColumns._ID)));
+            p.setServiceId(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_SERVICE_ID)));
+            p.setName(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_NAME)));
+            p.setProfile(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_PROFILE)));
+            p.setMethod(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_METHOD)));
+            p.setUri(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_URI)));
+            p.setIr(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_IR)));
+            profiles.add(p);
             next = cursor.moveToNext();
         }
         return profiles;

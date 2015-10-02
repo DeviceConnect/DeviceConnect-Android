@@ -209,7 +209,7 @@ public class IRKitTVProfile extends DConnectProfile {
                                   final Intent response) {
         boolean send = true;
         IRKitDBHelper helper = new IRKitDBHelper(getContext());
-        List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId);
+        List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId, "TV");
         if (requests.size() == 0) {
             MessageUtils.setInvalidRequestParameterError(response, "Invalid ServiceId");
             return send;
@@ -221,7 +221,7 @@ public class IRKitTVProfile extends DConnectProfile {
                 send = service.sendIR(serviceId, req.getIr(), response);
                 break;
             } else {
-                MessageUtils.setIllegalServerStateError(response , "IR not register.");
+                MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");
             }
         }
         return send;

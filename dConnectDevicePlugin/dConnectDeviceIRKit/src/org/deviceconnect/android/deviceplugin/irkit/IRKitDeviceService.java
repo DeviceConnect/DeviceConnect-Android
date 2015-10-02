@@ -282,7 +282,7 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
      * @return true:登録されている, false:登録されていない
      */
     private boolean isIRExist(final String serviceId) {
-        List<VirtualProfileData> requests = mDBHelper.getVirtualProfiles(serviceId);
+        List<VirtualProfileData> requests = mDBHelper.getVirtualProfiles(serviceId, null);
         for (VirtualProfileData request : requests) {
             if (request.getIr() != null && request.getIr().indexOf("{\"format\":\"raw\",") != -1) {
                 return true;

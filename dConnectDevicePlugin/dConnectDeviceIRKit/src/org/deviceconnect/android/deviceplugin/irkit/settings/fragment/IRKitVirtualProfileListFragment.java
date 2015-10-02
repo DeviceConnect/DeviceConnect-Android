@@ -98,7 +98,7 @@ public class IRKitVirtualProfileListFragment extends Fragment  {
     private List<VirtualProfileContainer> createDeviceContainers() {
         List<VirtualProfileContainer> containers = new ArrayList<VirtualProfileContainer>();
 
-        mProfiles = mDBHelper.getVirtualProfiles(mServiceId);
+        mProfiles = mDBHelper.getVirtualProfiles(mServiceId, null);
         if (mProfiles != null) {
             for (VirtualProfileData device : mProfiles) {
                 containers.add(createContainer(device));

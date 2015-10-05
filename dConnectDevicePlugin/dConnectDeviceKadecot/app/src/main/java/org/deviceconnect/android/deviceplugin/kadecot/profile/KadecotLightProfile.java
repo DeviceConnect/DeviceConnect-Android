@@ -249,7 +249,7 @@ public class KadecotLightProfile extends LightProfile {
      * @param response Intent to store the response.
      */
     private void createInvalidKadecotResponseError(final Intent response) {
-        MessageUtils.setUnknownError(response, "Invalid response from Kadecot server.");
+        MessageUtils.setUnknownError(response, "There is a problem with the response from the Kadecot server.");
     }
 
     /**

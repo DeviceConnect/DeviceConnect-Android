@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.kadecot.kadecotdevice.ENLObject;
 import org.deviceconnect.android.deviceplugin.kadecot.KadecotDeviceService;
@@ -30,9 +29,6 @@ public class KadecotServiceInformationProfile extends ServiceInformationProfile 
 
     /** Kadecot prefix. */
     static final String PREFIX_KADECOT = "kadecot";
-
-    /** "No result" string. */
-    static final String NO_RESULT = "{}";
 
     /** Index of prefix. */
     static final int IDX_PREFIX = 0;
@@ -63,7 +59,7 @@ public class KadecotServiceInformationProfile extends ServiceInformationProfile 
                 ArrayList<String> scopes = object.getScopesFromProfileName(element[IDX_PROFILENAME]);
                 if (scopes != null) {
                     setDefaultServiceInformation(response, serviceId);
-                    setSupports(response, scopes.toArray(new String[0]));
+                    setSupports(response, scopes.toArray(new String[scopes.size()]));
                 } else {
                     super.onGetInformation(request, response, serviceId);
                 }

@@ -147,7 +147,6 @@ public class KadecotLightProfile extends LightProfile {
         // Kadecot plug-in not support brightness, color, flashing.
         KadecotDeviceService service = (KadecotDeviceService) getContext();
         String[] element = service.getElementFromServiceId(serviceId);
-        String name = getProfileName();
         if (!(getProfileName().equals(element[IDX_PROFILENAME]))) {
             MessageUtils.setNotSupportProfileError(response);
         } else if (lightId == null || lightId.length() == 0) {

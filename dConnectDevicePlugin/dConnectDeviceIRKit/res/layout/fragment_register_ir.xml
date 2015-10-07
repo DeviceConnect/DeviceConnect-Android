@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_gravity="center_horizontal"
-    android:orientation="vertical" >
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:layout_gravity="center_horizontal"
+              android:orientation="vertical">
 
     <TextView
         android:id="@+id/text_view_number"
@@ -12,17 +12,16 @@
         android:background="#00a0e9"
         android:gravity="center"
         android:textColor="#ffffff"
-        android:textSize="20sp" />
+        android:textSize="20sp"/>
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
-
+        android:layout_height="match_parent">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp" >
+            android:padding="24dp">
 
             <TextView
                 android:id="@+id/api_name"
@@ -30,7 +29,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:textColor="#000000"
-                android:textSize="40sp" />
+                android:textSize="40sp"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -38,7 +37,8 @@
                 android:layout_marginBottom="16dp"
                 android:text="@string/register_ir_description"
                 android:textColor="#ff0000"
-                android:textSize="16sp" />
+                android:textSize="16sp"/>
+
             <Button
                 android:id="@+id/register_ir"
                 android:layout_width="fill_parent"
@@ -46,9 +46,7 @@
                 android:layout_marginBottom="16dp"
                 android:background="@drawable/button_blue"
                 android:text="@string/receive"
-                android:textColor="#ffffff" />
-
+                android:textColor="#ffffff"/>
         </LinearLayout>
     </ScrollView>
-
 </LinearLayout>

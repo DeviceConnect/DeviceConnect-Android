@@ -155,8 +155,19 @@ public class IRKitTVProfile extends DConnectProfile {
             String tv = "/" + PROFILE_NAME;
             return sendTVRequest(serviceId, "PUT", tv, response);
         } else if (attribute.equals(ATTRIBUTE_CHANNEL)){
-            String control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_CHANNEL
-                    + "?" + PARAM_CONTROL + "=" +  request.getExtras().getString(PARAM_CONTROL);
+            String control = null;
+            if (request.getExtras().getString(PARAM_CONTROL) != null) {
+                control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_CHANNEL
+                        + "?" + PARAM_CONTROL + "=" + request.getExtras().getString(PARAM_CONTROL);
+            }
+            if (request.getExtras().getString(PARAM_TUNING) != null) {
+                if (request.getExtras().getString(PARAM_CONTROL) == null) {
+                    control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_CHANNEL + "?";
+                } else {
+                    control = control + "&";
+                }
+                control = control + PARAM_TUNING + "=" + request.getExtras().getString(PARAM_TUNING);
+            }
             return sendTVRequest(serviceId, "PUT", control, response);
         } else if (attribute.equals(ATTRIBUTE_VOLUME)) {
             String control = "/" + PROFILE_NAME + "/" + ATTRIBUTE_VOLUME
@@ -198,7 +209,7 @@ public class IRKitTVProfile extends DConnectProfile {
                                   final Intent response) {
         boolean send = true;
         IRKitDBHelper helper = new IRKitDBHelper(getContext());
-        List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId);
+        List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId, "TV");
         if (requests.size() == 0) {
             MessageUtils.setInvalidRequestParameterError(response, "Invalid ServiceId");
             return send;
@@ -210,7 +221,7 @@ public class IRKitTVProfile extends DConnectProfile {
                 send = service.sendIR(serviceId, req.getIr(), response);
                 break;
             } else {
-                MessageUtils.setIllegalServerStateError(response , "IR not register.");
+                MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");
             }
         }
         return send;

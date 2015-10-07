@@ -40,6 +40,12 @@ public class IRKitLightProfile extends LightProfile {
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
+        IRKitDBHelper helper = new IRKitDBHelper(getContext());
+        List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId, "Light");
+        if (requests.size() == 0) {
+            MessageUtils.setNotSupportAttributeError(response);
+            return true;
+        }
 
         Bundle[] lights = new Bundle[1];
         lights[0] = new Bundle();
@@ -55,29 +61,36 @@ public class IRKitLightProfile extends LightProfile {
     protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
                                   final String lightId, final Integer color, final Double brightness,
                                   final long[] flashing) {
-        return sendLightRequest(serviceId, "POST", response);
+        return sendLightRequest(serviceId, lightId, "POST", response);
     }
 
     @Override
     protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
                                     final String lightId) {
-        return sendLightRequest(serviceId, "DELETE", response);
+        return sendLightRequest(serviceId, lightId, "DELETE", response);
     }
 
     /**
      * ライト用の赤外線を送信する.
      * @param serviceId サービスID
+     * @param lightId ライトID
      * @param method HTTP Method
      * @param response レスポンス
      * @return true:同期　false:非同期
      */
-    private boolean sendLightRequest(final String serviceId, final String method,
+    private boolean sendLightRequest(final String serviceId,
+                                     final String lightId,
+                                     final String method,
                                      final Intent response) {
         boolean send = true;
         IRKitDBHelper helper = new IRKitDBHelper(getContext());
-        List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId);
+        List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId, "Light");
         if (requests.size() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "Invalid ServiceId");
+            MessageUtils.setNotSupportAttributeError(response);
+            return send;
+        }
+        if (lightId == null || (lightId != null && !lightId.equals(LIGHT_ID))) {
+            MessageUtils.setInvalidRequestParameterError(response, "Invalid lihgtId.");
             return send;
         }
         for (VirtualProfileData req : requests) {
@@ -89,7 +102,7 @@ public class IRKitLightProfile extends LightProfile {
                 send = service.sendIR(serviceId, req.getIr(), response);
                 break;
             } else {
-                MessageUtils.setIllegalServerStateError(response , "IR not register.");
+                MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");
             }
         }
         return send;

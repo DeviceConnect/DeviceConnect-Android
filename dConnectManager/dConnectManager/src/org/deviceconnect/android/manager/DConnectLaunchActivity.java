@@ -117,6 +117,7 @@ public class DConnectLaunchActivity extends Activity {
         }
 
         Intent bindIntent = new Intent(IDConnectService.class.getName());
+        intent.setPackage(getPackageName());
         bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 

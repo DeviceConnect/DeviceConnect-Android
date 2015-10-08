@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">HVC 1.0.0</string>
+    <string name="app_name">HVC (Device Connect Device Plug-in)</string>
     
     <string name="open_bluetooth_setting">Open Bluetooth Settings</string>
     <string name="setting_step1_title">[1/3] Device Plugin Overview.</string>

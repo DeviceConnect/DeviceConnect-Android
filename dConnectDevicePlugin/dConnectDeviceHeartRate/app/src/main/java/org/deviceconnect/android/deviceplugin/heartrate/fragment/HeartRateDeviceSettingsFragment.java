@@ -50,8 +50,6 @@ import static org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateDeviceSettingsFragment extends Fragment {
-    private static final int DISCOVERY_WAIT = 6000;
-
     /**
      * Adapter.
      */

@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.heartrate.ble;
 
+import android.Manifest;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -56,6 +57,14 @@ public final class BleUtils {
     public static final String CHAR_BODY_SENSOR_LOCATION = "00002a38-0000-1000-8000-00805f9b34fb";
     public static final String CHAR_HEART_RATE_CONTROL_POINT = "00002a39-0000-1000-8000-00805f9b34fb";
 
+    /**
+     * Defined the permission of BLE scan.
+     */
+    public static final String[] BLE_PERMISSIONS = new String[] {
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION
+    };
+
     private BleUtils() {
     }
 
@@ -77,5 +86,24 @@ public final class BleUtils {
      */
     public static BluetoothManager getManager(final Context context) {
         return (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+    }
+
+    /**
+     * Checks whether permission allow by user.
+     * @param context context of application
+     * @return Returns true if permission allow, otherwise false
+     */
+    public static boolean isBLEPermission(final Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        } else {
+            boolean result = true;
+            for (int i = 0; i < BLE_PERMISSIONS.length; i++) {
+                if (context.checkSelfPermission(BLE_PERMISSIONS[i]) != PackageManager.PERMISSION_GRANTED) {
+                    result = false;
+                }
+            }
+            return result;
+        }
     }
 }

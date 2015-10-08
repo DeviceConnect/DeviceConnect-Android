@@ -6,10 +6,12 @@
  */
 package org.deviceconnect.android.deviceplugin.heartrate.profile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateApplication;
@@ -22,14 +24,10 @@ import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.Manifest;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.support.annotation.NonNull;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implement ServiceDiscoveryProfile.
@@ -93,21 +91,16 @@ public class HeartRateServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             perform.run();
             return true;
         } else {
-            if (getContext().checkSelfPermission(
-                    Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    && getContext().checkSelfPermission(
-                            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            if (BleUtils.isBLEPermission(getContext())) {
                 perform.run();
                 return true;
             } else {
                 PermissionUtility.requestPermissions(getContext(), new Handler(mWorkerThread.getLooper()),
-                        new String[] { Manifest.permission.ACCESS_COARSE_LOCATION,
-                                Manifest.permission.ACCESS_FINE_LOCATION },
+                        BleUtils.BLE_PERMISSIONS,
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {
-                                // Wait for discovered device cache list to be
-                                // filled up.
+                                // Wait for discovered device cache list to be filled up.
                                 Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
                                     @Override
                                     public void run() {

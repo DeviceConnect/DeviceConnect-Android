@@ -27,4 +27,5 @@
     <string name="heart_rate_setting_dialog_error_message">%1$sとの接続に失敗しました</string>
     <string name="heart_rate_setting_online">[ONLINE]</string>
     <string name="heart_rate_setting_offline">[OFFLINE]</string>
+    <string name="heart_rate_setting_dialog_error_permission">Bluetooth検索するためのパーミッションがありません。</string>
 </resources>

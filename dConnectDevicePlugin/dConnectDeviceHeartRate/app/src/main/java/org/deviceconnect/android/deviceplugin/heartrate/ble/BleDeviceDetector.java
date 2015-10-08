@@ -132,6 +132,11 @@ public class BleDeviceDetector {
         if (mBleAdapter == null) {
             return false;
         }
+
+        if (!BleUtils.isBLEPermission(getContext())) {
+            return false;
+        }
+
         return mBleAdapter.isEnabled();
     }
 

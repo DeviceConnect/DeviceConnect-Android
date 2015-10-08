@@ -82,7 +82,7 @@ public class HeartRateDeviceService extends DConnectMessageService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterBlutoothFilter();
+        unregisterBluetoothFilter();
         getManager().stop();
         mLogger.fine("HeartRateDeviceService end.");
     }
@@ -113,7 +113,7 @@ public class HeartRateDeviceService extends DConnectMessageService {
     /**
      * Unregister a previously registered BroadcastReceiver.
      */
-    private void unregisterBlutoothFilter() {
+    private void unregisterBluetoothFilter() {
         unregisterReceiver(mSensorReceiver);
     }
 

@@ -28,4 +28,5 @@
     <string name="heart_rate_setting_online">[ONLINE]</string>
     <string name="heart_rate_setting_offline">[OFFLINE]</string>
     <string name="heart_rate_setting_dialog_error_permission">Bluetooth検索するためのパーミッションがありません。</string>
+    <string name="heart_rate_setting_searching">デバイス検索中</string>
 </resources>

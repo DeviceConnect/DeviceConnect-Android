@@ -6,9 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.heartrate.fragment;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
@@ -63,19 +67,57 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
      */
     private ProgressDialogFragment mProgressDialogFragment;
 
+    /**
+     * Handler.
+     */
     private Handler mHandler = new Handler();
 
+    /**
+     * Permission Check flag.
+     */
     private boolean mCheckPermission;
+
+    /**
+     * Bluetooth device list view.
+     */
+    private ListView mListView;
+
+    /**
+     * footer view.
+     */
+    private View mFooterView;
+
+    /**
+     * Received a event that Bluetooth has been changed.
+     */
+    private final BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                if (state == BluetoothAdapter.STATE_ON ){
+                    addFooterView();
+                    getManager().startScanBle();
+                } else if (state == BluetoothAdapter.STATE_OFF) {
+                    addFooterView();
+                    getManager().stopScanBle();
+                }
+            }
+        }
+    };
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         mDeviceAdapter = new DeviceAdapter(getActivity(), createDeviceContainers());
 
+        mFooterView = inflater.inflate(R.layout.item_heart_rate_searching, null);
+
         View rootView = inflater.inflate(R.layout.fragment_heart_rate_device_settings, null);
-        ListView listView = (ListView) rootView.findViewById(R.id.device_list_view);
-        listView.setAdapter(mDeviceAdapter);
-        listView.setItemsCanFocus(true);
+        mListView = (ListView) rootView.findViewById(R.id.device_list_view);
+        mListView.setAdapter(mDeviceAdapter);
+        mListView.setItemsCanFocus(true);
         return rootView;
     }
 
@@ -83,13 +125,20 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        registerBluetoothFilter();
+
         getManager().setOnHeartRateDiscoveryListener(mEvtListener);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             getManager().startScanBle();
+            addFooterView();
         } else {
             if (BleUtils.isBLEPermission(getActivity())) {
                 getManager().startScanBle();
+
+                if (BleUtils.isBLEPermission(getActivity())) {
+                    addFooterView();
+                }
             } else {
                 if (!mCheckPermission) {
                     mCheckPermission = true;
@@ -111,6 +160,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         getManager().stopScanBle();
         dismissProgressDialog();
         dismissErrorDialog();
+        unregisterBluetoothFilter();
     }
 
     @Override
@@ -130,6 +180,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
                         getManager().start();
                         getManager().startScanBle();
                     }
+
                     @NonNull
                     @Override
                     public void onFail(final String deniedPermission) {
@@ -138,13 +189,52 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     }
 
     /**
+     * Added the view at ListView.
+     */
+    private void addFooterView() {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (getManager().isEnabledBle()) {
+                    LayoutInflater inflater = getActivity().getLayoutInflater();
+                    mFooterView = inflater.inflate(R.layout.item_heart_rate_searching, null);
+                    mListView.addFooterView(mFooterView);
+                } else {
+                    mListView.removeFooterView(mFooterView);
+                    mDeviceAdapter.clear();
+                    mDeviceAdapter.addAll(createDeviceContainers());
+                    mDeviceAdapter.notifyDataSetChanged();
+                }
+            }
+        });
+    }
+
+    /**
+     * Register a BroadcastReceiver of Bluetooth event.
+     */
+    private void registerBluetoothFilter() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        getActivity().registerReceiver(mSensorReceiver, filter, null, mHandler);
+    }
+
+    /**
+     * Unregister a previously registered BroadcastReceiver.
+     */
+    private void unregisterBluetoothFilter() {
+        getActivity().unregisterReceiver(mSensorReceiver);
+    }
+
+    /**
      * Connect to the BLE device that have heart rate service.
      *
      * @param device BLE device that have heart rate service.
      */
     private void connectDevice(final DeviceContainer device) {
-        getManager().connectBleDevice(device.getAddress());
-        showProgressDialog(device.getName());
+        if (getManager().isEnabledBle()) {
+            getManager().connectBleDevice(device.getAddress());
+            showProgressDialog(device.getName());
+        }
     }
 
     /**

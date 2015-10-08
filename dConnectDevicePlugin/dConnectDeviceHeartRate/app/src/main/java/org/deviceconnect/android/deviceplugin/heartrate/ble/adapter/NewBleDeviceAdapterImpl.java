@@ -65,6 +65,7 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
         }
         ScanSettings settings = new ScanSettings.Builder().build();
 
+        mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
         mBleScanner.startScan(filters, settings, mScanCallback);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             mBleScanner.startScan(filters, settings, mScanCallback);
@@ -81,6 +82,7 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
 
     @Override
     public void stopScan(final BleDeviceScanCallback callback) {
+        mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
         mBleScanner.stopScan(mScanCallback);
     }
 

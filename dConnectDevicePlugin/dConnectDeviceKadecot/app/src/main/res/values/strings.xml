@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kadecot 2.0.0</string>
+    <string name="app_name">Kadecot (Device Connect Device Plug-in)</string>
 
     <string name="summary_title">[1/4] 概要</string>
     <string name="summary_body">Kadecot プラグインを動作させるために、以下の手順でKadecotの設定を行います。\n\n・Kadecotインストール\n\n・Kadecotサーバー起動確認</string>

@@ -6,9 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
-import org.deviceconnect.android.deviceplugin.irkit.R;
-import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -17,6 +14,9 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import org.deviceconnect.android.deviceplugin.irkit.R;
+import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity;
 
 /**
  * 設定画面のベース.
@@ -33,7 +33,8 @@ public class IRKitBaseFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, 
             final ViewGroup container, 
             final Bundle savedInstanceState) {
-        
+        setRetainInstance(true);
+
         mIndView = new ProgressDialog(getActivity());
         mIndView.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         mIndView.setCancelable(false);

@@ -14,7 +14,7 @@
     <item android:state_focused="false"
           android:state_pressed="false">
         <shape android:shape="rectangle" android:useLevel="false">
-            <solid android:color="#00a0e9"/>
+            <solid android:color="#98ce00"/>
             <stroke
                 android:width="1dp"
                 android:color="#CCCCCC"/>
@@ -26,7 +26,7 @@
     <item android:state_focused="true"
           android:state_pressed="false">
         <shape android:shape="rectangle" android:useLevel="false">
-            <solid android:color="#33beff"/>
+            <solid android:color="#a2f133"/>
             <stroke
                 android:width="1dp"
                 android:color="#CCCCCC"/>

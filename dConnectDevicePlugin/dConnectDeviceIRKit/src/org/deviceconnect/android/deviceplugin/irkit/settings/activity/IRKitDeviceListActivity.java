@@ -15,6 +15,8 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 
+import org.deviceconnect.android.deviceplugin.irkit.IRKitApplication;
+import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitDeviceListFragment;
@@ -38,14 +40,17 @@ public class IRKitDeviceListActivity extends Activity {
      * Virtual Device 管理ページ.
      */
     public static final int MANAGE_VIRTUAL_DEVICE_PAGE = 1;
+
     /**
      * Virtual Profile 管理ページ.
      */
     public static final int MANAGE_VIRTUAL_PROFILE_PAGE = 2;
+
     /**
      * Ir 登録ページ.
      */
     public static final int REGISTER_IR_PAGE = 3;
+
     /**
      * 今表示されているページ番号
      */
@@ -54,7 +59,15 @@ public class IRKitDeviceListActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startApp(TOP_PAGE, null);
+        if (null == savedInstanceState) {
+            startApp(TOP_PAGE, null);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        getIRKitApplication().removeAllListViewPostion();
     }
 
     @Override
@@ -159,4 +172,13 @@ public class IRKitDeviceListActivity extends Activity {
         t.commit();
 
     }
+
+    /**
+     * IRKitApplicationを返す.
+     * @return IRKitApplication
+     */
+    public IRKitApplication getIRKitApplication() {
+        return (IRKitApplication) getApplication();
+    }
+
 }

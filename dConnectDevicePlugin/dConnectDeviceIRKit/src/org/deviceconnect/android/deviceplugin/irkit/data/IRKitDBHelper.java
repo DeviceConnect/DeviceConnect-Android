@@ -93,13 +93,29 @@ public class IRKitDBHelper {
      * サポートする TV のAPI 名.
      */
     private static final String IRKIT_TV_API_NAMES[] = {"TV電源ON", "TV電源OFF", "チャンネル+",
-                                                            "チャンネル-", "音量+", "音量-",
+                                                            "チャンネル-",
+                                                            "1", "2", "3", "4",
+                                                            "5", "6", "7", "8","9", "10",
+                                                            "11", "12",
+                                                            "音量+", "音量-",
                                                              "地デジ", "BS", "CS"};
     /**
      * サポートする TV のURI.
      */
     private static final String IRKIT_TV_API_URIS[] = {"/tv", "/tv", "/tv/channel?control=next",
                                                           "/tv/channel?control=previous",
+                                                          "/tv/channel?tuning=1",
+                                                          "/tv/channel?tuning=2",
+                                                          "/tv/channel?tuning=3",
+                                                          "/tv/channel?tuning=4",
+                                                          "/tv/channel?tuning=5",
+                                                          "/tv/channel?tuning=6",
+                                                          "/tv/channel?tuning=7",
+                                                          "/tv/channel?tuning=8",
+                                                          "/tv/channel?tuning=9",
+                                                          "/tv/channel?tuning=10",
+                                                          "/tv/channel?tuning=11",
+                                                          "/tv/channel?tuning=12",
                                                           "/tv/volume?control=up",
                                                           "/tv/volume?control=down",
                                                           "/tv/broadcastwave?select=DTV",
@@ -109,6 +125,10 @@ public class IRKitDBHelper {
      * サポートする TV の HTTP Methods.
      */
     private static final String IRKIT_TV_API_HTTP_METHODS[] = {"PUT", "DELETE", "PUT",
+                                                             "PUT", "PUT", "PUT",
+                                                             "PUT", "PUT", "PUT",
+                                                             "PUT", "PUT", "PUT",
+                                                             "PUT", "PUT", "PUT",
                                                              "PUT", "PUT", "PUT",
                                                              "PUT", "PUT", "PUT"};
 
@@ -227,7 +247,6 @@ public class IRKitDBHelper {
         String[] whereArgs = {
                 device.getServiceId()
         };
-
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             int isDeleteProfile = db.delete(VIRTUAL_PROFILE_TBL_NAME, whereClause, whereArgs);
@@ -270,15 +289,50 @@ public class IRKitDBHelper {
         return devices;
     }
 
+
+    /**
+     * Virtual Device Listの取得.
+     * @param serviceId 検索するサービスID
+     * @return Virtual Device List
+     */
+    public synchronized List<VirtualDeviceData> getVirtualDevicesByServiceId(final String serviceId) {
+        String sql = "SELECT * FROM " + VIRTUAL_DEVICE_TBL_NAME;
+        if (serviceId != null) {
+            sql += " WHERE " + VIRTUAL_PROFILE_COL_SERVICE_ID + " LIKE '" + serviceId + "%';";
+        }
+        String[] selectionArgs = {};
+
+        SQLiteDatabase db = mDBHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery(sql, selectionArgs);
+
+        List<VirtualDeviceData> devices = new ArrayList<VirtualDeviceData>();
+        boolean next = cursor.moveToFirst();
+        while (next) {
+            VirtualDeviceData device = new VirtualDeviceData();
+            device.setServiceId(cursor.getString(cursor.getColumnIndex(VIRTUAL_DEVICE_COL_SERVICE_ID)));
+            device.setDeviceName(cursor.getString(cursor.getColumnIndex(VIRTUAL_DEVICE_COL_DEVICE_NAME)));
+            device.setCategoryName(cursor.getString(cursor.getColumnIndex(VIRTUAL_DEVICE_COL_CATEGORY_NAME)));
+            devices.add(device);
+            next = cursor.moveToNext();
+        }
+        return devices;
+    }
+
     /**
      * Virtual Profile Listの取得.
      * @param serviceId 検索するサービスID. 全件取得はnull.
+     * @param profile Profile
      * @return Virtual Device List
      */
-    public synchronized List<VirtualProfileData> getVirtualProfiles(final String serviceId) {
+    public synchronized List<VirtualProfileData> getVirtualProfiles(final String serviceId,
+                                                                    final String profile) {
         String sql = "SELECT * FROM " + VIRTUAL_PROFILE_TBL_NAME;
-        if (serviceId != null) {
+        if (serviceId != null && profile != null) {
+            sql += " WHERE " + VIRTUAL_PROFILE_COL_SERVICE_ID + "='" + serviceId + "'" +
+                    " AND " + VIRTUAL_PROFILE_COL_PROFILE + "='" + profile + "';";
+        } else if (serviceId != null && profile == null) {
             sql += " WHERE " + VIRTUAL_PROFILE_COL_SERVICE_ID + "='" + serviceId + "';";
+
         }
 
         String[] selectionArgs = {};
@@ -289,15 +343,15 @@ public class IRKitDBHelper {
         List<VirtualProfileData> profiles = new ArrayList<VirtualProfileData>();
         boolean next = cursor.moveToFirst();
         while (next) {
-            VirtualProfileData profile = new VirtualProfileData();
-            profile.setId(cursor.getInt(cursor.getColumnIndex(BaseColumns._ID)));
-            profile.setServiceId(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_SERVICE_ID)));
-            profile.setName(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_NAME)));
-            profile.setProfile(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_PROFILE)));
-            profile.setMethod(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_METHOD)));
-            profile.setUri(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_URI)));
-            profile.setIr(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_IR)));
-            profiles.add(profile);
+            VirtualProfileData p = new VirtualProfileData();
+            p.setId(cursor.getInt(cursor.getColumnIndex(BaseColumns._ID)));
+            p.setServiceId(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_SERVICE_ID)));
+            p.setName(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_NAME)));
+            p.setProfile(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_PROFILE)));
+            p.setMethod(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_METHOD)));
+            p.setUri(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_URI)));
+            p.setIr(cursor.getString(cursor.getColumnIndex(VIRTUAL_PROFILE_COL_IR)));
+            profiles.add(p);
             next = cursor.moveToNext();
         }
         return profiles;

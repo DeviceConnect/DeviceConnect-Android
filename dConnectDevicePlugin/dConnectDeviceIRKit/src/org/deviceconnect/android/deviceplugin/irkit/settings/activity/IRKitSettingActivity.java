@@ -6,7 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.activity;
 
-import java.util.List;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 
 import org.deviceconnect.android.deviceplugin.irkit.BuildConfig;
 import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
@@ -18,11 +22,7 @@ import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitPower
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitWiFiSelectionFragment;
 import org.deviceconnect.android.deviceplugin.irkit.settings.widget.HoldableViewPager;
 
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.view.ViewPager.OnPageChangeListener;
+import java.util.List;
 
 /**
  * 設定用Activity.
@@ -87,54 +87,55 @@ public class IRKitSettingActivity extends IRKitAbstractSettingActivity {
         IRKitAccessPointSettingFragment.class,
         IRKitWiFiSelectionFragment.class, 
         IRKitEndingFragment.class, 
-        };
+    };
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (null == savedInstanceState) {
+            mPrePage = 0;
+            mSecType = WiFiSecurityType.WPA2;
 
-        mPrePage = 0;
-        mSecType = WiFiSecurityType.WPA2;
-        
-        getViewPager().setOnPageChangeListener(new OnPageChangeListener() {
+            getViewPager().setOnPageChangeListener(new OnPageChangeListener() {
 
-            @Override
-            public void onPageSelected(final int position) {
-                
-                FragmentManager fm = getSupportFragmentManager();
-                List<Fragment> list = fm.getFragments();
-                
-                if (list == null) {
-                    return;
+                @Override
+                public void onPageSelected(final int position) {
+
+                    FragmentManager fm = getSupportFragmentManager();
+                    List<Fragment> list = fm.getFragments();
+
+                    if (list == null) {
+                        return;
+                    }
+
+                    Fragment next = list.get(position);
+                    Fragment pre = list.get(mPrePage);
+
+                    if (next != null && next instanceof IRKitBaseFragment) {
+                        ((IRKitBaseFragment) next).onAppear();
+                    }
+
+                    if (pre != null && pre instanceof IRKitBaseFragment) {
+                        ((IRKitBaseFragment) pre).onDisapper();
+                    }
+
+                    mPrePage = position;
                 }
-                
-                Fragment next = list.get(position);
-                Fragment pre = list.get(mPrePage);
-                
-                if (next != null && next instanceof IRKitBaseFragment) {
-                    ((IRKitBaseFragment) next).onAppear();
+
+                @Override
+                public void onPageScrolled(final int position, final float positionOffset,
+                                           final int positionOffsetPixels) {
                 }
-                
-                if (pre != null && pre instanceof IRKitBaseFragment) {
-                    ((IRKitBaseFragment) pre).onDisapper();
+
+                @Override
+                public void onPageScrollStateChanged(final int state) {
                 }
-                
-                mPrePage = position;
-            }
+            });
 
-            @Override
-            public void onPageScrolled(final int position, final float positionOffset,
-                    final int positionOffsetPixels) {
-            }
-
-            @Override
-            public void onPageScrollStateChanged(final int state) {
-            }
-        });
-
-        IRKitManager.INSTANCE.init(this);
-        final SharedPreferences sp = getSharedPreferences(SP_NAME, MODE_PRIVATE);
-        mClientKey = sp.getString(SP_KEY_CLIENT_KEY, null);
+            IRKitManager.INSTANCE.init(this);
+            final SharedPreferences sp = getSharedPreferences(SP_NAME, MODE_PRIVATE);
+            mClientKey = sp.getString(SP_KEY_CLIENT_KEY, null);
+        }
     }
 
     @Override

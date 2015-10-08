@@ -6,11 +6,13 @@
  */
 package org.deviceconnect.android.manager.setting;
 
-import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.manager.R;
-
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.manager.DConnectService;
+import org.deviceconnect.android.manager.DConnectWebService;
+import org.deviceconnect.android.manager.R;
 
 /**
  * Device Connect Manager設定管理用Activity.
@@ -26,7 +28,14 @@ public class SettingActivity extends Activity {
         super.onCreate(savedInstanceState);
         getActionBar().setDisplayHomeAsUpEnabled(false);
         setContentView(R.layout.activity_dconnect_settings);
-        LocalOAuth2Main.initialize(this);
+
+        Intent i1 = new Intent();
+        i1.setClass(this, DConnectService.class);
+        startService(i1);
+
+        Intent i2 = new Intent();
+        i2.setClass(this, DConnectWebService.class);
+        startService(i2);
     }
 
     /**
@@ -35,6 +44,5 @@ public class SettingActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        LocalOAuth2Main.destroy();
     }
 }

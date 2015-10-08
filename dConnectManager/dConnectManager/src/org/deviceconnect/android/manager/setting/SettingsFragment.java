@@ -13,16 +13,19 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
+import android.os.RemoteException;
 import android.os.ResultReceiver;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
@@ -31,11 +34,13 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 
-import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
+import org.deviceconnect.android.manager.IDConnectService;
+import org.deviceconnect.android.manager.IDConnectWebService;
 import org.deviceconnect.android.manager.R;
 import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenSourceSoftware;
+import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.observer.DConnectObservationService;
 import org.deviceconnect.android.observer.receiver.ObserverReceiver;
 
@@ -43,8 +48,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import static android.content.Context.WIFI_SERVICE;
 
 /**
  * 設定画面Fragment.
@@ -184,10 +187,22 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mWebPortPreferences = getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_port));
         mWebPortPreferences.setOnPreferenceChangeListener(this);
 
+        SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_dconn_server_on_off));
+        serverPreferences.setOnPreferenceChangeListener(this);
+
+        SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_web_server_on_off));
+        webPreferences.setOnPreferenceChangeListener(this);
+
         editHostPreferences.setEnabled(false);
         editDocPreferences.setEnabled(false);
         editWebHostPreferences.setEnabled(false);
-        setEnabled(!isDConnectServiceRunning());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
@@ -197,22 +212,26 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     @Override
+    public void onPause() {
+        getActivity().unbindService(mServiceConnection);
+        getActivity().unbindService(mWebServiceConnection);
+        super.onPause();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
-
-        // dConnectManagerの起動チェック
-        SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
-                .findPreference(getString(R.string.key_settings_dconn_server_on_off));
-        serverPreferences.setOnPreferenceChangeListener(this);
-        serverPreferences.setChecked(isDConnectServiceRunning());
-
         // 監視サービスの起動チェック
         mObserverPreferences.setChecked(isObservationServices());
-
-        // 各dConnectManagerの設定
-        setEnabled(!isDConnectServiceRunning());
-
         showIPAddress();
+
+        Intent intent = new Intent(IDConnectService.class.getName());
+        intent.setPackage(getActivity().getPackageName());
+        getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+
+        Intent intent2 = new Intent(IDConnectWebService.class.getName());
+        intent2.setPackage(getActivity().getPackageName());
+        getActivity().bindService(intent2, mWebServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -225,23 +244,36 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 try {
                     // 入力値が整数かチェックする
                     Integer.parseInt(value);
-                    ((EditTextPreference) preference).setSummary(value);
+                    preference.setSummary(value);
                 } catch (NumberFormatException e) {
                     return true;
                 }
             } else {
-                ((EditTextPreference) preference).setSummary(newValue.toString());
+                preference.setSummary(newValue.toString());
             }
         } else if (preference instanceof SwitchPreference) {
             if (getString(R.string.key_settings_dconn_server_on_off).equals(key)) {
                 boolean checked = ((Boolean) newValue).booleanValue();
                 setEnabled(!checked);
-                // dConnectManagerのON/OFF
-                Intent intent = new Intent(getActivity(), DConnectService.class);
-                if (checked) {
-                    getActivity().startService(intent);
-                } else {
-                    getActivity().stopService(intent);
+                try {
+                    // dConnectManagerのON/OFF
+                    if (checked) {
+                        mDConnectService.start();
+                    } else {
+                        mDConnectService.stop();
+                    }
+                } catch (RemoteException e) {
+                }
+            } else if (getString(R.string.key_settings_web_server_on_off).equals(key)) {
+                boolean checked = ((Boolean) newValue).booleanValue();
+                try {
+                    setWebUIEnabled(!checked);
+                    if (checked) {
+                        mWebService.start();
+                    } else {
+                        mWebService.stop();
+                    }
+                } catch (RemoteException e) {
                 }
             }
         } else if (preference instanceof CheckBoxPreference) {
@@ -394,21 +426,19 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         mCheckBoxExternalPreferences.setEnabled(enabled);
         mCheckBoxRequireOriginPreferences.setEnabled(enabled);
         mCheckBoxOriginBlockingPreferences.setEnabled(enabled);
+    }
+
+    /**
+     * UIの有効・無効を設定する.
+     * @param enabled trueの場合は有効、falseの場合は無効
+     */
+    private void setWebUIEnabled(final boolean enabled) {
         mWebPortPreferences.setEnabled(enabled);
     }
 
     /**
-     * DConnectServiceが動作しているか確認する.
-     * 
-     * @return 起動中の場合はtrue、それ以外はfalse
-     */
-    private boolean isDConnectServiceRunning() {
-        return isServiceRunning(getActivity(), DConnectService.class);
-    }
-
-    /**
      * サービスに起動確認を行う.
-     * 
+     *
      * @param c コンテキスト
      * @param cls クラス
      * @return 起動中の場合はtrue、それ以外はfalse
@@ -505,19 +535,82 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * Show IP Address.
      */
     private void showIPAddress() {
-        WifiManager wifiManager = (WifiManager) this.getActivity().getSystemService(WIFI_SERVICE);
-        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
-        String formatedIpAddress = String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
-              (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+        String ipAddress = DConnectUtil.getIPAddress(getActivity());
 
         // Set Host IP Address.
         EditTextPreference editHostPreferences = (EditTextPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_host));
-        editHostPreferences.setSummary(formatedIpAddress);
+        editHostPreferences.setSummary(ipAddress);
         
         // Set Host IP Address.
         EditTextPreference webHostPref = (EditTextPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_host));
-        webHostPref.setSummary(formatedIpAddress);
+        webHostPref.setSummary(ipAddress);
     }
+
+    /**
+     * DConnectServiceを操作するクラス.
+     */
+    private IDConnectService mDConnectService;
+
+    /**
+     * DConnectServiceと接続するためのクラス.
+     */
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(final ComponentName name, final IBinder service) {
+            mDConnectService = (IDConnectService) service;
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        boolean running = mDConnectService.isRunning();
+                        setEnabled(!running);
+                        SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
+                                .findPreference(getString(R.string.key_settings_dconn_server_on_off));
+                        serverPreferences.setChecked(running);
+                    } catch (RemoteException e) {
+                        return;
+                    }
+                }
+            });
+        }
+        @Override
+        public void onServiceDisconnected(final ComponentName name) {
+            mDConnectService = null;
+        }
+    };
+
+    /**
+     * DConnectWebServiceを操作するためのクラス.
+     */
+    private IDConnectWebService mWebService;
+
+    /**
+     * DConnectWebServiceと接続するためのクラス.
+     */
+    private final ServiceConnection mWebServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(final ComponentName name, final IBinder service) {
+            mWebService = (IDConnectWebService) service;
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        boolean running = mWebService.isRunning();
+                        setWebUIEnabled(!running);
+                        SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
+                                .findPreference(getString(R.string.key_settings_web_server_on_off));
+                        webPreferences.setChecked(running);
+                    } catch (RemoteException e) {
+                        return;
+                    }
+                }
+            });
+        }
+        @Override
+        public void onServiceDisconnected(final ComponentName name) {
+            mWebService = null;
+        }
+    };
 }

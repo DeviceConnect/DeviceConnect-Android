@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Theta 1.0.0</string>
+    <string name="app_name">Theta (Device Connect Device Plug-in)</string>
 
     <string name="theta_ssid_prefix">THETA</string>
 

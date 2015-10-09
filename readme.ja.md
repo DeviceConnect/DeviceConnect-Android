@@ -66,6 +66,7 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 * [Sphero](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Sphero-Build)
 * [Theta](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Theta-Build)
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)
+
 　なお、[こちら](https://github.com/DeviceConnect/DeviceConnect-Docs/tree/master/Bin/Android)からもapkを取得することができます。
 　インストール方法につきましては、以下のようにコマンドラインからコマンドの実行することができます。<br>
  ここでは、Device Manager本体とHOSTデバイスプラグインのみをインストールします。

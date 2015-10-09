@@ -122,11 +122,11 @@ Device Connect の具体的な利用法に関しましては、[こちら](https
 # <a name="section5">DeviceConnectアプリの開発</a>
  DeviceConnectを使ったアプリケーションおよび、アプリケーションの開発に関しましては、以下のページを参考にしてください。
 
- * [アプリケーション開発マニュアル(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Android-Studio)
- * [アプリケーション開発マニュアル(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Eclipse)
+* [アプリケーション開発マニュアル(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Android-Studio)
+* [アプリケーション開発マニュアル(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Eclipse)
 
 <br>
 Device Connect Managerを使用したデバイスプラグインを開発したい場合には、こちらのアプリケーション開発マニュアルをご参照ください。
 
- * [デバイスプラグイン開発マニュアル(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio)
- * [デバイスプラグイン開発マニュアル(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Eclipse)
+* [デバイスプラグイン開発マニュアル(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio)
+* [デバイスプラグイン開発マニュアル(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Eclipse)

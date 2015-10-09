@@ -131,11 +131,11 @@ Regard specific use of Device Connect, please refer to us the Wiki of [here] (ht
 # <a name="section5">Development of DeviceConnect app</a>
 Application and using the DeviceConnect, regard the development of the application, please refer to the following pages.
 
- * [Application Development Manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Android-Studio)
+* [Application Development Manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Android-Studio)
 * [Application Development Manual(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Eclipse)
 
 <br>
 If you want to develop a device plug-ins using the Device Connect Manager, please see this Application Development Manual.
 
- * [Device Plug-in development manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio)
- * [Device Plug-in development manual(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Eclipse)
+* [Device Plug-in development manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio)
+* [Device Plug-in development manual(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Eclipse)

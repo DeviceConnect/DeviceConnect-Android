@@ -6,21 +6,6 @@
  */
 package org.deviceconnect.android.manager;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
-
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -30,6 +15,21 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ServiceInfo;
 import android.content.res.XmlResourceParser;
+
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * デバイスプラグインを管理するクラス.
@@ -90,7 +90,7 @@ public class DevicePluginManager {
                     for (int i = 0; i < receivers.length; i++) {
                         String packageName = receivers[i].packageName;
                         String className = receivers[i].name;
-                        checkAndAddDevicePlugin(new ComponentName(packageName, className));
+                        checkAndAddDevicePlugin(new ComponentName(packageName, className), pkg);
                     }
                 }
             }
@@ -123,7 +123,7 @@ public class DevicePluginManager {
                     for (int i = 0; i < receivers.length; i++) {
                         String pkgName = receivers[i].packageName;
                         String className = receivers[i].name;
-                        checkAndAddDevicePlugin(new ComponentName(pkgName, className));
+                        checkAndAddDevicePlugin(new ComponentName(pkgName, className), pkg);
                     }
                 }
             }
@@ -137,7 +137,7 @@ public class DevicePluginManager {
      * コンポーネントの中にデバイスプラグインがない場合には何もしない。
      * @param component コンポーネント
      */
-    public void checkAndAddDevicePlugin(final ComponentName component) {
+    public void checkAndAddDevicePlugin(final ComponentName component, final PackageInfo pkgInfo) {
         ActivityInfo receiverInfo = null;
         try {
             PackageManager pkgMgr = mContext.getPackageManager();
@@ -147,6 +147,7 @@ public class DevicePluginManager {
                 if (value != null) {
                     String packageName = receiverInfo.packageName;
                     String className = receiverInfo.name;
+                    String versionName = pkgInfo.versionName;
                     String startClassName = getStartServiceClassName(packageName);
                     String hash = md5(packageName + className);
                     if (hash == null) {
@@ -155,6 +156,7 @@ public class DevicePluginManager {
                     mLogger.info("Added DevicePlugin: [" + hash + "]");
                     mLogger.info("    PackageName: " + packageName);
                     mLogger.info("    className: " + className);
+                    mLogger.info("    versionName: " + versionName);
                     // MEMO 既に同じ名前のデバイスプラグインが存在した場合の処理
                     // 現在は警告を表示し、上書きする.
                     if (mPlugins.containsKey(hash)) {
@@ -164,6 +166,7 @@ public class DevicePluginManager {
                     DevicePlugin plugin = new DevicePlugin();
                     plugin.setClassName(className);
                     plugin.setPackageName(packageName);
+                    plugin.setVersionName(versionName);
                     plugin.setServiceId(hash);
                     plugin.setDeviceName(receiverInfo.applicationInfo.loadLabel(pkgMgr).toString());
                     plugin.setStartServiceClassName(startClassName);

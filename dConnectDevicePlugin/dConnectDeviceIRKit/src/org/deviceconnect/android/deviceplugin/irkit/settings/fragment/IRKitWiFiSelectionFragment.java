@@ -6,12 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
-import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
-import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.CheckingIRKitCallback;
-import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.GetClientKeyCallback;
-import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.GetNewDeviceCallback;
-import org.deviceconnect.android.deviceplugin.irkit.R;
-import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -25,6 +19,13 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
+import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.CheckingIRKitCallback;
+import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.GetClientKeyCallback;
+import org.deviceconnect.android.deviceplugin.irkit.IRKitManager.GetNewDeviceCallback;
+import org.deviceconnect.android.deviceplugin.irkit.R;
+import org.deviceconnect.android.deviceplugin.irkit.settings.activity.IRKitSettingActivity;
 
 /**
  * WiFi選択画面用フラグメント.

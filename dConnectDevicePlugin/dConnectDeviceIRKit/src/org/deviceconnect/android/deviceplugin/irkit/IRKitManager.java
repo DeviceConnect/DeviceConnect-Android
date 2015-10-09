@@ -131,6 +131,11 @@ public enum IRKitManager {
     /** スリープ時間を定義. */
     private static final long SLEEP_TIME = 1000;
 
+    /** 3.0用ヘッダー名. */
+    private static final String X_REQUESTED_WITH_HEADER_NAME = "X-Requested-With";
+    /** 3.0用ヘッダー値. */
+    private static final String X_REQUESTED_WITH_HEADER_VALUE = "IRKit Device Plug-in";
+
     /**
      * 検知リスナー.
      */
@@ -247,6 +252,7 @@ public enum IRKitManager {
             Log.d("IRKit", "http://" + host + path);
         }
         HttpGet req = new HttpGet("http://" + host + path);
+        req.setHeader(X_REQUESTED_WITH_HEADER_NAME, X_REQUESTED_WITH_HEADER_VALUE);
         return req;
     }
 
@@ -259,6 +265,7 @@ public enum IRKitManager {
      */
     private HttpPost createPostRequest(final String host, final String path) {
         HttpPost req = new HttpPost("http://" + host + path);
+        req.setHeader(X_REQUESTED_WITH_HEADER_NAME, X_REQUESTED_WITH_HEADER_VALUE);
         return req;
     }
 

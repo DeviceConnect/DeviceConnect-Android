@@ -6,10 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
-import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -38,7 +36,7 @@ import java.util.List;
 
 /**
  * IRKit Virtual Device List fragment.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class IRKitVirtualDeviceFragment extends Fragment
@@ -60,7 +58,13 @@ public class IRKitVirtualDeviceFragment extends Fragment
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreated() {
+        updateVirtualDeviceList();
     }
 
     @Override
@@ -77,6 +81,7 @@ public class IRKitVirtualDeviceFragment extends Fragment
     public void setServiceId(final String serviceId) {
         mServiceId = serviceId;
     }
+
     /**
      * IRKitのVirtual Device データを保持する。
      * @param device IRKitのVirtual Device データ
@@ -95,13 +100,14 @@ public class IRKitVirtualDeviceFragment extends Fragment
     }
 
     /**
-     *　IRKitデバイスのリストの取得.
+     * IRKitデバイスのリストの取得.
      * @return IRKitデバイスのリスト.
      */
     private List<VirtualDeviceContainer> createDeviceContainers() {
         List<VirtualDeviceContainer> containers = new ArrayList<VirtualDeviceContainer>();
-        mVirtuals = mDBHelper.getVirtualDevices(null);
+        mVirtuals = mDBHelper.getVirtualDevicesByServiceId(mServiceId);
         if (mVirtuals != null) {
+            mIsRemoves = new ArrayList<Boolean>();
             for (int i = 0; i < mVirtuals.size(); i++) {
                 mIsRemoves.add(false);
             }
@@ -111,14 +117,14 @@ public class IRKitVirtualDeviceFragment extends Fragment
         }
         return containers;
     }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        final MenuItem menuItem = menu.add("CLOSE");
+        final MenuItem menuItem = menu.add(getString(R.string.menu_close));
         menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(final MenuItem item) {
-
                 if (item.getTitle().equals(menuItem.getTitle())) {
                     getActivity().finish();
                 }
@@ -126,64 +132,73 @@ public class IRKitVirtualDeviceFragment extends Fragment
             }
         });
     }
+
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-            final Bundle savedInstanceState) {
-        mIsRemoves = new ArrayList<Boolean>();
+                             final Bundle savedInstanceState) {
 
-        IRKitCreateVirtualDeviceDialogFragment.newInstance().setEventListner(this);
+        IRKitCreateVirtualDeviceDialogFragment.setEventListner(this);
+
         mDBHelper = new IRKitDBHelper(getActivity());
         mVirtualDeviceAdapter = new VirtualDeviceAdapter(getActivity(), createDeviceContainers());
+
         View rootView = inflater.inflate(R.layout.fragment_virtual_device_list, container, false);
-        final Button leftBtn = (Button) rootView.findViewById(R.id.add_virtual_device);
-        final TextView titleView = (TextView) rootView.findViewById(R.id.text_view_number);
-        final Button rightBtn = (Button) rootView.findViewById(R.id.remove_virtual_device);
-        leftBtn.setOnClickListener(new View.OnClickListener() {
 
+        final View addLayout = rootView.findViewById(R.id.add_btn);
+        final View deleteLayout = rootView.findViewById(R.id.remove_btn);
+        final View headerView = rootView.findViewById(R.id.text_view_number);
+        addLayout.setVisibility(View.VISIBLE);
+        deleteLayout.setVisibility(View.GONE);
+
+        Button cancelDeviceBtn = (Button) rootView.findViewById(R.id.cancel_virtual_device);
+        cancelDeviceBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                if (mIsRemoved) {
-                    mIsRemoved = false;
-                    titleView.setBackgroundColor(Color.parseColor("#00a0e9"));
-                    leftBtn.setBackgroundResource(R.drawable.button_blue);
-                    leftBtn.setText("追加");
-                    rightBtn.setBackgroundResource(R.drawable.button_blue);
+            public void onClick(final View v) {
+                addLayout.setVisibility(View.VISIBLE);
+                deleteLayout.setVisibility(View.GONE);
+                headerView.setBackgroundColor(Color.parseColor("#00a0e9"));
+                mIsRemoved = false;
+                updateVirtualDeviceList();
+            }
+        });
 
+        Button deleteDeviceBtn = (Button) rootView.findViewById(R.id.remove_virtual_device2);
+        deleteDeviceBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isRemove()) {
+                    removeCheckVirtualDevices();
                 } else {
-                    IRKitCategorySelectDialogFragment irkitDialog =
-                            IRKitCategorySelectDialogFragment.newInstance();
-                    irkitDialog.setServiceId(mServiceId);
-                    irkitDialog.show(getActivity().getFragmentManager(),
-                            "fragment_dialog");
+                    IRKitCreateVirtualDeviceDialogFragment.showAlert(getActivity(),
+                            getString(R.string.remove_virtual_device_title),
+                            getString(R.string.remove_virtual_select_device));
                 }
                 updateVirtualDeviceList();
             }
         });
-        rightBtn.setOnClickListener(new View.OnClickListener() {
+
+        Button addDeviceBtn = (Button) rootView.findViewById(R.id.add_virtual_device);
+        addDeviceBtn.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
-                if (mIsRemoved) {
-                    if (isRemove()) {
-                        removeCheckVirtualDevices();
-                        mIsRemoved = false;
-                        titleView.setBackgroundColor(Color.parseColor("#00a0e9"));
-                        leftBtn.setBackgroundResource(R.drawable.button_blue);
-                        leftBtn.setText("追加");
-                        rightBtn.setBackgroundResource(R.drawable.button_blue);
+                IRKitCategorySelectDialogFragment irkitDialog =
+                        IRKitCategorySelectDialogFragment.newInstance(mServiceId);
+                irkitDialog.show(getActivity().getFragmentManager(),
+                        "fragment_dialog");
+                updateVirtualDeviceList();
+            }
+        });
 
-                    } else {
-                        IRKitCreateVirtualDeviceDialogFragment.showAlert(getActivity(),
-                                "削除", "削除するデバイスを一つ選んでください。");
-                    }
-                } else {
-                    mIsRemoved = true;
-                    titleView.setBackgroundColor(Color.parseColor("#ffb6c1"));
-                    leftBtn.setBackgroundResource(R.drawable.button_pink);
-                    leftBtn.setText("キャンセル");
-                    rightBtn.setBackgroundResource(R.drawable.button_pink);
+        Button selectDeleteDeviceBtn = (Button) rootView.findViewById(R.id.remove_virtual_device);
+        selectDeleteDeviceBtn.setOnClickListener(new View.OnClickListener() {
 
-                }
+            @Override
+            public void onClick(View view) {
+                addLayout.setVisibility(View.GONE);
+                deleteLayout.setVisibility(View.VISIBLE);
+                headerView.setBackgroundColor(Color.parseColor("#ffb6c1"));
+                mIsRemoved = true;
                 updateVirtualDeviceList();
             }
         });
@@ -231,32 +246,6 @@ public class IRKitVirtualDeviceFragment extends Fragment
         });
     }
 
-
-    @Override
-    public void onCreated() {
-        updateVirtualDeviceList();
-    }
-
-
-    /**
-     *  削除確認ダイアログを表示する.
-     */
-    private void showRemoveConfirmDialog() {
-        new AlertDialog.Builder(getActivity())
-                .setTitle("title")
-                .setMessage("message")
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        removeCheckVirtualDevices();
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-
-
     /**
      * Virtual Device を削除する.
      */
@@ -268,9 +257,13 @@ public class IRKitVirtualDeviceFragment extends Fragment
             }
         }
         if (isRemoved) {
-            IRKitCreateVirtualDeviceDialogFragment.showAlert(getActivity(), "削除", "削除に成功しました。");
+            IRKitCreateVirtualDeviceDialogFragment.showAlert(getActivity(),
+                    getString(R.string.remove_virtual_device_title),
+                    getString(R.string.remove_virtual_device_success));
         } else {
-            IRKitCreateVirtualDeviceDialogFragment.showAlert(getActivity(), "削除", "削除に失敗しました。");
+            IRKitCreateVirtualDeviceDialogFragment.showAlert(getActivity(),
+                    getString(R.string.remove_virtual_device_title),
+                    getString(R.string.remove_virtual_device_failure));
         }
     }
 
@@ -302,7 +295,7 @@ public class IRKitVirtualDeviceFragment extends Fragment
 
         /**
          * デバイスラベルの取得.
-         * 
+         *
          * @return デバイスラベル.
          */
         public String getLabel() {
@@ -311,7 +304,7 @@ public class IRKitVirtualDeviceFragment extends Fragment
 
         /**
          * デバイスラベルの設定.
-         * 
+         *
          * @param label デバイスラベル.
          */
         public void setLabel(final String label) {
@@ -364,7 +357,7 @@ public class IRKitVirtualDeviceFragment extends Fragment
 
         /**
          * コンストラクタ.
-         * 
+         *
          * @param context Context.
          * @param objects DeviceList.
          */
@@ -377,7 +370,7 @@ public class IRKitVirtualDeviceFragment extends Fragment
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
             View cv = convertView;
-            if (convertView == null) {
+            if (cv == null) {
                 cv = mInflater.inflate(R.layout.item_irkitdevice_list, parent, false);
             } else {
                 cv = convertView;

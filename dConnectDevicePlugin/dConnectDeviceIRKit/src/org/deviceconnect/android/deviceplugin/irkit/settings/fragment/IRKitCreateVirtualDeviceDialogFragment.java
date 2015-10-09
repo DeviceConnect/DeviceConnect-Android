@@ -10,9 +10,14 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -28,15 +33,20 @@ import java.util.UUID;
  */
 public class IRKitCreateVirtualDeviceDialogFragment extends DialogFragment {
 
+    /**
+     * カテゴリーのキー名.
+     */
+    private static final String KEY_CATEGORY = "category";
 
     /**
-     * サービスID.
+     * サービスIDのキー名.
      */
-    private String mServiceId;
+    private static final String KEY_SERVICE_ID = "serviceId";
+
     /**
-     * カテゴリ.
+     * 仮装デバイスのサービスIDのキー名.
      */
-    private String mCategory;
+    private static final String KEY_VIRTUAL_ID = "virtualServiceId";
 
     /**
      *作成完了リスナー.
@@ -49,57 +59,66 @@ public class IRKitCreateVirtualDeviceDialogFragment extends DialogFragment {
     public static interface IRKitVirtualDeviceCreateEventListener {
         void onCreated();
     }
+
     /**
      * ダイアログの作成.
      * @return ダイアログ
      */
-    public static IRKitCreateVirtualDeviceDialogFragment newInstance() {
-        return new IRKitCreateVirtualDeviceDialogFragment();
+    public static IRKitCreateVirtualDeviceDialogFragment newInstance(final String serviceId, final String category) {
+        Bundle bundle = new Bundle();
+        bundle.putString(KEY_CATEGORY, category);
+        bundle.putString(KEY_SERVICE_ID, serviceId);
+        bundle.putString(KEY_VIRTUAL_ID, serviceId + "." + UUID.randomUUID().toString());
+
+        IRKitCreateVirtualDeviceDialogFragment d = new IRKitCreateVirtualDeviceDialogFragment();
+        d.setArguments(bundle);
+        return d;
     }
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-        final Activity activity = getActivity();
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        final View dialogView = LayoutInflater.from(activity).inflate(R.layout.dialog_virtual_device
-                                    , null);
-        EditText deviceNameLbl = (EditText) dialogView.findViewById(R.id.device_name);
-        deviceNameLbl.setText(mCategory);
-        TextView serviceIdLbl = (TextView) dialogView.findViewById(R.id.service_id);
-        serviceIdLbl.setText(mServiceId + "." + UUID.randomUUID().toString());
+        LayoutInflater inflater = LayoutInflater.from(getActivity());
+        View dialogView = inflater.inflate(R.layout.dialog_virtual_device, null);
+
+        final EditText deviceNameLbl = (EditText) dialogView.findViewById(R.id.device_name);
+        deviceNameLbl.setText(getArguments().getString(KEY_CATEGORY));
+        deviceNameLbl.addTextChangedListener(mWatchHandler);
+        deviceNameLbl.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(final View v, final boolean hasFocus) {
+                if (!hasFocus) {
+                    InputMethodManager imm = (InputMethodManager) getActivity()
+                            .getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(),
+                            InputMethodManager.HIDE_NOT_ALWAYS);
+                }
+            }
+        });
+
+        TextView serviceIdLbl = (EditText) dialogView.findViewById(R.id.service_id);
+        serviceIdLbl.setText(getArguments().getString(KEY_VIRTUAL_ID));
+
         TextView deviceCategoryLbl = (TextView) dialogView.findViewById(R.id.device_category);
-        deviceCategoryLbl.setText(mCategory);
+        deviceCategoryLbl.setText(getArguments().getString(KEY_CATEGORY));
 
-        Button cancelBtn = (Button) dialogView.findViewById(R.id.cancel);
-        cancelBtn.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                IRKitCreateVirtualDeviceDialogFragment.this.dismiss();
-            }
-        });
-        Button createBtn = (Button) dialogView.findViewById(R.id.create);
-        createBtn.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                saveVirtualDeviceData(dialogView);
-                IRKitCreateVirtualDeviceDialogFragment.this.dismiss();
-            }
-        });
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(R.string.virtual_device_title);
         builder.setView(dialogView);
+        builder.setPositiveButton(R.string.virtual_device_create, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog, final int which) {
+                saveVirtualDeviceData(deviceNameLbl.getText().toString());
+                dialog.dismiss();
+            }
+        });
+        builder.setNegativeButton(R.string.virtual_device_delete_cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog, final int which) {
+                dialog.dismiss();
+            }
+        });
 
         return builder.create();
-    }
-
-    /**
-     * サービスID とカテゴリーの設定.
-     * @param serviceId サービスID
-     * @param category カテゴリー
-     */
-    public void setVirtualDeviceData(final String serviceId, final String category) {
-        mServiceId = serviceId;
-        mCategory = category;
     }
 
     /**
@@ -113,18 +132,21 @@ public class IRKitCreateVirtualDeviceDialogFragment extends DialogFragment {
     /**
      * Virtual Device と Virtual Profile をデータベースに登録する。
      */
-    private void saveVirtualDeviceData(final View rootView) {
+    private void saveVirtualDeviceData(final String name) {
         IRKitDBHelper helper = new IRKitDBHelper(getActivity());
         VirtualDeviceData device = new VirtualDeviceData();
-        TextView serviceIdView = (TextView) rootView.findViewById(R.id.service_id);
-        device.setServiceId(serviceIdView.getText().toString());
-        device.setCategoryName(mCategory);
-        EditText deviceNameLbl = (EditText) rootView.findViewById(R.id.device_name);
-        device.setDeviceName(deviceNameLbl.getText().toString());
+        device.setServiceId(getArguments().getString(KEY_VIRTUAL_ID));
+        device.setCategoryName(getArguments().getString(KEY_CATEGORY));
+        device.setDeviceName(name);
         long i = helper.addVirtualDevice(device);
-        showAlert(getActivity(), "作成", "デバイスを作成しました。");
-        if (mDelegate != null) {
-            mDelegate.onCreated();
+        if (i < 0) {
+            // TODO 登録失敗
+        } else {
+            showAlert(getActivity(), getString(R.string.virtual_device_create),
+                    getString(R.string.created_virtual_device));
+            if (mDelegate != null) {
+                mDelegate.onCreated();
+            }
         }
     }
 
@@ -135,10 +157,32 @@ public class IRKitCreateVirtualDeviceDialogFragment extends DialogFragment {
      * @param message メッセージ
      */
     public static void showAlert(final Activity activity, final String title, final String message) {
+        if (activity == null) {
+            return;
+        }
+
         new AlertDialog.Builder(activity)
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton("OK", null)
+                .setPositiveButton(R.string.dialog_ok, null)
                 .show();
     }
+
+    /**
+     * 文字数チェック.
+     */
+    private TextWatcher mWatchHandler = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) {
+        }
+        @Override
+        public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
+            AlertDialog dialog = (AlertDialog) getDialog();
+            Button btn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            btn.setEnabled(s.length() > 0);
+        }
+        @Override
+        public void afterTextChanged(final Editable s) {
+        }
+    };
 }

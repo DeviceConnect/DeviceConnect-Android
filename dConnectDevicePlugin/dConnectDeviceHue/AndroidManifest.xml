@@ -18,7 +18,8 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name="org.deviceconnect.android.deviceplugin.hue.activity.HueMainActivity"
-            android:screenOrientation="portrait" >
+            android:screenOrientation="behind"
+            android:configChanges="orientation|screenSize" >
         </activity>
 
         <!-- LocalOAuth -->

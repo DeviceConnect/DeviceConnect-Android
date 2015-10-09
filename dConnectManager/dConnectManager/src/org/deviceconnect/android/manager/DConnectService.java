@@ -6,8 +6,9 @@
  */
 package org.deviceconnect.android.manager;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import android.content.Intent;
+import android.os.IBinder;
+import android.os.RemoteException;
 
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.DConnectMessage;
@@ -17,7 +18,8 @@ import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Intent;
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * dConnect Manager本体.
@@ -40,30 +42,27 @@ public class DConnectService extends DConnectMessageService {
     /** RESTfulサーバからのイベントを受領するリスナー. */
     private DConnectServerEventListenerImpl mWebServerListener;
 
-    /** Webサーバ. */
-    private DConnectServer mWebServer;
+    @Override
+    public IBinder onBind(final Intent intent) {
+        return (IBinder) mBinder;
+    }
+
+    @Override
+    public boolean onUnbind(final Intent intent) {
+        return super.onUnbind(intent);
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-
         mLogger.entering(this.getClass().getName(), "onCreate");
-
-        // RESTfulサーバ起動
-        startRESTfulServer();
-        // Webサーバ起動
-        startWebServer();
-
         mLogger.exiting(this.getClass().getName(), "onCreate");
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
-        // RESTfulサーバ停止
         stopRESTfulServer();
-        // Webサーバ停止
-        stopWebServer();
+        super.onDestroy();
     }
 
     @Override
@@ -101,6 +100,8 @@ public class DConnectService extends DConnectMessageService {
      * HTTPサーバを開始する.
      */
     private void startRESTfulServer() {
+        mSettings.load(this);
+
         mWebServerListener = new DConnectServerEventListenerImpl(this);
         mWebServerListener.setFileManager(mFileMgr);
 
@@ -119,7 +120,6 @@ public class DConnectService extends DConnectMessageService {
         mLogger.fine("Port: " + mSettings.getPort());
         mLogger.fine("SSL: " + mSettings.isSSL());
         mLogger.fine("External IP: " + mSettings.allowExternalIP());
-        mLogger.fine("Document Root: " + mSettings.getDocumentRootPath());
 
         if (mRESTfulServer == null) {
             mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), this);
@@ -139,26 +139,49 @@ public class DConnectService extends DConnectMessageService {
     }
 
     /**
-     * Webサーバを起動する.
+     * DConnectManagerを起動する.
      */
-    private void startWebServer() {
-        DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
-        builder.port(mSettings.getWebPort()).isSsl(mSettings.isSSL())
-            .documentRootPath(mSettings.getDocumentRootPath());
-
-        if (mWebServer == null) {
-            mWebServer = new DConnectServerNanoHttpd(builder.build(), this);
-            mWebServer.start();
+    private synchronized void startInternal() {
+        if (!mRunningFlag) {
+            mRunningFlag = true;
+            startDConnect();
+            startRESTfulServer();
         }
     }
 
     /**
-     * Webサーバを停止する.
+     * DConnectManagerを停止する.
      */
-    private void stopWebServer() {
-        if (mWebServer != null) {
-            mWebServer.shutdown();
-            mWebServer = null;
+    private synchronized void stopInternal() {
+        if (mRunningFlag) {
+            mRunningFlag = false;
+            stopRESTfulServer();
+            stopDConnect();
         }
     }
+
+    /**
+     * バインドするためのスタブクラス.
+     */
+    private final IDConnectService mBinder = new IDConnectService.Stub()  {
+        @Override
+        public IBinder asBinder() {
+            return null;
+        }
+
+        @Override
+        public boolean isRunning() throws RemoteException {
+            return mRunningFlag;
+        }
+
+        @Override
+        public void start() throws RemoteException {
+            startInternal();
+        }
+
+        @Override
+        public void stop() throws RemoteException {
+            stopInternal();
+        }
+    };
 }

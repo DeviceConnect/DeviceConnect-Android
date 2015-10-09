@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.heartrate.fragment;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
@@ -46,6 +47,13 @@ public class BluetoothSettingsFragment extends Fragment {
                 startActivity(intent);
             }
         });
+
+        View permission = rootView.findViewById(R.id.ble_permission);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            permission.setVisibility(View.GONE);
+        } else {
+            permission.setVisibility(View.VISIBLE);
+        }
 
         mBlePermissionBtn = (Button) rootView.findViewById(R.id.button_permission);
         mBlePermissionBtn.setOnClickListener(new View.OnClickListener() {

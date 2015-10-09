@@ -6,14 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.ble.adapter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceAdapter;
-import org.deviceconnect.android.deviceplugin.hvc.ble.BleUtils;
-
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -24,8 +16,14 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Build;
+
+import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceAdapter;
+import org.deviceconnect.android.deviceplugin.hvc.ble.BleUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -56,7 +54,6 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
         mContext = context;
         BluetoothManager manager = BleUtils.getManager(context);
         mBluetoothAdapter = manager.getAdapter();
-        mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
     }
 
     @Override
@@ -66,23 +63,28 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
         final List<ScanFilter> filters = new ArrayList<>();
 
         final ScanSettings settings = new ScanSettings.Builder().build();
+        mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            mBleScanner.startScan(filters, settings, mScanCallback);
+            if (mBleScanner != null) {
+                mBleScanner.startScan(filters, settings, mScanCallback);
+            }
         } else {
             // Unless required permissions were acquired, scan does not start.
-            if (mContext.checkSelfPermission(
-                    Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    && mContext.checkSelfPermission(
-                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                mBleScanner.startScan(filters, settings, mScanCallback);
+            if (BleUtils.isBLEPermission(mContext)) {
+                if (mBleScanner != null) {
+                    mBleScanner.startScan(filters, settings, mScanCallback);
+                }
             }
         }
     }
 
     @Override
     public void stopScan(final BleDeviceScanCallback callback) {
-        mBleScanner.stopScan(mScanCallback);
+        mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
+        if (mBleScanner != null) {
+            mBleScanner.stopScan(mScanCallback);
+        }
     }
 
     @Override

@@ -13,5 +13,10 @@
     <string name="setting_step1_detail">このデバイスプラグインはHVC-Cデバイスと接続することができます。</string>
     <string name="setting_step2_detail">電源が取れるmicroUSBケーブルとHVC-Cを接続して電源ランプが点灯していることを確認して下さい。</string>
     <string name="setting_step3_detail">端末のBluetooth設定画面より設定をONにしてください。</string>
+    <string name="setting_step3_ble_detail">Android 6.0からBLEをスキャンするには、位置情報のパーミッションが必要になりました。\n
+このプラグインを使用するためには、以下のパーミッションを許可してください。\n許可を取り消すには、アプリの設定画面から行うことができます。</string>
+    <string name="setting_step3_ble_permission">位置情報の許可</string>
+    <string name="setting_step3_ble_permission_on">取得済み</string>
+    <string name="setting_step3_ble_permission_off">取得</string>
 
 </resources>

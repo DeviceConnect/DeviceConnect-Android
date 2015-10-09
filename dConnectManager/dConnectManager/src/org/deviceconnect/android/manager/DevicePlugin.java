@@ -6,10 +6,10 @@
  */
 package org.deviceconnect.android.manager;
 
+import android.content.ComponentName;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import android.content.ComponentName;
 
 /**
  * デバイスプラグイン.
@@ -20,6 +20,8 @@ public class DevicePlugin {
     private String mPackageName;
     /** デバイスプラグインのクラス名. */
     private String mClassName;
+    /** デバイスプラグインのバージョン名. */
+    private String mVersionName;
     /** サービスID. */
     private String mServiceId;
     /** デバイスプラグイン名. */
@@ -45,6 +47,23 @@ public class DevicePlugin {
     public void setPackageName(final String packageName) {
         this.mPackageName = packageName;
     }
+
+    /**
+     * デバイスプラグインのバージョン名を取得する.
+     * @return バージョン名
+     */
+    public String getVersionName() {
+        return mVersionName;
+    }
+
+    /**
+     * デバイスプラグインのバージョン名を設定する.
+     * @param versionName バージョン名
+     */
+    public void setVersionName(final String versionName) {
+        mVersionName = versionName;
+    }
+
     /**
      * デバイスプラグインのクラス名を取得する.
      * @return クラス名

@@ -13,5 +13,10 @@
     <string name="setting_step1_detail">This device plugin can be connected to the HVC-C device.</string>
     <string name="setting_step2_detail">Connect the microUSB cable and HVC-C that can be powered, make sure that the power light is on.</string>
     <string name="setting_step3_detail">Set to ON in the Bluetooth settings activity.</string>
-    
+    <string name="setting_step3_ble_detail">To scan the BLE from Android 6.0, now you must have permission of the location information .
+In order to use this plug-in , please allow the following permissions.</string>
+    <string name="setting_step3_ble_permission">Location Permission</string>
+    <string name="setting_step3_ble_permission_on">Get</string>
+    <string name="setting_step3_ble_permission_off">Acquired</string>
+
 </resources>

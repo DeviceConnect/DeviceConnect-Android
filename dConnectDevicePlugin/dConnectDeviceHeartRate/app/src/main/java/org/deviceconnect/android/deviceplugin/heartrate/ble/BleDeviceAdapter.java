@@ -21,7 +21,20 @@ public abstract class BleDeviceAdapter {
     public abstract Set<BluetoothDevice> getBondedDevices();
     public abstract boolean isEnabled();
     public abstract boolean checkBluetoothAddress(String address);
+    /**
+     * BLE device scan callback interface.
+     */
     public static interface BleDeviceScanCallback {
+        /**
+         * BLE scan listener.
+         * @param device device
+         * @param rssi rssi
+         */
         void onLeScan(BluetoothDevice device, int rssi);
+
+        /**
+         * Called if scan failed.
+         */
+        void onFail();
     }
 }

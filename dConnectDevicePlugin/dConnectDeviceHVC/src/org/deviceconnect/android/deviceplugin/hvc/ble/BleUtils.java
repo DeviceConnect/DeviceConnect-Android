@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc.ble;
 
+import android.Manifest;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -16,6 +17,13 @@ import android.os.Build;
  * @author NTT DOCOMO, INC.
  */
 public final class BleUtils {
+    /**
+     * Defined the permission of BLE scan.
+     */
+    public static final String[] BLE_PERMISSIONS = new String[] {
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION
+    };
 
     /**
      * Constructor.
@@ -41,5 +49,24 @@ public final class BleUtils {
      */
     public static BluetoothManager getManager(final Context context) {
         return (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+    }
+
+    /**
+     * Checks whether permission allow by user.
+     * @param context context of application
+     * @return Returns true if permission allow, otherwise false
+     */
+    public static boolean isBLEPermission(final Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        } else {
+            boolean result = true;
+            for (int i = 0; i < BLE_PERMISSIONS.length; i++) {
+                if (context.checkSelfPermission(BLE_PERMISSIONS[i]) != PackageManager.PERMISSION_GRANTED) {
+                    result = false;
+                }
+            }
+            return result;
+        }
     }
 }

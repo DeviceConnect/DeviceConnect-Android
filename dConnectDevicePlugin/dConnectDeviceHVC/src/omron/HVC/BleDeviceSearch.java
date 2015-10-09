@@ -19,12 +19,18 @@ package omron.HVC;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.deviceconnect.android.activity.PermissionUtility;
+
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
 
 /**
 Bluetooth Device Search
@@ -48,17 +54,29 @@ public class BleDeviceSearch {
         }
     }
 
-    private void discoverDevices(Context context, final int searchTime) {
-        // Step 4: Scan for Bluetooth device
-        mBluetoothReceiver = new BluetoothReceiver();
-        context.registerReceiver(mBluetoothReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-        mBluetoothAdapter.startDiscovery();
+    private void discoverDevices(final Context context, final int searchTime) {
+        PermissionUtility.requestPermissions(context, new Handler(Looper.getMainLooper()),
+                new String[] { Manifest.permission.ACCESS_COARSE_LOCATION },
+                new PermissionUtility.PermissionRequestCallback() {
+                    @Override
+                    public void onSuccess() {
+                        // Step 4: Scan for Bluetooth device
+                        mBluetoothReceiver = new BluetoothReceiver();
+                        context.registerReceiver(mBluetoothReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+                        mBluetoothAdapter.startDiscovery();
 
 //        sleep(10000);
-        sleep(searchTime);
+                        sleep(searchTime);
 
-    	mBluetoothAdapter.cancelDiscovery();
-        context.unregisterReceiver(mBluetoothReceiver);
+                        mBluetoothAdapter.cancelDiscovery();
+                        context.unregisterReceiver(mBluetoothReceiver);
+                    }
+
+                    @Override
+                    public void onFail(@NonNull String deniedPermission) {
+
+                    }
+                });
     }
 
     class BluetoothReceiver extends BroadcastReceiver {

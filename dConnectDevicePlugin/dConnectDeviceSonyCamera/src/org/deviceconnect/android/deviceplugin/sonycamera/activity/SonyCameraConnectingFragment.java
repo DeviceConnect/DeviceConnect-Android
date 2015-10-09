@@ -9,8 +9,13 @@ package org.deviceconnect.android.deviceplugin.sonycamera.activity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
+import org.deviceconnect.android.activity.IntentHandlerActivity;
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.sonycamera.R;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectMessageHandler;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
@@ -18,19 +23,30 @@ import org.deviceconnect.android.deviceplugin.sonycamera.utils.UserSettings;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -38,6 +54,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Sony Camera 接続処理用フラグメント.
@@ -198,21 +215,108 @@ public class SonyCameraConnectingFragment extends SonyCameraBaseFragment {
      * SonyCameraデバイスのWifiを探索してに接続を行います.
      */
     private void searchSonyCameraWifi() {
-        List<ScanResult> scanList = new ArrayList<ScanResult>();
-        mWifiMgr.startScan();
-        List<ScanResult> results = mWifiMgr.getScanResults();
-        for (ScanResult result : results) {
-            if (DConnectUtil.checkSSID(result.SSID)) {
-                scanList.add(result);
-                mLogger.fine("Found SonyCamera Wifi. SSID=" + result.SSID);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            getSonyCameraAPList();
+        } else {
+            checkLocationServiceEnabled();
+        }
+    }
+    
+    private void checkLocationServiceEnabled() {
+        // WiFi scan in SDK 23 requires location service to be enabled.
+        final LocationManager manager = getContext().getSystemService(LocationManager.class);
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            IntentHandlerActivity.startActivityForResult(getContext(),
+                    new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS),
+                    new ResultReceiver(new Handler(Looper.getMainLooper())) {
+                        @Override
+                        protected void onReceiveResult(int resultCode, Bundle resultData) {
+                            super.onReceiveResult(resultCode, resultData);
+
+                            if (manager.isProviderEnabled( LocationManager.GPS_PROVIDER )) {
+                                permissionCheck();
+                            } else {
+                                Toast.makeText(getContext(), "WiFi scan aborted.", Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
+            Toast.makeText(getContext(), "WiFi scan requires Location Service.", Toast.LENGTH_LONG).show();
+        } else {
+            permissionCheck();
+        }
+    }
+
+    private void permissionCheck() {
+        // WiFi scan requires location permissions.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (getContext().checkSelfPermission(
+                    Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    && getContext().checkSelfPermission(
+                            Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                getSonyCameraAPList();
+            } else {
+                PermissionUtility.requestPermissions(getContext(), new Handler(Looper.getMainLooper()),
+                        new String[] { Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.ACCESS_FINE_LOCATION },
+                        new PermissionUtility.PermissionRequestCallback() {
+                            @Override
+                            public void onSuccess() {
+                                getSonyCameraAPList();
+                            }
+
+                            @Override
+                            public void onFail(@NonNull String deniedPermission) {
+                                Toast.makeText(getContext(), "WiFi scan aborted.", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                Toast.makeText(getContext(), "WiFi scan requires Location permission.", Toast.LENGTH_LONG).show();
             }
         }
+    }
 
-        if (scanList.size() > 0) {
-            confirmConnectSonyCameraWifi(scanList);
-        } else {
-            showErrorDialog(getString(R.string.sonycamera_not_found_wifi));
-        }
+    private void getSonyCameraAPList() {
+        final List<ScanResult> scanList = new ArrayList<ScanResult>();
+        mWifiMgr.startScan();
+
+        final AtomicBoolean unregistered = new AtomicBoolean(false);
+        final BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                List<ScanResult> results = mWifiMgr.getScanResults();
+                for (ScanResult result : results) {
+                    if (DConnectUtil.checkSSID(result.SSID)) {
+                        scanList.add(result);
+                        mLogger.fine("Found SonyCamera Wifi. SSID=" + result.SSID);
+                    }
+                }
+
+                if (scanList.size() > 0) {
+                    confirmConnectSonyCameraWifi(scanList);
+                } else {
+                    showErrorDialog(getString(R.string.sonycamera_not_found_wifi));
+                }
+
+                synchronized (unregistered) {
+                    if (!unregistered.get()) {
+                        getContext().unregisterReceiver(this);
+                        unregistered.set(true);
+                    }
+                }
+            }
+        };
+        Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (unregistered) {
+                    if (!unregistered.get()) {
+                        getContext().unregisterReceiver(receiver);
+                        unregistered.set(true);
+                    }
+                }
+            }
+        }, 30, TimeUnit.SECONDS);
+
+        getContext().registerReceiver(receiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
     }
 
     /**

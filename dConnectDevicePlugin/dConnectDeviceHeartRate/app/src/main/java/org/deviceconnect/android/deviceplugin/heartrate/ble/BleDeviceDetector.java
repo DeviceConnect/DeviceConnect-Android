@@ -32,6 +32,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class BleDeviceDetector {
     /**
+     * Tag for debugging.
+     */
+    private static final String TAG = "Ble";
+
+    /**
      * Instance of ScheduledExecutorService.
      */
     private ScheduledExecutorService mExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -132,6 +137,11 @@ public class BleDeviceDetector {
         if (mBleAdapter == null) {
             return false;
         }
+
+        if (!BleUtils.isBLEPermission(getContext())) {
+            return false;
+        }
+
         return mBleAdapter.isEnabled();
     }
 
@@ -203,6 +213,11 @@ public class BleDeviceDetector {
                     public void onLeScan(final BluetoothDevice device, final int rssi) {
                         devices.add(device);
                     }
+
+                    @Override
+                    public void onFail() {
+
+                    }
                 };
         mHandler.postDelayed(new Runnable() {
             @Override
@@ -244,7 +259,7 @@ public class BleDeviceDetector {
                                 stopBleScan();
                                 notifyBluetoothDevice();
                             } else {
-                                mScanTimerFuture.cancel(true);
+                                cancelScanTimer();
                             }
                         }
                     }, SCAN_PERIOD);
@@ -252,17 +267,24 @@ public class BleDeviceDetector {
                         mDevices.clear();
                         startBleScan();
                     } else {
-                        mScanTimerFuture.cancel(true);
+                        cancelScanTimer();
                     }
                 }
             }, SCAN_FIRST_WAIT_PERIOD, SCAN_WAIT_PERIOD, TimeUnit.MILLISECONDS);
         } else {
             mScanning = false;
             stopBleScan();
-            if (mScanTimerFuture != null) {
-                mScanTimerFuture.cancel(true);
-                mScanTimerFuture = null;
-            }
+            cancelScanTimer();
+        }
+    }
+
+    /**
+     * Stopped the scan timer.
+     */
+    private synchronized void cancelScanTimer() {
+        if (mScanTimerFuture != null) {
+            mScanTimerFuture.cancel(true);
+            mScanTimerFuture = null;
         }
     }
 
@@ -275,7 +297,7 @@ public class BleDeviceDetector {
         } catch (Exception e) {
             // Exception occurred when the BLE state is invalid.
             if (BuildConfig.DEBUG) {
-                Log.e("heartrate.dplugin", "", e);
+                Log.e(TAG, "", e);
             }
         }
     }
@@ -289,7 +311,7 @@ public class BleDeviceDetector {
         } catch (Exception e) {
             // Exception occurred when the BLE state is invalid.
             if (BuildConfig.DEBUG) {
-                Log.e("heartrate.dplugin", "", e);
+                Log.e(TAG, "", e);
             }
         }
     }
@@ -312,6 +334,12 @@ public class BleDeviceDetector {
                 public void onLeScan(final BluetoothDevice device, final int rssi) {
                     if (!mDevices.contains(device)) {
                         mDevices.add(device);
+                    }
+                }
+                @Override
+                public void onFail() {
+                    if (BuildConfig.DEBUG) {
+                        Log.w(TAG, "Failed to scan the ble.");
                     }
                 }
             };

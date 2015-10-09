@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.heartrate.ble.adapter;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -17,7 +16,6 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.ParcelUuid;
 
@@ -66,16 +64,14 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
         ScanSettings settings = new ScanSettings.Builder().build();
 
         mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
-        mBleScanner.startScan(filters, settings, mScanCallback);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            mBleScanner.startScan(filters, settings, mScanCallback);
-        } else {
-            // Unless required permissions were acquired, scan does not start.
-            if (mContext.checkSelfPermission(
-                    Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    && mContext.checkSelfPermission(
-                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (mBleScanner != null) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                 mBleScanner.startScan(filters, settings, mScanCallback);
+            } else {
+                // Unless required permissions were acquired, scan does not start.
+                if (BleUtils.isBLEPermission(mContext)) {
+                    mBleScanner.startScan(filters, settings, mScanCallback);
+                }
             }
         }
     }
@@ -83,7 +79,9 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
     @Override
     public void stopScan(final BleDeviceScanCallback callback) {
         mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
-        mBleScanner.stopScan(mScanCallback);
+        if (mBleScanner != null) {
+            mBleScanner.stopScan(mScanCallback);
+        }
     }
 
     @Override

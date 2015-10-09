@@ -19,6 +19,7 @@ import org.deviceconnect.android.deviceplugin.heartrate.HeartRateDeviceService;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateDevice;
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -26,16 +27,12 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Implement ServiceDiscoveryProfile.
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateServiceDiscoveryProfile extends ServiceDiscoveryProfile {
-
-    private static final int DISCOVERY_WAIT = 6000;
 
     private final HandlerThread mWorkerThread;
 
@@ -100,21 +97,15 @@ public class HeartRateServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                         new PermissionUtility.PermissionRequestCallback() {
                             @Override
                             public void onSuccess() {
-                                // Wait for discovered device cache list to be filled up.
-                                Executors.newSingleThreadScheduledExecutor().schedule(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        perform.run();
-                                        getContext().sendBroadcast(response);
-                                    }
-                                }, DISCOVERY_WAIT, TimeUnit.MILLISECONDS);
+                                perform.run();
+                                sendResponses(response);
                             }
 
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
                                 MessageUtils.setIllegalServerStateError(response,
                                         "Bluetooth LE scan requires permissions ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION.");
-                                getContext().sendBroadcast(response);
+                                sendResponses(response);
                             }
                         });
                 return false;
@@ -142,5 +133,10 @@ public class HeartRateServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         HeartRateDeviceService service = (HeartRateDeviceService) getContext();
         HeartRateApplication app = (HeartRateApplication) service.getApplication();
         return app.getHeartRateManager();
+    }
+
+    private void sendResponses(final Intent response) {
+        DConnectMessageService s = (DConnectMessageService) getContext();
+        s.sendResponse(response);
     }
 }

@@ -17,7 +17,6 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -28,7 +27,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateApplication;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager;
 import org.deviceconnect.android.deviceplugin.heartrate.R;
@@ -71,11 +69,6 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     private Handler mHandler = new Handler();
 
     /**
-     * Permission Check flag.
-     */
-    private boolean mCheckPermission;
-
-    /**
      * Bluetooth device list view.
      */
     private ListView mListView;
@@ -84,6 +77,8 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
      * footer view.
      */
     private View mFooterView;
+
+    private boolean mCheckDialog;
 
     /**
      * Received a event that Bluetooth has been changed.
@@ -129,26 +124,12 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             getManager().startScanBle();
-            addFooterView();
         } else {
             if (BleUtils.isBLEPermission(getActivity())) {
                 getManager().startScanBle();
-
-                if (BleUtils.isBLEPermission(getActivity())) {
-                    addFooterView();
-                }
-            } else {
-                if (!mCheckPermission) {
-                    mCheckPermission = true;
-                    mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            showPermissionDialog();
-                        }
-                    }, 500);
-                }
             }
         }
+        addFooterView();
     }
 
     @Override
@@ -167,42 +148,35 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     }
 
     /**
-     * Display the dialog of permission.
-     */
-    private void showPermissionDialog() {
-        PermissionUtility.requestPermissions(getActivity(), mHandler,
-                BleUtils.BLE_PERMISSIONS,
-                new PermissionUtility.PermissionRequestCallback() {
-                    @Override
-                    public void onSuccess() {
-                        getManager().start();
-                        getManager().startScanBle();
-                    }
-
-                    @NonNull
-                    @Override
-                    public void onFail(final String deniedPermission) {
-                    }
-                });
-    }
-
-    /**
      * Added the view at ListView.
      */
     private void addFooterView() {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (getManager().isEnabledBle()) {
-                    LayoutInflater inflater = getActivity().getLayoutInflater();
-                    mFooterView = inflater.inflate(R.layout.item_heart_rate_searching, null);
-                    mListView.addFooterView(mFooterView);
-                } else {
+                LayoutInflater inflater = getActivity().getLayoutInflater();
+
+                if (mFooterView != null) {
                     mListView.removeFooterView(mFooterView);
+                }
+
+                if (!BleUtils.isBLEPermission(getActivity())) {
+                    mFooterView = inflater.inflate(R.layout.item_heart_rate_error, null);
+                    TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
+                    textView.setText(getString(R.string.heart_rate_setting_dialog_error_permission));
+                } else if (getManager().isEnabledBle()) {
+                    mFooterView = inflater.inflate(R.layout.item_heart_rate_searching, null);
+                } else {
+                    mFooterView = inflater.inflate(R.layout.item_heart_rate_error, null);
+                    TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
+                    textView.setText(getString(R.string.heart_rate_setting_dialog_disable_bluetooth));
+
                     mDeviceAdapter.clear();
                     mDeviceAdapter.addAll(createDeviceContainers());
                     mDeviceAdapter.notifyDataSetChanged();
                 }
+
+                mListView.addFooterView(mFooterView);
             }
         });
     }

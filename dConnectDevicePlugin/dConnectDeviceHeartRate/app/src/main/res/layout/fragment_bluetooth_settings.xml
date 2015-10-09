@@ -27,8 +27,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
+                android:paddingTop="16dp"
                 android:text="@string/bluetooth_settings_body"
                 android:textColor="#777777"
                 android:textSize="16sp"/>
@@ -41,6 +40,46 @@
                 android:background="@drawable/button_blue"
                 android:text="@string/bluetooth_settings_button"
                 android:textColor="#FFFFFF"/>
+
+            <LinearLayout
+                android:id="@+id/ble_permission"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/bluetooth_settings_ble_detail"
+                    android:textColor="#666666"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:layout_weight="2"
+                        android:text="@string/bluetooth_settings_ble_permission"
+                        android:textColor="#000000"
+                        android:textSize="18dp"/>
+
+                    <Button
+                        android:id="@+id/button_permission"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/button_blue"
+                        android:text="@string/bluetooth_settings_ble_permission_on"
+                        android:textColor="#FFFFFF"/>
+                </LinearLayout>
+
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 

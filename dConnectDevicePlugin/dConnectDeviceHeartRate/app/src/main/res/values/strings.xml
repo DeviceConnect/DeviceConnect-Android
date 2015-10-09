@@ -14,8 +14,7 @@
     <string name="bluetooth_settings_title">[3/4] Bluetooth設定</string>
     <string name="bluetooth_settings_body">このデバイスプラグインでは、Bluetooth Low Energyを使用しますので、端末のBluetooth設定画面より設定をONにしてください。\n\n既にBluetoothがONになっている場合には次のページにお進みください。\n</string>
     <string name="bluetooth_settings_button">設定画面を開く</string>
-    <string name="bluetooth_settings_ble_detail">Android 6.0からBLEをスキャンするには、位置情報のパーミッションが必要になりました。\n
-このプラグインを使用するためには、以下のパーミッションを許可してください。\n許可を取り消すには、アプリの設定画面から行うことができます。</string>
+    <string name="bluetooth_settings_ble_detail">Android 6.0からBLEをスキャンするには、位置情報のパーミッションが必要になりました。\nこのプラグインを使用するためには、以下のパーミッションを許可してください。\n許可を取り消すには、アプリの設定画面から行うことができます。</string>
     <string name="bluetooth_settings_ble_permission">位置情報の許可</string>
     <string name="bluetooth_settings_ble_permission_on">取得済み</string>
     <string name="bluetooth_settings_ble_permission_off">取得</string>

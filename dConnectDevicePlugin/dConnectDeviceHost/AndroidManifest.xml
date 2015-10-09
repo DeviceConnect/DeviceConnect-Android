@@ -102,18 +102,18 @@
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.video.VideoRecorder"
+            android:exported="false"
             android:screenOrientation="landscape"/>
+
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.video.VideoPlayer"
+            android:exported="false"
             android:launchMode="singleInstance"
             android:screenOrientation="landscape"/>
-        <activity android:name="org.deviceconnect.android.deviceplugin.host.audio.AudioRecorder"/>
 
-        <receiver android:name="org.deviceconnect.android.deviceplugin.host.video.VideoRecorder">
-            <intent-filter>
-                <action android:name="org.deviceconnect.android.intent.action.SEND_VIDEO_TO_HOSTDP"/>
-            </intent-filter>
-        </receiver>
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.host.audio.AudioRecorder"
+            android:exported="false"/>
 
         <provider
             android:name="org.deviceconnect.android.provider.FileProvider"
@@ -133,14 +133,17 @@
         <!-- Canvas Profile -->
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
+            android:exported="false"
             android:launchMode="singleTask"/>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.TouchProfileActivity"
+            android:exported="false"
             android:label="@string/app_name"/>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.KeyEventProfileActivity"
+            android:exported="false"
             android:label="@string/app_name"/>
     </application>
 

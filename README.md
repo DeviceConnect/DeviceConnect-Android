@@ -58,16 +58,15 @@ In this guide I will continue to discuss the following.
 People who want to develop the DeviceConnectManager and device Plug-ins, please build in accordance with this build instructions.
 
 * [DeviceConnectManager](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DeviceConnectManager-Build)
-
 * [AllJoyn](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AllJoyn-Build)
 * [ChromeCast](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/ChromeCast-Build)
-* [F-PLUG](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AllJoyn-Build)
-* [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRate-Build)
+* [F-PLUG](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/F-PLUG-Build)
+* [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
-* [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVC-Build)
+* [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCDevice-Build)
 * [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
-* [Kadecot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
+* [Kadecot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Kadecot-Build)
 * [Pebble](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Pebble-Build)
 * [SonyCamera](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonyCamera-Build)
 * [SonySW](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonySW-Build)
@@ -133,12 +132,10 @@ Regard specific use of Device Connect, please refer to us the Wiki of [here] (ht
 Application and using the DeviceConnect, regard the development of the application, please refer to the following pages.
 
  * [Application Development Manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Android-Studio)
-
-  * [Application Development Manual(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Eclipse)
+* [Application Development Manual(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Application-Manual-for-Eclipse)
 
 <br>
 If you want to develop a device plug-ins using the Device Connect Manager, please see this Application Development Manual.
 
- * [Device Plug-in development manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio)<br>
-
+ * [Device Plug-in development manual(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio)
  * [Device Plug-in development manual(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Eclipse)

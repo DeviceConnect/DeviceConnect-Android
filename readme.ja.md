@@ -51,16 +51,15 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 　DeviceConnectManagerやデバイスプラグインを開発したい人は、こちらのビルド手順書に従ってビルドしてください。
 
 * [DeviceConnectManager](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DeviceConnectManager-Build)
-
 * [AllJoyn](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AllJoyn-Build)
 * [ChromeCast](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/ChromeCast-Build)
-* [F-PLUG](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AllJoyn-Build)
-* [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRate-Build)
+* [F-PLUG](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/F-PLUG-Build)
+* [HeartRate](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HeartRateDevice-Build)
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
-* [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVC-Build)
+* [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCDevice-Build)
 * [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
-* [Kadecot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
+* [Kadecot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Kadecot-Build)
 * [Pebble](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Pebble-Build)
 * [SonyCamera](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonyCamera-Build)
 * [SonySW](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonySW-Build)
@@ -129,5 +128,5 @@ Device Connect の具体的な利用法に関しましては、[こちら](https
 <br>
 Device Connect Managerを使用したデバイスプラグインを開発したい場合には、こちらのアプリケーション開発マニュアルをご参照ください。
 
- * [デバイスプラグイン開発マニュアル(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio)<br>
+ * [デバイスプラグイン開発マニュアル(AndroidStudio)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Android-Studio)
  * [デバイスプラグイン開発マニュアル(Eclipse)](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/DevicePlugin-Manual-for-Eclipse)

@@ -56,6 +56,7 @@
     <string name="select_tv">テレビ</string>
 
     <string name="remove_virtual_device_title">削除</string>
+    <string name="remove_virtual_device_message">削除しますか？</string>
     <string name="remove_virtual_device_success">削除に成功しました。</string>
     <string name="remove_virtual_device_failure">削除に失敗しました。</string>
     <string name="remove_virtual_select_device">削除するデバイスを一つ選んでください。</string>

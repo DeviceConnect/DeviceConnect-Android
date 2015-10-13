@@ -6,8 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.fragment;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -167,13 +169,24 @@ public class IRKitVirtualDeviceFragment extends Fragment
             @Override
             public void onClick(View v) {
                 if (isRemove()) {
-                    removeCheckVirtualDevices();
+                    AlertDialog.Builder alertBuilder = new AlertDialog.Builder(getActivity());
+                    alertBuilder.setTitle(getString(R.string.remove_virtual_device_title));
+                    alertBuilder.setMessage(getString(R.string.remove_virtual_device_message));
+                    alertBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            removeCheckVirtualDevices();
+                            updateVirtualDeviceList();
+                        }
+                    });
+                    alertBuilder.setNegativeButton("Cancel", null);
+                    alertBuilder.create().show();
                 } else {
                     IRKitCreateVirtualDeviceDialogFragment.showAlert(getActivity(),
                             getString(R.string.remove_virtual_device_title),
                             getString(R.string.remove_virtual_select_device));
+                    updateVirtualDeviceList();
                 }
-                updateVirtualDeviceList();
             }
         });
 

@@ -93,7 +93,20 @@ public class MixedReplaceMediaServer {
      */
     private final List<ServerRunnable> mRunnables = Collections.synchronizedList(
             new ArrayList<ServerRunnable>());
-    
+
+    /**
+     * Sever event listener.
+     */
+    private ServerEventListener mListener;
+
+    /**
+     * Set a ServerEventListener.
+     * @param listener server event listener
+     */
+    public void setServerEventListener(final ServerEventListener listener) {
+        mListener = listener;
+    }
+
     /**
      * Set a boundary.
      * @param boundary boundary of a multipart
@@ -223,6 +236,9 @@ public class MixedReplaceMediaServer {
         } catch (IOException e) {
             // Failed to open server socket
             mStopFlag = true;
+            if (mListener != null) {
+                mListener.onError();
+            }
             return null;
         }
 
@@ -233,6 +249,9 @@ public class MixedReplaceMediaServer {
             @Override
             public void run() {
                 try {
+                    if (mListener != null) {
+                        mListener.onStart();
+                    }
                     while (!mStopFlag) {
                         ServerRunnable run = new ServerRunnable(mServerSocket.accept());
                         synchronized (MixedReplaceMediaServer.this) {
@@ -289,14 +308,35 @@ public class MixedReplaceMediaServer {
                 mServerSocket = null;
             } catch (IOException e) {
                 if (BuildConfig.DEBUG) {
-                   e.printStackTrace();
+                    e.printStackTrace();
                 }
             }
         }
         mPath = null;
+        if (mListener != null) {
+            mListener.onStop();
+        }
         mLogger.fine("MixedReplaceMediaServer is stop.");
     }
-    
+
+    /**
+     * Interface of Sever event.
+     */
+    public interface ServerEventListener {
+        /**
+         * Event that started a server.
+         */
+        void onStart();
+        /**
+         * Event that stopped a server.
+         */
+        void onStop();
+        /**
+         * Event that occurred a error on server.
+         */
+        void onError();
+    }
+
     /**
      * Class of Server.
      */
@@ -354,6 +394,9 @@ public class MixedReplaceMediaServer {
 
                     while (!mStopFlag) {
                         byte[] media = mMediaQueue.take();
+                        if (mSocket.isClosed()) {
+                            break;
+                        }
                         if (media.length > 0) {
                             sendMedia(media);
                         }
@@ -369,7 +412,7 @@ public class MixedReplaceMediaServer {
                     }
                 }
                 Thread.currentThread().interrupt();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 if (mStream != null) {
                     try {
                         mStream.write(generateBadRequest().getBytes());
@@ -386,7 +429,7 @@ public class MixedReplaceMediaServer {
                     } catch (IOException e) {
                         if (BuildConfig.DEBUG) {
                             e.printStackTrace();
-                         }
+                        }
                     }
                 }
                 try {
@@ -394,10 +437,13 @@ public class MixedReplaceMediaServer {
                 } catch (IOException e) {
                     if (BuildConfig.DEBUG) {
                         e.printStackTrace();
-                     }
-
+                    }
                 }
                 mRunnables.remove(this);
+                
+                if (mRunnables.isEmpty()) {
+                    stop();
+                }
             }
         }
         
@@ -580,7 +626,7 @@ public class MixedReplaceMediaServer {
     
     /**
      * Generate a error http header.
-     * @param status Status
+     * @param status status
      * @return http header
      */
     private String generateErrorHeader(final String status) {

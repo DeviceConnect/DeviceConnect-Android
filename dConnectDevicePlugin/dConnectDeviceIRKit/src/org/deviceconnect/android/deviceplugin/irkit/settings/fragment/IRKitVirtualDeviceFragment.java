@@ -209,9 +209,14 @@ public class IRKitVirtualDeviceFragment extends Fragment
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-                IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
-                activity.startApp(IRKitDeviceListActivity.MANAGE_VIRTUAL_PROFILE_PAGE,
-                        mVirtuals.get(position).getServiceId());
+                if (mIsRemoved) {
+                    CheckBox removeCheck = (CheckBox) view.findViewById(R.id.delete_check);
+                    removeCheck.setChecked(!removeCheck.isChecked());
+                } else {
+                    IRKitDeviceListActivity activity = (IRKitDeviceListActivity) getActivity();
+                    activity.startApp(IRKitDeviceListActivity.MANAGE_VIRTUAL_PROFILE_PAGE,
+                            mVirtuals.get(position).getServiceId());
+                }
             }
         });
         return rootView;
@@ -398,6 +403,7 @@ public class IRKitVirtualDeviceFragment extends Fragment
                     }
                 });
                 removeCheck.setChecked(device.isRemove());
+                removeCheck.setFocusable(false);
             } else {
                 removeCheck.setVisibility(View.GONE);
                 removeCheck.setOnCheckedChangeListener(null);

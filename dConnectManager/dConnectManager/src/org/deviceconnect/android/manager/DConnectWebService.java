@@ -77,6 +77,8 @@ public class DConnectWebService extends Service {
      */
     private synchronized void startWebServer() {
         if (mWebServer == null) {
+            mSettings.load(this);
+
             DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
             builder.port(mSettings.getWebPort())
                     .documentRootPath(mSettings.getDocumentRootPath());

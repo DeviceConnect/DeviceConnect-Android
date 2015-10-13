@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +49,21 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
     /** Z軸方向の重力付き加速度. (単位: m/s^2). */
     private double mAccellZ;
 
+    /** 加速度データが準備できているかどうかのフラグ */
+    private AtomicBoolean mIsAccellReady = new AtomicBoolean(false);
+
+    /** X軸方向の重力加速度成分. (単位: m/s^2). */
+    private double mGravityX = 0;
+
+    /** Y軸方向の重力加速度成分. (単位: m/s^2). */
+    private double mGravityY = 0;
+
+    /** Z軸方向の重力加速度成分. (単位: m/s^2). */
+    private double mGravityZ = 0;
+
+    /** 重力加速度データが準備できているかどうかのフラグ */
+    private AtomicBoolean mIsGravityReady = new AtomicBoolean(false);
+
     /** X軸周りの角速度. (単位: degree/s). */
     private double mGyroX;
 
@@ -57,8 +73,11 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
     /** Z軸周りの角速度. (単位: degree/s). */
     private double mGyroZ;
 
+    /** 角速度データが準備できているかどうかのフラグ */
+    private AtomicBoolean mIsGyroReady = new AtomicBoolean(false);
+
     /** 前回の加速度の計測時間を保持する. */
-    private long mAccelStartTime;
+    private long mAccelLastTime;
 
     /**
      * Device Orientationのキャッシュを残す時間を定義する.
@@ -185,16 +204,16 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
      * @return trueの場合には即座に値を返却する、falseの場合には返さない
      */
     private boolean getDeviceOrientationEvent(final Intent response) {
-        long t = System.currentTimeMillis() - mAccelStartTime;
+        long t = System.currentTimeMillis() - mAccelLastTime;
         if (t > DEVICE_ORIENTATION_CACHE_TIME) {
             List<Sensor> sensors;
             final SensorEventListener l = new SensorEventListener() {
                 @Override
                 public void onSensorChanged(final SensorEvent event) {
-                    if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                        mAccellX = event.values[0];
-                        mAccellY = event.values[1];
-                        mAccellZ = event.values[2];
+                    processSensorData(event);
+
+                    if (mIsAccellReady.get() && mIsGravityReady.get() && mIsGyroReady.get()) {
+                        mAccelLastTime = System.currentTimeMillis();
 
                         Bundle orientation = createOrientation();
                         setResult(response, DConnectMessage.RESULT_OK);
@@ -205,16 +224,14 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
                         if (isEmptyEventList()) {
                             mSensorManager.unregisterListener(this);
                         }
-                    } else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-                        mGyroX = event.values[0];
-                        mGyroY = event.values[1];
-                        mGyroZ = event.values[2];
                     }
                 }
+
                 @Override
                 public void onAccuracyChanged(final Sensor sensor, final int accuracy) {
+                    // No operation
                 }
-            }; 
+            };
 
             mSensorManager = getSensorManager();
             sensors = mSensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
@@ -222,7 +239,17 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
                 Sensor sensor = sensors.get(0);
                 mSensorManager.registerListener(l, sensor,
                         SensorManager.SENSOR_DELAY_NORMAL);
-                mAccelStartTime = System.currentTimeMillis();
+            } else {
+                MessageUtils.setNotSupportAttributeError(response);
+                return true;
+            }
+
+            sensors = mSensorManager
+                    .getSensorList(Sensor.TYPE_GRAVITY);
+            if (sensors.size() > 0) {
+                Sensor sensor = sensors.get(0);
+                mSensorManager.registerListener(l, sensor,
+                        SensorManager.SENSOR_DELAY_NORMAL);
             } else {
                 MessageUtils.setNotSupportAttributeError(response);
                 return true;
@@ -237,6 +264,8 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
                 MessageUtils.setNotSupportAttributeError(response);
                 return true;
             }
+
+            invalidateLatestData();
 
             return false;
         } else {
@@ -264,13 +293,24 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
         mServiceId = serviceId;
         mSensorManager = getSensorManager();
 
-        List<Sensor> sensors = mSensorManager
+        List<Sensor> sensors;
+        sensors = mSensorManager
                 .getSensorList(Sensor.TYPE_ACCELEROMETER);
         if (sensors.size() > 0) {
             Sensor sensor = sensors.get(0);
             mSensorManager.registerListener(this, sensor,
                     SensorManager.SENSOR_DELAY_NORMAL);
-            mAccelStartTime = System.currentTimeMillis();
+        } else {
+            MessageUtils.setNotSupportAttributeError(response);
+            return;
+        }
+
+        sensors = mSensorManager
+                .getSensorList(Sensor.TYPE_GRAVITY);
+        if (sensors.size() > 0) {
+            Sensor sensor = sensors.get(0);
+            mSensorManager.registerListener(this, sensor,
+                    SensorManager.SENSOR_DELAY_NORMAL);
         } else {
             MessageUtils.setNotSupportAttributeError(response);
             return;
@@ -308,13 +348,13 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
      * @return Orientationのデータ
      */
     private Bundle createOrientation() {
-        long interval = System.currentTimeMillis() - mAccelStartTime;
+        long interval = System.currentTimeMillis() - mAccelLastTime;
 
         Bundle orientation = new Bundle();
         Bundle a1 = new Bundle();
-        DeviceOrientationProfile.setX(a1, 0.0);
-        DeviceOrientationProfile.setY(a1, 0.0);
-        DeviceOrientationProfile.setZ(a1, 0.0);
+        DeviceOrientationProfile.setX(a1, mAccellX - mGravityX);
+        DeviceOrientationProfile.setY(a1, mAccellY - mGravityY);
+        DeviceOrientationProfile.setZ(a1, mAccellZ - mGravityZ);
 
         Bundle a2 = new Bundle();
         DeviceOrientationProfile.setX(a2, mAccellX);
@@ -333,13 +373,43 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
         return orientation;
     }
 
-    @Override
-    public void onSensorChanged(final SensorEvent sensorEvent) {
+    private void processSensorData(final SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-
             mAccellX = sensorEvent.values[0];
             mAccellY = sensorEvent.values[1];
             mAccellZ = sensorEvent.values[2];
+
+            mIsAccellReady.compareAndSet(false, true);
+        } else if (sensorEvent.sensor.getType() == Sensor.TYPE_GRAVITY) {
+            mGravityX = sensorEvent.values[0];
+            mGravityY = sensorEvent.values[1];
+            mGravityZ = sensorEvent.values[2];
+
+            mIsGravityReady.compareAndSet(false, true);
+        } else if (sensorEvent.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+            mGyroX = Math.toDegrees(sensorEvent.values[0]);
+            mGyroY = Math.toDegrees(sensorEvent.values[1]);
+            mGyroZ = Math.toDegrees(sensorEvent.values[2]);
+
+            mIsGyroReady.compareAndSet(false, true);
+        }
+    }
+
+    /**
+     * キャッシュされたセンサーデータを無効扱いにし、最新センサーデータが全て揃うまでデータ収集を行わせる。
+     */
+    private void invalidateLatestData() {
+        mIsAccellReady.compareAndSet(true, false);
+        mIsGravityReady.compareAndSet(true, false);
+        mIsGyroReady.compareAndSet(true, false);
+    }
+
+    @Override
+    public void onSensorChanged(final SensorEvent sensorEvent) {
+        processSensorData(sensorEvent);
+
+        if (mIsAccellReady.get() && mIsGravityReady.get() && mIsGyroReady.get()) {
+            mAccelLastTime = System.currentTimeMillis();
 
             Bundle orientation = createOrientation();
 
@@ -354,12 +424,6 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
                         orientation);
                 getContext().sendBroadcast(intent);
             }
-
-            mAccelStartTime = System.currentTimeMillis();
-        } else if (sensorEvent.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            mGyroX = Math.toDegrees(sensorEvent.values[0]);
-            mGyroY = Math.toDegrees(sensorEvent.values[1]);
-            mGyroZ = Math.toDegrees(sensorEvent.values[2]);
         }
     }
 

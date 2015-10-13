@@ -7,18 +7,21 @@ http://opensource.org/licenses/mit-license.php
 
 package org.deviceconnect.android.deviceplugin.sonycamera;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.Logger;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Bundle;
+
+import com.example.sony.cameraremote.ServerDevice;
+import com.example.sony.cameraremote.SimpleCameraEventObserver;
+import com.example.sony.cameraremote.SimpleRemoteApi;
+import com.example.sony.cameraremote.SimpleSsdpClient;
+import com.example.sony.cameraremote.utils.SimpleLiveviewSlicer;
+import com.example.sony.cameraremote.utils.SimpleLiveviewSlicer.Payload;
 
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraServiceDiscoveryProfile;
@@ -26,6 +29,7 @@ import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraSyste
 import org.deviceconnect.android.deviceplugin.sonycamera.profile.SonyCameraZoomProfile;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.DConnectUtil;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.sonycamera.utils.MixedReplaceMediaServer.ServerEventListener;
 import org.deviceconnect.android.deviceplugin.sonycamera.utils.UserSettings;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -47,21 +51,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.os.Bundle;
-
-import com.example.sony.cameraremote.ServerDevice;
-import com.example.sony.cameraremote.SimpleCameraEventObserver;
-import com.example.sony.cameraremote.SimpleRemoteApi;
-import com.example.sony.cameraremote.SimpleSsdpClient;
-import com.example.sony.cameraremote.utils.SimpleLiveviewSlicer;
-import com.example.sony.cameraremote.utils.SimpleLiveviewSlicer.Payload;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 /**
  * SonyCameraデバイスプラグイン用サービス.
@@ -1085,6 +1086,19 @@ public class SonyCameraDeviceService extends DConnectMessageService {
 
                     if (mServer == null) {
                         mServer = new MixedReplaceMediaServer();
+                        mServer.setServerEventListener(new ServerEventListener() {
+                            @Override
+                            public void onStart() {
+                            }
+                            @Override
+                            public void onStop() {
+                                mWhileFetching = false;
+                            }
+                            @Override
+                            public void onError() {
+                                mWhileFetching = false;
+                            }
+                        });
                         mServer.setServerName("SonyCameraDevicePlugin Server");
                         mServer.setContentType("image/jpg");
                         String ip = mServer.start();
@@ -1418,7 +1432,8 @@ public class SonyCameraDeviceService extends DConnectMessageService {
             sendResponse(response);
             return true;
         }
-        if (mAvailableApiList.indexOf("getEvent") == -1) {
+        if (mAvailableApiList.indexOf("getEvent") == -1
+                || mAvailableApiList.indexOf("actZoom") == -1) {
             MessageUtils.setNotSupportActionError(response);
             sendResponse(response);
             return true;

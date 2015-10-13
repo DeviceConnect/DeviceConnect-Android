@@ -82,7 +82,7 @@ public class HostFileProfile extends FileProfile {
                 filePath = getFileManager().getContentUri() + path;
             } else {
                 mFile = new File(getFileManager().getBasePath() + "/" + path);
-                filePath = getFileManager().getContentUri() + path;
+                filePath = getFileManager().getContentUri() + "/" + path;
             }
 
             if (mFile.isFile()) {

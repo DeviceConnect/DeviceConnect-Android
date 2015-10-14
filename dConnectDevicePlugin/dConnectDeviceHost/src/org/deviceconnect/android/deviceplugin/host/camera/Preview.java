@@ -6,12 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.camera;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.R;
-
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Point;
@@ -27,11 +21,18 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.R;
+
+import java.io.IOException;
+import java.util.List;
+
 /**
  * カメラのプレビューを表示するクラス.
  * 
  * @author NTT DOCOMO, INC.
  */
+@SuppressWarnings("deprecation")
 class Preview extends ViewGroup implements SurfaceHolder.Callback {
     /** デバック用タグ. */
     public static final String LOG_TAG = "DeviceConnectCamera:Preview";
@@ -41,14 +42,14 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
      * <p>
      * これ以上の横幅のプレビューは設定させない。
      */
-    private static final int THRESHOLD_WIDTH = 500;
+    private static final int THRESHOLD_WIDTH = 640;
 
     /**
      * プレビューの縦幅の閾値を定義する.
      * <p>
      * これ以上の縦幅のプレビューは設定させない。
      */
-    private static final int THRESHOLD_HEIGHT = 400;
+    private static final int THRESHOLD_HEIGHT = 480;
 
     /** プレビューを表示するSurfaceView. */
     private SurfaceView mSurfaceView;
@@ -66,7 +67,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
      * - Broadcastで指示された場合は設定する。<br>
      * - アプリ内ならの指示ならnullを設定する。<br>
      */
-    private String mRequestid;
+    private String mRequestId;
 
     /**
      * コンストラクタ.
@@ -208,6 +209,10 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         if (mCamera != null) {
             int rot = getCameraDisplayOrientation(getContext());
 
+            if (BuildConfig.DEBUG) {
+                Log.i(LOG_TAG, "PreViewSize: " + mPreviewSize.width + ", " + mPreviewSize.height);
+            }
+
             Camera.Parameters parameters = mCamera.getParameters();
             Size mPrevSize = parameters.getPreviewSize();
             parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
@@ -293,6 +298,15 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             return null;
         }
 
+        if (BuildConfig.DEBUG) {
+            Log.i(LOG_TAG, "getOptimalPreviewSize: " + w + ", " + h);
+            Log.i(LOG_TAG, "-------");
+            for (Size size : sizes) {
+                Log.i(LOG_TAG, "     PreviewSize: " + size.width + ", " + size.height);
+            }
+            Log.i(LOG_TAG, "-------");
+        }
+
         Size optimalSize = null;
         double minDiff = Double.MAX_VALUE;
 
@@ -319,6 +333,10 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
                     minDiff = Math.abs(size.height - targetHeight);
                 }
             }
+        }
+
+        if (BuildConfig.DEBUG) {
+            Log.i(LOG_TAG, "OptimalSize: " + optimalSize.width + ", " + optimalSize.height);
         }
         return optimalSize;
     }
@@ -400,7 +418,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             Log.d(LOG_TAG, "zoomIn() start - requestid:" + requestid);
         }
 
-        mRequestid = requestid;
+        mRequestId = requestid;
 
         /* ズームイン処理 */
         Camera.Parameters parameters = mCamera.getParameters();
@@ -411,7 +429,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         mCamera.setParameters(parameters);
 
         /* Toast表示 */
-        String debugToast = getResources().getString(R.string.zoomin) + " requestid:" + mRequestid;
+        String debugToast = getResources().getString(R.string.zoomin) + " requestid:" + mRequestId;
         Toast.makeText(getContext(), debugToast, Toast.LENGTH_SHORT).show();
 
         if (BuildConfig.DEBUG) {
@@ -429,7 +447,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             Log.d(LOG_TAG, "zoomOut() start - requestid:" + requestid);
         }
 
-        mRequestid = requestid;
+        mRequestId = requestid;
 
         /* ズームアウト処理 */
         Camera.Parameters parameters = mCamera.getParameters();
@@ -440,7 +458,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         mCamera.setParameters(parameters);
 
         /* Toast表示 */
-        String debugToast = getResources().getString(R.string.zoomout) + " requestid:" + mRequestid;
+        String debugToast = getResources().getString(R.string.zoomout) + " requestid:" + mRequestId;
         Toast.makeText(getContext(), debugToast, Toast.LENGTH_SHORT).show();
 
         if (BuildConfig.DEBUG) {

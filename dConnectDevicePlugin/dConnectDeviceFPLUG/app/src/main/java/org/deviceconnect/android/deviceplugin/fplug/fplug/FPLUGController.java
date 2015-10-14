@@ -288,23 +288,29 @@ public class FPLUGController {
 
                 @Override
                 public void onReceiveResponse(FPLUGResponse response) {
-                    mCurrentRequestData.getCallback().onSuccess(response);
-                    goNext();
+                    onReceiveData(response, null);
                 }
 
                 @Override
                 public void onReceiveError(String message) {
-                    mCurrentRequestData.getCallback().onError(message);
-                    goNext();
+                    onReceiveData(null, message);
                 }
 
-                private void goNext() {
-                    cancelTimer();
-                    nextRequest();
-                }
             });
             mReceiver.start();
         }
+    }
+
+    private synchronized void onReceiveData(FPLUGResponse response, String message) {
+        if (mCurrentRequestData != null) {
+            if (response != null) {
+                mCurrentRequestData.getCallback().onSuccess(response);
+            } else {
+                mCurrentRequestData.getCallback().onError(message);
+            }
+        }
+        cancelTimer();
+        nextRequest();
     }
 
     private synchronized void stopReceiveThread() {

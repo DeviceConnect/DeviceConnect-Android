@@ -6,18 +6,14 @@
  */
 package org.deviceconnect.android.test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Random;
-import java.util.logging.Logger;
-
-import javax.crypto.KeyGenerator;
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.AssetManager;
+import android.net.Uri;
+import android.test.InstrumentationTestCase;
 
 import org.deviceconnect.android.test.plugin.profile.TestServiceDiscoveryProfileConstants;
 import org.deviceconnect.android.test.plugin.profile.TestSystemProfileConstants;
@@ -39,14 +35,18 @@ import org.deviceconnect.profile.SettingsProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 import org.deviceconnect.profile.VibrationProfileConstants;
 
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningServiceInfo;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.AssetManager;
-import android.net.Uri;
-import android.test.InstrumentationTestCase;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Random;
+import java.util.logging.Logger;
+
+import javax.crypto.KeyGenerator;
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
 
 
 /**
@@ -156,10 +156,10 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
     /** クライアントID. */
-    protected String mClientId;
+    protected static String sClientId;
 
     /** アクセストークン. */
-    protected String mAccessToken;
+    protected static String sAccessToken;
 
     /**
      * コンストラクタ.
@@ -324,7 +324,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
      * @return クライアントIDのオンメモリ上のキャッシュ
      */
     protected String getClientId() {
-        return mClientId;
+        return sClientId;
     }
 
     /**
@@ -333,7 +333,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
      * @return アクセストークンのオンメモリ上のキャッシュ
      */
     protected String getAccessToken() {
-        return mAccessToken;
+        return sAccessToken;
     }
 
     /**
@@ -367,10 +367,7 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
         SharedPreferences.Editor editor = pref.edit();
         editor.putString(KEY_CLIENT_ID, clientId);
         editor.putString(KEY_ACCESS_TOKEN, accessToken);
-        boolean edited = editor.commit();
-        if (!edited) {
-            fail("Failed to store oauth info: clientId, cliendSecret, accessToken");
-        }
+        editor.commit();
     }
 
     /**
@@ -382,21 +379,21 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
         super.setUp();
         waitForManager();
         if (isLocalOAuth()) {
-            mClientId = getClientIdCache();
-            mAccessToken = getAccessTokenCache();
+//            sClientId = getClientIdCache();
+//            sAccessToken = getAccessTokenCache();
             // クライアントID取得
-            if (mClientId == null) {
+            if (sClientId == null) {
                 String clientId = createClient();
                 assertNotNull(clientId);
-                mClientId = clientId;
+                sClientId = clientId;
             }
             // アクセストークン取得
-            if (mAccessToken == null) {
-                mAccessToken = requestAccessToken(mClientId, PROFILES);
-                assertNotNull(mAccessToken);
+            if (sAccessToken == null) {
+                sAccessToken = requestAccessToken(sClientId, PROFILES);
+                assertNotNull(sAccessToken);
             }
             // 認証情報をキャッシュする
-            storeOAuthInfo(mClientId, mAccessToken);
+            storeOAuthInfo(sClientId, sAccessToken);
         }
         if (isSearchDevices()) {
             // テストデバイスプラグインを探す

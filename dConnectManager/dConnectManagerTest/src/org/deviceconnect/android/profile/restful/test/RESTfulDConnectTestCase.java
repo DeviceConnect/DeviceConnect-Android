@@ -6,16 +6,6 @@
  */
 package org.deviceconnect.android.profile.restful.test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-
 import junit.framework.Assert;
 
 import org.apache.http.HttpResponse;
@@ -44,6 +34,16 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -314,9 +314,9 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
                 }
                 int errorCode = response.getInt(DConnectMessage.EXTRA_ERROR_CODE);
                 if (errorCode == DConnectMessage.ErrorCode.EXPIRED_ACCESS_TOKEN.getCode()) {
-                    mAccessToken = requestAccessToken(mClientId, PROFILES);
-                    assertNotNull(mAccessToken);
-                    storeOAuthInfo(mClientId, mAccessToken);
+                    sAccessToken = requestAccessToken(sClientId, PROFILES);
+                    assertNotNull(sAccessToken);
+                    storeOAuthInfo(sClientId, sAccessToken);
                     
                     URIBuilder builder = TestURIBuilder.createURIBuilder(request.getURI());
                     builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());

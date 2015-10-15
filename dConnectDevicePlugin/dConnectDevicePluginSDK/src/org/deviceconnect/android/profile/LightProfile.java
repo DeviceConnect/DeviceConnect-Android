@@ -32,25 +32,25 @@ import android.os.Bundle;
  * {@link LightProfile#onGetLight(Intent, Intent, String)}
  * </li>
  * <li>Light On API [POST] :
- * {@link LightProfile#onPostLight(Intent, Intent, String, String, Integer, Double, int[])}
+ * {@link LightProfile#onPostLight(Intent, Intent, String, String, Integer, Double, long[])}
  * </li>
  * <li>Light Off API [DELETE] :
  * {@link LightProfile#onDeleteLight(Intent, Intent, String, String)}
  * </li>
  * <li>Light Status Change API [PUT] :
- * {@link LightProfile#onPutLight(Intent, Intent, String, String, String, Integer, Double, int[])}
+ * {@link LightProfile#onPutLight(Intent, Intent, String, String, String, Integer, Double, long[])}
  * </li>
  * <li>Light Group Status API [GET] :
  * {@link LightProfile#onGetLightGroup(Intent, Intent, String)}
  * </li>
  * <li>Light Group On API [POST] :
- * {@link LightProfile#onPostLightGroup(Intent, Intent, String, String, Integer, Double, int[])}
+ * {@link LightProfile#onPostLightGroup(Intent, Intent, String, String, Integer, Double, long[])}
  * </li>
  * <li>Light Group Off API [DELETE] :
  * {@link LightProfile#onDeleteLightGroup(Intent, Intent, String, String)}
  * </li>
  * <li>Light Group Status Change API [PUT] :
- * {@link LightProfile#onPutLightGroup(Intent, Intent, String, String, String, Integer, Double, int[])}
+ * {@link LightProfile#onPutLightGroup(Intent, Intent, String, String, String, Integer, Double, long[])}
  * </li>
  * <li>Light Group Create API [POST] :
  * {@link LightProfile#onPostLightGroupCreate(Intent, Intent, String, String[], String)}

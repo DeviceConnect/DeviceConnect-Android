@@ -6,7 +6,12 @@
  */
 package org.deviceconnect.android.deviceplugin.theta;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.wifi.WifiInfo;
+import android.os.Build;
 import android.util.Log;
 
 import com.theta360.lib.PtpipInitiator;
@@ -19,10 +24,12 @@ import com.theta360.lib.ptpip.eventlistener.PtpipEventListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Logger;
+
+import javax.net.SocketFactory;
 
 /**
  * Theta API Client.
@@ -30,6 +37,8 @@ import java.util.logging.Logger;
  * @author NTT DOCOMO, INC.
  */
 public class ThetaApiClient {
+    private static final String BRAND_SAMSUNG = "samsung";
+    private static final String MANUFACTURER_SAMSUNG = "samsung";
 
     private static final String IP_ADDRESS = "192.168.1.1";
 
@@ -37,13 +46,42 @@ public class ThetaApiClient {
 
     private static final String MIMETYPE_PHOTO = "image/jpeg";
 
-    private PtpipInitiator getInitiator() throws ThetaException, IOException {
-        return new PtpipInitiator(IP_ADDRESS);
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    private Context mContext;
+
+    public ThetaApiClient(final Context context) {
+        mContext = context;
     }
 
-    private final Logger mLogger = Logger.getLogger("theta.dplugin");
+    private PtpipInitiator getInitiator() throws ThetaException, IOException {
+        return new PtpipInitiator(getWifiSocketFactory(), IP_ADDRESS);
+    }
 
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private SocketFactory getWifiSocketFactory() {
+        SocketFactory socketFactory = SocketFactory.getDefault();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && !isGalaxyDevice()) {
+            ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+            Network[] allNetwork = cm.getAllNetworks();
+            for (Network network : allNetwork) {
+                NetworkCapabilities networkCapabilities = cm.getNetworkCapabilities(network);
+                if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    socketFactory = network.getSocketFactory();
+                }
+            }
+        }
+        return socketFactory;
+    }
+
+    private boolean isGalaxyDevice() {
+        if ((Build.BRAND != null) && (Build.BRAND.toLowerCase(Locale.ENGLISH).contains(BRAND_SAMSUNG))) {
+            return true;
+        }
+        if ((Build.MANUFACTURER != null) && (Build.MANUFACTURER.toLowerCase(Locale.ENGLISH).contains(MANUFACTURER_SAMSUNG))) {
+            return true;
+        }
+        return false;
+    }
 
     private final ThetaApi mThetaApi = new ThetaApi() {
 

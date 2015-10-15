@@ -45,11 +45,13 @@ public class ThetaDeviceService extends DConnectMessageService {
 
     private final Logger mLogger = Logger.getLogger("theta.dplugin");
 
-    private final ThetaApiClient mClient = new ThetaApiClient();
+    private ThetaApiClient mClient;
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        mClient = new ThetaApiClient(this);
 
         EventManager.INSTANCE.setController(new MemoryCacheController());
 

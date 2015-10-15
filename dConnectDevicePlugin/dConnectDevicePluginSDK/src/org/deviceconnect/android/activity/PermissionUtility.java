@@ -17,39 +17,43 @@ import java.util.Set;
  *
  * @author NTT DOCOMO, INC.
  */
-public class PermissionUtility {
+public final class PermissionUtility {
+
+    private PermissionUtility() {
+    }
 
     /**
      * パーミッションの許諾リクエストを要求する.
      *
      * <p>
-     * Android OS 6.0以上の端末では、このメソッドが呼び出されると内部でActivityが起動して、ユーザに対してパーミッションの許諾確認を行う。
+     * Android OS 6.0以上の端末では、このメソッドが呼び出されると内部でActivityが起動して、ユーザに対してパーミッションの許諾確認を行う。<br>
      * ユーザから許可された場合には、{@link org.deviceconnect.android.activity.PermissionUtility.PermissionRequestCallback#onSuccess}が呼び出され、
      * 拒否された場合には、{@link org.deviceconnect.android.activity.PermissionUtility.PermissionRequestCallback#onFail(String)}が呼び出される。
      * </p>
      * <p>
      * Android OS 6.0未満の端末では、{@link org.deviceconnect.android.activity.PermissionUtility.PermissionRequestCallback#onSuccess}が常に呼び出される。
      * </p>
-     *
+     * <br>
+     * サンプルコード:
+     * <pre>
      * {@code
      * String[] permissions = new String[] {
      *     Manifest.permission.ACCESS_COARSE_LOCATION,
      *     Manifest.permission.ACCESS_FINE_LOCATION
      * }
+     * 
      * PermissionUtility.requestPermissions(getActivity(), new Handler(),
      *         permissions,
      *         new PermissionUtility.PermissionRequestCallback() {
-     *             @Override
      *             public void onSuccess() {
      *                 // 許可された時の処理
      *             }
-     *             @Override
      *             public void onFail(final String deniedPermission) {
      *                 // 拒否された時の処理
      *             }
      *         });
      * }
-     *
+     * </pre>
      * @param context コンテキスト
      * @param handler ハンドラー
      * @param permissions 許可を求めるパーミッション群
@@ -103,12 +107,12 @@ public class PermissionUtility {
      */
     public interface PermissionRequestCallback {
         /**
-         * 許可された場合に呼び出される.
+         * パーミッションが許可された場合に呼び出される.
          */
         void onSuccess();
 
         /**
-         * 拒否されたときに呼び出される.
+         * パーミッションが拒否されたときに呼び出される.
          * @param deniedPermission 拒否されたパーミッション
          */
         void onFail(@NonNull String deniedPermission);

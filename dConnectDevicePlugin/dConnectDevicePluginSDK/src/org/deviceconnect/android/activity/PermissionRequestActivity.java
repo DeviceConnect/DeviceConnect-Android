@@ -14,8 +14,8 @@ import android.support.annotation.NonNull;
  * @author NTT DOCOMO, INC.
  */
 public class PermissionRequestActivity extends Activity {
-    public static final String EXTRA_PERMISSIONS = "EXTRA_PERMISSIONS";
-    public static final String EXTRA_GRANT_RESULTS = "EXTRA_GRANT_RESULTS";
+    static final String EXTRA_PERMISSIONS = "EXTRA_PERMISSIONS";
+    static final String EXTRA_GRANT_RESULTS = "EXTRA_GRANT_RESULTS";
 
     private static final String EXTRA_CALLBACK = "EXTRA_CALLBACK";
     private static final int REQUEST_CODE = 123456789;

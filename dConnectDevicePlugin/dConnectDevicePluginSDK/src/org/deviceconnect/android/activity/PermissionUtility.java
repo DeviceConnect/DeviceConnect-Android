@@ -1,10 +1,5 @@
 package org.deviceconnect.android.activity;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -13,6 +8,10 @@ import android.os.Handler;
 import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * A utility class to make a permission request.
  *
@@ -20,6 +19,42 @@ import android.support.annotation.NonNull;
  */
 public class PermissionUtility {
 
+    /**
+     * パーミッションの許諾リクエストを要求する.
+     *
+     * <p>
+     * Android OS 6.0以上の端末では、このメソッドが呼び出されると内部でActivityが起動して、ユーザに対してパーミッションの許諾確認を行う。
+     * ユーザから許可された場合には、{@link org.deviceconnect.android.activity.PermissionUtility.PermissionRequestCallback#onSuccess}が呼び出され、
+     * 拒否された場合には、{@link org.deviceconnect.android.activity.PermissionUtility.PermissionRequestCallback#onFail(String)}が呼び出される。
+     * </p>
+     * <p>
+     * Android OS 6.0未満の端末では、{@link org.deviceconnect.android.activity.PermissionUtility.PermissionRequestCallback#onSuccess}が常に呼び出される。
+     * </p>
+     *
+     * {@code
+     * String[] permissions = new String[] {
+     *     Manifest.permission.ACCESS_COARSE_LOCATION,
+     *     Manifest.permission.ACCESS_FINE_LOCATION
+     * }
+     * PermissionUtility.requestPermissions(getActivity(), new Handler(),
+     *         permissions,
+     *         new PermissionUtility.PermissionRequestCallback() {
+     *             @Override
+     *             public void onSuccess() {
+     *                 // 許可された時の処理
+     *             }
+     *             @Override
+     *             public void onFail(final String deniedPermission) {
+     *                 // 拒否された時の処理
+     *             }
+     *         });
+     * }
+     *
+     * @param context コンテキスト
+     * @param handler ハンドラー
+     * @param permissions 許可を求めるパーミッション群
+     * @param callback 許諾通知を行うコールバック
+     */
     public static void requestPermissions(@NonNull final Context context, @NonNull final Handler handler,
             @NonNull final String[] permissions, @NonNull final PermissionRequestCallback callback) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
@@ -63,9 +98,19 @@ public class PermissionUtility {
         }
     }
 
+    /**
+     * パーミッションの許諾リクエストの返答を通知するコールバック.
+     */
     public interface PermissionRequestCallback {
+        /**
+         * 許可された場合に呼び出される.
+         */
         void onSuccess();
 
+        /**
+         * 拒否されたときに呼び出される.
+         * @param deniedPermission 拒否されたパーミッション
+         */
         void onFail(@NonNull String deniedPermission);
     }
 }

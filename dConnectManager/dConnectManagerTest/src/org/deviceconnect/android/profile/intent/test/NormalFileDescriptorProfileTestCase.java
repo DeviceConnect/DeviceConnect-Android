@@ -6,20 +6,21 @@
  */
 package org.deviceconnect.android.profile.intent.test;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import android.content.Intent;
+import android.content.res.AssetManager;
+import android.os.Bundle;
+import android.os.Environment;
 
 import org.deviceconnect.android.test.plugin.profile.TestFileDescriptorProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.FileDescriptorProfileConstants;
 
-import android.content.Intent;
-import android.content.res.AssetManager;
-import android.os.Bundle;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 
 
@@ -322,7 +323,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
     private String saveAssetFile(final String name) throws IOException {
         AssetManager manager = getApplicationContext().getAssets();
         InputStream is = manager.open(name);
-        File file = new File(getContext().getFilesDir(), name);
+        File file = new File(Environment.getExternalStorageDirectory(), name);
         if (!file.exists()) {
             if (!file.createNewFile()) {
                 fail("Failed to create file: " + name);

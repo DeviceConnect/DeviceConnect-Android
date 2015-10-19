@@ -83,7 +83,6 @@ project.ext {
 
 project.androidVariants.all { variant ->
     task("generateJavadocForSDK", type: Javadoc, overwrite: true) {
-        println("ABC");
         title = "Device Connect SDK for Android"
         description = "Generates Javadoc for $variant.name."
         source = variant.javaCompile.source

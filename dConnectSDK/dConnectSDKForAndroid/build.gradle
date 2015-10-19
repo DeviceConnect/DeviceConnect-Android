@@ -73,6 +73,38 @@ android {
     }
 }
 
+project.ext {
+    if (android.hasProperty('applicationVariants')) {
+        androidVariants = android.applicationVariants;
+    } else {
+        androidVariants = android.libraryVariants;
+    }
+}
+
+project.androidVariants.all { variant ->
+    task("generateJavadocForSDK", type: Javadoc, overwrite: true) {
+        println("ABC");
+        title = "Device Connect SDK for Android"
+        description = "Generates Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+
+        options {
+            links("http://docs.oracle.com/javase/jp/7/api/");
+            linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")
+            setMemberLevel(JavadocMemberLevel.PUBLIC)
+            docEncoding = 'UTF-8'
+            encoding = 'UTF-8'
+            charSet = 'UTF-8'
+        }
+
+        exclude '**/org/deviceconnect/android/logger/**'
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+}
+
 def repo = new File(rootDir, "repository")
 
 apply plugin: 'maven'

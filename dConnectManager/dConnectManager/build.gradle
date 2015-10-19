@@ -19,24 +19,6 @@ dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-device-plugin-sdk')
     compile project(':dconnect-server-nano-httpd')
-    compile 'org.apache.httpcomponents:httpmime:4.5'
-    compile 'org.apache.httpcomponents:httpcore:4.4.1'
-    compile 'org.apache.james:apache-mime4j-core:0.7.2'
-    compile 'commons-codec:commons-codec:1.9'
-}
-
-/**
- * Even though Apache HttpClient was removed from Android SDK 23, Maven repository's auto dependency
- * resolution still outputs warnings about HttpClient, and ignores HttpClient
- * (##### This status may changes in the further updates in Android SDK #####).
- *
- * Currently, this module imports HttpClient as a JAR file, and does not use Maven to resolve
- * the dependency. Also, the code below prevents dependency resolution from trying to import
- * HttpClient, thus it suppresses warnings.
- */
-configurations {
-    all*.exclude group: 'org.apache.httpcomponents', module: 'httpclient'
-    all*.exclude group: 'commons-logging', module: 'commons-logging'
 }
 
 android {

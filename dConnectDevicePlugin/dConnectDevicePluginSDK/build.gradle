@@ -47,6 +47,40 @@ android {
     }
 }
 
+
+project.ext {
+    if (android.hasProperty('applicationVariants')) {
+        androidVariants = android.applicationVariants;
+    } else {
+        androidVariants = android.libraryVariants;
+    }
+}
+
+project.androidVariants.all { variant ->
+    task("generateJavadocForPlugin", type: Javadoc, overwrite: true) {
+        title = "Device Plug-in SDK for Android"
+        description = "Generates Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+
+        options {
+            links("http://docs.oracle.com/javase/jp/7/api/");
+            linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")
+            setMemberLevel(JavadocMemberLevel.PROTECTED)
+            docEncoding = 'UTF-8'
+            encoding = 'UTF-8'
+            charSet = 'UTF-8'
+        }
+
+        exclude '**/org/deviceconnect/android/localoauth/**'
+        exclude '**/org/restlet/**'
+        exclude '**/org/deviceconnect/android/logger/**'
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+}
+
 repositories {
     maven {
         url 'http://raw.github.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/'
@@ -56,7 +90,6 @@ repositories {
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-sdk-for-android')
-    compile 'org.deviceconnect:dconnect-sdk-for-android:1.0.0'
 }
 
 configurations {

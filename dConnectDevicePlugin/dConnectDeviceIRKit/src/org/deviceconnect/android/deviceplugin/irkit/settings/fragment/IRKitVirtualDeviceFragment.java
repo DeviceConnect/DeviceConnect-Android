@@ -176,6 +176,10 @@ public class IRKitVirtualDeviceFragment extends Fragment
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             removeCheckVirtualDevices();
+                            addLayout.setVisibility(View.VISIBLE);
+                            deleteLayout.setVisibility(View.GONE);
+                            headerView.setBackgroundColor(Color.parseColor("#00a0e9"));
+                            mIsRemoved = false;
                             updateVirtualDeviceList();
                         }
                     });

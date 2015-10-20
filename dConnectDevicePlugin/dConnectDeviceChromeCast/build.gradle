@@ -20,7 +20,6 @@ dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile project(':dconnect-device-plugin-sdk')
     compile 'com.android.support:mediarouter-v7:20.0.+'
-    compile 'com.android.support:support-v4:23.0.0'
     compile 'com.google.android.gms:play-services:7.0.+'
 }
 
@@ -34,10 +33,20 @@ android {
         targetSdkVersion 19
     }
 
+    signingConfigs {
+        releaseConfig {
+            storeFile=file(project.properties.storeFile)
+            storePassword=project.properties.storePassword
+            keyAlias=project.properties.keyAlias
+            keyPassword=project.properties.keyPassword
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.releaseConfig
         }
     }
 
@@ -56,11 +65,11 @@ android {
     }
 
     packagingOptions {
+        exclude 'LICENSE.txt'
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
     }
-
 }
 
 

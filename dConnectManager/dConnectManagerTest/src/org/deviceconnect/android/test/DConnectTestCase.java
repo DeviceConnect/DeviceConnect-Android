@@ -10,6 +10,7 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.test.InstrumentationTestCase;
@@ -336,6 +337,40 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
     }
 
     /**
+     * クライアントIDのキャッシュを取得する.
+     * 
+     * @return クライアントIDのキャッシュ
+     */
+    protected String getClientIdCache() {
+        SharedPreferences pref = getContext().getSharedPreferences(FILE_NAME_OAUTH, Context.MODE_PRIVATE);
+        return pref.getString(KEY_CLIENT_ID, null);
+    }
+
+    /**
+     * アクセストークンのキャッシュを取得する.
+     * 
+     * @return アクセストークンのキャッシュ
+     */
+    protected String getAccessTokenCache() {
+        SharedPreferences pref = getContext().getSharedPreferences(FILE_NAME_OAUTH, Context.MODE_PRIVATE);
+        return pref.getString(KEY_ACCESS_TOKEN, null);
+    }
+
+    /**
+     * 認証情報をキャッシュする.
+     * 
+     * @param clientId クライアントID
+     * @param accessToken アクセストークン
+     */
+    protected void storeOAuthInfo(final String clientId, final String accessToken) {
+        SharedPreferences pref = getContext().getSharedPreferences(FILE_NAME_OAUTH, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString(KEY_CLIENT_ID, clientId);
+        editor.putString(KEY_ACCESS_TOKEN, accessToken);
+        editor.commit();
+    }
+
+    /**
      * テストの前に実行される.
      * @exception Exception 設定に失敗した場合に発生
      */
@@ -344,6 +379,8 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
         super.setUp();
         waitForManager();
         if (isLocalOAuth()) {
+//            sClientId = getClientIdCache();
+//            sAccessToken = getAccessTokenCache();
             // クライアントID取得
             if (sClientId == null) {
                 String clientId = createClient();
@@ -355,6 +392,8 @@ public abstract class DConnectTestCase extends InstrumentationTestCase {
                 sAccessToken = requestAccessToken(sClientId, PROFILES);
                 assertNotNull(sAccessToken);
             }
+            // 認証情報をキャッシュする
+            storeOAuthInfo(sClientId, sAccessToken);
         }
         if (isSearchDevices()) {
             // テストデバイスプラグインを探す

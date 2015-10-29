@@ -136,7 +136,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN,
-            getAccessToken());
+                getAccessToken());
         HttpGet request = new HttpGet(builder.toString());
         try {
             JSONObject root = sendRequest(request);
@@ -311,6 +311,17 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
             if (result == DConnectMessage.RESULT_ERROR && count <= RETRY_COUNT) {
                 if (!response.has(DConnectMessage.EXTRA_ERROR_CODE)) {
                     return response;
+                }
+                int errorCode = response.getInt(DConnectMessage.EXTRA_ERROR_CODE);
+                if (errorCode == DConnectMessage.ErrorCode.EXPIRED_ACCESS_TOKEN.getCode()) {
+                    sAccessToken = requestAccessToken(sClientId, PROFILES);
+                    assertNotNull(sAccessToken);
+                    storeOAuthInfo(sClientId, sAccessToken);
+                    
+                    URIBuilder builder = TestURIBuilder.createURIBuilder(request.getURI());
+                    builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+                    final HttpUriRequest newRequest = recreateRequest(request, builder);
+                    return sendRequest(newRequest, requiredAuth, count + 1);
                 }
             }
             return response;

@@ -138,11 +138,9 @@ public class HueFragment01 extends Fragment implements OnClickListener, OnItemCl
 
             ListView listView = (ListView) rootView.findViewById(R.id.bridge_list2);
             listView.setOnItemClickListener(this);
-            listView.setAdapter(mAdapter);
-
             View headerView = inflater.inflate(R.layout.hue_fragment_01_header, null, false);
             listView.addHeaderView(headerView, null, false);
-
+            listView.setAdapter(mAdapter);
             // アクセスポイントのキャッシュを取得.
             mPhHueSDK.getAccessPointsFound();
         }

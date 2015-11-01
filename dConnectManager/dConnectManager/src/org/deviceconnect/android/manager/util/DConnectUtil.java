@@ -6,8 +6,12 @@
  */
 package org.deviceconnect.android.manager.util;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.wifi.WifiManager;
+import android.os.Bundle;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -20,11 +24,8 @@ import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Bundle;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * ユーティリティクラス.
@@ -147,5 +148,12 @@ public final class DConnectUtil {
         } catch (NameNotFoundException e) {
             return "Unknown";
         }
+    }
+
+    public static String getIPAddress(final Context context) {
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
+        return String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+                (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
     }
 }

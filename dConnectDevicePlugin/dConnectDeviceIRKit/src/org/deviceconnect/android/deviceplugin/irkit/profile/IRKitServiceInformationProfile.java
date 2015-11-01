@@ -32,14 +32,19 @@ public class IRKitServiceInformationProfile extends ServiceInformationProfile {
     /**
      * Lightデバイスのプロファイル.
      */
-    public static final String[] LIGHT_PROFILES = {"servicediscovery", "serviceinformation",
+    public static final String[] LIGHT_PROFILES = {"system", "servicediscovery", "serviceinformation",
                                                     "authorization", "light"};
     /**
      * TVデバイスのプロファイル.
      */
-    public static final String[] TV_PROFILES = {"servicediscovery", "serviceinformation",
+    public static final String[] TV_PROFILES = {"system", "servicediscovery", "serviceinformation",
                                                 "authorization", "tv"};
 
+    /**
+     * IRKitデバイスのプロファイル.
+     */
+    public static final String[] IRKIT_PROFILES = {"system", "servicediscovery", "serviceinformation",
+            "authorization", "remote_controller"};
 
     /**
      * コンストラクタ.
@@ -83,7 +88,12 @@ public class IRKitServiceInformationProfile extends ServiceInformationProfile {
             }
             setSupports(response, profiles.toArray(new String[0]));
         } else {
-            super.onGetInformation(request, response, serviceId);
+            setDefaultServiceInformation(response, serviceId);
+            ArrayList<String> profiles = new ArrayList<String>();
+            for (String profile : IRKIT_PROFILES) {
+                profiles.add(profile);
+            }
+            setSupports(response, profiles.toArray(new String[0]));
         }
         return true;
     }

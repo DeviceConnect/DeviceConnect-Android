@@ -44,6 +44,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author NTT DOCOMO, INC.
  */
 public class IRKitDeviceService extends DConnectMessageService implements DetectionListener {
+
+    /**
+     * IRKitの検知を再スタートさせるためのアクションを定義.
+     */
+    public static final String ACTION_RESTART_DETECTION_IRKIT = "action.ACTION_RESTART_DETECTION_IRKIT";
+
     /**
      * 検知したデバイス群.
      */
@@ -82,24 +88,25 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
 
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
-        super.onStartCommand(intent, flags, startId);
-
         if (intent != null) {
-
             String action = intent.getAction();
-
             if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
                 if (!WiFiUtil.isOnWiFi(this) && IRKitManager.INSTANCE.isDetecting()) {
                     stopDetection();
                 } else if (WiFiUtil.isOnWiFi(this) && WiFiUtil.isChangedSSID(this, mCurrentSSID)) {
-                    stopDetection();
-                    startDetection();
+                    restartDetection();
                 }
+                return START_STICKY;
+            } else if (ACTION_RESTART_DETECTION_IRKIT.equals(action)) {
+                if (WiFiUtil.isOnWiFi(this)) {
+                    restartDetection();
+                } else {
+                    stopDetection();
+                }
+                return START_STICKY;
             }
-
         }
-
-        return START_STICKY;
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -127,7 +134,6 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
      * @param response レスポンスオブジェクト
      */
     public void prepareServiceDiscoveryResponse(final Intent response) {
-        startDetection();
         synchronized (mDevices) {
 
             List<Bundle> services = new ArrayList<Bundle>();
@@ -276,7 +282,7 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
      * @return true:登録されている, false:登録されていない
      */
     private boolean isIRExist(final String serviceId) {
-        List<VirtualProfileData> requests = mDBHelper.getVirtualProfiles(serviceId);
+        List<VirtualProfileData> requests = mDBHelper.getVirtualProfiles(serviceId, null);
         for (VirtualProfileData request : requests) {
             if (request.getIr() != null && request.getIr().indexOf("{\"format\":\"raw\",") != -1) {
                 return true;
@@ -301,7 +307,13 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         ServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
         ServiceDiscoveryProfile.setState(service, online);
         ServiceDiscoveryProfile.setOnline(service, online);
-        ServiceDiscoveryProfile.setScopes(service, this);
+        ArrayList<String> scopes = new ArrayList<String>();
+        for (String profile : IRKitServiceInformationProfile.IRKIT_PROFILES) {
+            scopes.add(profile);
+        }
+        service.putStringArray(ServiceDiscoveryProfileConstants.PARAM_SCOPES,
+                scopes.toArray(new String[scopes.size()]));
+
         return service;
     }
 
@@ -320,5 +332,15 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
         mCurrentSSID = null;
         mDevices.clear();
         IRKitManager.INSTANCE.stopDetection();
+    }
+
+    private void restartDetection() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                stopDetection();
+                startDetection();
+            }
+        }).start();
     }
 }

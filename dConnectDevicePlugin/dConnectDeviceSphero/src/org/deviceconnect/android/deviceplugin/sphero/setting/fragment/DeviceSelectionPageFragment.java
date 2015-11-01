@@ -84,6 +84,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         ListView listView = (ListView) root.findViewById(R.id.device_list_view);
         listView.setAdapter(mAdapter);
         listView.setEmptyView(emptyView);
+        listView.setItemsCanFocus(true);
 
         if (savedInstanceState != null) {
             mSearchingVisibility = savedInstanceState.getInt(KEY_PROGRESS_VISIBILITY);

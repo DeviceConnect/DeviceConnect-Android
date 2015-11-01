@@ -6,6 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.host.camera;
 
+import android.net.Uri;
+
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,10 +33,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
-
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-
-import android.net.Uri;
 
 /**
  * Mixed Replace Media Server.
@@ -310,7 +310,7 @@ public class MixedReplaceMediaServer {
         /**
          * Defined buffer size.
          */
-        private static final int BUF_SIZE = 8192;
+        private static final int BUF_SIZE = 1024;
         
         /**
          * Socket.
@@ -346,7 +346,6 @@ public class MixedReplaceMediaServer {
                 InputStream in = mSocket.getInputStream();
                 int len = in.read(buf, 0, BUF_SIZE);
                 if (len == -1) {
-                    // error
                     return;
                 }
                 decodeHeader(buf, len);
@@ -424,12 +423,10 @@ public class MixedReplaceMediaServer {
          * @throws IOException if an error occurs while sending media data.
          */
         private void sendMedia(final byte[] media) throws IOException {
-            StringBuilder sb = new StringBuilder();
-            sb.append("--" + mBoundary + "\r\n");
-            sb.append("Content-type: " + mContentType + "\r\n");
-            sb.append("Content-Length: " + media.length + "\r\n");
-            sb.append("\r\n");
-            mStream.write(sb.toString().getBytes());
+            mStream.write(("--" + mBoundary + "\r\n").getBytes());
+            mStream.write(("Content-Type: " + mContentType + "\r\n").getBytes());
+            mStream.write(("Content-Length: " + media.length + "\r\n").getBytes());
+            mStream.write("\r\n".getBytes());
             mStream.write(media);
             mStream.write("\r\n\r\n".getBytes());
             mStream.flush();
@@ -555,7 +552,6 @@ public class MixedReplaceMediaServer {
         sb.append("Content-Type: multipart/x-mixed-replace; ");
         sb.append("boundary=" + mBoundary + "\r\n");
         sb.append("\r\n");
-        sb.append("--" + mBoundary + "\r\n");
         return sb.toString();
     }
     

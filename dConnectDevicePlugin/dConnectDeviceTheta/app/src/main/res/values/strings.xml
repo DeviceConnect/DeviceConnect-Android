@@ -18,4 +18,21 @@
     <string name="camera_search_message_found">$NAME$ と接続中です。</string>
     <string name="wifi_settings_button">WiFi設定画面を開く</string>
 
+    <string name="ok">OK</string>
+    <string name="cancel">キャンセル</string>
+    <string name="camera_must_connect">THETAと接続してください。</string>
+    <string name="theta_gallery_no_data">静止画および動画が撮影されていません。</string>
+    <string name="theta_no_connect_message">THETAと接続されていません。</string>
+    <string name="theta_reconnect_button">設定画面で再接続</string>
+    <string name="open_settings">設定画面を開く</string>
+
+    <string name="theta_error_disconnect_dialog_message">THETAと接続が切断されました。THETAデバイスプラグインの設定画面でTHETAと接続してください。</string>
+    <string name="theta_error_timeout">THETAとの通信中にタイムアウトが発生しました。</string>
+    <string name="theta_error_unsupported_movie">動画の再生は非対応です。PC向けのTHETA公式アプリで再生してください。</string>
+    <string name="theta_error_failed_delete">メディアの削除に失敗しました。</string>
+    <string name="theta_error_failed_change_mode">THETA m15は撮影モードの遠隔操作に対応していません。実機のボタンで直接変更してください。</string>
+    <string name="theta_error_shortage_by_theta">THETA側のストレージ容量が不足しているため、撮影に失敗しました。</string>
+    <string name="theta_error_shortage_by_android">Android端末側のストレージが不足しているため、撮影に失敗しました。</string>
+    <string name="theta_error_failed_save_file">不明なエラーによりファイル保存に失敗しました。</string>
+    <string name="theta_error_memory_warning">ファイルサイズが大きすぎるため、静止画を表示できません。</string>
 </resources>

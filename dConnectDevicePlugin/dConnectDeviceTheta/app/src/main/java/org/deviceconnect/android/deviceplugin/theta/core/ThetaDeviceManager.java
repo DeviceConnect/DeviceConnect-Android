@@ -3,6 +3,25 @@ package org.deviceconnect.android.deviceplugin.theta.core;
 
 /**
  * THETA Device Manager.
+ *
+ * <h2>Overview</h2>
+ * <p>
+ * THETA Device Manager manages a THETA devices which is connected to the Android host device.
+ * </p>
+ *
+ * <h2>Usage</h2>
+ * <code>
+ *     // Obtain the Theta Device Manager.
+ *     ThetaDeviceApplication app = (ThetaDeviceApplication) getApplication();
+ *     ThetaDeviceManager deviceMgr = app.getDeviceManager();
+ *
+ *     ThetaDevice device = deviceMgr.getConnectedDevice();
+ *     if (device != null) {
+ *       // Codes for case that a THETA device is connected.
+ *     } else {
+ *       // Codes for case that a THETA device is not connected.
+ *     }
+ * </code>
  */
 public class ThetaDeviceManager {
 

@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * THETA Device.
  * <p>
- * Provides APIs to access features of THETA Device.
+ * Provides APIs to access features of THETA Device. These APIs return a value synchronously.
  * </p>
  */
 public interface ThetaDevice {
@@ -20,6 +20,12 @@ public interface ThetaDevice {
 
     /**
      * Fetches a list of objects stored in this THETA device.
+     *
+     * <p>
+     * NOTE: An instance of {@link ThetaObject} which is returned by this method is not fetched.
+     * If the binary data is needed, please call {@link ThetaObject#fetch()} to obtain the
+     * binary data from the THETA device.
+     * </p>
      *
      * @return a list of objects stored in this THETA device
      * @throws ThetaDeviceException if the API execution is failed.
@@ -39,6 +45,12 @@ public interface ThetaDevice {
     /**
      * Takes a picture by the camera of THETA device.
      *
+     * <p>
+     * NOTE: An instance of {@link ThetaObject} which is returned by this method is not fetched.
+     * If the binary data is needed, please call {@link ThetaObject#fetch()} to obtain the
+     * binary data from the THETA device.
+     * </p>
+     *
      * @return an instance of {@link ThetaObject} of the picture
      * @throws ThetaDeviceException if the API execution is failed.
      */
@@ -55,9 +67,16 @@ public interface ThetaDevice {
     /**
      * Stops video recording explicitly.
      *
+     * <p>
+     * NOTE: An instance of {@link ThetaObject} which is returned by this method is not fetched.
+     * If the binary data is needed, please call {@link ThetaObject#fetch()} to obtain the
+     * binary data from the THETA device.
+     * </p>
+     *
+     * @return an instance of {@link ThetaObject} of the video
      * @throws ThetaDeviceException if the API execution is failed.
      */
-    void stopVideoRecording() throws ThetaDeviceException;
+    ThetaObject stopVideoRecording() throws ThetaDeviceException;
 
     /**
      * Gets the battery level of THETA device.

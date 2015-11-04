@@ -13,7 +13,7 @@ package org.deviceconnect.android.deviceplugin.theta.core;
  *     // Start Image View.
  *     api.startImageView(picture, param, renderer);
  *
- *     // Change Image View Settings
+ *     // Change Image View Settings.
  *     api.updateImageView(newParam);
  *
  *     // Stop Image View.
@@ -28,7 +28,7 @@ public class SphericalViewApi {
         // TODO Implement.
     }
 
-    public synchronized void startImageView(final ThetaObject picture,
+    public synchronized void startImageView(final byte[] picture,
                                             final SphericalViewParam param,
                                             final SphericalViewRenderer renderer) {
         // TODO Implement.

@@ -1,28 +1,161 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
-
+/**
+ * THETA Object.
+ */
 public interface ThetaObject {
 
-    void fetch() throws ThetaDeviceException;
+    /**
+     * Fetches the specified data from a THETA device.
+     *
+     * @param type type of data
+     * @throws ThetaDeviceException if the API execution is failed.
+     */
+    void fetch(DataType type) throws ThetaDeviceException;
 
+    /**
+     * Checks whether the specified data is fetched from a THETA device or not.
+     *
+     * @param type type of data
+     * @return <code>true</code> if the specified data is fetched from a THETA device.
+     *      Otherwise <code>false</code>.
+     */
+    boolean isFetched(DataType type);
+
+    /**
+     * Removes this object from the storage of THETA device.
+     *
+     * @throws ThetaDeviceException if the API execution is failed.
+     */
     void remove() throws ThetaDeviceException;
 
+    /**
+     * Removes fetched data from cache in an instance of this class.
+     *
+     * @param type type of data
+     */
+    void clear(DataType type);
+
+    /**
+     * Gets the MIME-Type of main data.
+     *
+     * <p>
+     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
+     * with {@link DataType#INFO}.
+     * </p>
+     *
+     * @return the MIME-Type of main data
+     */
     String getMimeType();
 
-    boolean isImage();
+    /**
+     * Gets the MIME-Type of main data.
+     *
+     * <p>
+     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
+     * with {@link DataType#INFO}.
+     * </p>
+     *
+     * @return the MIME-Type of main data
+     */
+    Boolean isImage();
 
-    boolean isVideo();
+    /**
+     * Gets the object creation date and time as {@link String}.
+     *
+     * <p>
+     * Format: yyyy/MM/dd HH:mm:ss
+     * </p>
+     *
+     * <p>
+     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
+     * with {@link DataType#INFO}.
+     * </p>
+     *
+     * @return a string which indicates object creation date and time
+     */
+    String getCreationTime();
 
-    boolean isFetched();
-
-    boolean isRemoved();
-
-    long getCreationTime();
-
+    /**
+     * Gets the filename of main data.
+     *
+     * <p>
+     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
+     * with {@link DataType#INFO}.
+     * </p>
+     *
+     * @return the filename of main data
+     */
     String getFileName();
 
-    byte[] getThumbnail();
+    /**
+     * Gets the width of resolution.
+     *
+     * <p>
+     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
+     * with {@link DataType#INFO}.
+     * </p>
+     *
+     * @return the width of resolution
+     */
+    Integer getWidth();
 
-    byte[] getData();
+    /**
+     * Gets the height of resolution.
+     *
+     * <p>
+     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
+     * with {@link DataType#INFO}.
+     * </p>
+     *
+     * @return the height of resolution
+     */
+    Integer getHeight();
+
+    /**
+     * Gets the thumbnail of main data.
+     *
+     * <p>
+     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
+     * with {@link DataType#THUMBNAIL}.
+     * </p>
+     *
+     * @return the MIME-Type of main data
+     */
+    byte[] getThumbnailData();
+
+    /**
+     * Gets main data.
+     *
+     * <p>
+     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
+     * with {@link DataType#MAIN}.
+     * </p>
+     *
+     * @return the MIME-Type of main data
+     */
+    byte[] getMainData();
+
+    /**
+     * Type of data to be fetched from a THETA device.
+     */
+    enum DataType {
+
+        /**
+         * Information about data.
+         */
+        INFO,
+
+        /**
+         * Thumbnail of main data.
+         */
+        THUMBNAIL,
+
+        /**
+         * Main data.
+         */
+        MAIN
+
+    }
 
 }

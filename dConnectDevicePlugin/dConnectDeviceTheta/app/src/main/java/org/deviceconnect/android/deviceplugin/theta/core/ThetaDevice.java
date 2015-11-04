@@ -22,6 +22,10 @@ public interface ThetaDevice {
      * Fetches a list of objects stored in this THETA device.
      *
      * <p>
+     * If THETA device has no object, this method returns a 0-length list.
+     * </p>
+     *
+     * <p>
      * NOTE: An instance of {@link ThetaObject} which is returned by this method is not fetched.
      * If the binary data is needed, please call {@link ThetaObject#fetch()} to obtain the
      * binary data from the THETA device.
@@ -34,6 +38,16 @@ public interface ThetaDevice {
 
     /**
      * Fetches a list of objects stored in this THETA device.
+     *
+     * <p>
+     * If THETA device has no objectin in the specified range, this method returns a 0-length list.
+     * </p>
+     *
+     * <p>
+     * NOTE: An instance of {@link ThetaObject} which is returned by this method is not fetched.
+     * If the binary data is needed, please call {@link ThetaObject#fetch()} to obtain the
+     * binary data from the THETA device.
+     * </p>
      *
      * @param offset the offset of the list
      * @param maxLength the maximum length of the list
@@ -81,9 +95,39 @@ public interface ThetaDevice {
     /**
      * Gets the battery level of THETA device.
      *
+     * <p>
+     * Range: 0.0 <= level <= 1.0
+     * </p>
+     *
      * @return the battery level of THETA device
      * @throws ThetaDeviceException if the API execution is failed.
      */
     double getBatteryLevel() throws ThetaDeviceException;
+
+    /**
+     * Changes shooting mode.
+     *
+     * @param mode shooting mode
+     * @throws ThetaDeviceException if the API execution is failed.
+     * @see ShootingMode
+     */
+    void changeShootingMode(ShootingMode mode) throws ThetaDeviceException;
+
+    /**
+     * Shooting mode.
+     */
+    enum ShootingMode {
+
+        /**
+         * Image shooting mode.
+         */
+        IMAGE,
+
+        /**
+         * Video shooting mode.
+         */
+        VIDEO
+
+    }
 
 }

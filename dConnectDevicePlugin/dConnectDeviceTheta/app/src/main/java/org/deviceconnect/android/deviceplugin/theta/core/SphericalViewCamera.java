@@ -1,6 +1,6 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
-public class SphericalViewCamera {
+class SphericalViewCamera {
 
     public double getDirX() {
         return 0;

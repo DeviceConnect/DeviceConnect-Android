@@ -1,11 +1,33 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
 
-public enum SphericalViewApi {
-
-    INSTANCE;
+/**
+ * Spherical View API.
+ *
+ * <h2>Usage</h2>
+ * <code>
+ *     // Obtain Spherical View API.
+ *     ThetaDeviceApplication app = (ThetaDeviceApplication) getApplication();
+ *     SphericalViewApi api = app.getSphericalViewApi();
+ *
+ *     // Start Image View.
+ *     api.startImageView(picture, param, renderer);
+ *
+ *     // Change Image View Settings
+ *     api.updateImageView(newParam);
+ *
+ *     // Stop Image View.
+ *     api.stopImageView();
+ * </code>
+ */
+public class SphericalViewApi {
 
     public synchronized void startImageView(final String imageUri, final Param param,
+                                            final SphericalViewRenderer renderer) {
+        // TODO Implement.
+    }
+
+    public synchronized void startImageView(final ThetaObject picture, final Param param,
                                             final SphericalViewRenderer renderer) {
         // TODO Implement.
     }
@@ -21,6 +43,10 @@ public enum SphericalViewApi {
     public boolean isStarted() {
         // TODO Implement.
         return false;
+    }
+
+    public byte[] takeSnapshot() {
+        return null;
     }
 
     public static class Param {

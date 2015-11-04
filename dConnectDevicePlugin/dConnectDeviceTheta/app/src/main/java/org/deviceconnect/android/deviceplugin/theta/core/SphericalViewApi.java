@@ -22,17 +22,19 @@ package org.deviceconnect.android.deviceplugin.theta.core;
  */
 public class SphericalViewApi {
 
-    public synchronized void startImageView(final String imageUri, final Param param,
+    public synchronized void startImageView(final String imageUri,
+                                            final SphericalViewParam param,
                                             final SphericalViewRenderer renderer) {
         // TODO Implement.
     }
 
-    public synchronized void startImageView(final ThetaObject picture, final Param param,
+    public synchronized void startImageView(final ThetaObject picture,
+                                            final SphericalViewParam param,
                                             final SphericalViewRenderer renderer) {
         // TODO Implement.
     }
 
-    public synchronized void updateImageView(final Param param) {
+    public synchronized void updateImageView(final SphericalViewParam param) {
         // TODO Implement.
     }
 
@@ -47,17 +49,6 @@ public class SphericalViewApi {
 
     public byte[] takeSnapshot() {
         return null;
-    }
-
-    public static class Param {
-
-        private int mViewWidth;
-
-        private int mViewHeight;
-
-        private double mFOV;
-
-        private boolean mIsVRMode;
     }
 
 }

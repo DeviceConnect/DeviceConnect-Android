@@ -1,6 +1,8 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
 
+import java.io.IOException;
+
 /**
  * Spherical View API.
  *
@@ -24,7 +26,7 @@ public class SphericalViewApi {
 
     public synchronized void startImageView(final String imageUri,
                                             final SphericalViewParam param,
-                                            final SphericalViewRenderer renderer) {
+                                            final SphericalViewRenderer renderer) throws IOException {
         // TODO Implement.
     }
 

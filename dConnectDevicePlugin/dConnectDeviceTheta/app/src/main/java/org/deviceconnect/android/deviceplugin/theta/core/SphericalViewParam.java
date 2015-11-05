@@ -10,6 +10,8 @@ public class SphericalViewParam {
 
     private boolean mIsVRMode;
 
+    private boolean mIsStereo;
+
     private double mFrameRate;
 
     // TODO Add other parameters.
@@ -18,39 +20,47 @@ public class SphericalViewParam {
         return mWidth;
     }
 
-    public void setWidth(int mWidth) {
-        this.mWidth = mWidth;
+    public void setWidth(int width) {
+        this.mWidth = width;
     }
 
     public int getHeight() {
         return mHeight;
     }
 
-    public void setHeight(int mHeight) {
-        this.mHeight = mHeight;
+    public void setHeight(int height) {
+        this.mHeight = height;
     }
 
     public double getFOV() {
         return mFOV;
     }
 
-    public void setFOV(double mFOV) {
-        this.mFOV = mFOV;
+    public void setFOV(double fov) {
+        this.mFOV = fov;
     }
 
     public boolean isVRMode() {
         return mIsVRMode;
     }
 
-    public void setVRMode(boolean mIsVRMode) {
-        this.mIsVRMode = mIsVRMode;
+    public void setVRMode(boolean isVRMode) {
+        this.mIsVRMode = isVRMode;
+    }
+
+    public boolean isStereo() {
+        return mIsStereo;
+    }
+
+    public void setStereo(boolean isStereo) {
+        this.mIsStereo = mIsStereo;
     }
 
     public double getFrameRate() {
         return mFrameRate;
     }
 
-    public void setFrameRate(double mFrameRate) {
-        this.mFrameRate = mFrameRate;
+    public void setFrameRate(double frameRate) {
+        this.mFrameRate = frameRate;
     }
 }

@@ -12,9 +12,16 @@ import java.util.List;
 public interface ThetaDevice {
 
     /**
-     * Gets model of this THETA device.
+     * Gets the name of this THETA device.
      *
-     * @return model of this THETA Device
+     * @return the name of this THETA device
+     */
+    String getName();
+
+    /**
+     * Gets the model of this THETA device.
+     *
+     * @return model of this THETA device
      */
     ThetaDeviceModel getModel();
 
@@ -27,7 +34,7 @@ public interface ThetaDevice {
      *
      * <p>
      * NOTE: An instance of {@link ThetaObject} which is returned by this method is not fetched.
-     * If the binary data is needed, please call {@link ThetaObject#fetch()} to obtain the
+     * If the binary data is needed, please call {@link ThetaObject#fetch(ThetaObject.DataType)} } to obtain the
      * binary data from the THETA device.
      * </p>
      *
@@ -45,7 +52,7 @@ public interface ThetaDevice {
      *
      * <p>
      * NOTE: An instance of {@link ThetaObject} which is returned by this method is not fetched.
-     * If the binary data is needed, please call {@link ThetaObject#fetch()} to obtain the
+     * If the binary data is needed, please call {@link ThetaObject#fetch(ThetaObject.DataType)} to obtain the
      * binary data from the THETA device.
      * </p>
      *
@@ -61,7 +68,7 @@ public interface ThetaDevice {
      *
      * <p>
      * NOTE: An instance of {@link ThetaObject} which is returned by this method is not fetched.
-     * If the binary data is needed, please call {@link ThetaObject#fetch()} to obtain the
+     * If the binary data is needed, please call {@link ThetaObject#fetch(ThetaObject.DataType)} to obtain the
      * binary data from the THETA device.
      * </p>
      *
@@ -83,7 +90,7 @@ public interface ThetaDevice {
      *
      * <p>
      * NOTE: An instance of {@link ThetaObject} which is returned by this method is not fetched.
-     * If the binary data is needed, please call {@link ThetaObject#fetch()} to obtain the
+     * If the binary data is needed, please call {@link ThetaObject#fetch(ThetaObject.DataType)} to obtain the
      * binary data from the THETA device.
      * </p>
      *

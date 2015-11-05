@@ -53,7 +53,7 @@ public class SphericalViewParam {
     }
 
     public void setStereo(boolean isStereo) {
-        this.mIsStereo = mIsStereo;
+        this.mIsStereo = isStereo;
     }
 
     public double getFrameRate() {

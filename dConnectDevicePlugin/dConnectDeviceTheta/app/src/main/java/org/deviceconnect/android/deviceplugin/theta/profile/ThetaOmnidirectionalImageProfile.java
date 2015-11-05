@@ -11,8 +11,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
-import org.deviceconnect.android.deviceplugin.theta.opengl.SphereRenderer;
-import org.deviceconnect.android.deviceplugin.theta.opengl.model.UVSphere;
+import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewRenderer;
 import org.deviceconnect.android.deviceplugin.theta.roi.OmnidirectionalImage;
 import org.deviceconnect.android.deviceplugin.theta.roi.RoiDeliveryContext;
 import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
@@ -96,7 +95,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         def.add(new DoubleParamDefinition(PARAM_SPHERE_SIZE, new DoubleParamRange() {
             @Override
             public boolean validate(final double v) {
-                return SphereRenderer.Z_NEAR < v && v < SphereRenderer.Z_FAR;
+                return SphericalViewRenderer.Z_NEAR < v && v < SphericalViewRenderer.Z_FAR;
             }
         }));
         def.add(new DoubleParamDefinition(PARAM_WIDTH, new DoubleParamRange() {

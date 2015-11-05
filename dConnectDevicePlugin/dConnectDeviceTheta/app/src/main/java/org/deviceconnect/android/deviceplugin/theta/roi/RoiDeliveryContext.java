@@ -19,8 +19,8 @@ import android.view.Surface;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
+import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewRenderer;
 import org.deviceconnect.android.deviceplugin.theta.opengl.PixelBuffer;
-import org.deviceconnect.android.deviceplugin.theta.opengl.SphereRenderer;
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
 
@@ -68,7 +68,7 @@ public class RoiDeliveryContext implements SensorEventListener {
 
     private PixelBuffer mPixelBuffer;
 
-    private final SphereRenderer mRenderer = new SphereRenderer();
+    private final SphericalViewRenderer mRenderer = new SphericalViewRenderer();
 
     private Param mCurrentParam = DEFAULT_PARAM;
 
@@ -193,7 +193,7 @@ public class RoiDeliveryContext implements SensorEventListener {
 
                 mCurrentParam = param;
 
-                SphereRenderer.CameraBuilder builder = new SphereRenderer.CameraBuilder();
+                SphericalViewRenderer.CameraBuilder builder = new SphericalViewRenderer.CameraBuilder();
                 builder.setPosition(new Vector3D(
                     (float) param.getCameraX(),
                     (float) param.getCameraY() * -1,
@@ -294,8 +294,8 @@ public class RoiDeliveryContext implements SensorEventListener {
             float[] vOrientation = new float[3];
             SensorManager.getOrientation(rmGyroscope, vOrientation);
 
-            SphereRenderer.Camera currentCamera = mRenderer.getCamera();
-            SphereRenderer.CameraBuilder newCamera = new SphereRenderer.CameraBuilder(currentCamera);
+            SphericalViewRenderer.Camera currentCamera = mRenderer.getCamera();
+            SphericalViewRenderer.CameraBuilder newCamera = new SphericalViewRenderer.CameraBuilder(currentCamera);
             newCamera.rotate(mCurrentRotation);
             mRenderer.setCamera(newCamera.create());
 

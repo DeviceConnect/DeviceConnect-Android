@@ -124,8 +124,13 @@ public class ThetaVRModeFragment extends Fragment {
                 }
             case Configuration.ORIENTATION_PORTRAIT:
             default :
-                mRightLayout.setVisibility(View.GONE);
-                getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+                if (mIsStereo) {
+                    mRightLayout.setVisibility(View.VISIBLE);
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                } else {
+                    mRightLayout.setVisibility(View.GONE);
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+                }
         }
     }
 

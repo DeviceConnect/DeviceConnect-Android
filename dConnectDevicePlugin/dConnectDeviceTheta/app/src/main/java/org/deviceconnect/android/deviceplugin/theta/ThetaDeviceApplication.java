@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.theta;
 import android.app.Application;
 
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.logger.AndroidHandler;
 
 import java.util.logging.Level;
@@ -23,6 +24,8 @@ import java.util.logging.SimpleFormatter;
 public class ThetaDeviceApplication extends Application {
 
     private Logger mLogger = Logger.getLogger("theta.dplugin");
+
+    private ThetaDeviceManager mDeviceMgr;
 
     private SphericalViewApi mSphericalViewApi;
 
@@ -40,7 +43,12 @@ public class ThetaDeviceApplication extends Application {
             mLogger.setLevel(Level.OFF);
         }
 
+        mDeviceMgr = new ThetaDeviceManager();
         mSphericalViewApi = new SphericalViewApi(getApplicationContext());
+    }
+
+    public ThetaDeviceManager getDeviceManager() {
+        return mDeviceMgr;
     }
 
     public SphericalViewApi getSphericalViewApi() {

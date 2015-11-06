@@ -14,6 +14,11 @@ public enum ThetaDeviceModel {
     /**
      * THETA S.
      */
-    THETA_S
+    THETA_S,
+
+    /**
+     * Unknown device.
+     */
+    UNKNOWN
 
 }

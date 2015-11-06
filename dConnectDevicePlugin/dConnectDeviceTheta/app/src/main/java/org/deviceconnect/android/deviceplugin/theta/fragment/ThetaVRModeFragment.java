@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -20,9 +21,9 @@ import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 import android.widget.ToggleButton;
 
+import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
 import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalImageView;
-import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
 
 import java.io.ByteArrayOutputStream;
 
@@ -117,14 +118,14 @@ public class ThetaVRModeFragment extends Fragment {
         switch(config.orientation) {
             case Configuration.ORIENTATION_LANDSCAPE:
                 if (mIsStereo) {
-                    mRightLayout.setVisibility(View.VISIBLE); // TODO And 3D Mode Only
-                } else {
-                    mRightLayout.setVisibility(View.GONE);
+                    mRightLayout.setVisibility(View.VISIBLE);
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                    break;
                 }
-                break;
             case Configuration.ORIENTATION_PORTRAIT:
             default :
                 mRightLayout.setVisibility(View.GONE);
+                getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
         }
     }
 

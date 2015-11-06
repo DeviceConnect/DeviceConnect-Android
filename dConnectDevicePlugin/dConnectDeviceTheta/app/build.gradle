@@ -15,10 +15,10 @@ android {
 
     signingConfigs {
         releaseConfig {
-            storeFile=file(project.properties.storeFile)
-            storePassword=project.properties.storePassword
-            keyAlias=project.properties.keyAlias
-            keyPassword=project.properties.keyPassword
+            storeFile = file(project.properties.storeFile)
+            storePassword = project.properties.storePassword
+            keyAlias = project.properties.keyAlias
+            keyPassword = project.properties.keyPassword
         }
     }
 
@@ -37,6 +37,7 @@ android {
         exclude 'META-INF/NOTICE'
     }
 
+    sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets/'] } }
 }
 
 dependencies {

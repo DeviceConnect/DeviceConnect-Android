@@ -28,6 +28,8 @@ import org.deviceconnect.android.deviceplugin.theta.core.SphericalImageView;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Fragment to display the VR mode of THETA.
@@ -88,11 +90,16 @@ public class ThetaVRModeFragment extends Fragment {
         SphericalViewApi api = new SphericalViewApi(getActivity());
         mSphereView.setViewApi(api);
         // TODO Read Theta's file.
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.r);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] bytes = baos.toByteArray();
-        mSphereView.start(bytes);
+        try {
+            InputStream istream = getResources().getAssets().open("r.JPG");
+            Bitmap bmp = BitmapFactory.decodeStream(istream);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            byte[] bytes = baos.toByteArray();
+            mSphereView.start(bytes);
+        } catch (IOException e) {
+           ThetaDialogFragment.showAlert(getActivity(), "Assets", "No Image.");
+        }
         init3DButtons(rootView);
         enableView();
         return rootView;

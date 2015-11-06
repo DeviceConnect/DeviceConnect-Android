@@ -10,6 +10,7 @@ package org.deviceconnect.android.deviceplugin.theta.roi;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.IOException;
@@ -31,6 +32,10 @@ public class OmnidirectionalImage {
     /**
      * Constructor.
      *
+     * <p>
+     * NOTE: The specified image will be resized to 2048x1024.
+     * </p>
+     *
      * @param uri URI of an omnidirectional image.
      * @param requestOrigin Origin (RFC6454) as an HTTP client which gets an omnidirectional image.
      * @throws IOException if URL connection is failed.
@@ -43,7 +48,8 @@ public class OmnidirectionalImage {
             URLConnection conn = new URL(uri).openConnection();
             conn.setRequestProperty(DConnectMessage.HEADER_GOTAPI_ORIGIN, requestOrigin);
             is = conn.getInputStream();
-            mBitmap = BitmapFactory.decodeStream(is);
+            Bitmap bitmap = BitmapFactory.decodeStream(is);
+            mBitmap = BitmapUtils.resize(bitmap, 2048, 1024);
 
             int width = mBitmap.getWidth();
             int height = mBitmap.getHeight();

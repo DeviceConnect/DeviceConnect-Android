@@ -5,12 +5,11 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.SensorManager;
-import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.DefaultHeadTracker;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTracker;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTrackingListener;
+import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 
 /**
@@ -52,10 +51,6 @@ public class SphericalViewApi implements HeadTrackingListener {
     @Override
     public void onHeadRotated(final Quaternion rotation) {
         synchronized (this) {
-            if (BuildConfig.DEBUG) {
-                Log.d("AAA", "onHeadDirectionChanged");
-            }
-
             if (isRunning()) {
                 SphericalViewRenderer.Camera currentCamera = mRenderer.getCamera();
                 SphericalViewRenderer.CameraBuilder newCamera = new SphericalViewRenderer.CameraBuilder(currentCamera);
@@ -75,7 +70,8 @@ public class SphericalViewApi implements HeadTrackingListener {
         mParam = param;
         mRenderer = renderer;
 
-        mTexture = BitmapFactory.decodeByteArray(picture, 0, picture.length);
+        Bitmap texture = BitmapFactory.decodeByteArray(picture, 0, picture.length);
+        mTexture = BitmapUtils.resize(texture, 2048, 1024);
         renderer.setTexture(mTexture);
 
         if (param.isVRMode()) {

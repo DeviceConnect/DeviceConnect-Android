@@ -112,7 +112,8 @@ public class ThetaVRModeFragment extends Fragment {
         enableView();
     }
 
-    /** Get Assets Data.
+    /**
+     * Get Assets Data.
      * @param name File Name
      */
     private byte[] getAssetsData(final String name) {

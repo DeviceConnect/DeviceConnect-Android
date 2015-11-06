@@ -179,7 +179,8 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     }
 
     private float getScreenAspect() {
-        return (float) mScreenWidth / (float) (mScreenHeight == 0 ? 1 : mScreenHeight);
+        int width = mIsStereo ? mScreenWidth / 2 : mScreenWidth;
+        return (float) width / (float) (mScreenHeight == 0 ? 1 : mScreenHeight);
     }
 
     /**

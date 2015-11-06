@@ -9,8 +9,6 @@ package org.deviceconnect.android.deviceplugin.theta.fragment;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -90,15 +88,11 @@ public class ThetaVRModeFragment extends Fragment {
         SphericalViewApi api = new SphericalViewApi(getActivity());
         mSphereView.setViewApi(api);
         // TODO Read Theta's file.
-        try {
-            InputStream istream = getResources().getAssets().open("r.JPG");
-            Bitmap bmp = BitmapFactory.decodeStream(istream);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-            byte[] bytes = baos.toByteArray();
-            mSphereView.start(bytes);
-        } catch (IOException e) {
-           ThetaDialogFragment.showAlert(getActivity(), "Assets", "No Image.");
+        byte[] data = getAssetsData("r.JPG");
+        if (data == null) {
+            ThetaDialogFragment.showAlert(getActivity(), "Assets", "No Image.");
+        } else {
+            mSphereView.start(data);
         }
         init3DButtons(rootView);
         enableView();
@@ -116,6 +110,32 @@ public class ThetaVRModeFragment extends Fragment {
     public void onConfigurationChanged(final Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         enableView();
+    }
+
+    /** Get Assets Data.
+     * @param name File Name
+     */
+    private byte[] getAssetsData(final String name) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        InputStream in = null;
+        int len;
+        byte[] buf = new byte[4096];
+        try {
+            in = getResources().getAssets().open(name);
+            while ((len = in.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+        } catch (IOException e) {
+            return null;
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+        return out.toByteArray();
     }
 
     /**

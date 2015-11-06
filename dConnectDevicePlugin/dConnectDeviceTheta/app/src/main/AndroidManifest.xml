@@ -71,7 +71,7 @@
             android:exported="false" >
         </service>
         <activity
-            android:name=".activity.ThetaSplashtopActivity"
+            android:name=".activity.ThetaSplashActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >

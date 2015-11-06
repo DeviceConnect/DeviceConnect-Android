@@ -13,7 +13,7 @@ import org.deviceconnect.android.deviceplugin.theta.R;
  *
  * @author NTT DOCOMO, INC.
  */
-public class ThetaSplashtopActivity extends Activity {
+public class ThetaSplashActivity extends Activity {
 
     /**
      * Handler.

@@ -207,7 +207,11 @@ public class RoiDeliveryContext implements SensorEventListener {
                 builder.setFov((float) param.getCameraFov());
                 mRenderer.setCamera(builder.create());
                 mRenderer.setSphereRadius((float) param.getSphereSize());
-                mRenderer.setScreenWidth(param.getImageWidth());
+                if (param.isStereoMode()) {
+                    mRenderer.setScreenWidth(width * 2);
+                } else {
+                    mRenderer.setScreenWidth(width);
+                }
                 mRenderer.setScreenHeight(param.getImageHeight());
                 mRenderer.setStereoMode(param.isStereoMode());
             }

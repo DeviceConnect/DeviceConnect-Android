@@ -94,9 +94,10 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
 
         if (mIsStereo) {
             Camera[] cameras = mCamera.getCamerasForStereo(DISTANCE_EYES);
-            GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);
+            int halfWidth = mScreenWidth / 2;
+            GLES20.glViewport(0, 0, halfWidth, mScreenHeight);
             draw(cameras[0]);
-            GLES20.glViewport(mScreenWidth, 0, mScreenWidth, mScreenHeight);
+            GLES20.glViewport(halfWidth, 0, halfWidth, mScreenHeight);
             draw(cameras[1]);
         } else {
             GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);

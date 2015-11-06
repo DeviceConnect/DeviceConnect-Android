@@ -6,24 +6,26 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 import android.widget.ToggleButton;
 
-import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
 import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalImageView;
+import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
 
 import java.io.ByteArrayOutputStream;
 
@@ -113,16 +115,34 @@ public class ThetaVRModeFragment extends Fragment {
      * enable/disable VR buttons.
      */
     private void enableView() {
-        Resources resources = getResources();
-        Configuration config = resources.getConfiguration();
-        switch(config.orientation) {
-            case Configuration.ORIENTATION_LANDSCAPE:
+        switch(((WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation()) {
+            case Surface.ROTATION_90:
                 if (mIsStereo) {
                     mRightLayout.setVisibility(View.VISIBLE);
                     getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                    break;
+                } else {
+                    mRightLayout.setVisibility(View.GONE);
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
                 }
-            case Configuration.ORIENTATION_PORTRAIT:
+                break;
+            case Surface.ROTATION_270:
+                if (mIsStereo) {
+                    mRightLayout.setVisibility(View.VISIBLE);
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+                } else {
+                    mRightLayout.setVisibility(View.GONE);
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+                }
+                break;
+            case Surface.ROTATION_180:
+                if (mIsStereo) {
+                    mRightLayout.setVisibility(View.VISIBLE);
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+                } else {
+                    mRightLayout.setVisibility(View.GONE);
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+                }
+                break;
             default :
                 if (mIsStereo) {
                     mRightLayout.setVisibility(View.VISIBLE);

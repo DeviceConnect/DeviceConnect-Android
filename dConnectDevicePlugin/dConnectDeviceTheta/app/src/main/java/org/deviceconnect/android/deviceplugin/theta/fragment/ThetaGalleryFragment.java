@@ -65,7 +65,7 @@ public class ThetaGalleryFragment extends Fragment {
 //            Toast.makeText(getActivity(), R.string.camera_must_connect, Toast.LENGTH_SHORT).show();
 //            Intent intent = new Intent();
 //            intent.setClass(getActivity(), ThetaDeviceSettingsActivity.class);
-//            startActivity(intent);
+////            startActivity(intent);
 //        }
 //        setRetainInstance(true);
 //        mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), createDataList(100)); // TODO new List<ThetaObject>();
@@ -88,9 +88,9 @@ public class ThetaGalleryFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // list setting
-        View parent = inflater.inflate(R.layout.theta_gallery, container, false);
-        mRecconectLayout = (RelativeLayout) parent.findViewById(R.id.theta_reconnect_layout);
-        parent.findViewById(R.id.theta_reconnect).setOnClickListener(new View.OnClickListener() {
+        View rootView = inflater.inflate(R.layout.theta_gallery, container, false);
+        mRecconectLayout = (RelativeLayout) rootView.findViewById(R.id.theta_reconnect_layout);
+        rootView.findViewById(R.id.theta_reconnect).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent();
@@ -98,7 +98,7 @@ public class ThetaGalleryFragment extends Fragment {
                 startActivity(intent);
             }
         });
-        parent.findViewById(R.id.theta_shutter).setOnClickListener(new View.OnClickListener() {
+        rootView.findViewById(R.id.theta_shutter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent();
@@ -109,7 +109,7 @@ public class ThetaGalleryFragment extends Fragment {
             }
         });
 
-        AbsListView list = (AbsListView) parent.findViewById(R.id.theta_list);
+        AbsListView list = (AbsListView) rootView.findViewById(R.id.theta_list);
         list.setAdapter(mGalleryAdapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -127,7 +127,7 @@ public class ThetaGalleryFragment extends Fragment {
                 return false;
             }
         });
-        return parent;
+        return rootView;
     }
 
     // TODO delete debug code

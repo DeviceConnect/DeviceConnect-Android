@@ -22,6 +22,7 @@
         android:layout_height="match_parent"
         android:visibility="gone">
         <SurfaceView
+            android:id="@+id/shooting_preview"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
         <Button
@@ -41,6 +42,7 @@
         android:background="#CCCCCC"
         android:visibility="gone">
         <TextView
+            android:id="@+id/shooting_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="80sp"

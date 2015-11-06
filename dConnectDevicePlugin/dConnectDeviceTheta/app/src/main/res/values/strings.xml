@@ -26,6 +26,11 @@
     <string name="theta_reconnect_button">設定画面で再接続</string>
     <string name="open_settings">設定画面を開く</string>
 
+    <string-array name="theta_shooting_mode">
+        <item>静止画</item>
+        <item>動画</item>
+    </string-array>
+
     <string name="theta_error_disconnect_dialog_message">THETAと接続が切断されました。THETAデバイスプラグインの設定画面でTHETAと接続してください。</string>
     <string name="theta_error_timeout">THETAとの通信中にタイムアウトが発生しました。</string>
     <string name="theta_error_unsupported_movie">動画の再生は非対応です。PC向けのTHETA公式アプリで再生してください。</string>
@@ -35,4 +40,5 @@
     <string name="theta_error_shortage_by_android">Android端末側のストレージが不足しているため、撮影に失敗しました。</string>
     <string name="theta_error_failed_save_file">不明なエラーによりファイル保存に失敗しました。</string>
     <string name="theta_error_memory_warning">ファイルサイズが大きすぎるため、静止画を表示できません。</string>
+    <string name="theta_error_limit_shooting_time">撮影可能時間に達したため、動画の撮影を終了しました。</string>
 </resources>

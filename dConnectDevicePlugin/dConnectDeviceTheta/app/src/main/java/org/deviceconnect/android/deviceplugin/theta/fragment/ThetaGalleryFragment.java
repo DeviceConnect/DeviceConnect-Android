@@ -1,10 +1,7 @@
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
-import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -15,11 +12,12 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaDeviceSettingsActivity;
+import org.deviceconnect.android.deviceplugin.theta.activity.ThetaFeatureActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,35 +29,46 @@ import java.util.List;
  */
 public class ThetaGalleryFragment extends Fragment {
 
+    /** Theta's Gallery. */
+    private ThetaGalleryAdapter mGalleryAdapter;
 
+    /** Theta disconnect warning view. */
+    private RelativeLayout mRecconectLayout;
+
+    /** Singleton. */
     public static ThetaGalleryFragment newInstance() {
         return new ThetaGalleryFragment();
     }
 
-    private ThetaGalleryAdapter mGalleryAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getActivity().getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-        WifiManager wifiMgr = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-        String ssId = wifiInfo.getSSID().replace("\"", "");
-        String message;
-        if (isTheta(ssId)) {
-            message = getString(R.string.camera_search_message_found);
-            message = message.replace("$NAME$", ssId);
-            getActivity().getActionBar().setTitle(ssId);
-            Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
-        } else {  //Open THETA Settings.
-            Toast.makeText(getActivity(), R.string.camera_must_connect, Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent();
-            intent.setClass(getActivity(), ThetaDeviceSettingsActivity.class);
+        // TODO beta
+        Intent intent = new Intent();
+        intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
+                ThetaFeatureActivity.MODE_VR);
+        intent.setClass(getActivity(), ThetaFeatureActivity.class);
+        startActivity(intent);
+        getActivity().finish();
+//        getActivity().getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+//        WifiManager wifiMgr = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
+//        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+//        String ssId = wifiInfo.getSSID().replace("\"", "");
+//        String message;
+//        if (isTheta(ssId)) {
+//            message = getString(R.string.camera_search_message_found);
+//            message = message.replace("$NAME$", ssId);
+//            getActivity().getActionBar().setTitle(ssId);
+//            Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+//        } else {  //Open THETA Settings.
+//            Toast.makeText(getActivity(), R.string.camera_must_connect, Toast.LENGTH_SHORT).show();
+//            Intent intent = new Intent();
+//            intent.setClass(getActivity(), ThetaDeviceSettingsActivity.class);
 //            startActivity(intent);
-        }
-
-        setRetainInstance(true);
-        mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), createDataList(100)); // TODO new List<ThetaObject>();
+//        }
+//        setRetainInstance(true);
+//        mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), createDataList(100)); // TODO new List<ThetaObject>();
     }
 
 
@@ -80,12 +89,36 @@ public class ThetaGalleryFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // list setting
         View parent = inflater.inflate(R.layout.theta_gallery, container, false);
+        mRecconectLayout = (RelativeLayout) parent.findViewById(R.id.theta_reconnect_layout);
+        parent.findViewById(R.id.theta_reconnect).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.setClass(getActivity(), ThetaDeviceSettingsActivity.class);
+                startActivity(intent);
+            }
+        });
+        parent.findViewById(R.id.theta_shutter).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent();
+                intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
+                        ThetaFeatureActivity.MODE_SHOOTING);
+                intent.setClass(getActivity(), ThetaFeatureActivity.class);
+                startActivity(intent);
+            }
+        });
+
         AbsListView list = (AbsListView) parent.findViewById(R.id.theta_list);
         list.setAdapter(mGalleryAdapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-
+                Intent intent = new Intent();
+                intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
+                                ThetaFeatureActivity.MODE_VR);
+                intent.setClass(getActivity(), ThetaFeatureActivity.class);
+                startActivity(intent);
             }
         });
         list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -141,7 +174,6 @@ public class ThetaGalleryFragment extends Fragment {
             String dateText = getItem(position);
             date.setText(dateText);
             type.setImageResource(R.drawable.ic_action_labels);
-            thumb.setImageResource(R.drawable.dconnect_icon);
             return cv;
         }
     }

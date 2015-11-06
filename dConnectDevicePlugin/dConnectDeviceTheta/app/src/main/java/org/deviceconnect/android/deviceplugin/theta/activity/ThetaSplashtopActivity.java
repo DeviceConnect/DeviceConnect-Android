@@ -40,8 +40,6 @@ public class ThetaSplashtopActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_theta_splashtop);
-        handler = new Handler();
-        handler.postDelayed(run, MIN_TIME_TO_SHOW_SPLASH);
     }
 
 
@@ -53,7 +51,12 @@ public class ThetaSplashtopActivity extends Activity {
         }
     }
 
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        handler = new Handler();
+        handler.postDelayed(run, MIN_TIME_TO_SHOW_SPLASH);
+    }
     /**
      * Is Connected Theta?
      */

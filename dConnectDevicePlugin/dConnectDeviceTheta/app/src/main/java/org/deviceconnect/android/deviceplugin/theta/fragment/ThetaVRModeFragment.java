@@ -125,7 +125,6 @@ public class ThetaVRModeFragment extends Fragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
-        failSaveDialog();
         View rootView = inflater.inflate(R.layout.theta_vr_mode, null);
         mLeftLayout = (RelativeLayout) rootView.findViewById(R.id.left_ui);
         mRightLayout = (RelativeLayout) rootView.findViewById(R.id.right_ui);

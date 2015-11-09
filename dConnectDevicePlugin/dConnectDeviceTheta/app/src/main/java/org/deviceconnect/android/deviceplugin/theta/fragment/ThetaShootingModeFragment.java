@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import org.deviceconnect.android.deviceplugin.theta.R;
 
@@ -46,6 +47,8 @@ public class ThetaShootingModeFragment extends Fragment {
 
     /** Shooting Buttons. */
     private Button[] mShootingButtons = new Button[3];
+    /** Shooting Button for Movie. */
+    private ToggleButton mShootingButton;
 
     /** Movie Shooting time. */
     private TextView mShootingTime;
@@ -108,7 +111,11 @@ public class ThetaShootingModeFragment extends Fragment {
             mShootingLayouts[i] = (FrameLayout) rootView.findViewById(identifier);
             identifier = getResources().getIdentifier("theta_shutter_" + i,
                     "id", getActivity().getPackageName());
-            mShootingButtons[i] = (Button) rootView.findViewById(identifier);
+            if (i == MODE_MOVIE_SHOOTING) {
+                mShootingButton = (ToggleButton) rootView.findViewById(identifier);
+            } else {
+                mShootingButtons[i] = (Button) rootView.findViewById(identifier);
+            }
         }
         mShootingTime = (TextView) rootView.findViewById(R.id.shooting_time);
     }

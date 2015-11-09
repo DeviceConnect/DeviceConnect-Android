@@ -49,10 +49,12 @@
             android:gravity="left"
             android:layout_gravity="center"
             android:text="00:00"/>
-        <Button
+        <ToggleButton
             android:id="@+id/theta_shutter_2"
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:textOff=""
+            android:textOn=""
             android:background="@drawable/rec_big_button"
             android:layout_gravity="center|right"
             android:layout_margin="16dp"/>

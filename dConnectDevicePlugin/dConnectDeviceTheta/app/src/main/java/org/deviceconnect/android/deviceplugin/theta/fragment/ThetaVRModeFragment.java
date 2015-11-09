@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -28,6 +29,9 @@ import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Fragment to display the VR mode of THETA.
@@ -53,29 +57,56 @@ public class ThetaVRModeFragment extends Fragment {
 
     /** Stereo Flag. */
     private boolean mIsStereo = false;
+    /** Thread Manager. */
+    private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
 
     /** VR Change toggle button's listener.*/
     private CompoundButton.OnCheckedChangeListener mVRChangeToggleListener
             = new CompoundButton.OnCheckedChangeListener() {
         @Override
-        public void onCheckedChanged(final CompoundButton compoundButton, final boolean isStereo) {
-            if (mSphereView != null) {
-                mSphereView.setStereo(isStereo);
-                mIsStereo = isStereo;
-                for (int i = 0; i < mVRModeChangeButton.length; i++) {
-                    mVRModeChangeButton[i].setChecked(isStereo);
+        public synchronized void onCheckedChanged(final CompoundButton compoundButton, final boolean isStereo) {
+            mExecutorService.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    Activity activity = getActivity();
+                    if (activity != null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mSphereView != null) {
+                                    mSphereView.setStereo(isStereo);
+                                    mIsStereo = isStereo;
+                                    for (int i = 0; i < mVRModeChangeButton.length; i++) {
+                                        mVRModeChangeButton[i].setChecked(isStereo);
+                                    }
+                                    enableView();
+                                }
+                            }
+                        });
+                    }
                 }
-                enableView();
-            }
+            }, 50, TimeUnit.MILLISECONDS);
         }
     };
 
     /** ScreenShot shooting button's listener.*/
     private View.OnClickListener mShootingListener = new View.OnClickListener() {
         @Override
-        public void onClick(final View view) {
-            // TODO Shooting ScreenShot.
-        }
+        public synchronized void onClick(final View view) {
+            mExecutorService.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    Activity activity = getActivity();
+                    if (activity != null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // TODO Shooting ScreenShot.
+                            }
+                        });
+                    }
+                }
+            }, 50, TimeUnit.MILLISECONDS);        }
     };
 
     @Override
@@ -145,6 +176,7 @@ public class ThetaVRModeFragment extends Fragment {
     private void enableView() {
         switch(((WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation()) {
             case Surface.ROTATION_90:
+            case Surface.ROTATION_270:
                 if (mIsStereo) {
                     mRightLayout.setVisibility(View.VISIBLE);
                     getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
@@ -153,24 +185,7 @@ public class ThetaVRModeFragment extends Fragment {
                     getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
                 }
                 break;
-            case Surface.ROTATION_270:
-                if (mIsStereo) {
-                    mRightLayout.setVisibility(View.VISIBLE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-                } else {
-                    mRightLayout.setVisibility(View.GONE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-                }
-                break;
             case Surface.ROTATION_180:
-                if (mIsStereo) {
-                    mRightLayout.setVisibility(View.VISIBLE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
-                } else {
-                    mRightLayout.setVisibility(View.GONE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-                }
-                break;
             default :
                 if (mIsStereo) {
                     mRightLayout.setVisibility(View.VISIBLE);

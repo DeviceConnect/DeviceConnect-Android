@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.theta.R;
@@ -65,6 +66,27 @@ public class ThetaDialogFragment extends DialogFragment {
                 .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, null)
+                .show();
+    }
+
+    /**
+     * Show Confirm Alert.
+     * @param activity Activity
+     * @param title title
+     * @param message message
+     * @param listener listener
+     */
+    public static void showConfirmAlert(final Activity activity, final String title, final String message
+                                        , final DialogInterface.OnClickListener listener) {
+        if (activity == null) {
+            return;
+        }
+
+        new AlertDialog.Builder(activity)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(R.string.ok, listener)
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 }

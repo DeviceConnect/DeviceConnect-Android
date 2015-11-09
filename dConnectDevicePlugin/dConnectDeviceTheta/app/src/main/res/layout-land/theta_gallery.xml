@@ -11,7 +11,7 @@
         android:textSize="30sp"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:textColor="#CCCCCC"
+        android:textColor="@color/action_bar_background"
         android:visibility="gone"
         android:text="@string/theta_gallery_no_data"/>
     <GridView
@@ -22,9 +22,9 @@
     </GridView>
     <Button
         android:id="@+id/theta_shutter"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:background="@android:drawable/ic_dialog_info"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="@drawable/vr_mode_screen_shot_button"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -46,7 +46,7 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:textSize="30sp"
-            android:textColor="#CCCCCC"
+            android:textColor="@color/action_bar_background"
             android:text="@string/theta_no_connect_message"/>
         <Button
             android:id="@+id/theta_reconnect"

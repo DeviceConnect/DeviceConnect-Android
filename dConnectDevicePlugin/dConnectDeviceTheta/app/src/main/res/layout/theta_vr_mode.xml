@@ -30,8 +30,8 @@
                 />
             <Button
                 android:id="@+id/theta_shutter_0"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:background="@drawable/vr_mode_screen_shot_button"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentLeft="true"
@@ -57,8 +57,8 @@
                 />
             <Button
                 android:id="@+id/theta_shutter_1"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:background="@drawable/vr_mode_screen_shot_button"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentLeft="true"

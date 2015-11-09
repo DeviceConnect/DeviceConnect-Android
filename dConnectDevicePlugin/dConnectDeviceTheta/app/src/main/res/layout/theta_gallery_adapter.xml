@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF"
-    android:layout_margin="10dp">
+    android:background="#FFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="200dp"
         android:layout_weight="1"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginTop="20dp"
-        android:background="#000000"
+        android:background="@drawable/theta_gallery_thumb"
         android:orientation="vertical">
 
         <ImageView
@@ -21,21 +20,22 @@
             android:layout_height="200dp"
             android:visibility="gone"
             />
-        <ProgressBar
+        <org.deviceconnect.android.deviceplugin.theta.activity.view.ThetaLoadingProgressView
             android:id="@+id/theta_thumb_progress"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:indeterminate="true"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:layout_margin="40dp"
             android:visibility="visible"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="3"
+        android:layout_marginTop="160dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp"
-        android:background="#00a0e9">
+        android:background="@drawable/gallery_thumb_footer">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -61,4 +61,4 @@
                 android:text="2015/xx/xx"/>
         </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</FrameLayout>

@@ -12,7 +12,7 @@
             android:id="@+id/theta_shutter_0"
             android:layout_width="200dp"
             android:layout_height="200dp"
-            android:background="@android:drawable/ic_dialog_info"
+            android:background="@drawable/shooting_big_button"
             android:layout_gravity="center"/>
     </FrameLayout>
     <!-- THETA S 写真撮影 -->
@@ -29,7 +29,7 @@
             android:id="@+id/theta_shutter_1"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:background="@android:drawable/ic_dialog_info"
+            android:background="@drawable/shooting_big_button"
             android:layout_gravity="center|right"
             android:layout_margin="16dp"/>
     </FrameLayout>
@@ -53,7 +53,7 @@
             android:id="@+id/theta_shutter_2"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:background="@android:drawable/ic_dialog_info"
+            android:background="@drawable/rec_big_button"
             android:layout_gravity="center|right"
             android:layout_margin="16dp"/>
     </FrameLayout>

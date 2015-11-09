@@ -7,11 +7,17 @@
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
@@ -22,13 +28,18 @@ import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
 import android.widget.ToggleButton;
 
+import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalImageView;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
+import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +65,8 @@ public class ThetaVRModeFragment extends Fragment {
 
     /** SphericalView. */
     private SphericalImageView mSphereView;
-
+    /** SphericalViewApi. */
+    private SphericalViewApi mApi;
     /** Stereo Flag. */
     private boolean mIsStereo = false;
     /** Thread Manager. */
@@ -101,23 +113,25 @@ public class ThetaVRModeFragment extends Fragment {
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                // TODO Shooting ScreenShot.
+                                saveScreenShot();
                             }
                         });
                     }
                 }
-            }, 50, TimeUnit.MILLISECONDS);        }
+            }, 50, TimeUnit.MILLISECONDS);
+        }
     };
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
+        failSaveDialog();
         View rootView = inflater.inflate(R.layout.theta_vr_mode, null);
         mLeftLayout = (RelativeLayout) rootView.findViewById(R.id.left_ui);
         mRightLayout = (RelativeLayout) rootView.findViewById(R.id.right_ui);
         mSphereView = (SphericalImageView) rootView.findViewById(R.id.vr_view);
-        SphericalViewApi api = new SphericalViewApi(getActivity());
-        mSphereView.setViewApi(api);
+        mApi = new SphericalViewApi(getActivity());
+        mSphereView.setViewApi(mApi);
         // TODO Read Theta's file.
         byte[] data = getAssetsData("r.JPG");
         if (data == null) {
@@ -210,5 +224,85 @@ public class ThetaVRModeFragment extends Fragment {
             mShootingButton[i] = (Button) rootView.findViewById(identifier);
             mShootingButton[i].setOnClickListener(mShootingListener);
         }
+    }
+
+    /**
+     * Save ScreenShot.
+     */
+    private void saveScreenShot() {
+        FileManager fileManager = new FileManager(getActivity());
+        fileManager.checkWritePermission(new FileManager.CheckPermissionCallback() {
+            @Override
+            public void onSuccess() {
+                String root = Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera/";
+                Date date = new Date();
+                SimpleDateFormat fileDate = new SimpleDateFormat("yyyyMMdd_HHmmss");
+                final String fileName = "theta_vr_screenshot_" + fileDate.format(date) + ".jpg";
+                final String filePath = root + fileName;
+                // TODO mApi.takeSnapshot()
+                try {
+                    saveFile(filePath, getAssetsData("r.JPG"));
+                    if (BuildConfig.DEBUG) {
+                        Log.d("TEST", "absolute path:" + filePath);
+                    }
+                    ContentValues values = new ContentValues();
+                    ContentResolver contentResolver = getActivity().getContentResolver();
+                    values.put(MediaStore.Images.Media.TITLE, fileName);
+                    values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
+                    values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+                    values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                    values.put(MediaStore.Images.Media.DATA, filePath);
+                    contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                    ThetaDialogFragment.showAlert(getActivity(),
+                            getResources().getString(R.string.theta_ssid_prefix),
+                            getResources().getString(R.string.theta_save_screenshot));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    failSaveDialog();
+                }
+
+            }
+
+            @Override
+            public void onFail() {
+                failSaveDialog();
+            }
+        });
+
+    }
+
+    /**
+     * Save File.
+     * @param filename absolute path
+     * @param data binary
+     * @throws IOException Failed Save
+     */
+    private void saveFile(final String filename, final byte[] data) throws IOException {
+        Uri u = Uri.parse("file://" + filename);
+        ContentResolver contentResolver = getActivity().getContentResolver();
+        OutputStream out = null;
+        try {
+            out = contentResolver.openOutputStream(u, "w");
+            out.write(data);
+            out.flush();
+        } catch (Exception e) {
+            throw new IOException("Failed to save a file." + filename);
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    /**
+     * ScreenShot failed.
+     */
+    private void failSaveDialog() {
+        ThetaDialogFragment.showAlert(getActivity(),
+                getResources().getString(R.string.theta_ssid_prefix),
+                getResources().getString(R.string.theta_error_failed_save_file));
     }
 }

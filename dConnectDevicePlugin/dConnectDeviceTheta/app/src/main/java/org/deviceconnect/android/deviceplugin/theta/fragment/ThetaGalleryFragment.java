@@ -11,13 +11,13 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaDeviceSettingsActivity;
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaFeatureActivity;
+import org.deviceconnect.android.deviceplugin.theta.activity.view.ThetaLoadingProgressView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +34,9 @@ public class ThetaGalleryFragment extends Fragment {
 
     /** Theta disconnect warning view. */
     private RelativeLayout mRecconectLayout;
+
+    /** Theta status TextView. */
+    private TextView mStatusView;
 
     /** Singleton. */
     public static ThetaGalleryFragment newInstance() {
@@ -52,6 +55,9 @@ public class ThetaGalleryFragment extends Fragment {
         startActivity(intent);
         getActivity().finish();
 //        getActivity().getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+//        int color = R.color.action_bar_background;
+//        Drawable backgroundDrawable = getActivity().getApplicationContext().getResources().getDrawable(color);
+//        getActivity().getActionBar().setBackgroundDrawable(backgroundDrawable);
 //        WifiManager wifiMgr = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
 //        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
 //        String ssId = wifiInfo.getSSID().replace("\"", "");
@@ -67,6 +73,7 @@ public class ThetaGalleryFragment extends Fragment {
 //            intent.setClass(getActivity(), ThetaDeviceSettingsActivity.class);
 ////            startActivity(intent);
 //        }
+//
 //        setRetainInstance(true);
 //        mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), createDataList(100)); // TODO new List<ThetaObject>();
     }
@@ -87,7 +94,6 @@ public class ThetaGalleryFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // list setting
         View rootView = inflater.inflate(R.layout.theta_gallery, container, false);
         mRecconectLayout = (RelativeLayout) rootView.findViewById(R.id.theta_reconnect_layout);
         rootView.findViewById(R.id.theta_reconnect).setOnClickListener(new View.OnClickListener() {
@@ -108,7 +114,8 @@ public class ThetaGalleryFragment extends Fragment {
                 startActivity(intent);
             }
         });
-
+        mStatusView = (TextView) rootView.findViewById(R.id.theta_no_data);
+        mStatusView.setVisibility(View.GONE);
         AbsListView list = (AbsListView) rootView.findViewById(R.id.theta_list);
         list.setAdapter(mGalleryAdapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -169,11 +176,12 @@ public class ThetaGalleryFragment extends Fragment {
             ImageView thumb = (ImageView) cv.findViewById(R.id.theta_thumb_data);
             ImageView type = (ImageView) cv.findViewById(R.id.data_type);
             TextView date = (TextView) cv.findViewById(R.id.data_date);
-            ProgressBar progress = (ProgressBar) cv.findViewById(R.id.theta_thumb_progress);
+            ThetaLoadingProgressView progress = (ThetaLoadingProgressView)
+                                            cv.findViewById(R.id.theta_thumb_progress);
 
             String dateText = getItem(position);
             date.setText(dateText);
-            type.setImageResource(R.drawable.ic_action_labels);
+            type.setImageResource(R.drawable.theta_data_img);
             return cv;
         }
     }

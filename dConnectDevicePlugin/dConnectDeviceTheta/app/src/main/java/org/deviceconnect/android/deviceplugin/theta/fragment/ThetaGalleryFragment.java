@@ -4,7 +4,9 @@ import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +15,7 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -31,6 +34,9 @@ import java.util.List;
  */
 public class ThetaGalleryFragment extends Fragment {
 
+    /** Item per page. */
+    private static final int PER_PAGE = 20;
+
     /** Theta's Gallery. */
     private ThetaGalleryAdapter mGalleryAdapter;
 
@@ -40,6 +46,11 @@ public class ThetaGalleryFragment extends Fragment {
     /** Theta status TextView. */
     private TextView mStatusView;
 
+    /** Theta's Loading View. */
+    private LinearLayout mLoadingView;
+
+    /** Handler. */
+    private final Handler mHandler = new Handler();
     /** Singleton. */
     public static ThetaGalleryFragment newInstance() {
         return new ThetaGalleryFragment();
@@ -73,7 +84,7 @@ public class ThetaGalleryFragment extends Fragment {
 //        }
 //
 //        setRetainInstance(true);
-//        mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), createDataList(100)); // TODO new List<ThetaObject>();
+//        mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), createDataList(0, PER_PAGE)); // TODO new List<ThetaObject>();
     }
 
 
@@ -96,8 +107,8 @@ public class ThetaGalleryFragment extends Fragment {
         int color = R.color.action_bar_background;
         Drawable backgroundDrawable = getActivity().getApplicationContext().getResources().getDrawable(color);
         getActivity().getActionBar().setBackgroundDrawable(backgroundDrawable);
-
         View rootView = inflater.inflate(R.layout.theta_gallery, container, false);
+        mLoadingView = (LinearLayout) rootView.findViewById(R.id.theta_gallery_progress);
         mRecconectLayout = (RelativeLayout) rootView.findViewById(R.id.theta_reconnect_layout);
         rootView.findViewById(R.id.theta_reconnect).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,12 +132,13 @@ public class ThetaGalleryFragment extends Fragment {
         mStatusView.setVisibility(View.GONE);
         AbsListView list = (AbsListView) rootView.findViewById(R.id.theta_list);
         list.setAdapter(mGalleryAdapter);
+
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 Intent intent = new Intent();
                 intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
-                                ThetaFeatureActivity.MODE_VR);
+                        ThetaFeatureActivity.MODE_VR);
                 intent.setClass(getActivity(), ThetaFeatureActivity.class);
                 startActivity(intent);
             }
@@ -134,16 +146,64 @@ public class ThetaGalleryFragment extends Fragment {
         list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long id) {
+                // TODO Delete Theta's Data.
                 return false;
+            }
+        });
+
+        list.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView absListView, int i) {
+
+            }
+
+            @Override
+            public void onScroll(final AbsListView absListView,
+                                 final int firstVisibleItem,
+                                 final int visibleItemCount,
+                                 final int totalItemCount) {
+
+                if ((totalItemCount - visibleItemCount) == firstVisibleItem) {
+                    new AsyncTask() {
+                        @Override
+                        protected void onPreExecute() {
+                            super.onPreExecute();
+                            mLoadingView.setVisibility(View.VISIBLE);
+
+                        }
+                        @Override
+                        protected Object doInBackground(Object[] objects) {
+                            // TODO Reload ListView.
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            Integer itemCount = totalItemCount - 1;
+                            return createDataList(itemCount, (itemCount + PER_PAGE));
+                        }
+
+                        protected void onPostExecute(final Object result) {
+                            super.onPostExecute(result);
+                            List<String> lists = (List<String>) result;
+                            for (int i = 0; i < lists.size(); i++) {
+                                mGalleryAdapter.add(lists.get(i));
+                            }
+                            mGalleryAdapter.notifyDataSetChanged();
+                            mLoadingView.setVisibility(View.GONE);
+                        }
+                    }.execute();
+
+                }
             }
         });
         return rootView;
     }
 
     // TODO delete debug code
-    private static List<String> createDataList(int counts) {
+    private static List<String> createDataList(final int offset, final int counts) {
         List<String> list = new ArrayList<String>();
-        for (int i = 0; i < counts; i++) {
+        for (int i = offset; i < counts; i++) {
             list.add("i=" + i);
         }
         return list;

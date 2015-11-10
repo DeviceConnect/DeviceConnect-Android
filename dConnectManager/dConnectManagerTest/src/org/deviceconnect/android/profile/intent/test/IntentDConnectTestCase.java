@@ -6,13 +6,13 @@
  */
 package org.deviceconnect.android.profile.intent.test;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
+import android.os.Parcelable;
 
 import junit.framework.Assert;
 
@@ -25,13 +25,13 @@ import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.Bundle;
-import android.os.Parcelable;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -207,7 +207,7 @@ public class IntentDConnectTestCase extends DConnectTestCase {
         intent.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
         if (afterAuth) {
-            intent.putExtra(IntentDConnectMessage.EXTRA_ACCESS_TOKEN, mAccessToken);
+            intent.putExtra(IntentDConnectMessage.EXTRA_ACCESS_TOKEN, sAccessToken);
         }
         intent.putExtra(IntentDConnectMessage.EXTRA_NONCE, toHexString(nonce));
 

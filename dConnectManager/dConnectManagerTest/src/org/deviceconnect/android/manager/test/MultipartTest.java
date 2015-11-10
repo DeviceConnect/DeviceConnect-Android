@@ -6,8 +6,6 @@
  */
 package org.deviceconnect.android.manager.test;
 
-import java.io.UnsupportedEncodingException;
-
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.mime.MultipartEntity;
@@ -23,6 +21,8 @@ import org.deviceconnect.profile.NotificationProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
 
 
 /**

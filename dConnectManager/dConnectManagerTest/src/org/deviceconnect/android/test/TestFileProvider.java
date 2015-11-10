@@ -6,14 +6,15 @@
  */
 package org.deviceconnect.android.test;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 
 /**
  * テスト用ファイルを公開するコンテントプロバイダ.
@@ -24,7 +25,7 @@ public class TestFileProvider extends ContentProvider {
     @Override
     public ParcelFileDescriptor openFile(final Uri uri, final String mode) throws FileNotFoundException {
         File file = new File(getBasePath(), uri.getLastPathSegment());
-        ParcelFileDescriptor parcel = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+        ParcelFileDescriptor parcel = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_WRITE);
         return parcel;
     }
 
@@ -33,7 +34,7 @@ public class TestFileProvider extends ContentProvider {
      * @return パス
      */
     public File getBasePath() {
-        return getContext().getFilesDir();
+        return Environment.getExternalStorageDirectory();
     }
 
     @Override

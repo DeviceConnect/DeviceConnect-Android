@@ -141,6 +141,7 @@ public class ConfirmAuthFramgment extends Fragment {
         /* ServiceConnectionを渡してServiceとBindする */
         Intent intent = new Intent();
         intent.setClass(getActivity(), LocalOAuth2Service.class);
+        intent.setPackage(getActivity().getPackageName());
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 

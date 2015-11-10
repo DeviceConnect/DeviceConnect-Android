@@ -10,6 +10,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
@@ -641,7 +642,9 @@ public abstract class DConnectMessageService extends Service
         builder.setTicker(getString(R.string.app_name));
         builder.setContentTitle(getString(R.string.app_name));
         builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getPort());
-        builder.setSmallIcon(R.drawable.icon);
+        int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
+                R.drawable.icon : R.drawable.on_icon;
+        builder.setSmallIcon(iconType);
 
         startForeground(ONGOING_NOTIFICATION_ID, builder.build());
     }

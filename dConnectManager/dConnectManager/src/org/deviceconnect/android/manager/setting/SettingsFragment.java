@@ -226,9 +226,11 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         showIPAddress();
 
         Intent intent = new Intent(IDConnectService.class.getName());
+        intent.setPackage(getActivity().getPackageName());
         getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
         Intent intent2 = new Intent(IDConnectWebService.class.getName());
+        intent2.setPackage(getActivity().getPackageName());
         getActivity().bindService(intent2, mWebServiceConnection, Context.BIND_AUTO_CREATE);
     }
 

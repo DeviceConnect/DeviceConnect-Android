@@ -37,19 +37,29 @@ import java.util.logging.Logger;
  */
 public class DConnectLaunchActivity extends Activity {
 
-    /** The names of URI scheme for launching Device Connect Manager. */
+    /**
+     * The names of URI scheme for launching Device Connect Manager.
+     */
     private static final String[] SCHEMES_LAUNCH = {"dconnect", "gotapi"};
 
-    /** The HMAC manager. */
+    /**
+     * The HMAC manager.
+     */
     private HmacManager mHmacManager;
 
-    /** The logger. */
+    /**
+     * The logger.
+     */
     protected final Logger mLogger = Logger.getLogger("dconnect.manager");
 
-    /** The button to launch or stop Device Connect Manager. */
+    /**
+     * The button to launch or stop Device Connect Manager.
+     */
     private Button mLaunchOrStopButton;
 
-    /** The text view to show a prompt message. */
+    /**
+     * The text view to show a prompt message.
+     */
     private TextView mMessageView;
 
     @Override
@@ -117,7 +127,7 @@ public class DConnectLaunchActivity extends Activity {
         }
 
         Intent bindIntent = new Intent(IDConnectService.class.getName());
-        intent.setPackage(getPackageName());
+        bindIntent.setPackage(getPackageName());
         bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -129,6 +139,7 @@ public class DConnectLaunchActivity extends Activity {
 
     /**
      * Checks whether the specified scheme is for launching the Manager or not.
+     *
      * @param receivedScheme the name of custom URI scheme received from an app.
      * @return <code>true</code> if the specified scheme is for launching the Manager, otherwise <code>false</code>
      */
@@ -226,6 +237,7 @@ public class DConnectLaunchActivity extends Activity {
                 }
             });
         }
+
         @Override
         public void onServiceDisconnected(final ComponentName name) {
             mDConnectService = null;

@@ -158,6 +158,11 @@ public class BleDeviceDetector {
         if (mBleAdapter == null) {
             return false;
         }
+
+        if (!BleUtils.isBLEPermission(getContext())) {
+            return false;
+        }
+
         return mBleAdapter.isEnabled();
     }
 
@@ -233,6 +238,11 @@ public class BleDeviceDetector {
                     @Override
                     public void onLeScan(final BluetoothDevice device, final int rssi) {
                         devices.add(device);
+                    }
+
+                    @Override
+                    public void onFail() {
+
                     }
                 };
         
@@ -351,6 +361,11 @@ public class BleDeviceDetector {
                     if (!mDevices.contains(device)) {
                         mDevices.add(device);
                     }
+                }
+
+                @Override
+                public void onFail() {
+
                 }
             };
 

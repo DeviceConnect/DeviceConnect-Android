@@ -63,5 +63,10 @@ public abstract class BleDeviceAdapter {
          * @param rssi rssi
          */
         void onLeScan(BluetoothDevice device, int rssi);
+
+        /**
+         * Called if scan failed.
+         */
+        void onFail();
     }
 }

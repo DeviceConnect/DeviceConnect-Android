@@ -32,6 +32,7 @@ import java.util.Set;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
 
+    private final Context mContext;
     /**
      * Bluetooth adapter.
      */
@@ -50,25 +51,40 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
      * @param context context
      */
     public NewBleDeviceAdapterImpl(final Context context) {
+        mContext = context;
         BluetoothManager manager = BleUtils.getManager(context);
         mBluetoothAdapter = manager.getAdapter();
-        mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
     }
 
     @Override
     public void startScan(final BleDeviceScanCallback callback) {
         mCallback = callback;
 
-        List<ScanFilter> filters = new ArrayList<>();
+        final List<ScanFilter> filters = new ArrayList<>();
 
-        ScanSettings settings = new ScanSettings.Builder().build();
+        final ScanSettings settings = new ScanSettings.Builder().build();
+        mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
 
-        mBleScanner.startScan(filters, settings, mScanCallback);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            if (mBleScanner != null) {
+                mBleScanner.startScan(filters, settings, mScanCallback);
+            }
+        } else {
+            // Unless required permissions were acquired, scan does not start.
+            if (BleUtils.isBLEPermission(mContext)) {
+                if (mBleScanner != null) {
+                    mBleScanner.startScan(filters, settings, mScanCallback);
+                }
+            }
+        }
     }
 
     @Override
     public void stopScan(final BleDeviceScanCallback callback) {
-        mBleScanner.stopScan(mScanCallback);
+        mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
+        if (mBleScanner != null) {
+            mBleScanner.stopScan(mScanCallback);
+        }
     }
 
     @Override
@@ -108,6 +124,7 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
 
         @Override
         public void onScanFailed(final int errorCode) {
+            mCallback.onFail();
         }
     };
 }

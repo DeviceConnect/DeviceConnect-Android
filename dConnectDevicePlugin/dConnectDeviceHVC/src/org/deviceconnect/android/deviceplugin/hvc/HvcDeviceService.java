@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.hvc;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.regex.Pattern;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceDetector;
 import org.deviceconnect.android.deviceplugin.hvc.ble.BleDeviceDetector.BleDeviceDiscoveryListener;
@@ -32,11 +32,11 @@ import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.regex.Pattern;
 
 /**
  * HVC Device Service.
@@ -84,10 +84,7 @@ public class HvcDeviceService extends DConnectMessageService {
         super.onCreate();
 
         // start HVC device search.
-        initDetector();
-        if (mDetector.isEnabled()) {
-            mDetector.startScan();
-        }
+        startSearchHvcDevice();
 
         // Initialize EventManager
         EventManager.INSTANCE.setController(new MemoryCacheController());
@@ -96,7 +93,7 @@ public class HvcDeviceService extends DConnectMessageService {
         addProfile(new HvcHumanDetectProfile());
         
         // start timeout judget timer.
-        startTimeoutJudgetTimer();
+        startTimeoutJudgeTimer();
     }
 
     @Override
@@ -105,6 +102,7 @@ public class HvcDeviceService extends DConnectMessageService {
         if (intent == null) {
             return START_STICKY;
         }
+
         String action = intent.getAction();
         if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
             if (DEBUG) {
@@ -115,25 +113,12 @@ public class HvcDeviceService extends DConnectMessageService {
             int state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
             if (state == BluetoothAdapter.STATE_TURNING_OFF) {
                 // Bluetooth ON -> OFF
-                
                 // stop scan process.
-                mDetector.stopScan();
-                
+                stopSearchHvcDevice();
             } else if (state == BluetoothAdapter.STATE_ON) {
                 // Bluetooth OFF -> ON
-                
                 // start scan process.
-                if (mDetector == null) {
-                    initDetector();
-                }
-                if (mDetector.isEnabled()) {
-                    mDetector.startScan();
-                } else {
-                    if (DEBUG) {
-                        Log.d(TAG, "status is STATE_ON, but mDetector.isEnabled() == false.");
-                    }
-                }
-
+                startSearchHvcDevice();
             }
         }
         return super.onStartCommand(intent, flags, startId);
@@ -208,7 +193,7 @@ public class HvcDeviceService extends DConnectMessageService {
                 Log.d(TAG, "Bluetooth OFF");
             }
             MessageUtils.setIllegalDeviceStateError(response, "bluetooth OFF.");
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
 
@@ -223,7 +208,7 @@ public class HvcDeviceService extends DConnectMessageService {
             BluetoothDevice bluetoothDevice = searchCacheHvcDevice(serviceId);
             if (bluetoothDevice == null) {
                 MessageUtils.setNotFoundServiceError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
                 return;
             }
             
@@ -269,14 +254,14 @@ public class HvcDeviceService extends DConnectMessageService {
         }
         if (commManager == null) {
             MessageUtils.setNotFoundServiceError(response, "service id not found");
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
         // get event interval.
         Long interval = commManager.getEventInterval(detectKind, sessionKey);
         if (interval == null) {
             MessageUtils.setInvalidRequestParameterError(response, "detectKind and sessionKey pair not found.");
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
         
@@ -295,7 +280,7 @@ public class HvcDeviceService extends DConnectMessageService {
 
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Unregister OnDetection event");
-        sendBroadcast(response);
+        sendResponse(response);
     }
 
     /**
@@ -315,7 +300,7 @@ public class HvcDeviceService extends DConnectMessageService {
         // Bluetooth OFF
         if (mDetector == null || !mDetector.isEnabled()) {
             MessageUtils.setIllegalDeviceStateError(response, "bluetooth OFF.");
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             if (DEBUG) {
                 Log.d(TAG, "Bluetooth OFF");
             }
@@ -327,13 +312,13 @@ public class HvcDeviceService extends DConnectMessageService {
         synchronized (mHvcCommManagerArray) {
             commManager = HvcCommManagerUtils.search(mHvcCommManagerArray, serviceId);
         }
+
         if (commManager == null) {
-            
             // search cache bluetooth device.(if not found, not found service error)
             BluetoothDevice bluetoothDevice = searchCacheHvcDevice(serviceId);
             if (bluetoothDevice == null) {
                 MessageUtils.setNotFoundServiceError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
                 if (DEBUG) {
                     Log.d(TAG, "service not found");
                 }
@@ -345,10 +330,9 @@ public class HvcDeviceService extends DConnectMessageService {
             synchronized (mHvcCommManagerArray) {
                 mHvcCommManagerArray.add(commManager);
             }
-            
         }
-        final HvcCommManager commManagerFinal = commManager;
 
+        final HvcCommManager commManagerFinal = commManager;
         // get detection process. (if in communication, wait and retry)
         retryProcInNewThread(HvcConstants.HVC_COMM_RETRY_COUNT, HvcConstants.HVC_COMM_RETRY_INTERVAL,
                 new HvcRetryProcListener() {
@@ -389,8 +373,7 @@ public class HvcDeviceService extends DConnectMessageService {
 
                         // timeout error.
                         MessageUtils.setTimeoutError(response, "GET API timeout.");
-                        getContext().sendBroadcast(response);
-
+                        sendResponse(response);
                     }
                 });
     }
@@ -405,10 +388,8 @@ public class HvcDeviceService extends DConnectMessageService {
 
                 @Override
                 public void onDiscovery(final List<BluetoothDevice> devices) {
-
                     // remove duplicate data or non HVC data.
                     removeDuplicateOrNonHvcData(devices);
-
                     // store.
                     synchronized (mCacheDeviceList) {
                         mCacheDeviceList.clear();
@@ -500,7 +481,6 @@ public class HvcDeviceService extends DConnectMessageService {
      * @return not null: found device / null: not found
      */
     public BluetoothDevice searchCacheHvcDevice(final String serviceId) {
-        
         List<BluetoothDevice> hvcDeviceList = getHvcDeviceList();
         for (BluetoothDevice device : hvcDeviceList) {
             if (serviceId.equals(HvcCommManager.getServiceId(device.getAddress()))) {
@@ -510,13 +490,25 @@ public class HvcDeviceService extends DConnectMessageService {
         return null;
     }
 
+    public synchronized void startSearchHvcDevice() {
+        if (mDetector == null) {
+            initDetector();
+        }
+        if (mDetector.isEnabled()) {
+            mDetector.startScan();
+        }
+    }
+
+    public synchronized void stopSearchHvcDevice() {
+        mDetector.stopScan();
+    }
+
     /**
      * start interval timer(if no event with same interval.).
      * 
      * @param interval interval[msec]
      */
     private void startIntervalTimer(final long interval) {
-
         // search timer, if interval to match.
         HvcTimerInfo timerInfo = HvcTimerInfoUtils.search(mIntervalTimerInfoArray, interval);
         if (timerInfo == null) {
@@ -564,13 +556,10 @@ public class HvcDeviceService extends DConnectMessageService {
     }
 
     /**
-     * start timeout judget timer.
+     * start timeout judge timer.
      */
-    private void startTimeoutJudgetTimer() {
-
-        /**
-         * timeout judget timer information.
-         */
+    private void startTimeoutJudgeTimer() {
+        // timeout judge timer information.
         HvcTimerInfo mTimeoutJudgeTimer = new HvcTimerInfo(HvcConstants.TIMEOUT_JUDGE_INTERVAL);
         mTimeoutJudgeTimer.startTimer(new TimerTask() {
             @Override

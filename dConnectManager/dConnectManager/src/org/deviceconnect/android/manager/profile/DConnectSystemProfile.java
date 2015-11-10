@@ -6,9 +6,9 @@
  */
 package org.deviceconnect.android.manager.profile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
 
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.manager.DConnectMessageService;
@@ -28,9 +28,9 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.SystemProfileConstants;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * System プロファイル.
@@ -155,6 +155,7 @@ public class DConnectSystemProfile extends SystemProfile {
             b.putString(PARAM_ID, serviceId);
             b.putString(PARAM_NAME, plugin.getDeviceName());
             b.putString(PARAM_PACKAGE_NAME, plugin.getPackageName());
+            b.putString(PARAM_VERSION, plugin.getVersionName());
             setSupports(b, plugin.getSupportProfiles());
             plugins.add(b);
         }

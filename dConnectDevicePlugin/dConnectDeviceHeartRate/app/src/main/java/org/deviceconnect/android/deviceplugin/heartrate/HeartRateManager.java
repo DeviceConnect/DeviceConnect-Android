@@ -147,6 +147,13 @@ public class HeartRateManager {
         mConnector.stop();
     }
 
+    public boolean isEnabledBle() {
+        if (mDetector == null) {
+            return false;
+        }
+        return mDetector.isEnabled();
+    }
+
     /**
      * Starts BLE scan.
      */

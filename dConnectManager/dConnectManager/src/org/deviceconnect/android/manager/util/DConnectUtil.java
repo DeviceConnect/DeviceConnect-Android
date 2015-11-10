@@ -6,11 +6,13 @@
  */
 package org.deviceconnect.android.manager.util;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import org.apache.http.NameValuePair;
@@ -32,6 +34,14 @@ import java.util.Iterator;
  * @author NTT DOCOMO, INC.
  */
 public final class DConnectUtil {
+    /**
+     * Defined the permission.
+     */
+    public static final String[] PERMISSIONS = new String[] {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
     /**
      * コンストラクタ.
      * ユーティリティクラスなので、privateとしておく。
@@ -155,5 +165,25 @@ public final class DConnectUtil {
         int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
         return String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
                 (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+    }
+
+
+    /**
+     * Checks whether permission allow by user.
+     * @param context context of application
+     * @return Returns true if permission allow, otherwise false
+     */
+    public static boolean isPermission(final Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        } else {
+            boolean result = true;
+            for (int i = 0; i < PERMISSIONS.length; i++) {
+                if (context.checkSelfPermission(PERMISSIONS[i]) != PackageManager.PERMISSION_GRANTED) {
+                    result = false;
+                }
+            }
+            return result;
+        }
     }
 }

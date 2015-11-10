@@ -16,7 +16,6 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 
 import org.deviceconnect.android.deviceplugin.irkit.IRKitApplication;
-import org.deviceconnect.android.deviceplugin.irkit.IRKitManager;
 import org.deviceconnect.android.deviceplugin.irkit.R;
 import org.deviceconnect.android.deviceplugin.irkit.data.VirtualProfileData;
 import org.deviceconnect.android.deviceplugin.irkit.settings.fragment.IRKitDeviceListFragment;
@@ -129,7 +128,7 @@ public class IRKitDeviceListActivity extends Activity {
             f.setServiceId(serviceId);
             moveFragment(f);
         } else if (pageId == MANAGE_VIRTUAL_DEVICE_PAGE) {
-            getActionBar().setTitle("IRKit一覧");
+            getActionBar().setTitle("一覧");
 
             IRKitVirtualDeviceFragment f = new IRKitVirtualDeviceFragment();
             f.setServiceId(serviceId);

@@ -83,17 +83,23 @@ public class FPLUGControllerFragment extends Fragment {
                                         mController.requestInitPlug(new FPLUGRequestCallback() {
                                             @Override
                                             public void onSuccess(FPLUGResponse response) {
-                                                updateText(root, R.id.init_res, getString(R.string.success));
+                                                if (getActivity() != null) {
+                                                    updateText(root, R.id.init_res, getString(R.string.success));
+                                                }
                                             }
 
                                             @Override
                                             public void onError(String message) {
-                                                updateText(root, R.id.init_res, getString(R.string.failed));
+                                                if (getActivity() != null) {
+                                                    updateText(root, R.id.init_res, getString(R.string.failed));
+                                                }
                                             }
 
                                             @Override
                                             public void onTimeout() {
-                                                updateText(root, R.id.init_res, getString(R.string.timeout));
+                                                if (getActivity() != null) {
+                                                    updateText(root, R.id.init_res, getString(R.string.timeout));
+                                                }
                                             }
                                         });
                                         dialog.dismiss();

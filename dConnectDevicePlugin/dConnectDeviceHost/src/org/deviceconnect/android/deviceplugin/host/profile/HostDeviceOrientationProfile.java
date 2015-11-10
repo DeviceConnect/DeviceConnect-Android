@@ -6,10 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.content.Context;
+import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.event.Event;
@@ -20,13 +23,10 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.Context;
-import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.os.Bundle;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * DeviceOrientation Profile.
@@ -292,6 +292,7 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
 
         mServiceId = serviceId;
         mSensorManager = getSensorManager();
+        mAccelLastTime = System.currentTimeMillis();
 
         List<Sensor> sensors;
         sensors = mSensorManager
@@ -409,9 +410,8 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
         processSensorData(sensorEvent);
 
         if (mIsAccellReady.get() && mIsGravityReady.get() && mIsGyroReady.get()) {
-            mAccelLastTime = System.currentTimeMillis();
-
             Bundle orientation = createOrientation();
+            mAccelLastTime = System.currentTimeMillis();
 
             List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
                     DeviceOrientationProfile.PROFILE_NAME, null,

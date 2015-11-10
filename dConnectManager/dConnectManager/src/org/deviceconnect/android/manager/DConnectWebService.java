@@ -10,10 +10,12 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.manager.setting.SettingActivity;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.server.DConnectServer;
@@ -38,6 +40,9 @@ public class DConnectWebService extends Service {
 
     /** DConnectの設定. */
     private DConnectSettings mSettings;
+
+    /** Handler of permission. */
+    private final Handler mHandler = new Handler();
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -72,6 +77,8 @@ public class DConnectWebService extends Service {
      */
     private synchronized void startWebServer() {
         if (mWebServer == null) {
+            mSettings.load(this);
+
             DConnectServerConfig.Builder builder = new DConnectServerConfig.Builder();
             builder.port(mSettings.getWebPort())
                     .documentRootPath(mSettings.getDocumentRootPath());
@@ -139,7 +146,23 @@ public class DConnectWebService extends Service {
 
         @Override
         public void start() throws RemoteException {
-            startWebServer();
+            if (DConnectUtil.isPermission(DConnectWebService.this)) {
+                startWebServer();
+            } else {
+                PermissionUtility.requestPermissions(DConnectWebService.this,
+                        mHandler,
+                        DConnectUtil.PERMISSIONS,
+                        new PermissionUtility.PermissionRequestCallback() {
+                            @Override
+                            public void onSuccess() {
+                                startWebServer();
+                            }
+                            @Override
+                            public void onFail(final String deniedPermission) {
+                                mLogger.warning("Denied Permission. " + deniedPermission);
+                            }
+                        });
+            }
         }
 
         @Override

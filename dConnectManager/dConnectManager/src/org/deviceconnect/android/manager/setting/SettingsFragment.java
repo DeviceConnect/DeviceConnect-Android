@@ -81,7 +81,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     /** ポート監視設定チェックボックス。 */
     private CheckBoxPreference mObserverPreferences;
     /** Webサーバのポート設定テキストエディッタ. */
-    private Preference mWebPortPreferences;
+    private EditTextPreference mWebPortPreferences;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -184,8 +184,10 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         EditTextPreference editWebHostPreferences = (EditTextPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_host));
 
-        mWebPortPreferences = getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_port));
+        mWebPortPreferences = (EditTextPreference) getPreferenceScreen()
+                .findPreference(getString(R.string.key_settings_web_server_port));
         mWebPortPreferences.setOnPreferenceChangeListener(this);
+        mWebPortPreferences.setSummary(mWebPortPreferences.getText());
 
         SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_server_on_off));

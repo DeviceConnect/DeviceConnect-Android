@@ -92,9 +92,9 @@
             android:summary="@string/activity_settings_web_server_default_host"
             android:title="@string/activity_settings_host" />
         <EditTextPreference
+            android:defaultValue="@string/activity_settings_web_server_default_port"
             android:inputType="number"
             android:key="@string/key_settings_web_server_port"
-            android:summary="@string/activity_settings_web_server_default_port"
             android:title="@string/activity_settings_port" />
         <EditTextPreference
             android:key="@string/key_settings_web_server_document_root_path"

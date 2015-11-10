@@ -4,21 +4,20 @@
     android:orientation="vertical"
     android:background="#FFFFFF">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginTop="20dp"
-        android:background="@drawable/theta_gallery_thumb"
         android:orientation="vertical">
 
         <ImageView
             android:id="@+id/theta_thumb_data"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:visibility="gone"
+            android:layout_height="@dimen/gallery_thumb_size"
+            android:background="@drawable/theta_gallery_thumb"
+            android:visibility="visible"
             />
         <org.deviceconnect.android.deviceplugin.theta.activity.view.ThetaLoadingProgressView
             android:id="@+id/theta_thumb_progress"
@@ -27,11 +26,11 @@
             android:layout_gravity="center"
             android:layout_margin="40dp"
             android:visibility="visible"/>
-    </LinearLayout>
+    </FrameLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="160dp"
+        android:layout_marginTop="260dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="20dp"

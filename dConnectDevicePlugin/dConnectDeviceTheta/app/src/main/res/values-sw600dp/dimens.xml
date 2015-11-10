@@ -7,5 +7,6 @@
 
     <dimen name="text_size_setting_device_name">24sp</dimen>
     <dimen name="text_size_setting_device_address">16sp</dimen>
-    <dimen name="gallery_thumb_size">200dp</dimen>
+    <dimen name="gallery_thumb_size">300dp</dimen>
+
 </resources>

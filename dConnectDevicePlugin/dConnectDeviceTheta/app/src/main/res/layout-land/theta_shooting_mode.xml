@@ -6,7 +6,7 @@
         android:id="@+id/theta_shooting_layout_0"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#CCCCCC"
+        android:background="#FFFFFF"
         android:visibility="gone">
         <Button
             android:id="@+id/theta_shutter_0"
@@ -20,6 +20,7 @@
         android:id="@+id/theta_shooting_layout_1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#FFFFFF"
         android:visibility="gone">
         <SurfaceView
             android:id="@+id/shooting_preview"
@@ -39,7 +40,7 @@
         android:id="@+id/theta_shooting_layout_2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#CCCCCC"
+        android:background="#FFFFFF"
         android:visibility="visible">
         <TextView
             android:id="@+id/shooting_time"
@@ -48,6 +49,7 @@
             android:textSize="80sp"
             android:gravity="left"
             android:layout_gravity="center"
+            android:textColor="@color/action_bar_background"
             android:text="00:00"/>
         <ToggleButton
             android:id="@+id/theta_shutter_2"

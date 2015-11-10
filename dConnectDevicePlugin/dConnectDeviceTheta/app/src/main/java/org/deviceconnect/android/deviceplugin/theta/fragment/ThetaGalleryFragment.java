@@ -1,7 +1,9 @@
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
+import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -54,10 +56,6 @@ public class ThetaGalleryFragment extends Fragment {
         intent.setClass(getActivity(), ThetaFeatureActivity.class);
         startActivity(intent);
         getActivity().finish();
-//        getActivity().getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-//        int color = R.color.action_bar_background;
-//        Drawable backgroundDrawable = getActivity().getApplicationContext().getResources().getDrawable(color);
-//        getActivity().getActionBar().setBackgroundDrawable(backgroundDrawable);
 //        WifiManager wifiMgr = (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
 //        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
 //        String ssId = wifiInfo.getSSID().replace("\"", "");
@@ -94,6 +92,11 @@ public class ThetaGalleryFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        getActivity().getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+        int color = R.color.action_bar_background;
+        Drawable backgroundDrawable = getActivity().getApplicationContext().getResources().getDrawable(color);
+        getActivity().getActionBar().setBackgroundDrawable(backgroundDrawable);
+
         View rootView = inflater.inflate(R.layout.theta_gallery, container, false);
         mRecconectLayout = (RelativeLayout) rootView.findViewById(R.id.theta_reconnect_layout);
         rootView.findViewById(R.id.theta_reconnect).setOnClickListener(new View.OnClickListener() {

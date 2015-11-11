@@ -242,10 +242,8 @@ public class ThetaVRModeFragment extends Fragment {
                 final String fileName = "theta_vr_screenshot_" + fileDate.format(date) + ".jpg";
                 final String filePath = root + fileName;
                 Activity activity = getActivity();
-
-                // TODO mApi.takeSnapshot()
                 try {
-                    saveFile(filePath, getAssetsData("r.JPG"));
+                    saveFile(filePath, mSphereView.takeSnapshot());
                     if (BuildConfig.DEBUG) {
                         Log.d("AAA", "absolute path:" + filePath);
                     }

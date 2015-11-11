@@ -1,18 +1,13 @@
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
-import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -20,7 +15,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.theta.R;
-import org.deviceconnect.android.deviceplugin.theta.activity.ThetaDeviceSettingsActivity;
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaFeatureActivity;
 import org.deviceconnect.android.deviceplugin.theta.activity.view.ThetaLoadingProgressView;
 
@@ -103,100 +97,100 @@ public class ThetaGalleryFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        getActivity().getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-        int color = R.color.action_bar_background;
-        Drawable backgroundDrawable = getActivity().getApplicationContext().getResources().getDrawable(color);
-        getActivity().getActionBar().setBackgroundDrawable(backgroundDrawable);
+//        getActivity().getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+//        int color = R.color.action_bar_background;
+//        Drawable backgroundDrawable = getActivity().getApplicationContext().getResources().getDrawable(color);
+//        getActivity().getActionBar().setBackgroundDrawable(backgroundDrawable);
         View rootView = inflater.inflate(R.layout.theta_gallery, container, false);
-        mLoadingView = (LinearLayout) rootView.findViewById(R.id.theta_gallery_progress);
-        mRecconectLayout = (RelativeLayout) rootView.findViewById(R.id.theta_reconnect_layout);
-        rootView.findViewById(R.id.theta_reconnect).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent();
-                intent.setClass(getActivity(), ThetaDeviceSettingsActivity.class);
-                startActivity(intent);
-            }
-        });
-        rootView.findViewById(R.id.theta_shutter).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent();
-                intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
-                        ThetaFeatureActivity.MODE_SHOOTING);
-                intent.setClass(getActivity(), ThetaFeatureActivity.class);
-                startActivity(intent);
-            }
-        });
-        mStatusView = (TextView) rootView.findViewById(R.id.theta_no_data);
-        mStatusView.setVisibility(View.GONE);
-        AbsListView list = (AbsListView) rootView.findViewById(R.id.theta_list);
-        list.setAdapter(mGalleryAdapter);
-
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                Intent intent = new Intent();
-                intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
-                        ThetaFeatureActivity.MODE_VR);
-                intent.setClass(getActivity(), ThetaFeatureActivity.class);
-                startActivity(intent);
-            }
-        });
-        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long id) {
-                // TODO Delete Theta's Data.
-                return false;
-            }
-        });
-
-        list.setOnScrollListener(new AbsListView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(AbsListView absListView, int i) {
-
-            }
-
-            @Override
-            public void onScroll(final AbsListView absListView,
-                                 final int firstVisibleItem,
-                                 final int visibleItemCount,
-                                 final int totalItemCount) {
-
-                if ((totalItemCount - visibleItemCount) == firstVisibleItem) {
-                    new AsyncTask() {
-                        @Override
-                        protected void onPreExecute() {
-                            super.onPreExecute();
-                            mLoadingView.setVisibility(View.VISIBLE);
-
-                        }
-                        @Override
-                        protected Object doInBackground(Object[] objects) {
-                            // TODO Reload ListView.
-                            try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            Integer itemCount = totalItemCount - 1;
-                            return createDataList(itemCount, (itemCount + PER_PAGE));
-                        }
-
-                        protected void onPostExecute(final Object result) {
-                            super.onPostExecute(result);
-                            List<String> lists = (List<String>) result;
-                            for (int i = 0; i < lists.size(); i++) {
-                                mGalleryAdapter.add(lists.get(i));
-                            }
-                            mGalleryAdapter.notifyDataSetChanged();
-                            mLoadingView.setVisibility(View.GONE);
-                        }
-                    }.execute();
-
-                }
-            }
-        });
+//        mLoadingView = (LinearLayout) rootView.findViewById(R.id.theta_gallery_progress);
+//        mRecconectLayout = (RelativeLayout) rootView.findViewById(R.id.theta_reconnect_layout);
+//        rootView.findViewById(R.id.theta_reconnect).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent intent = new Intent();
+//                intent.setClass(getActivity(), ThetaDeviceSettingsActivity.class);
+//                startActivity(intent);
+//            }
+//        });
+//        rootView.findViewById(R.id.theta_shutter).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent intent = new Intent();
+//                intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
+//                        ThetaFeatureActivity.MODE_SHOOTING);
+//                intent.setClass(getActivity(), ThetaFeatureActivity.class);
+//                startActivity(intent);
+//            }
+//        });
+//        mStatusView = (TextView) rootView.findViewById(R.id.theta_no_data);
+//        mStatusView.setVisibility(View.GONE);
+//        AbsListView list = (AbsListView) rootView.findViewById(R.id.theta_list);
+//        list.setAdapter(mGalleryAdapter);
+//
+//        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+//                Intent intent = new Intent();
+//                intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
+//                        ThetaFeatureActivity.MODE_VR);
+//                intent.setClass(getActivity(), ThetaFeatureActivity.class);
+//                startActivity(intent);
+//            }
+//        });
+//        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+//            @Override
+//            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long id) {
+//                // TODO Delete Theta's Data.
+//                return false;
+//            }
+//        });
+//
+//        list.setOnScrollListener(new AbsListView.OnScrollListener() {
+//            @Override
+//            public void onScrollStateChanged(AbsListView absListView, int i) {
+//
+//            }
+//
+//            @Override
+//            public void onScroll(final AbsListView absListView,
+//                                 final int firstVisibleItem,
+//                                 final int visibleItemCount,
+//                                 final int totalItemCount) {
+//
+//                if ((totalItemCount - visibleItemCount) == firstVisibleItem) {
+//                    new AsyncTask() {
+//                        @Override
+//                        protected void onPreExecute() {
+//                            super.onPreExecute();
+//                            mLoadingView.setVisibility(View.VISIBLE);
+//
+//                        }
+//                        @Override
+//                        protected Object doInBackground(Object[] objects) {
+//                            // TODO Reload ListView.
+//                            try {
+//                                Thread.sleep(5000);
+//                            } catch (InterruptedException e) {
+//                                e.printStackTrace();
+//                            }
+//                            Integer itemCount = totalItemCount - 1;
+//                            return createDataList(itemCount, (itemCount + PER_PAGE));
+//                        }
+//
+//                        protected void onPostExecute(final Object result) {
+//                            super.onPostExecute(result);
+//                            List<String> lists = (List<String>) result;
+//                            for (int i = 0; i < lists.size(); i++) {
+//                                mGalleryAdapter.add(lists.get(i));
+//                            }
+//                            mGalleryAdapter.notifyDataSetChanged();
+//                            mLoadingView.setVisibility(View.GONE);
+//                        }
+//                    }.execute();
+//
+//                }
+//            }
+//        });
         return rootView;
     }
 

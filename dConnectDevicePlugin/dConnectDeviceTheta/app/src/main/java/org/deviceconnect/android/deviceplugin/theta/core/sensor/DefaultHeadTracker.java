@@ -28,9 +28,6 @@ public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEve
 
     private boolean mInitFlag = false;
 
-    /** If flip vertical, set true. */
-    private boolean mFlipVirtical = true;
-
     private Logger mLogger = Logger.getLogger("theta.dplugin");
 
     public DefaultHeadTracker(final SensorManager sensorMgr) {
@@ -87,11 +84,7 @@ public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEve
             }
 
             float tmp = vGyroscope[2];
-            if (mFlipVirtical) {
-                vGyroscope[2] = vGyroscope[0];
-            } else {
-                vGyroscope[2] = vGyroscope[0] * -1;
-            }
+            vGyroscope[2] = vGyroscope[0] * -1;
             vGyroscope[0] = tmp;
 
             float magnitude = (float) Math.sqrt(Math.pow(vGyroscope[0], 2)

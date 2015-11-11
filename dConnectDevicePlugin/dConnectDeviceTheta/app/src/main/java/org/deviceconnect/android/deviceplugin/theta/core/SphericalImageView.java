@@ -16,6 +16,7 @@ public class SphericalImageView extends GLSurfaceView {
     public SphericalImageView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
         setEGLContextClientVersion(2);
+        mRenderer.setFlipVertical(true);
         setRenderer(mRenderer);
 
         mParam.setVRMode(true);

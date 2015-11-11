@@ -58,6 +58,7 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     private int mScreenHeight;
     private boolean mIsStereo;
     private Camera mCamera = new Camera();
+    private boolean mFlipVertical;
 
     private UVSphere mShell;
 
@@ -81,6 +82,10 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
      */
     public SphericalViewRenderer() {
         mShell = new UVSphere(DEFAULT_TEXTURE_SHELL_RADIUS, SHELL_DIVIDES);
+    }
+
+    public void setFlipVertical(final boolean isFlip) {
+        mFlipVertical = isFlip;
     }
 
     /**
@@ -124,6 +129,11 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         float upX = camera.getUpperDirection().x();
         float upY = camera.getUpperDirection().y();
         float upZ = camera.getUpperDirection().z();
+
+        if (mFlipVertical) {
+            frontY *= -1;
+        }
+
         Matrix.setLookAtM(mViewMatrix, 0, x, y, z, frontX, frontY, frontZ, upX, upY, upZ);
         Matrix.perspectiveM(mProjectionMatrix, 0, camera.mFovDegree, getScreenAspect(), Z_NEAR, Z_FAR);
 

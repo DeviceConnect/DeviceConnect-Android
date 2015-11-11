@@ -348,7 +348,7 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
 
         public void rotate(final Quaternion q) {
             mFrontDirection = rotate(new Vector3D(1, 0, 0), q);
-            mUpperDirection = rotate(new Vector3D(0, 1, 0), q);
+//            mUpperDirection = rotate(new Vector3D(0, 1, 0), q);
             mRightDirection = rotate(new Vector3D(0, 0, 1), q);
         }
 

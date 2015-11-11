@@ -128,10 +128,6 @@ public class SphericalViewApi implements HeadTrackingListener {
         return isState(State.RUNNING);
     }
 
-    public byte[] takeSnapshot() {
-        return null;
-    }
-
     private boolean isState(State state) {
         return mState == state;
     }

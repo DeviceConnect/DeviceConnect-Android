@@ -44,6 +44,13 @@ public class SphericalImageView extends GLSurfaceView {
         }
     }
 
+    public byte[] takeSnapshot() {
+        if (mRenderer == null) {
+            return null;
+        }
+        return mRenderer.takeSnapshot();
+    }
+
     @Override
     public void onPause() {
         if (mViewApi != null) {

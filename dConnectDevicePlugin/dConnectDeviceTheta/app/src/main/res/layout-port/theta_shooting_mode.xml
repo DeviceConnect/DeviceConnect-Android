@@ -68,7 +68,8 @@
         android:layout_height="50dp"
         android:layout_margin="16dp"
         android:layout_gravity="top|left"
+        android:padding="5dp"
         android:gravity="center"
-        android:entries="@array/theta_shooting_mode"
+        android:background="@drawable/button_white"
         />
 </FrameLayout>

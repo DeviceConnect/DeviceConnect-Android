@@ -35,6 +35,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -234,6 +235,10 @@ public class ThetaVRModeFragment extends Fragment {
             @Override
             public void onSuccess() {
                 String root = Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera/";
+                File dir = new File(root);
+                if (!dir.exists()) {
+                    dir.mkdir();
+                }
                 Date date = new Date();
                 SimpleDateFormat fileDate = new SimpleDateFormat("yyyyMMdd_HHmmss");
                 final String fileName = "theta_vr_screenshot_" + fileDate.format(date) + ".jpg";
@@ -242,7 +247,7 @@ public class ThetaVRModeFragment extends Fragment {
                 try {
                     saveFile(filePath, getAssetsData("r.JPG"));
                     if (BuildConfig.DEBUG) {
-                        Log.d("TEST", "absolute path:" + filePath);
+                        Log.d("AAA", "absolute path:" + filePath);
                     }
                     ContentValues values = new ContentValues();
                     ContentResolver contentResolver = getActivity().getContentResolver();

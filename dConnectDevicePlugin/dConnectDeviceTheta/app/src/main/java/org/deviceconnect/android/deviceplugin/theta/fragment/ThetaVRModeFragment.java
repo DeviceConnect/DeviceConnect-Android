@@ -247,7 +247,7 @@ public class ThetaVRModeFragment extends Fragment {
                 try {
                     saveFile(filePath, getAssetsData("r.JPG"));
                     if (BuildConfig.DEBUG) {
-                        Log.d("TEST", "absolute path:" + filePath);
+                        Log.d("AAA", "absolute path:" + filePath);
                     }
                     ContentValues values = new ContentValues();
                     ContentResolver contentResolver = getActivity().getContentResolver();

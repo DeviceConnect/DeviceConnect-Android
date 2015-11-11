@@ -48,6 +48,10 @@ public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEve
             return;
         }
         mSensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
+        mInitFlag = false;
+        for (int i = 0; i < mCurrentGyroscope.length; i++) {
+            mCurrentGyroscope[i] = 0.0f;
+        }
         mLogger.warning("Failed to start: GYROSCOPE sensor is NOT found.");
     }
 

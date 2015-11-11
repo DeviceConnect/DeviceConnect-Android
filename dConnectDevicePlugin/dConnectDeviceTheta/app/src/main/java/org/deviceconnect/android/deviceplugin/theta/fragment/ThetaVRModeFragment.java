@@ -73,6 +73,9 @@ public class ThetaVRModeFragment extends Fragment {
     /** Thread Manager. */
     private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
 
+    /** Progress. */
+    private ThetaDialogFragment mProgress;
+
     /** VR Change toggle button's listener.*/
     private CompoundButton.OnCheckedChangeListener mVRChangeToggleListener
             = new CompoundButton.OnCheckedChangeListener() {
@@ -106,18 +109,13 @@ public class ThetaVRModeFragment extends Fragment {
     private View.OnClickListener mShootingListener = new View.OnClickListener() {
         @Override
         public synchronized void onClick(final View view) {
+            mProgress = ThetaDialogFragment.newInstance("THETA", "保存中");
+            mProgress.show(getActivity().getFragmentManager(),
+                    "fragment_dialog");
             mExecutorService.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    Activity activity = getActivity();
-                    if (activity != null) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                saveScreenShot();
-                            }
-                        });
-                    }
+                    saveScreenShot();
                 }
             }, 50, TimeUnit.MILLISECONDS);
         }
@@ -243,6 +241,8 @@ public class ThetaVRModeFragment extends Fragment {
                 SimpleDateFormat fileDate = new SimpleDateFormat("yyyyMMdd_HHmmss");
                 final String fileName = "theta_vr_screenshot_" + fileDate.format(date) + ".jpg";
                 final String filePath = root + fileName;
+                Activity activity = getActivity();
+
                 // TODO mApi.takeSnapshot()
                 try {
                     saveFile(filePath, getAssetsData("r.JPG"));
@@ -257,19 +257,57 @@ public class ThetaVRModeFragment extends Fragment {
                     values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
                     values.put(MediaStore.Images.Media.DATA, filePath);
                     contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-                    ThetaDialogFragment.showAlert(getActivity(),
-                            getResources().getString(R.string.theta_ssid_prefix),
-                            getResources().getString(R.string.theta_save_screenshot));
+                    if (activity != null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ThetaDialogFragment.showAlert(getActivity(),
+                                        getResources().getString(R.string.theta_ssid_prefix),
+                                        getResources().getString(R.string.theta_save_screenshot));
+                            }
+                        });
+                    }
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    failSaveDialog();
+                    if (activity != null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                failSaveDialog();
+                            }
+                        });
+                    }
+                } finally {
+                    if (activity != null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+
+
+                                if (mProgress != null) {
+                                    mProgress.dismiss();
+                                }
+                            }
+                        });
+                    }
                 }
 
             }
 
             @Override
             public void onFail() {
-                failSaveDialog();
+                Activity activity = getActivity();
+                if (activity != null) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            if (mProgress != null) {
+                                mProgress.dismiss();
+                            }
+                            failSaveDialog();
+                        }
+                    });
+                }
             }
         });
 

@@ -7,6 +7,8 @@ public interface HeadTracker {
 
     void stop();
 
+    void reset();
+
     void registerTrackingListener(HeadTrackingListener listener);
 
     void unregisterTrackingListener(HeadTrackingListener listener);

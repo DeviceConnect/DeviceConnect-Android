@@ -101,6 +101,10 @@ public class SphericalViewApi implements HeadTrackingListener {
         mRenderer.setStereoMode(param.isStereo());
     }
 
+    public void resetCameraDirection() {
+        mHeadTracker.reset();
+    }
+
     public synchronized void stop() {
         if (isState(State.STOPPED)) {
             throw new IllegalStateException("SphericalViewApi has already stopped.");

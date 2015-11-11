@@ -1,16 +1,15 @@
 package org.deviceconnect.android.deviceplugin.theta.core.sensor;
 
 
-import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
-import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
-
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.view.Surface;
 
-import java.util.List;
+import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
+import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
+
 import java.util.logging.Logger;
 
 public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEventListener {
@@ -43,23 +42,12 @@ public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEve
         // Reset current rotation.
         mCurrentRotation = new Quaternion(1, new Vector3D(0, 0, 0));
 
-        List<Sensor> sensors = mSensorMgr.getSensorList(Sensor.TYPE_ALL);
-        if (sensors.size() == 0) {
+        Sensor sensor = mSensorMgr.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        if (sensor == null) {
             mLogger.warning("Failed to start: any sensor is NOT found.");
             return;
         }
-        for (Sensor sensor : sensors) {
-            if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-                mInitFlag = false;
-                mCurrentGyroscope[0] = 0.0f;
-                mCurrentGyroscope[1] = 0.0f;
-                mCurrentGyroscope[2] = 0.0f;
-
-                mLogger.info("Started: GYROSCOPE sensor is found.");
-                mSensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
-                return;
-            }
-        }
+        mSensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
         mLogger.warning("Failed to start: GYROSCOPE sensor is NOT found.");
     }
 

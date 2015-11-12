@@ -49,12 +49,6 @@ public class ThetaFeatureActivity extends FragmentActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-    }
-
-    @Override
     public boolean dispatchKeyEvent(final KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             switch (event.getKeyCode()) {

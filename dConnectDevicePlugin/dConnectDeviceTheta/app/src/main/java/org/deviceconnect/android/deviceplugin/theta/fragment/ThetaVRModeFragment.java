@@ -153,6 +153,7 @@ public class ThetaVRModeFragment extends Fragment {
             ThetaDialogFragment.showAlert(getActivity(), "Assets", "No Image.");
         } else {
             if (mSphereView != null) {
+                mSphereView.onResume();
                 mSphereView.start(data);
             }
         }
@@ -160,14 +161,15 @@ public class ThetaVRModeFragment extends Fragment {
 
     @Override
     public void onPause() {
-        super.onPause();
         if (mProgress != null) {
             mProgress.dismiss();
             mProgress = null;
         }
         if (mSphereView != null) {
             mSphereView.stop();
+            mSphereView.onPause();
         }
+        super.onPause();
     }
 
     @Override

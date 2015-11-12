@@ -3,7 +3,6 @@ package org.deviceconnect.android.deviceplugin.theta.fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,9 +41,6 @@ public class ThetaGalleryFragment extends Fragment {
 
     /** Theta's Loading View. */
     private LinearLayout mLoadingView;
-
-    /** Handler. */
-    private final Handler mHandler = new Handler();
     /** Singleton. */
     public static ThetaGalleryFragment newInstance() {
         return new ThetaGalleryFragment();
@@ -54,6 +50,7 @@ public class ThetaGalleryFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         // TODO beta
         Intent intent = new Intent();
         intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
@@ -174,6 +171,7 @@ public class ThetaGalleryFragment extends Fragment {
 //                                e.printStackTrace();
 //                            }
 //                            Integer itemCount = totalItemCount - 1;
+//                            //TODO Out of bounds
 //                            return createDataList(itemCount, (itemCount + PER_PAGE));
 //                        }
 //

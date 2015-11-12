@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.theta.fragment;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
@@ -19,10 +18,8 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
@@ -89,13 +86,15 @@ public class ThetaVRModeFragment extends Fragment {
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if (mSphereView != null) {
-                                    mSphereView.setStereo(isStereo);
-                                    mIsStereo = isStereo;
+                                if (mIsStereo != isStereo) {
                                     for (int i = 0; i < mVRModeChangeButton.length; i++) {
                                         mVRModeChangeButton[i].setChecked(isStereo);
                                     }
+                                    mIsStereo = isStereo;
                                     enableView();
+                                }
+                                if (mSphereView != null) {
+                                    mSphereView.setStereo(mIsStereo);
                                 }
                             }
                         });
@@ -109,6 +108,9 @@ public class ThetaVRModeFragment extends Fragment {
     private View.OnClickListener mShootingListener = new View.OnClickListener() {
         @Override
         public synchronized void onClick(final View view) {
+            if (mProgress != null) {
+                mProgress.dismiss();
+            }
             mProgress = ThetaDialogFragment.newInstance("THETA", "保存中");
             mProgress.show(getActivity().getFragmentManager(),
                     "fragment_dialog");
@@ -124,6 +126,7 @@ public class ThetaVRModeFragment extends Fragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
+        setRetainInstance(true);
         View rootView = inflater.inflate(R.layout.theta_vr_mode, null);
         mLeftLayout = (RelativeLayout) rootView.findViewById(R.id.left_ui);
         mRightLayout = (RelativeLayout) rootView.findViewById(R.id.right_ui);
@@ -136,24 +139,43 @@ public class ThetaVRModeFragment extends Fragment {
                 mSphereView.resetCameraDirection();
             }
         });
+
+        init3DButtons(rootView);
+        enableView();
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         // TODO Read Theta's file.
         byte[] data = getAssetsData("r.JPG");
         if (data == null) {
             ThetaDialogFragment.showAlert(getActivity(), "Assets", "No Image.");
         } else {
-            mSphereView.start(data);
+            if (mSphereView != null) {
+                mSphereView.start(data);
+            }
         }
-        init3DButtons(rootView);
-        enableView();
-        return rootView;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mProgress != null) {
+            mProgress.dismiss();
+            mProgress = null;
+        }
+        if (mSphereView != null) {
+            mSphereView.stop();
+        }
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mSphereView != null) {
-            mSphereView.stop();
-        }
     }
 
     public void onConfigurationChanged(final Configuration newConfig) {
@@ -192,26 +214,10 @@ public class ThetaVRModeFragment extends Fragment {
      * enable/disable VR buttons.
      */
     private void enableView() {
-        switch(((WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation()) {
-            case Surface.ROTATION_90:
-            case Surface.ROTATION_270:
-                if (mIsStereo) {
-                    mRightLayout.setVisibility(View.VISIBLE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                } else {
-                    mRightLayout.setVisibility(View.GONE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-                }
-                break;
-            case Surface.ROTATION_180:
-            default :
-                if (mIsStereo) {
-                    mRightLayout.setVisibility(View.VISIBLE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                } else {
-                    mRightLayout.setVisibility(View.GONE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-                }
+        if (mIsStereo) {
+            mRightLayout.setVisibility(View.VISIBLE);
+        } else {
+            mRightLayout.setVisibility(View.GONE);
         }
     }
 
@@ -285,8 +291,6 @@ public class ThetaVRModeFragment extends Fragment {
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-
-
                                 if (mProgress != null) {
                                     mProgress.dismiss();
                                 }

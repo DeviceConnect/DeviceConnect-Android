@@ -118,4 +118,9 @@ public class GyroHeadTracker extends AbstractHeadTracker implements SensorEventL
         mLastEventTimestamp = event.timestamp;
     }
 
+    @Override
+    public void reset() {
+        mCurrentRotation = new Quaternion(1, new Vector3D(0, 0, 0));
+    }
+
 }

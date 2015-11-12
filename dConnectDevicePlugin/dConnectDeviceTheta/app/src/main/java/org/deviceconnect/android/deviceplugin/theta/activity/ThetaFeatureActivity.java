@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.activity;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -38,18 +39,13 @@ public class ThetaFeatureActivity extends FragmentActivity {
      */
     public static final int MODE_SHOOTING = 1;
 
+    /** mode. */
+    private int mMode = -1;
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        int mode = getIntent().getIntExtra(FEATURE_MODE, -1);
-        if (null == savedInstanceState) {
-            startApp(mode, null);
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
+        mMode = getIntent().getIntExtra(FEATURE_MODE, -1);
+        startApp(mMode, null);
     }
 
     @Override
@@ -65,6 +61,17 @@ public class ThetaFeatureActivity extends FragmentActivity {
         }
         return super.dispatchKeyEvent(event);
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mMode == MODE_SHOOTING) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+        } else if (mMode == MODE_VR) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+    }
+
     /**
      * Move Page.
      * @param pageId pageId
@@ -79,6 +86,7 @@ public class ThetaFeatureActivity extends FragmentActivity {
             moveFragment(f);
         }
     }
+
 
     /**
      * Fragment の遷移.

@@ -9,8 +9,6 @@ package org.deviceconnect.android.deviceplugin.theta.fragment;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,10 +17,8 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
@@ -73,6 +69,9 @@ public class ThetaVRModeFragment extends Fragment {
     /** Thread Manager. */
     private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
 
+    /** Progress. */
+    private ThetaDialogFragment mProgress;
+
     /** VR Change toggle button's listener.*/
     private CompoundButton.OnCheckedChangeListener mVRChangeToggleListener
             = new CompoundButton.OnCheckedChangeListener() {
@@ -86,13 +85,15 @@ public class ThetaVRModeFragment extends Fragment {
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if (mSphereView != null) {
-                                    mSphereView.setStereo(isStereo);
-                                    mIsStereo = isStereo;
+                                if (mIsStereo != isStereo) {
                                     for (int i = 0; i < mVRModeChangeButton.length; i++) {
                                         mVRModeChangeButton[i].setChecked(isStereo);
                                     }
+                                    mIsStereo = isStereo;
                                     enableView();
+                                }
+                                if (mSphereView != null) {
+                                    mSphereView.setStereo(mIsStereo);
                                 }
                             }
                         });
@@ -106,18 +107,16 @@ public class ThetaVRModeFragment extends Fragment {
     private View.OnClickListener mShootingListener = new View.OnClickListener() {
         @Override
         public synchronized void onClick(final View view) {
+            if (mProgress != null) {
+                mProgress.dismiss();
+            }
+            mProgress = ThetaDialogFragment.newInstance("THETA", "保存中");
+            mProgress.show(getActivity().getFragmentManager(),
+                    "fragment_dialog");
             mExecutorService.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    Activity activity = getActivity();
-                    if (activity != null) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                saveScreenShot();
-                            }
-                        });
-                    }
+                    saveScreenShot();
                 }
             }, 50, TimeUnit.MILLISECONDS);
         }
@@ -126,30 +125,56 @@ public class ThetaVRModeFragment extends Fragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
+        setRetainInstance(true);
         View rootView = inflater.inflate(R.layout.theta_vr_mode, null);
         mLeftLayout = (RelativeLayout) rootView.findViewById(R.id.left_ui);
         mRightLayout = (RelativeLayout) rootView.findViewById(R.id.right_ui);
         mSphereView = (SphericalImageView) rootView.findViewById(R.id.vr_view);
         mApi = new SphericalViewApi(getActivity());
         mSphereView.setViewApi(mApi);
-        // TODO Read Theta's file.
-        byte[] data = getAssetsData("r.JPG");
-        if (data == null) {
-            ThetaDialogFragment.showAlert(getActivity(), "Assets", "No Image.");
-        } else {
-            mSphereView.start(data);
-        }
+        mSphereView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mSphereView.resetCameraDirection();
+            }
+        });
+
         init3DButtons(rootView);
         enableView();
         return rootView;
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onResume() {
+        super.onResume();
+        // TODO Read Theta's file.
+        byte[] data = getAssetsData("r.JPG");
+        if (data == null) {
+            ThetaDialogFragment.showAlert(getActivity(), "Assets", "No Image.");
+        } else {
+            if (mSphereView != null) {
+                mSphereView.onResume();
+                mSphereView.start(data);
+            }
+        }
+    }
+
+    @Override
+    public void onPause() {
+        if (mProgress != null) {
+            mProgress.dismiss();
+            mProgress = null;
+        }
         if (mSphereView != null) {
             mSphereView.stop();
+            mSphereView.onPause();
         }
+        super.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     public void onConfigurationChanged(final Configuration newConfig) {
@@ -188,26 +213,10 @@ public class ThetaVRModeFragment extends Fragment {
      * enable/disable VR buttons.
      */
     private void enableView() {
-        switch(((WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation()) {
-            case Surface.ROTATION_90:
-            case Surface.ROTATION_270:
-                if (mIsStereo) {
-                    mRightLayout.setVisibility(View.VISIBLE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                } else {
-                    mRightLayout.setVisibility(View.GONE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-                }
-                break;
-            case Surface.ROTATION_180:
-            default :
-                if (mIsStereo) {
-                    mRightLayout.setVisibility(View.VISIBLE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                } else {
-                    mRightLayout.setVisibility(View.GONE);
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-                }
+        if (mIsStereo) {
+            mRightLayout.setVisibility(View.VISIBLE);
+        } else {
+            mRightLayout.setVisibility(View.GONE);
         }
     }
 
@@ -243,9 +252,9 @@ public class ThetaVRModeFragment extends Fragment {
                 SimpleDateFormat fileDate = new SimpleDateFormat("yyyyMMdd_HHmmss");
                 final String fileName = "theta_vr_screenshot_" + fileDate.format(date) + ".jpg";
                 final String filePath = root + fileName;
-                // TODO mApi.takeSnapshot()
+                Activity activity = getActivity();
                 try {
-                    saveFile(filePath, getAssetsData("r.JPG"));
+                    saveFile(filePath, mSphereView.takeSnapshot());
                     if (BuildConfig.DEBUG) {
                         Log.d("AAA", "absolute path:" + filePath);
                     }
@@ -257,19 +266,55 @@ public class ThetaVRModeFragment extends Fragment {
                     values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
                     values.put(MediaStore.Images.Media.DATA, filePath);
                     contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-                    ThetaDialogFragment.showAlert(getActivity(),
-                            getResources().getString(R.string.theta_ssid_prefix),
-                            getResources().getString(R.string.theta_save_screenshot));
+                    if (activity != null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ThetaDialogFragment.showAlert(getActivity(),
+                                        getResources().getString(R.string.theta_ssid_prefix),
+                                        getResources().getString(R.string.theta_save_screenshot));
+                            }
+                        });
+                    }
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    failSaveDialog();
+                    if (activity != null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                failSaveDialog();
+                            }
+                        });
+                    }
+                } finally {
+                    if (activity != null) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mProgress != null) {
+                                    mProgress.dismiss();
+                                }
+                            }
+                        });
+                    }
                 }
 
             }
 
             @Override
             public void onFail() {
-                failSaveDialog();
+                Activity activity = getActivity();
+                if (activity != null) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            if (mProgress != null) {
+                                mProgress.dismiss();
+                            }
+                            failSaveDialog();
+                        }
+                    });
+                }
             }
         });
 

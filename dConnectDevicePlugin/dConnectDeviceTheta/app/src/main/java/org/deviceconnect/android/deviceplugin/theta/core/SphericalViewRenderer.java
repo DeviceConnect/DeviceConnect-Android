@@ -13,6 +13,9 @@ import org.deviceconnect.android.deviceplugin.theta.opengl.model.UVSphere;
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.IntBuffer;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -76,6 +79,10 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     private final float[] mProjectionMatrix = new float[16];
     private final float[] mViewMatrix = new float[16];
     private final float[] mModelMatrix = new float[16];
+    
+    private Object mLockObj = new Object();
+    private boolean mIsWaitingSnapshot;
+    private byte[] mSnapshot;
 
     /**
      * Constructor.
@@ -86,6 +93,46 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
 
     public void setFlipVertical(final boolean isFlip) {
         mFlipVertical = isFlip;
+    }
+
+    public byte[] takeSnapshot() {
+        synchronized (mLockObj) {
+            mIsWaitingSnapshot = true;
+            try {
+                mLockObj.wait();
+            } catch (InterruptedException e) {
+                return null;
+            }
+            mIsWaitingSnapshot = false;
+            return mSnapshot;
+        }
+    }
+
+    private void readPixelBuffer() {
+        int w = getScreenWidth();
+        int h = getScreenHeight();
+        int bitmapBuffer[] = new int[w * h];
+        int bitmapSource[] = new int[w * h];
+        IntBuffer intBuffer = IntBuffer.wrap(bitmapBuffer);
+        intBuffer.position(0);
+
+        GLES20.glReadPixels(0, 0, w, h, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, intBuffer);
+        int offset1, offset2;
+        for (int i = 0; i < h; i++) {
+            offset1 = i * w;
+            offset2 = (h - i - 1) * w;
+            for (int j = 0; j < w; j++) {
+                int texturePixel = bitmapBuffer[offset1 + j];
+                int blue = (texturePixel >> 16) & 0xff;
+                int red = (texturePixel << 16) & 0x00ff0000;
+                int pixel = (texturePixel & 0xff00ff00) | red | blue;
+                bitmapSource[offset2 + j] = pixel;
+            }
+        }
+        Bitmap bitmap = Bitmap.createBitmap(bitmapSource, w, h, Bitmap.Config.ARGB_8888);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        mSnapshot = baos.toByteArray();
     }
 
     /**
@@ -107,6 +154,13 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         } else {
             GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);
             draw(mCamera);
+        }
+
+        synchronized (mLockObj) {
+            if (mIsWaitingSnapshot) {
+                readPixelBuffer();
+                mLockObj.notifyAll();
+            }
         }
     }
 

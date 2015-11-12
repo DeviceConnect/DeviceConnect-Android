@@ -45,6 +45,19 @@ public class SphericalImageView extends GLSurfaceView {
         }
     }
 
+    public byte[] takeSnapshot() {
+        if (mRenderer == null) {
+            return null;
+        }
+        return mRenderer.takeSnapshot();
+    }
+    
+    public void resetCameraDirection() {
+        if (mViewApi != null) {
+            mViewApi.resetCameraDirection();
+        }
+    }
+
     @Override
     public void onPause() {
         if (mViewApi != null) {

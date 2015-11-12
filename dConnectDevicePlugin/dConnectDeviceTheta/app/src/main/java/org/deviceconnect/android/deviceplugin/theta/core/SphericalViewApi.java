@@ -99,12 +99,18 @@ public class SphericalViewApi implements HeadTrackingListener {
         mRenderer.setStereoMode(param.isStereo());
     }
 
+    public void resetCameraDirection() {
+        mHeadTracker.reset();
+    }
+
     public synchronized void stop() {
         if (isState(State.STOPPED)) {
             throw new IllegalStateException("SphericalViewApi has already stopped.");
         }
 
-        mTexture.recycle();
+        if (mTexture != null) {
+            mTexture.recycle();
+        }
 
         mHeadTracker.stop();
         mHeadTracker.unregisterTrackingListener(this);
@@ -113,21 +119,25 @@ public class SphericalViewApi implements HeadTrackingListener {
     }
 
     public synchronized void pause() {
-        mState = State.PAUSED;
-        mHeadTracker.stop();
+        if (isRunning()) {
+            mState = State.PAUSED;
+            mHeadTracker.stop();
+        }
     }
 
     public synchronized void resume() {
-        mState = State.RUNNING;
-        mHeadTracker.start();
+        if (isPaused()) {
+            mState = State.RUNNING;
+            mHeadTracker.start();
+        }
     }
 
     public boolean isRunning() {
         return isState(State.RUNNING);
     }
 
-    public byte[] takeSnapshot() {
-        return null;
+    public boolean isPaused() {
+        return isState(State.PAUSED);
     }
 
     private boolean isState(State state) {

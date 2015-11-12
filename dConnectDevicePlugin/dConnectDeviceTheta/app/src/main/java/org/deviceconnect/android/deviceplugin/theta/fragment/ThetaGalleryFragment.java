@@ -3,7 +3,6 @@ package org.deviceconnect.android.deviceplugin.theta.fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,9 +41,6 @@ public class ThetaGalleryFragment extends Fragment {
 
     /** Theta's Loading View. */
     private LinearLayout mLoadingView;
-
-    /** Handler. */
-    private final Handler mHandler = new Handler();
     /** Singleton. */
     public static ThetaGalleryFragment newInstance() {
         return new ThetaGalleryFragment();
@@ -54,6 +50,7 @@ public class ThetaGalleryFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         // TODO beta
         Intent intent = new Intent();
         intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
@@ -97,11 +94,11 @@ public class ThetaGalleryFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.theta_gallery, container, false);
 //        getActivity().getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
 //        int color = R.color.action_bar_background;
 //        Drawable backgroundDrawable = getActivity().getApplicationContext().getResources().getDrawable(color);
 //        getActivity().getActionBar().setBackgroundDrawable(backgroundDrawable);
-        View rootView = inflater.inflate(R.layout.theta_gallery, container, false);
 //        mLoadingView = (LinearLayout) rootView.findViewById(R.id.theta_gallery_progress);
 //        mRecconectLayout = (RelativeLayout) rootView.findViewById(R.id.theta_reconnect_layout);
 //        rootView.findViewById(R.id.theta_reconnect).setOnClickListener(new View.OnClickListener() {
@@ -174,6 +171,7 @@ public class ThetaGalleryFragment extends Fragment {
 //                                e.printStackTrace();
 //                            }
 //                            Integer itemCount = totalItemCount - 1;
+//                            //TODO Out of bounds
 //                            return createDataList(itemCount, (itemCount + PER_PAGE));
 //                        }
 //

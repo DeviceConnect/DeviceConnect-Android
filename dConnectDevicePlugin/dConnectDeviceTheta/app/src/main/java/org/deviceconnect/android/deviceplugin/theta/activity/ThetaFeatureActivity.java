@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.activity;
 
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -50,6 +51,8 @@ public class ThetaFeatureActivity extends FragmentActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+
     }
 
     @Override
@@ -75,6 +78,7 @@ public class ThetaFeatureActivity extends FragmentActivity {
             ThetaShootingModeFragment f = new ThetaShootingModeFragment();
             moveFragment(f);
         } else if (pageId == MODE_VR) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             ThetaVRModeFragment f = new ThetaVRModeFragment();
             moveFragment(f);
         }

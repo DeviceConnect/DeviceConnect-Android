@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.theta.fragment;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -142,13 +141,6 @@ public class ThetaVRModeFragment extends Fragment {
 
         init3DButtons(rootView);
         enableView();
-        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        return rootView;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
         // TODO Read Theta's file.
         byte[] data = getAssetsData("r.JPG");
         if (data == null) {
@@ -158,6 +150,12 @@ public class ThetaVRModeFragment extends Fragment {
                 mSphereView.start(data);
             }
         }
+        return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -167,15 +165,14 @@ public class ThetaVRModeFragment extends Fragment {
             mProgress.dismiss();
             mProgress = null;
         }
-        if (mSphereView != null) {
-            mSphereView.stop();
-        }
-        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (mSphereView != null) {
+            mSphereView.stop();
+        }
     }
 
     public void onConfigurationChanged(final Configuration newConfig) {

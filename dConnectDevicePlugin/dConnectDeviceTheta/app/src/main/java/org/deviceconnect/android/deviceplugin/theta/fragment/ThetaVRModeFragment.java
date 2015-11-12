@@ -130,6 +130,12 @@ public class ThetaVRModeFragment extends Fragment {
         mSphereView = (SphericalImageView) rootView.findViewById(R.id.vr_view);
         mApi = new SphericalViewApi(getActivity());
         mSphereView.setViewApi(mApi);
+        mSphereView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mSphereView.resetCameraDirection();
+            }
+        });
         // TODO Read Theta's file.
         byte[] data = getAssetsData("r.JPG");
         if (data == null) {

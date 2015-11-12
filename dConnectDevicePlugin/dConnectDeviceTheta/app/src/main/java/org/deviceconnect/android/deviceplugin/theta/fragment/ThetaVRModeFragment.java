@@ -141,6 +141,12 @@ public class ThetaVRModeFragment extends Fragment {
 
         init3DButtons(rootView);
         enableView();
+        return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         // TODO Read Theta's file.
         byte[] data = getAssetsData("r.JPG");
         if (data == null) {
@@ -150,12 +156,6 @@ public class ThetaVRModeFragment extends Fragment {
                 mSphereView.start(data);
             }
         }
-        return rootView;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
     }
 
     @Override
@@ -165,14 +165,14 @@ public class ThetaVRModeFragment extends Fragment {
             mProgress.dismiss();
             mProgress = null;
         }
+        if (mSphereView != null) {
+            mSphereView.stop();
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mSphereView != null) {
-            mSphereView.stop();
-        }
     }
 
     public void onConfigurationChanged(final Configuration newConfig) {

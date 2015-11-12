@@ -4,7 +4,6 @@ package org.deviceconnect.android.deviceplugin.theta.core;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.hardware.SensorManager;
 
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.DefaultHeadTracker;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTracker;
@@ -44,8 +43,7 @@ public class SphericalViewApi implements HeadTrackingListener {
     private Bitmap mTexture;
 
     public SphericalViewApi(final Context context) {
-        SensorManager sensorMgr = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        mHeadTracker = new DefaultHeadTracker(sensorMgr);
+        mHeadTracker = new DefaultHeadTracker(context);
     }
 
     @Override

@@ -1,11 +1,13 @@
 package org.deviceconnect.android.deviceplugin.theta.core.sensor;
 
 
+import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.view.Surface;
+import android.view.WindowManager;
 
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
@@ -18,8 +20,6 @@ public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEve
 
     private long mLastEventTimestamp;
 
-    private int mDisplayRotation = Surface.ROTATION_0;
-
     private final SensorManager mSensorMgr;
 
     private Quaternion mCurrentRotation = new Quaternion(1, new Vector3D(0, 0, 0));
@@ -30,8 +30,11 @@ public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEve
 
     private Logger mLogger = Logger.getLogger("theta.dplugin");
 
-    public DefaultHeadTracker(final SensorManager sensorMgr) {
-        mSensorMgr = sensorMgr;
+    private final WindowManager mWindowMgr;
+
+    public DefaultHeadTracker(final Context context) {
+        mSensorMgr = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        mWindowMgr = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
     }
 
     @Override
@@ -41,7 +44,7 @@ public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEve
 
         Sensor sensor = mSensorMgr.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         if (sensor == null) {
-            mLogger.warning("Failed to start: any sensor is NOT found.");
+            mLogger.warning("Failed to start: Default GYROSCOPE sensor is NOT found.");
             return;
         }
         mSensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME);
@@ -49,7 +52,6 @@ public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEve
         for (int i = 0; i < mCurrentGyroscope.length; i++) {
             mCurrentGyroscope[i] = 0.0f;
         }
-        mLogger.warning("Failed to start: GYROSCOPE sensor is NOT found.");
     }
 
     @Override
@@ -65,6 +67,33 @@ public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEve
     @Override
     public void onSensorChanged(final SensorEvent event) {
         if (mLastEventTimestamp != 0) {
+            float[] values = new float[3];
+            int displayOrientation = mWindowMgr.getDefaultDisplay().getRotation();
+            switch (displayOrientation) {
+                case Surface.ROTATION_0:
+                    values[0] = event.values[0];
+                    values[1] = event.values[1];
+                    values[2] = event.values[2];
+                    break;
+                case Surface.ROTATION_90:
+                    values[0] = event.values[1] * -1;
+                    values[1] = event.values[0];
+                    values[2] = event.values[2];
+                    break;
+                case Surface.ROTATION_180:
+                    values[0] = event.values[0] * -1;
+                    values[1] = event.values[1] * -1;
+                    values[2] = event.values[2];
+                    break;
+                case Surface.ROTATION_270:
+                    values[0] = event.values[1];
+                    values[1] = event.values[0] * -1;
+                    values[2] = event.values[2];
+                    break;
+                default:
+                    break;
+            }
+
             float epsilon = 0.000000001f;
             float[] vGyroscope = new float[3];
             float[] deltaVGyroscope = new float[4];
@@ -73,13 +102,13 @@ public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEve
 
             final float alpha = 0.8f;
             if (!mInitFlag) {
-                System.arraycopy(event.values, 0, vGyroscope, 0, vGyroscope.length);
-                System.arraycopy(event.values, 0, mCurrentGyroscope, 0, event.values.length);
+                System.arraycopy(values, 0, vGyroscope, 0, vGyroscope.length);
+                System.arraycopy(values, 0, mCurrentGyroscope, 0, values.length);
                 mInitFlag = true;
             } else {
-                vGyroscope[0] = alpha * mCurrentGyroscope[0] + (1.0f - alpha) * event.values[0];
-                vGyroscope[1] = alpha * mCurrentGyroscope[1] + (1.0f - alpha) * event.values[1];
-                vGyroscope[2] = alpha * mCurrentGyroscope[2] + (1.0f - alpha) * event.values[2];
+                vGyroscope[0] = alpha * mCurrentGyroscope[0] + (1.0f - alpha) * values[0];
+                vGyroscope[1] = alpha * mCurrentGyroscope[1] + (1.0f - alpha) * values[1];
+                vGyroscope[2] = alpha * mCurrentGyroscope[2] + (1.0f - alpha) * values[2];
                 System.arraycopy(vGyroscope, 0, mCurrentGyroscope, 0, vGyroscope.length);
             }
 
@@ -104,33 +133,7 @@ public class DefaultHeadTracker extends AbstractHeadTracker implements SensorEve
             deltaVGyroscope[2] = sinThetaOverTwo * vGyroscope[2];
             deltaVGyroscope[3] = cosThetaOverTwo;
 
-            float[] delta = new float[3];
-            switch (mDisplayRotation) {
-                case Surface.ROTATION_0:
-                    delta[0] = deltaVGyroscope[0];
-                    delta[1] = deltaVGyroscope[1];
-                    delta[2] = deltaVGyroscope[2];
-                    break;
-                case Surface.ROTATION_90:
-                    delta[0] = deltaVGyroscope[0];
-                    delta[1] = deltaVGyroscope[2] * -1;
-                    delta[2] = deltaVGyroscope[1];
-                    break;
-                case Surface.ROTATION_180:
-                    delta[0] = deltaVGyroscope[0];
-                    delta[1] = deltaVGyroscope[1] * -1;
-                    delta[2] = deltaVGyroscope[2];
-                    break;
-                case Surface.ROTATION_270:
-                    delta[0] = deltaVGyroscope[0];
-                    delta[1] = deltaVGyroscope[2];
-                    delta[2] = deltaVGyroscope[1] * -1;
-                    break;
-                default:
-                    break;
-            }
-
-            qGyroscopeDelta = new Quaternion(deltaVGyroscope[3], new Vector3D(delta));
+            qGyroscopeDelta = new Quaternion(deltaVGyroscope[3], new Vector3D(deltaVGyroscope));
             mCurrentRotation = qGyroscopeDelta.multiply(mCurrentRotation);
             notifyHeadRotation(mCurrentRotation);
         }

@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
@@ -62,6 +63,10 @@ public class ThetaShootingModeFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.theta_shooting_mode, null);
         initShootingLayouts(rootView);
         Spinner shootingMode = (Spinner) rootView.findViewById(R.id.theta_shooting_mode);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
+                                                            R.layout.theta_shooting_mode_adapter,
+                                                            getResources().getStringArray(R.array.theta_shooting_mode));
+        shootingMode.setAdapter(adapter);
         shootingMode.setSelection(0);
         enableShootingMode(0);
         shootingMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

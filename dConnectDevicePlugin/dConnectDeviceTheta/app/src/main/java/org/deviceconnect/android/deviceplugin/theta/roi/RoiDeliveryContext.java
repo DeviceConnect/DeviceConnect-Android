@@ -86,6 +86,10 @@ public class RoiDeliveryContext implements SensorEventListener {
 
     private Quaternion mCurrentRotation = new Quaternion(1, new Vector3D(0, 0, 0));
 
+    private float[] mCurrentGyroscope = new float[3];
+
+    private boolean mInitFlag = false;
+
     private Logger mLogger = Logger.getLogger("theta.dplugin");
 
     /**
@@ -227,20 +231,31 @@ public class RoiDeliveryContext implements SensorEventListener {
     @Override
     public void onSensorChanged(final SensorEvent event) {
         if (mLastEventTimestamp != 0) {
-            float EPSILON = 0.000000001f;
+            float epsilon = 0.000000001f;
             float[] vGyroscope = new float[3];
             float[] deltaVGyroscope = new float[4];
             Quaternion qGyroscopeDelta;
             float dT = (event.timestamp - mLastEventTimestamp) * NS2S;
 
-            System.arraycopy(event.values, 0, vGyroscope, 0, vGyroscope.length);
+            final float alpha = 0.8f;
+            if (!mInitFlag) {
+                System.arraycopy(event.values, 0, vGyroscope, 0, vGyroscope.length);
+                System.arraycopy(event.values, 0, mCurrentGyroscope, 0, event.values.length);
+                mInitFlag = true;
+            } else {
+                vGyroscope[0] = alpha * mCurrentGyroscope[0] + (1.0f - alpha) * event.values[0];
+                vGyroscope[1] = alpha * mCurrentGyroscope[1] + (1.0f - alpha) * event.values[1];
+                vGyroscope[2] = alpha * mCurrentGyroscope[2] + (1.0f - alpha) * event.values[2];
+                System.arraycopy(vGyroscope, 0, mCurrentGyroscope, 0, vGyroscope.length);
+            }
+
             float tmp = vGyroscope[2];
             vGyroscope[2] = vGyroscope[0] * -1;
             vGyroscope[0] = tmp;
 
             float magnitude = (float) Math.sqrt(Math.pow(vGyroscope[0], 2)
                 + Math.pow(vGyroscope[1], 2) + Math.pow(vGyroscope[2], 2));
-            if (magnitude > EPSILON) {
+            if (magnitude > epsilon) {
                 vGyroscope[0] /= magnitude;
                 vGyroscope[1] /= magnitude;
                 vGyroscope[2] /= magnitude;
@@ -328,6 +343,11 @@ public class RoiDeliveryContext implements SensorEventListener {
         }
         for (Sensor sensor : sensors) {
             if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                mInitFlag = false;
+                mCurrentGyroscope[0] = 0.0f;
+                mCurrentGyroscope[1] = 0.0f;
+                mCurrentGyroscope[2] = 0.0f;
+
                 mLogger.info("Started VR mode: GYROSCOPE sensor is found.");
                 mSensorMgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
                 return true;

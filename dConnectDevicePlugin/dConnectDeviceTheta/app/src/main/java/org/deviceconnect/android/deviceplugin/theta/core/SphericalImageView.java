@@ -16,6 +16,7 @@ public class SphericalImageView extends GLSurfaceView {
     public SphericalImageView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
         setEGLContextClientVersion(2);
+        mRenderer.setFlipVertical(true);
         setRenderer(mRenderer);
 
         mParam.setVRMode(true);
@@ -41,6 +42,19 @@ public class SphericalImageView extends GLSurfaceView {
         if (mViewApi != null) {
             mParam.setStereo(isStereo);
             mViewApi.updateImageView(mParam);
+        }
+    }
+
+    public byte[] takeSnapshot() {
+        if (mRenderer == null) {
+            return null;
+        }
+        return mRenderer.takeSnapshot();
+    }
+    
+    public void resetCameraDirection() {
+        if (mViewApi != null) {
+            mViewApi.resetCameraDirection();
         }
     }
 

@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.theta.activity;
 
 import android.support.v4.app.Fragment;
 
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceModel;
 import org.deviceconnect.android.deviceplugin.theta.fragment.ConfirmationFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.WifiConnectionFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.MovieModeFragment;
@@ -22,10 +23,14 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity
  */
 public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActivity {
 
+    private SummaryFragment mSummary = new SummaryFragment();
+    private PhotoModeFragment mPhotoMode = new PhotoModeFragment();
+    private MovieModeFragment mMovieMode = new MovieModeFragment();
+
     private final Fragment[] mFragments = {
-        new SummaryFragment(),
-        new PhotoModeFragment(),
-        new MovieModeFragment(),
+        mSummary,
+        mPhotoMode,
+        mMovieMode,
         new WifiConnectionFragment(),
         new ConfirmationFragment()
     };
@@ -38,6 +43,15 @@ public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActi
     @Override
     public Fragment createPage(int position) {
         return mFragments[position];
+    }
+
+    public ThetaDeviceModel getSelectedModel() {
+        return mSummary.getSelectedModel();
+    }
+
+    public void onModelChanged() {
+        mPhotoMode.updateView();
+        mMovieMode.updateView();
     }
 
 }

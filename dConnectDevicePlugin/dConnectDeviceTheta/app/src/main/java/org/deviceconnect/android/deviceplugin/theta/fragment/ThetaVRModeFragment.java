@@ -26,17 +26,23 @@ import android.widget.ToggleButton;
 
 import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.R;
+import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
+import org.deviceconnect.android.deviceplugin.theta.activity.ThetaFeatureActivity;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalImageView;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
+import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
 import org.deviceconnect.android.provider.FileManager;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -64,6 +70,8 @@ public class ThetaVRModeFragment extends Fragment {
     private SphericalImageView mSphereView;
     /** SphericalViewApi. */
     private SphericalViewApi mApi;
+    /** SphericalView byte. */
+    private byte[] mSphericalBinary;
     /** Stereo Flag. */
     private boolean mIsStereo = false;
     /** Thread Manager. */
@@ -71,6 +79,11 @@ public class ThetaVRModeFragment extends Fragment {
 
     /** Progress. */
     private ThetaDialogFragment mProgress;
+    /** Task. */
+    private DownloadThetaDataTask mDownloadTask;
+
+    /** Default VR. */
+    private int mDefaultId;
 
     /** VR Change toggle button's listener.*/
     private CompoundButton.OnCheckedChangeListener mVRChangeToggleListener
@@ -123,6 +136,14 @@ public class ThetaVRModeFragment extends Fragment {
     };
 
     @Override
+    public void setArguments(Bundle args) {
+        super.setArguments(args);
+
+        if (args != null) {
+            mDefaultId = args.getInt(ThetaFeatureActivity.FEATURE_DATA, -1);
+        }
+    }
+    @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
         setRetainInstance(true);
@@ -147,15 +168,16 @@ public class ThetaVRModeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // TODO Read Theta's file.
-        byte[] data = getAssetsData("r.JPG");
-        if (data == null) {
-            ThetaDialogFragment.showAlert(getActivity(), "Assets", "No Image.");
-        } else {
-            if (mSphereView != null) {
-                mSphereView.onResume();
-                mSphereView.start(data);
+        if (mDownloadTask == null) {
+            if (mProgress == null) {
+                mProgress = ThetaDialogFragment.newInstance("THETA", "読み込み中...");
+                mProgress.show(getActivity().getFragmentManager(),
+                        "fragment_dialog");
             }
+
+            mDownloadTask = new DownloadThetaDataTask();
+            ThetaMainData main = new ThetaMainData();
+            mDownloadTask.execute(main);
         }
     }
 
@@ -169,6 +191,10 @@ public class ThetaVRModeFragment extends Fragment {
             mSphereView.stop();
             mSphereView.onPause();
         }
+        if (mDownloadTask != null) {
+            mDownloadTask.cancel(true);
+            mDownloadTask = null;
+        }
         super.onPause();
     }
 
@@ -180,33 +206,6 @@ public class ThetaVRModeFragment extends Fragment {
     public void onConfigurationChanged(final Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         enableView();
-    }
-
-    /**
-     * Get Assets Data.
-     * @param name File Name
-     */
-    private byte[] getAssetsData(final String name) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        InputStream in = null;
-        int len;
-        byte[] buf = new byte[4096];
-        try {
-            in = getResources().getAssets().open(name);
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
-        } catch (IOException e) {
-            return null;
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                }
-            }
-        }
-        return out.toByteArray();
     }
 
     /**
@@ -353,5 +352,51 @@ public class ThetaVRModeFragment extends Fragment {
         ThetaDialogFragment.showAlert(getActivity(),
                 getResources().getString(R.string.theta_ssid_prefix),
                 getResources().getString(R.string.theta_error_failed_save_file));
+    }
+
+
+    /**
+     * Donwload of data.
+     */
+    private class ThetaMainData implements DownloadThetaDataTask.ThetaDownloadListener {
+
+        @Override
+        public synchronized void onDownloaded() {
+            ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
+            ThetaDeviceManager deviceMgr = app.getDeviceManager();
+            ThetaDevice device = deviceMgr.getConnectedDevice();
+            if (device != null) {
+                try {
+                    List<ThetaObject> list = device.fetchAllObjectList();
+                    list.get(mDefaultId).fetch(ThetaObject.DataType.MAIN);
+                    mSphericalBinary = list.get(mDefaultId).getMainData();
+                } catch (ThetaDeviceException e) {
+                    e.printStackTrace();
+                    mSphericalBinary = null;
+                }
+            } else {
+                mSphericalBinary = null;
+            }
+        }
+
+        @Override
+        public synchronized void onNotifyDataSetChanged() {
+            if (mProgress != null) {
+                mProgress.dismiss();
+                mProgress = null;
+            }
+
+            if (mSphericalBinary == null) {
+                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        getString(R.string.theta_error_disconnect_dialog_message));
+                getActivity().finish();
+            } else {
+                if (mSphereView != null) {
+                    mSphereView.onResume();
+                    mSphereView.start(mSphericalBinary);
+                }
+            }
+
+        }
     }
 }

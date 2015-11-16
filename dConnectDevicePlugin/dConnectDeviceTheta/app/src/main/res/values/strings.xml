@@ -26,6 +26,8 @@
     <string name="theta_reconnect_button">設定画面で再接続</string>
     <string name="open_settings">設定画面を開く</string>
     <string name="theta_save_screenshot">スクリーンショットを保存しました。</string>
+    <string name="theta_remove_data">選択された$NAME$を削除します。よろしいですか？</string>
+    <string name="theta_remove">削除しました。</string>
 
     <string-array name="theta_shooting_mode">
         <item>静止画</item>

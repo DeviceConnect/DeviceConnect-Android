@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.theta;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -73,36 +72,6 @@ public class ThetaDeviceService extends DConnectMessageService {
             // Nothing to do.
         }
         super.onDestroy();
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent == null) {
-            return super.onStartCommand(intent, flags, startId);
-        }
-
-        String action = intent.getAction();
-        if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
-            NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-            if (networkInfo.isConnected()) {
-                WifiInfo wifiInfo = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
-                fetchThetaDevice(wifiInfo);
-            }
-        } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
-            int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
-            switch (state) {
-                case WifiManager.WIFI_STATE_DISABLED:
-                    mLogger.info("WiFi state: disabled.");
-                    mClient.disposeDevice();
-                    break;
-                case WifiManager.WIFI_STATE_ENABLED:
-                    mLogger.info("WiFi state: enabled.");
-                    break;
-                default:
-                    break;
-            }
-        }
-        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override

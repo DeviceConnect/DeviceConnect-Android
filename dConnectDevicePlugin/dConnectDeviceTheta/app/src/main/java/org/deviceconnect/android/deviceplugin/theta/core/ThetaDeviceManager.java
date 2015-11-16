@@ -1,7 +1,9 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
 
+import android.content.Context;
 import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.core.wifi.WifiStateEventListener;
@@ -30,24 +32,24 @@ import org.deviceconnect.android.deviceplugin.theta.core.wifi.WifiStateEventList
  */
 public class ThetaDeviceManager implements WifiStateEventListener {
 
-//    /**
-//     * An instance of {@link WifiManager}.
-//     */
-//    private final WifiManager mWifiMgr;
-
     /**
      * An THETA device which is currently connected.
      */
     private ThetaDevice mConnectedDevice;
 
-//    /**
-//     * Constructor.
-//     *
-//     * @param context an instance of {@link Context}
-//     */
-//    public ThetaDeviceManager(final Context context) {
-//        mWifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-//    }
+    /**
+     * An instance of {@link Context}.
+     */
+    private final Context mContext;
+
+    /**
+     * Constructor.
+     *
+     * @param context An instance of {@link Context}
+     */
+    public ThetaDeviceManager(final Context context) {
+        mContext = context;
+    }
 
     /**
      * Get a THETA device which is connected currently to the host device via WiFi.
@@ -55,6 +57,13 @@ public class ThetaDeviceManager implements WifiStateEventListener {
      * @return an instance of {@link ThetaDevice}
      */
     public ThetaDevice getConnectedDevice() {
+        if (mConnectedDevice == null) {
+            WifiManager wifiMgr = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+            WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+            if (wifiInfo != null) {
+                mConnectedDevice = ThetaDeviceFactory.createDevice(mContext, wifiInfo);
+            }
+        }
         return mConnectedDevice;
     }
 
@@ -76,7 +85,7 @@ public class ThetaDeviceManager implements WifiStateEventListener {
 
     @Override
     public void onNetworkChanged(final WifiInfo wifiInfo) {
-        mConnectedDevice = ThetaDeviceFactory.createDevice(wifiInfo);
+        mConnectedDevice = ThetaDeviceFactory.createDevice(mContext, wifiInfo);
         Log.d("AAA", "onNetworkChanged: " + mConnectedDevice);
     }
 

@@ -43,7 +43,7 @@ public class ThetaDeviceApplication extends Application {
             mLogger.setLevel(Level.OFF);
         }
 
-        mDeviceMgr = new ThetaDeviceManager();
+        mDeviceMgr = new ThetaDeviceManager(getApplicationContext());
         mSphericalViewApi = new SphericalViewApi(getApplicationContext());
     }
 

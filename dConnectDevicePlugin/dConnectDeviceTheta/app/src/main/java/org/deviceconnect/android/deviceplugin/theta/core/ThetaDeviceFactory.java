@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
+import android.content.Context;
 import android.net.wifi.WifiInfo;
 
 class ThetaDeviceFactory {
@@ -7,7 +8,7 @@ class ThetaDeviceFactory {
     private ThetaDeviceFactory() {
     }
 
-    public static ThetaDevice createDevice(final WifiInfo wifiInfo) {
+    public static ThetaDevice createDevice(final Context context, final WifiInfo wifiInfo) {
         String ssId = parseSSID(wifiInfo);
         if (ssId == null) {
             return null;
@@ -15,7 +16,7 @@ class ThetaDeviceFactory {
         ThetaDeviceModel model = parseModel(ssId);
         switch (model) {
             case THETA_M15:
-                return new ThetaM15(ssId);
+                return new ThetaM15(context, ssId);
             case THETA_S:
                 return new ThetaS(ssId);
             default:

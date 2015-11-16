@@ -88,16 +88,9 @@ public interface ThetaDevice {
     /**
      * Stops video recording explicitly.
      *
-     * <p>
-     * NOTE: An instance of {@link ThetaObject} which is returned by this method is not fetched.
-     * If the binary data is needed, please call {@link ThetaObject#fetch(ThetaObject.DataType)} to obtain the
-     * binary data from the THETA device.
-     * </p>
-     *
-     * @return an instance of {@link ThetaObject} of the video
      * @throws ThetaDeviceException if the API execution is failed.
      */
-    ThetaObject stopVideoRecording() throws ThetaDeviceException;
+    void stopVideoRecording() throws ThetaDeviceException;
 
     /**
      * Gets the battery level of THETA device.

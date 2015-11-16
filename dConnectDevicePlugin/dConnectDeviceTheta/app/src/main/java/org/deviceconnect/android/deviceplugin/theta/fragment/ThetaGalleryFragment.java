@@ -122,6 +122,7 @@ public class ThetaGalleryFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+        mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), new ArrayList<ThetaObject>());
     }
 
 
@@ -154,6 +155,7 @@ public class ThetaGalleryFragment extends Fragment {
         });
         mStatusView = (TextView) mRootView.findViewById(R.id.theta_no_data);
         mStatusView.setVisibility(View.VISIBLE);
+        initListView(mRootView);
         return mRootView;
     }
 
@@ -171,10 +173,10 @@ public class ThetaGalleryFragment extends Fragment {
             mDownloadTask.cancel(true);
             mDownloadTask = null;
         }
-//        if (mProgress != null) {
-//            mProgress.dismiss();
-//            mProgress = null;
-//        }
+        if (mProgress != null) {
+            mProgress.dismiss();
+            mProgress = null;
+        }
     }
 
     /**
@@ -268,12 +270,11 @@ public class ThetaGalleryFragment extends Fragment {
             String message = getString(R.string.camera_search_message_found);
             message = message.replace("$NAME$", ssId);
             getActivity().getActionBar().setTitle(ssId);
-            mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), new ArrayList<ThetaObject>());
-//            if (mProgress == null) {
-//                mProgress = ThetaDialogFragment.newInstance("THETA", "読み込み中...");
-//                mProgress.show(getActivity().getFragmentManager(),
-//                        "fragment_dialog");
-//            }
+            if (mProgress == null) {
+                mProgress = ThetaDialogFragment.newInstance("THETA", "読み込み中...");
+                mProgress.show(getActivity().getFragmentManager(),
+                        "fragment_dialog");
+            }
             ThetaInfo info = new ThetaInfo(0, PER_PAGE);
             mDownloadTask = new DownloadThetaDataTask();
             mDownloadTask.execute(info);
@@ -404,13 +405,14 @@ public class ThetaGalleryFragment extends Fragment {
             } else {
                 mStatusView.setVisibility(View.VISIBLE);
             }
-            for (int i = 0; i < mUpdateList.size(); i++) {
-                mGalleryAdapter.add(mUpdateList.get(i));
+            if (mGalleryAdapter != null) {
+                mGalleryAdapter.clear();
+                mGalleryAdapter.addAll(mUpdateList);
+                mGalleryAdapter.notifyDataSetChanged();
             }
-            initListView(mRootView);
-//            if (mProgress != null) {
-//                mProgress.dismiss();
-//            }
+            if (mProgress != null) {
+                mProgress.dismiss();
+            }
             mLoadingView.setVisibility(View.GONE);
             ThetaThumb thumbTask = new ThetaThumb();
             DownloadThetaDataTask downloader = new DownloadThetaDataTask();

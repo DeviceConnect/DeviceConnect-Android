@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 public class OscCommand {
 
@@ -71,6 +72,13 @@ public class OscCommand {
                 return null;
             }
             return mBody.getBytes();
+        }
+
+        public InputStream getInputStream() throws IOException {
+            if (mBody == null) {
+                return null;
+            }
+            return mBody.getStream();
         }
 
         public static Result parse(final HttpResponse response) throws IOException, JSONException {

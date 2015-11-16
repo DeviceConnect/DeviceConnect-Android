@@ -7,6 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 class HttpResponse {
 
@@ -32,4 +33,7 @@ class HttpResponse {
         return mEntity.code();
     }
 
+    public InputStream getStream() throws IOException {
+        return mEntity.body().byteStream();
+    }
 }

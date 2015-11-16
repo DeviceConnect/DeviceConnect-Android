@@ -58,6 +58,10 @@ public class SphericalImageView extends GLSurfaceView {
         }
     }
 
+    protected SphericalViewRenderer getRenderer() {
+        return mRenderer;
+    }
+
     @Override
     public void onPause() {
         if (mViewApi != null) {

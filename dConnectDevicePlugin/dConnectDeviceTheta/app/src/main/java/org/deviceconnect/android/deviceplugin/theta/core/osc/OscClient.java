@@ -109,6 +109,14 @@ public class OscClient {
         return OscCommand.Result.parse(response);
     }
 
+    public OscCommand.Result getLivePreview(final String sessionId) throws IOException, JSONException {
+        JSONObject params = new JSONObject();
+        params.put("sessionId", sessionId);
+
+        HttpResponse response = executeCommand("camera._getLivePreview", params);
+        return OscCommand.Result.parse(response);
+    }
+
     private HttpResponse executeCommand(final String name, final JSONObject params) throws IOException {
         try {
             JSONObject body = new JSONObject();

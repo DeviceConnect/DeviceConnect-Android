@@ -11,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -135,6 +136,19 @@ class ThetaS extends AbstractThetaDevice {
     @Override
     public void changeShootingMode(final ShootingMode mode) throws ThetaDeviceException {
         // TODO Implement.
+    }
+
+    @Override
+    public InputStream getLivePreview() throws ThetaDeviceException {
+        try {
+            OscSession session = mOscClient.startSession();
+            OscCommand.Result result = mOscClient.getLivePreview(session.getId());
+            return result.getInputStream();
+        } catch (IOException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+        } catch (JSONException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+        }
     }
 
     private class ThetaObjectS implements ThetaObject {

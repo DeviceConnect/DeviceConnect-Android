@@ -15,6 +15,7 @@ import com.theta360.lib.ptpip.entity.PtpObject;
 import com.theta360.lib.ptpip.eventlistener.PtpipEventListener;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -209,6 +210,11 @@ class ThetaM15 extends AbstractThetaDevice {
 
     @Override
     public void changeShootingMode(final ShootingMode mode) throws ThetaDeviceException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public InputStream getLivePreview() throws ThetaDeviceException {
         throw new UnsupportedOperationException();
     }
 

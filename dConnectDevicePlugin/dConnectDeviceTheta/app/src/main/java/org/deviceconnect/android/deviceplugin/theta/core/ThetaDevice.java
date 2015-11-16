@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
 
+import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -112,6 +113,18 @@ public interface ThetaDevice {
      * @see ShootingMode
      */
     void changeShootingMode(ShootingMode mode) throws ThetaDeviceException;
+
+    /**
+     * Gets an input stream of Live Preview.
+     *
+     * <p>
+     * Format: MotionJPEG
+     * </p>
+     *
+     * @return an input stream of Live Preview
+     * @throws ThetaDeviceException if the API execution is failed.
+     */
+    InputStream getLivePreview() throws ThetaDeviceException;
 
     /**
      * Shooting mode.

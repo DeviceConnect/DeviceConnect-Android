@@ -24,7 +24,9 @@ class ThetaS extends AbstractThetaDevice {
 
     private static final String PARAM_ENTRIES = "entries";
 
-    private static final SimpleDateFormat BEFORE_FORMAT = new SimpleDateFormat("yyyy:MM:dd HH:mm:ssZ");
+    private static final SimpleDateFormat BEFORE_FORMAT_WITH_TIMEZONE = new SimpleDateFormat("yyyy:MM:dd HH:mm:ssZ");
+
+    private static final SimpleDateFormat BEFORE_FORMAT = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
 
     private static final SimpleDateFormat AFTER_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
@@ -174,13 +176,30 @@ class ThetaS extends AbstractThetaDevice {
         public ThetaObjectS(final OscEntry entry) {
             mEntry = entry;
 
-            String dateTime;
-            try {
-                dateTime = AFTER_FORMAT.format(BEFORE_FORMAT.parse(entry.getDateTime()));
-            } catch (ParseException e) {
+            String dateTime = parseDateWithTimezone(entry.getDateTime());
+            if (dateTime == null) {
+                dateTime = parseDateWithoutTimezone(entry.getDateTime());
+            }
+            if (dateTime == null) {
                 dateTime = "";
             }
             mDateTime = dateTime;
+        }
+
+        private String parseDateWithTimezone(final String dateTime) {
+            try {
+                return AFTER_FORMAT.format(BEFORE_FORMAT_WITH_TIMEZONE.parse(dateTime));
+            } catch (ParseException e) {
+                return null;
+            }
+        }
+
+        private String parseDateWithoutTimezone(final String dateTime) {
+            try {
+                return AFTER_FORMAT.format(BEFORE_FORMAT.parse(dateTime));
+            } catch (ParseException e) {
+                return null;
+            }
         }
 
         @Override

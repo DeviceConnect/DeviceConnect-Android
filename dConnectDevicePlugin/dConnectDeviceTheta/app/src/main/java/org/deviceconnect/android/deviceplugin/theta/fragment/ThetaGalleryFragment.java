@@ -87,6 +87,8 @@ public class ThetaGalleryFragment extends Fragment {
      */
     private List<ThetaObject> mUpdateList = new ArrayList<ThetaObject>();
 
+    /** Theta Device.*/
+    private ThetaDevice mDevice;
 
     /**
      * Gallery State.
@@ -232,29 +234,6 @@ public class ThetaGalleryFragment extends Fragment {
                 return true;
             }
         });
-
-        list.setOnScrollListener(new AbsListView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(AbsListView absListView, int i) {
-
-            }
-
-            @Override
-            public void onScroll(final AbsListView absListView,
-                                 final int firstVisibleItem,
-                                 final int visibleItemCount,
-                                 final int totalItemCount) {
-                // TODO ThetaObject size > 0
-//                if (mUpdateList.size() > 0
-//                        && (totalItemCount - visibleItemCount) == firstVisibleItem) {
-//                    Integer itemCount = totalItemCount - 1;
-//                    mLoadingView.setVisibility(View.VISIBLE);
-//                    ThetaInfo info = new ThetaInfo(itemCount, (itemCount + PER_PAGE));
-//                    DownloadThetaDataTask infoTask = new DownloadThetaDataTask();
-//                    infoTask.execute(info);
-//                }
-            }
-        });
     }
 
     /**
@@ -263,16 +242,16 @@ public class ThetaGalleryFragment extends Fragment {
     private void loadThetaData() {
         ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
         ThetaDeviceManager deviceMgr = app.getDeviceManager();
-        ThetaDevice device = deviceMgr.getConnectedDevice();
-        if (device != null) {
-            String ssId = device.getName();
+        mDevice = deviceMgr.getConnectedDevice();
+        if (mDevice != null) {
+            String ssId = mDevice.getName();
             getActivity().getActionBar().setTitle(ssId);
             if (mProgress == null) {
                 mProgress = ThetaDialogFragment.newInstance("THETA", "読み込み中...");
                 mProgress.show(getActivity().getFragmentManager(),
                         "fragment_dialog");
             }
-            ThetaInfo info = new ThetaInfo(0, PER_PAGE);
+            ThetaInfoTask info = new ThetaInfoTask();
             mDownloadTask = new DownloadThetaDataTask();
             mDownloadTask.execute(info);
         } else {
@@ -343,52 +322,20 @@ public class ThetaGalleryFragment extends Fragment {
     /**
      * Download of info.
      */
-    private class ThetaInfo implements DownloadThetaDataTask.ThetaDownloadListener {
-        /**
-         * offset.
-         */
-        private int mOffset;
-        /**
-         * Max Length.
-         */
-        private int mMaxLength;
-
-        /**
-         * Constructor.
-         *
-         * @param offset    offset
-         * @param maxLength maxLength
-         */
-        ThetaInfo(final int offset, final int maxLength) {
-            mOffset = offset;
-            mMaxLength = maxLength;
-        }
+    private class ThetaInfoTask implements DownloadThetaDataTask.ThetaDownloadListener {
 
         @Override
-        public synchronized void onDownloaded() {
-            if (mOffset > mMaxLength) {
+        public synchronized void doInBackground() {
+            try {  //Case m15
+                mUpdateList = mDevice.fetchAllObjectList();
+            } catch (ThetaDeviceException ex) {
                 return;
-            }
-            ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
-            ThetaDeviceManager deviceMgr = app.getDeviceManager();
-            ThetaDevice device = deviceMgr.getConnectedDevice();
-
-            try {
-                mUpdateList = device.fetchObjectList(mOffset, mMaxLength);
-            } catch (ThetaDeviceException e) {
-                return;
-            } catch (UnsupportedOperationException e) {
-                try {  //Case m15
-                    mUpdateList = device.fetchAllObjectList();
-                } catch (ThetaDeviceException ex) {
-                    return;
-                }
             }
 
         }
 
         @Override
-        public synchronized void onNotifyDataSetChanged() {
+        public synchronized void onPostExecute() {
             if (mUpdateList.size() > 0) {
                 mStatusView.setVisibility(View.GONE);
             } else {
@@ -403,7 +350,7 @@ public class ThetaGalleryFragment extends Fragment {
                 mProgress.dismiss();
             }
             mLoadingView.setVisibility(View.GONE);
-            ThetaThumb thumbTask = new ThetaThumb();
+            ThetaThumbTask thumbTask = new ThetaThumbTask();
             DownloadThetaDataTask downloader = new DownloadThetaDataTask();
             downloader.execute(thumbTask);
         }
@@ -412,16 +359,16 @@ public class ThetaGalleryFragment extends Fragment {
     /**
      * Donwload of thumb.
      */
-    private class ThetaThumb implements DownloadThetaDataTask.ThetaDownloadListener {
+    private class ThetaThumbTask implements DownloadThetaDataTask.ThetaDownloadListener {
 
         @Override
-        public synchronized void onDownloaded() {
+        public synchronized void doInBackground() {
             for (ThetaObject object : mUpdateList) {
                 try {
                     if (!object.isFetched(ThetaObject.DataType.THUMBNAIL)) {
                         object.fetch(ThetaObject.DataType.THUMBNAIL);
                         try {
-                            Thread.sleep(500);  // Delay
+                            Thread.sleep(100);  // Delay
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -430,13 +377,12 @@ public class ThetaGalleryFragment extends Fragment {
                     if (BuildConfig.DEBUG) {
                         Log.e("AAA", "error", e);
                     }
-                    break;
                 }
             }
         }
 
         @Override
-        public synchronized void onNotifyDataSetChanged() {
+        public synchronized void onPostExecute() {
             if (mGalleryAdapter != null) {
                 mGalleryAdapter.notifyDataSetChanged();
             }
@@ -464,7 +410,7 @@ public class ThetaGalleryFragment extends Fragment {
         }
 
         @Override
-        public synchronized void onDownloaded() {
+        public synchronized void doInBackground() {
             try {
                 mRemoveObject.remove();
             } catch (ThetaDeviceException e) {
@@ -474,7 +420,7 @@ public class ThetaGalleryFragment extends Fragment {
         }
 
         @Override
-        public synchronized void onNotifyDataSetChanged() {
+        public synchronized void onPostExecute() {
             if (!mIsSuccess) {
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",
                         getString(R.string.theta_error_failed_delete));

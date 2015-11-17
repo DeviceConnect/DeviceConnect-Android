@@ -33,6 +33,7 @@
     <string name="theta_save_screenshot">スクリーンショットを保存しました。</string>
     <string name="theta_remove_data">選択された$NAME$を削除します。よろしいですか？</string>
     <string name="theta_remove">削除しました。</string>
+    <string name="theta_shooting">撮影しました。</string>
 
     <string-array name="theta_shooting_mode">
         <item>静止画</item>
@@ -49,4 +50,6 @@
     <string name="theta_error_failed_save_file">不明なエラーによりファイル保存に失敗しました。</string>
     <string name="theta_error_memory_warning">ファイルサイズが大きすぎるため、静止画を表示できません。</string>
     <string name="theta_error_limit_shooting_time">撮影可能時間に達したため、動画の撮影を終了しました。</string>
+    <string name="theta_error_shooting">撮影に失敗しました。</string>
+
 </resources>

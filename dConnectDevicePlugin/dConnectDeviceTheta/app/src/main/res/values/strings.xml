@@ -34,6 +34,7 @@
     <string name="theta_remove_data">選択された$NAME$を削除します。よろしいですか？</string>
     <string name="theta_remove">削除しました。</string>
     <string name="theta_shooting">撮影しました。</string>
+    <string name="theta_update">更新</string>
 
     <string-array name="theta_shooting_mode">
         <item>静止画</item>

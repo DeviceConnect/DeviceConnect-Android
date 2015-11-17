@@ -11,6 +11,9 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -124,9 +127,31 @@ public class ThetaGalleryFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), new ArrayList<ThetaObject>());
-    }
+        setHasOptionsMenu(true);
 
+        mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), new ArrayList<ThetaObject>());
+        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
+        ThetaDeviceManager deviceMgr = app.getDeviceManager();
+        mDevice = deviceMgr.getConnectedDevice();
+
+        loadThetaData();
+    }
+    @Override
+    public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
+        menu.clear();
+        // Add Menu Button
+        final MenuItem menuItem = menu.add(R.string.theta_update);
+        menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(final MenuItem item) {
+                if (item.getTitle().equals(menuItem.getTitle())) {
+                    loadThetaData();
+                }
+                return true;
+            }
+        });
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -164,19 +189,32 @@ public class ThetaGalleryFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        loadThetaData();
+        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
+        ThetaDeviceManager deviceMgr = app.getDeviceManager();
+        mDevice = deviceMgr.getConnectedDevice();
+        enableReconnectView();
     }
 
-        @Override
+
+
+    @Override
     public void onPause() {
         super.onPause();
         if (mDownloadTask != null) {
             mDownloadTask.cancel(true);
             mDownloadTask = null;
         }
-        if (mProgress != null) {
-            mProgress.dismiss();
-            mProgress = null;
+    }
+
+    /** Enabled Reconnect View.*/
+    private void enableReconnectView() {
+        if (mDevice != null) {
+            mRecconectLayout.setVisibility(View.GONE);
+            if (mRecconectLayout.isEnabled()) {
+                loadThetaData();
+            }
+        } else {
+            mRecconectLayout.setVisibility(View.VISIBLE);
         }
     }
 
@@ -240,9 +278,6 @@ public class ThetaGalleryFragment extends Fragment {
      * Load Theta Datas.
      */
     private void loadThetaData() {
-        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
-        ThetaDeviceManager deviceMgr = app.getDeviceManager();
-        mDevice = deviceMgr.getConnectedDevice();
         if (mDevice != null) {
             String ssId = mDevice.getName();
             getActivity().getActionBar().setTitle(ssId);
@@ -348,6 +383,7 @@ public class ThetaGalleryFragment extends Fragment {
             }
             if (mProgress != null) {
                 mProgress.dismiss();
+                mProgress = null;
             }
             mLoadingView.setVisibility(View.GONE);
             ThetaThumbTask thumbTask = new ThetaThumbTask();

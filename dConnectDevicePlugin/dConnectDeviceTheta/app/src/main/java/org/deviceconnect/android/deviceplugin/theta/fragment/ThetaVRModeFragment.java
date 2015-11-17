@@ -360,7 +360,7 @@ public class ThetaVRModeFragment extends Fragment {
     private class ThetaMainData implements DownloadThetaDataTask.ThetaDownloadListener {
 
         @Override
-        public synchronized void onDownloaded() {
+        public synchronized void doInBackground() {
             ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
             ThetaDeviceManager deviceMgr = app.getDeviceManager();
             ThetaDevice device = deviceMgr.getConnectedDevice();
@@ -379,7 +379,7 @@ public class ThetaVRModeFragment extends Fragment {
         }
 
         @Override
-        public synchronized void onNotifyDataSetChanged() {
+        public synchronized void onPostExecute() {
             if (mProgress != null) {
                 mProgress.dismiss();
                 mProgress = null;

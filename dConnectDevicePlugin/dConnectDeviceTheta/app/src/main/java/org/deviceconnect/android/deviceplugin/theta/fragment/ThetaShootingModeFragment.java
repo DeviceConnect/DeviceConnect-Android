@@ -14,12 +14,18 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import org.deviceconnect.android.deviceplugin.theta.R;
+import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
+import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
 
 /**
  * Shooting in Theta.
@@ -57,10 +63,26 @@ public class ThetaShootingModeFragment extends Fragment {
     /** Shooting mode spinner. */
     private Spinner mShootingMode;
 
+    /** Theta Device. */
+    private ThetaDevice mDevice;
+
+    /** Theta Connect Tasker.*/
+    private DownloadThetaDataTask mShootingTasker;
+
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.theta_shooting_mode, null);
+        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
+        ThetaDeviceManager deviceMgr = app.getDeviceManager();
+        mDevice = deviceMgr.getConnectedDevice();
+        if (mDevice == null) {
+            ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                    getString(R.string.theta_error_disconnect_dialog_message));
+            getActivity().finish();
+            return rootView;
+        }
+
         initShootingLayouts(rootView);
         Spinner shootingMode = (Spinner) rootView.findViewById(R.id.theta_shooting_mode);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
@@ -92,10 +114,15 @@ public class ThetaShootingModeFragment extends Fragment {
     private void enableShootingMode(final int mode) {
         switch (mode) {
             case SPINNER_MODE_PICTURE:
-                // TODO Add m15 or S, now m15
-                mShootingLayouts[MODE_M15_SHOOTING].setVisibility(View.VISIBLE);
-                mShootingLayouts[MODE_S_SHOOTING].setVisibility(View.GONE);
-                mShootingLayouts[MODE_MOVIE_SHOOTING].setVisibility(View.GONE);
+                if (mDevice.getModel().equals("THETA_S")) {
+                    mShootingLayouts[MODE_M15_SHOOTING].setVisibility(View.GONE);
+                    mShootingLayouts[MODE_S_SHOOTING].setVisibility(View.VISIBLE);
+                    mShootingLayouts[MODE_MOVIE_SHOOTING].setVisibility(View.GONE);
+                } else {
+                    mShootingLayouts[MODE_M15_SHOOTING].setVisibility(View.VISIBLE);
+                    mShootingLayouts[MODE_S_SHOOTING].setVisibility(View.GONE);
+                    mShootingLayouts[MODE_MOVIE_SHOOTING].setVisibility(View.GONE);
+                }
                 break;
             case SPINNER_MODE_MOVIE:
             default:
@@ -118,10 +145,77 @@ public class ThetaShootingModeFragment extends Fragment {
                     "id", getActivity().getPackageName());
             if (i == MODE_MOVIE_SHOOTING) {
                 mShootingButton = (ToggleButton) rootView.findViewById(identifier);
+                mShootingButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+
+                    }
+                });
             } else {
                 mShootingButtons[i] = (Button) rootView.findViewById(identifier);
+                mShootingButtons[i].setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (mShootingTasker != null) {
+                            return;
+                        }
+                        mShootingTasker = new DownloadThetaDataTask();
+                        ShootingTask shooting = new ShootingTask();
+                        mShootingTasker.execute(shooting);
+                    }
+                });
             }
         }
         mShootingTime = (TextView) rootView.findViewById(R.id.shooting_time);
+    }
+
+    /** Shooting Picture Task. */
+    private class ShootingTask implements DownloadThetaDataTask.ThetaDownloadListener {
+
+        /** Is Success.*/
+        private boolean mIsSuccess;
+
+        @Override
+        public void doInBackground() {
+            try {
+                mDevice.takePicture();
+                mIsSuccess = true;
+            } catch (ThetaDeviceException e) {
+                e.printStackTrace();
+                mIsSuccess = false;
+            }
+        }
+
+        @Override
+        public void onPostExecute() {
+            if (!mIsSuccess) {
+                // TODO Error Reason
+                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        getString(R.string.theta_error_shooting));
+
+            } else {
+                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        getString(R.string.theta_shooting));
+
+            }
+            if (mShootingTasker != null) {
+                mShootingTasker.cancel(true);
+                mShootingTasker = null;
+            }
+        }
+    }
+
+    /** Recording Video. */
+    private class RecordingVideoTask implements DownloadThetaDataTask.ThetaDownloadListener {
+
+        @Override
+        public void doInBackground() {
+
+        }
+
+        @Override
+        public void onPostExecute() {
+
+        }
     }
 }

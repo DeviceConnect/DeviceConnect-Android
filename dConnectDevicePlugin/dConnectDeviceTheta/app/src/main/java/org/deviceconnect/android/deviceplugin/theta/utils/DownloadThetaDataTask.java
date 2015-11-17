@@ -10,14 +10,14 @@ public class DownloadThetaDataTask extends AsyncTask<DownloadThetaDataTask.Theta
     /** Download Listener. */
     public interface ThetaDownloadListener {
         /** Download data. */
-        void onDownloaded();
+        void doInBackground();
         /** UI Update. */
-        void onNotifyDataSetChanged();
+        void onPostExecute();
     }
     @Override
     protected ThetaDownloadListener doInBackground(ThetaDownloadListener... voids) {
         if (voids[0] != null) {
-            voids[0].onDownloaded();
+            voids[0].doInBackground();
         }
         return voids[0];
     }
@@ -26,7 +26,7 @@ public class DownloadThetaDataTask extends AsyncTask<DownloadThetaDataTask.Theta
     protected void onPostExecute(final ThetaDownloadListener result) {
         super.onPostExecute(result);
         if (result != null) {
-            result.onNotifyDataSetChanged();
+            result.onPostExecute();
         }
     }
 }

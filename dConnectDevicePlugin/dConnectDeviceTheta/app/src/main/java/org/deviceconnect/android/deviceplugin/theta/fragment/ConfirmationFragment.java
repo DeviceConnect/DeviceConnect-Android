@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.theta.fragment;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,16 +19,12 @@ import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 
-import java.util.logging.Logger;
-
 /**
  * The page for confirmation of the connection between THETA and Android device.
  *
  * @author NTT DOCOMO, INC.
  */
-public class ConfirmationFragment extends Fragment {
-
-    private final Logger mLogger = Logger.getLogger("theta.plugin");
+public class ConfirmationFragment extends SettingsFragment {
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,

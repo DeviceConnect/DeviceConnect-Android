@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.theta.fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +21,7 @@ import org.deviceconnect.android.deviceplugin.theta.R;
  *
  * @author NTT DOCOMO, INC.
  */
-public class WifiConnectionFragment extends Fragment {
+public class WifiConnectionFragment extends SettingsFragment {
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,

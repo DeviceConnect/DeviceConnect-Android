@@ -165,8 +165,7 @@ public class ThetaGalleryFragment extends Fragment {
         loadThetaData();
     }
 
-
-    @Override
+        @Override
     public void onPause() {
         super.onPause();
         if (mDownloadTask != null) {
@@ -267,8 +266,6 @@ public class ThetaGalleryFragment extends Fragment {
         ThetaDevice device = deviceMgr.getConnectedDevice();
         if (device != null) {
             String ssId = device.getName();
-            String message = getString(R.string.camera_search_message_found);
-            message = message.replace("$NAME$", ssId);
             getActivity().getActionBar().setTitle(ssId);
             if (mProgress == null) {
                 mProgress = ThetaDialogFragment.newInstance("THETA", "読み込み中...");
@@ -323,15 +320,8 @@ public class ThetaGalleryFragment extends Fragment {
                     cv.findViewById(R.id.theta_thumb_progress);
 
             ThetaObject data = getItem(position);
-            StringBuilder dateBuilder = new StringBuilder();
             String dateString = data.getCreationTime();
-            dateBuilder.append(dateString.substring(0, 4))
-                    .append("/").append(String.format("%1$02d", Integer.parseInt(dateString.substring(4, 6))))
-                    .append("/").append(String.format("%1$02d", Integer.parseInt(dateString.substring(6, 8))))
-                    .append(" ").append(String.format("%1$02d", Integer.parseInt(dateString.substring(9, 11))))
-                    .append(":").append(String.format("%1$02d", Integer.parseInt(dateString.substring(11, 13))));
-            date.setText(dateBuilder.toString());
-
+            date.setText(dateString);
             if (data.isImage()) {
                 type.setImageResource(R.drawable.theta_data_img);
                 if (data.isFetched(ThetaObject.DataType.THUMBNAIL)) {
@@ -391,7 +381,6 @@ public class ThetaGalleryFragment extends Fragment {
                 try {  //Case m15
                     mUpdateList = device.fetchAllObjectList();
                 } catch (ThetaDeviceException ex) {
-                    ex.printStackTrace();
                     return;
                 }
             }

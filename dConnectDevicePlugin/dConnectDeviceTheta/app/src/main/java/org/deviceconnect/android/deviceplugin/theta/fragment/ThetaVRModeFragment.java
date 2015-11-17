@@ -306,11 +306,10 @@ public class ThetaVRModeFragment extends Fragment {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-
-                            if (mProgress != null) {
-                                mProgress.dismiss();
-                            }
-                            failSaveDialog();
+                        if (mProgress != null) {
+                            mProgress.dismiss();
+                        }
+                        failSaveDialog();
                         }
                     });
                 }

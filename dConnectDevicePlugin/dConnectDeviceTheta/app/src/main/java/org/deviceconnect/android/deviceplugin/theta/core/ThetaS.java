@@ -12,6 +12,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,6 +23,10 @@ class ThetaS extends AbstractThetaDevice {
     private static final String PARAM_RESULTS = "results";
 
     private static final String PARAM_ENTRIES = "entries";
+
+    private static final SimpleDateFormat BEFORE_FORMAT = new SimpleDateFormat("yyyy:MM:dd HH:mm:ssZ");
+
+    private static final SimpleDateFormat AFTER_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
     private OscClient mOscClient = new OscClient();
 
@@ -159,12 +165,22 @@ class ThetaS extends AbstractThetaDevice {
 
         private final OscEntry mEntry;
 
+        private final String mDateTime;
+
         private byte[] mThumbnail;
 
         private byte[] mMain;
 
         public ThetaObjectS(final OscEntry entry) {
             mEntry = entry;
+
+            String dateTime;
+            try {
+                dateTime = AFTER_FORMAT.format(BEFORE_FORMAT.parse(entry.getDateTime()));
+            } catch (ParseException e) {
+                dateTime = "";
+            }
+            mDateTime = dateTime;
         }
 
         @Override
@@ -248,7 +264,7 @@ class ThetaS extends AbstractThetaDevice {
 
         @Override
         public String getCreationTime() {
-            return mEntry.getDateTime();
+            return mDateTime;
         }
 
         @Override

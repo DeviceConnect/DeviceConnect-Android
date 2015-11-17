@@ -16,6 +16,8 @@ import com.theta360.lib.ptpip.eventlistener.PtpipEventListener;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -30,6 +32,10 @@ class ThetaM15 extends AbstractThetaDevice {
     private static final String BRAND_SAMSUNG = "samsung";
 
     private static final String MANUFACTURER_SAMSUNG = "samsung";
+
+    private static final SimpleDateFormat BEFORE_FORMAT = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
+
+    private static final SimpleDateFormat AFTER_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
     private final SocketFactory mSocketFactory;
 
@@ -264,7 +270,7 @@ class ThetaM15 extends AbstractThetaDevice {
 
         private final String mFilename;
 
-        private final String mDate;
+        private final String mDateTime;
 
         private final int mWidth;
 
@@ -277,9 +283,16 @@ class ThetaM15 extends AbstractThetaDevice {
         public ThetaObjectM15(final int handle, final String filename, final String date, final int width, final int height) {
             mObjectHandle = handle;
             mFilename = filename;
-            mDate = date;
             mWidth = width;
             mHeight = height;
+
+            String dateTime;
+            try {
+                dateTime = AFTER_FORMAT.format(BEFORE_FORMAT.parse(date));
+            } catch (ParseException e) {
+                dateTime = "";
+            }
+            mDateTime = dateTime;
         }
 
         protected int getHandle() {
@@ -349,7 +362,7 @@ class ThetaM15 extends AbstractThetaDevice {
 
         @Override
         public String getCreationTime() {
-            return mDate;
+            return mDateTime;
         }
 
         @Override

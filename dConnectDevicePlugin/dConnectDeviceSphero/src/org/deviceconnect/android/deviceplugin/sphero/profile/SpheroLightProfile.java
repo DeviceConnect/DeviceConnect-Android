@@ -6,15 +6,15 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero.profile;
 
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Bundle;
+
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.message.DConnectMessage;
-
-import android.content.Intent;
-import android.graphics.Color;
-import android.os.Bundle;
 
 /**
  * Lightプロファイル.
@@ -81,51 +81,21 @@ public class SpheroLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId, final Integer color, final Double brightness, final long[] flashing) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
+                                  final String lightId, final Integer color, final Double brightness,
+                                  final long[] flashing) {
+        return changeLight(response, serviceId, lightId, color, brightness, flashing);
+    }
 
-        DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
-        if (info == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-
-        synchronized (info) {
-            int brightnessRaw = MAX_BRIGHTNESS;
-            if (brightness != null) {
-                brightnessRaw = (int) (MAX_BRIGHTNESS * brightness);
-            }
-
-            int[] colors = convertColor(color);
-
-            if (COLOR_LED_LIGHT_ID.equals(lightId)) {
-                if (flashing != null) {
-                    SpheroManager.flashFrontLight(info, colors, flashing);
-                } else {
-                    info.setColor(colors[0], colors[1], colors[2]);
-                }
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else if (BACK_LED_LIGHT_ID.equals(lightId)) {
-                if (flashing != null) {
-                    SpheroManager.flashBackLight(info, brightnessRaw, flashing);
-                } else {
-                    float bf = brightnessRaw / (float) MAX_BRIGHTNESS;
-                    info.setBackBrightness(bf);
-                }
-                setResult(response, DConnectMessage.RESULT_OK);
-            } else {
-                MessageUtils.setInvalidRequestParameterError(response);
-            }
-        }
-        return true;
+    @Override
+    protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
+                                 final String lightId, final String name, final Integer color,
+                                 final Double brightness, final long[] flashing) {
+        return changeLight(response, serviceId, lightId, color, brightness, flashing);
     }
 
     @Override
     protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId) {
+                                    final String lightId) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -152,20 +122,79 @@ public class SpheroLightProfile extends LightProfile {
     }
 
     /**
+     * Change the color of the light.
+     * @param response response
+     * @param serviceId service id
+     * @param lightId light id
+     * @param color color
+     * @param brightness brightness(0.0〜1.0)
+     * @param flashing flashing
+     * @return true
+     */
+    private boolean changeLight(final Intent response, final String serviceId, final String lightId,
+                                final Integer color, final Double brightness, final long[] flashing) {
+        if (serviceId == null) {
+            MessageUtils.setEmptyServiceIdError(response);
+            return true;
+        }
+
+        DeviceInfo info = SpheroManager.INSTANCE.getDevice(serviceId);
+        if (info == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        synchronized (info) {
+            int brightnessRaw = MAX_BRIGHTNESS;
+            if (brightness != null) {
+                brightnessRaw = (int) (MAX_BRIGHTNESS * brightness);
+            }
+
+            int[] colors = convertColor(color, brightness);
+
+            if (COLOR_LED_LIGHT_ID.equals(lightId)) {
+                if (flashing != null) {
+                    SpheroManager.flashFrontLight(info, colors, flashing);
+                } else {
+                    info.setColor(colors[0], colors[1], colors[2]);
+                }
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else if (BACK_LED_LIGHT_ID.equals(lightId)) {
+                if (flashing != null) {
+                    SpheroManager.flashBackLight(info, brightnessRaw, flashing);
+                } else {
+                    float bf = brightnessRaw / (float) MAX_BRIGHTNESS;
+                    info.setBackBrightness(bf);
+                }
+                setResult(response, DConnectMessage.RESULT_OK);
+            } else {
+                MessageUtils.setInvalidRequestParameterError(response);
+            }
+        }
+        return true;
+    }
+
+    /**
      * Convert Integer to int[].
      * @param color color
+     * @paarm brightness brightness
      * @return int[]
      */
-    private int[] convertColor(final Integer color) {
+    private int[] convertColor(final Integer color, final Double brightness) {
+        double b = 1.0;
+        if (brightness != null) {
+            b = brightness;
+        }
+
         int[] colors = new int[3];
         if (color != null) {
-            colors[0] = Color.red(color);
-            colors[1] = Color.green(color);
-            colors[2] = Color.blue(color);
+            colors[0] = (int) (Color.red(color) * b);
+            colors[1] = (int) (Color.green(color) * b);
+            colors[2] = (int) (Color.blue(color) * b);
         } else {
-            colors[0] = 0xFF;
-            colors[1] = 0xFF;
-            colors[2] = 0xFF;
+            colors[0] = (int) (0xFF * b);
+            colors[1] = (int) (0xFF * b);
+            colors[2] = (int) (0xFF * b);
         }
         return colors;
     }

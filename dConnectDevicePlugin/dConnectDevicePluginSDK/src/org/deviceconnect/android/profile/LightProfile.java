@@ -6,14 +6,14 @@ http://opensource.org/licenses/mit-license.php
 */
 package org.deviceconnect.android.profile;
 
-import java.util.List;
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Bundle;
 
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.LightProfileConstants;
 
-import android.content.Intent;
-import android.graphics.Color;
-import android.os.Bundle;
+import java.util.List;
 
 /**
  * Light プロファイル. 
@@ -835,7 +835,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * レスポンスにライト情報一覧を設定する.
      * 
-     * @param response レスポンスデータ
+     * @param group レスポンスデータ
      * @param lights ライト情報一覧
      */
     public static final void setLights(final Bundle group, final List<Bundle> lights) {
@@ -847,7 +847,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * レスポンスにライト情報一覧を設定する.
      * 
-     * @param response レスポンスデータ
+     * @param group レスポンスデータ
      * @param lights ライト情報一覧
      */
     public static final void setLights(final Bundle group, final Bundle[] lights) {
@@ -867,7 +867,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * ライト情報にライトIDを設定する.
      * 
-     * @param response レスポンスデータ
+     * @param light レスポンスデータ
      * @param lightId ライトID
      */
     public static final void setLightId(final Bundle light, final String lightId) {

@@ -215,6 +215,8 @@ public class ThetaGalleryFragment extends Fragment {
 
         if (mDevice != null) {
             mRecconectLayout.setVisibility(View.GONE);
+            String ssId = mDevice.getName();
+            getActivity().getActionBar().setTitle(ssId);
             if (mRecconectLayout.isEnabled()
                     && mUpdateList.size() == 0) {
                 loadThetaData();

@@ -33,7 +33,7 @@
         android:layout_marginTop="@dimen/gallery_thumb_top"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="17dp"
         android:background="@drawable/gallery_thumb_footer">
         <LinearLayout
             android:layout_width="match_parent"

@@ -18,8 +18,8 @@
         android:id="@+id/theta_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:verticalSpacing="10dp"
-        android:horizontalSpacing="10dp"
+        android:verticalSpacing="20dp"
+        android:horizontalSpacing="20dp"
         android:layout_marginLeft="@dimen/gallery_adapter_padding"
         android:layout_marginRight="@dimen/gallery_adapter_padding"
         android:numColumns="2" >

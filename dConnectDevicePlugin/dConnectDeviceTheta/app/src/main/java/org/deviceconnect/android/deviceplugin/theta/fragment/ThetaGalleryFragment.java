@@ -195,18 +195,30 @@ public class ThetaGalleryFragment extends Fragment {
 
 
     @Override
-    public void onPause() {
-        super.onPause();
+    public void onDestroy() {
+        super.onDestroy();
         if (mDownloadTask != null) {
             mDownloadTask.cancel(true);
             mDownloadTask = null;
+        }
+        if (mProgress != null) {
+            mProgress.dismiss();
+            mProgress = null;
         }
     }
 
     /** Enabled Reconnect View.*/
     private void enableReconnectView() {
+        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
+        ThetaDeviceManager deviceMgr = app.getDeviceManager();
+        mDevice = deviceMgr.getConnectedDevice();
+
         if (mDevice != null) {
             mRecconectLayout.setVisibility(View.GONE);
+            if (mRecconectLayout.isEnabled()
+                    && mUpdateList.size() == 0) {
+                loadThetaData();
+            }
         } else {
             mRecconectLayout.setVisibility(View.VISIBLE);
         }

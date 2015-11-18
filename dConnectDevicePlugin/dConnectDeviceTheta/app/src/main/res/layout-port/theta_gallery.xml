@@ -24,6 +24,7 @@
         android:layout_height="match_parent"
         android:layout_marginLeft="@dimen/gallery_adapter_padding"
         android:layout_marginRight="@dimen/gallery_adapter_padding"
+        android:divider="@null"
         >
     </ListView>
     <LinearLayout

@@ -10,7 +10,7 @@
         android:layout_height="@dimen/gallery_thumb_size"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="@dimen/gallery_top_margin"
         >
 
         <ImageView
@@ -24,7 +24,7 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_gravity="center"
-            android:layout_margin="40dp"
+            android:layout_margin="30dp"
             android:visibility="visible"/>
     </FrameLayout>
     <LinearLayout

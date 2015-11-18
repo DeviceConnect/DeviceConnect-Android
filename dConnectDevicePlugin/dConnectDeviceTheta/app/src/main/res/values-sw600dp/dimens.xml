@@ -10,4 +10,6 @@
     <dimen name="gallery_thumb_size">300dp</dimen>
     <dimen name="gallery_thumb_top">260dp</dimen>
     <dimen name="gallery_adapter_padding">60dp</dimen>
+    <dimen name="gallery_top_margin">20dp</dimen>
+
 </resources>

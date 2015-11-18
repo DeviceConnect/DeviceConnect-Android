@@ -7,8 +7,9 @@
 
     <dimen name="text_size_setting_device_name">24sp</dimen>
     <dimen name="text_size_setting_device_address">16sp</dimen>
-    <dimen name="gallery_thumb_size">170dp</dimen>
-    <dimen name="gallery_thumb_top">150dp</dimen>
-    <dimen name="gallery_adapter_padding">10dp</dimen>
-    <dimen name="gallery_top_margin">10dp</dimen>
+    <dimen name="gallery_thumb_size">200dp</dimen>
+    <dimen name="gallery_thumb_top">160dp</dimen>
+    <dimen name="gallery_adapter_padding">60dp</dimen>
+    <dimen name="gallery_top_margin">20dp</dimen>
+
 </resources>

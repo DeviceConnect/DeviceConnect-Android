@@ -68,6 +68,11 @@ public class ThetaShootingModeFragment extends Fragment {
 
     /** Theta Connect Tasker.*/
     private DownloadThetaDataTask mShootingTasker;
+    /**
+     * Progress.
+     */
+    private ThetaDialogFragment mProgress;
+
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -159,6 +164,12 @@ public class ThetaShootingModeFragment extends Fragment {
                         if (mShootingTasker != null) {
                             return;
                         }
+                        if (mProgress == null) {
+                            mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.shooting));
+                            mProgress.show(getActivity().getFragmentManager(),
+                                    "fragment_dialog");
+                        }
+
                         mShootingTasker = new DownloadThetaDataTask();
                         ShootingTask shooting = new ShootingTask();
                         mShootingTasker.execute(shooting);
@@ -181,13 +192,16 @@ public class ThetaShootingModeFragment extends Fragment {
                 mDevice.takePicture();
                 mIsSuccess = true;
             } catch (ThetaDeviceException e) {
-                e.printStackTrace();
                 mIsSuccess = false;
             }
         }
 
         @Override
         public void onPostExecute() {
+            if (mProgress != null) {
+                mProgress.dismiss();
+                mProgress = null;
+            }
             if (!mIsSuccess) {
                 // TODO Error Reason
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",

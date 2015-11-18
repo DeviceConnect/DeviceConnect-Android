@@ -50,7 +50,7 @@ public class ThetaGalleryFragment extends Fragment {
     /**
      * Item per page.
      */
-    private static final int PER_PAGE = 20;
+    private static final int PER_PAGE = 4;
 
     /**
      * Theta's Gallery.
@@ -130,10 +130,6 @@ public class ThetaGalleryFragment extends Fragment {
         setHasOptionsMenu(true);
 
         mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), new ArrayList<ThetaObject>());
-        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
-        ThetaDeviceManager deviceMgr = app.getDeviceManager();
-        mDevice = deviceMgr.getConnectedDevice();
-
         loadThetaData();
     }
     @Override
@@ -181,7 +177,6 @@ public class ThetaGalleryFragment extends Fragment {
             }
         });
         mStatusView = (TextView) mRootView.findViewById(R.id.theta_no_data);
-        mStatusView.setVisibility(View.VISIBLE);
         initListView(mRootView);
         return mRootView;
     }
@@ -189,10 +184,12 @@ public class ThetaGalleryFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
-        ThetaDeviceManager deviceMgr = app.getDeviceManager();
-        mDevice = deviceMgr.getConnectedDevice();
         enableReconnectView();
+        if (mUpdateList.size() > 0) {
+            mStatusView.setVisibility(View.GONE);
+        } else {
+            mStatusView.setVisibility(View.VISIBLE);
+        }
     }
 
 
@@ -210,9 +207,6 @@ public class ThetaGalleryFragment extends Fragment {
     private void enableReconnectView() {
         if (mDevice != null) {
             mRecconectLayout.setVisibility(View.GONE);
-            if (mRecconectLayout.isEnabled()) {
-                loadThetaData();
-            }
         } else {
             mRecconectLayout.setVisibility(View.VISIBLE);
         }
@@ -272,17 +266,40 @@ public class ThetaGalleryFragment extends Fragment {
                 return true;
             }
         });
+        list.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(final AbsListView absListView, final int i) {
+
+            }
+
+            @Override
+            public void onScroll(final AbsListView absListView,
+                                 final int firstVisibleItem,
+                                 final int visibleItemCount,
+                                 final int totalItemCount) {
+                if (mUpdateList.size() > firstVisibleItem
+                        && !mUpdateList.get(firstVisibleItem).isFetched(ThetaObject.DataType.THUMBNAIL)) {
+                    ThetaThumbTask thumbTask = new ThetaThumbTask(firstVisibleItem + PER_PAGE);
+                    DownloadThetaDataTask downloader = new DownloadThetaDataTask();
+                    downloader.execute(thumbTask);
+                }
+            }
+        });
     }
 
     /**
      * Load Theta Datas.
      */
     private void loadThetaData() {
+        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
+        ThetaDeviceManager deviceMgr = app.getDeviceManager();
+        mDevice = deviceMgr.getConnectedDevice();
+
         if (mDevice != null) {
             String ssId = mDevice.getName();
             getActivity().getActionBar().setTitle(ssId);
             if (mProgress == null) {
-                mProgress = ThetaDialogFragment.newInstance("THETA", "読み込み中...");
+                mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.loading));
                 mProgress.show(getActivity().getFragmentManager(),
                         "fragment_dialog");
             }
@@ -332,19 +349,19 @@ public class ThetaGalleryFragment extends Fragment {
             TextView date = (TextView) cv.findViewById(R.id.data_date);
             ThetaLoadingProgressView progress = (ThetaLoadingProgressView)
                     cv.findViewById(R.id.theta_thumb_progress);
-
+            thumb.setImageResource(R.drawable.theta_gallery_thumb);
+            progress.setVisibility(View.VISIBLE);
             ThetaObject data = getItem(position);
             String dateString = data.getCreationTime();
             date.setText(dateString);
             if (data.isImage()) {
                 type.setImageResource(R.drawable.theta_data_img);
                 if (data.isFetched(ThetaObject.DataType.THUMBNAIL)) {
-                    progress.setVisibility(View.GONE);
                     Bitmap b = BitmapFactory.decodeByteArray(data.getThumbnailData(), 0, data.getThumbnailData().length);
                     thumb.setImageBitmap(b);
+                    progress.setVisibility(View.GONE);
                 }
             } else {
-                thumb.setImageResource(R.drawable.theta_gallery_thumb);
                 type.setImageResource(R.drawable.theta_data_mv);
                 progress.setVisibility(View.GONE);
             }
@@ -361,7 +378,7 @@ public class ThetaGalleryFragment extends Fragment {
 
         @Override
         public synchronized void doInBackground() {
-            try {  //Case m15
+            try {
                 mUpdateList = mDevice.fetchAllObjectList();
             } catch (ThetaDeviceException ex) {
                 return;
@@ -386,9 +403,10 @@ public class ThetaGalleryFragment extends Fragment {
                 mProgress = null;
             }
             mLoadingView.setVisibility(View.GONE);
-            ThetaThumbTask thumbTask = new ThetaThumbTask();
+            ThetaThumbTask thumbTask = new ThetaThumbTask(PER_PAGE); //Default
             DownloadThetaDataTask downloader = new DownloadThetaDataTask();
             downloader.execute(thumbTask);
+            enableReconnectView();
         }
     }
 
@@ -397,12 +415,27 @@ public class ThetaGalleryFragment extends Fragment {
      */
     private class ThetaThumbTask implements DownloadThetaDataTask.ThetaDownloadListener {
 
+        /** Load index. */
+        private int mIndex;
+
+        /**
+         * Constructor.
+         * @param index index
+          */
+        ThetaThumbTask(final int index) {
+            mIndex = index;
+        }
+
         @Override
         public synchronized void doInBackground() {
-            for (ThetaObject object : mUpdateList) {
+            int loadingIndex = mIndex;
+            if (loadingIndex > mUpdateList.size()) {
+                loadingIndex = mUpdateList.size();
+            }
+            for (int i = 0; i < loadingIndex; i++) {
                 try {
-                    if (!object.isFetched(ThetaObject.DataType.THUMBNAIL)) {
-                        object.fetch(ThetaObject.DataType.THUMBNAIL);
+                    if (!mGalleryAdapter.getItem(i).isFetched(ThetaObject.DataType.THUMBNAIL)) {
+                        mGalleryAdapter.getItem(i).fetch(ThetaObject.DataType.THUMBNAIL);
                         try {
                             Thread.sleep(100);  // Delay
                         } catch (InterruptedException e) {

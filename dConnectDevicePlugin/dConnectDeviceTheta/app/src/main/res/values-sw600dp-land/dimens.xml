@@ -9,5 +9,5 @@
     <dimen name="text_size_setting_device_address">16sp</dimen>
     <dimen name="gallery_thumb_size">200dp</dimen>
     <dimen name="gallery_thumb_top">160dp</dimen>
-    <dimen name="gallery_adapter_padding">5dp</dimen>
+    <dimen name="gallery_adapter_padding">60dp</dimen>
 </resources>

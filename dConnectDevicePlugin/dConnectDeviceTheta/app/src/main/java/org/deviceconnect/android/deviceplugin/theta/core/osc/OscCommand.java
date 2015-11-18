@@ -56,6 +56,10 @@ public class OscCommand {
             return mError == null;
         }
 
+        public int getHttpStatusCode() {
+            return mBody.getStatusCode();
+        }
+
         public Error getError() {
             return mError;
         }
@@ -90,7 +94,7 @@ public class OscCommand {
                 JSONObject error = json.getJSONObject("error");
                 String code = error.getString("code");
                 Error errorCode = Error.parse(code);
-                return new Result(errorCode, null);
+                return new Result(errorCode, response);
             }
         }
     }

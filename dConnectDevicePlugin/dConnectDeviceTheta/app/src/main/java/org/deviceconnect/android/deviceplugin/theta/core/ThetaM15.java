@@ -98,9 +98,9 @@ class ThetaM15 extends AbstractThetaDevice {
             }
             return result;
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (ThetaException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
         }
     }
 
@@ -159,11 +159,11 @@ class ThetaM15 extends AbstractThetaDevice {
                 throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
             }
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (ThetaException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
         } catch (InterruptedException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
         }
     }
 
@@ -181,9 +181,9 @@ class ThetaM15 extends AbstractThetaDevice {
             }
             initiator.initiateOpenCapture();
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (ThetaException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
         }
     }
 
@@ -197,9 +197,9 @@ class ThetaM15 extends AbstractThetaDevice {
             }
             initiator.terminateOpenCapture();
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (ThetaException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
         }
     }
 
@@ -208,9 +208,9 @@ class ThetaM15 extends AbstractThetaDevice {
         try {
             return getInitiator().getBatteryLevel().getValue() / 100d;
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (ThetaException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
         }
     }
 
@@ -316,9 +316,9 @@ class ThetaM15 extends AbstractThetaDevice {
                         throw new IllegalArgumentException();
                 }
             } catch (IOException e) {
-                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+                throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
             } catch (ThetaException e) {
-                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
             }
         }
 
@@ -340,9 +340,9 @@ class ThetaM15 extends AbstractThetaDevice {
                 getInitiator().deleteObject(getHandle(), PtpipInitiator.PARAMETER_VALUE_DEFAULT);
                 PtpipInitiator.close();
             } catch (IOException e) {
-                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+                throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
             } catch (ThetaException e) {
-                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
             }
         }
 

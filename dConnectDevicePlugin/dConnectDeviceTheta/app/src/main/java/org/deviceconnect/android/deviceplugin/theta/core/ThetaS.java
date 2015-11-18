@@ -67,9 +67,9 @@ class ThetaS extends AbstractThetaDevice {
             }
             return objects;
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
         }
     }
 
@@ -92,9 +92,9 @@ class ThetaS extends AbstractThetaDevice {
             mOscClient.closeSession(session.getId());
             return null; // TODO Implement.
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
         }
     }
 
@@ -108,9 +108,9 @@ class ThetaS extends AbstractThetaDevice {
             mSessionId = session.getId();
             mOscClient.startCapture(mSessionId);
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
         }
     }
 
@@ -123,9 +123,9 @@ class ThetaS extends AbstractThetaDevice {
             mOscClient.stopCapture(mSessionId);
             mSessionId = null;
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
         }
     }
 
@@ -135,9 +135,9 @@ class ThetaS extends AbstractThetaDevice {
             OscState state = mOscClient.state();
             return state.getBatteryLevel();
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
         }
     }
 
@@ -153,9 +153,28 @@ class ThetaS extends AbstractThetaDevice {
             OscCommand.Result result = mOscClient.getLivePreview(session.getId());
             return result.getInputStream();
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+            throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
+        }
+    }
+
+    private void throwExceptionIfError(final OscCommand.Result result) throws ThetaDeviceException {
+        if (result.isSuccess()) {
+            return;
+        }
+        OscCommand.Error error = result.getError();
+        String code = error.getCode();
+        int status = result.getHttpStatusCode();
+        switch (status) {
+            case 400:
+                throw new ThetaDeviceException(ThetaDeviceException.BAD_REQUEST, code);
+            case 403:
+                throw new ThetaDeviceException(ThetaDeviceException.FORBIDDEN, code);
+            case 503:
+                throw new ThetaDeviceException(ThetaDeviceException.UNAVAILABLE, code);
+            default:
+                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
         }
     }
 
@@ -213,6 +232,7 @@ class ThetaS extends AbstractThetaDevice {
                         } else {
                             result = mOscClient.getVideo(mEntry.getUri(), true);
                         }
+                        throwExceptionIfError(result);
                         mThumbnail = result.getBytes();
                     }    break;
                     case MAIN: {
@@ -222,15 +242,16 @@ class ThetaS extends AbstractThetaDevice {
                         } else {
                             result = mOscClient.getVideo(mEntry.getUri(), false);
                         }
+                        throwExceptionIfError(result);
                         mMain = result.getBytes();
                     }    break;
                     default:
                         throw new IllegalArgumentException();
                 }
             } catch (IOException e) {
-                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+                throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
             } catch (JSONException e) {
-                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+                throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
             }
         }
 
@@ -251,9 +272,9 @@ class ThetaS extends AbstractThetaDevice {
             try {
                 mOscClient.delete(mEntry.getUri());
             } catch (IOException e) {
-                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+                throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
             } catch (JSONException e) {
-                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
+                throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
             }
         }
 

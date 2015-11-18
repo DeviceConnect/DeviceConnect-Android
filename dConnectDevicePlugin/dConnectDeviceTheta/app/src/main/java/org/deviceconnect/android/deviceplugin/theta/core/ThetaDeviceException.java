@@ -15,6 +15,14 @@ public class ThetaDeviceException extends Exception {
 
     public static final int NOT_SUPPORTED_FEATURE = 5;
 
+    public static final int INVALID_RESPONSE = 6;
+
+    public static final int IO_ERROR = 7;
+
+    public static final int FORBIDDEN = 8;
+
+    public static final int UNAVAILABLE = 9;
+
     private final int mReason;
 
     public int getReason() {
@@ -23,6 +31,16 @@ public class ThetaDeviceException extends Exception {
 
     ThetaDeviceException(final int reason) {
         super();
+        mReason = reason;
+    }
+
+    ThetaDeviceException(final int reason, final Throwable e) {
+        super(e);
+        mReason = reason;
+    }
+
+    ThetaDeviceException(final int reason, final String message) {
+        super(message);
         mReason = reason;
     }
 

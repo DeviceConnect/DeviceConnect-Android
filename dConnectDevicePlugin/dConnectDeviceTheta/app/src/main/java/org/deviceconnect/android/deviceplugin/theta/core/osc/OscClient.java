@@ -84,11 +84,12 @@ public class OscClient {
         executeCommand("camera._stopCapture", params);
     }
 
-    public void delete(final String fileUri) throws IOException, JSONException {
+    public OscCommand.Result delete(final String fileUri) throws IOException, JSONException {
         JSONObject params = new JSONObject();
         params.put("fileUri", fileUri);
 
-        executeCommand("camera.delete", params);
+        HttpResponse response = executeCommand("camera.delete", params);
+        return OscCommand.Result.parse(response);
     }
 
     public OscCommand.Result getImage(final String fileUri, final boolean isThumbnail) throws IOException, JSONException {

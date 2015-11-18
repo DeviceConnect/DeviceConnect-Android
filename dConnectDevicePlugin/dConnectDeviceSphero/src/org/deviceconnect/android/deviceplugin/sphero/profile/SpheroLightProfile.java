@@ -168,7 +168,7 @@ public class SpheroLightProfile extends LightProfile {
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
             } else {
-                MessageUtils.setInvalidRequestParameterError(response);
+                MessageUtils.setInvalidRequestParameterError(response, "lightId is invalid.");
             }
         }
         return true;

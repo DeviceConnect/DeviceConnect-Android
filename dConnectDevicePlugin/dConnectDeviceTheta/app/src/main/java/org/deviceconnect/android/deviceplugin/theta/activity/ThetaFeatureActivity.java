@@ -13,7 +13,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.KeyEvent;
 
-import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaShootingModeFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaVRModeFragment;
 
@@ -108,14 +107,6 @@ public class ThetaFeatureActivity extends FragmentActivity {
         t.addToBackStack(null);
         t.commit();
 
-    }
-
-    /**
-     * Return ThetaDeviceApplication.
-     * @return IRKitApplication
-     */
-    public ThetaDeviceApplication getIRKitApplication() {
-        return (ThetaDeviceApplication) getApplication();
     }
 
 }

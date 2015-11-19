@@ -20,6 +20,8 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -60,6 +62,12 @@ public class ThetaVRModeFragment extends Fragment {
     /** THETA Device Plug-in apk limit size. */
     private static final int LIMIT_APK_SIZE = 100;
 
+    /** SphericalView Max fov.*/
+    private static final int MAX_FOV = 90;
+
+    /** SphericalView Min fov.*/
+    private static final int MIN_FOV = 45;
+
     /** VR Mode Left Layout. */
     private RelativeLayout mLeftLayout;
 
@@ -90,6 +98,11 @@ public class ThetaVRModeFragment extends Fragment {
 
     /** Default VR. */
     private int mDefaultId;
+
+    /** Scale Gesture.*/
+    private ScaleGestureDetector mScaleDetector;
+    /** Scale factor. */
+    private float mScaleFactor = 90.0f;
 
     /** VR Change toggle button's listener.*/
     private CompoundButton.OnCheckedChangeListener mVRChangeToggleListener
@@ -157,17 +170,44 @@ public class ThetaVRModeFragment extends Fragment {
         mLeftLayout = (RelativeLayout) rootView.findViewById(R.id.left_ui);
         mRightLayout = (RelativeLayout) rootView.findViewById(R.id.right_ui);
         mSphereView = (SphericalImageView) rootView.findViewById(R.id.vr_view);
-        mApi = new SphericalViewApi(getActivity());
+        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
+
+        mApi = app.getSphericalViewApi();
         mSphereView.setViewApi(mApi);
-        mSphereView.setOnClickListener(new View.OnClickListener() {
+
+        mSphereView.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View view) {
-                mSphereView.resetCameraDirection();
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (motionEvent.getPointerCount() == 1) {
+                    mSphereView.resetCameraDirection();
+                } else {
+                    mScaleDetector.onTouchEvent(motionEvent);
+                }
+                return true;
             }
         });
-
         init3DButtons(rootView);
+
         enableView();
+        mScaleDetector = new ScaleGestureDetector(getActivity(),
+                new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                    @Override
+                    public boolean onScale(final ScaleGestureDetector detector) {
+                        mScaleFactor /= detector.getScaleFactor();
+                        double scale =  mScaleFactor;
+                        if (scale > MAX_FOV) {
+                            scale = MAX_FOV;
+                            mScaleFactor = MAX_FOV;
+                        }
+                        if (scale < MIN_FOV) {
+                            scale = MIN_FOV;
+                            mScaleFactor = MIN_FOV;
+                        }
+                        mSphereView.setFOV(scale);
+
+                        return true;
+                    }
+                });
         return rootView;
     }
 

@@ -11,6 +11,8 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,6 +20,7 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -42,6 +45,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
 import org.deviceconnect.android.provider.FileManager;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -67,6 +71,14 @@ public class ThetaVRModeFragment extends Fragment {
 
     /** SphericalView Min fov.*/
     private static final int MIN_FOV = 45;
+    /**
+     * Cache size of main data.
+     *
+     * 1 main datas will be cached.
+     *
+     * Unit: byte.
+     */
+    private static final int DATA_CACHE_SIZE = (200 * 1024 * 1024);
 
     /** VR Mode Left Layout. */
     private RelativeLayout mLeftLayout;
@@ -84,13 +96,18 @@ public class ThetaVRModeFragment extends Fragment {
     private SphericalImageView mSphereView;
     /** SphericalViewApi. */
     private SphericalViewApi mApi;
-    /** SphericalView byte. */
-    private byte[] mSphericalBinary;
+
     /** Stereo Flag. */
     private boolean mIsStereo = false;
     /** Thread Manager. */
     private ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
-
+    /** Theta's picture data cache. */
+    private LruCache<String, Bitmap> mPicDataCahce = new LruCache<String, Bitmap>(DATA_CACHE_SIZE) {
+        @Override
+        protected int sizeOf(final String key, final Bitmap value) {
+            return value.getByteCount() / 1024;
+        }
+    };
     /** Progress. */
     private ThetaDialogFragment mProgress;
     /** Task. */
@@ -264,6 +281,7 @@ public class ThetaVRModeFragment extends Fragment {
             mRightLayout.setVisibility(View.GONE);
         }
     }
+
 
     /**
      * Init VR Buttons.
@@ -443,17 +461,28 @@ public class ThetaVRModeFragment extends Fragment {
      * Donwload of data.
      */
     private class ThetaMainData implements DownloadThetaDataTask.ThetaDownloadListener {
-
+        /** Theta Device. */
+        private ThetaDevice mDevice;
+        /** Theta Object. */
+        private ThetaObject mObj;
+        /** SphericalView byte. */
+        private Bitmap mSphericalBinary;
         @Override
         public synchronized void doInBackground() {
             ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
             ThetaDeviceManager deviceMgr = app.getDeviceManager();
-            ThetaDevice device = deviceMgr.getConnectedDevice();
-            if (device != null) {
+            mDevice = deviceMgr.getConnectedDevice();
+            if (mDevice != null) {
                 try {
-                    List<ThetaObject> list = device.fetchAllObjectList();
-                    list.get(mDefaultId).fetch(ThetaObject.DataType.MAIN);
-                    mSphericalBinary = list.get(mDefaultId).getMainData();
+                    List<ThetaObject> list = mDevice.fetchAllObjectList();
+                    mObj = list.get(mDefaultId);
+                    mSphericalBinary = mPicDataCahce.get(mObj.getFileName());
+                    if (mSphericalBinary == null) {
+                        mObj.fetch(ThetaObject.DataType.MAIN);
+                        byte[] b = mObj.getMainData();
+                        mSphericalBinary = BitmapFactory.decodeByteArray(b, 0, b.length);
+                        mObj.clear(ThetaObject.DataType.MAIN);
+                    }
                 } catch (ThetaDeviceException e) {
                     e.printStackTrace();
                     mSphericalBinary = null;
@@ -480,9 +509,15 @@ public class ThetaVRModeFragment extends Fragment {
                             }
                         });
             } else {
+                if (mDevice != null && mObj != null) {
+                    mPicDataCahce.put(mObj.getFileName(),
+                            mSphericalBinary);
+                }
                 if (mSphereView != null) {
                     mSphereView.onResume();
-                    mSphereView.start(mSphericalBinary);
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    mSphericalBinary.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+                    mSphereView.start(bos.toByteArray());
                 }
             }
 

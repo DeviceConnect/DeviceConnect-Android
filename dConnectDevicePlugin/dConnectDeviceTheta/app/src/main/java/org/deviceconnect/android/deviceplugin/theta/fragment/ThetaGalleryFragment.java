@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -32,6 +33,7 @@ import org.deviceconnect.android.deviceplugin.theta.activity.ThetaDeviceSettings
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaFeatureActivity;
 import org.deviceconnect.android.deviceplugin.theta.activity.view.ThetaLoadingProgressView;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListener;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
@@ -45,7 +47,7 @@ import java.util.List;
  *
  * @author NTT DOCOMO, INC.
  */
-public class ThetaGalleryFragment extends Fragment {
+public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventListener {
 
     /**
      * Cache size of thumbnail.
@@ -54,7 +56,7 @@ public class ThetaGalleryFragment extends Fragment {
      *
      * Unit: byte.
      */
-    private static final int THUMBNAIL_CACHE_SIZE = (3 * 1024 * 1024) * 100;
+    private static final int THUMBNAIL_CACHE_SIZE = (3 * 1024) * 100;
 
     /**
      * Theta's Gallery.
@@ -104,10 +106,11 @@ public class ThetaGalleryFragment extends Fragment {
     /**
      * Singleton.
      */
-    public static ThetaGalleryFragment newInstance() {
-        return new ThetaGalleryFragment();
+    public static ThetaGalleryFragment newInstance(final ThetaDeviceManager deviceMgr) {
+        ThetaGalleryFragment fragment = new ThetaGalleryFragment();
+        deviceMgr.registerDeviceEventListener(fragment);
+        return fragment;
     }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -118,6 +121,7 @@ public class ThetaGalleryFragment extends Fragment {
         mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), new ArrayList<ThetaObject>());
         loadThetaData();
     }
+
     @Override
     public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
         menu.clear();
@@ -196,6 +200,18 @@ public class ThetaGalleryFragment extends Fragment {
         if (mProgress != null) {
             mProgress.dismiss();
             mProgress = null;
+        }
+    }
+
+    @Override
+    public void onConnected(final ThetaDevice device) {
+    }
+
+    @Override
+    public void onDisconnected(final ThetaDevice device) {
+        if (mDevice != null && mDevice.getName().equals(device.getName())) {
+            mDevice = null;
+            showSettingsActivity();
         }
     }
 
@@ -294,11 +310,19 @@ public class ThetaGalleryFragment extends Fragment {
             mDownloadTask = new DownloadThetaDataTask();
             mDownloadTask.execute(info);
         } else {
-            Toast.makeText(getActivity(), R.string.camera_must_connect, Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent();
-            intent.setClass(getActivity(), ThetaDeviceSettingsActivity.class);
-            startActivity(intent);
+            showSettingsActivity();
         }
+    }
+
+    private void showSettingsActivity() {
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        Toast.makeText(activity, R.string.camera_must_connect, Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent();
+        intent.setClass(activity, ThetaDeviceSettingsActivity.class);
+        startActivity(intent);
     }
 
     /**
@@ -467,15 +491,16 @@ public class ThetaGalleryFragment extends Fragment {
 
         @Override
         public synchronized void onPostExecute() {
+            ImageView thumbView = mHolder.mThumbnail;
+            ThetaLoadingProgressView loadingView = mHolder.mLoading;
+            if (!mTag.equals(thumbView.getTag())) {
+                return;
+            }
             if (mThumbnail != null) {
                 mThumbnailCache.put(mObj.getFileName(), mThumbnail);
-                ImageView thumbView = mHolder.mThumbnail;
-                ThetaLoadingProgressView loadingView = mHolder.mLoading;
-                if (mTag.equals(thumbView.getTag())) {
-                    thumbView.setImageBitmap(mThumbnail);
-                    loadingView.setVisibility(View.GONE);
-                }
+                thumbView.setImageBitmap(mThumbnail);
             }
+            loadingView.setVisibility(View.GONE);
         }
     }
 

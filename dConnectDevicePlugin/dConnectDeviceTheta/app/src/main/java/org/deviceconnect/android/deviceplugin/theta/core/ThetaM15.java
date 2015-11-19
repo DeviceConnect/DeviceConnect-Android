@@ -306,11 +306,9 @@ class ThetaM15 extends AbstractThetaDevice {
                     case THUMBNAIL:
                         PtpObject obj = getInitiator().getThumb(getHandle());
                         mThumbnail = obj.getDataObject();
-                        PtpipInitiator.close();
                         break;
                     case MAIN:
                         mMain = getInitiator().getObject(getHandle());
-                        PtpipInitiator.close();
                         break;
                     default:
                         throw new IllegalArgumentException();
@@ -319,6 +317,12 @@ class ThetaM15 extends AbstractThetaDevice {
                 throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
             } catch (ThetaException e) {
                 throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
+            } finally {
+                try {
+                    PtpipInitiator.close();
+                } catch (ThetaException e) {
+                    e.printStackTrace();
+                }
             }
         }
 

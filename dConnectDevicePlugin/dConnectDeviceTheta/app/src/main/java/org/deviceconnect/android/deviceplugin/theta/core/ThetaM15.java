@@ -19,6 +19,8 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
@@ -39,12 +41,24 @@ class ThetaM15 extends AbstractThetaDevice {
 
     private final SocketFactory mSocketFactory;
 
+    private final Comparator<ThetaObject> mComparator = new Comparator<ThetaObject>() {
+
+        @Override
+        public int compare(final ThetaObject o1, final ThetaObject o2) {
+            Long t1 = new Long(o1.getCreationTimeWithUnixTime());
+            Long t2 = new Long(o2.getCreationTimeWithUnixTime());
+            return t2.compareTo(t1);
+        }
+
+    };
+
     ThetaM15(final Context context, final String name) {
         super(name);
         mSocketFactory = getWifiSocketFactory(context);
     }
 
     private PtpipInitiator getInitiator() throws ThetaException, IOException {
+        // TODO Null check for mSocketFactory.
         return new PtpipInitiator(mSocketFactory, HOST);
     }
 
@@ -96,6 +110,8 @@ class ThetaM15 extends AbstractThetaDevice {
                     result.add(object);
                 }
             }
+            Collections.sort(result, mComparator);
+
             return result;
         } catch (IOException e) {
             try {
@@ -282,6 +298,8 @@ class ThetaM15 extends AbstractThetaDevice {
 
         private final String mDateTime;
 
+        private long mDateTimeUnix;
+
         private final int mWidth;
 
         private final int mHeight;
@@ -299,8 +317,10 @@ class ThetaM15 extends AbstractThetaDevice {
             String dateTime;
             try {
                 dateTime = AFTER_FORMAT.format(BEFORE_FORMAT.parse(date));
+                mDateTimeUnix = AFTER_FORMAT.parse(dateTime).getTime();
             } catch (ParseException e) {
                 dateTime = "";
+                mDateTimeUnix = 0;
             }
             mDateTime = dateTime;
         }
@@ -371,6 +391,11 @@ class ThetaM15 extends AbstractThetaDevice {
         @Override
         public String getCreationTime() {
             return mDateTime;
+        }
+
+        @Override
+        public long getCreationTimeWithUnixTime() {
+            return mDateTimeUnix;
         }
 
         @Override

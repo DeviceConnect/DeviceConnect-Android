@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -188,6 +189,8 @@ class ThetaS extends AbstractThetaDevice {
 
         private final String mDateTime;
 
+        private final long mDateTimeUnix;
+
         private byte[] mThumbnail;
 
         private byte[] mMain;
@@ -195,30 +198,31 @@ class ThetaS extends AbstractThetaDevice {
         public ThetaObjectS(final OscEntry entry) {
             mEntry = entry;
 
-            String dateTime = parseDateWithTimezone(entry.getDateTime());
-            if (dateTime == null) {
-                dateTime = parseDateWithoutTimezone(entry.getDateTime());
-            }
-            if (dateTime == null) {
-                dateTime = "";
-            }
-            mDateTime = dateTime;
-        }
-
-        private String parseDateWithTimezone(final String dateTime) {
-            try {
-                return AFTER_FORMAT.format(BEFORE_FORMAT_WITH_TIMEZONE.parse(dateTime));
-            } catch (ParseException e) {
-                return null;
+            Date date = parseDate(entry.getDateTime());
+            if (date != null) {
+                mDateTime = AFTER_FORMAT.format(date);
+                mDateTimeUnix = date.getTime();
+            } else {
+                mDateTime = "";
+                mDateTimeUnix = 0;
             }
         }
 
-        private String parseDateWithoutTimezone(final String dateTime) {
+        private Date parseDate(final String time) {
+            Date date = null;
             try {
-                return AFTER_FORMAT.format(BEFORE_FORMAT.parse(dateTime));
+                date = BEFORE_FORMAT_WITH_TIMEZONE.parse(time);
             } catch (ParseException e) {
-                return null;
+                // Nothing to do.
             }
+            if (date == null) {
+                try {
+                    date = BEFORE_FORMAT.parse(time);
+                } catch (ParseException e) {
+                    // Nothing to do.
+                }
+            }
+            return date;
         }
 
         @Override
@@ -305,6 +309,11 @@ class ThetaS extends AbstractThetaDevice {
         @Override
         public String getCreationTime() {
             return mDateTime;
+        }
+
+        @Override
+        public long getCreationTimeWithUnixTime() {
+            return mDateTimeUnix;
         }
 
         @Override

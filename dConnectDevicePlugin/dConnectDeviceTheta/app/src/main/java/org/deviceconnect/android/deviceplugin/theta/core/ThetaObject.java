@@ -62,6 +62,13 @@ public interface ThetaObject {
     String getCreationTime();
 
     /**
+     * Gets the object creation date and time as Unix Time.
+     *
+     * @return unix time which indicates object creation date and time
+     */
+    long getCreationTimeWithUnixTime();
+
+    /**
      * Gets the filename of main data.
      *
      * @return the filename of main data

@@ -21,7 +21,6 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -72,10 +71,7 @@ public class ThetaGalleryFragment extends Fragment {
      */
     private TextView mStatusView;
 
-    /**
-     * Theta's Loading View.
-     */
-    private LinearLayout mLoadingView;
+
     /**
      * Root View.
      */
@@ -104,28 +100,6 @@ public class ThetaGalleryFragment extends Fragment {
             return value.getByteCount() / 1024;
         }
     };
-
-    /**
-     * Gallery State.
-     */
-    enum GalleryState {
-
-        /**
-         * First load data.
-         */
-        INIT,
-
-        /**
-         * Update load data.
-         */
-        UPDATE,
-
-        /**
-         * Update Thumbnail.
-         */
-        THUMBNAIL
-
-    }
 
     /**
      * Singleton.
@@ -168,7 +142,6 @@ public class ThetaGalleryFragment extends Fragment {
         int color = R.color.action_bar_background;
         Drawable backgroundDrawable = getActivity().getApplicationContext().getResources().getDrawable(color);
         getActivity().getActionBar().setBackgroundDrawable(backgroundDrawable);
-        mLoadingView = (LinearLayout) mRootView.findViewById(R.id.theta_gallery_progress);
         mRecconectLayout = (RelativeLayout) mRootView.findViewById(R.id.theta_reconnect_layout);
         mRootView.findViewById(R.id.theta_reconnect).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -263,7 +236,7 @@ public class ThetaGalleryFragment extends Fragment {
                 if (!mUpdateList.get(position).isImage()) {
                     ThetaDialogFragment.showAlert(getActivity(),
                             "THETA",
-                            getString(R.string.theta_error_unsupported_movie));
+                            getString(R.string.theta_error_unsupported_movie), null);
                     return;
                 }
                 Intent intent = new Intent();
@@ -540,11 +513,11 @@ public class ThetaGalleryFragment extends Fragment {
         public synchronized void onPostExecute() {
             if (!mIsSuccess) {
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",
-                        getString(R.string.theta_error_failed_delete));
+                        getString(R.string.theta_error_failed_delete), null);
 
             } else {
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",
-                        getString(R.string.theta_remove));
+                        getString(R.string.theta_remove), null);
 
             }
 

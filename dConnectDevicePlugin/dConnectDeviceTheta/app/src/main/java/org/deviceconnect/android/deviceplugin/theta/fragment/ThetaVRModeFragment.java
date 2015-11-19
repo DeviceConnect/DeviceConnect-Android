@@ -9,10 +9,13 @@ package org.deviceconnect.android.deviceplugin.theta.fragment;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StatFs;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -159,7 +162,7 @@ public class ThetaVRModeFragment extends Fragment {
                 mSphereView.resetCameraDirection();
             }
         });
-
+        Log.d("TEST", "total size:" + hasEnoughStorageSize(100));
         init3DButtons(rootView);
         enableView();
         return rootView;
@@ -247,6 +250,7 @@ public class ThetaVRModeFragment extends Fragment {
                 if (!dir.exists()) {
                     dir.mkdir();
                 }
+
                 Date date = new Date();
                 SimpleDateFormat fileDate = new SimpleDateFormat("yyyyMMdd_HHmmss");
                 final String fileName = "theta_vr_screenshot_" + fileDate.format(date) + ".jpg";
@@ -271,7 +275,7 @@ public class ThetaVRModeFragment extends Fragment {
                             public void run() {
                                 ThetaDialogFragment.showAlert(getActivity(),
                                         getResources().getString(R.string.theta_ssid_prefix),
-                                        getResources().getString(R.string.theta_save_screenshot));
+                                        getResources().getString(R.string.theta_save_screenshot), null);
                             }
                         });
                     }
@@ -350,10 +354,30 @@ public class ThetaVRModeFragment extends Fragment {
     private void failSaveDialog() {
         ThetaDialogFragment.showAlert(getActivity(),
                 getResources().getString(R.string.theta_ssid_prefix),
-                getResources().getString(R.string.theta_error_failed_save_file));
+                getResources().getString(R.string.theta_error_failed_save_file), null);
     }
 
-
+    /**
+     * Check Android Storage size.
+     * @param minSize Storage size(MB)
+     * @return Return a false if true, otherwise there is a minimum required value or more free
+     */
+    private boolean hasEnoughStorageSize(final int minSize) {
+        StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
+        float total = 1.0f;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            total = stat.getTotalBytes();
+        } else {
+            total = (float) stat.getBlockSize() * stat.getAvailableBlocks();
+        }
+        int v = (int) (total / (1024.f * 1024.f));
+        if(BuildConfig.DEBUG) {
+            if(v < minSize) {
+                Log.e("AAA", "hasEnoughStorageSize is less than " + minSize + ", rest size =" + v);
+            }
+        }
+        return v >= minSize;
+    }
     /**
      * Donwload of data.
      */
@@ -387,8 +411,13 @@ public class ThetaVRModeFragment extends Fragment {
 
             if (mSphericalBinary == null) {
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",
-                        getString(R.string.theta_error_disconnect_dialog_message));
-                getActivity().finish();
+                        getString(R.string.theta_error_disconnect_dialog_message),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                getActivity().finish();
+                            }
+                        });
             } else {
                 if (mSphereView != null) {
                     mSphereView.onResume();

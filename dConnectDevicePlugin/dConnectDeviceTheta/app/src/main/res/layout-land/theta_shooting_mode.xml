@@ -22,7 +22,7 @@
         android:layout_height="match_parent"
         android:background="#FFFFFF"
         android:visibility="gone">
-        <SurfaceView
+        <org.deviceconnect.android.deviceplugin.theta.core.SphericalImageLiveView
             android:id="@+id/shooting_preview"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

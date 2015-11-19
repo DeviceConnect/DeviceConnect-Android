@@ -98,15 +98,19 @@ class ThetaM15 extends AbstractThetaDevice {
             }
             return result;
         } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
-        } catch (ThetaException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
-        } finally {
             try {
                 PtpipInitiator.close();
-            } catch (ThetaException e) {
-                e.printStackTrace();
+            } catch (ThetaException e1) {
+                e1.printStackTrace();
             }
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
+        } catch (ThetaException e) {
+            try {
+                PtpipInitiator.close();
+            } catch (ThetaException e1) {
+                e1.printStackTrace();
+            }
+            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
         }
     }
 
@@ -323,12 +327,6 @@ class ThetaM15 extends AbstractThetaDevice {
                 throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
             } catch (ThetaException e) {
                 throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
-            } finally {
-                try {
-                    PtpipInitiator.close();
-                } catch (ThetaException e) {
-                    e.printStackTrace();
-                }
             }
         }
 

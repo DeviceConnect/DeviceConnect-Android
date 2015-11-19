@@ -5,7 +5,7 @@ import android.support.v4.app.Fragment;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceModel;
 
 
-public class SettingsFragment extends Fragment {
+public abstract class SettingsFragment extends Fragment {
 
     public void onModelSelected(final ThetaDeviceModel model) {
     }

@@ -30,6 +30,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.SphericalImageLiveView;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceModel;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
 
 /**
@@ -132,6 +133,8 @@ public class ThetaShootingModeFragment extends Fragment {
             return rootView;
         }
         mShootingTime = (TextView) rootView.findViewById(R.id.shooting_time);
+        mLiveView = (SphericalImageLiveView) rootView.findViewById(R.id.shooting_preview);
+        mLiveView.setDeviceManager(deviceMgr);
         initShootingLayouts(rootView);
         mShootingMode = (Spinner) rootView.findViewById(R.id.theta_shooting_mode);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
@@ -197,7 +200,7 @@ public class ThetaShootingModeFragment extends Fragment {
         mLiveView.stopLivePreview();
         switch (mode) {
             case SPINNER_MODE_PICTURE:
-                if (mDevice.getModel().equals("THETA_S")) {
+                if (mDevice.getModel() == ThetaDeviceModel.THETA_S) {
                     try {
                         mLiveView.startLivePreview();
                     } catch (ThetaDeviceException e) {
@@ -217,6 +220,7 @@ public class ThetaShootingModeFragment extends Fragment {
                     mShootingLayouts[MODE_M15_SHOOTING].setVisibility(View.GONE);
                     mShootingLayouts[MODE_S_SHOOTING].setVisibility(View.VISIBLE);
                     mShootingLayouts[MODE_MOVIE_SHOOTING].setVisibility(View.GONE);
+
                 } else {
                     mShootingLayouts[MODE_M15_SHOOTING].setVisibility(View.VISIBLE);
                     mShootingLayouts[MODE_S_SHOOTING].setVisibility(View.GONE);
@@ -274,7 +278,6 @@ public class ThetaShootingModeFragment extends Fragment {
             }
         }
         mShootingTime = (TextView) rootView.findViewById(R.id.shooting_time);
-        mLiveView = (SphericalImageLiveView) rootView.findViewById(R.id.shooting_preview);
     }
 
     /** Shooting Picture Task. */

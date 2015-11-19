@@ -57,6 +57,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class ThetaVRModeFragment extends Fragment {
 
+    /** THETA Device Plug-in apk limit size. */
+    private static final int LIMIT_APK_SIZE = 100;
+
     /** VR Mode Left Layout. */
     private RelativeLayout mLeftLayout;
 
@@ -162,7 +165,7 @@ public class ThetaVRModeFragment extends Fragment {
                 mSphereView.resetCameraDirection();
             }
         });
-        Log.d("TEST", "total size:" + hasEnoughStorageSize(100));
+
         init3DButtons(rootView);
         enableView();
         return rootView;
@@ -245,6 +248,24 @@ public class ThetaVRModeFragment extends Fragment {
         fileManager.checkWritePermission(new FileManager.CheckPermissionCallback() {
             @Override
             public void onSuccess() {
+                Activity activity = getActivity();
+                if (activity != null && !hasEnoughStorageSize(LIMIT_APK_SIZE)) {
+                    if (mProgress != null) {
+                        mProgress.dismiss();
+                        mProgress = null;
+                    }
+                    // Check Android Storage Limit
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ThetaDialogFragment.showAlert(getActivity(),
+                                    getResources().getString(R.string.theta_ssid_prefix),
+                                    getResources().getString(R.string.theta_error_shortage_by_android), null);
+                        }
+                    });
+                    return;
+                }
+
                 String root = Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera/";
                 File dir = new File(root);
                 if (!dir.exists()) {
@@ -255,7 +276,7 @@ public class ThetaVRModeFragment extends Fragment {
                 SimpleDateFormat fileDate = new SimpleDateFormat("yyyyMMdd_HHmmss");
                 final String fileName = "theta_vr_screenshot_" + fileDate.format(date) + ".jpg";
                 final String filePath = root + fileName;
-                Activity activity = getActivity();
+
                 try {
                     saveFile(filePath, mSphereView.takeSnapshot());
                     if (BuildConfig.DEBUG) {

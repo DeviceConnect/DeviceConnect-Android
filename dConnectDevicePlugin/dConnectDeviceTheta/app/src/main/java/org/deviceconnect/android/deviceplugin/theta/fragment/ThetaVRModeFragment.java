@@ -176,11 +176,21 @@ public class ThetaVRModeFragment extends Fragment {
         mSphereView.setViewApi(mApi);
 
         mSphereView.setOnTouchListener(new View.OnTouchListener() {
+
+            private boolean mIsEnabledLongTouch = true;
+
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
+            public boolean onTouch(final View view, final MotionEvent motionEvent) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    mIsEnabledLongTouch = true;
+                    return true;
+                }
                 if (motionEvent.getPointerCount() == 1) {
-                    mSphereView.resetCameraDirection();
+                    if (mIsEnabledLongTouch && motionEvent.getEventTime() - motionEvent.getDownTime() >= 300) {
+                        mSphereView.resetCameraDirection();
+                    }
                 } else {
+                    mIsEnabledLongTouch = false;
                     mScaleDetector.onTouchEvent(motionEvent);
                 }
                 return true;
@@ -299,8 +309,8 @@ public class ThetaVRModeFragment extends Fragment {
                         @Override
                         public void run() {
                             ThetaDialogFragment.showAlert(getActivity(),
-                                    getResources().getString(R.string.theta_ssid_prefix),
-                                    getResources().getString(R.string.theta_error_shortage_by_android), null);
+                                getResources().getString(R.string.theta_ssid_prefix),
+                                getResources().getString(R.string.theta_error_shortage_by_android), null);
                         }
                     });
                     return;
@@ -472,13 +482,13 @@ public class ThetaVRModeFragment extends Fragment {
 
             if (mSphericalBinary == null) {
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",
-                        getString(R.string.theta_error_disconnect_dialog_message),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                getActivity().finish();
-                            }
-                        });
+                    getString(R.string.theta_error_disconnect_dialog_message),
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            getActivity().finish();
+                        }
+                    });
             } else {
                 if (mSphereView != null) {
                     mSphereView.onResume();

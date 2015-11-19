@@ -96,6 +96,11 @@ public class SphericalViewApi implements HeadTrackingListener {
             mHeadTracker.unregisterTrackingListener(this);
         }
 
+        SphericalViewRenderer.CameraBuilder camera
+            = new SphericalViewRenderer.CameraBuilder(mRenderer.getCamera());
+        camera.setFov((float) param.getFOV());
+        // TODO Enable to change other parameters.
+        mRenderer.setCamera(camera.create());
         mRenderer.setStereoMode(param.isStereo());
     }
 

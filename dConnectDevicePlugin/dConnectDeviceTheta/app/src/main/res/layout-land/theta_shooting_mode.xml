@@ -21,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#FFFFFF"
-        android:visibility="gone">
+        android:visibility="visible">
         <org.deviceconnect.android.deviceplugin.theta.core.SphericalImageLiveView
             android:id="@+id/shooting_preview"
             android:layout_width="match_parent"
@@ -41,7 +41,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#FFFFFF"
-        android:visibility="visible">
+        android:visibility="gone">
         <TextView
             android:id="@+id/shooting_time"
             android:layout_width="wrap_content"

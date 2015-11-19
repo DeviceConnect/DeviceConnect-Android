@@ -429,8 +429,7 @@ public class ThetaGalleryFragment extends Fragment {
                 mProgress.dismiss();
                 mProgress = null;
             }
-            mLoadingView.setVisibility(View.GONE);
-            enableReconnectView();
+
         }
     }
 

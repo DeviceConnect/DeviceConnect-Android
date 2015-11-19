@@ -204,7 +204,14 @@ public class ThetaGalleryFragment extends Fragment {
         }
     }
 
-
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mProgress != null) {
+            mProgress.dismiss();
+            mProgress = null;
+        }
+    }
 
     @Override
     public void onDestroy() {
@@ -255,15 +262,15 @@ public class ThetaGalleryFragment extends Fragment {
                                     final long id) {
                 if (!mUpdateList.get(position).isImage()) {
                     ThetaDialogFragment.showAlert(getActivity(),
-                        "THETA",
-                        getString(R.string.theta_error_unsupported_movie));
+                            "THETA",
+                            getString(R.string.theta_error_unsupported_movie));
                     return;
                 }
                 Intent intent = new Intent();
                 intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
-                    ThetaFeatureActivity.MODE_VR);
+                        ThetaFeatureActivity.MODE_VR);
                 intent.putExtra(ThetaFeatureActivity.FEATURE_DATA,
-                    position);
+                        position);
                 intent.setClass(getActivity(), ThetaFeatureActivity.class);
                 startActivity(intent);
             }
@@ -282,13 +289,13 @@ public class ThetaGalleryFragment extends Fragment {
                 }
                 typeString = typeString.replace("$NAME$", type);
                 ThetaDialogFragment.showConfirmAlert(getActivity(),
-                    "THETA", typeString, getString(R.string.ok), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            RemoveThetaData removeObj = new RemoveThetaData(mUpdateList.remove(position));
-                            new DownloadThetaDataTask().execute(removeObj);
-                        }
-                    });
+                        "THETA", typeString, getString(R.string.ok), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                RemoveThetaData removeObj = new RemoveThetaData(mUpdateList.remove(position));
+                                new DownloadThetaDataTask().execute(removeObj);
+                            }
+                        });
                 return true;
             }
         });

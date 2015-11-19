@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -48,9 +49,13 @@ import java.util.List;
 public class ThetaGalleryFragment extends Fragment {
 
     /**
-     * Item per page.
+     * Cache size of thumbnail.
+     *
+     * 100 thumbnails will be cached.
+     *
+     * Unit: byte.
      */
-    private static final int PER_PAGE = 4;
+    private static final int THUMBNAIL_CACHE_SIZE = (3 * 1024 * 1024) * 100;
 
     /**
      * Theta's Gallery.
@@ -92,6 +97,13 @@ public class ThetaGalleryFragment extends Fragment {
 
     /** Theta Device.*/
     private ThetaDevice mDevice;
+
+    private LruCache<String, Bitmap> mThumbnailCache = new LruCache<String, Bitmap>(THUMBNAIL_CACHE_SIZE) {
+        @Override
+        protected int sizeOf(final String key, final Bitmap value) {
+            return value.getByteCount() / 1024;
+        }
+    };
 
     /**
      * Gallery State.
@@ -243,15 +255,15 @@ public class ThetaGalleryFragment extends Fragment {
                                     final long id) {
                 if (!mUpdateList.get(position).isImage()) {
                     ThetaDialogFragment.showAlert(getActivity(),
-                            "THETA",
-                            getString(R.string.theta_error_unsupported_movie));
+                        "THETA",
+                        getString(R.string.theta_error_unsupported_movie));
                     return;
                 }
                 Intent intent = new Intent();
                 intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
-                        ThetaFeatureActivity.MODE_VR);
+                    ThetaFeatureActivity.MODE_VR);
                 intent.putExtra(ThetaFeatureActivity.FEATURE_DATA,
-                        position);
+                    position);
                 intent.setClass(getActivity(), ThetaFeatureActivity.class);
                 startActivity(intent);
             }
@@ -270,33 +282,14 @@ public class ThetaGalleryFragment extends Fragment {
                 }
                 typeString = typeString.replace("$NAME$", type);
                 ThetaDialogFragment.showConfirmAlert(getActivity(),
-                        "THETA", typeString, getString(R.string.ok), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                RemoveThetaData removeObj = new RemoveThetaData(mUpdateList.remove(position));
-                                new DownloadThetaDataTask().execute(removeObj);
-                            }
-                        });
+                    "THETA", typeString, getString(R.string.ok), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            RemoveThetaData removeObj = new RemoveThetaData(mUpdateList.remove(position));
+                            new DownloadThetaDataTask().execute(removeObj);
+                        }
+                    });
                 return true;
-            }
-        });
-        list.setOnScrollListener(new AbsListView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(final AbsListView absListView, final int i) {
-
-            }
-
-            @Override
-            public void onScroll(final AbsListView absListView,
-                                 final int firstVisibleItem,
-                                 final int visibleItemCount,
-                                 final int totalItemCount) {
-                if (mUpdateList.size() > firstVisibleItem
-                        && !mUpdateList.get(firstVisibleItem).isFetched(ThetaObject.DataType.THUMBNAIL)) {
-                    ThetaThumbTask thumbTask = new ThetaThumbTask(firstVisibleItem + PER_PAGE);
-                    DownloadThetaDataTask downloader = new DownloadThetaDataTask();
-                    downloader.execute(thumbTask);
-                }
             }
         });
     }
@@ -328,7 +321,6 @@ public class ThetaGalleryFragment extends Fragment {
         }
     }
 
-
     /**
      * ThetaGalleryAdapter.
      */
@@ -353,35 +345,56 @@ public class ThetaGalleryFragment extends Fragment {
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
             View cv = convertView;
+            GalleryViewHolder holder;
             if (cv == null) {
                 cv = mInflater.inflate(R.layout.theta_gallery_adapter, parent, false);
+                holder = new GalleryViewHolder(cv);
+                cv.setTag(holder);
             } else {
-                cv = convertView;
+                holder = (GalleryViewHolder) cv.getTag();
             }
-            ImageView thumb = (ImageView) cv.findViewById(R.id.theta_thumb_data);
-            ImageView type = (ImageView) cv.findViewById(R.id.data_type);
-            TextView date = (TextView) cv.findViewById(R.id.data_date);
-            ThetaLoadingProgressView progress = (ThetaLoadingProgressView)
-                    cv.findViewById(R.id.theta_thumb_progress);
-            thumb.setImageResource(R.drawable.theta_gallery_thumb);
-            progress.setVisibility(View.VISIBLE);
+
             ThetaObject data = getItem(position);
+            holder.mThumbnail.setImageResource(R.drawable.theta_gallery_thumb);
+            holder.mThumbnail.setTag(data.getFileName());
+            holder.mLoading.setVisibility(View.VISIBLE);
             String dateString = data.getCreationTime();
-            date.setText(dateString);
+            holder.mDate.setText(dateString);
             if (data.isImage()) {
-                type.setImageResource(R.drawable.theta_data_img);
-                if (data.isFetched(ThetaObject.DataType.THUMBNAIL)) {
-                    Bitmap b = BitmapFactory.decodeByteArray(data.getThumbnailData(), 0, data.getThumbnailData().length);
-                    thumb.setImageBitmap(b);
-                    progress.setVisibility(View.GONE);
-                }
+                holder.mType.setImageResource(R.drawable.theta_data_img);
+
+                ThetaThumbTask thumbTask = new ThetaThumbTask(data, holder);
+                DownloadThetaDataTask downloader = new DownloadThetaDataTask();
+                downloader.execute(thumbTask);
             } else {
-                type.setImageResource(R.drawable.theta_data_mv);
-                progress.setVisibility(View.GONE);
+                holder.mType.setImageResource(R.drawable.theta_data_mv);
+                holder.mLoading.setVisibility(View.GONE);
             }
 
             return cv;
         }
+    }
+
+    /**
+     * Gallery View Holder.
+     */
+    private static class GalleryViewHolder {
+
+        ImageView mThumbnail;
+
+        ImageView mType;
+
+        TextView mDate;
+
+        ThetaLoadingProgressView mLoading;
+
+        GalleryViewHolder(final View view) {
+            mThumbnail = (ImageView) view.findViewById(R.id.theta_thumb_data);
+            mType = (ImageView) view.findViewById(R.id.data_type);
+            mDate =  (TextView) view.findViewById(R.id.data_date);
+            mLoading = (ThetaLoadingProgressView) view.findViewById(R.id.theta_thumb_progress);
+        }
+
     }
 
 
@@ -417,9 +430,6 @@ public class ThetaGalleryFragment extends Fragment {
                 mProgress = null;
             }
             mLoadingView.setVisibility(View.GONE);
-            ThetaThumbTask thumbTask = new ThetaThumbTask(PER_PAGE); //Default
-            DownloadThetaDataTask downloader = new DownloadThetaDataTask();
-            downloader.execute(thumbTask);
             enableReconnectView();
         }
     }
@@ -429,45 +439,63 @@ public class ThetaGalleryFragment extends Fragment {
      */
     private class ThetaThumbTask implements DownloadThetaDataTask.ThetaDownloadListener {
 
-        /** Load index. */
-        private int mIndex;
+        /** THETA Object. */
+        private final ThetaObject mObj;
+
+        /** View holder. */
+        private final GalleryViewHolder mHolder;
+
+        /** Tag of thumbnail view. */
+        private final String mTag;
+
+        /** Thumbnail. */
+        private Bitmap mThumbnail;
 
         /**
          * Constructor.
-         * @param index index
-          */
-        ThetaThumbTask(final int index) {
-            mIndex = index;
+         * @param obj THETA Object
+         * @param holder view holder
+         */
+        ThetaThumbTask(final ThetaObject obj, final GalleryViewHolder holder) {
+            mObj = obj;
+            mHolder = holder;
+            mTag = holder.mThumbnail.getTag().toString();
         }
 
         @Override
         public synchronized void doInBackground() {
-            int loadingIndex = mIndex;
-            if (loadingIndex > mUpdateList.size()) {
-                loadingIndex = mUpdateList.size();
-            }
-            for (int i = 0; i < loadingIndex; i++) {
+            mThumbnail = mThumbnailCache.get(mObj.getFileName());
+            if (mThumbnail == null) {
                 try {
-                    if (!mGalleryAdapter.getItem(i).isFetched(ThetaObject.DataType.THUMBNAIL)) {
-                        mGalleryAdapter.getItem(i).fetch(ThetaObject.DataType.THUMBNAIL);
-                        try {
-                            Thread.sleep(100);  // Delay
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    Thread.sleep(100);
+                    cacheThumbnail(mObj);
                 } catch (ThetaDeviceException e) {
                     if (BuildConfig.DEBUG) {
                         Log.e("AAA", "error", e);
                     }
+                } catch (InterruptedException e) {
+                    // Nothing to do.
                 }
             }
         }
 
+        private void cacheThumbnail(final ThetaObject obj) throws ThetaDeviceException {
+            obj.fetch(ThetaObject.DataType.THUMBNAIL);
+            byte[] data = obj.getThumbnailData();
+            obj.clear(ThetaObject.DataType.THUMBNAIL);
+            mThumbnail = BitmapFactory.decodeByteArray(data, 0, data.length);
+        }
+
         @Override
         public synchronized void onPostExecute() {
-            if (mGalleryAdapter != null) {
-                mGalleryAdapter.notifyDataSetChanged();
+            if (mThumbnail != null) {
+                mThumbnailCache.put(mObj.getFileName(), mThumbnail);
+                ImageView thumbView = mHolder.mThumbnail;
+                ThetaLoadingProgressView loadingView = mHolder.mLoading;
+                if (mTag.equals(thumbView.getTag())) {
+                    thumbView.setImageBitmap(mThumbnail);
+                    loadingView.setVisibility(View.GONE);
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -29,11 +30,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
+import org.deviceconnect.android.deviceplugin.theta.activity.ThetaDeviceSettingsActivity;
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaFeatureActivity;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalImageView;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
@@ -265,6 +268,59 @@ public class ThetaVRModeFragment extends Fragment {
         enableView();
     }
 
+    private void showReconnectionDialog() {
+        final Activity activity = getActivity();
+        if (activity != null) {
+            ThetaDialogFragment.showReconnectionDialog(activity,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int i) {
+                        dialog.dismiss();
+                        activity.finish();
+                        showSettingsActivity();
+                    }
+                },
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int i) {
+                        dialog.dismiss();
+                        activity.finish();
+                    }
+                });
+        }
+    }
+
+    private void showDisconnectionDialog() {
+        final Activity activity = getActivity();
+        if (activity != null) {
+            ThetaDialogFragment.showDisconnectionDialog(activity,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int i) {
+                        dialog.dismiss();
+                        showSettingsActivity();
+                    }
+                },
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int i) {
+                        dialog.dismiss();
+                    }
+                });
+        }
+    }
+
+    private void showSettingsActivity() {
+        Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        Toast.makeText(activity, R.string.camera_must_connect, Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent();
+        intent.setClass(activity, ThetaDeviceSettingsActivity.class);
+        startActivity(intent);
+    }
+
     /**
      * enable/disable VR buttons.
      */
@@ -461,6 +517,8 @@ public class ThetaVRModeFragment extends Fragment {
         private ThetaObject mObj;
         /** SphericalView byte. */
         private Bitmap mSphericalBinary;
+        /** Communication error. */
+        private int mError = -1;
         @Override
         public synchronized void doInBackground() {
             ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
@@ -479,6 +537,7 @@ public class ThetaVRModeFragment extends Fragment {
                     }
                 } catch (ThetaDeviceException e) {
                     e.printStackTrace();
+                    mError = e.getReason();
                     mSphericalBinary = null;
                 }
             } else {
@@ -494,18 +553,17 @@ public class ThetaVRModeFragment extends Fragment {
             }
 
             if (mSphericalBinary == null) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
-                    getString(R.string.theta_error_disconnect_dialog_message),
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            getActivity().finish();
-                        }
-                    });
+                if (mError > 0) {
+                    // THETA device is found, but communication error occurred.
+                    showReconnectionDialog();
+                } else {
+                    // THETA device is not found.
+                    showDisconnectionDialog();
+                }
             } else {
                 if (mDevice != null && mObj != null) {
                     BitmapUtils.putBitmapCache(mDevice.getName() + "_" + mObj.getFileName(),
-                            mSphericalBinary);
+                        mSphericalBinary);
                 }
                 if (mSphereView != null) {
                     mSphereView.onResume();

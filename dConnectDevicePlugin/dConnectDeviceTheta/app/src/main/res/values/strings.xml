@@ -24,7 +24,7 @@
     <string name="wifi_settings_button">WiFi設定画面を開く</string>
 
     <string name="ok">OK</string>
-    <string name="cancel">キャンセル</string>
+    <string name="button_cancel">キャンセル</string>
     <string name="camera_must_connect">THETAと接続してください。</string>
     <string name="theta_gallery_no_data">静止画および動画が撮影されていません。</string>
     <string name="theta_no_connect_message">THETAと接続されていません。</string>
@@ -37,13 +37,15 @@
     <string name="theta_update">更新</string>
     <string name="loading">読み込み中...</string>
     <string name="shooting">撮影中...</string>
+    <string name="communication_error">通信エラー</string>
 
     <string-array name="theta_shooting_mode">
         <item>静止画</item>
         <item>動画</item>
     </string-array>
 
-    <string name="theta_error_disconnect_dialog_message">THETAと接続が切断されました。THETAデバイスプラグインの設定画面でTHETAと接続してください。</string>
+    <string name="theta_error_disconnect_dialog_message">THETAとの接続が切断されました。THETAデバイスプラグインの設定画面でTHETAと接続してください。</string>
+    <string name="theta_error_reconnection_dialog_message">THETAとの通信に失敗しました。設定画面から一度WiFiをOFFにした後、THETAと再接続してください。</string>
     <string name="theta_error_timeout">THETAとの通信中にタイムアウトが発生しました。</string>
     <string name="theta_error_unsupported_movie">動画の再生は非対応です。PC向けのTHETA公式アプリで再生してください。</string>
     <string name="theta_error_failed_delete">メディアの削除に失敗しました。</string>

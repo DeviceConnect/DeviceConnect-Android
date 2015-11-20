@@ -57,8 +57,8 @@ public class ThetaDialogFragment extends DialogFragment {
      * @param title title
      * @param message message
      */
-    public static void showAlert(final Activity activity, final String title, final String message
-                                ,final DialogInterface.OnClickListener listner) {
+    public static void showAlert(final Activity activity, final String title, final String message,
+                                 final DialogInterface.OnClickListener listener) {
         if (activity == null) {
             return;
         }
@@ -66,7 +66,7 @@ public class ThetaDialogFragment extends DialogFragment {
         new AlertDialog.Builder(activity)
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton(R.string.ok, listner)
+                .setPositiveButton(R.string.ok, listener)
                 .show();
     }
 
@@ -79,8 +79,8 @@ public class ThetaDialogFragment extends DialogFragment {
      * @param listener listener
      */
     public static void showConfirmAlert(final Activity activity, final String title, final String message,
-                                        final String positiveBtnMsg
-                                        , final DialogInterface.OnClickListener listener) {
+                                        final String positiveBtnMsg,
+                                        final DialogInterface.OnClickListener listener) {
         if (activity == null) {
             return;
         }
@@ -89,7 +89,49 @@ public class ThetaDialogFragment extends DialogFragment {
                 .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(positiveBtnMsg, listener)
-                .setNegativeButton(R.string.cancel, null)
+                .setNegativeButton(R.string.button_cancel, null)
                 .show();
+    }
+
+    /**
+     * Show Reconnection Prompt Dialog.
+     * @param activity Activity
+     * @param positive positive button listener
+     * @param negative negative button listener
+     */
+    public static void showReconnectionDialog(final Activity activity,
+                                              final DialogInterface.OnClickListener positive,
+                                              final DialogInterface.OnClickListener negative) {
+        if (activity == null) {
+            return;
+        }
+
+        new AlertDialog.Builder(activity)
+            .setTitle(R.string.communication_error)
+            .setMessage(R.string.theta_error_reconnection_dialog_message)
+            .setPositiveButton(R.string.open_settings, positive)
+            .setNegativeButton(R.string.button_cancel, negative)
+            .show();
+    }
+
+    /**
+     * Show Disconnection Dialog.
+     * @param activity Activity
+     * @param positive positive button listener
+     * @param negative negative button listener
+     */
+    public static void showDisconnectionDialog(final Activity activity,
+                                               final DialogInterface.OnClickListener positive,
+                                               final DialogInterface.OnClickListener negative) {
+        if (activity == null) {
+            return;
+        }
+
+        new AlertDialog.Builder(activity)
+            .setTitle(R.string.communication_error)
+            .setMessage(R.string.theta_error_disconnect_dialog_message)
+            .setPositiveButton(R.string.open_settings, positive)
+            .setNegativeButton(R.string.button_cancel, negative)
+            .show();
     }
 }

@@ -90,10 +90,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
      */
     private List<ThetaObject> mUpdateList = new ArrayList<ThetaObject>();
 
-    /** Theta Device.*/
-    private ThetaDevice mDevice;
     private MenuItem mUpdateItem;
-
 
     /**
      * Singleton.
@@ -201,24 +198,20 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
 
     @Override
     public void onDisconnected(final ThetaDevice device) {
-        if (mDevice != null && mDevice.getName().equals(device.getName())) {
-            mDevice = null;
-            showSettingsActivity();
-        }
     }
 
     /** Enabled Reconnect View.*/
     private void enableReconnectView() {
         ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
         ThetaDeviceManager deviceMgr = app.getDeviceManager();
-        mDevice = deviceMgr.getConnectedDevice();
+        ThetaDevice device = deviceMgr.getConnectedDevice();
 
-        if (mDevice != null) {
+        if (device != null) {
             mRecconectLayout.setVisibility(View.GONE);
             if (mUpdateItem != null) {
                 mUpdateItem.setVisible(true);
             }
-            String ssId = mDevice.getName();
+            String ssId = device.getName();
             getActivity().getActionBar().setTitle(ssId);
             if (mRecconectLayout.isEnabled()
                     && mUpdateList.size() == 0) {
@@ -292,23 +285,28 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
      * Load Theta Datas.
      */
     private void loadThetaData() {
-        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
-        ThetaDeviceManager deviceMgr = app.getDeviceManager();
-        mDevice = deviceMgr.getConnectedDevice();
+        ThetaInfoTask info = new ThetaInfoTask();
+        mDownloadTask = new DownloadThetaDataTask();
+        mDownloadTask.execute(info);
+    }
 
-        if (mDevice != null) {
-            String ssId = mDevice.getName();
-            getActivity().getActionBar().setTitle(ssId);
-            if (mProgress == null) {
-                mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.loading));
-                mProgress.show(getActivity().getFragmentManager(),
-                        "fragment_dialog");
-            }
-            ThetaInfoTask info = new ThetaInfoTask();
-            mDownloadTask = new DownloadThetaDataTask();
-            mDownloadTask.execute(info);
-        } else {
-            showSettingsActivity();
+    private void showReconnectionDialog() {
+        final Activity activity = getActivity();
+        if (activity != null) {
+            ThetaDialogFragment.showReconnectionDialog(activity,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int i) {
+                        dialog.dismiss();
+                        showSettingsActivity();
+                    }
+                },
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int i) {
+                        dialog.dismiss();
+                    }
+                });
         }
     }
 
@@ -405,18 +403,50 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
      */
     private class ThetaInfoTask implements DownloadThetaDataTask.ThetaDownloadListener {
 
+        private int mError = -1;
+
+        private List<ThetaObject> mResult;
+
         @Override
         public synchronized void doInBackground() {
-            try {
-                mUpdateList = mDevice.fetchAllObjectList();
-            } catch (ThetaDeviceException ex) {
+            final Activity activity = getActivity();
+            if (activity == null) {
                 return;
             }
 
+            ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
+            ThetaDeviceManager deviceMgr = app.getDeviceManager();
+            final ThetaDevice device = deviceMgr.getConnectedDevice();
+
+            if (device != null) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        activity.getActionBar().setTitle(device.getName());
+                    }
+                });
+                if (mProgress == null) {
+                    mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.loading));
+                    mProgress.show(getActivity().getFragmentManager(),
+                        "fragment_dialog");
+                }
+
+                try {
+                    mResult = device.fetchAllObjectList();
+                } catch (ThetaDeviceException e) {
+                    mError = e.getReason();
+                }
+            }
         }
 
         @Override
         public synchronized void onPostExecute() {
+            if (mResult == null) {
+                showSettingsActivity();
+                return;
+            }
+            mUpdateList = mResult;
+
             if (mUpdateList.size() > 0) {
                 mStatusView.setVisibility(View.GONE);
             } else {
@@ -432,6 +462,9 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 mProgress = null;
             }
 
+            if (mError > 0) {
+                showReconnectionDialog();
+            }
         }
     }
 

@@ -1,10 +1,16 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
 
+import android.content.Context;
 import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.core.wifi.WifiStateEventListener;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * THETA Device Manager.
@@ -30,24 +36,29 @@ import org.deviceconnect.android.deviceplugin.theta.core.wifi.WifiStateEventList
  */
 public class ThetaDeviceManager implements WifiStateEventListener {
 
-//    /**
-//     * An instance of {@link WifiManager}.
-//     */
-//    private final WifiManager mWifiMgr;
-
     /**
      * An THETA device which is currently connected.
      */
     private ThetaDevice mConnectedDevice;
 
-//    /**
-//     * Constructor.
-//     *
-//     * @param context an instance of {@link Context}
-//     */
-//    public ThetaDeviceManager(final Context context) {
-//        mWifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-//    }
+    /**
+     * An instance of {@link Context}.
+     */
+    private final Context mContext;
+
+    /**
+     * A list of {@link ThetaDeviceEventListener}.
+     */
+    private final List<ThetaDeviceEventListener> mListeners = new ArrayList<ThetaDeviceEventListener>();
+
+    /**
+     * Constructor.
+     *
+     * @param context An instance of {@link Context}
+     */
+    public ThetaDeviceManager(final Context context) {
+        mContext = context;
+    }
 
     /**
      * Get a THETA device which is connected currently to the host device via WiFi.
@@ -55,6 +66,13 @@ public class ThetaDeviceManager implements WifiStateEventListener {
      * @return an instance of {@link ThetaDevice}
      */
     public ThetaDevice getConnectedDevice() {
+        if (mConnectedDevice == null) {
+            WifiManager wifiMgr = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+            WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+            if (wifiInfo != null) {
+                mConnectedDevice = ThetaDeviceFactory.createDevice(mContext, wifiInfo);
+            }
+        }
         return mConnectedDevice;
     }
 
@@ -63,7 +81,15 @@ public class ThetaDeviceManager implements WifiStateEventListener {
      * @param listener an instance of {@link ThetaDeviceEventListener}
      */
     public void registerDeviceEventListener(final ThetaDeviceEventListener listener) {
-        // TODO Implement.
+        synchronized (mListeners) {
+            for (Iterator<ThetaDeviceEventListener> it = mListeners.iterator(); it.hasNext(); ) {
+                ThetaDeviceEventListener l = it.next();
+                if (l == listener) {
+                    return;
+                }
+            }
+            mListeners.add(listener);
+        }
     }
 
     /**
@@ -71,12 +97,47 @@ public class ThetaDeviceManager implements WifiStateEventListener {
      * @param listener an instance of {@link ThetaDeviceEventListener}
      */
     public void unregisterDeviceEventListener(final ThetaDeviceEventListener listener) {
-        // TODO Implement.
+        synchronized (mListeners) {
+            for (Iterator<ThetaDeviceEventListener> it = mListeners.iterator(); it.hasNext(); ) {
+                ThetaDeviceEventListener l = it.next();
+                if (l == listener) {
+                    it.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    private void notifyOnConnected(final ThetaDevice device) {
+        synchronized (mListeners) {
+            for (ThetaDeviceEventListener l : mListeners) {
+                l.onConnected(device);
+            }
+        }
+    }
+
+    private void notifyOnDisconnected(final ThetaDevice device) {
+        synchronized (mListeners) {
+            for (ThetaDeviceEventListener l : mListeners) {
+                l.onDisconnected(device);
+            }
+        }
     }
 
     @Override
     public void onNetworkChanged(final WifiInfo wifiInfo) {
-        mConnectedDevice = ThetaDeviceFactory.createDevice(wifiInfo);
+        synchronized (this) {
+            ThetaDevice oldDevice = mConnectedDevice;
+            ThetaDevice newDevice = ThetaDeviceFactory.createDevice(mContext, wifiInfo);
+            mConnectedDevice = newDevice;
+
+            if (oldDevice != null) {
+                notifyOnDisconnected(oldDevice);
+            }
+            if (newDevice != null) {
+                notifyOnConnected(newDevice);
+            }
+        }
         Log.d("AAA", "onNetworkChanged: " + mConnectedDevice);
     }
 
@@ -88,7 +149,13 @@ public class ThetaDeviceManager implements WifiStateEventListener {
 
     @Override
     public void onWiFiDisabled() {
-        mConnectedDevice = null;
+        synchronized (this) {
+            ThetaDevice oldDevice = mConnectedDevice;
+            mConnectedDevice = null;
+            if (oldDevice != null) {
+                notifyOnDisconnected(oldDevice);
+            }
+        }
         Log.d("AAA", "onWiFiDisabled");
     }
 }

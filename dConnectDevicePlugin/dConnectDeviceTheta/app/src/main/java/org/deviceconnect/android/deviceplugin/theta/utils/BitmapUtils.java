@@ -6,6 +6,7 @@ import android.graphics.Matrix;
 
 public final class BitmapUtils {
 
+
     public static Bitmap resize(final Bitmap b, final int newWidth, final int newHeight) {
         if (b == null) {
             return null;

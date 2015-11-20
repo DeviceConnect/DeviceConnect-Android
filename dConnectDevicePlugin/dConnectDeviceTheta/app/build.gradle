@@ -43,4 +43,5 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':dconnect-device-plugin-sdk')
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
 }

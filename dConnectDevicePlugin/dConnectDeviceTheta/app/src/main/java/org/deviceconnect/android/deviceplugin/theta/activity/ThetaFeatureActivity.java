@@ -13,7 +13,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.KeyEvent;
 
-import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaShootingModeFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaVRModeFragment;
 
@@ -27,7 +26,12 @@ public class ThetaFeatureActivity extends FragmentActivity {
     /**
      * Feature Mode.
      */
-    public static final String FEATURE_MODE = "org.deviceconnect.android.feature.MODE";
+    public static final String FEATURE_MODE = "org.deviceconnect.android.theta.feature.MODE";
+
+    /**
+     * Theta Picture data.
+     */
+    public static final String FEATURE_DATA = "org.deviceconnect.android.theta.feature.DATA";
 
     /**
      * Mode VR.
@@ -45,7 +49,8 @@ public class ThetaFeatureActivity extends FragmentActivity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mMode = getIntent().getIntExtra(FEATURE_MODE, -1);
-        startApp(mMode, null);
+        int dataId = getIntent().getIntExtra(FEATURE_DATA, -1);
+        startApp(mMode, dataId);
     }
 
     @Override
@@ -75,14 +80,17 @@ public class ThetaFeatureActivity extends FragmentActivity {
     /**
      * Move Page.
      * @param pageId pageId
-     * @param serviceId TODO Theta Object?
+     * @param dataId Theta Data Id
      */
-    public void startApp(final int pageId, final String serviceId) {
+    public void startApp(final int pageId, final int dataId) {
         if (pageId == MODE_SHOOTING) {
             ThetaShootingModeFragment f = new ThetaShootingModeFragment();
             moveFragment(f);
         } else if (pageId == MODE_VR) {
-            ThetaVRModeFragment f = new ThetaVRModeFragment();
+            ThetaVRModeFragment f = ThetaVRModeFragment.newInstance();
+            Bundle args = new Bundle();
+            args.putInt(FEATURE_DATA, dataId);
+            f.setArguments(args);
             moveFragment(f);
         }
     }
@@ -99,14 +107,6 @@ public class ThetaFeatureActivity extends FragmentActivity {
         t.addToBackStack(null);
         t.commit();
 
-    }
-
-    /**
-     * Return ThetaDeviceApplication.
-     * @return IRKitApplication
-     */
-    public ThetaDeviceApplication getIRKitApplication() {
-        return (ThetaDeviceApplication) getApplication();
     }
 
 }

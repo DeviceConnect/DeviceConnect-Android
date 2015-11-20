@@ -21,12 +21,17 @@
             android:label="@string/app_name" >
         </activity>
 
-        <receiver android:name="org.deviceconnect.android.deviceplugin.theta.receiver.WiFiStateReceiver" >
+        <receiver android:name=".core.wifi.WifiStateReceiver">
             <intent-filter>
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
                 <action android:name="android.net.wifi.STATE_CHANGE" />
             </intent-filter>
         </receiver>
+
+        <service
+            android:name=".core.wifi.WifiStateService"
+            android:exported="false" >
+        </service>
 
         <receiver android:name="org.deviceconnect.android.deviceplugin.theta.ThetaDeviceServiceProvider" >
             <meta-data

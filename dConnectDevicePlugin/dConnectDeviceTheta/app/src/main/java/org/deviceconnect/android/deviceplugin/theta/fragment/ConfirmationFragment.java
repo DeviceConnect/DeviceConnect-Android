@@ -6,11 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
-import android.content.Context;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,17 +15,16 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.theta.R;
-
-import java.util.logging.Logger;
+import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 
 /**
  * The page for confirmation of the connection between THETA and Android device.
  *
  * @author NTT DOCOMO, INC.
  */
-public class ConfirmationFragment extends Fragment {
-
-    private final Logger mLogger = Logger.getLogger("theta.plugin");
+public class ConfirmationFragment extends SettingsFragment {
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -38,13 +34,11 @@ public class ConfirmationFragment extends Fragment {
         btnCameraSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                WifiManager wifiMgr = getWifiManager();
-                WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-                String ssId = wifiInfo.getSSID().replace("\"", "");
+                ThetaDevice device = getConnectedDevice();
                 String message;
-                if (isTheta(ssId)) {
+                if (device != null) {
                     message = getString(R.string.camera_search_message_found);
-                    message = message.replace("$NAME$", ssId);
+                    message = message.replace("$NAME$", device.getName());
                 } else {
                     message = getString(R.string.camera_search_message_not_found);
                 }
@@ -55,15 +49,14 @@ public class ConfirmationFragment extends Fragment {
         return rootView;
     }
 
-    private WifiManager getWifiManager() {
-        return (WifiManager) getActivity().getSystemService(Context.WIFI_SERVICE);
-    }
-
-    private boolean isTheta(final String ssId) {
-        if (ssId == null) {
-            return false;
+    private ThetaDevice getConnectedDevice() {
+        Activity activity = getActivity();
+        if (activity != null) {
+            ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
+            ThetaDeviceManager deviceManager = app.getDeviceManager();
+            return deviceManager.getConnectedDevice();
+        } else {
+            return null;
         }
-        return ssId.startsWith(getString(R.string.theta_ssid_prefix));
     }
-
 }

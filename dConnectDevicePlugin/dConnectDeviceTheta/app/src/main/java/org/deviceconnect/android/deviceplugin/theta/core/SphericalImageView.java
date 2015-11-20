@@ -45,6 +45,13 @@ public class SphericalImageView extends GLSurfaceView {
         }
     }
 
+    public void setFOV(final double fov) {
+        if (mViewApi != null) {
+            mParam.setFOV(fov);
+            mViewApi.updateImageView(mParam);
+        }
+    }
+
     public byte[] takeSnapshot() {
         if (mRenderer == null) {
             return null;
@@ -56,6 +63,10 @@ public class SphericalImageView extends GLSurfaceView {
         if (mViewApi != null) {
             mViewApi.resetCameraDirection();
         }
+    }
+
+    protected SphericalViewRenderer getRenderer() {
+        return mRenderer;
     }
 
     @Override

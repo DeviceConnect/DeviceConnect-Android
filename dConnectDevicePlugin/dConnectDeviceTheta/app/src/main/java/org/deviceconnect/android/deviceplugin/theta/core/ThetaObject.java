@@ -39,22 +39,12 @@ public interface ThetaObject {
     /**
      * Gets the MIME-Type of main data.
      *
-     * <p>
-     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
-     * with {@link DataType#INFO}.
-     * </p>
-     *
      * @return the MIME-Type of main data
      */
     String getMimeType();
 
     /**
      * Gets the MIME-Type of main data.
-     *
-     * <p>
-     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
-     * with {@link DataType#INFO}.
-     * </p>
      *
      * @return the MIME-Type of main data
      */
@@ -67,22 +57,19 @@ public interface ThetaObject {
      * Format: yyyy/MM/dd HH:mm:ss
      * </p>
      *
-     * <p>
-     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
-     * with {@link DataType#INFO}.
-     * </p>
-     *
      * @return a string which indicates object creation date and time
      */
     String getCreationTime();
 
     /**
-     * Gets the filename of main data.
+     * Gets the object creation date and time as Unix Time.
      *
-     * <p>
-     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
-     * with {@link DataType#INFO}.
-     * </p>
+     * @return unix time which indicates object creation date and time
+     */
+    long getCreationTimeWithUnixTime();
+
+    /**
+     * Gets the filename of main data.
      *
      * @return the filename of main data
      */
@@ -91,22 +78,12 @@ public interface ThetaObject {
     /**
      * Gets the width of resolution.
      *
-     * <p>
-     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
-     * with {@link DataType#INFO}.
-     * </p>
-     *
      * @return the width of resolution
      */
     Integer getWidth();
 
     /**
      * Gets the height of resolution.
-     *
-     * <p>
-     * <code>null</code> will be returned if you have not call {@link #fetch(DataType)}
-     * with {@link DataType#INFO}.
-     * </p>
      *
      * @return the height of resolution
      */
@@ -140,11 +117,6 @@ public interface ThetaObject {
      * Type of data to be fetched from a THETA device.
      */
     enum DataType {
-
-        /**
-         * Information about data.
-         */
-        INFO,
 
         /**
          * Thumbnail of main data.

@@ -89,13 +89,18 @@ public class SphericalViewApi implements HeadTrackingListener {
 
         mParam = param;
 
-        if (param.isVRMode()) {
+        if (!mParam.isVRMode() && param.isVRMode()) {
             mHeadTracker.start();
-        } else {
+        } else if (mParam.isVRMode() && !param.isVRMode()) {
             mHeadTracker.stop();
             mHeadTracker.unregisterTrackingListener(this);
         }
 
+        SphericalViewRenderer.CameraBuilder camera
+            = new SphericalViewRenderer.CameraBuilder(mRenderer.getCamera());
+        camera.setFov((float) param.getFOV());
+        // TODO Enable to change other parameters.
+        mRenderer.setCamera(camera.create());
         mRenderer.setStereoMode(param.isStereo());
     }
 

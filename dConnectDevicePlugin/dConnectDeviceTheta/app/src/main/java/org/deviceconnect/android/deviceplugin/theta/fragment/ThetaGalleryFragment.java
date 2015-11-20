@@ -1,3 +1,9 @@
+/*
+ ThetaGalleryFragment
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
 import android.app.ActionBar;
@@ -9,7 +15,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,6 +40,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
+import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
 
 import java.util.ArrayList;
@@ -47,14 +53,6 @@ import java.util.List;
  */
 public class ThetaGalleryFragment extends Fragment {
 
-    /**
-     * Cache size of thumbnail.
-     *
-     * 100 thumbnails will be cached.
-     *
-     * Unit: byte.
-     */
-    private static final int THUMBNAIL_CACHE_SIZE = (3 * 1024 * 1024) * 100;
 
     /**
      * Theta's Gallery.
@@ -94,12 +92,7 @@ public class ThetaGalleryFragment extends Fragment {
     /** Theta Device.*/
     private ThetaDevice mDevice;
 
-    private LruCache<String, Bitmap> mThumbnailCache = new LruCache<String, Bitmap>(THUMBNAIL_CACHE_SIZE) {
-        @Override
-        protected int sizeOf(final String key, final Bitmap value) {
-            return value.getByteCount() / 1024;
-        }
-    };
+
 
     /**
      * Singleton.
@@ -443,7 +436,7 @@ public class ThetaGalleryFragment extends Fragment {
 
         @Override
         public synchronized void doInBackground() {
-            mThumbnail = mThumbnailCache.get(mObj.getFileName());
+            mThumbnail = BitmapUtils.getBitmapCache(mObj.getFileName());
             if (mThumbnail == null) {
                 try {
                     Thread.sleep(100);
@@ -468,7 +461,7 @@ public class ThetaGalleryFragment extends Fragment {
         @Override
         public synchronized void onPostExecute() {
             if (mThumbnail != null) {
-                mThumbnailCache.put(mObj.getFileName(), mThumbnail);
+                BitmapUtils.putBitmapCache(mObj.getFileName(), mThumbnail);
                 ImageView thumbView = mHolder.mThumbnail;
                 ThetaLoadingProgressView loadingView = mHolder.mLoading;
                 if (mTag.equals(thumbView.getTag())) {
@@ -504,7 +497,6 @@ public class ThetaGalleryFragment extends Fragment {
             try {
                 mRemoveObject.remove();
             } catch (ThetaDeviceException e) {
-                e.printStackTrace();
                 mIsSuccess = false;
             }
         }

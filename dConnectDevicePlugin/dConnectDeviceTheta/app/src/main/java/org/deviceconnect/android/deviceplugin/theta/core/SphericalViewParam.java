@@ -6,7 +6,7 @@ public class SphericalViewParam {
 
     private int mHeight;
 
-    private double mFOV;
+    private double mFOV = 90.0;
 
     private boolean mIsVRMode;
 

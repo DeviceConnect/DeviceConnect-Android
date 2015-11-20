@@ -14,8 +14,8 @@
     <string name="movie_mode_title">[3/5] 動画モード</string>
     <string name="movie_mode_body_theta_m15">WiFiボタンを押しながら、電源ボタンを押すと動画モードで起動します。\n\n電源がONになると、側面の電源ボタンが青色に点滅します。\n\nこの状態では写真の撮影は行えません。一度電源を切り、前の手順を行う必要があります。</string>
     <string name="movie_mode_body_theta_s">THETA Sで動画を撮影する場合は、上図のランプが点灯するまで撮影モードボタンの押下をくり返してください。\n\n静止画を撮影する場合は、前のページを参照してください。</string>
-    <string name="wifi_connection_title">[4/5] Thetaとの接続</string>
-    <string name="wifi_connection_body">端末のWiFI設定画面上でWiFIを有効にして、THETAのSSIDを選択します。</string>
+    <string name="wifi_connection_title">[4/5] THETAとの接続</string>
+    <string name="wifi_connection_body">端末のWiFI設定画面上でWiFIを有効にして、THETAのSSIDを選択します。\n\nパスワードについてはTHETAの底面にある型番を入力してください。</string>
     <string name="confirmation_title">[5/5] 接続確認</string>
     <string name="confirmation_body">下に表示されているカメラ検索ボタンを押下してください。</string>
     <string name="camera_search_button">カメラ検索</string>

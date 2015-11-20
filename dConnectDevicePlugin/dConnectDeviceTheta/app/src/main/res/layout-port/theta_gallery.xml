@@ -46,6 +46,7 @@
 
     <Button
         android:id="@+id/theta_shutter"
+        android:visibility="gone"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:background="@drawable/vr_mode_screen_shot_button"

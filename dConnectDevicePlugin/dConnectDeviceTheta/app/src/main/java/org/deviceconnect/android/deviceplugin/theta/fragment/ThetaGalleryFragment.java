@@ -92,7 +92,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
 
     /** Theta Device.*/
     private ThetaDevice mDevice;
-
+    private MenuItem mUpdateItem;
 
 
     /**
@@ -118,12 +118,12 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
     public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
         menu.clear();
         // Add Menu Button
-        final MenuItem menuItem = menu.add(R.string.theta_update);
-        menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        mUpdateItem = menu.add(R.string.theta_update);
+        mUpdateItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        mUpdateItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(final MenuItem item) {
-                if (item.getTitle().equals(menuItem.getTitle())) {
+                if (item.getTitle().equals(mUpdateItem.getTitle())) {
                     loadThetaData();
                 }
                 return true;
@@ -215,6 +215,9 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
 
         if (mDevice != null) {
             mRecconectLayout.setVisibility(View.GONE);
+            if (mUpdateItem != null) {
+                mUpdateItem.setVisible(true);
+            }
             String ssId = mDevice.getName();
             getActivity().getActionBar().setTitle(ssId);
             if (mRecconectLayout.isEnabled()
@@ -223,6 +226,9 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
             }
         } else {
             mRecconectLayout.setVisibility(View.VISIBLE);
+            if (mUpdateItem != null) {
+                mUpdateItem.setVisible(false);
+            }
         }
     }
 

@@ -21,6 +21,7 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -44,7 +45,6 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
-import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -108,7 +108,20 @@ public class ThetaVRModeFragment extends Fragment {
     private ScaleGestureDetector mScaleDetector;
     /** Scale factor. */
     private float mScaleFactor = 90.0f;
-
+    /**
+     * Cache size of thumbnail.
+     *
+     * 100 datas will be cached.
+     *
+     * Unit: byte.
+     */
+    private static final int DATA_CACHE_SIZE = (2 * 1024 * 1024) * 100;
+    private LruCache<String, Bitmap> mDataCache = new LruCache<String, Bitmap>(DATA_CACHE_SIZE) {
+        @Override
+        protected int sizeOf(final String key, final Bitmap value) {
+            return value.getByteCount() / 1024;
+        }
+    };
     /** VR Change toggle button's listener.*/
     private CompoundButton.OnCheckedChangeListener mVRChangeToggleListener
             = new CompoundButton.OnCheckedChangeListener() {
@@ -511,6 +524,7 @@ public class ThetaVRModeFragment extends Fragment {
      * Donwload of data.
      */
     private class ThetaMainData implements DownloadThetaDataTask.ThetaDownloadListener {
+
         /** Theta Device. */
         private ThetaDevice mDevice;
         /** Theta Object. */
@@ -528,7 +542,7 @@ public class ThetaVRModeFragment extends Fragment {
                 try {
                     List<ThetaObject> list = mDevice.fetchAllObjectList();
                     mObj = list.get(mDefaultId);
-                    mSphericalBinary = BitmapUtils.getBitmapCache(mDevice.getName() + "_" + mObj.getFileName());
+                    mSphericalBinary = mDataCache.get(mDevice.getName() + "_" + mObj.getFileName());
                     if (mSphericalBinary == null) {
                         mObj.fetch(ThetaObject.DataType.MAIN);
                         byte[] b = mObj.getMainData();
@@ -539,6 +553,8 @@ public class ThetaVRModeFragment extends Fragment {
                     e.printStackTrace();
                     mError = e.getReason();
                     mSphericalBinary = null;
+                } catch (OutOfMemoryError e) {
+                    mError = ThetaDeviceException.OUT_OF_MEMORY;
                 }
             } else {
                 mSphericalBinary = null;
@@ -553,7 +569,16 @@ public class ThetaVRModeFragment extends Fragment {
             }
 
             if (mSphericalBinary == null) {
-                if (mError > 0) {
+                if (mError == ThetaDeviceException.OUT_OF_MEMORY) {
+                    ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                            getString(R.string.theta_error_memory_warning),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    getActivity().finish();
+                                }
+                            });
+                } else if (mError > 0) {
                     // THETA device is found, but communication error occurred.
                     showReconnectionDialog();
                 } else {
@@ -562,14 +587,26 @@ public class ThetaVRModeFragment extends Fragment {
                 }
             } else {
                 if (mDevice != null && mObj != null) {
-                    BitmapUtils.putBitmapCache(mDevice.getName() + "_" + mObj.getFileName(),
-                        mSphericalBinary);
+                    mDataCache.put(mDevice.getName() + "_" + mObj.getFileName(),
+                            mSphericalBinary);
                 }
                 if (mSphereView != null) {
-                    mSphereView.onResume();
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    mSphericalBinary.compress(Bitmap.CompressFormat.JPEG, 100, bos);
-                    mSphereView.start(bos.toByteArray());
+                    try {
+                        mSphereView.onResume();
+                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                        mSphericalBinary.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+                        mSphereView.start(bos.toByteArray());
+                    } catch (OutOfMemoryError e) {
+                        ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                                getString(R.string.theta_error_memory_warning),
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        getActivity().finish();
+                                    }
+                                });
+
+                    }
                 }
             }
 

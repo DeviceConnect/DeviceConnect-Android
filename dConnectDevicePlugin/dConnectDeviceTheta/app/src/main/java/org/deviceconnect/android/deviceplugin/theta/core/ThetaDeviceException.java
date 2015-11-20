@@ -23,6 +23,8 @@ public class ThetaDeviceException extends Exception {
 
     public static final int UNAVAILABLE = 9;
 
+    public static final int OUT_OF_MEMORY = 10;
+
     private final int mReason;
 
     public int getReason() {

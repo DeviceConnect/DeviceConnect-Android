@@ -16,6 +16,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -42,7 +43,6 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListene
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
-import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
 
 import java.util.ArrayList;
@@ -91,7 +91,20 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
     private List<ThetaObject> mUpdateList = new ArrayList<ThetaObject>();
 
     private MenuItem mUpdateItem;
-
+    /**
+     * Cache size of thumbnail.
+     *
+     * 100 Thumbnails will be cached.
+     *
+     * Unit: byte.
+     */
+    private static final int THUMBNAIL_CACHE_SIZE = (3 * 1024 * 1024) * 100;
+    private LruCache<String, Bitmap> mThumbnailCache = new LruCache<String, Bitmap>(THUMBNAIL_CACHE_SIZE) {
+        @Override
+        protected int sizeOf(final String key, final Bitmap value) {
+            return value.getByteCount() / 1024;
+        }
+    };
     /**
      * Singleton.
      */
@@ -294,19 +307,19 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
         final Activity activity = getActivity();
         if (activity != null) {
             ThetaDialogFragment.showReconnectionDialog(activity,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int i) {
-                        dialog.dismiss();
-                        showSettingsActivity();
-                    }
-                },
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int i) {
-                        dialog.dismiss();
-                    }
-                });
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(final DialogInterface dialog, final int i) {
+                            dialog.dismiss();
+                            showSettingsActivity();
+                        }
+                    },
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(final DialogInterface dialog, final int i) {
+                            dialog.dismiss();
+                        }
+                    });
         }
     }
 
@@ -498,7 +511,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
 
         @Override
         public synchronized void doInBackground() {
-            mThumbnail = BitmapUtils.getBitmapCache(mObj.getFileName());
+            mThumbnail = mThumbnailCache.get(mObj.getFileName());
             if (mThumbnail == null) {
                 try {
                     Thread.sleep(100);
@@ -528,7 +541,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 return;
             }
             if (mThumbnail != null) {
-                BitmapUtils.putBitmapCache(mObj.getFileName(), mThumbnail);
+                mThumbnailCache.put(mObj.getFileName(), mThumbnail);
                 thumbView = mHolder.mThumbnail;
                 loadingView = mHolder.mLoading;
                 if (mTag.equals(thumbView.getTag())) {

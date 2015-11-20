@@ -91,20 +91,24 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
     private List<ThetaObject> mUpdateList = new ArrayList<ThetaObject>();
 
     private MenuItem mUpdateItem;
+
     /**
      * Cache size of thumbnail.
      *
      * 100 Thumbnails will be cached.
      *
+     * The size per thumbnail is about 3 KBytes.
+     *
      * Unit: byte.
      */
-    private static final int THUMBNAIL_CACHE_SIZE = (3 * 1024 * 1024) * 100;
+    private static final int THUMBNAIL_CACHE_SIZE = (3 * 1024) * 100;
     private LruCache<String, Bitmap> mThumbnailCache = new LruCache<String, Bitmap>(THUMBNAIL_CACHE_SIZE) {
         @Override
         protected int sizeOf(final String key, final Bitmap value) {
             return value.getByteCount() / 1024;
         }
     };
+
     /**
      * Singleton.
      */

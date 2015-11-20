@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.theta;
 
 import android.app.Application;
+import android.support.v4.util.LruCache;
 
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
@@ -28,7 +29,22 @@ public class ThetaDeviceApplication extends Application {
     private ThetaDeviceManager mDeviceMgr;
 
     private SphericalViewApi mSphericalViewApi;
-
+    /**
+     * Cache size of thumbnail.
+     *
+     * 3 Thumbnails will be cached.
+     *
+     * The size per thumbnail is about 3 KBytes.
+     *
+     * Unit: byte.
+     */
+    private static final int THUMBNAIL_CACHE_SIZE = (2 * 1024 * 1024) * 3;
+    private LruCache<String, byte[]> mThumbnailCache = new LruCache<String, byte[]>(THUMBNAIL_CACHE_SIZE) {
+        @Override
+        protected int sizeOf(final String key, final byte[] value) {
+            return value.length / 1024;
+        }
+    };
     @Override
     public void onCreate() {
         super.onCreate();
@@ -53,5 +69,8 @@ public class ThetaDeviceApplication extends Application {
 
     public SphericalViewApi getSphericalViewApi() {
         return mSphericalViewApi;
+    }
+    public LruCache<String, byte[]> getCache() {
+        return mThumbnailCache;
     }
 }

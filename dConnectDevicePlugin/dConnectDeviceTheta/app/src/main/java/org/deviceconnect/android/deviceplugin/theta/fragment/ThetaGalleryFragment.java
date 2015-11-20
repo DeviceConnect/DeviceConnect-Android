@@ -102,12 +102,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
      * Unit: byte.
      */
     private static final int THUMBNAIL_CACHE_SIZE = (3 * 1024) * 100;
-    private LruCache<String, Bitmap> mThumbnailCache = new LruCache<String, Bitmap>(THUMBNAIL_CACHE_SIZE) {
-        @Override
-        protected int sizeOf(final String key, final Bitmap value) {
-            return value.getByteCount() / 1024;
-        }
-    };
+    private LruCache<String, byte[]> mThumbnailCache;
 
     /**
      * Singleton.
@@ -149,6 +144,8 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mRootView = inflater.inflate(R.layout.theta_gallery, container, false);
         getActivity().getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
+        mThumbnailCache = app.getCache();
         int color = R.color.action_bar_background;
         Drawable backgroundDrawable = getActivity().getApplicationContext().getResources().getDrawable(color);
         getActivity().getActionBar().setBackgroundDrawable(backgroundDrawable);
@@ -500,7 +497,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
         private final String mTag;
 
         /** Thumbnail. */
-        private Bitmap mThumbnail;
+        private byte[] mThumbnail;
 
         /**
          * Constructor.
@@ -532,9 +529,8 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
 
         private void cacheThumbnail(final ThetaObject obj) throws ThetaDeviceException {
             obj.fetch(ThetaObject.DataType.THUMBNAIL);
-            byte[] data = obj.getThumbnailData();
+            mThumbnail = obj.getThumbnailData();
             obj.clear(ThetaObject.DataType.THUMBNAIL);
-            mThumbnail = BitmapFactory.decodeByteArray(data, 0, data.length);
         }
 
         @Override
@@ -549,7 +545,9 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 thumbView = mHolder.mThumbnail;
                 loadingView = mHolder.mLoading;
                 if (mTag.equals(thumbView.getTag())) {
-                    thumbView.setImageBitmap(mThumbnail);
+                    Bitmap data = BitmapFactory.decodeByteArray(mThumbnail, 0, mThumbnail.length);
+
+                    thumbView.setImageBitmap(data);
                     loadingView.setVisibility(View.GONE);
                 }
             }

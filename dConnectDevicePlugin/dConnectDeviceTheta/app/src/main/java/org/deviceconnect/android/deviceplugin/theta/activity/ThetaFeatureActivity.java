@@ -87,7 +87,7 @@ public class ThetaFeatureActivity extends FragmentActivity {
             ThetaShootingModeFragment f = new ThetaShootingModeFragment();
             moveFragment(f);
         } else if (pageId == MODE_VR) {
-            ThetaVRModeFragment f = new ThetaVRModeFragment();
+            ThetaVRModeFragment f = ThetaVRModeFragment.newInstance();
             Bundle args = new Bundle();
             args.putInt(FEATURE_DATA, dataId);
             f.setArguments(args);

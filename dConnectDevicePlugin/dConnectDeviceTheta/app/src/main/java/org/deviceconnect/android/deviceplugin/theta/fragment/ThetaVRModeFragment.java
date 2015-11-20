@@ -12,8 +12,6 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -48,7 +46,6 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
 import org.deviceconnect.android.provider.FileManager;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -108,20 +105,16 @@ public class ThetaVRModeFragment extends Fragment {
     private ScaleGestureDetector mScaleDetector;
     /** Scale factor. */
     private float mScaleFactor = 90.0f;
+
+    private LruCache<String, byte[]> mDataCache;
     /**
-     * Cache size of thumbnail.
-     *
-     * 100 datas will be cached.
-     *
-     * Unit: byte.
+     * Singleton.
      */
-    private static final int DATA_CACHE_SIZE = (2 * 1024 * 1024) * 100;
-    private LruCache<String, Bitmap> mDataCache = new LruCache<String, Bitmap>(DATA_CACHE_SIZE) {
-        @Override
-        protected int sizeOf(final String key, final Bitmap value) {
-            return value.getByteCount() / 1024;
-        }
-    };
+    public static ThetaVRModeFragment newInstance() {
+        ThetaVRModeFragment fragment = new ThetaVRModeFragment();
+        return fragment;
+    }
+
     /** VR Change toggle button's listener.*/
     private CompoundButton.OnCheckedChangeListener mVRChangeToggleListener
             = new CompoundButton.OnCheckedChangeListener() {
@@ -184,11 +177,12 @@ public class ThetaVRModeFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
         setRetainInstance(true);
+        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
+        mDataCache = app.getCache();
         View rootView = inflater.inflate(R.layout.theta_vr_mode, null);
         mLeftLayout = (RelativeLayout) rootView.findViewById(R.id.left_ui);
         mRightLayout = (RelativeLayout) rootView.findViewById(R.id.right_ui);
         mSphereView = (SphericalImageView) rootView.findViewById(R.id.vr_view);
-        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
 
         mApi = app.getSphericalViewApi();
         mSphereView.setViewApi(mApi);
@@ -285,21 +279,21 @@ public class ThetaVRModeFragment extends Fragment {
         final Activity activity = getActivity();
         if (activity != null) {
             ThetaDialogFragment.showReconnectionDialog(activity,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int i) {
-                        dialog.dismiss();
-                        activity.finish();
-                        showSettingsActivity();
-                    }
-                },
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(final DialogInterface dialog, final int i) {
-                        dialog.dismiss();
-                        activity.finish();
-                    }
-                });
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(final DialogInterface dialog, final int i) {
+                            dialog.dismiss();
+                            activity.finish();
+                            showSettingsActivity();
+                        }
+                    },
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(final DialogInterface dialog, final int i) {
+                            dialog.dismiss();
+                            activity.finish();
+                        }
+                    });
         }
     }
 
@@ -530,7 +524,7 @@ public class ThetaVRModeFragment extends Fragment {
         /** Theta Object. */
         private ThetaObject mObj;
         /** SphericalView byte. */
-        private Bitmap mSphericalBinary;
+        private byte[] mSphericalBinary;
         /** Communication error. */
         private int mError = -1;
         @Override
@@ -545,8 +539,7 @@ public class ThetaVRModeFragment extends Fragment {
                     mSphericalBinary = mDataCache.get(mDevice.getName() + "_" + mObj.getFileName());
                     if (mSphericalBinary == null) {
                         mObj.fetch(ThetaObject.DataType.MAIN);
-                        byte[] b = mObj.getMainData();
-                        mSphericalBinary = BitmapFactory.decodeByteArray(b, 0, b.length);
+                        mSphericalBinary = mObj.getMainData();
                         mObj.clear(ThetaObject.DataType.MAIN);
                     }
                 } catch (ThetaDeviceException e) {
@@ -593,9 +586,7 @@ public class ThetaVRModeFragment extends Fragment {
                 if (mSphereView != null) {
                     try {
                         mSphereView.onResume();
-                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                        mSphericalBinary.compress(Bitmap.CompressFormat.JPEG, 100, bos);
-                        mSphereView.start(bos.toByteArray());
+                        mSphereView.start(mSphericalBinary);
                     } catch (OutOfMemoryError e) {
                         ThetaDialogFragment.showAlert(getActivity(), "THETA",
                                 getString(R.string.theta_error_memory_warning),

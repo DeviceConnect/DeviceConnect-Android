@@ -20,7 +20,7 @@
     <string name="confirmation_body">下に表示されているカメラ検索ボタンを押下してください。</string>
     <string name="camera_search_button">カメラ検索</string>
     <string name="camera_search_message_not_found">THETAが見つかりません。</string>
-    <string name="camera_search_message_found">$NAME$ と接続中です。</string>
+    <string name="camera_search_message_found">$NAME$ に接続されました。</string>
     <string name="wifi_settings_button">WiFi設定画面を開く</string>
 
     <string name="ok">OK</string>

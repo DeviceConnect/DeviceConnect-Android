@@ -48,7 +48,7 @@ public interface ThetaDevice {
      * Fetches a list of objects stored in this THETA device.
      *
      * <p>
-     * If THETA device has no objectin in the specified range, this method returns a 0-length list.
+     * If THETA device has no object in the specified range, this method returns a 0-length list.
      * </p>
      *
      * <p>
@@ -92,6 +92,13 @@ public interface ThetaDevice {
      * @throws ThetaDeviceException if the API execution is failed.
      */
     void stopVideoRecording() throws ThetaDeviceException;
+
+    /**
+     * Return maximum length of video recording as milliseconds.
+     *
+     * @return Maximum length of video recording as milliseconds
+     */
+    long getMaxVideoLength();
 
     /**
      * Gets the battery level of THETA device.

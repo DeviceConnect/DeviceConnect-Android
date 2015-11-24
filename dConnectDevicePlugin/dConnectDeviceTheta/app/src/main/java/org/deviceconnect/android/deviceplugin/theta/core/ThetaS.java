@@ -165,6 +165,11 @@ class ThetaS extends AbstractThetaDevice {
     }
 
     @Override
+    public long getMaxVideoLength() {
+        return 25 * 60 * 1000;
+    }
+
+    @Override
     public double getBatteryLevel() throws ThetaDeviceException {
         try {
             OscState state = mOscClient.state();

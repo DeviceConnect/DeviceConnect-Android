@@ -60,6 +60,7 @@ public class ThetaDeviceApplication extends Application {
         }
 
         mDeviceMgr = new ThetaDeviceManager(getApplicationContext());
+        mDeviceMgr.checkConnectedDevice();
         mSphericalViewApi = new SphericalViewApi(getApplicationContext());
     }
 

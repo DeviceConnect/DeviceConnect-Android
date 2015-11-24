@@ -9,6 +9,7 @@ import android.os.Build;
 
 import com.theta360.lib.PtpipInitiator;
 import com.theta360.lib.ThetaException;
+import com.theta360.lib.ptpip.entity.DeviceInfo;
 import com.theta360.lib.ptpip.entity.ObjectHandles;
 import com.theta360.lib.ptpip.entity.ObjectInfo;
 import com.theta360.lib.ptpip.entity.PtpObject;
@@ -39,6 +40,8 @@ class ThetaM15 extends AbstractThetaDevice {
 
     private static final SimpleDateFormat AFTER_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
+    private static final VersionName VERSION_5_MIN_VIDEO = new VersionName("01.30");
+
     private final SocketFactory mSocketFactory;
 
     private final Comparator<ThetaObject> mComparator = new Comparator<ThetaObject>() {
@@ -52,9 +55,16 @@ class ThetaM15 extends AbstractThetaDevice {
 
     };
 
+    private VersionName mDeviceVersion;
+
     ThetaM15(final Context context, final String name) {
         super(name);
         mSocketFactory = getWifiSocketFactory(context);
+    }
+
+    public boolean initialize() {
+        mDeviceVersion = getDeviceVersion();
+        return mDeviceVersion != null;
     }
 
     private PtpipInitiator getInitiator() throws ThetaException, IOException {
@@ -230,6 +240,15 @@ class ThetaM15 extends AbstractThetaDevice {
     }
 
     @Override
+    public long getMaxVideoLength() {
+        return is5minVideo() ? 5 * 60 * 1000 : 3 * 60 * 1000;
+    }
+
+    private boolean is5minVideo() {
+        return mDeviceVersion.isSameOrLaterThan(VERSION_5_MIN_VIDEO);
+    }
+
+    @Override
     public double getBatteryLevel() throws ThetaDeviceException {
         try {
             return getInitiator().getBatteryLevel().getValue() / 100d;
@@ -248,6 +267,20 @@ class ThetaM15 extends AbstractThetaDevice {
     @Override
     public InputStream getLivePreview() throws ThetaDeviceException {
         throw new UnsupportedOperationException();
+    }
+
+    private VersionName getDeviceVersion() {
+        DeviceInfo deviceInfo;
+
+        try {
+            deviceInfo = getInitiator().getDeviceInfo();
+        } catch (IOException e) {
+            return null;
+        } catch (ThetaException e) {
+            return null;
+        }
+
+        return new VersionName(deviceInfo.getDeviceVersion());
     }
 
     private class ThetaImageObject extends ThetaObjectM15 {
@@ -423,5 +456,54 @@ class ThetaM15 extends AbstractThetaDevice {
             return mMain;
         }
 
+    }
+
+    private static class VersionName {
+
+        private static final Comparator<VersionName> COMPARATOR = new Comparator<VersionName>() {
+            @Override
+            public int compare(final VersionName v1, final VersionName v2) {
+                VersionName a = v1;
+                VersionName b = v2;
+                if (a.getLength() > b.getLength()) {
+                    VersionName tmp = a;
+                    a = b;
+                    b = tmp;
+                }
+                for (int i = 0; i < b.getLength(); i++) {
+                    int valueA = (i <= a.getLength() - 1) ? a.mVersions[i] : 0;
+                    int valueB = b.mVersions[i];
+                    if (valueA > valueB) {
+                        return 1;
+                    } else if (valueA < valueB) {
+                        return -1;
+                    }
+                }
+                return 0;
+            }
+        };
+
+        private final int[] mVersions;
+
+        public VersionName(final String expression) {
+            mVersions = parse(expression);
+        }
+
+        private int getLength() {
+            return mVersions.length;
+        }
+
+        private static int[] parse(final String expression) {
+            String[] versions = expression.split("\\.");
+            int[] result = new int[versions.length];
+            for (int i = 0; i < versions.length; i++) {
+                result[i] = Integer.parseInt(versions[i]);
+            }
+            return result;
+        }
+
+        public boolean isSameOrLaterThan(final VersionName otherVersion) {
+            return COMPARATOR.compare(this, otherVersion) > 0;
+        }
     }
 }

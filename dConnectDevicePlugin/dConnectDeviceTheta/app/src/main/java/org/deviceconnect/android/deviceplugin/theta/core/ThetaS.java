@@ -25,6 +25,12 @@ class ThetaS extends AbstractThetaDevice {
 
     private static final String PARAM_ENTRIES = "entries";
 
+    private static final String PARAM_ID = "id";
+
+    private static final String PARAM_FILE_URI = "fileUri";
+
+    private static final String PARAM_EXIF = "exif";
+
     private static final SimpleDateFormat BEFORE_FORMAT_WITH_TIMEZONE = new SimpleDateFormat("yyyy:MM:dd HH:mm:ssZ");
 
     private static final SimpleDateFormat BEFORE_FORMAT = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
@@ -78,7 +84,8 @@ class ThetaS extends AbstractThetaDevice {
         if (!checkExtension(entry.getName())) {
             return null;
         }
-        return new ThetaObjectS(entry);
+        return new ThetaObjectS(entry.getUri(), entry.getName(), entry.getDateTime(),
+                                entry.getWidth(), entry.getHeight());
     }
 
     private boolean checkExtension(final String filename) {
@@ -89,14 +96,41 @@ class ThetaS extends AbstractThetaDevice {
     public ThetaObject takePicture() throws ThetaDeviceException {
         try {
             OscSession session = mOscClient.startSession();
-            String fileUri = mOscClient.takePicture(session.getId());
+            OscCommand.Result result = mOscClient.takePicture(session.getId());
+            throwExceptionIfError(result);
+            JSONObject json = result.getJSON();
+            String id = json.getString(PARAM_ID);
+
+            result = mOscClient.waitForDone(id);
+            json = result.getJSON();
+            JSONObject results = json.getJSONObject(PARAM_RESULTS);
+            String fileUri = results.getString(PARAM_FILE_URI);
+
+            result = mOscClient.getMetaData(fileUri);
+            throwExceptionIfError(result);
+            json = result.getJSON();
+            results = json.getJSONObject(PARAM_RESULTS);
+
             mOscClient.closeSession(session.getId());
-            return null; // TODO Implement.
+
+            Exif exif = new Exif(results.getJSONObject(PARAM_EXIF));
+            return new ThetaObjectS(fileUri, parseFileName(fileUri), exif.mDateTime,
+                                    exif.mImageWidth, exif.mImageLength);
         } catch (IOException e) {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
             throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
+        } catch (InterruptedException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN);
         }
+    }
+
+    private String parseFileName(final String fileUri) {
+        String[] result = fileUri.split("/");
+        if (result.length < 2) {
+            return fileUri;
+        }
+        return result[1];
     }
 
     @Override
@@ -151,8 +185,7 @@ class ThetaS extends AbstractThetaDevice {
     public InputStream getLivePreview() throws ThetaDeviceException {
         try {
             OscSession session = mOscClient.startSession();
-            OscCommand.Result result = mOscClient.getLivePreview(session.getId());
-            return result.getInputStream();
+            return mOscClient.getLivePreview(session.getId());
         } catch (IOException e) {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
@@ -185,7 +218,13 @@ class ThetaS extends AbstractThetaDevice {
 
         private static final String MIMETYPE_VIDEO = "video/mp4";
 
-        private final OscEntry mEntry;
+        private final String mFileUri;
+
+        private final String mFileName;
+
+        private final int mWidth;
+
+        private final int mHeight;
 
         private final String mDateTime;
 
@@ -195,10 +234,14 @@ class ThetaS extends AbstractThetaDevice {
 
         private byte[] mMain;
 
-        public ThetaObjectS(final OscEntry entry) {
-            mEntry = entry;
+        public ThetaObjectS(final String fileUri, final String fileName, final String dateTime,
+                            final int width, final int height) {
+            mFileUri = fileUri;
+            mFileName = fileName;
+            mWidth = width;
+            mHeight = height;
 
-            Date date = parseDate(entry.getDateTime());
+            Date date = parseDate(dateTime);
             if (date != null) {
                 mDateTime = AFTER_FORMAT.format(date);
                 mDateTimeUnix = date.getTime();
@@ -232,9 +275,9 @@ class ThetaS extends AbstractThetaDevice {
                     case THUMBNAIL: {
                         OscCommand.Result result;
                         if (isImage()) {
-                            result = mOscClient.getImage(mEntry.getUri(), true);
+                            result = mOscClient.getImage(mFileUri, true);
                         } else {
-                            result = mOscClient.getVideo(mEntry.getUri(), true);
+                            result = mOscClient.getVideo(mFileUri, true);
                         }
                         throwExceptionIfError(result);
                         mThumbnail = result.getBytes();
@@ -242,9 +285,9 @@ class ThetaS extends AbstractThetaDevice {
                     case MAIN: {
                         OscCommand.Result result;
                         if (isImage()) {
-                            result = mOscClient.getImage(mEntry.getUri(), false);
+                            result = mOscClient.getImage(mFileUri, false);
                         } else {
-                            result = mOscClient.getVideo(mEntry.getUri(), false);
+                            result = mOscClient.getVideo(mFileUri, false);
                         }
                         throwExceptionIfError(result);
                         mMain = result.getBytes();
@@ -274,7 +317,7 @@ class ThetaS extends AbstractThetaDevice {
         @Override
         public void remove() throws ThetaDeviceException {
             try {
-                mOscClient.delete(mEntry.getUri());
+                mOscClient.delete(mFileUri);
             } catch (IOException e) {
                 throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
             } catch (JSONException e) {
@@ -318,17 +361,17 @@ class ThetaS extends AbstractThetaDevice {
 
         @Override
         public String getFileName() {
-            return mEntry.getName();
+            return mFileName;
         }
 
         @Override
         public Integer getWidth() {
-            return mEntry.getWidth();
+            return mWidth;
         }
 
         @Override
         public Integer getHeight() {
-            return mEntry.getHeight();
+            return mHeight;
         }
 
         @Override
@@ -342,4 +385,25 @@ class ThetaS extends AbstractThetaDevice {
         }
     }
 
+    private static class Exif {
+
+        private static final String KEY_IMAGE_WIDTH = "ImageWidth";
+
+        private static final String KEY_IMAGE_LENGTH = "ImageLength";
+
+        private static final String KEY_DATE_TIME = "DateTime";
+
+        private final int mImageWidth;
+
+        private final int mImageLength;
+
+        private final String mDateTime;
+
+        public Exif(final JSONObject exif) throws JSONException {
+            mImageWidth = exif.getInt(KEY_IMAGE_WIDTH);
+            mImageLength = exif.getInt(KEY_IMAGE_LENGTH);
+            mDateTime = exif.getString(KEY_DATE_TIME);
+        }
+
+    }
 }

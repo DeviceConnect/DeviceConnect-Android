@@ -5,7 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 public class OscCommand {
 
@@ -45,11 +45,14 @@ public class OscCommand {
 
         private final Error mError;
 
-        private final HttpResponse mBody;
+        private final byte[] mData;
 
-        private Result(final Error error, final HttpResponse response) {
+        private final int mStatusCode;
+
+        private Result(final Error error, final int statusCode, final HttpResponse response) throws IOException{
             mError = error;
-            mBody = response;
+            mStatusCode = statusCode;
+            mData = response.getBytes();
         }
 
         public boolean isSuccess() {
@@ -57,44 +60,35 @@ public class OscCommand {
         }
 
         public int getHttpStatusCode() {
-            return mBody.getStatusCode();
+            return mStatusCode;
         }
 
         public Error getError() {
             return mError;
         }
 
-        public JSONObject getJSON() throws IOException, JSONException {
-            if (mBody == null) {
-                return null;
+        public JSONObject getJSON() throws JSONException {
+            try {
+                return new JSONObject(new String(mData, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                throw new JSONException("JSON is not encoded by UTF-8.");
             }
-            return mBody.getJSON();
         }
 
         public byte[] getBytes() throws IOException {
-            if (mBody == null) {
-                return null;
-            }
-            return mBody.getBytes();
-        }
-
-        public InputStream getInputStream() throws IOException {
-            if (mBody == null) {
-                return null;
-            }
-            return mBody.getStream();
+            return mData;
         }
 
         public static Result parse(final HttpResponse response) throws IOException, JSONException {
             int status = response.getStatusCode();
             if (status == 200) {
-                return new Result(null, response);
+                return new Result(null, status, response);
             } else {
                 JSONObject json = response.getJSON();
                 JSONObject error = json.getJSONObject("error");
                 String code = error.getString("code");
                 Error errorCode = Error.parse(code);
-                return new Result(errorCode, response);
+                return new Result(errorCode, status, response);
             }
         }
     }

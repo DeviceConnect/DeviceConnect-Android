@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 public class OscClient {
 
@@ -15,6 +16,9 @@ public class OscClient {
     private static final String PATH_INFO = "/osc/info";
     private static final String PATH_STATE = "/osc/state";
     private static final String PATH_COMMANDS_EXECUTE = "/osc/commands/execute";
+    private static final String PATH_COMMANDS_STATUS = "/osc/commands/status";
+
+    private static final String REQ_PARAM_ID = "id";
 
     private static final String RES_PARAM_STATE = "state";
     private static final String RES_PARAM_RESULTS = "results";
@@ -60,14 +64,12 @@ public class OscClient {
         executeCommand("camera.closeSession", params);
     }
 
-    public String takePicture(final String sessionId) throws IOException, JSONException {
+    public OscCommand.Result takePicture(final String sessionId) throws IOException, JSONException {
         JSONObject params = new JSONObject();
         params.put("sessionId", sessionId);
 
         HttpResponse response = executeCommand("camera.takePicture", params);
-        JSONObject json = response.getJSON();
-        JSONObject results = json.getJSONObject(RES_PARAM_RESULTS);
-        return results.getString("fileUri");
+        return OscCommand.Result.parse(response);
     }
 
     public void startCapture(final String sessionId) throws IOException, JSONException {
@@ -110,11 +112,19 @@ public class OscClient {
         return OscCommand.Result.parse(response);
     }
 
-    public OscCommand.Result getLivePreview(final String sessionId) throws IOException, JSONException {
+    public InputStream getLivePreview(final String sessionId) throws IOException, JSONException {
         JSONObject params = new JSONObject();
         params.put("sessionId", sessionId);
 
         HttpResponse response = executeCommand("camera._getLivePreview", params);
+        return response.getStream();
+    }
+
+    public OscCommand.Result getMetaData(final String fileUri) throws IOException, JSONException {
+        JSONObject params = new JSONObject();
+        params.put("fileUri", fileUri);
+
+        HttpResponse response = executeCommand("camera.getMetadata", params);
         return OscCommand.Result.parse(response);
     }
 
@@ -126,10 +136,36 @@ public class OscClient {
 
             HttpRequest request = new HttpRequest(POST, HOST, PATH_COMMANDS_EXECUTE);
             request.setBody(body.toString());
-            HttpResponse response = mHttpClient.execute(request);
-            return response;
+            return mHttpClient.execute(request);
         } catch (JSONException e) {
             throw new RuntimeException();
+        }
+    }
+
+    private OscCommand.Result statusCommand(final String commandId) throws IOException {
+        try {
+            JSONObject body = new JSONObject();
+            body.put(REQ_PARAM_ID, commandId);
+
+            HttpRequest request = new HttpRequest(POST, HOST, PATH_COMMANDS_STATUS);
+            request.setBody(body.toString());
+            HttpResponse response = mHttpClient.execute(request);
+            return OscCommand.Result.parse(response);
+        } catch (JSONException e) {
+            throw new RuntimeException();
+        }
+    }
+
+    public OscCommand.Result waitForDone(final String commandId) throws IOException, JSONException, InterruptedException {
+        for (;;) {
+            OscCommand.Result result = statusCommand(commandId);
+            JSONObject json = result.getJSON();
+            String state = json.getString(RES_PARAM_STATE);
+            if ("done".equals(state)) {
+                return result;
+            }
+
+            Thread.sleep(200);
         }
     }
 

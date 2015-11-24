@@ -83,7 +83,7 @@ project.androidVariants.all { variant ->
 
 repositories {
     maven {
-        url 'http://raw.github.com/TakayukiHoshi1984/DeviceConnect-Android/bugfix_gradle_library/dConnectSDK/dConnectSDKForAndroid/repository/'
+        url 'https://raw.githubusercontent.com/TakayukiHoshi1984/DeviceConnect-Android/bugfix_gradle_library/dConnectSDK/dConnectSDKForAndroid/repository/'
     }
 }
 

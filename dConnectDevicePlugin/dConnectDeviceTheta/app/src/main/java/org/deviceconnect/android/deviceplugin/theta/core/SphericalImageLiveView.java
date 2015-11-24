@@ -69,6 +69,7 @@ public class SphericalImageLiveView extends SphericalImageView {
                 } catch (ThetaDeviceException e) {
                     e.printStackTrace();
                 } finally {
+                    mIsStarted = false;
                     try {
                         if (is != null) {
                             is.close();

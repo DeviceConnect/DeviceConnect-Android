@@ -164,7 +164,7 @@ public class ThetaDeviceManager implements WifiStateEventListener {
 
     @Override
     public void onWiFiEnabled() {
-        // Nothig to do.
+        // Nothing to do.
         Log.d("AAA", "onWiFiEnabled");
     }
 

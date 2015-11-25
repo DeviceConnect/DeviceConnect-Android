@@ -138,6 +138,15 @@ public class OscClient {
         return OscCommand.Result.parse(response);
     }
 
+    public OscCommand.Result setOptions(final String sessionId, final JSONObject options) throws IOException, JSONException {
+        JSONObject params = new JSONObject();
+        params.put("sessionId", sessionId);
+        params.put("options", options);
+
+        HttpResponse response = executeCommand("camera.setOptions", params);
+        return OscCommand.Result.parse(response);
+    }
+
     private HttpResponse executeCommand(final String name, final JSONObject params) throws IOException {
         try {
             JSONObject body = new JSONObject();

@@ -216,6 +216,9 @@ class ThetaS extends AbstractThetaDevice {
             } else {
                 mode = ShootingMode.UNKNOWN;
             }
+
+            mOscClient.closeSession(sessionId);
+
             return mode;
         } catch (IOException e) {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
@@ -226,7 +229,33 @@ class ThetaS extends AbstractThetaDevice {
 
     @Override
     public void changeShootingMode(final ShootingMode mode) throws ThetaDeviceException {
-        // TODO Implement.
+        try {
+            String captureMode;
+            switch (mode) {
+                case IMAGE:
+                    captureMode = CAPTURE_MODE_IMAGE;
+                    break;
+                case VIDEO:
+                    captureMode = CAPTURE_MODE_VIDEO;
+                    break;
+                default:
+                    throw new IllegalArgumentException("mode must be IMAGE or VIDEO.");
+            }
+
+            OscSession session = mOscClient.startSession();
+            String sessionId = session.getId();
+            JSONObject options = new JSONObject();
+            options.put(OPTION_CAPTURE_MODE, captureMode);
+
+            OscCommand.Result result = mOscClient.setOptions(sessionId, options);
+            throwExceptionIfError(result);
+
+            mOscClient.closeSession(sessionId);
+        } catch (IOException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
+        } catch (JSONException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
+        }
     }
 
     @Override

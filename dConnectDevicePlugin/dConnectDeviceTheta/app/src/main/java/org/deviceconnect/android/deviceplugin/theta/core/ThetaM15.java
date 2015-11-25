@@ -260,6 +260,34 @@ class ThetaM15 extends AbstractThetaDevice {
     }
 
     @Override
+    public ShootingMode getShootingMode() throws ThetaDeviceException {
+        try {
+            PtpipInitiator ptpIp = getInitiator();
+            short captureMode = ptpIp.getStillCaptureMode();
+            ShootingMode mode;
+            switch (captureMode) {
+                case PtpipInitiator.DEVICE_PROP_VALUE_SINGLE_CAPTURE_MODE:
+                    mode = ShootingMode.IMAGE;
+                    break;
+                case PtpipInitiator.DEVICE_PROP_VALUE_TIMELAPSE_CAPTURE_MODE:
+                    mode = ShootingMode.IMAGE_INTERVAL;
+                    break;
+                case PtpipInitiator.DEVICE_PROP_VALUE_UNDEFINED_CAPTURE_MODE:
+                    mode = ShootingMode.VIDEO;
+                    break;
+                default:
+                    mode = ShootingMode.UNKNOWN;
+                    break;
+            }
+            return mode;
+        } catch (IOException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
+        } catch (ThetaException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
+        }
+    }
+
+    @Override
     public void changeShootingMode(final ShootingMode mode) throws ThetaDeviceException {
         throw new UnsupportedOperationException();
     }

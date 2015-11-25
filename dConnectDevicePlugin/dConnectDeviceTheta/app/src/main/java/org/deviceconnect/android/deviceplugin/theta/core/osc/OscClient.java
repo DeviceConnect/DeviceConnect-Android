@@ -1,6 +1,7 @@
 package org.deviceconnect.android.deviceplugin.theta.core.osc;
 
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -125,6 +126,15 @@ public class OscClient {
         params.put("fileUri", fileUri);
 
         HttpResponse response = executeCommand("camera.getMetadata", params);
+        return OscCommand.Result.parse(response);
+    }
+
+    public OscCommand.Result getOptions(final String sessionId, final JSONArray optionNames) throws IOException, JSONException {
+        JSONObject params = new JSONObject();
+        params.put("sessionId", sessionId);
+        params.put("optionNames", optionNames);
+
+        HttpResponse response = executeCommand("camera.getOptions", params);
         return OscCommand.Result.parse(response);
     }
 

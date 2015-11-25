@@ -31,6 +31,16 @@ class ThetaS extends AbstractThetaDevice {
 
     private static final String PARAM_EXIF = "exif";
 
+    private static final String PARAM_OPTIONS = "options";
+
+    private static final String OPTION_CAPTURE_MODE = "captureMode";
+
+    private static final String CAPTURE_MODE_IMAGE = "image";
+
+    private static final String CAPTURE_MODE_VIDEO = "_video";
+
+    private static final String CAPTURE_MODE_LIVE_STREAMING = "_liveStreaming";
+
     private static final SimpleDateFormat BEFORE_FORMAT_WITH_TIMEZONE = new SimpleDateFormat("yyyy:MM:dd HH:mm:ssZ");
 
     private static final SimpleDateFormat BEFORE_FORMAT = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
@@ -174,6 +184,39 @@ class ThetaS extends AbstractThetaDevice {
         try {
             OscState state = mOscClient.state();
             return state.getBatteryLevel();
+        } catch (IOException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
+        } catch (JSONException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
+        }
+    }
+
+    @Override
+    public ShootingMode getShootingMode() throws ThetaDeviceException {
+        try {
+            OscSession session = mOscClient.startSession();
+            String sessionId = session.getId();
+            JSONArray optionNames = new JSONArray();
+            optionNames.put("captureMode");
+
+            OscCommand.Result result = mOscClient.getOptions(sessionId, optionNames);
+            JSONObject json = result.getJSON();
+            throwExceptionIfError(result);
+            JSONObject results = json.getJSONObject(PARAM_RESULTS);
+            JSONObject options = results.getJSONObject(PARAM_OPTIONS);
+            String captureMode = options.getString(OPTION_CAPTURE_MODE);
+
+            ShootingMode mode;
+            if (CAPTURE_MODE_IMAGE.equals(captureMode)) {
+                mode = ShootingMode.IMAGE;
+            } else if (CAPTURE_MODE_VIDEO.equals(captureMode)) {
+                mode = ShootingMode.VIDEO;
+            } else if (CAPTURE_MODE_LIVE_STREAMING.equals(captureMode)) {
+                mode = ShootingMode.LIVE_STREAMING;
+            } else {
+                mode = ShootingMode.UNKNOWN;
+            }
+            return mode;
         } catch (IOException e) {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {

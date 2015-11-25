@@ -113,6 +113,14 @@ public interface ThetaDevice {
     double getBatteryLevel() throws ThetaDeviceException;
 
     /**
+     * Gets current shooting mode.
+     *
+     * @return current shooting mode
+     * @throws ThetaDeviceException if the API execution is failed.
+     */
+    ShootingMode getShootingMode() throws ThetaDeviceException;
+
+    /**
      * Changes shooting mode.
      *
      * @param mode shooting mode
@@ -139,14 +147,29 @@ public interface ThetaDevice {
     enum ShootingMode {
 
         /**
-         * Image shooting mode.
+         * Image shooting mode (one-shot).
          */
         IMAGE,
 
         /**
+         * Image shooting mode (interval).
+         */
+        IMAGE_INTERVAL,
+
+        /**
          * Video shooting mode.
          */
-        VIDEO
+        VIDEO,
+
+        /**
+         * Live streaming mode.
+         */
+        LIVE_STREAMING,
+
+        /**
+         * Unknown mode.
+         */
+        UNKNOWN
 
     }
 

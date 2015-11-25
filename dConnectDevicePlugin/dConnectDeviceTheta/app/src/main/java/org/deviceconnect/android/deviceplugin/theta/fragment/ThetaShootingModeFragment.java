@@ -91,6 +91,9 @@ public class ThetaShootingModeFragment extends Fragment {
     /** Is Recording. */
     private RecordingState mIsRecording;
 
+    /** Now Shooting Mode. */
+    private ThetaDevice.ShootingMode mNowShootingMode;
+
     /** Recording State. */
     private enum RecordingState {
         /** Recording. */
@@ -116,7 +119,7 @@ public class ThetaShootingModeFragment extends Fragment {
                     @Override
                     public void run() {
                         mShootingTime.setText(dispLabel);
-                        if (mRecordTime >= 30) {
+                        if (mRecordTime >= (mDevice.getMaxVideoLength() / 1000)) {
                             mShootingButton.setChecked(false);
                             mIsRecording = RecordingState.CANCEL;
                             mRecorder.removeCallbacks(this);
@@ -127,6 +130,19 @@ public class ThetaShootingModeFragment extends Fragment {
                     }
                 });
             }
+        }
+    };
+
+    /** Item Mode Listener. */
+    private AdapterView.OnItemSelectedListener mModeListener = new AdapterView.OnItemSelectedListener() {
+        @Override
+        public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+            enableShootingMode(position);
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> adapterView) {
+
         }
     };
     @Override
@@ -156,46 +172,20 @@ public class ThetaShootingModeFragment extends Fragment {
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(),
                                                             R.layout.theta_shooting_mode_adapter,
                                                             getResources().getStringArray(R.array.theta_shooting_mode));
-        mShootingMode.setSelection(0);
-        enableShootingMode(0);
 
         mShootingMode.setAdapter(adapter);
-        mShootingMode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                enableShootingMode(position);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
         setRetainInstance(true);
-
+        if (mShootingTasker == null) {
+            mShootingTasker = new DownloadThetaDataTask();
+            ShootingModeGetTask shootingGetTask = new ShootingModeGetTask();
+            mShootingTasker.execute(shootingGetTask);
+        }
         return rootView;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (mShootingMode.getSelectedItemPosition() == SPINNER_MODE_PICTURE
-            && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
-            try{
-                mLiveView.startLivePreview();
-            } catch (ThetaDeviceException e) {
-                if (e.getReason() == ThetaDeviceException.NOT_FOUND_THETA) {
-                    ThetaDialogFragment.showAlert(getActivity(), "THETA",
-                            getString(R.string.theta_error_disconnect_dialog_message),
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    getActivity().finish();
-                                }
-                            });
-                }
-            }
-        }
 
     }
 
@@ -220,10 +210,6 @@ public class ThetaShootingModeFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        if (mShootingMode.getSelectedItemPosition() == SPINNER_MODE_PICTURE
-                && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
-            mLiveView.stop();
-        }
 
         if (mShootingTasker != null) {
             mShootingTasker.cancel(true);
@@ -237,30 +223,18 @@ public class ThetaShootingModeFragment extends Fragment {
      * @param mode mode
      */
     private void enableShootingMode(final int mode) {
-        mLiveView.stopLivePreview();
         switch (mode) {
             case SPINNER_MODE_PICTURE:
                 if (mDevice.getModel() == ThetaDeviceModel.THETA_S) {
-                    try {
-                        mLiveView.startLivePreview();
-                    } catch (ThetaDeviceException e) {
-                        e.printStackTrace();
-                        if (e.getReason() == ThetaDeviceException.NOT_FOUND_THETA) {
-                            ThetaDialogFragment.showAlert(getActivity(), "THETA",
-                                    getString(R.string.theta_error_disconnect_dialog_message),
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialogInterface, int i) {
-                                            getActivity().finish();
-                                        }
-                                    });
-                            return;
-                        }
+                    if (mNowShootingMode != ThetaDevice.ShootingMode.IMAGE) {
+                        mNowShootingMode = ThetaDevice.ShootingMode.IMAGE;
+                        mShootingTasker = new DownloadThetaDataTask();
+                        ShootingChangeTask shooting = new ShootingChangeTask(mNowShootingMode);
+                        mShootingTasker.execute(shooting);
                     }
                     mShootingLayouts[MODE_M15_SHOOTING].setVisibility(View.GONE);
                     mShootingLayouts[MODE_S_SHOOTING].setVisibility(View.VISIBLE);
                     mShootingLayouts[MODE_MOVIE_SHOOTING].setVisibility(View.GONE);
-
                 } else {
                     mShootingLayouts[MODE_M15_SHOOTING].setVisibility(View.VISIBLE);
                     mShootingLayouts[MODE_S_SHOOTING].setVisibility(View.GONE);
@@ -269,6 +243,17 @@ public class ThetaShootingModeFragment extends Fragment {
                 break;
             case SPINNER_MODE_MOVIE:
             default:
+                if (mShootingMode.getSelectedItemPosition() == SPINNER_MODE_PICTURE
+                        && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
+                    mLiveView.stop();
+                }
+                if (mNowShootingMode != ThetaDevice.ShootingMode.VIDEO
+                    && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
+                    mShootingTasker = new DownloadThetaDataTask();
+                    mNowShootingMode = ThetaDevice.ShootingMode.VIDEO;
+                    ShootingChangeTask shooting = new ShootingChangeTask(mNowShootingMode);
+                    mShootingTasker.execute(shooting);
+                }
                 mShootingLayouts[MODE_M15_SHOOTING].setVisibility(View.GONE);
                 mShootingLayouts[MODE_S_SHOOTING].setVisibility(View.GONE);
                 mShootingLayouts[MODE_MOVIE_SHOOTING].setVisibility(View.VISIBLE);
@@ -292,6 +277,7 @@ public class ThetaShootingModeFragment extends Fragment {
                     @Override
                     public void onCheckedChanged(CompoundButton compoundButton, boolean isRecordered) {
                         mShootingTasker = new DownloadThetaDataTask();
+
                         mIsRecording = RecordingState.RECORDING;
                         if (mIsRecording != RecordingState.CANCEL && !isRecordered) {
                             mIsRecording = RecordingState.STOP;
@@ -308,11 +294,6 @@ public class ThetaShootingModeFragment extends Fragment {
                     public void onClick(View view) {
                         if (mShootingTasker != null) {
                             return;
-                        }
-                        if (mProgress == null) {
-                            mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.shooting));
-                            mProgress.show(getActivity().getFragmentManager(),
-                                    "fragment_dialog");
                         }
 
                         mShootingTasker = new DownloadThetaDataTask();
@@ -331,6 +312,17 @@ public class ThetaShootingModeFragment extends Fragment {
         /** Theta Exception. */
         private int mException;
 
+        /**
+         * Constructor.
+         */
+        ShootingTask() {
+            mException = -1;
+            if (mProgress == null) {
+                mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.shooting));
+                mProgress.show(getActivity().getFragmentManager(),
+                        "fragment_dialog");
+            }
+        }
         @Override
         public void doInBackground() {
             try {
@@ -340,7 +332,6 @@ public class ThetaShootingModeFragment extends Fragment {
                     mDevice.takePicture();
                     mLiveView.startLivePreview();
                 }
-                mException = -1;
             } catch (ThetaDeviceException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
@@ -355,20 +346,21 @@ public class ThetaShootingModeFragment extends Fragment {
                 mProgress.dismiss();
                 mProgress = null;
             }
-            if (mException != -1) {
-                if (mException == ThetaDeviceException.NOT_FOUND_THETA) {
-                    ThetaDialogFragment.showAlert(getActivity(), "THETA",
-                            getString(R.string.theta_error_disconnect_dialog_message),
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    getActivity().finish();
-                                }
-                            });
-                } else {
-                    ThetaDialogFragment.showAlert(getActivity(), "THETA",
-                            getString(R.string.theta_error_failed_change_mode), null);
-                }
+            if (mException == ThetaDeviceException.NOT_FOUND_THETA) {
+                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        getString(R.string.theta_error_disconnect_dialog_message),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                getActivity().finish();
+                            }
+                        });
+            } else if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_M15){
+                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        getString(R.string.theta_error_failed_change_mode), null);
+            } else if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
+                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        getString(R.string.theta_error_shooting), null);
             } else {
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",
                         getString(R.string.theta_shooting), null);
@@ -393,6 +385,19 @@ public class ThetaShootingModeFragment extends Fragment {
          */
         RecordingVideoTask() {
             mException = -1;
+            if (mIsRecording != RecordingState.RECORDING) {
+                if (mProgress == null) {
+                    mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.stoping));
+                    mProgress.show(getActivity().getFragmentManager(),
+                            "fragment_dialog");
+                }
+            } else {
+                if (mProgress == null) {
+                    mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.recording));
+                    mProgress.show(getActivity().getFragmentManager(),
+                            "fragment_dialog");
+                }
+            }
         }
 
         @Override
@@ -403,6 +408,7 @@ public class ThetaShootingModeFragment extends Fragment {
                 } else {
                     mDevice.stopVideoRecording();
                 }
+                mException = -1;
             } catch (ThetaDeviceException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();
@@ -413,12 +419,17 @@ public class ThetaShootingModeFragment extends Fragment {
 
         @Override
         public void onPostExecute() {
+            if (mProgress != null) {
+                mProgress.dismiss();
+                mProgress = null;
+            }
             mRecordTime = 0;
             mShootingTime.setText("00:00");
             mRecorder.removeCallbacks(mUpdater);
 
-            if (mIsRecording == RecordingState.RECORDING && mException != -1) {
-
+            if (mIsRecording == RecordingState.RECORDING
+                    && mException != -1
+                    && mDevice.getModel() == ThetaDeviceModel.THETA_M15) {
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",
                         getString(R.string.theta_error_failed_change_mode),
                         new DialogInterface.OnClickListener() {
@@ -427,22 +438,22 @@ public class ThetaShootingModeFragment extends Fragment {
                                 getActivity().finish();
                             }
                         });
-                return;
+            } else if (mIsRecording == RecordingState.RECORDING
+                    && mException != -1
+                    && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
+                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        getString(R.string.theta_error_record_start), null);
             } else if (mIsRecording != RecordingState.RECORDING && mException != -1) {
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",
                         getString(R.string.theta_error_record_stop), null);
-                return;
-            }
-            if (mIsRecording == RecordingState.RECORDING) {
+            } else if (mIsRecording == RecordingState.RECORDING && mException == -1) {
                 mRecorder.postDelayed(mUpdater, 1000);
-            } else if (mIsRecording == RecordingState.STOP){
+            } else if (mIsRecording == RecordingState.STOP && mException == -1) {
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",
                         getString(R.string.theta_shooting), null);
-
             } else {
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",
                         getString(R.string.theta_error_limit_shooting_time), null);
-
             }
             if (mShootingTasker != null) {
                 mShootingTasker.cancel(true);
@@ -465,6 +476,11 @@ public class ThetaShootingModeFragment extends Fragment {
         ShootingChangeTask(final ThetaDevice.ShootingMode mode) {
             mException = -1;
             mMode = mode;
+            if (mProgress == null) {
+                mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.switching));
+                mProgress.show(getActivity().getFragmentManager(),
+                        "fragment_dialog");
+            }
         }
 
         @Override
@@ -481,7 +497,11 @@ public class ThetaShootingModeFragment extends Fragment {
 
         @Override
         public void onPostExecute() {
-            if (mException != -1) {
+            if (mProgress != null) {
+                mProgress.dismiss();
+                mProgress = null;
+            }
+            if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_M15) {
                 ThetaDialogFragment.showAlert(getActivity(), "THETA",
                         getString(R.string.theta_error_failed_change_mode),
                         new DialogInterface.OnClickListener() {
@@ -490,6 +510,90 @@ public class ThetaShootingModeFragment extends Fragment {
                                 getActivity().finish();
                             }
                         });
+            } else if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
+                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        getString(R.string.theta_error_change_mode),null);
+            } else {
+                try {
+                    mLiveView.startLivePreview();
+                } catch (ThetaDeviceException e) {
+                    e.printStackTrace();
+                    if (e.getReason() == ThetaDeviceException.NOT_FOUND_THETA) {
+                        ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                                getString(R.string.theta_error_disconnect_dialog_message),
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        getActivity().finish();
+                                    }
+                                });
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    /** Get Shooting Mode Task. */
+    private class ShootingModeGetTask implements DownloadThetaDataTask.ThetaDownloadListener {
+        /**
+         * Constructor.
+         */
+        ShootingModeGetTask() {
+            mNowShootingMode = ThetaDevice.ShootingMode.UNKNOWN;
+            mShootingMode.setOnItemSelectedListener(null);
+        }
+
+        @Override
+        public void doInBackground() {
+            try {
+                mNowShootingMode = mDevice.getShootingMode();
+            } catch (ThetaDeviceException e) {
+                if (BuildConfig.DEBUG) {
+                    e.printStackTrace();
+                }
+                mNowShootingMode = ThetaDevice.ShootingMode.UNKNOWN;
+            }
+        }
+
+        @Override
+        public void onPostExecute() {
+
+            if (mNowShootingMode == ThetaDevice.ShootingMode.UNKNOWN) {
+                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        getString(R.string.theta_error_get_mode), null);
+            } else if (mNowShootingMode == ThetaDevice.ShootingMode.LIVE_STREAMING) {
+                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        getString(R.string.theta_error_usb_live_streaming), null);
+            } else if (mNowShootingMode == ThetaDevice.ShootingMode.VIDEO) {
+                mShootingMode.setSelection(SPINNER_MODE_MOVIE);
+                enableShootingMode(SPINNER_MODE_MOVIE);
+            } else if (mDevice.getModel() == ThetaDeviceModel.THETA_S){
+                mShootingMode.setSelection(SPINNER_MODE_PICTURE);
+                enableShootingMode(SPINNER_MODE_PICTURE);
+                try{
+                    mLiveView.startLivePreview();
+                } catch (ThetaDeviceException e) {
+                    if (e.getReason() == ThetaDeviceException.NOT_FOUND_THETA) {
+                        ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                                getString(R.string.theta_error_disconnect_dialog_message),
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        getActivity().finish();
+                                    }
+                                });
+                    }
+                }
+
+            } else {
+                mShootingMode.setSelection(SPINNER_MODE_PICTURE);
+                enableShootingMode(SPINNER_MODE_PICTURE);
+            }
+            mShootingMode.setOnItemSelectedListener(mModeListener);
+            if (mShootingTasker != null) {
+                mShootingTasker.cancel(true);
+                mShootingTasker = null;
             }
         }
     }

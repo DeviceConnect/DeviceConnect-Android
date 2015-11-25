@@ -36,7 +36,10 @@
     <string name="theta_shooting">撮影しました。</string>
     <string name="theta_update">更新</string>
     <string name="loading">読み込み中...</string>
+    <string name="switching">切り替え中...</string>
     <string name="shooting">撮影中...</string>
+    <string name="recording">撮影開始準備中...</string>
+    <string name="stoping">撮影停止中...</string>
     <string name="communication_error">通信エラー</string>
 
     <string-array name="theta_shooting_mode">
@@ -58,6 +61,9 @@
     <string name="theta_error_shooting">撮影に失敗しました。</string>
     <string name="theta_error_record_start">動画撮影開始に失敗しました。</string>
     <string name="theta_error_record_stop">動画撮影停止に失敗しました。</string>
+    <string name="theta_error_change_mode">切り替えに失敗しました。</string>
+    <string name="theta_error_get_mode">切り替えに失敗しました。</string>
+    <string name="theta_error_usb_live_streaming">ライブストリーミング中は撮影できません。</string>
 
 
 </resources>

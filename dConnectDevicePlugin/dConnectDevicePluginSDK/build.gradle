@@ -83,19 +83,19 @@ project.androidVariants.all { variant ->
 
 repositories {
     maven {
-        url 'https://raw.githubusercontent.com/TakayukiHoshi1984/DeviceConnect-Android/bugfix_gradle_library/dConnectSDK/dConnectSDKForAndroid/repository/'
+        url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/'
     }
 }
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
-    compile 'org.deviceconnect:dconnect-sdk-for-android:1.0.1'
-//    compile project(':dconnect-sdk-for-android')
+//    compile 'org.deviceconnect:dconnect-sdk-for-android:1.0.1'
+    compile project(':dconnect-sdk-for-android')
 }
 
-//configurations {
-//    all*.exclude group: 'org.deviceconnect', module: 'dconnect-sdk-for-android'
-//}
+configurations {
+    all*.exclude group: 'org.deviceconnect', module: 'dconnect-sdk-for-android'
+}
 
 def repo = new File(rootDir, "repository")
 

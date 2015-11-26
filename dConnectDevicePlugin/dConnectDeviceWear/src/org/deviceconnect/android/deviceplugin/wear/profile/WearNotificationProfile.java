@@ -81,6 +81,7 @@ public class WearNotificationProfile extends NotificationProfile {
                         .setSmallIcon(R.drawable.notification_00).setContentTitle("Phone").setContentText(body)
                         .setContentIntent(clickPendingIntent).setLargeIcon(myBitmap)
                         .setVibrate(new long[]{500}).setDeleteIntent(deletePendingIntent)
+                        .setWhen(System.currentTimeMillis())
                         .extend(new NotificationCompat.WearableExtender());
                 break;
             case MAIL:
@@ -89,6 +90,7 @@ public class WearNotificationProfile extends NotificationProfile {
                         .setSmallIcon(R.drawable.notification_01).setContentTitle("Mail").setContentText(body)
                         .setContentIntent(clickPendingIntent).setLargeIcon(myBitmap)
                         .setVibrate(new long[]{500}).setDeleteIntent(deletePendingIntent)
+                        .setWhen(System.currentTimeMillis())
                         .extend(new NotificationCompat.WearableExtender());
                 break;
             case SMS:
@@ -97,6 +99,7 @@ public class WearNotificationProfile extends NotificationProfile {
                         .setSmallIcon(R.drawable.notification_02).setContentTitle("SMS").setContentText(body)
                         .setContentIntent(clickPendingIntent).setLargeIcon(myBitmap)
                         .setVibrate(new long[]{500}).setDeleteIntent(deletePendingIntent)
+                        .setWhen(System.currentTimeMillis())
                         .extend(new NotificationCompat.WearableExtender());
                 break;
             case EVENT:
@@ -105,6 +108,7 @@ public class WearNotificationProfile extends NotificationProfile {
                         .setSmallIcon(R.drawable.notification_03).setContentTitle("Event").setContentText(body)
                         .setContentIntent(clickPendingIntent).setLargeIcon(myBitmap)
                         .setVibrate(new long[]{500}).setDeleteIntent(deletePendingIntent)
+                        .setWhen(System.currentTimeMillis())
                         .extend(new NotificationCompat.WearableExtender());
                 break;
             case UNKNOWN:

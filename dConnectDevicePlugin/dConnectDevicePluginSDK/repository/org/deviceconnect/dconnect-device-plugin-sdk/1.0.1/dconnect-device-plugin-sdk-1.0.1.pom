@@ -10,26 +10,8 @@
     <dependency>
       <groupId>org.deviceconnect</groupId>
       <artifactId>dconnect-sdk-for-android</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1</version>
       <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>dconnect-sdk-for-android</artifactId>
-          <groupId>org.deviceconnect</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>dConnectDevicePluginSDK</groupId>
-      <artifactId>dconnect-sdk-for-android</artifactId>
-      <version>unspecified</version>
-      <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>dconnect-sdk-for-android</artifactId>
-          <groupId>org.deviceconnect</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
 </project>

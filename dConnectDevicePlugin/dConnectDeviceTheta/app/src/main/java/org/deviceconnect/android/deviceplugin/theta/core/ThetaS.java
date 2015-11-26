@@ -69,7 +69,7 @@ class ThetaS extends AbstractThetaDevice {
     public List<ThetaObject> fetchObjectList(final int offset, final int maxLength) throws ThetaDeviceException {
         try {
             OscCommand.Result result = mOscClient.listAll(offset, maxLength);
-
+            throwExceptionIfError(result);
             JSONObject json = result.getJSON();
             JSONObject results = json.getJSONObject(PARAM_RESULTS);
             JSONArray entries = results.getJSONArray(PARAM_ENTRIES);

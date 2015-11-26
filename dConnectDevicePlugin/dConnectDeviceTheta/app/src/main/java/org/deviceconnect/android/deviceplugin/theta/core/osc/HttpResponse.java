@@ -13,16 +13,21 @@ class HttpResponse {
 
     private final Response mEntity;
 
+    private byte[] mBuffer;
+
     HttpResponse(final Response entity) {
         mEntity = entity;
     }
 
     public byte[] getBytes() throws IOException {
-        return mEntity.body().bytes();
+        if (mBuffer == null) {
+            mBuffer = mEntity.body().bytes();
+        }
+        return mBuffer;
     }
 
     public String getString() throws IOException {
-        return mEntity.body().string();
+        return new String(getBytes(), "UTF-8");
     }
 
     public JSONObject getJSON() throws IOException, JSONException {

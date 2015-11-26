@@ -154,6 +154,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
         View rootView = inflater.inflate(R.layout.theta_shooting_mode, null);
         ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
         ThetaDeviceManager deviceMgr = app.getDeviceManager();
+        deviceMgr.registerDeviceEventListener(this);
         mDevice = deviceMgr.getConnectedDevice();
         if (mDevice == null) {
             ThetaDialogFragment.showAlert(getActivity(), "THETA",

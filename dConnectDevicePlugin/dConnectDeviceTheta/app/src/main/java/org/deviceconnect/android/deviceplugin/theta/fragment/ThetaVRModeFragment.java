@@ -153,7 +153,7 @@ public class ThetaVRModeFragment extends Fragment {
             if (mProgress != null) {
                 mProgress.dismiss();
             }
-            mProgress = ThetaDialogFragment.newInstance("THETA", "保存中");
+            mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.saving));
             mProgress.show(getActivity().getFragmentManager(),
                     "fragment_dialog");
             mExecutorService.schedule(new Runnable() {
@@ -237,7 +237,7 @@ public class ThetaVRModeFragment extends Fragment {
         super.onResume();
         if (mDownloadTask == null) {
             if (mProgress == null) {
-                mProgress = ThetaDialogFragment.newInstance("THETA", "読み込み中...");
+                mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
                 mProgress.show(getActivity().getFragmentManager(),
                         "fragment_dialog");
             }
@@ -563,7 +563,7 @@ public class ThetaVRModeFragment extends Fragment {
 
             if (mSphericalBinary == null) {
                 if (mError == ThetaDeviceException.OUT_OF_MEMORY) {
-                    ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                    ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                             getString(R.string.theta_error_memory_warning),
                             new DialogInterface.OnClickListener() {
                                 @Override
@@ -588,7 +588,7 @@ public class ThetaVRModeFragment extends Fragment {
                         mSphereView.onResume();
                         mSphereView.start(mSphericalBinary);
                     } catch (OutOfMemoryError e) {
-                        ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                                 getString(R.string.theta_error_memory_warning),
                                 new DialogInterface.OnClickListener() {
                                     @Override

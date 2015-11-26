@@ -148,6 +148,22 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
 
         }
     };
+
+    /** Recoridng Listener. */
+    private CompoundButton.OnCheckedChangeListener mRecordingListener = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean isRecordered) {
+            mShootingTasker = new DownloadThetaDataTask();
+
+            mIsRecording = RecordingState.RECORDING;
+            if (mIsRecording != RecordingState.CANCEL && !isRecordered) {
+                mIsRecording = RecordingState.STOP;
+            }
+
+            RecordingVideoTask recording = new RecordingVideoTask();
+            mShootingTasker.execute(recording);
+        }
+    };
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
@@ -157,7 +173,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
         deviceMgr.registerDeviceEventListener(this);
         mDevice = deviceMgr.getConnectedDevice();
         if (mDevice == null) {
-            ThetaDialogFragment.showAlert(getActivity(), "THETA",
+            ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                     getString(R.string.theta_error_disconnect_dialog_message),
                     new DialogInterface.OnClickListener() {
                         @Override
@@ -233,7 +249,6 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
             mShootingTasker = null;
         }
 
-        // TODO m15 recording mode
         if (mNowShootingMode == ThetaDevice.ShootingMode.VIDEO
                 && mIsRecording == RecordingState.RECORDING) {
             mShootingTasker = new DownloadThetaDataTask();
@@ -305,20 +320,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                     "id", getActivity().getPackageName());
             if (i == MODE_MOVIE_SHOOTING) {
                 mShootingButton = (ToggleButton) rootView.findViewById(identifier);
-                mShootingButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean isRecordered) {
-                        mShootingTasker = new DownloadThetaDataTask();
-
-                        mIsRecording = RecordingState.RECORDING;
-                        if (mIsRecording != RecordingState.CANCEL && !isRecordered) {
-                            mIsRecording = RecordingState.STOP;
-                        }
-
-                        RecordingVideoTask recording = new RecordingVideoTask();
-                        mShootingTasker.execute(recording);
-                    }
-                });
+                mShootingButton.setOnCheckedChangeListener(mRecordingListener);
             } else {
                 mShootingButtons[i] = (Button) rootView.findViewById(identifier);
                 mShootingButtons[i].setOnClickListener(new View.OnClickListener() {
@@ -350,7 +352,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
         ShootingTask() {
             mException = -1;
             if (mProgress == null) {
-                mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.shooting));
+                mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.shooting));
                 mProgress.show(getActivity().getFragmentManager(),
                         "fragment_dialog");
             }
@@ -385,7 +387,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                 return;
             }
             if (mException == ThetaDeviceException.NOT_FOUND_THETA) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_disconnect_dialog_message),
                         new DialogInterface.OnClickListener() {
                             @Override
@@ -394,13 +396,13 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                             }
                         });
             } else if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_M15){
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_failed_change_mode), null);
             } else if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_shooting), null);
             } else {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_shooting), null);
 
             }
@@ -425,13 +427,13 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
             mException = -1;
             if (mIsRecording != RecordingState.RECORDING) {
                 if (mProgress == null) {
-                    mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.stoping));
+                    mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.stoping));
                     mProgress.show(getActivity().getFragmentManager(),
                             "fragment_dialog");
                 }
             } else {
                 if (mProgress == null) {
-                    mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.recording));
+                    mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.recording));
                     mProgress.show(getActivity().getFragmentManager(),
                             "fragment_dialog");
                 }
@@ -474,29 +476,31 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
             if (mIsRecording == RecordingState.RECORDING
                     && mException != -1
                     && mDevice.getModel() == ThetaDeviceModel.THETA_M15) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_failed_change_mode),
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                getActivity().finish();
+                                mShootingButton.setOnCheckedChangeListener(null);
+                                mShootingButton.setChecked(false);
+                                mShootingButton.setOnCheckedChangeListener(mRecordingListener);
                             }
                         });
             } else if (mIsRecording == RecordingState.RECORDING
                     && mException != -1
                     && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_record_start), null);
             } else if (mIsRecording != RecordingState.RECORDING && mException != -1) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_record_stop), null);
             } else if (mIsRecording == RecordingState.RECORDING && mException == -1) {
                 mRecorder.postDelayed(mUpdater, 1000);
             } else if (mIsRecording == RecordingState.STOP && mException == -1) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_shooting), null);
             } else {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_limit_shooting_time), null);
             }
             if (mShootingTasker != null) {
@@ -521,7 +525,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
             mException = -1;
             mMode = mode;
             if (mProgress == null) {
-                mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.switching));
+                mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.switching));
                 mProgress.show(getActivity().getFragmentManager(),
                         "fragment_dialog");
             }
@@ -549,24 +553,18 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                 mProgress = null;
             }
             if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_M15) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
-                        getString(R.string.theta_error_failed_change_mode),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                getActivity().finish();
-                            }
-                        });
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
+                        getString(R.string.theta_error_failed_change_mode), null);
             } else if (mException != -1 && mDevice.getModel() == ThetaDeviceModel.THETA_S) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
-                        getString(R.string.theta_error_change_mode),null);
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
+                        getString(R.string.theta_error_change_mode), null);
             } else {
                 try {
                     mLiveView.startLivePreview();
                 } catch (ThetaDeviceException e) {
                     e.printStackTrace();
                     if (e.getReason() == ThetaDeviceException.NOT_FOUND_THETA) {
-                        ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                                 getString(R.string.theta_error_disconnect_dialog_message),
                                 new DialogInterface.OnClickListener() {
                                     @Override
@@ -613,10 +611,10 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
             }
 
             if (mNowShootingMode == ThetaDevice.ShootingMode.UNKNOWN) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_get_mode), null);
             } else if (mNowShootingMode == ThetaDevice.ShootingMode.LIVE_STREAMING) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_usb_live_streaming), null);
             } else if (mNowShootingMode == ThetaDevice.ShootingMode.VIDEO) {
                 enableShootingMode(SPINNER_MODE_MOVIE);
@@ -628,7 +626,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                     mLiveView.startLivePreview();
                 } catch (ThetaDeviceException e) {
                     if (e.getReason() == ThetaDeviceException.NOT_FOUND_THETA) {
-                        ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                                 getString(R.string.theta_error_disconnect_dialog_message),
                                 new DialogInterface.OnClickListener() {
                                     @Override

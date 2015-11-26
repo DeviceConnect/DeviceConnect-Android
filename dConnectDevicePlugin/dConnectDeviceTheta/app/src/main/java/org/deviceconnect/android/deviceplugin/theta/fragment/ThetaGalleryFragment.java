@@ -90,20 +90,19 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
      */
     private List<ThetaObject> mUpdateList = new ArrayList<ThetaObject>();
 
+    /**
+     * Update Menu item.
+     */
     private MenuItem mUpdateItem;
 
+    /**
+     * Theta Device.
+     */
     private ThetaDevice mDevice;
 
     /**
-     * Cache size of thumbnail.
-     *
-     * 100 Thumbnails will be cached.
-     *
-     * The size per thumbnail is about 3 KBytes.
-     *
-     * Unit: byte.
+     * Thumbnail cache.
      */
-    private static final int THUMBNAIL_CACHE_SIZE = (3 * 1024) * 100;
     private LruCache<String, byte[]> mThumbnailCache;
 
     /**
@@ -234,7 +233,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 public void run() {
                     try {
                         if (mProgress == null) {
-                            mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.loading));
+                            mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
                             mProgress.show(getActivity().getFragmentManager(),
                                     "fragment_dialog");
                         }
@@ -313,7 +312,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                                     final long id) {
                 if (!mUpdateList.get(position).isImage()) {
                     ThetaDialogFragment.showAlert(getActivity(),
-                            "THETA",
+                            getString(R.string.theta_ssid_prefix),
                             getString(R.string.theta_error_unsupported_movie), null);
                     return;
                 }
@@ -340,7 +339,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 }
                 typeString = typeString.replace("$NAME$", type);
                 ThetaDialogFragment.showConfirmAlert(getActivity(),
-                        "THETA", typeString, getString(R.string.ok), new DialogInterface.OnClickListener() {
+                        getString(R.string.theta_ssid_prefix), typeString, getString(R.string.ok), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 RemoveThetaData removeObj = new RemoveThetaData(mUpdateList.remove(position));
@@ -485,7 +484,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 return;
             }
             if (mProgress == null) {
-                mProgress = ThetaDialogFragment.newInstance("THETA", getString(R.string.loading));
+                mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
                 mProgress.show(getActivity().getFragmentManager(),
                         "fragment_dialog");
             }
@@ -637,11 +636,11 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
         @Override
         public synchronized void onPostExecute() {
             if (!mIsSuccess) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_failed_delete), null);
 
             } else {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_remove), null);
 
             }
@@ -667,6 +666,11 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
          */
         ShootingModeGetTask() {
             mNowShootingMode = ThetaDevice.ShootingMode.UNKNOWN;
+            if (mProgress == null) {
+                mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
+                mProgress.show(getActivity().getFragmentManager(),
+                        "fragment_dialog");
+            }
         }
 
         @Override
@@ -686,8 +690,12 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
 
         @Override
         public void onPostExecute() {
+            if (mProgress != null) {
+                mProgress.dismiss();
+                mProgress = null;
+            }
             if (mNowShootingMode == ThetaDevice.ShootingMode.LIVE_STREAMING) {
-                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_usb_live_streaming), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {

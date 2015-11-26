@@ -38,6 +38,7 @@
     <string name="loading">読み込み中...</string>
     <string name="switching">切り替え中...</string>
     <string name="shooting">撮影中...</string>
+    <string name="saving">保存中...</string>
     <string name="recording">撮影開始準備中...</string>
     <string name="stoping">撮影停止中...</string>
     <string name="communication_error">通信エラー</string>

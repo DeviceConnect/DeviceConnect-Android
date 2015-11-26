@@ -92,6 +92,8 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
 
     private MenuItem mUpdateItem;
 
+    private ThetaDevice mDevice;
+
     /**
      * Cache size of thumbnail.
      *
@@ -110,6 +112,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
     public static ThetaGalleryFragment newInstance(final ThetaDeviceManager deviceMgr) {
         ThetaGalleryFragment fragment = new ThetaGalleryFragment();
         deviceMgr.registerDeviceEventListener(fragment);
+
         return fragment;
     }
 
@@ -118,9 +121,11 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         setHasOptionsMenu(true);
+        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
+        ThetaDeviceManager deviceMgr = app.getDeviceManager();
+        mDevice= deviceMgr.getConnectedDevice();
 
         mGalleryAdapter = new ThetaGalleryAdapter(getActivity(), new ArrayList<ThetaObject>());
-        loadThetaData();
     }
 
     @Override
@@ -133,7 +138,9 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
             @Override
             public boolean onMenuItemClick(final MenuItem item) {
                 if (item.getTitle().equals(mUpdateItem.getTitle())) {
-                    loadThetaData();
+                    ShootingModeGetTask mode = new ShootingModeGetTask();
+                    mDownloadTask = new DownloadThetaDataTask();
+                    mDownloadTask.execute(mode);
                 }
                 return true;
             }
@@ -153,9 +160,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
         mRootView.findViewById(R.id.theta_reconnect).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent();
-                intent.setClass(getActivity(), ThetaDeviceSettingsActivity.class);
-                startActivity(intent);
+                showSettingsActivity();
             }
         });
         mRootView.findViewById(R.id.theta_shutter).setOnClickListener(new View.OnClickListener() {
@@ -200,39 +205,57 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
             mDownloadTask.cancel(true);
             mDownloadTask = null;
         }
-        if (mProgress != null) {
-            mProgress.dismiss();
-            mProgress = null;
+    }
+
+    // TODO As when offline also use only VR mode
+
+    @Override
+    public void onConnected(final ThetaDevice device) {
+        mDevice = device;
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    enableReconnectView();
+                }
+            });
         }
     }
 
     @Override
-    public void onConnected(final ThetaDevice device) {
-    }
-
-    @Override
     public void onDisconnected(final ThetaDevice device) {
+        mDevice = null;
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    enableReconnectView();
+                }
+            });
+        }
     }
 
     /** Enabled Reconnect View.*/
     private void enableReconnectView() {
-        ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
-        ThetaDeviceManager deviceMgr = app.getDeviceManager();
-        ThetaDevice device = deviceMgr.getConnectedDevice();
-
-        if (device != null) {
+        if (mDevice != null) {
             mRecconectLayout.setVisibility(View.GONE);
             if (mUpdateItem != null) {
                 mUpdateItem.setVisible(true);
             }
-            String ssId = device.getName();
+            String ssId = mDevice.getName();
             getActivity().getActionBar().setTitle(ssId);
             if (mRecconectLayout.isEnabled()
                     && mUpdateList.size() == 0) {
-                loadThetaData();
+                ShootingModeGetTask mode = new ShootingModeGetTask();
+                mDownloadTask = new DownloadThetaDataTask();
+                mDownloadTask.execute(mode);
             }
         } else {
             mRecconectLayout.setVisibility(View.VISIBLE);
+            getActivity().getActionBar().setTitle(getString(R.string.app_name));
+
             if (mUpdateItem != null) {
                 mUpdateItem.setVisible(false);
             }
@@ -427,16 +450,11 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
             if (activity == null) {
                 return;
             }
-
-            ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
-            ThetaDeviceManager deviceMgr = app.getDeviceManager();
-            final ThetaDevice device = deviceMgr.getConnectedDevice();
-
-            if (device != null) {
+            if (mDevice != null) {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        activity.getActionBar().setTitle(device.getName());
+                        activity.getActionBar().setTitle(mDevice.getName());
                     }
                 });
                 if (mProgress == null) {
@@ -446,7 +464,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 }
 
                 try {
-                    mResult = device.fetchAllObjectList();
+                    mResult = mDevice.fetchAllObjectList();
                 } catch (ThetaDeviceException e) {
                     mError = e.getReason();
                 }
@@ -600,6 +618,52 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 mGalleryAdapter.clear();
                 mGalleryAdapter.addAll(mUpdateList);
                 mGalleryAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    /** Get Shooting Mode Task. */
+    private class ShootingModeGetTask implements DownloadThetaDataTask.ThetaDownloadListener {
+
+        /**
+         * Shooting mode.
+         */
+        private ThetaDevice.ShootingMode mNowShootingMode;
+
+        /**
+         * Constructor.
+         */
+        ShootingModeGetTask() {
+            mNowShootingMode = ThetaDevice.ShootingMode.UNKNOWN;
+        }
+
+        @Override
+        public void doInBackground() {
+            if (mDevice == null) {
+                return;
+            }
+            try {
+                mNowShootingMode = mDevice.getShootingMode();
+            } catch (ThetaDeviceException e) {
+                if (BuildConfig.DEBUG) {
+                    e.printStackTrace();
+                }
+                mNowShootingMode = ThetaDevice.ShootingMode.UNKNOWN;
+            }
+        }
+
+        @Override
+        public void onPostExecute() {
+            if (mNowShootingMode == ThetaDevice.ShootingMode.LIVE_STREAMING) {
+                ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        getString(R.string.theta_error_usb_live_streaming), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                showReconnectionDialog();
+                            }
+                        });
+            } else {
+                loadThetaData();
             }
         }
     }

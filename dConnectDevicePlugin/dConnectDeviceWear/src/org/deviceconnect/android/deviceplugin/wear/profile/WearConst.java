@@ -25,6 +25,10 @@ public final class WearConst {
     public static final String DEVICE_TO_WEAR_NOTIFICATION_OPEN
             = "org.deviceconnect.wear.notification.open";
 
+    /** When Action is closed. */
+    public static final String DEVICE_TO_WEAR_NOTIFICATION_CLOSED
+            = "org.deviceconnect.wear.notification.closed";
+
     /** When DeviceOrientation register is opened. */
     public static final String DEVICE_TO_WEAR_DEIVCEORIENTATION_REGISTER
             = "org.deviceconnect.wear.deivceorienatation.regist";

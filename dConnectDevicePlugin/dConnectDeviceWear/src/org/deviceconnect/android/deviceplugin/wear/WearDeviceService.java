@@ -6,17 +6,17 @@
  */
 package org.deviceconnect.android.deviceplugin.wear;
 
-import java.util.List;
+import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.wear.profile.WearCanvasProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearConst;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearDeviceOrientationProfile;
+import org.deviceconnect.android.deviceplugin.wear.profile.WearKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearNotificationProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearSystemProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearTouchProfile;
 import org.deviceconnect.android.deviceplugin.wear.profile.WearVibrationProfile;
-import org.deviceconnect.android.deviceplugin.wear.profile.WearKeyEventProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
@@ -25,7 +25,7 @@ import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
-import android.content.Intent;
+import java.util.List;
 
 /**
  * WearService.
@@ -62,20 +62,30 @@ public class WearDeviceService extends DConnectMessageService {
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         if (intent != null) {
-
             String action = intent.getAction();
-            if (action.equals(WearConst.DEVICE_TO_WEAR_NOTIFICATION_OPEN)) {
+            if (WearConst.DEVICE_TO_WEAR_NOTIFICATION_OPEN.equals(action)) {
                 String serviceId = intent.getStringExtra(WearConst.PARAM_DEVICEID);
                 int notificationId = intent.getIntExtra(WearConst.PARAM_NOTIFICATIONID, -1);
-
                 List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                         WearNotificationProfile.PROFILE_NAME, null, WearNotificationProfile.ATTRIBUTE_ON_CLICK);
-
-                for (int i = 0; i < events.size(); i++) {
-                    Event event = events.get(i);
-                    Intent mIntent = EventManager.createEventMessage(event);
-                    mIntent.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
-                    getContext().sendBroadcast(mIntent);
+                synchronized (events) {
+                    for (Event event : events) {
+                        Intent msg = EventManager.createEventMessage(event);
+                        msg.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
+                        sendEvent(msg, event.getAccessToken());
+                    }
+                }
+            } else if (WearConst.DEVICE_TO_WEAR_NOTIFICATION_CLOSED.equals(action)) {
+                String serviceId = intent.getStringExtra(WearConst.PARAM_DEVICEID);
+                int notificationId = intent.getIntExtra(WearConst.PARAM_NOTIFICATIONID, -1);
+                List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                        WearNotificationProfile.PROFILE_NAME, null, WearNotificationProfile.ATTRIBUTE_ON_CLOSE);
+                synchronized (events) {
+                    for (Event event : events) {
+                        Intent msg = EventManager.createEventMessage(event);
+                        msg.putExtra(WearNotificationProfile.PARAM_NOTIFICATION_ID, notificationId);
+                        sendEvent(msg, event.getAccessToken());
+                    }
                 }
             }
         }

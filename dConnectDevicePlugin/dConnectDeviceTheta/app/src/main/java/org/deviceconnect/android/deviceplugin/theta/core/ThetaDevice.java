@@ -142,6 +142,11 @@ public interface ThetaDevice {
     InputStream getLivePreview() throws ThetaDeviceException;
 
     /**
+     * Release objects or any other resources.
+     */
+    void destroy();
+
+    /**
      * Shooting mode.
      */
     enum ShootingMode {

@@ -152,6 +152,7 @@ public class ThetaDeviceManager implements WifiStateEventListener {
 
                     if (oldDevice != null) {
                         notifyOnDisconnected(oldDevice);
+                        oldDevice.destroy();
                     }
                     if (newDevice != null) {
                         notifyOnConnected(newDevice);
@@ -175,6 +176,7 @@ public class ThetaDeviceManager implements WifiStateEventListener {
             mConnectedDevice = null;
             if (oldDevice != null) {
                 notifyOnDisconnected(oldDevice);
+                oldDevice.destroy();
             }
         }
         Log.d("AAA", "onWiFiDisabled");

@@ -270,6 +270,10 @@ class ThetaS extends AbstractThetaDevice {
         }
     }
 
+    @Override
+    public void destroy() {
+    }
+
     private void throwExceptionIfError(final OscCommand.Result result) throws ThetaDeviceException {
         if (result.isSuccess()) {
             return;

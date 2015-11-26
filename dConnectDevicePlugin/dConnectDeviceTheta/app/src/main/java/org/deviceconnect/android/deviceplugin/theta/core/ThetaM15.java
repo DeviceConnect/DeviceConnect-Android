@@ -311,6 +311,15 @@ class ThetaM15 extends AbstractThetaDevice {
         return new VersionName(deviceInfo.getDeviceVersion());
     }
 
+    @Override
+    public void destroy() {
+        try {
+            PtpipInitiator.close();
+        } catch (ThetaException e) {
+            // Nothing to do.
+        }
+    }
+
     private class ThetaImageObject extends ThetaObjectM15 {
 
         private static final String MIMETYPE_IMAGE = "image/jpeg";

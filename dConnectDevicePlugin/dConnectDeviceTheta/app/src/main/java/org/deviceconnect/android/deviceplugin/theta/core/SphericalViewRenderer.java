@@ -34,7 +34,7 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
      */
     private static final int SHELL_DIVIDES = 40;
 
-    private final String VSHADER_SRC =
+    private static final String VSHADER_SRC =
         "attribute vec4 aPosition;\n" +
             "attribute vec2 aUV;\n" +
             "uniform mat4 uProjection;\n" +
@@ -46,7 +46,7 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
             "  vUV = aUV;\n" +
             "}\n";
 
-    private final String FSHADER_SRC =
+    private static final String FSHADER_SRC =
         "precision mediump float;\n" +
             "varying vec2 vUV;\n" +
             "uniform sampler2D uTex;\n" +

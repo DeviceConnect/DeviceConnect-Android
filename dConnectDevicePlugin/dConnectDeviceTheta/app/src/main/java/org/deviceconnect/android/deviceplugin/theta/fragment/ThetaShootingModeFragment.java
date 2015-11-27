@@ -153,6 +153,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
     private CompoundButton.OnCheckedChangeListener mRecordingListener = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean isRecordered) {
+            compoundButton.setEnabled(false);
             mShootingTasker = new DownloadThetaDataTask();
 
             mIsRecording = RecordingState.RECORDING;
@@ -162,6 +163,12 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
 
             RecordingVideoTask recording = new RecordingVideoTask();
             mShootingTasker.execute(recording);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mShootingButton.setEnabled(true);
+                }
+            }, 500);
         }
     };
     @Override
@@ -325,7 +332,8 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                 mShootingButtons[i] = (Button) rootView.findViewById(identifier);
                 mShootingButtons[i].setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(View view) {
+                    public void onClick(final View view) {
+                        view.setEnabled(false);
                         if (mShootingTasker != null) {
                             return;
                         }
@@ -333,6 +341,12 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                         mShootingTasker = new DownloadThetaDataTask();
                         ShootingTask shooting = new ShootingTask();
                         mShootingTasker.execute(shooting);
+                        new Handler().postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                view.setEnabled(true);
+                            }
+                        }, 500);
                     }
                 });
             }
@@ -425,18 +439,14 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
          */
         RecordingVideoTask() {
             mException = -1;
+            String message = getString(R.string.recording);
             if (mIsRecording != RecordingState.RECORDING) {
-                if (mProgress == null) {
-                    mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.stoping));
-                    mProgress.show(getActivity().getFragmentManager(),
-                            "fragment_dialog");
-                }
-            } else {
-                if (mProgress == null) {
-                    mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.recording));
-                    mProgress.show(getActivity().getFragmentManager(),
-                            "fragment_dialog");
-                }
+                message = getString(R.string.stoping);
+            }
+            if (mProgress == null) {
+                mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), message);
+                mProgress.show(getActivity().getFragmentManager(),
+                        "fragment_dialog");
             }
         }
 
@@ -642,6 +652,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                 mShootingMode.setSelection(SPINNER_MODE_PICTURE);
             }
             mShootingMode.setOnItemSelectedListener(mModeListener);
+
             if (mShootingTasker != null) {
                 mShootingTasker.cancel(true);
                 mShootingTasker = null;

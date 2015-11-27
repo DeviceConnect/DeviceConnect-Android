@@ -66,6 +66,7 @@ public class ThetaDialogFragment extends DialogFragment {
         new AlertDialog.Builder(activity)
                 .setTitle(title)
                 .setMessage(message)
+                .setCancelable(false)
                 .setPositiveButton(R.string.ok, listener)
                 .show();
     }

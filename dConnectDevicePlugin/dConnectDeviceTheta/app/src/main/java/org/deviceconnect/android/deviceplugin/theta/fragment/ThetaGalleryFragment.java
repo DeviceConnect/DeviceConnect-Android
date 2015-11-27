@@ -667,9 +667,13 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
         ShootingModeGetTask() {
             mNowShootingMode = ThetaDevice.ShootingMode.UNKNOWN;
             if (mProgress == null) {
-                mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
-                mProgress.show(getActivity().getFragmentManager(),
-                        "fragment_dialog");
+                try {
+                    mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
+                    mProgress.show(getActivity().getFragmentManager(),
+                            "fragment_dialog");
+                } catch (IllegalStateException e) {  //Check background/foreground
+                    return;
+                }
             }
         }
 
@@ -691,9 +695,14 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
         @Override
         public void onPostExecute() {
             if (mProgress != null) {
-                mProgress.dismiss();
-                mProgress = null;
+                try {
+                    mProgress.dismiss();
+                    mProgress = null;
+                } catch (IllegalStateException e) {  //Check background/foreground
+                    return;
+                }
             }
+
             if (mNowShootingMode == ThetaDevice.ShootingMode.LIVE_STREAMING) {
                 ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_usb_live_streaming), new DialogInterface.OnClickListener() {

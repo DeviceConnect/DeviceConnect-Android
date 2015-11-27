@@ -12,7 +12,6 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -32,6 +31,7 @@ import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalImageLiveView;
+import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListener;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
@@ -108,6 +108,8 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
     /** Scale factor. */
     private float mScaleFactor = 90.0f;
 
+    /** SphericalViewApi. */
+    private SphericalViewApi mApi;
 
 
     /** Recording State. */
@@ -206,7 +208,8 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
         }
         mShootingTime = (TextView) rootView.findViewById(R.id.shooting_time);
         mLiveView = (SphericalImageLiveView) rootView.findViewById(R.id.shooting_preview);
-        mLiveView.setViewApi(app.getSphericalViewApi());
+        mApi = app.getSphericalViewApi();
+        mLiveView.setViewApi(mApi);
         mLiveView.setDeviceManager(deviceMgr);
         initShootingLayouts(rootView);
         mShootingMode = (Spinner) rootView.findViewById(R.id.theta_shooting_mode);
@@ -644,20 +647,28 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                 ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_change_mode), null);
             } else {
-                try {
-                    mLiveView.startLivePreview();
-                } catch (ThetaDeviceException e) {
-                    e.printStackTrace();
-                    if (e.getReason() == ThetaDeviceException.NOT_FOUND_THETA) {
-                        ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
-                                getString(R.string.theta_error_disconnect_dialog_message),
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        getActivity().finish();
-                                    }
-                                });
-                        return;
+                if (mDevice.getModel() == ThetaDeviceModel.THETA_S
+                        && mMode == ThetaDevice.ShootingMode.IMAGE) {
+                    try {
+                        if (!mApi.isRunning()) {
+                            mLiveView.startLivePreview();
+                        } else {
+                            mLiveView.stop();
+                            mLiveView.startLivePreview();
+                        }
+                    } catch (ThetaDeviceException e) {
+                        e.printStackTrace();
+                        if (e.getReason() == ThetaDeviceException.NOT_FOUND_THETA) {
+                            ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
+                                    getString(R.string.theta_error_disconnect_dialog_message),
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            getActivity().finish();
+                                        }
+                                    });
+                            return;
+                        }
                     }
                 }
             }
@@ -708,7 +719,13 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                 enableShootingMode(SPINNER_MODE_PICTURE);
                 mShootingMode.setSelection(SPINNER_MODE_PICTURE);
                 try{
-                    mLiveView.startLivePreview();
+                    if (!mApi.isRunning()) {
+                        mLiveView.startLivePreview();
+                    } else {
+                        mLiveView.stop();
+                        mLiveView.startLivePreview();
+                    }
+
                 } catch (ThetaDeviceException e) {
                     if (e.getReason() == ThetaDeviceException.NOT_FOUND_THETA) {
                         ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),

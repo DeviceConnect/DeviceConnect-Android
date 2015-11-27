@@ -694,16 +694,15 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
 
         @Override
         public void onPostExecute() {
-            if (mProgress != null) {
-                try {
-                    mProgress.dismiss();
-                    mProgress = null;
-                } catch (IllegalStateException e) {  //Check background/foreground
-                    return;
-                }
-            }
-
             if (mNowShootingMode == ThetaDevice.ShootingMode.LIVE_STREAMING) {
+                if (mProgress != null) {
+                    try {
+                        mProgress.dismiss();
+                        mProgress = null;
+                    } catch (IllegalStateException e) {  //Check background/foreground
+                        return;
+                    }
+                }
                 ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                         getString(R.string.theta_error_usb_live_streaming), new DialogInterface.OnClickListener() {
                             @Override

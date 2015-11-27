@@ -77,6 +77,12 @@ public class ThetaFeatureActivity extends FragmentActivity {
         }
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
+    }
+
     /**
      * Move Page.
      * @param pageId pageId

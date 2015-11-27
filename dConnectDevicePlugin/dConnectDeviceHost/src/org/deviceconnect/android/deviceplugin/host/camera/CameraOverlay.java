@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.host.camera;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -36,12 +37,14 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
 
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.provider.FileManager;
@@ -72,7 +75,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     /**
      * 写真を取るまでの待機時間を定義.
      */
-    private static final int PERIOD_TAKE_PHOTO_WAIT = 200;
+    private static final int PERIOD_TAKE_PHOTO_WAIT = 1500;
 
     /**
      * JPEGの圧縮クオリティを定義.
@@ -185,8 +188,9 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
     /**
      * Overlayを表示する.
+     * @param callback Overlayの表示結果を通知するコールバック
      */
-    public synchronized void show(@NonNull final Callback callback) {
+    public void show(@NonNull final Callback callback) {
         Executors.newSingleThreadExecutor().submit(new Runnable() {
             @Override
             public void run() {
@@ -197,8 +201,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                             protected void onReceiveResult(int resultCode, Bundle resultData) {
                                 try {
                                     if (resultCode == Activity.RESULT_OK) {
-                                        showInternal();
-                                        callback.onSuccess();
+                                        showInternal(callback);
                                     } else {
                                         callback.onFail();
                                     }
@@ -224,8 +227,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
                         checkOverlayDrawingCapability(overlayDrawingCapabilityCallback);
                     } else {
-                        showInternal();
-                        callback.onSuccess();
+                        showInternal(callback);
                     }
                 } catch (final Throwable throwable) {
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -239,7 +241,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         });
     }
 
-    public void showInternal() {
+    private synchronized void showInternal(@NonNull final Callback callback) {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -269,13 +271,23 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     mContext.registerReceiver(mOrientReceiver, filter);
 
                     sendNotification();
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
+
+                    callback.onSuccess();
+                } catch (Throwable t) {
+                    if (BuildConfig.DEBUG) {
+                        Log.w("Overlay", "", t);
+                    }
+                    callback.onFail();
                 }
             }
         });
     }
 
+    /**
+     * オーバーレイ表示のパーミッションを確認します.
+     * @param resultReceiver 確認を受けるレシーバ
+     */
+    @TargetApi(23)
     private void checkOverlayDrawingCapability(@NonNull final ResultReceiver resultReceiver) {
         if (Settings.canDrawOverlays(mContext)) {
             resultReceiver.send(Activity.RESULT_OK, null);
@@ -295,6 +307,10 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         }
     }
 
+    /**
+     * カメラのパーミッションを確認します.
+     * @param resultReceiver 確認を受けるレシーバ
+     */
     private void checkCameraCapability(@NonNull final ResultReceiver resultReceiver) {
         PermissionUtility.requestPermissions(mContext, new Handler(), new String[]{Manifest.permission.CAMERA},
                 new PermissionUtility.PermissionRequestCallback() {
@@ -337,8 +353,10 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
                         mContext.unregisterReceiver(mOrientReceiver);
                     }
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
+                } catch (Throwable t) {
+                    if (BuildConfig.DEBUG) {
+                        Log.w("Overlay", "", t);
+                    }
                 }
             }
         });
@@ -390,9 +408,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     private PendingIntent createPendingIntent() {
         Intent intent = new Intent(mContext, HostDeviceService.class);
         intent.setAction(DELETE_PREVIEW_ACTION);
-        PendingIntent contentIntent = PendingIntent.getService(
-                mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        return contentIntent;
+        return PendingIntent.getService(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     /**
@@ -406,9 +422,9 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
     /**
      * 写真撮影を行う.
-     * <p/>
+     * <p>
      * 写真撮影の結果はlistenerに通知される。
-     *
+     * </p>
      * @param listener 撮影結果を通知するリスナー
      */
     public void takePicture(final OnTakePhotoListener listener) {
@@ -421,11 +437,24 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     }
 
     /**
+     * 撮影後の後始末を行います.
+     */
+    private void common() {
+        synchronized (CameraOverlay.this) {
+            if (mFinishFlag) {
+                hide();
+            } else if (mCamera != null) {
+                mCamera.startPreview();
+            }
+        }
+    }
+
+    /**
      * 写真撮影を行う内部メソッド.
      *
      * @param listener 撮影結果を通知するリスナー
      */
-    private synchronized void takePictureInternal(final OnTakePhotoListener listener) {
+    private void takePictureInternal(final OnTakePhotoListener listener) {
         synchronized (mCameraLock) {
             if (mPreview == null || mCamera == null) {
                 if (listener != null) {
@@ -438,6 +467,8 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                 public void onPictureTaken(final byte[] data, final Camera camera) {
                     if (data == null) {
                         listener.onFailedTakePhoto();
+                        common();
+                        return;
                     }
 
                     mFileMgr.saveFile(createNewFileName(), data, new FileManager.SaveFileCallback() {
@@ -456,16 +487,6 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                                 listener.onFailedTakePhoto();
                             }
                             common();
-                        }
-
-                        private void common() {
-                            synchronized (CameraOverlay.this) {
-                                if (mFinishFlag) {
-                                    hide();
-                                } else if (mCamera != null) {
-                                    mCamera.startPreview();
-                                }
-                            }
                         }
                     });
                 }
@@ -528,6 +549,9 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
     @Override
     public void onError(final int error, final Camera camera) {
+        if (BuildConfig.DEBUG) {
+            Log.w("Overlay", "onError: " + error);
+        }
         hide();
     }
 
@@ -596,9 +620,18 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         void onFailedTakePhoto();
     }
 
+    /**
+     * Overlayの表示結果を通知するコールバック.
+     */
     public interface Callback {
+        /**
+         * 表示できたことを通知します.
+         */
         void onSuccess();
 
+        /**
+         * 表示できなかったことを通知します.
+         */
         void onFail();
     }
 }

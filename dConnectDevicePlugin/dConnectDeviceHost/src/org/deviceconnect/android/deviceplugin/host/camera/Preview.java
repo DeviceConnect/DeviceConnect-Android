@@ -35,7 +35,7 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 class Preview extends ViewGroup implements SurfaceHolder.Callback {
     /** デバック用タグ. */
-    public static final String LOG_TAG = "DeviceConnectCamera:Preview";
+    private static final String LOG_TAG = "Camera:Preview";
 
     /**
      * プレビューの横幅の閾値を定義する.
@@ -53,19 +53,27 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
 
     /** プレビューを表示するSurfaceView. */
     private SurfaceView mSurfaceView;
+
     /** SurfaceViewを一時的に保持するホルダー. */
     private SurfaceHolder mHolder;
+
     /** プレビューのサイズ. */
     private Size mPreviewSize;
-    /** サポートしているプレビューのサイズ. */
-    private List<Size> mSupportedPreviewSizes;
+
+    /**
+     * プレビューのフォーマット.
+     */
+    private int mPreviewFormat;
+
     /** カメラのインスタンス. */
     private Camera mCamera;
 
     /**
-     * ホストデバイスプラグインから渡されたリクエストID.<br>
-     * - Broadcastで指示された場合は設定する。<br>
-     * - アプリ内ならの指示ならnullを設定する。<br>
+     * ホストデバイスプラグインから渡されたリクエストID.
+     * <ul>
+     *   <li>Broadcastで指示された場合は設定する。</li>
+     *   <li>アプリ内ならの指示ならnullを設定する。</li>
+     * </ul>
      */
     private String mRequestId;
 
@@ -111,9 +119,9 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
     public void setCamera(final Camera camera) {
         mCamera = camera;
         if (mCamera != null) {
-            mSupportedPreviewSizes = mCamera.getParameters().getSupportedPreviewSizes();
+            List<Size> sizes = mCamera.getParameters().getSupportedPreviewSizes();
             Point size = getDisplaySize(getContext());
-            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, size.x, size.y);
+            mPreviewSize = getOptimalSize(sizes, size.x, size.y);
             requestLayout();
         }
     }
@@ -147,9 +155,10 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(width, height);
-        if (mSupportedPreviewSizes != null) {
+        List<Size> sizes = mCamera.getParameters().getSupportedPreviewSizes();
+        if (sizes != null) {
             Point size = getDisplaySize(getContext());
-            mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, size.x, size.y);
+            mPreviewSize = getOptimalSize(sizes, size.x, size.y);
         }
     }
 
@@ -214,23 +223,23 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             }
 
             Camera.Parameters parameters = mCamera.getParameters();
-            Size mPrevSize = parameters.getPreviewSize();
+            Size prevSize = parameters.getPreviewSize();
             parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
             try {
                 mCamera.setParameters(parameters);
             } catch (Exception e) {
                 Log.e(LOG_TAG, "This preview size not support. (" + mPreviewSize.width + ", "
                         + mPreviewSize.height + ")");
-                parameters.setPreviewSize(mPrevSize.width, mPrevSize.height);
+                parameters.setPreviewSize(prevSize.width, prevSize.height);
             }
 
-            String mFocusMode = parameters.getFocusMode();
+            String focusMode = parameters.getFocusMode();
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             try {
                 mCamera.setParameters(parameters);
             } catch (Exception e) {
                 Log.i(LOG_TAG, "Auto focus not support.");
-                parameters.setFocusMode(mFocusMode);
+                parameters.setFocusMode(focusMode);
                 mCamera.setParameters(parameters);
             }
 
@@ -254,11 +263,6 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         }
     }
 
-    /**
-     * プレビューのフォーマット.
-     */
-    private int mPreviewFormat;
-    
     /**
      * プレビューのフォーマットを取得する.
      * @return プレビューのフォーマット
@@ -284,14 +288,16 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
     }
 
     /**
-     * 最適なプレビューサイズを取得する. 指定されたサイズに最適なものがない場合にはnullを返却する。
-     * 
-     * @param sizes プレビューサイズ一覧
+     * 最適なサイズを取得する.
+     * <p>
+     * 指定されたサイズに最適なものがない場合にはnullを返却する。
+     * </p>
+     * @param sizes サイズ一覧
      * @param w 横幅
      * @param h 縦幅
-     * @return 最適なプレビューサイズ
+     * @return 最適なサイズ
      */
-    private Size getOptimalPreviewSize(final List<Size> sizes, final int w, final int h) {
+    private Size getOptimalSize(final List<Size> sizes, final int w, final int h) {
         final double aspectTolerance = 0.1;
         double targetRatio = (double) w / h;
         if (sizes == null) {
@@ -299,7 +305,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         }
 
         if (BuildConfig.DEBUG) {
-            Log.i(LOG_TAG, "getOptimalPreviewSize: " + w + ", " + h);
+            Log.i(LOG_TAG, "getOptimalSize: " + w + ", " + h);
             Log.i(LOG_TAG, "-------");
             for (Size size : sizes) {
                 Log.i(LOG_TAG, "     PreviewSize: " + size.width + ", " + size.height);
@@ -310,17 +316,15 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         Size optimalSize = null;
         double minDiff = Double.MAX_VALUE;
 
-        int targetHeight = h;
-
         // Try to find an size match aspect ratio and size
         for (Size size : sizes) {
             double ratio = (double) size.width / size.height;
             if (Math.abs(ratio - targetRatio) > aspectTolerance) {
                 continue;
             }
-            if (Math.abs(size.height - targetHeight) < minDiff) {
+            if (Math.abs(size.height - h) < minDiff) {
                 optimalSize = size;
-                minDiff = Math.abs(size.height - targetHeight);
+                minDiff = Math.abs(size.height - h);
             }
         }
 
@@ -328,15 +332,17 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         if (optimalSize == null) {
             minDiff = Double.MAX_VALUE;
             for (Size size : sizes) {
-                if (Math.abs(size.height - targetHeight) < minDiff) {
+                if (Math.abs(size.height - h) < minDiff) {
                     optimalSize = size;
-                    minDiff = Math.abs(size.height - targetHeight);
+                    minDiff = Math.abs(size.height - h);
                 }
             }
         }
 
         if (BuildConfig.DEBUG) {
-            Log.i(LOG_TAG, "OptimalSize: " + optimalSize.width + ", " + optimalSize.height);
+            if (optimalSize != null) {
+                Log.i(LOG_TAG, "OptimalSize: " + optimalSize.width + ", " + optimalSize.height);
+            }
         }
         return optimalSize;
     }
@@ -377,7 +383,7 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
             base = 0;
         }
 
-        int degree = 0;
+        int degree;
         switch (rot) {
         default:
         case Surface.ROTATION_0:
@@ -411,16 +417,16 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
     /**
      * ズームイン処理を行う.
      * 
-     * @param requestid リクエストID(Broadcastで指示された場合は設定する。アプリ内ならの指示ならnullを設定する)
+     * @param requestId リクエストID(Broadcastで指示された場合は設定する。アプリ内ならの指示ならnullを設定する)
      */
-    public void zoomIn(final String requestid) {
+    public void zoomIn(final String requestId) {
         if (BuildConfig.DEBUG) {
-            Log.d(LOG_TAG, "zoomIn() start - requestid:" + requestid);
+            Log.d(LOG_TAG, "zoomIn() start - requestId:" + requestId);
         }
 
-        mRequestId = requestid;
+        mRequestId = requestId;
 
-        /* ズームイン処理 */
+        // ズームイン処理
         Camera.Parameters parameters = mCamera.getParameters();
         int nowZoom = parameters.getZoom();
         if (nowZoom < parameters.getMaxZoom()) {
@@ -428,11 +434,9 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         }
         mCamera.setParameters(parameters);
 
-        /* Toast表示 */
-        String debugToast = getResources().getString(R.string.zoomin) + " requestid:" + mRequestId;
-        Toast.makeText(getContext(), debugToast, Toast.LENGTH_SHORT).show();
-
         if (BuildConfig.DEBUG) {
+            String debugToast = getResources().getString(R.string.zoomin) + " requestId:" + mRequestId;
+            Toast.makeText(getContext(), debugToast, Toast.LENGTH_SHORT).show();
             Log.d(LOG_TAG, "zoomIn() end");
         }
     }
@@ -440,16 +444,16 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
     /**
      * ズームアウト処理を行う.
      * 
-     * @param requestid リクエストID(Broadcastで指示された場合は設定する。アプリ内ならの指示ならnullを設定する)
+     * @param requestId リクエストID(Broadcastで指示された場合は設定する。アプリ内ならの指示ならnullを設定する)
      */
-    public void zoomOut(final String requestid) {
+    public void zoomOut(final String requestId) {
         if (BuildConfig.DEBUG) {
-            Log.d(LOG_TAG, "zoomOut() start - requestid:" + requestid);
+            Log.d(LOG_TAG, "zoomOut() start - requestId:" + requestId);
         }
 
-        mRequestId = requestid;
+        mRequestId = requestId;
 
-        /* ズームアウト処理 */
+        // ズームアウト処理
         Camera.Parameters parameters = mCamera.getParameters();
         int nowZoom = parameters.getZoom();
         if (nowZoom > 0) {
@@ -457,11 +461,9 @@ class Preview extends ViewGroup implements SurfaceHolder.Callback {
         }
         mCamera.setParameters(parameters);
 
-        /* Toast表示 */
-        String debugToast = getResources().getString(R.string.zoomout) + " requestid:" + mRequestId;
-        Toast.makeText(getContext(), debugToast, Toast.LENGTH_SHORT).show();
-
         if (BuildConfig.DEBUG) {
+            String debugToast = getResources().getString(R.string.zoomout) + " requestId:" + mRequestId;
+            Toast.makeText(getContext(), debugToast, Toast.LENGTH_SHORT).show();
             Log.d(LOG_TAG, "zoomOut() end");
         }
     }

@@ -12,8 +12,11 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -42,6 +45,12 @@ import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
  * @author NTT DOCOMO, INC.
  */
 public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEventListener {
+    /** SphericalView Max fov.*/
+    private static final int MAX_FOV = 90;
+
+    /** SphericalView Min fov.*/
+    private static final int MIN_FOV = 45;
+
 
     /** THETA m15's picture shooting mode. */
     private static final int MODE_M15_SHOOTING = 0;
@@ -94,6 +103,10 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
 
     /** Now Shooting Mode. */
     private ThetaDevice.ShootingMode mNowShootingMode;
+    /** Scale Gesture.*/
+    private ScaleGestureDetector mScaleDetector;
+    /** Scale factor. */
+    private float mScaleFactor = 90.0f;
 
 
 
@@ -208,6 +221,47 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
             ShootingModeGetTask shootingGetTask = new ShootingModeGetTask();
             mShootingTasker.execute(shootingGetTask);
         }
+        mLiveView.setOnTouchListener(new View.OnTouchListener() {
+
+            private boolean mIsEnabledLongTouch = true;
+
+            @Override
+            public boolean onTouch(final View view, final MotionEvent motionEvent) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    mIsEnabledLongTouch = true;
+                    return true;
+                }
+                if (motionEvent.getPointerCount() == 1) {
+                    if (mIsEnabledLongTouch && motionEvent.getEventTime() - motionEvent.getDownTime() >= 300) {
+                        mLiveView.resetCameraDirection();
+                    }
+                } else {
+                    mIsEnabledLongTouch = false;
+                    mScaleDetector.onTouchEvent(motionEvent);
+                }
+                return true;
+            }
+        });
+        mScaleDetector = new ScaleGestureDetector(getActivity(),
+                new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                    @Override
+                    public boolean onScale(final ScaleGestureDetector detector) {
+                        mScaleFactor /= detector.getScaleFactor();
+                        double scale =  mScaleFactor;
+                        if (scale > MAX_FOV) {
+                            scale = MAX_FOV;
+                            mScaleFactor = MAX_FOV;
+                        }
+                        if (scale < MIN_FOV) {
+                            scale = MIN_FOV;
+                            mScaleFactor = MIN_FOV;
+                        }
+                        mLiveView.setFOV(scale);
+
+                        return true;
+                    }
+                });
+
         return rootView;
     }
 
@@ -281,6 +335,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
         }
         mRecorder.removeCallbacks(mUpdater);
     }
+    
 
     @Override
     public void onDestroy() {

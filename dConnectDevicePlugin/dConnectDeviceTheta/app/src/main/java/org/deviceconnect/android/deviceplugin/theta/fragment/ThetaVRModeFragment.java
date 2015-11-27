@@ -86,8 +86,6 @@ public class ThetaVRModeFragment extends Fragment {
 
     /** SphericalView. */
     private SphericalImageView mSphereView;
-    /** SphericalViewApi. */
-    private SphericalViewApi mApi;
 
     /** Stereo Flag. */
     private boolean mIsStereo = false;
@@ -184,8 +182,8 @@ public class ThetaVRModeFragment extends Fragment {
         mRightLayout = (RelativeLayout) rootView.findViewById(R.id.right_ui);
         mSphereView = (SphericalImageView) rootView.findViewById(R.id.vr_view);
 
-        mApi = app.getSphericalViewApi();
-        mSphereView.setViewApi(mApi);
+        SphericalViewApi api = app.getSphericalViewApi();
+        mSphereView.setViewApi(api);
 
         mSphereView.setOnTouchListener(new View.OnTouchListener() {
 

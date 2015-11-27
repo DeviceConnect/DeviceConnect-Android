@@ -70,11 +70,7 @@ public class ThetaFeatureActivity extends FragmentActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if (mMode == MODE_SHOOTING) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-        } else if (mMode == MODE_VR) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        }
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
     @Override

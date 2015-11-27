@@ -259,14 +259,12 @@ class ThetaS extends AbstractThetaDevice {
     }
 
     @Override
-    public InputStream getLivePreview() throws ThetaDeviceException {
+    public InputStream getLiveStream() throws IOException {
         try {
             OscSession session = mOscClient.startSession();
             return mOscClient.getLivePreview(session.getId());
-        } catch (IOException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
-            throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
+            throw new IOException(e);
         }
     }
 

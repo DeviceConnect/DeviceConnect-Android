@@ -11,6 +11,11 @@ import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTrackingList
 import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Spherical View API.
  *
@@ -42,6 +47,10 @@ public class SphericalViewApi implements HeadTrackingListener {
 
     private Bitmap mTexture;
 
+    private LivePreviewTask mLivePreviewTask;
+
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
     public SphericalViewApi(final Context context) {
         mHeadTracker = new DefaultHeadTracker(context);
     }
@@ -56,6 +65,28 @@ public class SphericalViewApi implements HeadTrackingListener {
                 mRenderer.setCamera(newCamera.create());
             }
         }
+    }
+
+    public synchronized void startLiveView(final LiveCamera camera,
+                                           final SphericalViewParam param,
+                                           final SphericalViewRenderer renderer) {
+        if (isRunning()) {
+            throw new IllegalStateException("SphericalViewApi is already running.");
+        }
+
+        mParam = param;
+        if (param.isVRMode()) {
+            mHeadTracker.registerTrackingListener(this);
+            mHeadTracker.start();
+        }
+
+        mRenderer = renderer;
+        mRenderer.setStereoMode(param.isStereo());
+
+        mLivePreviewTask = new LivePreviewTask(camera);
+        mExecutor.execute(mLivePreviewTask);
+
+        mState = State.RUNNING;
     }
 
     public synchronized void startImageView(final byte[] picture,
@@ -116,6 +147,10 @@ public class SphericalViewApi implements HeadTrackingListener {
         if (mTexture != null) {
             mTexture.recycle();
         }
+        if (mLivePreviewTask != null) {
+            mLivePreviewTask.stop();
+            mLivePreviewTask = null;
+        }
 
         mHeadTracker.stop();
         mHeadTracker.unregisterTrackingListener(this);
@@ -156,6 +191,56 @@ public class SphericalViewApi implements HeadTrackingListener {
         RUNNING,
 
         PAUSED
+
+    }
+
+    private class LivePreviewTask implements Runnable {
+
+        private boolean mIsStarted;
+
+        private final LiveCamera mLiveCamera;
+
+        public LivePreviewTask(final LiveCamera liveCamera) {
+            mLiveCamera = liveCamera;
+        }
+
+        public void stop() {
+            if (!mIsStarted) {
+                return;
+            }
+            mIsStarted = false;
+        }
+
+        @Override
+        public void run() {
+            mIsStarted = true;
+            InputStream is = null;
+            MotionJpegInputStream mjpeg = null;
+            try {
+                is = mLiveCamera.getLiveStream();
+                mjpeg = new MotionJpegInputStream(is);
+                byte[] frame;
+
+                while (mIsStarted && (frame = mjpeg.readFrame()) != null) {
+                    Bitmap texture = BitmapFactory.decodeByteArray(frame, 0, frame.length);
+                    mRenderer.setTexture(texture);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                mIsStarted = false;
+                try {
+                    if (is != null) {
+                        is.close();
+                    }
+                    if (mjpeg != null) {
+                        mjpeg.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
     }
 

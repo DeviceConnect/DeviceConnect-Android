@@ -293,7 +293,7 @@ class ThetaM15 extends AbstractThetaDevice {
     }
 
     @Override
-    public InputStream getLivePreview() throws ThetaDeviceException {
+    public InputStream getLiveStream() throws IOException {
         throw new UnsupportedOperationException();
     }
 

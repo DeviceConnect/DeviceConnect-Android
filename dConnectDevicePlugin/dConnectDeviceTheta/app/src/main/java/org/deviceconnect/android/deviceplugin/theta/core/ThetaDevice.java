@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
 
-import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -10,7 +9,7 @@ import java.util.List;
  * Provides APIs to access features of THETA Device. These APIs return a value synchronously.
  * </p>
  */
-public interface ThetaDevice {
+public interface ThetaDevice extends LiveCamera {
 
     /**
      * Gets the name of this THETA device.
@@ -128,18 +127,6 @@ public interface ThetaDevice {
      * @see ShootingMode
      */
     void changeShootingMode(ShootingMode mode) throws ThetaDeviceException;
-
-    /**
-     * Gets an input stream of Live Preview.
-     *
-     * <p>
-     * Format: MotionJPEG
-     * </p>
-     *
-     * @return an input stream of Live Preview
-     * @throws ThetaDeviceException if the API execution is failed.
-     */
-    InputStream getLivePreview() throws ThetaDeviceException;
 
     /**
      * Release objects or any other resources.

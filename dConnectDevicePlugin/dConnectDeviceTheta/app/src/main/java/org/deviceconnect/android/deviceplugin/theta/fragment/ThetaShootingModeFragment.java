@@ -193,6 +193,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
         }
         mShootingTime = (TextView) rootView.findViewById(R.id.shooting_time);
         mLiveView = (SphericalImageLiveView) rootView.findViewById(R.id.shooting_preview);
+        mLiveView.setViewApi(app.getSphericalViewApi());
         mLiveView.setDeviceManager(deviceMgr);
         initShootingLayouts(rootView);
         mShootingMode = (Spinner) rootView.findViewById(R.id.theta_shooting_mode);
@@ -248,6 +249,14 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (mLiveView != null) {
+            mLiveView.onResume();
+        }
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
 
@@ -262,6 +271,9 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
             mIsRecording = RecordingState.STOP;
             RecordingVideoTask stoping = new RecordingVideoTask();
             mShootingTasker.execute(stoping);
+        }
+        if (mLiveView != null) {
+            mLiveView.onPause();
         }
         if (mProgress != null) {
             mProgress.dismiss();

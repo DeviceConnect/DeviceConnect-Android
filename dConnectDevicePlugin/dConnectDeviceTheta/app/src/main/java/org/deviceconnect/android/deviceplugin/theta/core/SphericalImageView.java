@@ -7,11 +7,11 @@ import android.util.AttributeSet;
 
 public class SphericalImageView extends GLSurfaceView {
 
-    private final SphericalViewRenderer mRenderer = new SphericalViewRenderer();;
+    protected final SphericalViewRenderer mRenderer = new SphericalViewRenderer();;
 
-    private SphericalViewApi mViewApi;
+    protected SphericalViewApi mViewApi;
 
-    private final SphericalViewParam mParam = new SphericalViewParam();
+    protected final SphericalViewParam mParam = new SphericalViewParam();
 
     public SphericalImageView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
@@ -58,15 +58,11 @@ public class SphericalImageView extends GLSurfaceView {
         }
         return mRenderer.takeSnapshot();
     }
-    
+
     public void resetCameraDirection() {
         if (mViewApi != null) {
             mViewApi.resetCameraDirection();
         }
-    }
-
-    protected SphericalViewRenderer getRenderer() {
-        return mRenderer;
     }
 
     @Override

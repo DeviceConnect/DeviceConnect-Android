@@ -33,7 +33,7 @@ public class SphericalImageView extends GLSurfaceView {
     }
 
     public void stop() {
-        if (mViewApi != null && mViewApi.isRunning()) {
+        if (mViewApi != null && (mViewApi.isRunning() || mViewApi.isPaused())) {
             mViewApi.stop();
         }
     }

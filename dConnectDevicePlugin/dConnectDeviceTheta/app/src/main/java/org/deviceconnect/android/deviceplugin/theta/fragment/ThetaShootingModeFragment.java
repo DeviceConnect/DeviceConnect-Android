@@ -282,6 +282,14 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
         mRecorder.removeCallbacks(mUpdater);
     }
 
+    @Override
+    public void onDestroy() {
+        if (mLiveView != null) {
+            mLiveView.destroy();
+        }
+        super.onDestroy();
+    }
+
     /**
      * Enable Shooting mode.
      * @param mode mode

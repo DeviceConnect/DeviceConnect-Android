@@ -223,6 +223,8 @@ public class SphericalViewApi implements HeadTrackingListener {
 
                 while (mIsStarted && (frame = mjpeg.readFrame()) != null) {
                     Bitmap texture = BitmapFactory.decodeByteArray(frame, 0, frame.length);
+                    // Fix texture size to power of two.
+                    texture = BitmapUtils.resize(texture, 512, 256);
                     mRenderer.setTexture(texture);
                 }
             } catch (IOException e) {

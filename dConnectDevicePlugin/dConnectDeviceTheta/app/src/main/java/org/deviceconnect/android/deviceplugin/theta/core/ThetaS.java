@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketTimeoutException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -83,6 +84,8 @@ class ThetaS extends AbstractThetaDevice {
                 }
             }
             return objects;
+        } catch (SocketTimeoutException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
         } catch (IOException e) {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
@@ -126,6 +129,8 @@ class ThetaS extends AbstractThetaDevice {
             Exif exif = new Exif(results.getJSONObject(PARAM_EXIF));
             return new ThetaObjectS(fileUri, parseFileName(fileUri), exif.mDateTime,
                                     exif.mImageWidth, exif.mImageLength);
+        } catch (SocketTimeoutException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
         } catch (IOException e) {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
@@ -151,7 +156,10 @@ class ThetaS extends AbstractThetaDevice {
             }
             OscSession session = mOscClient.startSession();
             mSessionId = session.getId();
-            mOscClient.startCapture(mSessionId);
+            OscCommand.Result result = mOscClient.startCapture(mSessionId);
+            throwExceptionIfError(result);
+        } catch (SocketTimeoutException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
         } catch (IOException e) {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
@@ -165,12 +173,17 @@ class ThetaS extends AbstractThetaDevice {
             if (mSessionId == null) {
                 return;
             }
-            mOscClient.stopCapture(mSessionId);
-            mSessionId = null;
+            OscCommand.Result result = mOscClient.stopCapture(mSessionId);
+            throwExceptionIfError(result);
+            mOscClient.closeSession(mSessionId);
+        } catch (SocketTimeoutException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
         } catch (IOException e) {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
             throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
+        } finally {
+            mSessionId = null;
         }
     }
 
@@ -184,6 +197,8 @@ class ThetaS extends AbstractThetaDevice {
         try {
             OscState state = mOscClient.state();
             return state.getBatteryLevel();
+        } catch (SocketTimeoutException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
         } catch (IOException e) {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
@@ -220,6 +235,8 @@ class ThetaS extends AbstractThetaDevice {
             mOscClient.closeSession(sessionId);
 
             return mode;
+        } catch (SocketTimeoutException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
         } catch (IOException e) {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
@@ -251,6 +268,8 @@ class ThetaS extends AbstractThetaDevice {
             throwExceptionIfError(result);
 
             mOscClient.closeSession(sessionId);
+        } catch (SocketTimeoutException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
         } catch (IOException e) {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
@@ -374,6 +393,8 @@ class ThetaS extends AbstractThetaDevice {
                     default:
                         throw new IllegalArgumentException();
                 }
+            } catch (SocketTimeoutException e) {
+                throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
             } catch (IOException e) {
                 throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
             } catch (JSONException e) {
@@ -397,6 +418,8 @@ class ThetaS extends AbstractThetaDevice {
         public void remove() throws ThetaDeviceException {
             try {
                 mOscClient.delete(mFileUri);
+            } catch (SocketTimeoutException e) {
+                throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
             } catch (IOException e) {
                 throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
             } catch (JSONException e) {

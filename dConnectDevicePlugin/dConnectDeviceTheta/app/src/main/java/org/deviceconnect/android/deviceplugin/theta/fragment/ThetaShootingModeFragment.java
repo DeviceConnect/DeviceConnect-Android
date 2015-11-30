@@ -329,10 +329,14 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
 
         if (mNowShootingMode == ThetaDevice.ShootingMode.VIDEO
                 && mIsRecording == RecordingState.RECORDING) {
+
             mShootingTasker = new DownloadThetaDataTask();
             mIsRecording = RecordingState.STOP;
             RecordingVideoTask stoping = new RecordingVideoTask();
             mShootingTasker.execute(stoping);
+            mShootingButton.setOnCheckedChangeListener(null);
+            mShootingButton.setChecked(false);
+            mShootingButton.setOnCheckedChangeListener(mRecordingListener);
         }
         if (mLiveView != null) {
             mLiveView.onPause();

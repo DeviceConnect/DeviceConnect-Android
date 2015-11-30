@@ -73,18 +73,20 @@ public class OscClient {
         return OscCommand.Result.parse(response);
     }
 
-    public void startCapture(final String sessionId) throws IOException, JSONException {
+    public OscCommand.Result startCapture(final String sessionId) throws IOException, JSONException {
         JSONObject params = new JSONObject();
         params.put("sessionId", sessionId);
 
-        executeCommand("camera._startCapture", params);
+        HttpResponse response = executeCommand("camera._startCapture", params);
+        return OscCommand.Result.parse(response);
     }
 
-    public void stopCapture(final String sessionId) throws IOException, JSONException {
+    public OscCommand.Result stopCapture(final String sessionId) throws IOException, JSONException {
         JSONObject params = new JSONObject();
         params.put("sessionId", sessionId);
 
-        executeCommand("camera._stopCapture", params);
+        HttpResponse response = executeCommand("camera._stopCapture", params);
+        return OscCommand.Result.parse(response);
     }
 
     public OscCommand.Result delete(final String fileUri) throws IOException, JSONException {

@@ -417,10 +417,6 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                     @Override
                     public void onClick(final View view) {
                         view.setEnabled(false);
-                        if (mShootingTasker != null) {
-                            return;
-                        }
-
                         mShootingTasker = new DownloadThetaDataTask();
                         ShootingTask shooting = new ShootingTask();
                         mShootingTasker.execute(shooting);
@@ -616,7 +612,6 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
          * @param mode Theta Device's Shooting Mode
          */
         ShootingChangeTask(final ThetaDevice.ShootingMode mode) {
-            mException = -1;
             mMode = mode;
             if (mProgress == null) {
                 mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.switching));
@@ -630,19 +625,25 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
             if (mDevice == null) {
                 return;
             }
-            try {
-                mDevice.changeShootingMode(mMode);
+            int count = 0;
+            do {
                 try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    mDevice.changeShootingMode(mMode);
+                    mException = -1;
+                    break;
+                } catch (ThetaDeviceException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
+                    mException = e.getReason();
+                    count++;
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
                 }
-            } catch (ThetaDeviceException e) {
-                if (BuildConfig.DEBUG) {
-                    e.printStackTrace();
-                }
-                mException = e.getReason();
-            }
+            } while(count < 10); // Retry
         }
 
         @Override

@@ -72,8 +72,6 @@ public class ThetaVRModeFragment extends Fragment {
     /** SphericalView Min fov.*/
     private static final int MIN_FOV = 45;
 
-    /** VR Mode Left Layout. */
-    private RelativeLayout mLeftLayout;
 
     /** VR Mode Right Layout.*/
     private RelativeLayout mRightLayout;
@@ -178,7 +176,6 @@ public class ThetaVRModeFragment extends Fragment {
         ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
         mDataCache = app.getCache();
         View rootView = inflater.inflate(R.layout.theta_vr_mode, null);
-        mLeftLayout = (RelativeLayout) rootView.findViewById(R.id.left_ui);
         mRightLayout = (RelativeLayout) rootView.findViewById(R.id.right_ui);
         mSphereView = (SphericalImageView) rootView.findViewById(R.id.vr_view);
 

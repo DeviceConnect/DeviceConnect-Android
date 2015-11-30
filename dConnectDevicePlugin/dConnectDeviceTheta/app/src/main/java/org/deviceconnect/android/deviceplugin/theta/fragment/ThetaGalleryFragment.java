@@ -37,7 +37,7 @@ import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaDeviceSettingsActivity;
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaFeatureActivity;
-import org.deviceconnect.android.deviceplugin.theta.activity.view.ThetaLoadingProgressView;
+import org.deviceconnect.android.deviceplugin.theta.view.ThetaLoadingProgressView;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListener;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;

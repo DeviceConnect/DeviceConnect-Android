@@ -32,7 +32,7 @@
         android:layout_alignParentBottom="true"
         android:visibility="gone"
         android:background="@drawable/gallery_listview_footer">
-        <org.deviceconnect.android.deviceplugin.theta.activity.view.ThetaLoadingProgressView
+        <org.deviceconnect.android.deviceplugin.theta.view.ThetaLoadingProgressView
 
             android:layout_width="80dp"
             android:layout_height="80dp"

@@ -264,7 +264,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                         return true;
                     }
                 });
-
+        rotateShootingButton(getActivity().getResources().getConfiguration());
         return rootView;
     }
 
@@ -290,6 +290,11 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        rotateShootingButton(newConfig);
+    }
+
+    /** Rotate Shooting Button. */
+    private void rotateShootingButton(Configuration newConfig) {
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mShootingButton.getLayoutParams();
         switch (newConfig.orientation) {
             case Configuration.ORIENTATION_LANDSCAPE:
@@ -458,6 +463,7 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                 if (mDevice.getModel() == ThetaDeviceModel.THETA_M15) {
                     mDevice.takePicture();
                 } else {
+                    mLiveView.stop();
                     mDevice.takePicture();
                     mLiveView.startLivePreview();
                 }
@@ -626,6 +632,11 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
             }
             try {
                 mDevice.changeShootingMode(mMode);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             } catch (ThetaDeviceException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();

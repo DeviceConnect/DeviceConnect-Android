@@ -378,7 +378,7 @@ public class ThetaVRModeFragment extends Fragment {
                     });
                     return;
                 }
-
+                // TODO getFilesDir().getAbsolutePath()
                 String root = Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera/";
                 File dir = new File(root);
                 if (!dir.exists()) {

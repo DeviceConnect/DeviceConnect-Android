@@ -19,7 +19,7 @@
             android:layout_height="@dimen/gallery_thumb_size"
             android:src="@drawable/theta_gallery_thumb"
             />
-        <org.deviceconnect.android.deviceplugin.theta.activity.view.ThetaLoadingProgressView
+        <org.deviceconnect.android.deviceplugin.theta.view.ThetaLoadingProgressView
             android:id="@+id/theta_thumb_progress"
             android:layout_width="100dp"
             android:layout_height="100dp"

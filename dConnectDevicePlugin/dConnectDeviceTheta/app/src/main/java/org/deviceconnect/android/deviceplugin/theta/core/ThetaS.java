@@ -175,7 +175,8 @@ class ThetaS extends AbstractThetaDevice {
             }
             OscCommand.Result result = mOscClient.stopCapture(mSessionId);
             throwExceptionIfError(result);
-            mOscClient.closeSession(mSessionId);
+            result = mOscClient.closeSession(mSessionId);
+            throwExceptionIfError(result);
         } catch (SocketTimeoutException e) {
             throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
         } catch (IOException e) {

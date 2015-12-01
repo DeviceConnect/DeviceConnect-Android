@@ -58,11 +58,12 @@ public class OscClient {
         return OscSession.parse(results);
     }
 
-    public void closeSession(final String sessionId) throws IOException, JSONException {
+    public OscCommand.Result closeSession(final String sessionId) throws IOException, JSONException {
         JSONObject params = new JSONObject();
         params.put("sessionId", sessionId);
 
-        executeCommand("camera.closeSession", params);
+        HttpResponse response = executeCommand("camera.closeSession", params);
+        return OscCommand.Result.parse(response);
     }
 
     public OscCommand.Result takePicture(final String sessionId) throws IOException, JSONException {

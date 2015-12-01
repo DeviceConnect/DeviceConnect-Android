@@ -168,6 +168,9 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
     private CompoundButton.OnCheckedChangeListener mRecordingListener = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean isRecordered) {
+            if (mShootingTasker != null) {
+                return;
+            }
             compoundButton.setEnabled(false);
             mShootingTasker = new DownloadThetaDataTask();
 
@@ -687,6 +690,10 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
                         }
                     }
                 }
+            }
+            if (mShootingTasker != null) {
+                mShootingTasker.cancel(true);
+                mShootingTasker = null;
             }
         }
     }

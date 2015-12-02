@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -37,13 +38,13 @@ import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaDeviceSettingsActivity;
 import org.deviceconnect.android.deviceplugin.theta.activity.ThetaFeatureActivity;
-import org.deviceconnect.android.deviceplugin.theta.view.ThetaLoadingProgressView;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListener;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
+import org.deviceconnect.android.deviceplugin.theta.view.ThetaLoadingProgressView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,6 +76,9 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
      * Root View.
      */
     private View mRootView;
+
+    /** Move Shooting Fragment. */
+    private Button mShooting;
 
     /**
      * Download Task.
@@ -172,7 +176,8 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 showSettingsActivity();
             }
         });
-        mRootView.findViewById(R.id.theta_shutter).setOnClickListener(new View.OnClickListener() {
+        mShooting = (Button) mRootView.findViewById(R.id.theta_shutter);
+        mShooting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent();
@@ -268,6 +273,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
     /** Enabled Reconnect View.*/
     private void enableReconnectView() {
         if (mDevice != null) {
+            mShooting.setEnabled(true);
             mRecconectLayout.setVisibility(View.GONE);
             if (mUpdateItem != null) {
                 mUpdateItem.setVisible(true);
@@ -285,6 +291,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 mDownloadTask.execute(mode);
             }
         } else {
+            mShooting.setEnabled(false);
             mRecconectLayout.setVisibility(View.VISIBLE);
             getActivity().getActionBar().setTitle(getString(R.string.app_name));
 
@@ -521,8 +528,8 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                     mProgress.dismiss();
                     mProgress = null;
                 }
-            } catch (IllegalStateException e) {
-
+            } catch (IllegalStateException e) {  //Check background/foreground
+                return;
             }
 
             if (mError > 0) {

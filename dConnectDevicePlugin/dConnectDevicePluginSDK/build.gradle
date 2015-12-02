@@ -83,17 +83,17 @@ project.androidVariants.all { variant ->
 
 repositories {
     maven {
-        url 'http://raw.github.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/'
+        url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/'
     }
 }
 
 dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
+//    compile 'org.deviceconnect:dconnect-sdk-for-android:1.0.1'
     compile project(':dconnect-sdk-for-android')
 }
 
 configurations {
-    // to avoid double inclusion of support libraries
     all*.exclude group: 'org.deviceconnect', module: 'dconnect-sdk-for-android'
 }
 

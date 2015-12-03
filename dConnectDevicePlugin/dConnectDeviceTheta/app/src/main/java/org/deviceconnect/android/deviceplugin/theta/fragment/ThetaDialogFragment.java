@@ -135,4 +135,15 @@ public class ThetaDialogFragment extends DialogFragment {
             .setNegativeButton(R.string.button_cancel, negative)
             .show();
     }
+
+    public static void showSelectCommandDialog(final Activity activity,
+                                               final String[] commands,
+                                               final DialogInterface.OnClickListener selected) {
+        if (activity == null) {
+            return;
+        }
+        new AlertDialog.Builder(activity)
+                .setItems(commands, selected)
+                .show();
+    }
 }

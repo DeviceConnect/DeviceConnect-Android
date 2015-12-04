@@ -58,7 +58,6 @@
         <!-- BroadcastReceiver for Host -->
         <receiver android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceReceiver">
             <intent-filter>
-
                 <!-- Connection Profile -->
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED"/>
                 <action android:name="android.net.wifi.STATE_CHANGE"/>
@@ -70,35 +69,20 @@
             </intent-filter>
         </receiver>
 
+        <provider
+            android:name="org.deviceconnect.android.provider.FileProvider"
+            android:authorities="org.deviceconnect.android.deviceplugin.host.provider"
+            android:exported="true"/>
+
         <service
             android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceService"
             android:exported="false"/>
-
-        <service
-            android:name="org.deviceconnect.android.message.DConnectLaunchService"
-            android:exported="true">
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:value="enable"/>
-        </service>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.BluetoothManageActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
-
-        <service
-            android:name="org.deviceconnect.android.deviceplugin.host.HostDeviceNotificationService"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService"/>
-            </intent-filter>
-
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/accessibilityservice"/>
-        </service>
 
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.video.VideoRecorder"
@@ -115,22 +99,6 @@
             android:name="org.deviceconnect.android.deviceplugin.host.audio.AudioRecorder"
             android:exported="false"/>
 
-        <provider
-            android:name="org.deviceconnect.android.provider.FileProvider"
-            android:authorities="org.deviceconnect.android.deviceplugin.host.provider"
-            android:exported="true"/>
-
-        <!-- LocalOAuth -->
-        <activity
-            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"/>
-
-        <service
-            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false"/>
-
-        <!-- Canvas Profile -->
         <activity
             android:name="org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity"
             android:exported="false"

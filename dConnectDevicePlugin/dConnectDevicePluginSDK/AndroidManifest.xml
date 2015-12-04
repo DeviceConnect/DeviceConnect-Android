@@ -17,10 +17,28 @@
             android:name=".activity.IntentHandlerActivity"
             android:exported="false"
             android:theme="@style/Theme.Transparent"/>
+
         <activity
             android:name=".activity.PermissionRequestActivity"
             android:exported="false"
             android:theme="@style/Theme.Dialog.Transparent"/>
-    </application>
 
+        <service
+            android:name="org.deviceconnect.android.message.DConnectLaunchService"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:value="enable"/>
+        </service>
+
+        <!-- LocalOAuth -->
+        <activity
+            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"/>
+
+        <service
+            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
+            android:exported="false"/>
+    </application>
 </manifest>

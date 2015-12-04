@@ -6,33 +6,33 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import orbotix.sphero.Sphero;
-
-import org.deviceconnect.android.deviceplugin.sphero.SpheroManager.DeviceDiscoveryListener;
-import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroDeviceOrientationProfile;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroDriveControllerProfile;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroLightProfile;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroServceDiscoveryProfile;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroProfile;
-import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroSystemProfile;
-import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.event.cache.db.DBCacheController;
-import org.deviceconnect.android.message.DConnectMessageService;
-import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
-import org.deviceconnect.android.profile.ServiceInformationProfile;
-import org.deviceconnect.android.profile.SystemProfile;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.sphero.SpheroManager.DeviceDiscoveryListener;
+import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
+import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroDeviceOrientationProfile;
+import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroDriveControllerProfile;
+import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroLightProfile;
+import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroProfile;
+import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroServceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroSystemProfile;
+import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.event.cache.MemoryCacheController;
+import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
+import org.deviceconnect.android.profile.SystemProfile;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import orbotix.sphero.Sphero;
 
 /**
  * Spheroデバイスプラグイン.
@@ -84,7 +84,7 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
     public void onCreate() {
         super.onCreate();
 
-        EventManager.INSTANCE.setController(new DBCacheController(this));
+        EventManager.INSTANCE.setController(new MemoryCacheController());
         SpheroManager.INSTANCE.setService(this);
         
         LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);

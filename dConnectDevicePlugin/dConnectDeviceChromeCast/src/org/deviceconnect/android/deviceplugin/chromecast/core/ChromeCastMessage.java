@@ -147,7 +147,7 @@ public class ChromeCastMessage implements ChromeCastApplication.Callbacks {
             mMessageChannel = null;
         }
     }
-	
+
     /**
      * メッセージを送信する.
      * 

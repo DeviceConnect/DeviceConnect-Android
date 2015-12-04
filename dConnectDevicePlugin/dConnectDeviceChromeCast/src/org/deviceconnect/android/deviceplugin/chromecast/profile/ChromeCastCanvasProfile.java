@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.chromecast.BuildConfig;
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastMessage;
@@ -62,7 +61,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
             public void onResponse() {
                 if (data == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "data is not specified.");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -71,12 +70,12 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
                     mLogger.info("Exposed image: URL=" + path);
                     if (path == null) {
                         MessageUtils.setUnknownError(response, "The host device is not in local network.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
                     if (!isDeviceEnable(response, app)) {
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     JSONObject json = new JSONObject();
@@ -91,20 +90,11 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
                     app.sendMessage(response, message);
                 } catch (IOException e) {
                     MessageUtils.setUnknownError(response, "Failed to deploy image to Chromecast.");
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
-                    getContext().sendBroadcast(response);
-                    return;
+                    sendResponse(response);
                 } catch (Exception e) {
                     MessageUtils.setUnknownError(response, e.getMessage());
-                    if (BuildConfig.DEBUG) {
-                        e.printStackTrace();
-                    }
-                    getContext().sendBroadcast(response);
-                    return;
+                    sendResponse(response);
                 }
-
             }
         });
         return false;
@@ -168,7 +158,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
             public void onResponse() {
                 ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
                 if (!isDeviceEnable(response, app)) {
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
                 try {
@@ -177,10 +167,8 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
                     app.sendMessage(response, json.toString());
                 } catch (JSONException e) {
                     MessageUtils.setUnknownError(response);
-                    getContext().sendBroadcast(response);
-                    return;
+                    sendResponse(response);
                 }
-
             }
         });
         return false;

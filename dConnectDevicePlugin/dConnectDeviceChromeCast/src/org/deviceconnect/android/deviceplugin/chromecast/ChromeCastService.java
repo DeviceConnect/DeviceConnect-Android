@@ -270,7 +270,7 @@ public class ChromeCastService extends DConnectMessageService implements
         mEnableCastMediaPlayerStatusUpdate = true;
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Register OnStatusChange event");
-        sendBroadcast(response);
+        sendResponse(response);
     }
 	
     /**
@@ -284,7 +284,7 @@ public class ChromeCastService extends DConnectMessageService implements
         mEnableCastMediaPlayerStatusUpdate = false;
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Unregister OnStatusChange event");
-        sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -315,7 +315,7 @@ public class ChromeCastService extends DConnectMessageService implements
                     MediaPlayerProfile.setPos(mediaPlayer, (int) status.getStreamPosition() / 1000);
                     MediaPlayerProfile.setVolume(mediaPlayer, status.getStreamVolume());
                     MediaPlayerProfile.setMediaPlayer(intent, mediaPlayer);
-                    getContext().sendBroadcast(intent);
+                    sendEvent(intent, event.getAccessToken());
                 }
             }
         }
@@ -330,7 +330,6 @@ public class ChromeCastService extends DConnectMessageService implements
     private void onChromeCastResult(final Intent response, final Status result, final String message) {
         if (result == null) {
             MessageUtils.setIllegalDeviceStateError(response, message);
-            sendBroadcast(response);
         } else {
             if (result.isSuccess()) {
                 response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
@@ -341,15 +340,15 @@ public class ChromeCastService extends DConnectMessageService implements
                     MessageUtils.setIllegalDeviceStateError(response, message + " is error");
                 }
             }
-            sendBroadcast(response);
         }
+        sendResponse(response);
     }
     @Override
     public void onChromeCastMediaPlayerResult(final Intent response,
                         final MediaChannelResult result, final String message) {
         if (result == null) {
             MessageUtils.setIllegalDeviceStateError(response, message);
-            sendBroadcast(response);
+            sendResponse(response);
         } else {
             onChromeCastResult(response, result.getStatus(), message);
         }

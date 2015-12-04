@@ -60,7 +60,7 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
                 if (body == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "body is null");
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
                 switch (type) {
@@ -75,12 +75,12 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
                     default:
                         MessageUtils.setInvalidRequestParameterError(response, "type is null or invalid");
                         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                 }
 
                 if (!isDeviceEnable(response, app)) {
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
                 try {
@@ -92,8 +92,7 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
                     app.sendMessage(response, json.toString());
                 } catch (JSONException e) {
                     MessageUtils.setUnknownError(response);
-                    getContext().sendBroadcast(response);
-                    return;
+                    sendResponse(response);
                 }
             }
         });
@@ -108,15 +107,14 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
 
             @Override
             public void onResponse() {
-
                 if (notificationId == null || !COMMON_ID.equals(notificationId)) {
                     MessageUtils.setInvalidRequestParameterError(response, "notificationId is invalid.");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
                 ChromeCastMessage app = ((ChromeCastService) getContext()).getChromeCastMessage();
                 if (!isDeviceEnable(response, app)) {
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
                 try {
@@ -125,10 +123,8 @@ public class ChromeCastNotificationProfile extends NotificationProfile implement
                     app.sendMessage(response, json.toString());
                 } catch (JSONException e) {
                     MessageUtils.setUnknownError(response);
-                    getContext().sendBroadcast(response);
-                    return;
+                    sendResponse(response);
                 }
-
             }
         });
         return false;

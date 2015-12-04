@@ -13,10 +13,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.StatFs;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.LruCache;
@@ -64,8 +62,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class ThetaVRModeFragment extends Fragment {
 
-    /** THETA Device Plug-in apk limit size. */
-    private static final int LIMIT_APK_SIZE = 100;
 
     /** SphericalView Max fov.*/
     private static final int MAX_FOV = 90;
@@ -268,11 +264,6 @@ public class ThetaVRModeFragment extends Fragment {
         super.onPause();
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
     public void onConfigurationChanged(final Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         enableView();
@@ -367,7 +358,7 @@ public class ThetaVRModeFragment extends Fragment {
             @Override
             public void onSuccess() {
                 Activity activity = getActivity();
-                if (activity != null && !hasEnoughStorageSize(LIMIT_APK_SIZE)) {
+                if (activity != null && !ThetaObjectStorage.hasEnoughStorageSize()) {
                     if (mProgress != null) {
                         mProgress.dismiss();
                         mProgress = null;
@@ -495,27 +486,7 @@ public class ThetaVRModeFragment extends Fragment {
                 getResources().getString(R.string.theta_error_failed_save_file), null);
     }
 
-    /**
-     * Check Android Storage size.
-     * @param minSize Storage size(MB)
-     * @return Return a false if true, otherwise there is a minimum required value or more free
-     */
-    private boolean hasEnoughStorageSize(final int minSize) {
-        StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
-        float total = 1.0f;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            total = stat.getTotalBytes();
-        } else {
-            total = (float) stat.getBlockSize() * stat.getAvailableBlocks();
-        }
-        int v = (int) (total / (1024.f * 1024.f));
-        if(BuildConfig.DEBUG) {
-            if(v < minSize) {
-                Log.e("AAA", "hasEnoughStorageSize is less than " + minSize + ", rest size =" + v);
-            }
-        }
-        return v >= minSize;
-    }
+
     /**
      * Donwload of data.
      */

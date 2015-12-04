@@ -44,7 +44,7 @@ import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
  *
  * @author NTT DOCOMO, INC.
  */
-public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEventListener {
+public class ThetaShootingFragment extends Fragment implements ThetaDeviceEventListener {
     /** SphericalView Max fov.*/
     private static final int MAX_FOV = 90;
 
@@ -173,7 +173,6 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
             }
             compoundButton.setEnabled(false);
             mShootingTasker = new DownloadThetaDataTask();
-
             mIsRecording = RecordingState.RECORDING;
             if (mIsRecording != RecordingState.CANCEL && !isRecordered) {
                 mIsRecording = RecordingState.STOP;
@@ -332,7 +331,6 @@ public class ThetaShootingModeFragment extends Fragment implements ThetaDeviceEv
 
         if (mNowShootingMode == ThetaDevice.ShootingMode.VIDEO
                 && mIsRecording == RecordingState.RECORDING) {
-
             mShootingTasker = new DownloadThetaDataTask();
             mIsRecording = RecordingState.STOP;
             RecordingVideoTask stoping = new RecordingVideoTask();

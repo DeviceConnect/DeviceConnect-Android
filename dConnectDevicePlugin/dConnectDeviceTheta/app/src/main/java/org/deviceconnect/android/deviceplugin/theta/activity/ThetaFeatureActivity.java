@@ -13,7 +13,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.KeyEvent;
 
-import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaShootingModeFragment;
+import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaShootingFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaVRModeFragment;
 
 /**
@@ -94,7 +94,7 @@ public class ThetaFeatureActivity extends FragmentActivity {
      */
     public void startApp(final int pageId, final int dataId, final boolean isStorage) {
         if (pageId == MODE_SHOOTING) {
-            ThetaShootingModeFragment f = new ThetaShootingModeFragment();
+            ThetaShootingFragment f = new ThetaShootingFragment();
             moveFragment(f);
         } else if (pageId == MODE_VR) {
             ThetaVRModeFragment f = ThetaVRModeFragment.newInstance();

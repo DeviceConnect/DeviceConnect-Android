@@ -37,6 +37,12 @@
             android:excludeFromRecents="true"
             android:exported="false"/>
 
+        <activity
+            android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity"
+            android:excludeFromRecents="true"
+            android:exported="false">
+        </activity>
+
         <service
             android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
             android:exported="false"/>

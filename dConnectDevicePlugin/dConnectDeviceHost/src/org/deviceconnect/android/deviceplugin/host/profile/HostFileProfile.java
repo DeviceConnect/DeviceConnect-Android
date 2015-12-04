@@ -7,23 +7,6 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.FileProfile;
-import org.deviceconnect.android.provider.FileManager;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -35,6 +18,23 @@ import android.provider.MediaStore.Video;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
+
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.FileProfile;
+import org.deviceconnect.android.provider.FileManager;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * File Profile.
@@ -165,10 +165,10 @@ public class HostFileProfile extends FileProfile {
                                 setResult(response, DConnectMessage.RESULT_ERROR);
                                 MessageUtils.setInvalidRequestParameterError(response,
                                         "Dir is not exist:" + finalTmpDir);
-                                getContext().sendBroadcast(response);
+                                sendResponse(response);
                             } else if (order != null && !order.endsWith("desc") && !order.endsWith("asc")) {
                                 MessageUtils.setInvalidRequestParameterError(response);
-                                getContext().sendBroadcast(response);
+                                sendResponse(response);
                             } else {
                                 // Set arraylist from respFileList
                                 ArrayList<FileAttribute> filelist = new ArrayList<FileAttribute>();
@@ -215,13 +215,13 @@ public class HostFileProfile extends FileProfile {
                                         tmpLimit = limit;
                                     } else {
                                         MessageUtils.setInvalidRequestParameterError(response);
-                                        getContext().sendBroadcast(response);
+                                        sendResponse(response);
                                         return;
                                     }
                                 } else {
                                     if (request.getStringExtra(PARAM_LIMIT) != null) {
                                         MessageUtils.setInvalidRequestParameterError(response);
-                                        getContext().sendBroadcast(response);
+                                        sendResponse(response);
                                         return;
                                     }
                                 }
@@ -230,19 +230,19 @@ public class HostFileProfile extends FileProfile {
                                         tmpOffset = offset;
                                     } else {
                                         MessageUtils.setInvalidRequestParameterError(response);
-                                        getContext().sendBroadcast(response);
+                                        sendResponse(response);
                                         return;
                                     }
                                 } else {
                                     if (request.getStringExtra(PARAM_OFFSET) != null) {
                                         MessageUtils.setInvalidRequestParameterError(response);
-                                        getContext().sendBroadcast(response);
+                                        sendResponse(response);
                                         return;
                                     }
                                 }
                                 if (tmpOffset > filelist.size()) {
                                     MessageUtils.setInvalidRequestParameterError(response);
-                                    getContext().sendBroadcast(response);
+                                    sendResponse(response);
                                     return;
                                 }
                                 int limitCounter = tmpLimit + tmpOffset;
@@ -261,7 +261,7 @@ public class HostFileProfile extends FileProfile {
                                 setResult(response, IntentDConnectMessage.RESULT_OK);
                                 response.putExtra(PARAM_COUNT, filelist.size());
                                 response.putExtra(PARAM_FILES, resp.toArray(new Bundle[resp.size()]));
-                                getContext().sendBroadcast(response);
+                                sendResponse(response);
                             }
                         }
 
@@ -269,7 +269,7 @@ public class HostFileProfile extends FileProfile {
                         public void onFail() {
                             MessageUtils.setIllegalServerStateError(response,
                                     "Permission READ_EXTERNAL_STORAGE not granted.");
-                            getContext().sendBroadcast(response);
+                            sendResponse(response);
                         }
                     });
                 }
@@ -392,7 +392,7 @@ public class HostFileProfile extends FileProfile {
                     if (mMineType == null) {
                         MessageUtils.setInvalidRequestParameterError(response, "Not support format");
                         setResult(response, DConnectMessage.RESULT_ERROR);
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     // 音楽データに関してはContents Providerに登録
@@ -442,14 +442,14 @@ public class HostFileProfile extends FileProfile {
                     }
 
                     setResult(response, DConnectMessage.RESULT_OK);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
 
                 @Override
                 public void onFail(@NonNull final Throwable throwable) {
                     setResult(response, DConnectMessage.RESULT_ERROR);
                     MessageUtils.setInvalidRequestParameterError(response, "Path is null, you must input path.");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -472,13 +472,13 @@ public class HostFileProfile extends FileProfile {
                 @Override
                 public void onSuccess() {
                     setResult(response, DConnectMessage.RESULT_OK);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
 
                 @Override
                 public void onFail(@NonNull final Throwable throwable) {
                     MessageUtils.setInvalidRequestParameterError(response, "Failed to remove file: " + path);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -516,14 +516,14 @@ public class HostFileProfile extends FileProfile {
                             MessageUtils.setInvalidRequestParameterError(response, "can not make dir :" + mMakeDir);
                         }
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
 
                 @Override
                 public void onFail() {
                     MessageUtils.setIllegalServerStateError(response,
                             "Permission WRITE_EXTERNAL_STORAGE not granted.");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -561,14 +561,14 @@ public class HostFileProfile extends FileProfile {
                             MessageUtils.setUnknownError(response, "can not delete dir :" + mDeleteDir);
                         }
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
 
                 @Override
                 public void onFail() {
                     MessageUtils.setIllegalServerStateError(response,
                             "Permission WRITE_EXTERNAL_STORAGE not granted.");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;

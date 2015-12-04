@@ -7,13 +7,15 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.Service;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
+import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.audio.AudioConst;
@@ -29,15 +31,13 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.Service;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.ResultReceiver;
-import android.support.annotation.NonNull;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * MediaStream Recording Profile.
@@ -189,7 +189,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 public void onTakenPhoto(final String uri, final String filePath) {
                     setResult(response, DConnectMessage.RESULT_OK);
                     setUri(response, uri);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
 
                     List<Event> evts = EventManager.INSTANCE.getEventList(serviceId,
                             MediaStreamRecordingProfile.PROFILE_NAME, null,
@@ -203,14 +203,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     for (Event evt : evts) {
                         Intent intent = EventManager.createEventMessage(evt);
                         intent.putExtra(MediaStreamRecordingProfile.PARAM_PHOTO, photo);
-                        getContext().sendBroadcast(intent);
+                        sendEvent(intent, evt.getAccessToken());
                     }
                 }
 
                 @Override
                 public void onFailedTakePhoto() {
                     MessageUtils.setUnknownError(response, "Failed to take a photo");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -231,13 +231,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 public void onStart(@NonNull String uri) {
                     setResult(response, DConnectMessage.RESULT_OK);
                     setUri(response, uri);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
 
                 @Override
                 public void onFail() {
                     MessageUtils.setIllegalServerStateError(response, "Failed to start web server.");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -301,7 +301,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                                     resultData.getString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
                             MessageUtils.setIllegalServerStateError(response, msg);
                         }
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                     }
                 });
                 getContext().startActivity(intent);
@@ -328,7 +328,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             resultData.getString(AudioConst.EXTRA_CALLBACK_ERROR_MESSAGE, "Unknown error.");
                             MessageUtils.setIllegalServerStateError(response, msg);
                         }
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                     }
                 });
                 getContext().startActivity(intent);
@@ -351,7 +351,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundService(response);
             return true;
         } else {
-
             // 今起動しているActivityを判定する
             String className = getClassnameOfTopActivity();
             if (VideoRecorder.class.getName().equals(className)) {

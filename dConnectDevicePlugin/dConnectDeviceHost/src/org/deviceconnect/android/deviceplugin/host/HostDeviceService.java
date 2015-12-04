@@ -194,7 +194,7 @@ public class HostDeviceService extends DConnectMessageService {
                 HostPhoneProfile.setPhoneNumber(phoneStatus, intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER));
                 HostPhoneProfile.setState(phoneStatus, CallState.START);
                 HostPhoneProfile.setPhoneStatus(mIntent, phoneStatus);
-                getContext().sendBroadcast(mIntent);
+                sendEvent(mIntent, event.getAccessToken());
             }
             return START_STICKY;
         } else if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)
@@ -211,7 +211,7 @@ public class HostDeviceService extends DConnectMessageService {
                 WifiManager wifiMgr = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
                 HostConnectProfile.setEnable(wifiConnecting, wifiMgr.isWifiEnabled());
                 HostConnectProfile.setConnectStatus(mIntent, wifiConnecting);
-                getContext().sendBroadcast(mIntent);
+                sendEvent(mIntent, event.getAccessToken());
             }
             return START_STICKY;
         } else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
@@ -226,7 +226,7 @@ public class HostDeviceService extends DConnectMessageService {
                 BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                 HostConnectProfile.setEnable(bluetoothConnecting, mBluetoothAdapter.isEnabled());
                 HostConnectProfile.setConnectStatus(mIntent, bluetoothConnecting);
-                getContext().sendBroadcast(mIntent);
+                sendEvent(mIntent, event.getAccessToken());
             }
             return START_STICKY;
         }
@@ -299,7 +299,7 @@ public class HostDeviceService extends DConnectMessageService {
                     double level = ((double) (mHostBatteryManager.getBatteryLevel())) / ((double) getBatteryScale());
                     HostBatteryProfile.setLevel(battery, level);
                     HostBatteryProfile.setBattery(mIntent, battery);
-                    getContext().sendBroadcast(mIntent);
+                    sendEvent(mIntent, event.getAccessToken());
                 }
             }
         }
@@ -329,7 +329,7 @@ public class HostDeviceService extends DConnectMessageService {
                         HostBatteryProfile.setCharging(charging, false);
                     }
                     HostBatteryProfile.setBattery(mIntent, charging);
-                    getContext().sendBroadcast(mIntent);
+                    sendEvent(mIntent, event.getAccessToken());
                 }
             }
         }
@@ -468,7 +468,7 @@ public class HostDeviceService extends DConnectMessageService {
         // Check status.
         if (mMediaStatus == MEDIA_PLAYER_PLAY || mMediaStatus == MEDIA_PLAYER_PAUSE) {
             MessageUtils.setIllegalDeviceStateError(response, "Status is playing.");
-            sendBroadcast(response);
+            sendResponse(response);
             return;
         }
 
@@ -525,13 +525,13 @@ public class HostDeviceService extends DConnectMessageService {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                     response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:" + filePath);
                     sendOnStatusChangeEvent("media");
-                    sendBroadcast(response);
+                    sendResponse(response);
                 }
             } catch (IOException e) {
                 if (response != null) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
                     response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
-                    sendBroadcast(response);
+                    sendResponse(response);
                 }
             }
         } else if (VIDEO_TYPE_LIST.contains(mMineType)) {
@@ -565,32 +565,32 @@ public class HostDeviceService extends DConnectMessageService {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
                     response.putExtra(DConnectMessage.EXTRA_VALUE, "regist:" + filePath);
                     sendOnStatusChangeEvent("media");
-                    sendBroadcast(response);
+                    sendResponse(response);
                 }
             } catch (IllegalArgumentException e) {
                 if (response != null) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
                     response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
-                    sendBroadcast(response);
+                    sendResponse(response);
                 }
             } catch (IllegalStateException e) {
                 if (response != null) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
                     response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
-                    sendBroadcast(response);
+                    sendResponse(response);
                 }
             } catch (IOException e) {
                 if (response != null) {
                     response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
                     response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not mount:" + filePath);
-                    sendBroadcast(response);
+                    sendResponse(response);
                 }
             }
         } else {
             if (response != null) {
                 response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.EXTRA_ERROR_CODE);
                 response.putExtra(DConnectMessage.EXTRA_VALUE, "can't not open:" + filePath);
-                sendBroadcast(response);
+                sendResponse(response);
             }
         }
     }
@@ -606,7 +606,7 @@ public class HostDeviceService extends DConnectMessageService {
         mOnStatusChangeEventFlag = true;
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Register OnStatusChange event");
-        sendBroadcast(response);
+        sendResponse(response);
     }
 
     /**
@@ -618,7 +618,7 @@ public class HostDeviceService extends DConnectMessageService {
         mOnStatusChangeEventFlag = false;
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Unregister OnStatusChange event");
-        sendBroadcast(response);
+        sendResponse(response);
     }
 
     /**
@@ -655,7 +655,7 @@ public class HostDeviceService extends DConnectMessageService {
                 MediaPlayerProfile.setPos(mediaPlayer, mMyCurrentMediaPosition / UNIT_SEC);
                 MediaPlayerProfile.setVolume(mediaPlayer, mVolumeValue);
                 MediaPlayerProfile.setMediaPlayer(intent, mediaPlayer);
-                getContext().sendBroadcast(intent);
+                sendEvent(intent, event.getAccessToken());
             }
         }
     }
@@ -699,7 +699,7 @@ public class HostDeviceService extends DConnectMessageService {
             mMediaStatus = MEDIA_PLAYER_PLAY;
             Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
             mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_RESUME);
-            this.getContext().sendBroadcast(mIntent);
+            getContext().sendBroadcast(mIntent);
             sendOnStatusChangeEvent("play");
             return 0;
         }
@@ -746,7 +746,7 @@ public class HostDeviceService extends DConnectMessageService {
                 mMediaStatus = MEDIA_PLAYER_PLAY;
                 Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY);
-                this.getContext().sendBroadcast(mIntent);
+                getContext().sendBroadcast(mIntent);
                 sendOnStatusChangeEvent("play");
 
             } else {
@@ -790,7 +790,7 @@ public class HostDeviceService extends DConnectMessageService {
             mMediaStatus = MEDIA_PLAYER_PAUSE;
             Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
             mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PAUSE);
-            this.getContext().sendBroadcast(mIntent);
+            getContext().sendBroadcast(mIntent);
             sendOnStatusChangeEvent("pause");
             return 0;
         } else {
@@ -811,7 +811,7 @@ public class HostDeviceService extends DConnectMessageService {
             if (VideoPlayer.class.getName().equals(className)) {
                 Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
                 mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_GET_POS);
-                this.getContext().sendBroadcast(mIntent);
+                getContext().sendBroadcast(mIntent);
                 return Integer.MAX_VALUE;
             } else {
                 return -1;
@@ -846,7 +846,7 @@ public class HostDeviceService extends DConnectMessageService {
                     mMyCurrentMediaPosition = intent.getIntExtra("pos", 0);
                     mResponse.putExtra("pos", mMyCurrentMediaPosition / UNIT_SEC);
                     mResponse.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-                    sendBroadcast(mResponse);
+                    sendResponse(mResponse);
                 } else if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_STOP)) {
                     unregisterReceiver(mMediaPlayerVideoBR);
                 } else if (mVideoAction.equals(VideoConst.EXTRA_VALUE_VIDEO_PLAYER_PLAY_COMPLETION)) {
@@ -867,7 +867,7 @@ public class HostDeviceService extends DConnectMessageService {
     public void setMediaPos(final Intent response, final int pos) {
         if (pos > mMyCurrentMediaDuration) {
             MessageUtils.setInvalidRequestParameterError(response);
-            sendBroadcast(response);
+            sendResponse(response);
             return;
         }
 
@@ -879,11 +879,11 @@ public class HostDeviceService extends DConnectMessageService {
             Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
             mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_SEEK);
             mIntent.putExtra("pos", pos * UNIT_SEC);
-            this.getContext().sendBroadcast(mIntent);
+            getContext().sendBroadcast(mIntent);
             mMyCurrentMediaPosition = pos * UNIT_SEC;
         }
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        sendBroadcast(response);
+        sendResponse(response);
     }
 
     /**
@@ -907,15 +907,15 @@ public class HostDeviceService extends DConnectMessageService {
                 }
             }
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-            sendBroadcast(response);
+            sendResponse(response);
         } else if (mSetMediaType == MEDIA_TYPE_VIDEO) {
             mMediaStatus = MEDIA_PLAYER_STOP;
             Intent mIntent = new Intent(VideoConst.SEND_HOSTDP_TO_VIDEOPLAYER);
             mIntent.putExtra(VideoConst.EXTRA_NAME, VideoConst.EXTRA_VALUE_VIDEO_PLAYER_STOP);
-            this.getContext().sendBroadcast(mIntent);
+            getContext().sendBroadcast(mIntent);
             sendOnStatusChangeEvent("stop");
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-            sendBroadcast(response);
+            sendResponse(response);
         }
     }
 
@@ -947,7 +947,7 @@ public class HostDeviceService extends DConnectMessageService {
                     response.putExtra(MediaPlayerProfile.PARAM_STATUS, "stop");
                 }
             }
-            sendBroadcast(response);
+            sendResponse(response);
         } else {
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             if (mMediaStatus == MEDIA_PLAYER_STOP) {
@@ -961,7 +961,7 @@ public class HostDeviceService extends DConnectMessageService {
             } else {
                 response.putExtra(MediaPlayerProfile.PARAM_STATUS, "stop");
             }
-            sendBroadcast(response);
+            sendResponse(response);
         }
     }
 
@@ -1127,7 +1127,7 @@ public class HostDeviceService extends DConnectMessageService {
     public void registerOnConnect(final Intent response, final String serviceId, final String sessionKey) {
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Register onClick event");
-        sendBroadcast(response);
+        sendResponse(response);
     }
 
     /**
@@ -1140,7 +1140,7 @@ public class HostDeviceService extends DConnectMessageService {
     public void unregisterOnConnect(final Intent response, final String serviceId, final String sessionKey) {
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Unregister onClick event");
-        sendBroadcast(response);
+        sendResponse(response);
     }
 
     /**

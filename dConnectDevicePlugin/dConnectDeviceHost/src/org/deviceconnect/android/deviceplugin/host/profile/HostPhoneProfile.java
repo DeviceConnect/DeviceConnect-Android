@@ -55,14 +55,14 @@ public class HostPhoneProfile extends PhoneProfile {
                                 @Override
                                 public void onSuccess() {
                                     onPostCallInternal(request, response, phoneNumber);
-                                    getContext().sendBroadcast(response);
+                                    sendResponse(response);
                                 }
 
                                 @Override
                                 public void onFail(@NonNull String deniedPermission) {
                                     MessageUtils.setIllegalServerStateError(response,
                                             "CALL_PHONE permission not granted.");
-                                    getContext().sendBroadcast(response);
+                                    sendResponse(response);
                                 }
                             });
                     return false;

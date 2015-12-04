@@ -6,12 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
@@ -25,10 +23,12 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.FileDescriptorProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.util.Log;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * FileDescriptorプロファイル.
@@ -128,13 +128,13 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
                         setResult(response, DConnectMessage.RESULT_OK);
                         setSize(response, data.length());
                         setFileData(response, data);
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                     }
 
                     @Override
                     public void onFail() {
                         MessageUtils.setIllegalDeviceStateError(response, "file cannot be read.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                     }
                 });
             }
@@ -202,13 +202,13 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
                         @Override
                         public void onSuccess() {
                             setResult(response, DConnectMessage.RESULT_OK);
-                            getContext().sendBroadcast(response);
+                            sendResponse(response);
                         }
 
                         @Override
                         public void onFail() {
                             MessageUtils.setUnknownError(response, "file cannot write.");
-                            getContext().sendBroadcast(response);
+                            sendResponse(response);
                         }
                     });
                     return false;
@@ -236,14 +236,14 @@ public class HostFileDescriptorProfile extends FileDescriptorProfile {
                         }
                     }
                     setResult(response, DConnectMessage.RESULT_OK);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
 
                 @Override
                 public void onFail() {
                     MessageUtils.setIllegalServerStateError(response,
                             "READ_EXTERNAL_STORAGE permission not granted.");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;

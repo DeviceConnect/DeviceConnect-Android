@@ -420,9 +420,8 @@ public class HostDeviceOrientationProfile extends DeviceOrientationProfile imple
             for (int i = 0; i < events.size(); i++) {
                 Event event = events.get(i);
                 Intent intent = EventManager.createEventMessage(event);
-                intent.putExtra(DeviceOrientationProfile.PARAM_ORIENTATION,
-                        orientation);
-                getContext().sendBroadcast(intent);
+                intent.putExtra(DeviceOrientationProfile.PARAM_ORIENTATION, orientation);
+                sendEvent(intent, event.getAccessToken());
             }
         }
     }

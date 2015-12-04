@@ -199,18 +199,18 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                                 long newMediaId = mediaIdFromPath(getContext(), mFileManager.getBasePath() + mediaId);
                                 if (newMediaId == -1) {
                                     MessageUtils.setInvalidRequestParameterError(response);
-                                    getContext().sendBroadcast(response);
+                                    sendResponse(response);
                                     return;
                                 }
                                 ((HostDeviceService) getContext()).putMediaId(response, "" + newMediaId);
-                                getContext().sendBroadcast(response);
+                                sendResponse(response);
                             }
 
                             @Override
                             public void onFail(@NonNull String deniedPermission) {
                                 MessageUtils.setIllegalServerStateError(response,
                                         "Permission READ_EXTERNAL_STORAGE not granted.");
-                                getContext().sendBroadcast(response);
+                                sendResponse(response);
                             }
                         });
 
@@ -243,7 +243,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                         public void onFail(@NonNull String deniedPermission) {
                             MessageUtils.setIllegalServerStateError(response,
                                     "Permission READ_EXTERNAL_STORAGE not granted.");
-                            getContext().sendBroadcast(response);
+                            sendResponse(response);
                         }
                     });
             return false;
@@ -270,7 +270,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
             fileName = getDisplayNameFromUri(uri);
             if (fileName == null) {
                 MessageUtils.setInvalidRequestParameterError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
                 return;
             }
             param = AUDIO_TABLE_KEYS;
@@ -292,7 +292,7 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                 cursor.close();
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     /**
@@ -428,14 +428,14 @@ public class HostMediaPlayerProfile extends MediaPlayerProfile {
                         @Override
                         public void onSuccess() {
                             getMediaListInternal(response, query, mimeType, orders, offset, limit);
-                            getContext().sendBroadcast(response);
+                            sendResponse(response);
                         }
 
                         @Override
                         public void onFail(@NonNull String deniedPermission) {
                             MessageUtils.setIllegalServerStateError(response,
                                     "READ_EXTERNAL_STORAGE permission not granted.");
-                            getContext().sendBroadcast(response);
+                            sendResponse(response);
                         }
                     });
             return false;

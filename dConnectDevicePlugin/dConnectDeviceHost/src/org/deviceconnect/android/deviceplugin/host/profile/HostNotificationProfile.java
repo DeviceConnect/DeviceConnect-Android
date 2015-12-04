@@ -474,9 +474,9 @@ public class HostNotificationProfile extends NotificationProfile {
 
                 for (int i = 0; i < events.size(); i++) {
                     Event event = events.get(i);
-                    Intent mIntent = EventManager.createEventMessage(event);
-                    mIntent.putExtra(HostNotificationProfile.PARAM_NOTIFICATION_ID, "" + notificationId);
-                    getContext().sendBroadcast(mIntent);
+                    Intent evtIntent = EventManager.createEventMessage(event);
+                    evtIntent.putExtra(HostNotificationProfile.PARAM_NOTIFICATION_ID, "" + notificationId);
+                    sendEvent(evtIntent, event.getAccessToken());
                 }
 
                 // 状態更新の為のmutexロックを外して、待っていた処理に通知する。

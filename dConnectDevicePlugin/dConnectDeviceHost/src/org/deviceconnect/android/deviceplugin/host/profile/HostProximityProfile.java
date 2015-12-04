@@ -6,8 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.host.profile;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Context;
+import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.event.Event;
@@ -18,13 +23,8 @@ import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.ProximityProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.Context;
-import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
-import android.os.Bundle;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Proximity Profile.
@@ -151,9 +151,9 @@ public class HostProximityProfile extends ProximityProfile implements SensorEven
                     ProximityProfile.ATTRIBUTE_ON_USER_PROXIMITY);
             synchronized (events) {
                 for (Event event : events) {
-                    Intent mIntent = EventManager.createEventMessage(event);
-                    ProximityProfile.setProximity(mIntent, mProximityBundle);
-                    getContext().sendBroadcast(mIntent);
+                    Intent evtIntent = EventManager.createEventMessage(event);
+                    ProximityProfile.setProximity(evtIntent, mProximityBundle);
+                    sendEvent(evtIntent, event.getAccessToken());
                 }
             }
         }

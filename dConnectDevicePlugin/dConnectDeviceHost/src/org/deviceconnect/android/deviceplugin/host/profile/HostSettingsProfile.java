@@ -204,7 +204,7 @@ public class HostSettingsProfile extends SettingsProfile {
                                         MessageUtils.setIllegalServerStateError(response,
                                                 "WRITE_SETTINGS permisson not granted");
                                     }
-                                    getContext().sendBroadcast(response);
+                                    sendResponse(response);
                                 }
                             });
                     return false;
@@ -251,7 +251,7 @@ public class HostSettingsProfile extends SettingsProfile {
                                         MessageUtils.setIllegalServerStateError(response,
                                                 "WRITE_SETTINGS permisson not granted");
                                     }
-                                    getContext().sendBroadcast(response);
+                                    sendResponse(response);
                                 }
                             });
                     return false;

@@ -22,6 +22,8 @@ import java.util.List;
 
 class ThetaS extends AbstractThetaDevice {
 
+    private static final String ID = "theta";
+
     private static final String PARAM_RESULTS = "results";
 
     private static final String PARAM_ENTRIES = "entries";
@@ -35,6 +37,8 @@ class ThetaS extends AbstractThetaDevice {
     private static final String PARAM_OPTIONS = "options";
 
     private static final String OPTION_CAPTURE_MODE = "captureMode";
+
+    private static final String OPTION_FILE_FORMAT = "fileFormat";
 
     private static final String CAPTURE_MODE_IMAGE = "image";
 
@@ -50,10 +54,13 @@ class ThetaS extends AbstractThetaDevice {
 
     private OscClient mOscClient = new OscClient();
 
-    private String mSessionId;
-
     ThetaS(final String name) {
         super(name);
+    }
+
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
@@ -151,12 +158,11 @@ class ThetaS extends AbstractThetaDevice {
     @Override
     public synchronized void startVideoRecording() throws ThetaDeviceException {
         try {
-            if (mSessionId != null) {
-                return;
-            }
             OscSession session = mOscClient.startSession();
-            mSessionId = session.getId();
-            OscCommand.Result result = mOscClient.startCapture(mSessionId);
+            String sessionId = session.getId();
+            OscCommand.Result result = mOscClient.startCapture(sessionId);
+            throwExceptionIfError(result);
+            result = mOscClient.closeSession(sessionId);
             throwExceptionIfError(result);
         } catch (SocketTimeoutException e) {
             throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
@@ -170,12 +176,11 @@ class ThetaS extends AbstractThetaDevice {
     @Override
     public synchronized void stopVideoRecording() throws ThetaDeviceException {
         try {
-            if (mSessionId == null) {
-                return;
-            }
-            OscCommand.Result result = mOscClient.stopCapture(mSessionId);
+            OscSession session = mOscClient.startSession();
+            String sessionId = session.getId();
+            OscCommand.Result result = mOscClient.stopCapture(sessionId);
             throwExceptionIfError(result);
-            result = mOscClient.closeSession(mSessionId);
+            result = mOscClient.closeSession(sessionId);
             throwExceptionIfError(result);
         } catch (SocketTimeoutException e) {
             throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
@@ -183,8 +188,6 @@ class ThetaS extends AbstractThetaDevice {
             throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
         } catch (JSONException e) {
             throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
-        } finally {
-            mSessionId = null;
         }
     }
 
@@ -216,8 +219,8 @@ class ThetaS extends AbstractThetaDevice {
             optionNames.put("captureMode");
 
             OscCommand.Result result = mOscClient.getOptions(sessionId, optionNames);
-            JSONObject json = result.getJSON();
             throwExceptionIfError(result);
+            JSONObject json = result.getJSON();
             JSONObject results = json.getJSONObject(PARAM_RESULTS);
             JSONObject options = results.getJSONObject(PARAM_OPTIONS);
             String captureMode = options.getString(OPTION_CAPTURE_MODE);
@@ -233,7 +236,8 @@ class ThetaS extends AbstractThetaDevice {
                 mode = ShootingMode.UNKNOWN;
             }
 
-            mOscClient.closeSession(sessionId);
+            result = mOscClient.closeSession(sessionId);
+            throwExceptionIfError(result);
 
             return mode;
         } catch (SocketTimeoutException e) {
@@ -269,6 +273,39 @@ class ThetaS extends AbstractThetaDevice {
             throwExceptionIfError(result);
 
             mOscClient.closeSession(sessionId);
+        } catch (SocketTimeoutException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
+        } catch (IOException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
+        } catch (JSONException e) {
+            throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
+        }
+    }
+
+    @Override
+    public Recorder getRecorder() throws ThetaDeviceException {
+        try {
+            OscSession session = mOscClient.startSession();
+            String sessionId = session.getId();
+            JSONArray optionNames = new JSONArray();
+            optionNames.put("fileFormat");
+
+            OscCommand.Result result = mOscClient.getOptions(sessionId, optionNames);
+            throwExceptionIfError(result);
+            JSONObject json = result.getJSON();
+            JSONObject results = json.getJSONObject(PARAM_RESULTS);
+            JSONObject options = results.getJSONObject(PARAM_OPTIONS);
+            JSONObject format = options.getJSONObject(OPTION_FILE_FORMAT);
+            String type = format.getString("type");
+            int width = format.getInt("width");
+            int height = format.getInt("height");
+            if ("jpeg".equals(type)) {
+                return new ThetaImageRecorderS("0", width, height);
+            } else if ("mp4".equals(type)) {
+                return new ThetaVideoRecorderS("1", width, height);
+            } else {
+                return null;
+            }
         } catch (SocketTimeoutException e) {
             throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
         } catch (IOException e) {
@@ -486,6 +523,96 @@ class ThetaS extends AbstractThetaDevice {
         public byte[] getMainData() {
             return mMain;
         }
+    }
+
+    private class ThetaImageRecorderS extends ThetaRecorderS {
+
+        private static final String NAME = "THETA S - photo";
+        private static final String MIME_TYPE = "image/jpeg";
+
+        public ThetaImageRecorderS(final String id, final int imageWidth, final int imageHeight) {
+            super(id, NAME, MIME_TYPE, imageWidth, imageHeight);
+        }
+
+        @Override
+        public RecorderState getState() throws ThetaDeviceException {
+            return RecorderState.INACTIVE;
+        }
+    }
+
+    private class ThetaVideoRecorderS extends ThetaRecorderS {
+
+        private static final String NAME = "THETA S - video";
+        private static final String MIME_TYPE = "video/mp4";
+
+        public ThetaVideoRecorderS(final String id, final int imageWidth, final int imageHeight) {
+            super(id, NAME, MIME_TYPE, imageWidth, imageHeight);
+        }
+
+        @Override
+        public RecorderState getState() throws ThetaDeviceException {
+            try {
+                OscState state = mOscClient.state();
+                String captureStatus = state.getCaptureStatus();
+                if ("shooting".equals(captureStatus)) {
+                    return RecorderState.RECORDING;
+                } else if ("idle".equals(captureStatus)) {
+                    return RecorderState.INACTIVE;
+                } else {
+                    return RecorderState.UNKNOWN;
+                }
+            } catch (SocketTimeoutException e) {
+                throw new ThetaDeviceException(ThetaDeviceException.TIMEOUT, e);
+            } catch (IOException e) {
+                throw new ThetaDeviceException(ThetaDeviceException.IO_ERROR, e);
+            } catch (JSONException e) {
+                throw new ThetaDeviceException(ThetaDeviceException.INVALID_RESPONSE, e);
+            }
+        }
+    }
+
+    private abstract class ThetaRecorderS implements Recorder {
+
+        private final String mId;
+        private final String mName;
+        private final String mMimeType;
+        private final int mImageWidth;
+        private final int mImageHeight;
+
+        public ThetaRecorderS(final String id, final String name, final String mimeType,
+                              final int imageWidth, final int imageHeight) {
+            mId = id;
+            mName = name;
+            mMimeType = mimeType;
+            mImageWidth = imageWidth;
+            mImageHeight = imageHeight;
+        }
+
+        @Override
+        public String getId() {
+            return mId;
+        }
+
+        @Override
+        public String getName() {
+            return mName;
+        }
+
+        @Override
+        public String getMimeType() {
+            return mMimeType;
+        }
+
+        @Override
+        public int getImageWidth() {
+            return mImageWidth;
+        }
+
+        @Override
+        public int getImageHeight() {
+            return mImageHeight;
+        }
+
     }
 
     private static class Exif {

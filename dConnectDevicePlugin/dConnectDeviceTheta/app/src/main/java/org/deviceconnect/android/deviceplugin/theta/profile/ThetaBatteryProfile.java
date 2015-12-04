@@ -8,17 +8,12 @@ package org.deviceconnect.android.deviceplugin.theta.profile;
 
 import android.content.Intent;
 
-import com.theta360.lib.ThetaException;
-
-import org.deviceconnect.android.deviceplugin.theta.ThetaApi;
-import org.deviceconnect.android.deviceplugin.theta.ThetaApiClient;
-import org.deviceconnect.android.deviceplugin.theta.ThetaApiTask;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.BatteryProfile;
 import org.deviceconnect.message.DConnectMessage;
-
-import java.io.IOException;
 
 /**
  * Theta Battery Profile.
@@ -27,66 +22,62 @@ import java.io.IOException;
  */
 public class ThetaBatteryProfile extends BatteryProfile {
 
-    private final ThetaApiClient mClient;
+    private final ThetaDeviceClient mClient;
 
     /**
      * Constructor.
      *
-     * @param client an instance of {@link ThetaApiClient}
+     * @param client an instance of {@link ThetaDeviceClient}
      */
-    public ThetaBatteryProfile(final ThetaApiClient client) {
+    public ThetaBatteryProfile(final ThetaDeviceClient client) {
         mClient = client;
     }
 
     @Override
     protected boolean onGetAll(final Intent request, final Intent response, final String serviceId) {
-        if (!mClient.hasDevice(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-        mClient.execute(new ThetaApiTask() {
+        mClient.getBatteryLevel(serviceId, new ThetaDeviceClient.DefaultListener() {
+
             @Override
-            public void run(final ThetaApi api) {
-                try {
-                    setLevel(response, api.getBatteryLevel());
-                    setCharging(response, false);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } catch (ThetaException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
-                } catch (IOException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
-                }
-                getService().sendResponse(response);
+            public void onBatteryLevel(final double level) {
+                setLevel(response, level);
+                setCharging(response, false);
+                setResult(response, DConnectMessage.RESULT_OK);
+                sendResponse(response);
             }
+
+            @Override
+            public void onFailed(final ThetaDeviceException cause) {
+                MessageUtils.setUnknownError(response, cause.getMessage());
+                sendResponse(response);
+            }
+
         });
         return false;
     }
 
     @Override
     protected boolean onGetLevel(final Intent request, final Intent response, final String serviceId) {
-        if (!mClient.hasDevice(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
-        mClient.execute(new ThetaApiTask() {
+        mClient.getBatteryLevel(serviceId, new ThetaDeviceClient.DefaultListener() {
+
             @Override
-            public void run(final ThetaApi api) {
-                try {
-                    setLevel(response, api.getBatteryLevel());
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } catch (ThetaException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
-                } catch (IOException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
-                }
-                getService().sendResponse(response);
+            public void onBatteryLevel(final double level) {
+                setLevel(response, level);
+                setResult(response, DConnectMessage.RESULT_OK);
+                sendResponse(response);
             }
+
+            @Override
+            public void onFailed(final ThetaDeviceException cause) {
+                MessageUtils.setUnknownError(response, cause.getMessage());
+                sendResponse(response);
+            }
+
         });
         return false;
     }
 
-    private ThetaDeviceService getService() {
-        return ((ThetaDeviceService) getContext());
+    private void sendResponse(final Intent response) {
+        ((ThetaDeviceService) getContext()).sendResponse(response);
     }
 
 }

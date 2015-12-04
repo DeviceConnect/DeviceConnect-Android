@@ -12,6 +12,13 @@ import java.util.List;
 public interface ThetaDevice extends LiveCamera {
 
     /**
+     * Gets the identifier of this THETA device.
+     *
+     * @return the identifier of this THETA device
+     */
+    String getId();
+
+    /**
      * Gets the name of this THETA device.
      *
      * @return the name of this THETA device
@@ -129,6 +136,14 @@ public interface ThetaDevice extends LiveCamera {
     void changeShootingMode(ShootingMode mode) throws ThetaDeviceException;
 
     /**
+     * Gets the recorder information of this THETA device.
+     *
+     * @return the recorder information of this THETA device
+     * @throws ThetaDeviceException if the API execution is failed.
+     */
+    Recorder getRecorder() throws ThetaDeviceException;
+
+    /**
      * Release objects or any other resources.
      */
     void destroy();
@@ -161,6 +176,32 @@ public interface ThetaDevice extends LiveCamera {
         /**
          * Unknown mode.
          */
+        UNKNOWN
+
+    }
+
+    interface Recorder {
+
+        String getId();
+
+        String getName();
+
+        String getMimeType();
+
+        int getImageWidth();
+
+        int getImageHeight();
+
+        RecorderState getState() throws ThetaDeviceException;
+
+    }
+
+    enum RecorderState {
+
+        INACTIVE,
+
+        RECORDING,
+
         UNKNOWN
 
     }

@@ -68,6 +68,24 @@ public class ThetaDeviceManager implements WifiStateEventListener {
     }
 
     /**
+     * Gets the specified THETA device.
+     *
+     * @param id the identifier of THETA device
+     * @return the specified THETA device
+     */
+    public ThetaDevice getConnectedDeviceById(final String id) {
+        ThetaDevice device = mConnectedDevice;
+        if (device == null) {
+            return null;
+        }
+        if (device.getId().equals(id)) {
+            return device;
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Get a THETA device which is connected currently to the host device via WiFi.
      *
      * @return an instance of {@link ThetaDevice}

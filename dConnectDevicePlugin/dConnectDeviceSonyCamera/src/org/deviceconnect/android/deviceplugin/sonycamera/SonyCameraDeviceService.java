@@ -1207,7 +1207,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      */
     private void sendResponse(final Intent request, final Intent response) {
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-        sendBroadcast(response);
+        sendResponse(response);
     }
 
     /**
@@ -1218,7 +1218,7 @@ public class SonyCameraDeviceService extends DConnectMessageService {
      */
     private void sendErrorResponse(final Intent request, final Intent response) {
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
-        sendBroadcast(response);
+        sendResponse(response);
     }
 
     /**

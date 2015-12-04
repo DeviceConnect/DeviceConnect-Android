@@ -18,7 +18,6 @@ import android.support.annotation.NonNull;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.hvc.HvcDeviceService;
 import org.deviceconnect.android.deviceplugin.hvc.ble.BleUtils;
-import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
@@ -140,10 +139,5 @@ public class HvcServiceDiscoveryProfile extends ServiceDiscoveryProfile {
     private void startSearchHvcDevice() {
         HvcDeviceService s = (HvcDeviceService) getContext();
         s.startSearchHvcDevice();
-    }
-
-    private void sendResponse(final Intent response) {
-        DConnectMessageService s = (DConnectMessageService) getContext();
-        s.sendResponse(response);
     }
 }

@@ -7,15 +7,9 @@
 
 package org.deviceconnect.android.deviceplugin.hvc.comm;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import omron.HVC.HVC;
-import omron.HVC.HVCBleCallback;
-import omron.HVC.HVC_BLE;
-import omron.HVC.HVC_PRM;
-import omron.HVC.HVC_RES;
+import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
+import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hvc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvc.humandetect.HumanDetectEvent;
@@ -27,14 +21,20 @@ import org.deviceconnect.android.deviceplugin.hvc.request.HvcDetectRequestParams
 import org.deviceconnect.android.deviceplugin.hvc.response.HvcResponseUtils;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.HumanDetectProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.bluetooth.BluetoothDevice;
-import android.content.Context;
-import android.content.Intent;
-import android.util.Log;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import omron.HVC.HVC;
+import omron.HVC.HVCBleCallback;
+import omron.HVC.HVC_BLE;
+import omron.HVC.HVC_PRM;
+import omron.HVC.HVC_RES;
 
 /**
  * HVC Communication Manager.
@@ -56,7 +56,7 @@ public class HvcCommManager {
     /**
      * Context.
      */
-    private Context mContext;
+    private DConnectMessageService mContext;
 
     /**
      * ServiceId.
@@ -68,7 +68,6 @@ public class HvcCommManager {
      */
     private BluetoothDevice mBluetoothDevice;
 
-    
     /**
      * HVC BLE class.
      */
@@ -107,7 +106,7 @@ public class HvcCommManager {
      * @param serviceId serviceId
      * @param bluetoothDevice bluetoothDevice
      */
-    public HvcCommManager(final Context context, final String serviceId, final BluetoothDevice bluetoothDevice) {
+    public HvcCommManager(final DConnectMessageService context, final String serviceId, final BluetoothDevice bluetoothDevice) {
         mContext = context;
         mServiceId = serviceId;
         mBluetoothDevice = bluetoothDevice;
@@ -157,7 +156,7 @@ public class HvcCommManager {
         // check already event register info registered.
         if (HumanDetectEventUtils.search(mEventArray, detectKind, sessionKey) != null) {
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
-            mContext.sendBroadcast(response);
+            mContext.sendResponse(response);
             return;
         }
 
@@ -168,7 +167,7 @@ public class HvcCommManager {
         // response(success)
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Register OnDetection event");
-        mContext.sendBroadcast(response);
+        mContext.sendResponse(response);
     }
 
     /**
@@ -242,7 +241,7 @@ public class HvcCommManager {
                 Log.d(TAG, "doGetDetectionProc() - BUG: Supposed to have been checked in HvcDeviceService.");
             }
             MessageUtils.setIllegalDeviceStateError(response, "device busy.");
-            mContext.sendBroadcast(response);
+            mContext.sendResponse(response);
             return;
         }
         
@@ -263,7 +262,7 @@ public class HvcCommManager {
                 } else {
                     MessageUtils.setUnknownError(response, "No data to be sent.");
                 }
-                mContext.sendBroadcast(response);
+                mContext.sendResponse(response);
             }
             
             @Override
@@ -272,7 +271,7 @@ public class HvcCommManager {
                     Log.d(TAG, "<GET> set parameter error. status:" + status);
                 }
                 MessageUtils.setIllegalDeviceStateError(response, "set parameter error. status:" + status);
-                mContext.sendBroadcast(response);
+                mContext.sendResponse(response);
             }
             
             @Override
@@ -281,7 +280,7 @@ public class HvcCommManager {
                     Log.d(TAG, "<GET> request detect error. status:" + status);
                 }
                 MessageUtils.setIllegalDeviceStateError(response, "request detect error. status:" + status);
-                mContext.sendBroadcast(response);
+                mContext.sendResponse(response);
             }
             
             @Override
@@ -290,7 +289,7 @@ public class HvcCommManager {
                     Log.d(TAG, "<GET> detect error.  status:" + status);
                 }
                 MessageUtils.setIllegalDeviceStateError(response, "detect error.  status:" + status);
-                mContext.sendBroadcast(response);
+                mContext.sendResponse(response);
             }
         };
         
@@ -366,7 +365,7 @@ public class HvcCommManager {
                             if (!checkDetectResult(detectKind, intent)) {
                                 continue;
                             }
-                            mContext.sendBroadcast(intent);
+                            mContext.sendResponse(intent);
                             if (DEBUG) {
                                 Log.d(TAG, "<EVENT> send event. attribute:" + attribute);
                             }

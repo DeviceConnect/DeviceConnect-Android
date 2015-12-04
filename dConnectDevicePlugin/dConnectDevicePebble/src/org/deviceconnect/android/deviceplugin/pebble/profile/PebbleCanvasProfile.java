@@ -6,6 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.pebble.profile;
 
+import android.content.Intent;
+
+import com.getpebble.android.kit.util.PebbleDictionary;
+
 import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnSendCommandListener;
@@ -13,10 +17,6 @@ import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnSendDa
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.message.DConnectMessage;
-
-import android.content.Intent;
-
-import com.getpebble.android.kit.util.PebbleDictionary;
 
 /**
  * Pebble 用 Canvasプロファイル.
@@ -60,7 +60,7 @@ public class PebbleCanvasProfile extends CanvasProfile {
                 } else {
                     MessageUtils.setUnknownError(response);
                 }
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         });
         return false;
@@ -73,7 +73,7 @@ public class PebbleCanvasProfile extends CanvasProfile {
         } else if (!PebbleUtil.checkServiceId(serviceId)) {
             MessageUtils.setNotFoundServiceError(response);
         } else {
-            final PebbleDeviceService service = (PebbleDeviceService) getContext();
+            PebbleDeviceService service = (PebbleDeviceService) getContext();
             PebbleManager mgr = service.getPebbleManager();
             PebbleDictionary dic = new PebbleDictionary();
             dic.addInt8(PebbleManager.KEY_PROFILE, (byte) PebbleManager.PROFILE_CANVAS);
@@ -87,7 +87,7 @@ public class PebbleCanvasProfile extends CanvasProfile {
                     } else {
                         setResult(response, DConnectMessage.RESULT_OK);
                     }
-                    service.sendResponse(response);
+                    sendResponse(response);
                 }
             });
             return false;

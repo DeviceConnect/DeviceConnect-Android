@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
@@ -635,6 +636,23 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      */
     public static int getRequestCode(final Intent request) {
         return request.getIntExtra(DConnectMessage.EXTRA_REQUEST_CODE, Integer.MIN_VALUE);
+    }
+
+    /**
+     * レスポンスを返却します.
+     * @param response レスポンス
+     */
+    protected final void sendResponse(final Intent response) {
+        ((DConnectMessageService) getContext()).sendResponse(response);
+    }
+
+    /**
+     * イベントを送信します.
+     * @param event イベント
+     * @param accessToken アクセストークン
+     */
+    protected final void sendEvent(final Intent event, final String accessToken) {
+        ((DConnectMessageService) getContext()).sendEvent(event, accessToken);
     }
 
     /**

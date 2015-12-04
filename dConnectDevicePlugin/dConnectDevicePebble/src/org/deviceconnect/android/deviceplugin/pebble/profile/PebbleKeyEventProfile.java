@@ -6,7 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.pebble.profile;
 
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
+
+import com.getpebble.android.kit.util.PebbleDictionary;
 
 import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
@@ -20,10 +23,7 @@ import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.KeyEventProfileConstants;
 
-import android.content.Intent;
-import android.os.Bundle;
-
-import com.getpebble.android.kit.util.PebbleDictionary;
+import java.util.List;
 
 /**
  * Pebble Key Event Profile.
@@ -208,7 +208,7 @@ public class PebbleKeyEventProfile extends KeyEventProfile {
                             MessageUtils.setUnknownError(response);
                         }
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             // Since returning the response asynchronously, it returns false.
@@ -252,7 +252,7 @@ public class PebbleKeyEventProfile extends KeyEventProfile {
                             MessageUtils.setUnknownError(response);
                         }
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             // Since returning the response asynchronously, it returns false.

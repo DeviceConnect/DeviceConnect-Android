@@ -6,16 +6,16 @@
  */
 package org.deviceconnect.android.deviceplugin.pebble.profile;
 
+import android.content.Intent;
+
+import com.getpebble.android.kit.util.PebbleDictionary;
+
 import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnSendCommandListener;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.VibrationProfile;
 import org.deviceconnect.message.DConnectMessage;
-
-import android.content.Intent;
-
-import com.getpebble.android.kit.util.PebbleDictionary;
 
 /**
  * Pebble用バイブレーションプロファイル.
@@ -54,7 +54,7 @@ public class PebbleVibrationProfile extends VibrationProfile {
                     } else {
                         setResult(response, DConnectMessage.RESULT_OK);
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -84,7 +84,7 @@ public class PebbleVibrationProfile extends VibrationProfile {
                     } else {
                         setResult(response, DConnectMessage.RESULT_OK);
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;

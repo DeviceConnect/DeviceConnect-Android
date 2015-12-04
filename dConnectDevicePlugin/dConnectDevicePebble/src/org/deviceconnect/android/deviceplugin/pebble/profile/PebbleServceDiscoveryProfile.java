@@ -6,10 +6,12 @@
  */
 package org.deviceconnect.android.deviceplugin.pebble.profile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
+import android.os.Bundle;
+
+import com.getpebble.android.kit.PebbleKit;
 
 import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnConnectionStatusListener;
@@ -21,12 +23,10 @@ import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.Intent;
-import android.os.Bundle;
-
-import com.getpebble.android.kit.PebbleKit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * Pebble用 Network Service Discoveryプロファイル.
@@ -64,7 +64,7 @@ public class PebbleServceDiscoveryProfile extends ServiceDiscoveryProfile {
                 for (Event evt : evts) {
                     Intent intent = EventManager.createEventMessage(evt);
                     intent.putExtra(ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE, service);
-                    ((PebbleDeviceService) getContext()).sendEvent(intent, evt.getAccessToken());
+                    sendEvent(intent, evt.getAccessToken());
                 }
             }
             @Override
@@ -80,7 +80,7 @@ public class PebbleServceDiscoveryProfile extends ServiceDiscoveryProfile {
                 for (Event evt : evts) {
                     Intent intent = EventManager.createEventMessage(evt);
                     intent.putExtra(ServiceDiscoveryProfile.PARAM_NETWORK_SERVICE, service);
-                    ((PebbleDeviceService) getContext()).sendEvent(intent, evt.getAccessToken());
+                    sendEvent(intent, evt.getAccessToken());
                 }
             }
         });

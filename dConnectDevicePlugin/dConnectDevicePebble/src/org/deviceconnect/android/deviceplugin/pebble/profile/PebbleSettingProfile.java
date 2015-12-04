@@ -6,16 +6,16 @@
  */
 package org.deviceconnect.android.deviceplugin.pebble.profile;
 
+import android.content.Intent;
+
+import com.getpebble.android.kit.util.PebbleDictionary;
+
 import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager.OnSendCommandListener;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SettingsProfile;
 import org.deviceconnect.message.DConnectMessage;
-
-import android.content.Intent;
-
-import com.getpebble.android.kit.util.PebbleDictionary;
 
 /**
  * Pebble端末内時間情報取得プロファイル.
@@ -52,7 +52,7 @@ public class PebbleSettingProfile extends SettingsProfile {
                             setDate(response, date);
                         }
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;

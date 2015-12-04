@@ -6,7 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.pebble.profile;
 
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
+
+import com.getpebble.android.kit.util.PebbleDictionary;
 
 import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
@@ -19,10 +22,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.Intent;
-import android.os.Bundle;
-
-import com.getpebble.android.kit.util.PebbleDictionary;
+import java.util.List;
 
 /**
  * Pebble用 Device Orientationプロファイル.
@@ -57,7 +57,7 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
                             // 各イベントリスナーに通知
                             Intent intent = EventManager.createEventMessage(evt);
                             setOrientation(intent, orientation);
-                            ((PebbleDeviceService) getContext()).sendEvent(intent, evt.getAccessToken());
+                            sendEvent(intent, evt.getAccessToken());
                         }
                     }
                 }
@@ -118,7 +118,7 @@ public class PebbleDeviceOrientationProfile extends DeviceOrientationProfile {
                             MessageUtils.setUnknownError(response);
                         }
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             // レスポンスを非同期で返却するので、falseを返す

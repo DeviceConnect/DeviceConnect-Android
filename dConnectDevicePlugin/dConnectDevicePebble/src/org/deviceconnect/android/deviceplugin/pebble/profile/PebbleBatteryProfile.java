@@ -6,7 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.pebble.profile;
 
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
+
+import com.getpebble.android.kit.util.PebbleDictionary;
 
 import org.deviceconnect.android.deviceplugin.pebble.PebbleDeviceService;
 import org.deviceconnect.android.deviceplugin.pebble.util.PebbleManager;
@@ -19,10 +22,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.BatteryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.Intent;
-import android.os.Bundle;
-
-import com.getpebble.android.kit.util.PebbleDictionary;
+import java.util.List;
 
 
 /**
@@ -94,7 +94,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
                             setLevel(response, l);
                         }
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             // レスポンスを非同期で返却するので、falseを返す
@@ -131,7 +131,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
                             setLevel(response, l);
                         }
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             // レスポンスを非同期で返却するので、falseを返す
@@ -168,7 +168,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
                             setCharging(response, isCharging);
                         }
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             // レスポンスを非同期で返却するので、falseを返す
@@ -209,7 +209,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
                             MessageUtils.setUnknownError(response);
                         }
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             // レスポンスを非同期で返却するので、falseを返す
@@ -250,7 +250,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
                             MessageUtils.setUnknownError(response);
                         }
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             // レスポンスを非同期で返却するので、falseを返す
@@ -351,7 +351,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
         for (Event evt : evts) {
             Intent intent = EventManager.createEventMessage(evt);
             setBattery(intent, battery);
-            ((PebbleDeviceService) getContext()).sendEvent(intent, evt.getAccessToken());
+            sendEvent(intent, evt.getAccessToken());
         }
     }
 
@@ -378,7 +378,7 @@ public class PebbleBatteryProfile extends BatteryProfile {
         for (Event evt : evts) {
             Intent intent = EventManager.createEventMessage(evt);
             setBattery(intent, battery);
-            ((PebbleDeviceService) getContext()).sendEvent(intent, evt.getAccessToken());
+            sendEvent(intent, evt.getAccessToken());
         }
     }
     /**

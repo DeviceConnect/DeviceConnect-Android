@@ -27,7 +27,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.webkit.MimeTypeMap;
@@ -1115,38 +1114,8 @@ public class HostDeviceService extends DConnectMessageService {
 
     @Override
     public IBinder onBind(final Intent intent) {
-        return mStub;
+        return null;
     }
-
-    /**
-     * Host Device Pluginのサービス.
-     */
-    private IHostDeviceService.Stub mStub = new IHostDeviceService.Stub() {
-
-        @Override
-        public void registerCallback(final IHostDeviceCallback callback) throws RemoteException {
-        }
-
-        @Override
-        public void unregisterCallback(final IHostDeviceCallback callback) throws RemoteException {
-        }
-
-        @Override
-        public void searchHost() throws RemoteException {
-            searchDeviceByBonjour();
-        }
-
-        @Override
-        public int getHostStatus() throws RemoteException {
-            return 0;
-        }
-
-        @Override
-        public void invokeHost() throws RemoteException {
-            invokeDeviceByBonjour();
-        }
-
-    };
 
     /**
      * onClickの登録.

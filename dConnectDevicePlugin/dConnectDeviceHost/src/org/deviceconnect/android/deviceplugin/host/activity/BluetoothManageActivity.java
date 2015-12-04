@@ -6,14 +6,14 @@
  */
 package org.deviceconnect.android.deviceplugin.host.activity;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.ConnectProfile;
-import org.deviceconnect.message.DConnectMessage;
-
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.ConnectProfile;
+import org.deviceconnect.message.DConnectMessage;
 
 /**
  * Bluetooth 管理アクティビティ.
@@ -55,7 +55,6 @@ public class BluetoothManageActivity extends FragmentActivity {
 
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-       
         super.onActivityResult(requestCode, resultCode, data);
 
         // create response data
@@ -68,11 +67,9 @@ public class BluetoothManageActivity extends FragmentActivity {
 
         Intent intent = MessageUtils.createResponseIntent(mRequestParam, response);
         if (intent != null) {
-           
             sendBroadcast(intent);
         }
 
         finish();
-       
     }
 }

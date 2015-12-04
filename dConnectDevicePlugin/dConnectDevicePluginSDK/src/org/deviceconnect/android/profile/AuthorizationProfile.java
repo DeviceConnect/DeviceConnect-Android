@@ -85,7 +85,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             return true;
         }
 
-        boolean send = true;
+        boolean send;
         String attribute = getAttribute(request);
         if (ATTRIBUTE_GRANT.equals(attribute)) {
             send = onGetCreateClient(request, response);
@@ -200,12 +200,11 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             scopes = getAllProfileNames();
         }
 
-        String applicationName = null;
+        String applicationName;
         PackageManager pm = getContext().getPackageManager();
-        PackageInfo packageInfo = null;
         try {
-            packageInfo = pm.getPackageInfo(getContext().getPackageName(), 0);
-            ApplicationInfo ai = packageInfo.applicationInfo;
+            PackageInfo info = pm.getPackageInfo(getContext().getPackageName(), 0);
+            ApplicationInfo ai = info.applicationInfo;
             applicationName = (String) pm.getApplicationLabel(ai);
         } catch (NameNotFoundException e) {
             applicationName = request.getStringExtra(AuthorizationProfile.PARAM_APPLICATION_NAME);
@@ -247,16 +246,16 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             response.putExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN, token[0].getAccessToken());
             AccessTokenScope[] atScopes = token[0].getScopes();
             if (atScopes != null) {
-                List<Bundle> s = new ArrayList<Bundle>();
+                List<Bundle> s = new ArrayList<>();
                 AccessTokenScope minScope = null;
-                for (int i = 0; i < atScopes.length; i++) {
+                for (AccessTokenScope scope : atScopes) {
                     Bundle b = new Bundle();
-                    b.putString(PARAM_SCOPE, atScopes[i].getScope());
-                    b.putLong(PARAM_EXPIRE_PERIOD, atScopes[i].getExpirePeriod());
+                    b.putString(PARAM_SCOPE, scope.getScope());
+                    b.putLong(PARAM_EXPIRE_PERIOD, scope.getExpirePeriod());
                     s.add(b);
                     
-                    if (minScope == null || (minScope.getExpirePeriod() > atScopes[i].getExpirePeriod())) {
-                        minScope = atScopes[i];
+                    if (minScope == null || (minScope.getExpirePeriod() > scope.getExpirePeriod())) {
+                        minScope = scope;
                     }
                 }
                 response.putExtra(PARAM_SCOPES, s.toArray(new Bundle[s.size()]));
@@ -280,7 +279,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             try {
                 mLockObj.wait();
             } catch (InterruptedException e) {
-                return;
+                mLogger.warning("InterruptedException occurred in waitForResponse.");
             }
         }
     }

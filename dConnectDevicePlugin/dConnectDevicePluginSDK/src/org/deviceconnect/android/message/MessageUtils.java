@@ -6,15 +6,16 @@
  */
 package org.deviceconnect.android.message;
 
-import java.util.logging.Logger;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.os.Bundle;
 
+import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
-import android.content.ComponentName;
-import android.content.Intent;
-import android.os.Bundle;
+import java.util.logging.Logger;
 
 /**
  * Device Connect メッセージユーティリティクラス.
@@ -45,25 +46,37 @@ public final class MessageUtils {
 
     /**
      * レスポンスインテントを生成する.
+     *
+     * @param request リクエストパラメータ
+     * @return レスポンスインテント
+     */
+    public static Intent createResponseIntent(final Intent request) {
+        return createResponseIntent(request.getExtras(), null);
+    }
+
+    /**
+     * レスポンスインテントを生成する.
      * 
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @return レスポンスインテント
      */
     public static Intent createResponseIntent(final Bundle request, final Bundle response) {
-
-        Intent intent = null;
+        Intent intent;
         if (request == null) {
             sLogger.warning("could not create response intent, request is null.");
-            throw new NullPointerException("requst is null.");
+            throw new NullPointerException("request is null.");
         }
 
         intent = new Intent(IntentDConnectMessage.ACTION_RESPONSE);
-        intent.putExtras(response);
+        intent.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
+        if (response != null) {
+            intent.putExtras(response);
+        }
 
         ComponentName receiver = request.getParcelable(DConnectMessage.EXTRA_RECEIVER);
         if (receiver != null) {
-            sLogger.fine("create callig component: " + receiver);
+            sLogger.fine("create calling component: " + receiver);
             intent.setComponent(receiver);
         } else {
             sLogger.warning("request does not have receiver.");
@@ -75,6 +88,9 @@ public final class MessageUtils {
             intent.putExtra(DConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         }
 
+        if (BuildConfig.DEBUG) {
+            intent.putExtra("debug", "DevicePlugin");
+        }
         return intent;
     }
 

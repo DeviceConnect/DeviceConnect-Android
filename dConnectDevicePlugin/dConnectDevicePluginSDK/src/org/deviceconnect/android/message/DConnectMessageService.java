@@ -9,10 +9,8 @@ package org.deviceconnect.android.message;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.IBinder;
 
-import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.profile.AuthorizationProfile;
@@ -140,31 +138,33 @@ public abstract class DConnectMessageService extends Service implements DConnect
         super.onStartCommand(intent, flags, startId);
 
         if (intent == null) {
+            mLogger.warning("request intent is null.");
             return START_STICKY;
         }
 
         String action = intent.getAction();
-        mLogger.fine("request action: " + action);
         if (action == null) {
+            mLogger.warning("request action is null. ");
             return START_STICKY;
         }
 
-        Bundle resExtra = new Bundle();
-
-        resExtra.putInt(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
-        resExtra.putInt(DConnectMessage.EXTRA_REQUEST_CODE, intent.getIntExtra(DConnectMessage.EXTRA_REQUEST_CODE, -1));
-        Intent response = MessageUtils.createResponseIntent(intent.getExtras(), resExtra);
-        if (BuildConfig.DEBUG) {
-            response.putExtra("debug", "DevicePlugin");
-        }
-
-        if (IntentDConnectMessage.ACTION_GET.equals(action) || IntentDConnectMessage.ACTION_POST.equals(action)
-                || IntentDConnectMessage.ACTION_PUT.equals(action)
-                || IntentDConnectMessage.ACTION_DELETE.equals(action)) {
-            onRequest(intent, response);
+        if (checkRequestAction(action)) {
+            onRequest(intent, MessageUtils.createResponseIntent(intent));
         }
 
         return START_STICKY;
+    }
+
+    /**
+     * 指定されたアクションがDevice Connectのアクションかチェックします.
+     * @param action チェックするアクション
+     * @return Device Connectのアクションの場合はtrue、それ以外はfalse
+     */
+    private boolean checkRequestAction(String action) {
+        return IntentDConnectMessage.ACTION_GET.equals(action)
+                || IntentDConnectMessage.ACTION_POST.equals(action)
+                || IntentDConnectMessage.ACTION_PUT.equals(action)
+                || IntentDConnectMessage.ACTION_DELETE.equals(action);
     }
 
     /**
@@ -245,7 +245,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         if (send) {
-            // send broad cast
             sendResponse(response);
         }
     }
@@ -318,7 +317,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
      * @return 送信成功の場合true、アクセストークンエラーの場合はfalseを返す。
      */
     public final boolean sendEvent(final Intent event, final String accessToken) {
-
         // TODO 返り値をもっと詳細なものにするか要検討
         if (event == null) {
             throw new IllegalArgumentException("Event is null.");

@@ -6,9 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.wear.profile;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
+
+import com.google.android.gms.wearable.MessageApi.SendMessageResult;
 
 import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
 import org.deviceconnect.android.deviceplugin.wear.WearManager;
@@ -21,10 +22,9 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.Intent;
-import android.os.Bundle;
-
-import com.google.android.gms.wearable.MessageApi.SendMessageResult;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * DeviceOrientation Profile.
@@ -145,12 +145,12 @@ public class WearDeviceOrientationProfile extends DeviceOrientationProfile {
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response);
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
                 @Override
                 public void onError() {
                     MessageUtils.setIllegalDeviceStateError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;

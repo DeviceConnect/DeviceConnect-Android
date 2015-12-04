@@ -6,8 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.wear.profile;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
+
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi.GetConnectedNodesResult;
 
 import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
 import org.deviceconnect.android.deviceplugin.wear.WearManager;
@@ -17,11 +20,8 @@ import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.Intent;
-import android.os.Bundle;
-
-import com.google.android.gms.wearable.Node;
-import com.google.android.gms.wearable.NodeApi.GetConnectedNodesResult;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * NetworkServiceDiscoveryプロファイル.
@@ -50,12 +50,12 @@ public class WearServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                 }
                 setResult(response, DConnectMessage.RESULT_OK);
                 setServices(response, services);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
             @Override
             public void onError() {
                 MessageUtils.setUnknownError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         });
         return false;

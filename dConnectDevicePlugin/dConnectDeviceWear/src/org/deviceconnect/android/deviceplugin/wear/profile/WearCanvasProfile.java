@@ -6,6 +6,13 @@ http://opensource.org/licenses/mit-license.php
  */
 package org.deviceconnect.android.deviceplugin.wear.profile;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
+import com.google.android.gms.wearable.DataApi.DataItemResult;
+import com.google.android.gms.wearable.MessageApi.SendMessageResult;
+
 import org.deviceconnect.android.deviceplugin.wear.WearDeviceService;
 import org.deviceconnect.android.deviceplugin.wear.WearManager;
 import org.deviceconnect.android.deviceplugin.wear.WearManager.OnDataItemResultListener;
@@ -13,13 +20,6 @@ import org.deviceconnect.android.deviceplugin.wear.WearManager.OnMessageResultLi
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.message.DConnectMessage;
-
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-
-import com.google.android.gms.wearable.DataApi.DataItemResult;
-import com.google.android.gms.wearable.MessageApi.SendMessageResult;
 
 /**
  * Android Wear用のCanvasプロファイル.
@@ -72,12 +72,12 @@ public class WearCanvasProfile extends CanvasProfile {
                 } else {
                     MessageUtils.setIllegalDeviceStateError(response);
                 }
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
             @Override
             public void onError() {
                 MessageUtils.setIllegalDeviceStateError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         });
         return false;
@@ -103,12 +103,12 @@ public class WearCanvasProfile extends CanvasProfile {
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response);
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
                 @Override
                 public void onError() {
                     MessageUtils.setIllegalDeviceStateError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;

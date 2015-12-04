@@ -318,12 +318,12 @@ public class WearTouchProfile extends TouchProfile {
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response);
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
                 @Override
                 public void onError() {
                     MessageUtils.setIllegalDeviceStateError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -360,12 +360,12 @@ public class WearTouchProfile extends TouchProfile {
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response);
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
                 @Override
                 public void onError() {
                     MessageUtils.setIllegalDeviceStateError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -402,12 +402,12 @@ public class WearTouchProfile extends TouchProfile {
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response);
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
                 @Override
                 public void onError() {
                     MessageUtils.setIllegalDeviceStateError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -444,12 +444,12 @@ public class WearTouchProfile extends TouchProfile {
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response);
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
                 @Override
                 public void onError() {
                     MessageUtils.setIllegalDeviceStateError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -486,12 +486,12 @@ public class WearTouchProfile extends TouchProfile {
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response);
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
                 @Override
                 public void onError() {
                     MessageUtils.setIllegalDeviceStateError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;
@@ -528,12 +528,12 @@ public class WearTouchProfile extends TouchProfile {
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response);
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
                 @Override
                 public void onError() {
                     MessageUtils.setIllegalDeviceStateError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
             return false;

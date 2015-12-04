@@ -50,25 +50,6 @@
             android:authorities="org.deviceconnect.android.deviceplugin.kadecot.provider"
             android:exported="true" >
         </provider>
-
-        <service
-            android:name="org.deviceconnect.android.message.DConnectLaunchService"
-            android:exported="true" >
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:value="enable" />
-        </service>
-
-        <activity
-            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:excludeFromRecents="true"
-            android:exported="false" >
-        </activity>
-
-        <service
-            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false" >
-        </service>
     </application>
 
 </manifest>

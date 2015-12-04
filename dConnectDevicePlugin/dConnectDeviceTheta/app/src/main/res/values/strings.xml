@@ -42,6 +42,14 @@
     <string name="recording">撮影開始準備中...</string>
     <string name="stoping">撮影停止中...</string>
     <string name="communication_error">通信エラー</string>
+    <string name="theta_app">アプリ</string>
+    <string name="theta_data_import">THETAのデータを取り込みました。</string>
+
+    <string-array name="theta_gallery_command">
+        <item>取り込み</item>
+        <item>削除</item>
+    </string-array>
+
 
     <string-array name="theta_shooting_mode">
         <item>静止画</item>
@@ -66,5 +74,6 @@
     <string name="theta_error_get_mode">切り替えに失敗しました。</string>
     <string name="theta_error_usb_live_streaming">ライブストリーミング中は撮影できません。</string>
 
+    <string name="theta_error_import">THETAデータの取り込みに失敗しました。</string>
 
 </resources>

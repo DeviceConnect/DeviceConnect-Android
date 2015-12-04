@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.message;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.IBinder;
 
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
@@ -27,11 +27,11 @@ import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
-import android.app.Service;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.IBinder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Device Connectメッセージサービス.
@@ -246,8 +246,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
         if (send) {
             // send broad cast
-            mLogger.fine("send broadcast: " + response);
-            mLogger.fine("send broadcast extra: " + response.getExtras());
             sendResponse(response);
         }
     }
@@ -257,8 +255,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     @Override
     public List<DConnectProfile> getProfileList() {
-        List<DConnectProfile> profileList = new ArrayList<DConnectProfile>(mProfileMap.values());
-        return profileList;
+        return new ArrayList<>(mProfileMap.values());
     }
 
     /**
@@ -266,8 +263,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     @Override
     public DConnectProfile getProfile(final String name) {
-        DConnectProfile profile = mProfileMap.get(name);
-        return profile;
+        return mProfileMap.get(name);
     }
 
     /**
@@ -306,6 +302,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
         if (response == null) {
             throw new IllegalArgumentException("response is null.");
         }
+
+        mLogger.info("sendResponse: " + response);
+        mLogger.info("sendResponse Extra: " + response.getExtras());
+
         getContext().sendBroadcast(response);
         return true;
     }
@@ -331,6 +331,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
                 return false;
             }
         }
+
+        mLogger.info("sendEvent: " + event);
+        mLogger.info("sendEvent Extra: " + event.getExtras());
 
         getContext().sendBroadcast(event);
         return true;

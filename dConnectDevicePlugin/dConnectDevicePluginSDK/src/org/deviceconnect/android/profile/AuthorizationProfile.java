@@ -6,9 +6,12 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Bundle;
 
 import org.deviceconnect.android.localoauth.AccessTokenData;
 import org.deviceconnect.android.localoauth.AccessTokenScope;
@@ -23,12 +26,9 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.restlet.ext.oauth.PackageInfoOAuth;
 
-import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Bundle;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Authorization プロファイル.
@@ -115,7 +115,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
                 } catch (Exception e) {
                     MessageUtils.setAuthorizationError(response, e.getMessage());
                 }
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         }).start();
         return false;
@@ -146,7 +146,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
                 } catch (Exception e) {
                     MessageUtils.setUnknownError(response, e.getMessage());
                 }
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         }).start();
         return false;

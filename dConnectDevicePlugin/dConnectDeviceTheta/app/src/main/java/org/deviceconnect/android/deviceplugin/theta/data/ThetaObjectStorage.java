@@ -13,9 +13,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.os.StatFs;
 import android.provider.BaseColumns;
+import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
 
@@ -35,6 +39,9 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class ThetaObjectStorage {
+    /** THETA Device Plug-in apk limit size. */
+    private static final int LIMIT_APK_SIZE = 100;
+
     /**
      * DB Name.
      */
@@ -199,8 +206,8 @@ public class ThetaObjectStorage {
         if (name != null) {
             sql += " WHERE " + THETA_FILE_NAME + "='" + name + "' ";
         }
-
-        sql += " ORDER BY " + BaseColumns._ID + " DESC;";
+        
+        sql += " ORDER BY " + THETA_DATE_TIME + " DESC;";
 
         String[] selectionArgs = {};
         SQLiteDatabase db = mThetaDBHelper.getReadableDatabase();
@@ -221,6 +228,7 @@ public class ThetaObjectStorage {
             objects.add(object);
             next = cursor.moveToNext();
         }
+        db.close();
         return objects;
     }
     /** Make Content Value. */
@@ -511,5 +519,26 @@ public class ThetaObjectStorage {
                     + ");";
             db.execSQL(thetaStorageSQL);
         }
+    }
+
+    /**
+     * Check Android Storage size.
+     * @return Return a false if true, otherwise there is a minimum required value or more free
+     */
+    public static boolean hasEnoughStorageSize() {
+        StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
+        float total = 1.0f;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            total = stat.getTotalBytes();
+        } else {
+            total = (float) stat.getBlockSize() * stat.getAvailableBlocks();
+        }
+        int v = (int) (total / (1024.f * 1024.f));
+        if(BuildConfig.DEBUG) {
+            if(v < LIMIT_APK_SIZE) {
+                Log.e("AAA", "hasEnoughStorageSize is less than " + LIMIT_APK_SIZE + ", rest size =" + v);
+            }
+        }
+        return v >= LIMIT_APK_SIZE;
     }
 }

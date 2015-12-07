@@ -9,13 +9,10 @@ package org.deviceconnect.android.deviceplugin.theta.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.theta360.lib.ThetaException;
-
-import org.deviceconnect.android.deviceplugin.theta.ThetaApi;
-import org.deviceconnect.android.deviceplugin.theta.ThetaApiClient;
-import org.deviceconnect.android.deviceplugin.theta.ThetaApiTask;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
-import org.deviceconnect.android.deviceplugin.theta.ThetaFileInfo;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.FileProfile;
 import org.deviceconnect.android.provider.FileManager;
@@ -25,7 +22,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,15 +32,15 @@ import java.util.List;
  */
 public class ThetaFileProfile extends FileProfile {
 
-    private final ThetaApiClient mClient;
+    private final ThetaDeviceClient mClient;
 
     /**
      * Constructor.
      *
-     * @param client an instance of {@link ThetaApiClient}
+     * @param client an instance of {@link ThetaDeviceClient}
      * @param fileMgr an instance of {@link FileManager}
      */
-    public ThetaFileProfile(final ThetaApiClient client, final FileManager fileMgr) {
+    public ThetaFileProfile(final ThetaDeviceClient client, final FileManager fileMgr) {
         super(fileMgr);
         mClient = client;
     }
@@ -52,54 +48,45 @@ public class ThetaFileProfile extends FileProfile {
     @Override
     protected boolean onGetReceive(final Intent request, final Intent response, final String serviceId,
                                    final String path) {
-        if (!mClient.hasDevice(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
         if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response, "path must be specified.");
-            getService().sendResponse(response);
             return true;
         }
         if (!path.startsWith("/")) {
             MessageUtils.setInvalidRequestParameterError(response, "path must start with '/'.");
             return true;
         }
-        mClient.execute(new ThetaApiTask() {
-            @Override
-            public void run(final ThetaApi api) {
-                try {
-                    String[] components = path.split("/");
-                    String filename = null;
-                    ThetaFileInfo targetFile = null;
-                    if (components.length == 2) {
-                        List<ThetaFileInfo> list = api.getFileInfoListFromDefaultStorage();
-                        filename = components[1];
-                        for (Iterator<ThetaFileInfo> it = list.iterator(); it.hasNext(); ) {
-                            ThetaFileInfo fileInfo = it.next();
-                            if (filename.equals(fileInfo.mName)) {
-                                targetFile = fileInfo;
-                                break;
-                            }
-                        }
-                    }
-                    if (targetFile != null) {
-                        byte[] data = api.getFile(targetFile);
+
+        String[] components = path.split("/");
+        if (components.length == 2) {
+            final String fileName = components[1];
+            mClient.fetchObject(serviceId, fileName, new ThetaDeviceClient.DefaultListener() {
+
+                @Override
+                public void onObjectFetched(final byte[] data, final String mimeType) {
+                    try {
                         setResult(response, DConnectMessage.RESULT_OK);
-                        setMIMEType(response, targetFile.mMimeType);
-                        setURI(response, filename, data);
-                    } else {
-                        MessageUtils.setInvalidRequestParameterError(response, "File not found: " + path);
+                        setMIMEType(response, mimeType);
+                        setURI(response, fileName, data);
+                    } catch (IOException e) {
+                        MessageUtils.setUnknownError(response, e.getMessage());
                     }
-                } catch (ThetaException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
-                } catch (IOException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
+
+                    getService().sendResponse(response);
                 }
-                getService().sendResponse(response);
-            }
-        });
-        return false;
+
+                @Override
+                public void onFailed(final ThetaDeviceException cause) {
+                    MessageUtils.setUnknownError(response, cause.getMessage());
+                    getService().sendResponse(response);
+                }
+
+            });
+            return false;
+        } else {
+            MessageUtils.setInvalidRequestParameterError(response, "File not found: " + path);
+            return true;
+        }
     }
 
     @Override
@@ -109,10 +96,6 @@ public class ThetaFileProfile extends FileProfile {
         final String sortDirection;
         final String sortTargetParam;
 
-        if (!mClient.hasDevice(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
         if (path != null && !path.equals("/")) {
             MessageUtils.setInvalidRequestParameterError(response, "the specified directory is not found.");
             return true;
@@ -147,7 +130,6 @@ public class ThetaFileProfile extends FileProfile {
         } else {
             if (request.getStringExtra(PARAM_OFFSET) != null) {
                 MessageUtils.setInvalidRequestParameterError(response, "offset must be integer.");
-                getContext().sendBroadcast(response);
                 return true;
             }
         }
@@ -159,143 +141,157 @@ public class ThetaFileProfile extends FileProfile {
         } else {
             if (request.getStringExtra(PARAM_LIMIT) != null) {
                 MessageUtils.setInvalidRequestParameterError(response, "limit must be integer.");
-                getContext().sendBroadcast(response);
                 return true;
             }
         }
-        mClient.execute(new ThetaApiTask() {
+
+        mClient.fetchAllObjectList(serviceId, new ThetaDeviceClient.DefaultListener() {
+
             @Override
-            public void run(final ThetaApi api) {
-                try {
-                    List<ThetaFileInfo> list = api.getFileInfoListFromDefaultStorage();
-                    list = sortFileInfoList(sortTargetParam, sortDirection, list);
+            public void onObjectList(final List<ThetaObject> objList) {
+                int start = offset != null ? offset : 0;
+                if (start >= objList.size()) {
+                    MessageUtils.setInvalidRequestParameterError(response, "offset is too large.");
+                    getService().sendResponse(response);
+                    return;
+                }
 
-                    int start = offset != null ? offset : 0;
-                    if (start >= list.size()) {
-                        MessageUtils.setInvalidRequestParameterError(response, "offset is too large.");
-                        getContext().sendBroadcast(response);
-                        return;
-                    }
-                    int end = limit != null ? start + limit : list.size();
-                    if (end > list.size()) {
-                        end = list.size();
-                    }
-                    list = (start < end) ? list.subList(start, end) : new LinkedList<ThetaFileInfo>();
+                List<ThetaObject> list = sortObjectList(sortTargetParam, sortDirection, objList);
+                int end = limit != null ? start + limit : list.size();
+                if (end > list.size()) {
+                    end = list.size();
+                }
+                list = (start < end) ? list.subList(start, end) : new LinkedList<ThetaObject>();
 
-                    List<Bundle> file = new ArrayList<Bundle>();
-                    for (Iterator<ThetaFileInfo> it = list.iterator(); it.hasNext(); ) {
-                        ThetaFileInfo fileInfo = it.next();
-                        Bundle b = new Bundle();
-                        setPath(b, "/" + fileInfo.mName);
-                        setMIMEType(b, fileInfo.mMimeType);
-                        setFileName(b, fileInfo.mName);
-                        setUpdateDate(b, fileInfo.mDate);
-                        setFileSize(b, fileInfo.mSize);
-                        file.add(b);
-                    }
-                    setFiles(response, file);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                } catch (ThetaException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
-                } catch (IOException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
+                List<Bundle> file = new ArrayList<Bundle>();
+                for (ThetaObject obj : list) {
+                    Bundle b = new Bundle();
+                    setPath(b, "/" + obj.getFileName());
+                    setMIMEType(b, obj.getMimeType());
+                    setFileName(b, obj.getFileName());
+                    setUpdateDate(b, obj.getCreationTime());
+                    //setFileSize(b, obj.mSize); // TODO
+                    file.add(b);
+                }
+                setFiles(response, file);
+                setResult(response, DConnectMessage.RESULT_OK);
+                getService().sendResponse(response);
+            }
+
+            @Override
+            public void onFailed(final ThetaDeviceException cause) {
+                switch (cause.getReason()) {
+                    case ThetaDeviceException.NOT_FOUND_THETA:
+                        MessageUtils.setNotFoundServiceError(response);
+                        break;
+                    default:
+                        MessageUtils.setUnknownError(response, cause.getMessage());
+                        break;
                 }
                 getService().sendResponse(response);
             }
+
         });
         return false;
     }
 
-    private List<ThetaFileInfo> sortFileInfoList(final String targetParam, final String direction,
-                                                 final List<ThetaFileInfo> fileInfoList) {
+    private List<ThetaObject> sortObjectList(final String targetParam, final String direction,
+                                               final List<ThetaObject> list) {
         boolean isAsc = true;
         if (direction != null) {
             isAsc = direction.equals(Order.ASC.getValue());
         }
-        Comparator<ThetaFileInfo> comparator = null;
+        Comparator<ThetaObject> comparator = null;
 
         if (PARAM_PATH.equals(targetParam)) {
-            comparator = new Comparator<ThetaFileInfo>() {
-                public int compare(final ThetaFileInfo f1, final ThetaFileInfo f2) {
-                    return f1.mName.compareTo(f2.mName);
+            comparator = new Comparator<ThetaObject>() {
+                public int compare(final ThetaObject f1, final ThetaObject f2) {
+                    return f1.getFileName().compareTo(f2.getFileName());
                 }
             };
         } else if (PARAM_MIME_TYPE.equals(targetParam)) {
-            comparator = new Comparator<ThetaFileInfo>() {
-                public int compare(final ThetaFileInfo f1, final ThetaFileInfo f2) {
-                    return f1.mMimeType.compareTo(f2.mMimeType);
+            comparator = new Comparator<ThetaObject>() {
+                public int compare(final ThetaObject f1, final ThetaObject f2) {
+                    return f1.getMimeType().compareTo(f2.getMimeType());
                 }
             };
         } else if (PARAM_FILE_NAME.equals(targetParam)) {
-            comparator = new Comparator<ThetaFileInfo>() {
-                public int compare(final ThetaFileInfo f1, final ThetaFileInfo f2) {
-                    return f1.mName.compareTo(f2.mName);
+            comparator = new Comparator<ThetaObject>() {
+                public int compare(final ThetaObject f1, final ThetaObject f2) {
+                    return f1.getFileName().compareTo(f2.getFileName());
                 }
             };
         } else if (PARAM_UPDATE_DATE.equals(targetParam)) {
-            comparator = new Comparator<ThetaFileInfo>() {
-                public int compare(final ThetaFileInfo f1, final ThetaFileInfo f2) {
-                    return f1.mDate.compareTo(f2.mDate);
+            comparator = new Comparator<ThetaObject>() {
+                public int compare(final ThetaObject f1, final ThetaObject f2) {
+                    long t1 = f1.getCreationTimeWithUnixTime();
+                    long t2 = f2.getCreationTimeWithUnixTime();
+                    return (t1 < t2) ? -1 : (t1 == t2) ? 0 : -1;
                 }
             };
         } else if (PARAM_FILE_SIZE.equals(targetParam)) {
-            comparator = new Comparator<ThetaFileInfo>() {
-                public int compare(final ThetaFileInfo f1, final ThetaFileInfo f2) {
-                    return (f1.mSize - f2.mSize);
+            comparator = new Comparator<ThetaObject>() {
+                public int compare(final ThetaObject f1, final ThetaObject f2) {
+                    return 0; //(f1.mSize - f2.mSize); // TODO
                 }
             };
         }
         // NOTE: It is not necessary to implement sorting by file type because the feature
         // to create any directories in the storage of THETA is not provided.
         if (comparator != null) {
-            Collections.sort(fileInfoList, comparator);
+            Collections.sort(list, comparator);
         }
         if (!isAsc) {
-            Collections.reverse(fileInfoList);
+            Collections.reverse(list);
         }
-        return fileInfoList;
+        return list;
     }
 
     @Override
     protected boolean onDeleteRemove(final Intent request, final Intent response,
                                      final String serviceId, final String path) {
-        if (!mClient.hasDevice(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
         if (path == null) {
             MessageUtils.setInvalidRequestParameterError(response, "path must be specified.");
-            getService().sendResponse(response);
             return true;
         }
         if (!path.startsWith("/")) {
             MessageUtils.setInvalidRequestParameterError(response, "path must start with '/'.");
             return true;
         }
-        mClient.execute(new ThetaApiTask() {
-            @Override
-            public void run(final ThetaApi api) {
-                try {
-                    String[] components = path.split("/");
-                    if (components.length == 2) {
-                        String filename = components[1];
-                        if (api.removeFileFromDefaultStorage(filename)) {
-                            setResult(response, DConnectMessage.RESULT_OK);
-                        } else {
-                            MessageUtils.setInvalidRequestParameterError(response, "File not found: " + path);
-                        }
-                    } else {
-                        MessageUtils.setInvalidRequestParameterError(response, "File not found: " + path);
-                    }
-                } catch (ThetaException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
-                } catch (IOException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
+
+        String[] components = path.split("/");
+        if (components.length == 2) {
+            String fileName = components[1];
+            mClient.removeObject(serviceId, fileName, new ThetaDeviceClient.DefaultListener() {
+
+                @Override
+                public void onObjectRemoved() {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    getService().sendResponse(response);
                 }
-                getService().sendResponse(response);
-            }
-        });
-        return false;
+
+                @Override
+                public void onFailed(final ThetaDeviceException cause) {
+                    switch (cause.getReason()) {
+                        case ThetaDeviceException.NOT_FOUND_THETA:
+                            MessageUtils.setNotFoundServiceError(response);
+                            break;
+                        case ThetaDeviceException.NOT_FOUND_OBJECT:
+                            MessageUtils.setInvalidRequestParameterError(response, "File not found: " + path);
+                            break;
+                        default:
+                            MessageUtils.setUnknownError(response, cause.getMessage());
+                            break;
+                    }
+                    getService().sendResponse(response);
+                }
+
+            });
+            return false;
+        } else {
+            MessageUtils.setInvalidRequestParameterError(response, "File not found: " + path);
+            return true;
+        }
     }
 
     private ThetaDeviceService getService() {

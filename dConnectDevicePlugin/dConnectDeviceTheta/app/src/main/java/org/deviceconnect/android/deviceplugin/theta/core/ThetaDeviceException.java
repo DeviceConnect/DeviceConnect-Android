@@ -25,6 +25,8 @@ public class ThetaDeviceException extends Exception {
 
     public static final int OUT_OF_MEMORY = 10;
 
+    public static final int NOT_FOUND_RECORDER = 11;
+
     private final int mReason;
 
     public int getReason() {

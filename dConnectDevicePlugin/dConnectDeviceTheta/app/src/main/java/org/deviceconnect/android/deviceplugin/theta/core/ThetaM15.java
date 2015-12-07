@@ -30,6 +30,8 @@ import javax.net.SocketFactory;
 
 class ThetaM15 extends AbstractThetaDevice {
 
+    private static final String ID = "theta";
+
     private static final String HOST = "192.168.1.1";
 
     private static final String BRAND_SAMSUNG = "samsung";
@@ -57,6 +59,8 @@ class ThetaM15 extends AbstractThetaDevice {
 
     private VersionName mDeviceVersion;
 
+    private Recorder mRecorder;
+
     ThetaM15(final Context context, final String name) {
         super(name);
         mSocketFactory = getWifiSocketFactory(context);
@@ -64,7 +68,14 @@ class ThetaM15 extends AbstractThetaDevice {
 
     public boolean initialize() {
         mDeviceVersion = getDeviceVersion();
-        return mDeviceVersion != null;
+        if (mDeviceVersion == null) {
+            return false;
+        }
+        mRecorder = detectRecorder();
+        if (mRecorder == null) {
+            return false;
+        }
+        return true;
     }
 
     private PtpipInitiator getInitiator() throws ThetaException, IOException {
@@ -95,6 +106,11 @@ class ThetaM15 extends AbstractThetaDevice {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public String getId() {
+        return ID;
     }
 
     @Override
@@ -183,11 +199,13 @@ class ThetaM15 extends AbstractThetaDevice {
                     } catch (ThetaException e) {
                         e.printStackTrace();
                         // Nothing to do.
+                    } finally {
+                        lockObj.countDown();
                     }
-                    lockObj.countDown();
                 }
             });
             lockObj.await();
+
 
             if (photo[0] != null) {
                 return photo[0];
@@ -293,6 +311,11 @@ class ThetaM15 extends AbstractThetaDevice {
     }
 
     @Override
+    public Recorder getRecorder() throws ThetaDeviceException {
+        return mRecorder;
+    }
+
+    @Override
     public InputStream getLiveStream() throws IOException {
         throw new UnsupportedOperationException();
     }
@@ -309,6 +332,22 @@ class ThetaM15 extends AbstractThetaDevice {
         }
 
         return new VersionName(deviceInfo.getDeviceVersion());
+    }
+
+    private Recorder detectRecorder() {
+        try {
+            ShootingMode mode = getShootingMode();
+            switch (mode) {
+                case IMAGE:
+                    return new ThetaImageRecorderM15("0");
+                case VIDEO:
+                    return new ThetaVideoRecorderM15("1");
+                default:
+                    return null;
+            }
+        } catch (ThetaDeviceException e) {
+            return null;
+        }
     }
 
     @Override
@@ -542,5 +581,97 @@ class ThetaM15 extends AbstractThetaDevice {
         public boolean isSameOrLaterThan(final VersionName otherVersion) {
             return COMPARATOR.compare(this, otherVersion) > 0;
         }
+    }
+
+    private class ThetaImageRecorderM15 extends ThetaRecorderM15 {
+
+        private static final String NAME = "THETA m15 - photo";
+        private static final String MIME_TYPE = "image/jpeg";
+        private static final int IMAGE_WIDTH = 2048;
+        private static final int IMAGE_HEIGHT = 1024;
+
+        public ThetaImageRecorderM15(final String id) {
+            super(id, NAME, MIME_TYPE, IMAGE_WIDTH, IMAGE_HEIGHT);
+        }
+
+        @Override
+        public RecorderState getState() throws ThetaDeviceException {
+            return RecorderState.INACTIVE;
+        }
+    }
+
+    private class ThetaVideoRecorderM15 extends ThetaRecorderM15 {
+
+        private static final String NAME = "THETA m15 - video";
+        private static final String MIME_TYPE = "video/mov";
+        private static final int IMAGE_WIDTH = 1920;
+        private static final int IMAGE_HEIGHT = 1080;
+
+        public ThetaVideoRecorderM15(final String id) {
+            super(id, NAME, MIME_TYPE, IMAGE_WIDTH, IMAGE_HEIGHT);
+        }
+
+        @Override
+        public RecorderState getState() throws ThetaDeviceException {
+            try {
+                short status = getInitiator().getCaptureStatus();
+                switch (status) {
+                    case 1:
+                        return RecorderState.RECORDING;
+                    case 0:
+                        return RecorderState.INACTIVE;
+                    default:
+                        return RecorderState.UNKNOWN;
+                }
+            }  catch (ThetaException e) {
+                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
+            } catch (IOException e) {
+                throw new ThetaDeviceException(ThetaDeviceException.UNKNOWN, e);
+            }
+        }
+    }
+
+    private abstract class ThetaRecorderM15 implements Recorder {
+
+        private final String mId;
+        private final String mName;
+        private final String mMimeType;
+        private final int mImageWidth;
+        private final int mImageHeight;
+
+        public ThetaRecorderM15(final String id, final String name, final String mimeType,
+                                final int imageWidth, final int imageHeight) {
+            mId = id;
+            mName = name;
+            mMimeType = mimeType;
+            mImageWidth = imageWidth;
+            mImageHeight = imageHeight;
+        }
+
+        @Override
+        public String getId() {
+            return mId;
+        }
+
+        @Override
+        public String getName() {
+            return mName;
+        }
+
+        @Override
+        public String getMimeType() {
+            return mMimeType;
+        }
+
+        @Override
+        public int getImageWidth() {
+            return mImageWidth;
+        }
+
+        @Override
+        public int getImageHeight() {
+            return mImageHeight;
+        }
+
     }
 }

@@ -10,9 +10,8 @@ import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTracker;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTrackingListener;
 import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
+import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -81,10 +80,48 @@ public class SphericalViewApi implements HeadTrackingListener {
         }
 
         mRenderer = renderer;
-        mRenderer.setStereoMode(param.isStereo());
+        mRenderer.setScreenSettings(param.getWidth(), param.getHeight(), param.isStereo());
 
-        mLivePreviewTask = new LivePreviewTask(camera);
+        mLivePreviewTask = new LivePreviewTask(camera) {
+
+            @Override
+            protected void onFrame(final byte[] frame) {
+                Bitmap texture = BitmapFactory.decodeByteArray(frame, 0, frame.length);
+                // Fix texture size to power of two.
+                texture = BitmapUtils.resize(texture, 512, 256);
+                mRenderer.setTexture(texture);
+            }
+
+        };
         mExecutor.execute(mLivePreviewTask);
+
+        mState = State.RUNNING;
+    }
+
+    public synchronized void startImageView(final Bitmap picture,
+                                            final SphericalViewParam param,
+                                            final SphericalViewRenderer renderer) {
+        if (isRunning()) {
+            throw new IllegalStateException("SphericalViewApi is already running.");
+        }
+
+        mParam = param;
+        mRenderer = renderer;
+
+        mTexture = BitmapUtils.resize(picture, 2048, 1024);
+        renderer.setTexture(mTexture);
+
+        if (param.isVRMode()) {
+            mHeadTracker.registerTrackingListener(this);
+            mHeadTracker.start();
+        }
+
+        SphericalViewRenderer.CameraBuilder camera
+            = new SphericalViewRenderer.CameraBuilder(mRenderer.getCamera());
+        camera.setFov((float) param.getFOV());
+        // TODO Enable to change other parameters.
+        mRenderer.setCamera(camera.create());
+        mRenderer.setScreenSettings(param.getWidth(), param.getHeight(), param.isStereo());
 
         mState = State.RUNNING;
     }
@@ -96,21 +133,8 @@ public class SphericalViewApi implements HeadTrackingListener {
             throw new IllegalStateException("SphericalViewApi is already running.");
         }
 
-        mParam = param;
-        mRenderer = renderer;
-
         Bitmap texture = BitmapFactory.decodeByteArray(picture, 0, picture.length);
-        mTexture = BitmapUtils.resize(texture, 2048, 1024);
-        renderer.setTexture(mTexture);
-
-        if (param.isVRMode()) {
-            mHeadTracker.registerTrackingListener(this);
-            mHeadTracker.start();
-        }
-
-        mRenderer.setStereoMode(param.isStereo());
-
-        mState = State.RUNNING;
+        startImageView(texture, param, renderer);
     }
 
     public synchronized void updateImageView(final SphericalViewParam param) {
@@ -118,9 +142,8 @@ public class SphericalViewApi implements HeadTrackingListener {
             throw new IllegalStateException("SphericalViewApi is not running.");
         }
 
-        mParam = param;
-
         if (!mParam.isVRMode() && param.isVRMode()) {
+            mHeadTracker.registerTrackingListener(this);
             mHeadTracker.start();
         } else if (mParam.isVRMode() && !param.isVRMode()) {
             mHeadTracker.stop();
@@ -130,9 +153,19 @@ public class SphericalViewApi implements HeadTrackingListener {
         SphericalViewRenderer.CameraBuilder camera
             = new SphericalViewRenderer.CameraBuilder(mRenderer.getCamera());
         camera.setFov((float) param.getFOV());
-        // TODO Enable to change other parameters.
+        camera.setPosition(new Vector3D((float) param.getCameraX(),
+            (float) param.getCameraY(),
+            (float) param.getCameraZ()));
+        camera.rotateByEulerAngle(
+            (float) param.getCameraRoll(),
+            (float) param.getCameraYaw(),
+            (float) param.getCameraPitch()
+        );
         mRenderer.setCamera(camera.create());
-        mRenderer.setStereoMode(param.isStereo());
+        mRenderer.setSphereRadius((float) param.getSphereSize());
+        mRenderer.setScreenSettings(param.getWidth(), param.getHeight(), param.isStereo());
+
+        mParam = param;
     }
 
     public void resetCameraDirection() {
@@ -191,58 +224,6 @@ public class SphericalViewApi implements HeadTrackingListener {
         RUNNING,
 
         PAUSED
-
-    }
-
-    private class LivePreviewTask implements Runnable {
-
-        private boolean mIsStarted;
-
-        private final LiveCamera mLiveCamera;
-
-        public LivePreviewTask(final LiveCamera liveCamera) {
-            mLiveCamera = liveCamera;
-        }
-
-        public void stop() {
-            if (!mIsStarted) {
-                return;
-            }
-            mIsStarted = false;
-        }
-
-        @Override
-        public void run() {
-            mIsStarted = true;
-            InputStream is = null;
-            MotionJpegInputStream mjpeg = null;
-            try {
-                is = mLiveCamera.getLiveStream();
-                mjpeg = new MotionJpegInputStream(is);
-                byte[] frame;
-
-                while (mIsStarted && (frame = mjpeg.readFrame()) != null) {
-                    Bitmap texture = BitmapFactory.decodeByteArray(frame, 0, frame.length);
-                    // Fix texture size to power of two.
-                    texture = BitmapUtils.resize(texture, 512, 256);
-                    mRenderer.setTexture(texture);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                mIsStarted = false;
-                try {
-                    if (is != null) {
-                        is.close();
-                    }
-                    if (mjpeg != null) {
-                        mjpeg.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
 
     }
 

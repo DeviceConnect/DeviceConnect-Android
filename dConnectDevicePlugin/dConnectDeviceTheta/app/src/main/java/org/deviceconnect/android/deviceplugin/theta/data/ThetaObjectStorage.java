@@ -206,7 +206,7 @@ public class ThetaObjectStorage {
         if (name != null) {
             sql += " WHERE " + THETA_FILE_NAME + "='" + name + "' ";
         }
-
+        
         sql += " ORDER BY " + THETA_DATE_TIME + " DESC;";
 
         String[] selectionArgs = {};
@@ -228,6 +228,7 @@ public class ThetaObjectStorage {
             objects.add(object);
             next = cursor.moveToNext();
         }
+        db.close();
         return objects;
     }
     /** Make Content Value. */

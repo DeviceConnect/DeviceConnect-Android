@@ -813,7 +813,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
         private List<ThetaObject> mResult = new ArrayList<ThetaObject>();
 
         @Override
-        public synchronized void doInBackground() {
+        public void doInBackground() {
             final Activity activity = getActivity();
             if (activity == null) {
                 return;
@@ -837,7 +837,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
         }
 
         @Override
-        public synchronized void onPostExecute() {
+        public void onPostExecute() {
             if (!mIsGalleryMode && mResult == null) {
                 showSettingsActivity();
                 return;
@@ -846,13 +846,6 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 mUpdateAppList = mResult;
             } else {
                 mUpdateThetaList = mResult;
-            }
-
-
-            if (mResult.size() > 0) {
-                mStatusView.setVisibility(View.GONE);
-            } else {
-                mStatusView.setVisibility(View.VISIBLE);
             }
             if (mGalleryAdapter != null) {
                 mGalleryAdapter.clear();

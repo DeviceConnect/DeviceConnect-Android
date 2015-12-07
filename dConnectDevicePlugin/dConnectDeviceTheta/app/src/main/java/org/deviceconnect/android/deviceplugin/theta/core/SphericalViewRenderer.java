@@ -79,7 +79,7 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     private final float[] mViewMatrix = new float[16];
     private final float[] mModelMatrix = new float[16];
     
-    private Object mLockObj = new Object();
+    private final Object mLockObj = new Object();
     private boolean mIsWaitingSnapshot;
     private byte[] mSnapshot;
 
@@ -145,13 +145,13 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
 
         if (mIsStereo) {
             Camera[] cameras = mCamera.getCamerasForStereo(DISTANCE_EYES);
-            int halfWidth = mScreenWidth / 2;
-            GLES20.glViewport(0, 0, halfWidth, mScreenHeight);
+            int halfWidth = getScreenWidth() / 2;
+            GLES20.glViewport(0, 0, halfWidth, getScreenHeight());
             draw(cameras[0]);
-            GLES20.glViewport(halfWidth, 0, halfWidth, mScreenHeight);
+            GLES20.glViewport(halfWidth, 0, halfWidth, getScreenHeight());
             draw(cameras[1]);
         } else {
-            GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);
+            GLES20.glViewport(0, 0, getScreenWidth(), getScreenHeight());
             draw(mCamera);
         }
 

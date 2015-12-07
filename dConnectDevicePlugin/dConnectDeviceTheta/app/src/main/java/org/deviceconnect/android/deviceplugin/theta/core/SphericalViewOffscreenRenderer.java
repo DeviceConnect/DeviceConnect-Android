@@ -24,6 +24,11 @@ public class SphericalViewOffscreenRenderer extends SphericalViewRenderer {
     }
 
     @Override
+    public int getScreenWidth() {
+        return mIsStereo ? mScreenWidth * 2 : mScreenWidth;
+    }
+
+    @Override
     public void setScreenSettings(final int width, final int height, final boolean isStereo) {
         super.setScreenSettings(width, height, isStereo);
         mIsChangedImageSize = true;

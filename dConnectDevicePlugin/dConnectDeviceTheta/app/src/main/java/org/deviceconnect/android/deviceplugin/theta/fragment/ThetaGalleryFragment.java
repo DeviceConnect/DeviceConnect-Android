@@ -548,7 +548,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                                                         public void run() {
                                                             ThetaDialogFragment.showAlert(getActivity(),
                                                                     getResources().getString(R.string.theta_ssid_prefix),
-                                                                    getResources().getString(R.string.theta_error_shortage_by_android), null);
+                                                                    getResources().getString(R.string.theta_error_import_shortage_by_android), null);
                                                         }
                                                     });
                                                     return;

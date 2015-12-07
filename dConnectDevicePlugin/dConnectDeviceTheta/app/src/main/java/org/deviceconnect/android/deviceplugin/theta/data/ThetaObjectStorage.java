@@ -206,29 +206,33 @@ public class ThetaObjectStorage {
         if (name != null) {
             sql += " WHERE " + THETA_FILE_NAME + "='" + name + "' ";
         }
-        
+
         sql += " ORDER BY " + THETA_DATE_TIME + " DESC;";
 
         String[] selectionArgs = {};
-        SQLiteDatabase db = mThetaDBHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery(sql, selectionArgs);
+        SQLiteDatabase db = null;
+        List<ThetaObject> objects = new ArrayList<ThetaObject>();
+        try {
+            db = mThetaDBHelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery(sql, selectionArgs);
 
-        List<ThetaObject> objects =  new ArrayList<ThetaObject>();
-        boolean next = cursor.moveToFirst();
-        while (next) {
-            String fileName = cursor.getString(cursor.getColumnIndex(THETA_FILE_NAME));
-            String dateTime = cursor.getString(cursor.getColumnIndex(THETA_DATE_TIME));
-            int width = cursor.getInt(cursor.getColumnIndex(THETA_WIDTH));
-            int height = cursor.getInt(cursor.getColumnIndex(THETA_HEIGHT));
-            String mimeType = cursor.getString(cursor.getColumnIndex(THETA_MIME_TYPE));
-            String thumbURL = cursor.getString(cursor.getColumnIndex(THETA_THUMB_URL));
-            String mainURL = cursor.getString(cursor.getColumnIndex(THETA_MAIN_URL));
-            ThetaObject object = new ThetaObjectDB(fileName, dateTime, width, height,
-                                        mimeType, thumbURL, mainURL);
-            objects.add(object);
-            next = cursor.moveToNext();
+            boolean next = cursor.moveToFirst();
+            while (next) {
+                String fileName = cursor.getString(cursor.getColumnIndex(THETA_FILE_NAME));
+                String dateTime = cursor.getString(cursor.getColumnIndex(THETA_DATE_TIME));
+                int width = cursor.getInt(cursor.getColumnIndex(THETA_WIDTH));
+                int height = cursor.getInt(cursor.getColumnIndex(THETA_HEIGHT));
+                String mimeType = cursor.getString(cursor.getColumnIndex(THETA_MIME_TYPE));
+                String thumbURL = cursor.getString(cursor.getColumnIndex(THETA_THUMB_URL));
+                String mainURL = cursor.getString(cursor.getColumnIndex(THETA_MAIN_URL));
+                ThetaObject object = new ThetaObjectDB(fileName, dateTime, width, height,
+                        mimeType, thumbURL, mainURL);
+                objects.add(object);
+                next = cursor.moveToNext();
+            }
+        } finally {
+            db.close();
         }
-        db.close();
         return objects;
     }
     /** Make Content Value. */

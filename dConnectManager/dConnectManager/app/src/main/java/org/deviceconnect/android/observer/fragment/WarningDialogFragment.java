@@ -6,12 +6,6 @@
  */
 package org.deviceconnect.android.observer.fragment;
 
-import java.util.List;
-
-import org.deviceconnect.android.manager.R;
-import org.deviceconnect.android.observer.DConnectObservationService;
-import org.deviceconnect.android.observer.receiver.ObserverReceiver;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -32,6 +26,12 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import org.deviceconnect.android.manager.R;
+import org.deviceconnect.android.observer.DConnectObservationService;
+import org.deviceconnect.android.observer.receiver.ObserverReceiver;
+
+import java.util.List;
 
 /**
  * 警告ダイアログフラグメント.
@@ -61,7 +61,7 @@ public class WarningDialogFragment extends DialogFragment {
         try {
             icon = getActivity().getPackageManager().getApplicationIcon(packageName);
         } catch (NameNotFoundException e) {
-            icon = getActivity().getResources().getDrawable(R.drawable.ic_launcher);
+            icon = getActivity().getResources().getDrawable(R.drawable.icon);
         }
         appNameView.setText(appName);
         appIconView.setImageDrawable(icon);

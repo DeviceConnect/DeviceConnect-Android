@@ -1,0 +1,24 @@
+apply plugin: 'com.android.library'
+
+dependencies {
+    compile fileTree(include: '*.jar', dir: 'libs')
+    compile project(':dconnect-server')
+}
+
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion '23.0.0'
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 23
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}

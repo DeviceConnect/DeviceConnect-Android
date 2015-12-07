@@ -58,7 +58,7 @@ public class ThetaDeviceService extends DConnectMessageService {
         addProfile(new ThetaBatteryProfile(mClient));
         addProfile(new ThetaFileProfile(mClient, fileMgr));
         addProfile(new ThetaMediaStreamRecordingProfile(mClient, fileMgr));
-        addProfile(new ThetaOmnidirectionalImageProfile());
+        addProfile(new ThetaOmnidirectionalImageProfile(app.getSphericalViewApi()));
     }
 
     @Override

@@ -199,11 +199,13 @@ class ThetaM15 extends AbstractThetaDevice {
                     } catch (ThetaException e) {
                         e.printStackTrace();
                         // Nothing to do.
+                    } finally {
+                        lockObj.countDown();
                     }
-                    lockObj.countDown();
                 }
             });
             lockObj.await();
+
 
             if (photo[0] != null) {
                 return photo[0];

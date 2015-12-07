@@ -2,9 +2,23 @@ package org.deviceconnect.android.deviceplugin.theta.core;
 
 public class SphericalViewParam {
 
-    private int mWidth;
+    private double mCameraX;
 
-    private int mHeight;
+    private double mCameraY;
+
+    private double mCameraZ;
+
+    private double mCameraRoll;
+
+    private double mCameraPitch;
+
+    private double mCameraYaw;
+
+    private double mSphereSize = 1.0;
+
+    private int mWidth = 600;
+
+    private int mHeight = 400;
 
     private double mFOV = 90.0;
 
@@ -14,7 +28,61 @@ public class SphericalViewParam {
 
     private double mFrameRate;
 
-    // TODO Add other parameters.
+    public double getCameraX() {
+        return mCameraX;
+    }
+
+    public void setCameraX(double x) {
+        mCameraX = x;
+    }
+
+    public double getCameraY() {
+        return mCameraY;
+    }
+
+    public void setCameraY(double y) {
+        mCameraY = y;
+    }
+
+    public double getCameraZ() {
+        return mCameraZ;
+    }
+
+    public void setCameraZ(double z) {
+        mCameraZ = z;
+    }
+
+    public double getCameraRoll() {
+        return mCameraRoll;
+    }
+
+    public void setCameraRoll(double roll) {
+        mCameraRoll = roll;
+    }
+
+    public double getCameraPitch() {
+        return mCameraPitch;
+    }
+
+    public void setCameraPitch(double pitch) {
+        mCameraPitch = pitch;
+    }
+
+    public double getCameraYaw() {
+        return mCameraYaw;
+    }
+
+    public void setCameraYaw(double yaw) {
+        mCameraYaw = yaw;
+    }
+
+    public double getSphereSize() {
+        return mSphereSize;
+    }
+
+    public void setSphereSize(double sphereSize) {
+        mSphereSize = sphereSize;
+    }
 
     public int getWidth() {
         return mWidth;

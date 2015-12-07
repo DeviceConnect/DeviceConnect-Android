@@ -114,8 +114,9 @@ public class ThetaApiClient {
                         photo[0] = new ThetaPhoto(data, info.getFilename(), MIMETYPE_PHOTO, SERVICE_ID);
                     } catch (ThetaException e) {
                         e.printStackTrace();
+                    } finally {
+                        lockObj.countDown();
                     }
-                    lockObj.countDown();
                 }
             });
             try {

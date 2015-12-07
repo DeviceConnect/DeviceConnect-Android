@@ -8,7 +8,6 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.opengl.model.UVSphere;
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
@@ -57,16 +56,16 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     public static final float Z_NEAR = 0.1f;
     public static final float Z_FAR = 1000.0f;
 
-    private int mScreenWidth;
-    private int mScreenHeight;
-    private boolean mIsStereo;
+    protected int mScreenWidth;
+    protected int mScreenHeight;
+    protected boolean mIsStereo;
     private Camera mCamera = new Camera();
     private boolean mFlipVertical;
 
     private UVSphere mShell;
 
-    private Bitmap mTexture;
-    private boolean mTextureUpdate = false;
+    protected Bitmap mTexture;
+    protected boolean mTextureUpdate = false;
     private int[] mTextures = new int[1];
 
     private int mPositionHandle;
@@ -183,13 +182,14 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         float upX = camera.getUpperDirection().x();
         float upY = camera.getUpperDirection().y();
         float upZ = camera.getUpperDirection().z();
+        float fov = camera.mFovDegree;
 
         if (mFlipVertical) {
             frontY *= -1;
         }
 
         Matrix.setLookAtM(mViewMatrix, 0, x, y, z, frontX, frontY, frontZ, upX, upY, upZ);
-        Matrix.perspectiveM(mProjectionMatrix, 0, camera.mFovDegree, getScreenAspect(), Z_NEAR, Z_FAR);
+        Matrix.perspectiveM(mProjectionMatrix, 0, fov, getScreenAspect(), Z_NEAR, Z_FAR);
 
         GLES20.glUniformMatrix4fv(mModelMatrixHandle, 1, false, mModelMatrix, 0);
         GLES20.glUniformMatrix4fv(mProjectionMatrixHandle, 1, false, mProjectionMatrix, 0);
@@ -210,11 +210,8 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
      */
     @Override
     public void onSurfaceChanged(final GL10 gl10, final int width, final int height) {
-        if (BuildConfig.DEBUG) {
-            Log.i("AAA", "onSurfaceChanged: width = " + width + ", height = " + height);
-        }
-        setScreenWidth(width);
-        setScreenHeight(height);
+        mScreenWidth = width;
+        mScreenHeight = height;
     }
 
     /**
@@ -308,26 +305,24 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         return mScreenWidth;
     }
 
-    public void setScreenWidth(final int screenWidth) {
-        mScreenWidth = screenWidth;
-    }
-
     public int getScreenHeight() {
         return mScreenHeight;
     }
 
-    public void setScreenHeight(final int screenHeight) {
-        mScreenHeight = screenHeight;
+    public boolean isStereo() {
+        return mIsStereo;
+    }
+
+    public void setScreenSettings(final int width, final int height, final boolean isStereo) {
+        mScreenWidth = width;
+        mScreenHeight = height;
+        mIsStereo = isStereo;
     }
 
     public void setSphereRadius(final float radius) {
         if (radius != mShell.getRadius()) {
             mShell = new UVSphere(radius, SHELL_DIVIDES);
         }
-    }
-
-    public void setStereoMode(final boolean isStereo) {
-        mIsStereo = isStereo;
     }
 
     public Camera getCamera() {

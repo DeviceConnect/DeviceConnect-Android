@@ -56,9 +56,11 @@ public abstract class DConnectSettingPageFragmentActivity extends FragmentActivi
         mViewPager.setAdapter(adapter);
         setContentView(mViewPager);
 
-        getActionBar().setDisplayHomeAsUpEnabled(true);
-        getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
-        getActionBar().setTitle(DEFAULT_TITLE);
+        if (getActionBar() != null) {
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+            getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+            getActionBar().setTitle(DEFAULT_TITLE);
+        }
     }
 
     /**

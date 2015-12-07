@@ -104,6 +104,11 @@ public class SphericalViewOffscreenRenderer extends SphericalViewRenderer {
         return true;
     }
 
+    @Override
+    protected boolean isScreenSizeMutable() {
+        return true;
+    }
+
     public void setListener(final Listener listener) {
         mListener = listener;
     }

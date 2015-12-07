@@ -314,9 +314,15 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     }
 
     public void setScreenSettings(final int width, final int height, final boolean isStereo) {
-        mScreenWidth = width;
-        mScreenHeight = height;
+        if (isScreenSizeMutable()) {
+            mScreenWidth = width;
+            mScreenHeight = height;
+        }
         mIsStereo = isStereo;
+    }
+
+    protected boolean isScreenSizeMutable() {
+        return false;
     }
 
     public void setSphereRadius(final float radius) {

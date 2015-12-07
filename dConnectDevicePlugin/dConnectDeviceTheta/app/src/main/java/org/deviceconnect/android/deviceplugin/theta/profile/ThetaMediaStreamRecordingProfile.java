@@ -12,10 +12,14 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
+import org.deviceconnect.android.deviceplugin.theta.core.LiveCamera;
+import org.deviceconnect.android.deviceplugin.theta.core.LivePreviewTask;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceModel;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
+import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -28,6 +32,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Theta MediaStream Recording Profile.
@@ -36,8 +42,15 @@ import java.util.List;
  */
 public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfile {
 
+    private static final String SEGMENT_LIVE_PREVIEW = "1";
+
     private final ThetaDeviceClient mClient;
     private final FileManager mFileMgr;
+    private final Object mLockObj = new Object();
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    private LivePreviewTask mLivePreviewTask;
+    private MixedReplaceMediaServer mServer;
 
     /**
      * Constructor.
@@ -95,6 +108,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 switch (cause.getReason()) {
                     case ThetaDeviceException.NOT_FOUND_THETA:
                         MessageUtils.setNotFoundServiceError(response);
+                        break;
                     default:
                         MessageUtils.setUnknownError(response, cause.getMessage());
                         break;
@@ -140,6 +154,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 switch (cause.getReason()) {
                     case ThetaDeviceException.NOT_FOUND_THETA:
                         MessageUtils.setNotFoundServiceError(response);
+                        break;
                     default:
                         MessageUtils.setUnknownError(response, cause.getMessage());
                         break;
@@ -223,8 +238,10 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 switch (cause.getReason()) {
                     case ThetaDeviceException.NOT_FOUND_THETA:
                         MessageUtils.setNotFoundServiceError(response);
+                        break;
                     case ThetaDeviceException.NOT_FOUND_RECORDER:
                         MessageUtils.setInvalidRequestParameterError(response, "recorder is not found.");
+                        break;
                     default:
                         MessageUtils.setUnknownError(response, cause.getMessage());
                         break;
@@ -261,8 +278,10 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 switch (cause.getReason()) {
                     case ThetaDeviceException.NOT_FOUND_THETA:
                         MessageUtils.setNotFoundServiceError(response);
+                        break;
                     case ThetaDeviceException.NOT_FOUND_RECORDER:
                         MessageUtils.setInvalidRequestParameterError(response, "recorder is not found.");
+                        break;
                     default:
                         MessageUtils.setUnknownError(response, cause.getMessage());
                         break;
@@ -272,6 +291,85 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
 
         });
         return false;
+    }
+
+    @Override
+    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId) {
+        try {
+            ThetaDevice device = mClient.getConnectedDevice(serviceId);
+            if (device.getModel() != ThetaDeviceModel.THETA_S) {
+                MessageUtils.setNotSupportAttributeError(response);
+                return true;
+            }
+
+            String uri = startLivePreview(device);
+            setUri(response, uri);
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        } catch (ThetaDeviceException cause) {
+            switch (cause.getReason()) {
+                case ThetaDeviceException.NOT_FOUND_THETA:
+                    MessageUtils.setNotFoundServiceError(response);
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response, cause.getMessage());
+                    break;
+            }
+            return true;
+        }
+    }
+
+    @Override
+    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId) {
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+        stopLivePreview();
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    private String startLivePreview(final LiveCamera liveCamera) {
+        synchronized (mLockObj) {
+            if (mServer == null) {
+                mServer = new MixedReplaceMediaServer();
+                mServer.setServerName("Live Preview Server");
+                mServer.start();
+            }
+            final String segment = SEGMENT_LIVE_PREVIEW;
+            if (mLivePreviewTask == null) {
+                mLivePreviewTask = new LivePreviewTask(liveCamera) {
+                    @Override
+                    protected void onFrame(final byte[] frame) {
+                        offerFrame(segment, frame);
+                    }
+                };
+                mExecutor.execute(mLivePreviewTask);
+            }
+            return mServer.getUrl() + "/" + segment;
+        }
+    }
+
+    private void offerFrame(final String segment, final byte[] frame) {
+        synchronized (mLockObj) {
+            if (mServer != null) {
+                mServer.offerMedia(segment, frame);
+            }
+        }
+    }
+
+    private void stopLivePreview() {
+        synchronized (mLockObj) {
+            if (mLivePreviewTask != null) {
+                mLivePreviewTask.stop();
+                mLivePreviewTask = null;
+            }
+            if (mServer != null) {
+                mServer.stop();
+                mServer = null;
+            }
+        }
     }
 
     @Override

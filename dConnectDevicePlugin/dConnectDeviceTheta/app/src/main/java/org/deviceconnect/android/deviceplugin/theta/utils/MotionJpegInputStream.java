@@ -1,4 +1,4 @@
-package org.deviceconnect.android.deviceplugin.theta.core;
+package org.deviceconnect.android.deviceplugin.theta.utils;
 
 
 import java.io.BufferedInputStream;
@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-class MotionJpegInputStream extends DataInputStream {
+public class MotionJpegInputStream extends DataInputStream {
 
     private final byte[] SOI_MARKER = {(byte) 0xFF, (byte) 0xD8 };
     private final byte[] EOF_MARKER = { (byte) 0xFF, (byte) 0xD9 };

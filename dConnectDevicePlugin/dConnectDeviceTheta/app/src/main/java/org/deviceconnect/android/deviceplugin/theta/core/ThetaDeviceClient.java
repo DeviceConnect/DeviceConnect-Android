@@ -19,47 +19,6 @@ public class ThetaDeviceClient {
         return mDeviceMgr.getConnectedDeviceById(id) != null;
     }
 
-    public boolean hasRecorder(final String id, final String targetId) throws ThetaDeviceException {
-        ThetaDevice device = mDeviceMgr.getConnectedDeviceById(id);
-        if (device == null) {
-            return false;
-        }
-        ThetaDevice.Recorder recorder = device.getRecorder();
-        if (recorder == null) {
-            return false;
-        }
-        return recorder.getId().equals(targetId);
-    }
-
-    public void getModel(final String id, final ResponseListener listener) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ThetaDevice device = getConnectedDevice(id);
-                    listener.onModel(device.getModel());
-                } catch (ThetaDeviceException e) {
-                    listener.onFailed(e);
-                }
-            }
-        });
-    }
-
-    public void fetchObjectList(final String id, final int offset, final int maxLength,
-                                   final ResponseListener listener) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ThetaDevice device = getConnectedDevice(id);
-                    listener.onObjectList(device.fetchObjectList(offset, maxLength));
-                } catch (ThetaDeviceException e) {
-                    listener.onFailed(e);
-                }
-            }
-        });
-    }
-
     public void fetchAllObjectList(final String id, final ResponseListener listener) {
         mExecutor.execute(new Runnable() {
             @Override
@@ -257,7 +216,7 @@ public class ThetaDeviceClient {
         });
     }
 
-    private ThetaDevice getConnectedDevice(final String id) throws ThetaDeviceException {
+    public ThetaDevice getConnectedDevice(final String id) throws ThetaDeviceException {
         ThetaDevice device = mDeviceMgr.getConnectedDeviceById(id);
         if (device == null) {
             throw new ThetaDeviceException(ThetaDeviceException.NOT_FOUND_THETA);
@@ -288,6 +247,8 @@ public class ThetaDeviceClient {
         void onObjectFetched(byte[] data, String mimeType);
 
         void onObjectRemoved();
+
+        void onLivePreview(LiveCamera camera);
 
         void onFailed(ThetaDeviceException cause);
 
@@ -337,6 +298,10 @@ public class ThetaDeviceClient {
 
         @Override
         public void onObjectRemoved() {
+        }
+
+        @Override
+        public void onLivePreview(final LiveCamera camera) {
         }
 
         @Override

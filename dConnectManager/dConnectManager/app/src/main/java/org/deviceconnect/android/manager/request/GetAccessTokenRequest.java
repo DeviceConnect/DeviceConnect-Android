@@ -6,23 +6,23 @@
  */
 package org.deviceconnect.android.manager.request;
 
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
 
 import org.deviceconnect.android.localoauth.AccessTokenData;
 import org.deviceconnect.android.localoauth.AccessTokenScope;
 import org.deviceconnect.android.localoauth.ConfirmAuthParams;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.localoauth.PublishAccessTokenListener;
-import org.deviceconnect.android.localoauth.exception.AuthorizatonException;
+import org.deviceconnect.android.localoauth.exception.AuthorizationException;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 
-import android.content.Intent;
-import android.os.Bundle;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * LocalOAuthにアクセストークンを要求するリクエスト.
@@ -42,7 +42,7 @@ public class GetAccessTokenRequest extends DConnectRequest {
     public void run() {
         try {
             getAccessToken();
-        } catch (AuthorizatonException e) {
+        } catch (AuthorizationException e) {
             setAuthorizationError(mResponse, e.getMessage());
         } catch (UnsupportedEncodingException e) {
             setInvalidRequestParameterError(mResponse, e.getMessage());
@@ -56,10 +56,10 @@ public class GetAccessTokenRequest extends DConnectRequest {
 
     /**
      * アクセストークンの取得の処理を行う.
-     * @throws AuthorizatonException 認証に失敗した場合に発生
+     * @throws AuthorizationException 認証に失敗した場合に発生
      * @throws UnsupportedEncodingException 文字のエンコードに失敗した場合に発生
      */
-    private void getAccessToken() throws AuthorizatonException, UnsupportedEncodingException {
+    private void getAccessToken() throws AuthorizationException, UnsupportedEncodingException {
         String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String clientId = mRequest.getStringExtra(AuthorizationProfile.PARAM_CLIENT_ID);
         String[] scopes = parseScopes(mRequest.getStringExtra(AuthorizationProfile.PARAM_SCOPE));

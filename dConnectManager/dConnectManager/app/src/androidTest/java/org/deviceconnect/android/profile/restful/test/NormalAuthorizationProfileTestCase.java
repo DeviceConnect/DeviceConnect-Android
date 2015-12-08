@@ -124,7 +124,7 @@ public class NormalAuthorizationProfileTestCase extends RESTfulDConnectTestCase 
     public void testRequestAccessTokenMultiScope() {
         String clientId = createClient();
         assertNotNull(clientId);
-        
+
         String accessToken = requestAccessToken(clientId, new String[] {
                 BatteryProfileConstants.PROFILE_NAME,
                 ConnectProfileConstants.PROFILE_NAME,

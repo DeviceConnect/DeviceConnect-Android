@@ -44,7 +44,7 @@ import java.util.TimerTask;
  * @author NTT DOCOMO, INC.
  */
 @SuppressLint("HandlerLeak")
-public class ConfirmAuthFramgment extends Fragment {
+public class ConfirmAuthFragment extends Fragment {
     /** 自動クリック処理を実行するまでの時間[msec]. テスト用。 */
     private static final long AUTO_CLICK_WAIT_TIME = 3000;
     /** 自動クリック用タイマー. テスト用。 */

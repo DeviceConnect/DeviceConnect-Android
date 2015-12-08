@@ -19,7 +19,7 @@ import org.deviceconnect.android.localoauth.ClientData;
 import org.deviceconnect.android.localoauth.ConfirmAuthParams;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.localoauth.PublishAccessTokenListener;
-import org.deviceconnect.android.localoauth.exception.AuthorizatonException;
+import org.deviceconnect.android.localoauth.exception.AuthorizationException;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
@@ -135,7 +135,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
             public void run() {
                 try {
                     getAccessToken(request, response);
-                } catch (AuthorizatonException e) {
+                } catch (AuthorizationException e) {
                     MessageUtils.setAuthorizationError(response, e.getMessage());
                 } catch (UnsupportedEncodingException e) {
                     MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
@@ -174,7 +174,7 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
                 } else {
                     MessageUtils.setAuthorizationError(response, "Cannot create a client.");
                 }
-            } catch (AuthorizatonException e) {
+            } catch (AuthorizationException e) {
                 MessageUtils.setAuthorizationError(response, e.getMessage());
             } catch (IllegalArgumentException e) {
                 MessageUtils.setInvalidRequestParameterError(response, e.getMessage());
@@ -188,11 +188,11 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
      * @param request リクエスト
      * @param response レスポンス
      * 
-     * @throws AuthorizatonException 認証に失敗した場合に発生
+     * @throws AuthorizationException 認証に失敗した場合に発生
      * @throws UnsupportedEncodingException 文字のエンコードに失敗した場合に発生
      */
     private void getAccessToken(final Intent request, final Intent response) 
-            throws AuthorizatonException, UnsupportedEncodingException {
+            throws AuthorizationException, UnsupportedEncodingException {
         String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         String clientId = request.getStringExtra(AuthorizationProfile.PARAM_CLIENT_ID);
         String[] scopes = parseScopes(request.getStringExtra(AuthorizationProfile.PARAM_SCOPE));

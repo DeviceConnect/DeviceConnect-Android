@@ -13,7 +13,7 @@ import org.restlet.ext.oauth.OAuthException;
  * LocalOAuthAPIが返す例外.
  * @author NTT DOCOMO, INC.
  */
-public class AuthorizatonException extends Exception {
+public class AuthorizationException extends Exception {
 
     /** 例外コード. */
     public static final int CLIENT_NOT_FOUND = 1;
@@ -60,7 +60,7 @@ public class AuthorizatonException extends Exception {
      * コンストラクタ.
      * @param errorCode エラーコード
      */
-    public AuthorizatonException(final int errorCode) {
+    public AuthorizationException(final int errorCode) {
         mErrorCode = errorCode;
     }
 
@@ -68,7 +68,7 @@ public class AuthorizatonException extends Exception {
      * コンストラクタ.
      * @param e OAuthException例外
      */
-    public AuthorizatonException(final OAuthException e) {
+    public AuthorizationException(final OAuthException e) {
         OAuthError error = e.getError();
         mErrorCode = convertErrorCode(error);
     }

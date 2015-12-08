@@ -33,19 +33,21 @@
 
 package org.deviceconnect.android.localoauth;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.logging.Logger;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
+import android.util.Base64;
 
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.cipher.signature.AuthSignature;
 import org.deviceconnect.android.localoauth.activity.AccessTokenListActivity;
 import org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity;
-import org.deviceconnect.android.localoauth.exception.AuthorizatonException;
+import org.deviceconnect.android.localoauth.exception.AuthorizationException;
 import org.deviceconnect.android.localoauth.oauthserver.LoginPageServerResource;
 import org.deviceconnect.android.localoauth.oauthserver.SampleUser;
 import org.deviceconnect.android.localoauth.oauthserver.SampleUserManager;
@@ -81,15 +83,13 @@ import org.restlet.representation.Representation;
 import org.restlet.representation.StringRepresentation;
 import org.restlet.util.Series;
 
-import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
-import android.util.Base64;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Local OAuth API.
@@ -156,7 +156,7 @@ public final class LocalOAuth2Main {
     private static List<ConfirmAuthRequest> sRequestQueue = new ArrayList<ConfirmAuthRequest>();
 
     /** 承認確認画面リクエストキュー用Lockオブジェクト. */
-    private static Object sLockForRequstQueue = new Object();
+    private static Object sLockForRequestQueue = new Object();
 
     /**
      * コンストラクタ.
@@ -265,9 +265,9 @@ public final class LocalOAuth2Main {
      *            デバイスプラグインの場合は、パッケージ名とサービスIDを入れる。<br>
      * @return 登録したクライアント情報(クライアントID, クライアントシークレット)を返す。<br>
      *         nullは返らない。
-     * @throws AuthorizatonException Authorization例外.
+     * @throws AuthorizationException Authorization例外.
      */
-    public static ClientData createClient(final PackageInfoOAuth packageInfo) throws AuthorizatonException {
+    public static ClientData createClient(final PackageInfoOAuth packageInfo) throws AuthorizationException {
 
         /* 引数チェック */
         if (packageInfo == null) {
@@ -283,7 +283,7 @@ public final class LocalOAuth2Main {
         
         /* クライアント数が上限まで使用されていれば例外発生 */
         if (clientCount >= LocalOAuth2Settings.CLIENT_MAX) {
-            throw new AuthorizatonException(AuthorizatonException.CLIENT_COUNTS_IS_FULL);
+            throw new AuthorizationException(AuthorizationException.CLIENT_COUNTS_IS_FULL);
         }
         
         /* クライアント追加 */
@@ -349,9 +349,9 @@ public final class LocalOAuth2Main {
      * (3)クライアントを破棄する。アプリやデバイスプラグインがアンインストールされるときに実行する.
      * 
      * @param clientId クライアントID
-     * @throws AuthorizatonException Authorization例外.
+     * @throws AuthorizationException Authorization例外.
      */
-    public static void destroyClient(final String clientId) throws AuthorizatonException {
+    public static void destroyClient(final String clientId) throws AuthorizationException {
 
         /* 引数チェック */
         if (clientId  == null) {
@@ -416,10 +416,10 @@ public final class LocalOAuth2Main {
      * @param serviceId サービスID(デバイスプラグインの場合のみ設定する。アプリの場合はnullを入れる)
      * @param scopes 要求されたスコープの配列
      * @return true: 一致した / false: 一致しなかった
-     * @throws AuthorizatonException Authorization例外.
+     * @throws AuthorizationException Authorization例外.
      */
     public static boolean checkSignature(final String signature, final String clientId, final String grantType,
-            final String serviceId, final String[] scopes) throws AuthorizatonException {
+            final String serviceId, final String[] scopes) throws AuthorizationException {
 
         /* 引数チェック */
         if (signature == null) {
@@ -551,10 +551,10 @@ public final class LocalOAuth2Main {
      * </p>
      * @param params パラメータ
      * @param listener アクセストークン発行リスナー(承認確認画面で承認／拒否ボタンが押されたら実行される)
-     * @throws AuthorizatonException Authorization例外.
+     * @throws AuthorizationException Authorization例外.
      */
     public static void confirmPublishAccessToken(final ConfirmAuthParams params,
-            final PublishAccessTokenListener listener) throws AuthorizatonException {
+            final PublishAccessTokenListener listener) throws AuthorizationException {
         
         /* 引数チェック */
         if (params == null) {
@@ -895,10 +895,10 @@ public final class LocalOAuth2Main {
      * @param scopes スコープ
      * @param clientSecret クライアントシークレット
      * @return not null: 作成したSignature / null: nullは返さない。
-     * @throws AuthorizatonException Authorization例外.
+     * @throws AuthorizationException Authorization例外.
      */
     public static String createSignature(final String clientId, final String grantType, final String serviceId,
-            final String[] scopes, final String clientSecret) throws AuthorizatonException {
+            final String[] scopes, final String clientSecret) throws AuthorizationException {
 
         /* 引数チェック */
         if (clientId == null) {
@@ -922,9 +922,9 @@ public final class LocalOAuth2Main {
      * @param accessToken アクセストークン
      * @param clientId クライアントId
      * @return not null: 作成したSignature / null: nullは返さない。
-     * @throws AuthorizatonException Authorization例外.
+     * @throws AuthorizationException Authorization例外.
      */
-    public static String createSignature(final String accessToken, final String clientId) throws AuthorizatonException {
+    public static String createSignature(final String accessToken, final String clientId) throws AuthorizationException {
 
         /* 引数チェック */
         if (accessToken == null) {
@@ -953,7 +953,7 @@ public final class LocalOAuth2Main {
                 if (client != null) {
                     clientSecret = String.copyValueOf(client.getClientSecret());
                 } else {
-                    throw new AuthorizatonException(AuthorizatonException.CLIENT_NOT_FOUND);
+                    throw new AuthorizationException(AuthorizationException.CLIENT_NOT_FOUND);
                 }
                 
             } catch (SQLiteException e) {
@@ -1385,7 +1385,7 @@ public final class LocalOAuth2Main {
                     /* 許可された */
                     if (isApproval) {
                         AccessTokenData accessTokenData = null;
-                        AuthorizatonException exception = null;
+                        AuthorizationException exception = null;
                         
                         SQLiteDatabase db = null;
                         SQLiteClientManager sqliteClientManager = null;
@@ -1414,10 +1414,10 @@ public final class LocalOAuth2Main {
                                 
                                 /* コミット */
                                 db.setTransactionSuccessful();
-                            } catch (AuthorizatonException e) {
+                            } catch (AuthorizationException e) {
                                 exception = e;
                             } catch (SQLiteException e) {
-                                exception = new AuthorizatonException(AuthorizatonException.SQLITE_ERROR);
+                                exception = new AuthorizationException(AuthorizationException.SQLITE_ERROR);
                             } finally {
                                 if (db != null) {
                                     db.endTransaction();
@@ -1449,9 +1449,14 @@ public final class LocalOAuth2Main {
                     }
 
                     /* キューにリクエストが残っていれば、次のキューを取得してActivityを起動する */
-                    ConfirmAuthRequest nextRequest = pickupRequest();
+                    final ConfirmAuthRequest nextRequest = pickupRequest();
                     if (nextRequest != null) {
-                        startConfirmAuthActivity(nextRequest);
+                        postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                startConfirmAuthActivity(nextRequest);
+                            }
+                        }, 2000);
                     }
                 }
                 break;
@@ -1480,9 +1485,9 @@ public final class LocalOAuth2Main {
      * 
      * @param params 承認確認画面のパラメータ
      * @return アクセストークンデータ(アクセストークン, 有効期間(アクセストークン発行時間から使用可能な時間。単位:ミリ秒) を返す。
-     * @throws AuthorizatonException Authorization例外.
+     * @throws AuthorizationException Authorization例外.
      */
-    private static AccessTokenData publishAccessToken(final ConfirmAuthParams params) throws AuthorizatonException {
+    private static AccessTokenData publishAccessToken(final ConfirmAuthParams params) throws AuthorizationException {
 
         String clientId = params.getClientId();
 
@@ -1556,7 +1561,7 @@ public final class LocalOAuth2Main {
                 }
             }
         } else {
-            throw new AuthorizatonException(AuthorizatonException.CLIENT_NOT_FOUND);
+            throw new AuthorizationException(AuthorizationException.CLIENT_NOT_FOUND);
         }
 
         return null;
@@ -1607,10 +1612,10 @@ public final class LocalOAuth2Main {
      * @param initialize 初期化フラグ(trueにするとContextを初期化する)
      * @param sessionId セッションID(引き継ぐセッションIDが存在すれば指定する、無ければnullを設定する)
      * @return not null: RedirectRepresentation型の戻り値を返す / null: エラー
-     * @throws AuthorizatonException Authorization例外.
+     * @throws AuthorizationException Authorization例外.
      */
     private static RedirectRepresentation callAuthorizationServerResource(final Client client,
-            final boolean initialize, final String sessionId) throws AuthorizatonException {
+            final boolean initialize, final String sessionId) throws AuthorizationException {
 
         /* AuthorizationServerResourceを初期化する */
         if (initialize) {
@@ -1645,7 +1650,7 @@ public final class LocalOAuth2Main {
         try {
             representationA = AuthorizationServerResource.requestAuthorization(paramsA);
         } catch (OAuthException e) {
-            throw new AuthorizatonException(e);
+            throw new AuthorizationException(e);
         }
 
         /* 正常終了(ログイン画面リダイレクト) */
@@ -1852,7 +1857,7 @@ public final class LocalOAuth2Main {
      * @param request リクエスト
      */
     private static void enqueueRequest(final ConfirmAuthRequest request) {
-        synchronized (sLockForRequstQueue) {
+        synchronized (sLockForRequestQueue) {
             sRequestQueue.add(request);
         }
     }
@@ -1864,7 +1869,7 @@ public final class LocalOAuth2Main {
      */
     private static ConfirmAuthRequest pickupRequest() {
         ConfirmAuthRequest request = null;
-        synchronized (sLockForRequstQueue) {
+        synchronized (sLockForRequestQueue) {
             int requestCount = sRequestQueue.size();
             if (requestCount > 0) {
                 request = sRequestQueue.get(0);
@@ -1882,7 +1887,7 @@ public final class LocalOAuth2Main {
      */
     private static ConfirmAuthRequest dequeueRequest(final long threadId, final boolean isDeleteRequest) {
         ConfirmAuthRequest request = null;
-        synchronized (sLockForRequstQueue) {
+        synchronized (sLockForRequestQueue) {
             /* スレッドIDが一致するリクエストデータを検索する */
             int requestCount = sRequestQueue.size();
             for (int i = 0; i < requestCount; i++) {
@@ -1907,12 +1912,12 @@ public final class LocalOAuth2Main {
      * 
      * @param confirmAuthParams パラメータ
      * @return クライアントデータ
-     * @throws AuthorizatonException Authorization例外.
+     * @throws AuthorizationException Authorization例外.
      */
-    private static Client getClient(final ConfirmAuthParams confirmAuthParams) throws AuthorizatonException {
+    private static Client getClient(final ConfirmAuthParams confirmAuthParams) throws AuthorizationException {
         Client client = sClientManager.findById(confirmAuthParams.getClientId());
         if (client == null) {
-            throw new AuthorizatonException(AuthorizatonException.CLIENT_NOT_FOUND);
+            throw new AuthorizationException(AuthorizationException.CLIENT_NOT_FOUND);
         }
         return client;
     }

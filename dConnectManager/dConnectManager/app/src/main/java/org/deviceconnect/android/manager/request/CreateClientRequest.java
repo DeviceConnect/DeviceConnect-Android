@@ -8,7 +8,7 @@ package org.deviceconnect.android.manager.request;
 
 import org.deviceconnect.android.localoauth.ClientData;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
-import org.deviceconnect.android.localoauth.exception.AuthorizatonException;
+import org.deviceconnect.android.localoauth.exception.AuthorizationException;
 import org.deviceconnect.android.manager.profile.AuthorizationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
@@ -44,7 +44,7 @@ public class CreateClientRequest extends DConnectRequest {
             } else {
                 setAuthorizationError(mResponse, null);
             }
-        } catch (AuthorizatonException e) {
+        } catch (AuthorizationException e) {
             setAuthorizationError(mResponse, e.getMessage());
         } catch (IllegalArgumentException e) {
             setInvalidRequestParameterError(mResponse, e.getMessage());

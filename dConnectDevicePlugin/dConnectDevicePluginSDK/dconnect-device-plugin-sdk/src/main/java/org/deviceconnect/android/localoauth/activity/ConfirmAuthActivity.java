@@ -13,7 +13,7 @@ import android.view.KeyEvent;
 import android.view.Window;
 
 import org.deviceconnect.android.R;
-import org.deviceconnect.android.localoauth.fragment.ConfirmAuthFramgment;
+import org.deviceconnect.android.localoauth.fragment.ConfirmAuthFragment;
 
 /**
  * 認証確認画面.
@@ -89,7 +89,7 @@ public class ConfirmAuthActivity extends Activity {
      */
     private void notApproval() {
         FragmentManager mgr = getFragmentManager();
-        ConfirmAuthFramgment fragment = (ConfirmAuthFramgment) mgr
+        ConfirmAuthFragment fragment = (ConfirmAuthFragment) mgr
                 .findFragmentById(R.id.container);
         fragment.notApprovalProc();
     }

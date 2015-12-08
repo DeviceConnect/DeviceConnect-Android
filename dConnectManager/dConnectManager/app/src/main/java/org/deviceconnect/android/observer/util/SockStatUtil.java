@@ -7,11 +7,12 @@
 package org.deviceconnect.android.observer.util;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+
+import org.deviceconnect.android.manager.BuildConfig;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
@@ -61,17 +62,17 @@ public final class SockStatUtil {
      * @param context context
      * @return socket list
      */
-    public static ArrayList<AndroidSocket> getSocketList(final Context context) {
-        ArrayList<AndroidSocket> allSocketlist = new ArrayList<AndroidSocket>();
+    public static synchronized ArrayList<AndroidSocket> getSocketList(final Context context) {
+        ArrayList<AndroidSocket> allSocketList = new ArrayList<>();
         if (context == null) {
-            return allSocketlist;
+            return allSocketList;
         }
-        allSocketlist.addAll(parseProcNetFile("/proc/net/tcp6", SocketType.TCP));
-        allSocketlist.addAll(parseProcNetFile("/proc/net/tcp", SocketType.TCP));
-        allSocketlist.addAll(parseProcNetFile("/proc/net/udp6", SocketType.UDP));
-        allSocketlist.addAll(parseProcNetFile("/proc/net/udp", SocketType.UDP));
-        processAppInfo(context, allSocketlist);
-        return allSocketlist;
+        allSocketList.addAll(parseProcNetFile("/proc/net/tcp6", SocketType.TCP));
+        allSocketList.addAll(parseProcNetFile("/proc/net/tcp", SocketType.TCP));
+        allSocketList.addAll(parseProcNetFile("/proc/net/udp6", SocketType.UDP));
+        allSocketList.addAll(parseProcNetFile("/proc/net/udp", SocketType.UDP));
+        processAppInfo(context, allSocketList);
+        return allSocketList;
     }
 
     /**
@@ -81,63 +82,78 @@ public final class SockStatUtil {
      * @return Socketリスト
      */
     private static ArrayList<AndroidSocket> parseProcNetFile(final String procFileName, final SocketType socketType) {
-        Scanner scanner;
-        ArrayList<AndroidSocket> sockets = new ArrayList<AndroidSocket>();
+        ArrayList<AndroidSocket> sockets = new ArrayList<>();
         if (procFileName == null) {
             return sockets;
         }
+
+        Scanner scanner = null;
         File file = new File(procFileName);
-        StringTokenizer stringtokenizer;
         try {
             scanner = new Scanner(file);
-        } catch (FileNotFoundException filenotfoundexception) {
-            filenotfoundexception.printStackTrace();
-            return sockets;
+            scanner.nextLine();
+            while (scanner.hasNext()) {
+                sockets.add(getAndroidSocket(socketType, scanner.nextLine()));
+            }
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+        } finally {
+            if (scanner != null) {
+                scanner.close();
+            }
         }
-        scanner.nextLine();
-        while (scanner.hasNext()) {
-            AndroidSocket aSocket = new AndroidSocket();
-            aSocket.setType(socketType);
-            String nextLine = scanner.nextLine();
-            stringtokenizer = new StringTokenizer(nextLine);
-            int tokenNo = 0;
-            do {
-                String token = stringtokenizer.nextToken();
-                switch (tokenNo) {
-                    case LOCAL_IP_PORT:  //Analysis of Local IP and Port number
-                        String[] localAddress = token.split(":");
-                        aSocket.setLocalAddress(convertIPtoString(localAddress[0]));
-
-                        aSocket.setLocalPort(Integer.parseInt(localAddress[1], HEX));
-                        break;
-                    case REMOTE_IP_PORT: //Analysis of Remote IP and Port number
-                        String[] remoteAddress = token.split(":");
-                        aSocket.setRemoteAddress(convertIPtoString(remoteAddress[0]));
-                        aSocket.setRemotePort(Integer.parseInt(remoteAddress[1], HEX));
-                        break;
-                    case CONNECTION_STATE: //Connection status
-                        if (socketType == SocketType.TCP) {
-                            int l = Integer.parseInt(token, HEX);
-                            if (l > SocketState.values().length || l < 0) {
-                                l = 0;
-                            }
-                            aSocket.setState(SocketState.values()[l]);
-                        } else {
-                            aSocket.setState(SocketState.UDP_LISTEN);
-                        }
-                        break;
-                    case UID: //Uid of occupancy to the program
-                        aSocket.setUid(Integer.parseInt(token));
-                        break;
-                    default:
-                }
-                tokenNo++;
-            } while (stringtokenizer.hasMoreElements());
-            sockets.add(aSocket);
-        }
-        scanner.close();
         return sockets;
     }
+
+    @NonNull
+    private static AndroidSocket getAndroidSocket(final SocketType socketType, final String nextLine) {
+        AndroidSocket aSocket = new AndroidSocket();
+        aSocket.setType(socketType);
+        StringTokenizer tokenizer = new StringTokenizer(nextLine);
+        int tokenNo = 0;
+        do {
+            String token = tokenizer.nextToken();
+            switch (tokenNo) {
+                case LOCAL_IP_PORT:  // Analysis of Local IP and Port number
+                    String[] localAddress = token.split(":");
+                    if (localAddress.length <= 1) {
+                        break;
+                    }
+                    aSocket.setLocalAddress(convertIPtoString(localAddress[0]));
+                    aSocket.setLocalPort(Integer.parseInt(localAddress[1], HEX));
+                    break;
+                case REMOTE_IP_PORT: // Analysis of Remote IP and Port number
+                    String[] remoteAddress = token.split(":");
+                    if (remoteAddress.length <= 1) {
+                        break;
+                    }
+                    aSocket.setRemoteAddress(convertIPtoString(remoteAddress[0]));
+                    aSocket.setRemotePort(Integer.parseInt(remoteAddress[1], HEX));
+                    break;
+                case CONNECTION_STATE: //Connection status
+                    if (socketType == SocketType.TCP) {
+                        int l = Integer.parseInt(token, HEX);
+                        if (l > SocketState.values().length || l < 0) {
+                            l = 0;
+                        }
+                        aSocket.setState(SocketState.values()[l]);
+                    } else {
+                        aSocket.setState(SocketState.UDP_LISTEN);
+                    }
+                    break;
+                case UID: //Uid of occupancy to the program
+                    aSocket.setUid(Integer.parseInt(token));
+                    break;
+                default:
+                    break;
+            }
+            tokenNo++;
+        } while (tokenizer.hasMoreElements());
+        return aSocket;
+    }
+
     /**
      * IP アドレスの解析.
      * @param ipString 16進数文字列のIPアドレス
@@ -165,18 +181,17 @@ public final class SockStatUtil {
         } while (i >= 2 && ++j <= IP_DECIMAL_LENGTH);
         return s1;
     }
+
     /**
      * Socksocketの解析結果からアプリのパッケージ名を取得する.
      * @param context context
-     * @param arraylist socketリスト
+     * @param arrayList socketリスト
      */
-    private static void processAppInfo(final Context context, final ArrayList<AndroidSocket> arraylist) {
-        if (arraylist == null) {
+    private static void processAppInfo(final Context context, final ArrayList<AndroidSocket> arrayList) {
+        if (arrayList == null) {
             return;
         }
-        Iterator<AndroidSocket> iterator = arraylist.iterator();
-        while (iterator.hasNext()) {
-            AndroidSocket androidsocket = iterator.next();
+        for (AndroidSocket androidsocket : arrayList) {
             String[] as = context.getPackageManager().getPackagesForUid(androidsocket.getUid());
             if (as != null) {
                 androidsocket.setAppName(as[0]);

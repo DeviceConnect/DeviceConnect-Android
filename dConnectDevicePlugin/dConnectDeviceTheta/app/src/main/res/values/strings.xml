@@ -4,7 +4,7 @@
     <string name="device_name_theta_s">THETA S</string>
     <string name="device_name_theta_m15">THETA m15</string>
     <string name="theta_ssid_prefix">THETA</string>
-
+    <string name="theta_no_device"></string>
     <string name="summary_title">[1/5] 概要</string>
     <string name="summary_body">THETAとのWiFi接続を行います。\n接続するTHETAの機種を選択してください。</string>
     <string name="description_image_theta">THETA</string>
@@ -19,10 +19,13 @@
     <string name="confirmation_title">[5/5] 接続確認</string>
     <string name="confirmation_body">下に表示されているカメラ検索ボタンを押下してください。</string>
     <string name="camera_search_button">カメラ検索</string>
+    <string name="theta_confirm_wifi">Wi-Fi接続確認</string>
     <string name="camera_search_message_not_found">THETAが見つかりません。</string>
     <string name="camera_search_message_found">$NAME$ に接続されました。</string>
     <string name="wifi_settings_button">WiFi設定画面を開く</string>
-
+    <string name="theta_password_dialog">パスワード入力ダイアログ</string>
+    <string name="theta_connecting">THETAカメラに接続中......</string>
+    <string name="theta_confirm_wifi_enable">Wi-Fiの機能をONにします。よろしいですか？</string>
     <string name="ok">OK</string>
     <string name="button_cancel">キャンセル</string>
     <string name="camera_must_connect">THETAと接続してください。</string>

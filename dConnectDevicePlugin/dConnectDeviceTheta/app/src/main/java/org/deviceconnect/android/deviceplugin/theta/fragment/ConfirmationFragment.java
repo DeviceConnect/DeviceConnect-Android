@@ -25,7 +25,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -422,7 +421,6 @@ public class ConfirmationFragment extends SettingsFragment {
         String ssid = "\"" + result.SSID + "\"";
 
         if (capabilities.contains("WPA")) {
-            Log.d("TEST", "WPA");
             String password = mSettings.getSSIDPassword(ssid);
             showPasswordDialog(password, new PasswordListener() {
                 @Override
@@ -450,7 +448,6 @@ public class ConfirmationFragment extends SettingsFragment {
                 }
             });
         } else if (capabilities.contains("WEP")) {
-            Log.d("TEST", "WEP");
             String password = mSettings.getSSIDPassword(ssid);
             showPasswordDialog(password, new PasswordListener() {
                 @Override
@@ -469,7 +466,6 @@ public class ConfirmationFragment extends SettingsFragment {
                 }
             });
         } else {
-            Log.d("TEST", "etc");
             wc.SSID = "\"" + result.SSID + "\"";
             wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
             testConnectWifi(wc, null);

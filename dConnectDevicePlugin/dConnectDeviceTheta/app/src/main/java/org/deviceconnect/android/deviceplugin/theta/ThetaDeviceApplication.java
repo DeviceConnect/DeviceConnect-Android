@@ -7,10 +7,15 @@
 package org.deviceconnect.android.deviceplugin.theta;
 
 import android.app.Application;
+import android.content.Context;
 import android.support.v4.util.LruCache;
 
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewApi;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
+import org.deviceconnect.android.deviceplugin.theta.core.sensor.AbstractHeadTracker;
+import org.deviceconnect.android.deviceplugin.theta.core.sensor.DefaultHeadTracker;
+import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTracker;
+import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTrackingListener;
 import org.deviceconnect.android.logger.AndroidHandler;
 
 import java.util.logging.Level;
@@ -28,7 +33,10 @@ public class ThetaDeviceApplication extends Application {
 
     private ThetaDeviceManager mDeviceMgr;
 
+    private HeadTracker mHeadTracker;
+
     private SphericalViewApi mSphericalViewApi;
+
     /**
      * Cache size of thumbnail.
      *
@@ -39,12 +47,14 @@ public class ThetaDeviceApplication extends Application {
      * Unit: byte.
      */
     private static final int THUMBNAIL_CACHE_SIZE = (2 * 1024 * 1024) * 3;
+
     private LruCache<String, byte[]> mThumbnailCache = new LruCache<String, byte[]>(THUMBNAIL_CACHE_SIZE) {
         @Override
         protected int sizeOf(final String key, final byte[] value) {
             return value.length / 1024;
         }
     };
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -59,19 +69,67 @@ public class ThetaDeviceApplication extends Application {
             mLogger.setLevel(Level.OFF);
         }
 
-        mDeviceMgr = new ThetaDeviceManager(getApplicationContext());
+        Context context = getApplicationContext();
+        mDeviceMgr = new ThetaDeviceManager(context);
         mDeviceMgr.checkConnectedDevice();
-        mSphericalViewApi = new SphericalViewApi(getApplicationContext());
+        mHeadTracker = new HeadTrackerWrapper(new DefaultHeadTracker(context));
+        mSphericalViewApi = new SphericalViewApi(context);
     }
 
     public ThetaDeviceManager getDeviceManager() {
         return mDeviceMgr;
     }
 
+    public HeadTracker getHeadTracker() {
+        return mHeadTracker;
+    }
+
     public SphericalViewApi getSphericalViewApi() {
         return mSphericalViewApi;
     }
+
     public LruCache<String, byte[]> getCache() {
         return mThumbnailCache;
+    }
+
+    private static class HeadTrackerWrapper implements HeadTracker {
+
+        private final AbstractHeadTracker mHeadTracker;
+
+        public HeadTrackerWrapper(final AbstractHeadTracker tracker) {
+            mHeadTracker = tracker;
+        }
+
+        @Override
+        public void start() {
+            mHeadTracker.start();
+        }
+
+        @Override
+        public void stop() {
+            mHeadTracker.stop();
+        }
+
+        @Override
+        public void reset() {
+            mHeadTracker.reset();
+        }
+
+        @Override
+        public synchronized void registerTrackingListener(final HeadTrackingListener listener) {
+            if (mHeadTracker.getListenerCount() == 0) {
+                mHeadTracker.start();
+            }
+            mHeadTracker.registerTrackingListener(listener);
+        }
+
+        @Override
+        public synchronized void unregisterTrackingListener(final HeadTrackingListener listener) {
+            mHeadTracker.unregisterTrackingListener(listener);
+            if (mHeadTracker.getListenerCount() == 0) {
+                mHeadTracker.stop();
+            }
+        }
+
     }
 }

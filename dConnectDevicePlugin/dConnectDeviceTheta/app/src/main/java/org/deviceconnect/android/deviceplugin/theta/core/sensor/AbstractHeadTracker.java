@@ -37,4 +37,8 @@ public abstract class AbstractHeadTracker implements HeadTracker {
         }
     }
 
+    public int getListenerCount() {
+        return mListeners.size();
+    }
+
 }

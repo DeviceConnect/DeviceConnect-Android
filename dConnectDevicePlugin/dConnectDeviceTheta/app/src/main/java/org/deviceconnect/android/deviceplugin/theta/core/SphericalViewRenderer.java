@@ -83,11 +83,18 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     private boolean mIsWaitingSnapshot;
     private byte[] mSnapshot;
 
+    private boolean mIsScreenSizeMutable;
+    private SurfaceListener mSurfaceListener;
+
     /**
      * Constructor.
      */
     public SphericalViewRenderer() {
         mShell = new UVSphere(DEFAULT_TEXTURE_SHELL_RADIUS, SHELL_DIVIDES);
+    }
+
+    public void setSurfaceListener(final SurfaceListener listener) {
+        mSurfaceListener = listener;
     }
 
     public void setFlipVertical(final boolean isFlip) {
@@ -163,6 +170,10 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         }
     }
 
+    public void requestToUpdateTexture() {
+        mTextureUpdate = true;
+    }
+
     private void draw(final Camera camera) {
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.setIdentityM(mViewMatrix, 0);
@@ -187,6 +198,9 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         if (mFlipVertical) {
             frontY *= -1;
         }
+
+        Log.d("AAA", "draw: width = " + mScreenWidth + ", height = " + mScreenHeight
+            + ", FOV = " + fov + ", dir = (x:" + frontX + ", y:" + frontY + ", z:" + frontZ + ")");
 
         Matrix.setLookAtM(mViewMatrix, 0, x, y, z, frontX, frontY, frontZ, upX, upY, upZ);
         Matrix.perspectiveM(mProjectionMatrix, 0, fov, getScreenAspect(), Z_NEAR, Z_FAR);
@@ -314,15 +328,31 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     }
 
     public void setScreenSettings(final int width, final int height, final boolean isStereo) {
+        boolean isChanged = false;
         if (isScreenSizeMutable()) {
+            if (mScreenWidth != width || mScreenHeight != height) {
+                isChanged = true;
+            }
             mScreenWidth = width;
             mScreenHeight = height;
         }
+
+        if (mIsStereo != isStereo) {
+            isChanged = true;
+        }
         mIsStereo = isStereo;
+
+        if (isChanged && mSurfaceListener != null) {
+            mSurfaceListener.onSurfaceChanged(width, height, isStereo);
+        }
     }
 
-    protected boolean isScreenSizeMutable() {
-        return false;
+    public void setScreenSizeMutable(final boolean isMutable) {
+        mIsScreenSizeMutable = isMutable;
+    }
+
+    public boolean isScreenSizeMutable() {
+        return mIsScreenSizeMutable;
     }
 
     public void setSphereRadius(final float radius) {
@@ -480,5 +510,11 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
                 rightCamera.create()
             };
         }
+    }
+
+    public interface SurfaceListener {
+
+        void onSurfaceChanged(final int width, final int height, final boolean isStereo);
+
     }
 }

@@ -156,11 +156,13 @@ public class SphericalViewApi implements HeadTrackingListener {
         camera.setPosition(new Vector3D((float) param.getCameraX(),
             (float) param.getCameraY(),
             (float) param.getCameraZ()));
-        camera.rotateByEulerAngle(
-            (float) param.getCameraRoll(),
-            (float) param.getCameraYaw(),
-            (float) param.getCameraPitch()
-        );
+        if (!param.isVRMode()) {
+            camera.rotateByEulerAngle(
+                (float) param.getCameraRoll(),
+                (float) param.getCameraYaw(),
+                (float) param.getCameraPitch()
+            );
+        }
         mRenderer.setCamera(camera.create());
         mRenderer.setSphereRadius((float) param.getSphereSize());
         mRenderer.setScreenSettings(param.getWidth(), param.getHeight(), param.isStereo());

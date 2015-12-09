@@ -44,6 +44,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -58,9 +60,6 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
     private static final int BUF_SIZE = 8192;
     /** 最大リトライ回数. */
     private static final int RETRY_COUNT = 3;
-
-    /** スレッドロックオブジェクト. */
-    private final Object mLockObj = new Object();
 
     /**
      * アクセストークン取得APIに対するスコープ指定を取得する.
@@ -363,21 +362,18 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
      * @return 送られてきたイベントを返却する。
      */
     protected final JSONObject waitForEvent(final long time) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("ws://localhost:4035/websocket");
-
+        final CountDownLatch latch = new CountDownLatch(1);
         final JSONObject[] response = new JSONObject[1];
-        URI uri = URI.create(sb.toString());
+        URI uri = URI.create("ws://localhost:4035/websocket");
         WebSocketClient client = new WebSocketClient(uri) {
             @Override
             public void onOpen(final ServerHandshake handshake) {
                 try {
                     JSONObject root = new JSONObject();
-                    root.put(DConnectMessage.EXTRA_SESSION_KEY,
-                            getClientId());
+                    root.put(DConnectMessage.EXTRA_SESSION_KEY, getClientId());
                     send(root.toString());
                 } catch (JSONException e) {
-                    return; // do nothing.
+                    e.printStackTrace();
                 }
             }
             @Override
@@ -387,37 +383,26 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
                 } catch (JSONException e) {
                     response[0] = null;
                 }
-                synchronized (mLockObj) {
-                    mLockObj.notify();
-                }
+                latch.countDown();
             }
             @Override
             public void onError(final Exception ex) {
-                synchronized (mLockObj) {
-                    mLockObj.notify();
-                }
+                latch.countDown();
             }
             @Override
             public void onClose(final int code, final String reason, final boolean remote) {
-                synchronized (mLockObj) {
-                    mLockObj.notify();
-                }
+                latch.countDown();
             }
         };
         client.connect();
 
         // イベントからのメッセージを待つ
         try {
-            synchronized (mLockObj) {
-                mLockObj.wait(time);
-            }
+            latch.await(time, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             return response[0];
         } finally {
-            // websocketを閉じておく
-            if (client != null) {
-                client.close();
-            }
+            client.close();
         }
         return response[0];
     }

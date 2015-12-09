@@ -215,18 +215,18 @@ public abstract class DConnectTestCase extends AndroidTestCase {
      * @throws InterruptedException スレッドが割り込まれた場合
      */
     protected void waitForManager() throws InterruptedException {
-        if (!isDConnectServiceRunning()) {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setClassName("org.deviceconnect.android.manager",
-                    "org.deviceconnect.android.manager.DConnectLaunchActivity");
-            intent.addCategory(Intent.CATEGORY_DEFAULT);
-            intent.addCategory(Intent.CATEGORY_BROWSABLE);
-            intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
-            intent.putExtra(IntentDConnectMessage.EXTRA_KEY, getHMACString());
-            intent.setData(Uri.parse("dconnect://start"));
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            getContext().startActivity(intent);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setClassName("org.deviceconnect.android.manager",
+                "org.deviceconnect.android.manager.DConnectLaunchActivity");
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.putExtra(IntentDConnectMessage.EXTRA_ORIGIN, getOrigin());
+        intent.putExtra(IntentDConnectMessage.EXTRA_KEY, getHMACString());
+        intent.setData(Uri.parse("dconnect://start"));
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        getContext().startActivity(intent);
 
+        if (!isDConnectServiceRunning()) {
             long timeout = 30 * 1000;
             final long interval = 400;
             while (!isDConnectServiceRunning()) {

@@ -14,8 +14,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
@@ -37,6 +35,7 @@ import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.theta.R;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
+import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceEventListener;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.utils.DConnectMessageHandler;
 import org.deviceconnect.android.deviceplugin.theta.utils.UserSettings;
@@ -56,7 +55,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author NTT DOCOMO, INC.
  */
-public class ConfirmationFragment extends SettingsFragment {
+public class ConfirmationFragment extends SettingsFragment implements ThetaDeviceEventListener {
     /** Interval. */
     private static final int INTERVAL = 1000;
 
@@ -71,31 +70,6 @@ public class ConfirmationFragment extends SettingsFragment {
     /** Search in dialog. */
     private ThetaDialogFragment mDialog;
 
-    /** Receiver to receive the state notification of Wifi. */
-    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            if (intent == null) {
-                return;
-            }
-            String action = intent.getAction();
-            if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(action)) {
-                ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-                NetworkInfo ni = cm.getActiveNetworkInfo();
-                if (ni != null) {
-                    NetworkInfo.State state = ni.getState();
-                    int type = ni.getType();
-                    if (state == NetworkInfo.State.CONNECTED
-                            && type == ConnectivityManager.TYPE_WIFI) {
-                        WifiInfo wifiInfo = mWifiMgr.getConnectionInfo();
-                        if (WiFiUtil.checkSSID(wifiInfo.getSSID())) {
-                            mServiceIdView.setText(getThetaName());
-                        }
-                    }
-                }
-            }
-        }
-    };
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -148,16 +122,24 @@ public class ConfirmationFragment extends SettingsFragment {
     @Override
     public void onPause() {
         super.onPause();
-        getActivity().unregisterReceiver(mReceiver);
+        Activity activity = getActivity();
+        if (activity != null) {
+            ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
+            ThetaDeviceManager deviceManager = app.getDeviceManager();
+            deviceManager.unregisterDeviceEventListener(this);
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        Activity activity = getActivity();
+        if (activity != null) {
+            ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
+            ThetaDeviceManager deviceManager = app.getDeviceManager();
+            deviceManager.registerDeviceEventListener(this);
+        }
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        getActivity().registerReceiver(mReceiver, filter);
     }
 
 
@@ -169,22 +151,6 @@ public class ConfirmationFragment extends SettingsFragment {
      */
     private void searchTheta() {
 
-        if (mDialog != null) {
-            return;
-        }
-
-        Activity activity = getActivity();
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mDialog = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
-                    mDialog.show(getActivity().getFragmentManager(),
-                            "fragment_dialog");
-
-                }
-            });
-        }
 
         WiFiUtil.asyncSearchDevice(new DConnectMessageHandler() {
             @Override
@@ -200,10 +166,6 @@ public class ConfirmationFragment extends SettingsFragment {
                     if (services.size() == 0) {
                         searchTheta();
                     } else {
-                        if (mDialog != null) {
-                            mDialog.dismiss();
-                            mDialog = null;
-                        }
                         for (int i = 0; i < services.size(); i++) {
                             HashMap<?, ?> service = (HashMap<?, ?>) services.get(i);
                             String name = (String) service.get(ServiceDiscoveryProfile.PARAM_NAME);
@@ -325,7 +287,6 @@ public class ConfirmationFragment extends SettingsFragment {
                         wifiList[i] = scanList.get(i).SSID;
                         wifiList[i] = wifiList[i].replace("\"", "");
                     }
-
                     final int[] pos = new int[1];
                     ThetaDialogFragment.showSelectWifiDialog(getActivity(), getString(R.string.theta_confirm_wifi),
                             wifiList,
@@ -338,7 +299,15 @@ public class ConfirmationFragment extends SettingsFragment {
                             new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(final DialogInterface dialog, final int whichButton) {
-                                    connectWifi(scanList.get(pos[0]));
+                                    ScanResult result = scanList.get(pos[0]);
+                                    List<WifiConfiguration> list = mWifiMgr.getConfiguredNetworks();
+                                    for (WifiConfiguration i : list) {
+                                        if (i.SSID != null && i.SSID.indexOf(result.SSID) > 0) {
+                                            mWifiMgr.removeNetwork(i.networkId);
+                                            break;
+                                        }
+                                    }
+                                    connectWifi(result);
                                 }
                             },
                             new DialogInterface.OnClickListener() {
@@ -501,22 +470,33 @@ public class ConfirmationFragment extends SettingsFragment {
      * @param password pasword
      */
     private void testConnectWifi(final WifiConfiguration wifiConfig, final String password) {
-        List<WifiConfiguration> list = mWifiMgr.getConfiguredNetworks();
-        int connectedNetworkId = -1;
-        for (WifiConfiguration i : list) {
-            if (i.SSID != null && i.SSID.equals(wifiConfig.SSID)) {
-                mWifiMgr.disconnect();
-                mWifiMgr.enableNetwork(i.networkId, true);
-                connectedNetworkId = i.networkId;
-                mWifiMgr.reconnect();
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mDialog == null) {
+                        mDialog = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
+                        mDialog.show(getActivity().getFragmentManager(),
+                                "fragment_dialog");
+                    }
+                    new Handler().postDelayed(new Runnable() {  //Timeout Handler
+                        @Override
+                        public void run() {
+                            if (mDialog != null) {
+                                mDialog.dismiss();
+                                mDialog = null;
+                                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_confirm_wifi),
+                                        getString(R.string.theta_error_wrong_password), null);
+                                mServiceIdView.setText(R.string.camera_search_message_not_found);
 
-                break;
-            }
+                            }
+                        }
+                    }, 30000);
+                }
+            });
         }
-        if (connectedNetworkId == -1) {
-            connectedNetworkId = mWifiMgr.addNetwork(wifiConfig);
-        }
-        final int networkId = connectedNetworkId;
+        final int networkId = mWifiMgr.addNetwork(wifiConfig);
         if (networkId != -1) {
             mWifiMgr.saveConfiguration();
             mWifiMgr.updateNetwork(wifiConfig);
@@ -536,19 +516,6 @@ public class ConfirmationFragment extends SettingsFragment {
                         if (password != null) {
                             mSettings.setSSIDPassword(wifiConfig.SSID, password);
                         }
-                        Activity activity = getActivity();
-                        if (activity != null) {
-                            activity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    String message = getString(R.string.camera_search_message_found);
-                                    message = message.replace("$NAME$", wifiConfig.SSID);
-                                    message = message.replaceAll("\"", "");
-
-                                    mServiceIdView.setText(message);
-                                }
-                            });
-                        }
                     }
                 }
             }).start();
@@ -565,6 +532,29 @@ public class ConfirmationFragment extends SettingsFragment {
      */
     private void turnOnWifi() {
         mWifiMgr.setWifiEnabled(true);
+    }
+
+    @Override
+    public void onConnected(ThetaDevice device) {
+        if (mDialog != null) {
+            mDialog.dismiss();
+            mDialog = null;
+        }
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mServiceIdView.setText(getThetaName());
+                }
+            });
+        }
+
+    }
+
+    @Override
+    public void onDisconnected(ThetaDevice device) {
+        this.onConnected(device);
     }
 
     /**

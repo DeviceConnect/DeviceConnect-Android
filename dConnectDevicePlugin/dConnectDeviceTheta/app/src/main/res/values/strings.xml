@@ -5,18 +5,18 @@
     <string name="device_name_theta_m15">THETA m15</string>
     <string name="theta_ssid_prefix">THETA</string>
     <string name="theta_no_device"></string>
-    <string name="summary_title">[1/5] 概要</string>
+    <string name="summary_title">[1/4] 概要</string>
     <string name="summary_body">THETAとのWiFi接続を行います。\n接続するTHETAの機種を選択してください。</string>
     <string name="description_image_theta">THETA</string>
-    <string name="photo_mode_title">[2/5] 静止画モード</string>
+    <string name="photo_mode_title">[2/4] 静止画モード</string>
     <string name="photo_mode_body_theta_m15">THETAの電源ボタンを押すと写真モードで起動します。\n\n電源がONになると、側面の電源ボタンが青色に点灯します。\n\nこの状態では動画の撮影は行えません。一度電源を切り、次の手順を実行する必要があります。</string>
     <string name="photo_mode_body_theta_s">THETA Sで静止画を撮影する場合は、上図のランプが点灯するまで撮影モードボタンの押下をくり返してください。\n\n動画を撮影する場合は、次のページを参照してください。</string>
-    <string name="movie_mode_title">[3/5] 動画モード</string>
+    <string name="movie_mode_title">[3/4] 動画モード</string>
     <string name="movie_mode_body_theta_m15">WiFiボタンを押しながら、電源ボタンを押すと動画モードで起動します。\n\n電源がONになると、側面の電源ボタンが青色に点滅します。\n\nこの状態では写真の撮影は行えません。一度電源を切り、前の手順を行う必要があります。</string>
     <string name="movie_mode_body_theta_s">THETA Sで動画を撮影する場合は、上図のランプが点灯するまで撮影モードボタンの押下をくり返してください。\n\n静止画を撮影する場合は、前のページを参照してください。</string>
-    <string name="wifi_connection_title">[4/5] THETAとの接続</string>
+    <string name="wifi_connection_title">[4/4] THETAとの接続</string>
     <string name="wifi_connection_body">端末のWiFI設定画面上でWiFIを有効にして、THETAのSSIDを選択します。\n\nパスワードについてはTHETAの底面にある型番を入力してください。</string>
-    <string name="confirmation_title">[5/5] 接続確認</string>
+    <string name="confirmation_title">[4/4] 接続確認</string>
     <string name="confirmation_body">下に表示されているカメラ検索ボタンを押下してください。</string>
     <string name="camera_search_button">カメラ検索</string>
     <string name="theta_confirm_wifi">Wi-Fi接続確認</string>
@@ -77,7 +77,7 @@
     <string name="theta_error_change_mode">切り替えに失敗しました。</string>
     <string name="theta_error_get_mode">切り替えに失敗しました。</string>
     <string name="theta_error_usb_live_streaming">ライブストリーミング中は撮影できません。</string>
-
+    <string name="theta_error_wrong_password">接続がタイムアウトしました。パスワードが間違っています。</string>
     <string name="theta_error_import">THETAデータの取り込みに失敗しました。</string>
 
 </resources>

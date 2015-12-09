@@ -819,9 +819,13 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 return;
             }
             if (mProgress == null) {
-                mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
-                mProgress.show(getActivity().getFragmentManager(),
-                        "fragment_dialog");
+                try {
+                    mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
+                    mProgress.show(getActivity().getFragmentManager(),
+                            "fragment_dialog");
+                } catch (IllegalStateException e) {
+                    return;
+                }
             }
 
             try {

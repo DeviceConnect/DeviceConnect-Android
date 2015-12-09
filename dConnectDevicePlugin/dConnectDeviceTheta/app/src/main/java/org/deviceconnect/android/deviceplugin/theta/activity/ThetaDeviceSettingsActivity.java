@@ -19,7 +19,6 @@ import org.deviceconnect.android.deviceplugin.theta.fragment.MovieModeFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.PhotoModeFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.SettingsFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.SummaryFragment;
-import org.deviceconnect.android.deviceplugin.theta.fragment.WifiConnectionFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 import java.util.List;
@@ -41,7 +40,7 @@ public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActi
         mSummary,
         mPhotoMode,
         mMovieMode,
-        new WifiConnectionFragment(),
+//        new WifiConnectionFragment(),
         new ConfirmationFragment()
     };
 

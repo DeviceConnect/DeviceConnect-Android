@@ -476,7 +476,7 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
                 @Override
                 public void run() {
                     if (mDialog == null) {
-                        mDialog = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
+                        mDialog = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.connecting));
                         mDialog.show(getActivity().getFragmentManager(),
                                 "fragment_dialog");
                     }

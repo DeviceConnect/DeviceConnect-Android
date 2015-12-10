@@ -84,6 +84,7 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     private byte[] mSnapshot;
 
     private boolean mIsScreenSizeMutable;
+    private boolean mIsDestroyTextureOnUpdate;
     private SurfaceListener mSurfaceListener;
 
     /**
@@ -91,6 +92,10 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
      */
     public SphericalViewRenderer() {
         mShell = new UVSphere(DEFAULT_TEXTURE_SHELL_RADIUS, SHELL_DIVIDES);
+    }
+
+    public void setDestroyTextureOnUpdate(boolean flag) {
+        mIsDestroyTextureOnUpdate = flag;
     }
 
     public void setSurfaceListener(final SurfaceListener listener) {
@@ -199,8 +204,8 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
             frontY *= -1;
         }
 
-        Log.d("AAA", "draw: width = " + mScreenWidth + ", height = " + mScreenHeight
-            + ", FOV = " + fov + ", dir = (x:" + frontX + ", y:" + frontY + ", z:" + frontZ + ")");
+//        Log.d("AAA", "draw: width = " + mScreenWidth + ", height = " + mScreenHeight
+//            + ", FOV = " + fov + ", dir = (x:" + frontX + ", y:" + frontY + ", z:" + frontZ + ")");
 
         Matrix.setLookAtM(mViewMatrix, 0, x, y, z, frontX, frontY, frontZ, upX, upY, upZ);
         Matrix.perspectiveM(mProjectionMatrix, 0, fov, getScreenAspect(), Z_NEAR, Z_FAR);
@@ -263,7 +268,17 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
      *
      * @param texture Photo object for texture
      */
-    public void setTexture(Bitmap texture) {
+    public void setTexture(final Bitmap texture) {
+        if (mTexture != null && mIsDestroyTextureOnUpdate) {
+            try {
+                GLES20.glDeleteTextures(1, mTextures, 0);
+                //checkGlError("AAA", "glDeleteTextures");
+                mTexture.recycle();
+                //Log.d("AAA", "DestroyTextureOnUpdate");
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
         mTexture = texture;
         mTextureUpdate = true;
     }

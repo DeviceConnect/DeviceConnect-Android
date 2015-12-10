@@ -10,6 +10,7 @@ public class SphericalImageLiveView extends SphericalImageView {
 
     public SphericalImageLiveView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
+        mRenderer.setDestroyTextureOnUpdate(true);
     }
 
     public void setDeviceManager(final ThetaDeviceManager deviceMgr) {

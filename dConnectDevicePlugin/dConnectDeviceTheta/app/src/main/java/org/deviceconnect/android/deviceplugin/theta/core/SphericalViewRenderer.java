@@ -185,6 +185,9 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         Matrix.setIdentityM(mProjectionMatrix, 0);
 
         if (mTextureUpdate && null != mTexture && !mTexture.isRecycled()) {
+            if (mTextures[0] != 0) {
+                GLES20.glDeleteTextures(1, mTextures, 0);
+            }
             loadTexture(mTexture);
             mTextureUpdate = false;
         }

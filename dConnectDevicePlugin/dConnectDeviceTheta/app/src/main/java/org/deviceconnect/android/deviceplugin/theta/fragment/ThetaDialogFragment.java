@@ -13,6 +13,7 @@ import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.widget.EditText;
 
 import org.deviceconnect.android.deviceplugin.theta.R;
 
@@ -66,6 +67,7 @@ public class ThetaDialogFragment extends DialogFragment {
         new AlertDialog.Builder(activity)
                 .setTitle(title)
                 .setMessage(message)
+                .setCancelable(false)
                 .setPositiveButton(R.string.ok, listener)
                 .show();
     }
@@ -133,5 +135,45 @@ public class ThetaDialogFragment extends DialogFragment {
             .setPositiveButton(R.string.open_settings, positive)
             .setNegativeButton(R.string.button_cancel, negative)
             .show();
+    }
+
+    public static void showSelectCommandDialog(final Activity activity,
+                                               final String[] commands,
+                                               final DialogInterface.OnClickListener selected) {
+        if (activity == null) {
+            return;
+        }
+        new AlertDialog.Builder(activity)
+                .setItems(commands, selected)
+                .show();
+    }
+
+
+    public static void showSelectWifiDialog(final Activity activity,
+                                            final String title,
+                                            final String[] list,
+                                            final DialogInterface.OnClickListener singleChoiceListner,
+                                            final DialogInterface.OnClickListener positiveListener,
+                                            final DialogInterface.OnClickListener negativeListener) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setIcon(android.R.drawable.ic_dialog_alert);
+        builder.setTitle(title);
+        builder.setSingleChoiceItems(list, 0, singleChoiceListner);
+        builder.setPositiveButton(R.string.ok, positiveListener);
+        builder.setNegativeButton(R.string.cancel, negativeListener);
+        builder.setCancelable(true);
+        builder.show();
+    }
+
+    public static void showPasswordDialog(final Activity activity,
+                                          final EditText editView,
+                                    final DialogInterface.OnClickListener okListener,
+                                    final DialogInterface.OnClickListener cancelListener) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setIcon(android.R.drawable.ic_dialog_info);
+        builder.setTitle(R.string.theta_password_dialog);
+        builder.setView(editView).setPositiveButton(R.string.ok, okListener);
+        builder.setNegativeButton(R.string.cancel, cancelListener);
+        builder.show();
     }
 }

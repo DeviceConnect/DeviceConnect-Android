@@ -11,9 +11,9 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
+import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewParam;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewRenderer;
-import org.deviceconnect.android.deviceplugin.theta.roi.OmnidirectionalImage;
-import org.deviceconnect.android.deviceplugin.theta.roi.RoiDeliveryContext;
+import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTracker;
 import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.OmnidirectionalImageProfile;
@@ -23,7 +23,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,7 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfile
-    implements RoiDeliveryContext.OnChangeListener, MixedReplaceMediaServer.ServerEventListener {
+    implements MixedReplaceMediaServer.ServerEventListener {
 
     /**
      * The service ID of ROI Image Service.
@@ -51,17 +50,15 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     private static final List<ParamDefinition> ROI_PARAM_DEFINITIONS;
 
-    private final Object lockObj = new Object();
+    private final Object mLockObj = new Object();
 
     private MixedReplaceMediaServer mServer;
 
-    private Map<String, OmnidirectionalImage> mOmniImages =
-        Collections.synchronizedMap(new HashMap<String, OmnidirectionalImage>());
-
-    private Map<String, RoiDeliveryContext> mRoiContexts =
-        Collections.synchronizedMap(new HashMap<String, RoiDeliveryContext>());
+    private Map<String, Viewer> mViewers = new HashMap<String, Viewer>();
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    private final HeadTracker mHeadTracker;
 
     static {
         List<ParamDefinition> def = new ArrayList<ParamDefinition>();
@@ -115,21 +112,38 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         ROI_PARAM_DEFINITIONS = def;
     }
 
+    public ThetaOmnidirectionalImageProfile(final HeadTracker tracker) {
+        mHeadTracker = tracker;
+    }
+
     @Override
     protected boolean onGetView(final Intent request, final Intent response, final String serviceId,
                                 final String source) {
-        requestView(response, serviceId, source, true);
+        requestView(request, response, serviceId, source, true);
         return false;
     }
 
     @Override
     protected boolean onPutView(final Intent request, final Intent response, final String serviceId,
                                 final String source) {
-        requestView(response, serviceId, source, false);
+        requestView(request, response, serviceId, source, false);
         return false;
     }
 
-    private void requestView(final Intent response, final String serviceId,
+    private String startMediaServer() {
+        synchronized (mLockObj) {
+            if (mServer == null) {
+                mServer = new MixedReplaceMediaServer();
+                mServer.setServerName("ThetaDevicePlugin Server");
+                mServer.setContentType("image/jpeg");
+                mServer.setServerEventListener(ThetaOmnidirectionalImageProfile.this);
+                mServer.start();
+            }
+        }
+        return mServer.getUrl();
+    }
+
+    private void requestView(final Intent request, final Intent response, final String serviceId,
                              final String source, final boolean isGet) {
         mExecutor.execute(new Runnable() {
             @Override
@@ -140,38 +154,56 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                     return;
                 }
                 try {
-                    synchronized (lockObj) {
-                        if (mServer == null) {
-                            mServer = new MixedReplaceMediaServer();
-                            mServer.setServerName("ThetaDevicePlugin Server");
-                            mServer.setContentType("image/jpeg");
-                            mServer.setServerEventListener(ThetaOmnidirectionalImageProfile.this);
-                            mServer.start();
-                        }
+                    final String serverUri = startMediaServer();
+                    final String id = generateId();
+                    final String resourceUri = serverUri + "/" + id;
+                    final String[] outputs = parseOutputs(getOutput(request));
+
+                    Projector projector;
+                    if (isRequiredOverlay(outputs)) {
+                        projector = new OverlayProjector(getContext());
+                    } else if (isRequiredMJPEG(outputs)) {
+                        projector = new DefaultProjector();
+                    } else {
+                        MessageUtils.setInvalidRequestParameterError(response);
+                        ((ThetaDeviceService) getContext()).sendResponse(response);
+                        return;
                     }
 
-                    OmnidirectionalImage omniImage = mOmniImages.get(source);
-                    if (omniImage == null) {
-                        String origin = getContext().getPackageName();
-                        omniImage = new OmnidirectionalImage(source, origin);
-                        mOmniImages.put(source, omniImage);
+                    SphericalViewRenderer renderer = new SphericalViewRenderer();
+                    renderer.setFlipVertical(true);
+                    renderer.setScreenSizeMutable(true);
+                    renderer.setScreenSettings(600, 400, false);
+                    projector.setRenderer(renderer);
+                    if (isRequiredMJPEG(outputs)) {
+                        projector.setScreen(new ProjectionScreen() {
+                            @Override
+                            public void onStart(final Projector projector) {
+                            }
+
+                            @Override
+                            public void onProjected(final Projector projector, byte[] frame) {
+                                mServer.offerMedia(id, frame);
+                            }
+
+                            @Override
+                            public void onStop(final Projector projector) {
+                            }
+                        });
                     }
 
-                    RoiDeliveryContext roiContext = new RoiDeliveryContext(getContext(), omniImage);
-                    String segment = UUID.randomUUID().toString();
-                    String uri = mServer.getUrl() + "/" + segment;
-                    roiContext.setUri(uri);
-                    roiContext.setOnChangeListener(ThetaOmnidirectionalImageProfile.this);
-                    roiContext.changeRendererParam(RoiDeliveryContext.DEFAULT_PARAM, true);
-                    roiContext.renderWithBlocking();
-                    roiContext.startExpireTimer();
-                    mRoiContexts.put(uri, roiContext);
+                    ImageViewer viewer = new ImageViewer(getContext());
+                    viewer.setHeadTracker(mHeadTracker);
+                    viewer.setImage(source);
+                    viewer.setProjector(projector);
+                    viewer.start();
+                    mViewers.put(resourceUri, viewer);
 
                     setResult(response, DConnectMessage.RESULT_OK);
                     if (isGet) {
-                        setURI(response, uri + "?snapshot");
+                        setURI(response, resourceUri + "?snapshot");
                     } else {
-                        setURI(response, uri);
+                        setURI(response, resourceUri);
                     }
                 } catch (MalformedURLException e) {
                     MessageUtils.setInvalidRequestParameterError(response, "uri is malformed: " + source);
@@ -188,6 +220,35 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         });
     }
 
+    private String generateId() {
+        return UUID.randomUUID().toString();
+    }
+
+    private String[] parseOutputs(final String outputParam) {
+        if (outputParam == null) {
+            return new String[]{"overlay", "mjpeg"};
+        }
+        return outputParam.split(",");
+    }
+
+    private boolean isRequiredOverlay(final String[] requiredOutputs) {
+        for (String output : requiredOutputs) {
+            if ("overlay".equals(output)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isRequiredMJPEG(final String[] requiredOutputs) {
+        for (String output : requiredOutputs) {
+            if ("mjpeg".equals(output)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     protected boolean onDeleteView(final Intent request, final Intent response, final String serviceId,
                                    final String uri) {
@@ -199,10 +260,10 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
             MessageUtils.setInvalidRequestParameterError(response, "uri is not specified.");
             return true;
         }
-        RoiDeliveryContext roiContext = mRoiContexts.remove(omitParameters(uri));
-        if (roiContext != null) {
-            roiContext.destroy();
-            mServer.stopMedia(roiContext.getSegment());
+        Viewer viewer = mViewers.remove(omitParameters(uri));
+        if (viewer != null) {
+            viewer.stop();
+            mServer.stopMedia(viewer.getId());
         }
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
@@ -222,66 +283,34 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         if (!validateRequest(request, response)) {
             return true;
         }
-        final RoiDeliveryContext roiContext = mRoiContexts.get(omitParameters(uri));
-        if (roiContext == null) {
+        final Viewer viewer = mViewers.get(omitParameters(uri));
+        if (viewer == null) {
             MessageUtils.setInvalidRequestParameterError(response, "The specified media is not found.");
             return true;
         }
+        viewer.setParameter(parseParam(request));
         setResult(response, DConnectMessage.RESULT_OK);
-
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                RoiDeliveryContext.Param param = parseParam(request);
-                roiContext.changeRendererParam(param, true);
-                byte[] roi = roiContext.renderWithBlocking();
-                mServer.offerMedia(roiContext.getSegment(), roi);
-            }
-        });
         return true;
     }
 
     @Override
     public byte[] onConnect(final MixedReplaceMediaServer.Request request) {
-        final String uri = request.getUri();
-        final RoiDeliveryContext target = mRoiContexts.get(uri);
-        if (target == null) {
-            return null;
-        }
-        if (request.isGet()) {
-            target.restartExpireTimer();
-        } else {
-            target.stopExpireTimer();
-            target.startDeliveryTimer();
-        }
-        return target.getRoi();
+        return null;
     }
 
     @Override
     public void onDisconnect(final MixedReplaceMediaServer.Request request) {
         if (!request.isGet()) {
-            RoiDeliveryContext roiContext = mRoiContexts.remove(request.getUri());
-            if (roiContext != null) {
-                roiContext.destroy();
+            Viewer viewer = mViewers.remove(request.getUri());
+            if (viewer != null) {
+                viewer.stop();
             }
         }
     }
 
     @Override
     public void onCloseServer() {
-        mRoiContexts.clear();
-    }
-
-    @Override
-    public void onUpdate(final RoiDeliveryContext roiContext, final byte[] roi) {
-        mServer.offerMedia(roiContext.getSegment(), roi);
-    }
-
-    @Override
-    public void onExpire(final RoiDeliveryContext roiContext) {
-        mServer.stopMedia(roiContext.getSegment());
-        mRoiContexts.remove(roiContext.getUri());
-        roiContext.destroy();
+        mViewers.clear();
     }
 
     private boolean checkServiceId(final String serviceId) {
@@ -302,7 +331,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         return uri;
     }
 
-    private RoiDeliveryContext.Param parseParam(final Intent request) {
+    private SphericalViewParam parseParam(final Intent request) {
         Double x = getX(request);
         Double y = getY(request);
         Double z = getZ(request);
@@ -316,7 +345,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         Boolean stereo = getStereo(request);
         Boolean vr = getVR(request);
 
-        RoiDeliveryContext.Param param = new RoiDeliveryContext.Param();
+        SphericalViewParam param = new SphericalViewParam();
         if (x != null) {
             param.setCameraX(x);
         }
@@ -326,32 +355,32 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         if (z != null) {
             param.setCameraZ(z);
         }
-        if (roll != null && !param.isVrMode()) {
+        if (roll != null && !param.isVRMode()) {
             param.setCameraRoll(roll);
         }
-        if (pitch != null && !param.isVrMode()) {
+        if (pitch != null && !param.isVRMode()) {
             param.setCameraPitch(pitch);
         }
-        if (yaw != null && !param.isVrMode()) {
+        if (yaw != null && !param.isVRMode()) {
             param.setCameraYaw(yaw);
         }
         if (fov != null) {
-            param.setCameraFov(fov);
+            param.setFOV(fov);
         }
         if (sphereSize != null) {
             param.setSphereSize(sphereSize);
         }
         if (width != null) {
-            param.setImageWidth(width);
+            param.setWidth(width);
         }
         if (height != null) {
-            param.setImageHeight(height);
+            param.setHeight(height);
         }
         if (stereo != null) {
-            param.setStereoMode(stereo);
+            param.setStereo(stereo);
         }
         if (vr != null) {
-            param.setVrMode(vr);
+            param.setVRMode(vr);
         }
         return param;
     }
@@ -454,7 +483,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                 }
             }
             if (value instanceof Double) {
-                if (validateRange(((Double) value).doubleValue())) {
+                if (validateRange((Double) value)) {
                     return true;
                 } else {
                     MessageUtils.setInvalidRequestParameterError(response, mName + " is out of range.");
@@ -478,14 +507,11 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         }
 
         private boolean validateRange(double value) {
-            if (mRange == null) {
-                return true;
-            }
-            return mRange.validate(value);
+            return mRange == null || mRange.validate(value);
         }
     }
 
-    private static interface DoubleParamRange {
+    private interface DoubleParamRange {
         boolean validate(double value);
     }
 }

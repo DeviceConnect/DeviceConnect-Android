@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.theta.activity.view;
+package org.deviceconnect.android.deviceplugin.theta.view;
 
 import android.content.Context;
 import android.graphics.drawable.AnimationDrawable;

@@ -13,7 +13,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.KeyEvent;
 
-import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaShootingModeFragment;
+import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaShootingFragment;
 import org.deviceconnect.android.deviceplugin.theta.fragment.ThetaVRModeFragment;
 
 /**
@@ -32,6 +32,12 @@ public class ThetaFeatureActivity extends FragmentActivity {
      * Theta Picture data.
      */
     public static final String FEATURE_DATA = "org.deviceconnect.android.theta.feature.DATA";
+    /**
+     * Theta Storage Flag.<br>
+     * true:storage<br>
+     * false:theta<br>
+     */
+    public static final String FEATURE_IS_STORAGE = "org.deviceconnect.android.theta.feature.STORAGE";
 
     /**
      * Mode VR.
@@ -50,7 +56,8 @@ public class ThetaFeatureActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         mMode = getIntent().getIntExtra(FEATURE_MODE, -1);
         int dataId = getIntent().getIntExtra(FEATURE_DATA, -1);
-        startApp(mMode, dataId);
+        boolean isStorage = getIntent().getBooleanExtra(FEATURE_IS_STORAGE, false);
+        startApp(mMode, dataId, isStorage);
     }
 
     @Override
@@ -70,26 +77,30 @@ public class ThetaFeatureActivity extends FragmentActivity {
     @Override
     public void onResume() {
         super.onResume();
-        if (mMode == MODE_SHOOTING) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-        } else if (mMode == MODE_VR) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        }
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
     }
 
     /**
      * Move Page.
      * @param pageId pageId
      * @param dataId Theta Data Id
+     * @param isStorage true:storage false:theta
      */
-    public void startApp(final int pageId, final int dataId) {
+    public void startApp(final int pageId, final int dataId, final boolean isStorage) {
         if (pageId == MODE_SHOOTING) {
-            ThetaShootingModeFragment f = new ThetaShootingModeFragment();
+            ThetaShootingFragment f = new ThetaShootingFragment();
             moveFragment(f);
         } else if (pageId == MODE_VR) {
             ThetaVRModeFragment f = ThetaVRModeFragment.newInstance();
             Bundle args = new Bundle();
             args.putInt(FEATURE_DATA, dataId);
+            args.putBoolean(FEATURE_IS_STORAGE, isStorage);
             f.setArguments(args);
             moveFragment(f);
         }

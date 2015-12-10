@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.theta.core;
 
 
-import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -10,7 +9,14 @@ import java.util.List;
  * Provides APIs to access features of THETA Device. These APIs return a value synchronously.
  * </p>
  */
-public interface ThetaDevice {
+public interface ThetaDevice extends LiveCamera {
+
+    /**
+     * Gets the identifier of this THETA device.
+     *
+     * @return the identifier of this THETA device
+     */
+    String getId();
 
     /**
      * Gets the name of this THETA device.
@@ -48,7 +54,7 @@ public interface ThetaDevice {
      * Fetches a list of objects stored in this THETA device.
      *
      * <p>
-     * If THETA device has no objectin in the specified range, this method returns a 0-length list.
+     * If THETA device has no object in the specified range, this method returns a 0-length list.
      * </p>
      *
      * <p>
@@ -94,6 +100,13 @@ public interface ThetaDevice {
     void stopVideoRecording() throws ThetaDeviceException;
 
     /**
+     * Return maximum length of video recording as milliseconds.
+     *
+     * @return Maximum length of video recording as milliseconds
+     */
+    long getMaxVideoLength();
+
+    /**
      * Gets the battery level of THETA device.
      *
      * <p>
@@ -106,6 +119,14 @@ public interface ThetaDevice {
     double getBatteryLevel() throws ThetaDeviceException;
 
     /**
+     * Gets current shooting mode.
+     *
+     * @return current shooting mode
+     * @throws ThetaDeviceException if the API execution is failed.
+     */
+    ShootingMode getShootingMode() throws ThetaDeviceException;
+
+    /**
      * Changes shooting mode.
      *
      * @param mode shooting mode
@@ -115,16 +136,17 @@ public interface ThetaDevice {
     void changeShootingMode(ShootingMode mode) throws ThetaDeviceException;
 
     /**
-     * Gets an input stream of Live Preview.
+     * Gets the recorder information of this THETA device.
      *
-     * <p>
-     * Format: MotionJPEG
-     * </p>
-     *
-     * @return an input stream of Live Preview
+     * @return the recorder information of this THETA device
      * @throws ThetaDeviceException if the API execution is failed.
      */
-    InputStream getLivePreview() throws ThetaDeviceException;
+    Recorder getRecorder() throws ThetaDeviceException;
+
+    /**
+     * Release objects or any other resources.
+     */
+    void destroy();
 
     /**
      * Shooting mode.
@@ -132,14 +154,55 @@ public interface ThetaDevice {
     enum ShootingMode {
 
         /**
-         * Image shooting mode.
+         * Image shooting mode (one-shot).
          */
         IMAGE,
 
         /**
+         * Image shooting mode (interval).
+         */
+        IMAGE_INTERVAL,
+
+        /**
          * Video shooting mode.
          */
-        VIDEO
+        VIDEO,
+
+        /**
+         * Live streaming mode.
+         */
+        LIVE_STREAMING,
+
+        /**
+         * Unknown mode.
+         */
+        UNKNOWN
+
+    }
+
+    interface Recorder {
+
+        String getId();
+
+        String getName();
+
+        String getMimeType();
+
+        int getImageWidth();
+
+        int getImageHeight();
+
+        RecorderState getState() throws ThetaDeviceException;
+
+    }
+
+    enum RecorderState {
+
+        INACTIVE,
+
+        RECORDING,
+
+        UNKNOWN
 
     }
 

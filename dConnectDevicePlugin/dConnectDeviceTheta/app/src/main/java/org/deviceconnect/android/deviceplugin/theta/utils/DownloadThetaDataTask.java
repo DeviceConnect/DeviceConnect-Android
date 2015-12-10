@@ -29,5 +29,6 @@ public class DownloadThetaDataTask extends AsyncTask<DownloadThetaDataTask.Theta
             result.onPostExecute();
         }
     }
+
 }
 

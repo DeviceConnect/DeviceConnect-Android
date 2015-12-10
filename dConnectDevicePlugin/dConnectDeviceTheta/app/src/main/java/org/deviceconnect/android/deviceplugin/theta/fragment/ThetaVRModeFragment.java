@@ -13,10 +13,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.StatFs;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.util.LruCache;
@@ -43,6 +41,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceManager;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
+import org.deviceconnect.android.deviceplugin.theta.data.ThetaObjectStorage;
 import org.deviceconnect.android.deviceplugin.theta.utils.DownloadThetaDataTask;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -63,8 +62,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class ThetaVRModeFragment extends Fragment {
 
-    /** THETA Device Plug-in apk limit size. */
-    private static final int LIMIT_APK_SIZE = 100;
 
     /** SphericalView Max fov.*/
     private static final int MAX_FOV = 90;
@@ -72,8 +69,6 @@ public class ThetaVRModeFragment extends Fragment {
     /** SphericalView Min fov.*/
     private static final int MIN_FOV = 45;
 
-    /** VR Mode Left Layout. */
-    private RelativeLayout mLeftLayout;
 
     /** VR Mode Right Layout.*/
     private RelativeLayout mRightLayout;
@@ -86,8 +81,6 @@ public class ThetaVRModeFragment extends Fragment {
 
     /** SphericalView. */
     private SphericalImageView mSphereView;
-    /** SphericalViewApi. */
-    private SphericalViewApi mApi;
 
     /** Stereo Flag. */
     private boolean mIsStereo = false;
@@ -101,12 +94,17 @@ public class ThetaVRModeFragment extends Fragment {
     /** Default VR. */
     private int mDefaultId;
 
+    /** Is Storage. */
+    private boolean mIsStorage;
+
     /** Scale Gesture.*/
     private ScaleGestureDetector mScaleDetector;
     /** Scale factor. */
     private float mScaleFactor = 90.0f;
 
     private LruCache<String, byte[]> mDataCache;
+
+    private ThetaObjectStorage mStorage;
     /**
      * Singleton.
      */
@@ -153,7 +151,7 @@ public class ThetaVRModeFragment extends Fragment {
             if (mProgress != null) {
                 mProgress.dismiss();
             }
-            mProgress = ThetaDialogFragment.newInstance("THETA", "保存中");
+            mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.saving));
             mProgress.show(getActivity().getFragmentManager(),
                     "fragment_dialog");
             mExecutorService.schedule(new Runnable() {
@@ -171,21 +169,22 @@ public class ThetaVRModeFragment extends Fragment {
 
         if (args != null) {
             mDefaultId = args.getInt(ThetaFeatureActivity.FEATURE_DATA, -1);
+            mIsStorage = args.getBoolean(ThetaFeatureActivity.FEATURE_IS_STORAGE);
         }
     }
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
+        mStorage = new ThetaObjectStorage(getContext());
         setRetainInstance(true);
         ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
         mDataCache = app.getCache();
         View rootView = inflater.inflate(R.layout.theta_vr_mode, null);
-        mLeftLayout = (RelativeLayout) rootView.findViewById(R.id.left_ui);
         mRightLayout = (RelativeLayout) rootView.findViewById(R.id.right_ui);
         mSphereView = (SphericalImageView) rootView.findViewById(R.id.vr_view);
 
-        mApi = app.getSphericalViewApi();
-        mSphereView.setViewApi(mApi);
+        SphericalViewApi api = app.getSphericalViewApi();
+        mSphereView.setViewApi(api);
 
         mSphereView.setOnTouchListener(new View.OnTouchListener() {
 
@@ -237,7 +236,7 @@ public class ThetaVRModeFragment extends Fragment {
         super.onResume();
         if (mDownloadTask == null) {
             if (mProgress == null) {
-                mProgress = ThetaDialogFragment.newInstance("THETA", "読み込み中...");
+                mProgress = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.loading));
                 mProgress.show(getActivity().getFragmentManager(),
                         "fragment_dialog");
             }
@@ -263,11 +262,6 @@ public class ThetaVRModeFragment extends Fragment {
             mDownloadTask = null;
         }
         super.onPause();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
     }
 
     public void onConfigurationChanged(final Configuration newConfig) {
@@ -364,7 +358,7 @@ public class ThetaVRModeFragment extends Fragment {
             @Override
             public void onSuccess() {
                 Activity activity = getActivity();
-                if (activity != null && !hasEnoughStorageSize(LIMIT_APK_SIZE)) {
+                if (activity != null && !ThetaObjectStorage.hasEnoughStorageSize()) {
                     if (mProgress != null) {
                         mProgress.dismiss();
                         mProgress = null;
@@ -380,7 +374,6 @@ public class ThetaVRModeFragment extends Fragment {
                     });
                     return;
                 }
-
                 String root = Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera/";
                 File dir = new File(root);
                 if (!dir.exists()) {
@@ -493,27 +486,7 @@ public class ThetaVRModeFragment extends Fragment {
                 getResources().getString(R.string.theta_error_failed_save_file), null);
     }
 
-    /**
-     * Check Android Storage size.
-     * @param minSize Storage size(MB)
-     * @return Return a false if true, otherwise there is a minimum required value or more free
-     */
-    private boolean hasEnoughStorageSize(final int minSize) {
-        StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
-        float total = 1.0f;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            total = stat.getTotalBytes();
-        } else {
-            total = (float) stat.getBlockSize() * stat.getAvailableBlocks();
-        }
-        int v = (int) (total / (1024.f * 1024.f));
-        if(BuildConfig.DEBUG) {
-            if(v < minSize) {
-                Log.e("AAA", "hasEnoughStorageSize is less than " + minSize + ", rest size =" + v);
-            }
-        }
-        return v >= minSize;
-    }
+
     /**
      * Donwload of data.
      */
@@ -532,11 +505,28 @@ public class ThetaVRModeFragment extends Fragment {
             ThetaDeviceApplication app = (ThetaDeviceApplication) getActivity().getApplication();
             ThetaDeviceManager deviceMgr = app.getDeviceManager();
             mDevice = deviceMgr.getConnectedDevice();
-            if (mDevice != null) {
+            if (!mIsStorage && mDevice != null) {
                 try {
                     List<ThetaObject> list = mDevice.fetchAllObjectList();
                     mObj = list.get(mDefaultId);
                     mSphericalBinary = mDataCache.get(mDevice.getName() + "_" + mObj.getFileName());
+                    if (mSphericalBinary == null) {
+                        mObj.fetch(ThetaObject.DataType.MAIN);
+                        mSphericalBinary = mObj.getMainData();
+                        mObj.clear(ThetaObject.DataType.MAIN);
+                    }
+                } catch (ThetaDeviceException e) {
+                    e.printStackTrace();
+                    mError = e.getReason();
+                    mSphericalBinary = null;
+                } catch (OutOfMemoryError e) {
+                    mError = ThetaDeviceException.OUT_OF_MEMORY;
+                }
+            } else if (mIsStorage) {
+                try {
+                    List<ThetaObject> list = mStorage.geThetaObjectCaches(null);
+                    mObj = list.get(mDefaultId);
+                    mSphericalBinary = mDataCache.get("Android_" + mObj.getFileName());
                     if (mSphericalBinary == null) {
                         mObj.fetch(ThetaObject.DataType.MAIN);
                         mSphericalBinary = mObj.getMainData();
@@ -563,7 +553,7 @@ public class ThetaVRModeFragment extends Fragment {
 
             if (mSphericalBinary == null) {
                 if (mError == ThetaDeviceException.OUT_OF_MEMORY) {
-                    ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                    ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                             getString(R.string.theta_error_memory_warning),
                             new DialogInterface.OnClickListener() {
                                 @Override
@@ -579,8 +569,12 @@ public class ThetaVRModeFragment extends Fragment {
                     showDisconnectionDialog();
                 }
             } else {
-                if (mDevice != null && mObj != null) {
-                    mDataCache.put(mDevice.getName() + "_" + mObj.getFileName(),
+                if (mObj != null) {
+                    String device = "Android";
+                    if (mDevice != null) {
+                        device = mDevice.getName();
+                    }
+                    mDataCache.put(device + "_" + mObj.getFileName(),
                             mSphericalBinary);
                 }
                 if (mSphereView != null) {
@@ -588,7 +582,7 @@ public class ThetaVRModeFragment extends Fragment {
                         mSphereView.onResume();
                         mSphereView.start(mSphericalBinary);
                     } catch (OutOfMemoryError e) {
-                        ThetaDialogFragment.showAlert(getActivity(), "THETA",
+                        ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
                                 getString(R.string.theta_error_memory_warning),
                                 new DialogInterface.OnClickListener() {
                                     @Override

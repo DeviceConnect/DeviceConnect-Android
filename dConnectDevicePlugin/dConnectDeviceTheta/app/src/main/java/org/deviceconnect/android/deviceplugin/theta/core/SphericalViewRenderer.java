@@ -8,7 +8,6 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.opengl.model.UVSphere;
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
 import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
@@ -34,7 +33,7 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
      */
     private static final int SHELL_DIVIDES = 40;
 
-    private final String VSHADER_SRC =
+    private static final String VSHADER_SRC =
         "attribute vec4 aPosition;\n" +
             "attribute vec2 aUV;\n" +
             "uniform mat4 uProjection;\n" +
@@ -46,7 +45,7 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
             "  vUV = aUV;\n" +
             "}\n";
 
-    private final String FSHADER_SRC =
+    private static final String FSHADER_SRC =
         "precision mediump float;\n" +
             "varying vec2 vUV;\n" +
             "uniform sampler2D uTex;\n" +
@@ -57,16 +56,16 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     public static final float Z_NEAR = 0.1f;
     public static final float Z_FAR = 1000.0f;
 
-    private int mScreenWidth;
-    private int mScreenHeight;
-    private boolean mIsStereo;
+    protected int mScreenWidth;
+    protected int mScreenHeight;
+    protected boolean mIsStereo;
     private Camera mCamera = new Camera();
     private boolean mFlipVertical;
 
     private UVSphere mShell;
 
-    private Bitmap mTexture;
-    private boolean mTextureUpdate = false;
+    protected Bitmap mTexture;
+    protected boolean mTextureUpdate = false;
     private int[] mTextures = new int[1];
 
     private int mPositionHandle;
@@ -80,15 +79,27 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     private final float[] mViewMatrix = new float[16];
     private final float[] mModelMatrix = new float[16];
     
-    private Object mLockObj = new Object();
+    private final Object mLockObj = new Object();
     private boolean mIsWaitingSnapshot;
     private byte[] mSnapshot;
+
+    private boolean mIsScreenSizeMutable;
+    private boolean mIsDestroyTextureOnUpdate;
+    private SurfaceListener mSurfaceListener;
 
     /**
      * Constructor.
      */
     public SphericalViewRenderer() {
         mShell = new UVSphere(DEFAULT_TEXTURE_SHELL_RADIUS, SHELL_DIVIDES);
+    }
+
+    public void setDestroyTextureOnUpdate(boolean flag) {
+        mIsDestroyTextureOnUpdate = flag;
+    }
+
+    public void setSurfaceListener(final SurfaceListener listener) {
+        mSurfaceListener = listener;
     }
 
     public void setFlipVertical(final boolean isFlip) {
@@ -146,13 +157,13 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
 
         if (mIsStereo) {
             Camera[] cameras = mCamera.getCamerasForStereo(DISTANCE_EYES);
-            int halfWidth = mScreenWidth / 2;
-            GLES20.glViewport(0, 0, halfWidth, mScreenHeight);
+            int halfWidth = getScreenWidth() / 2;
+            GLES20.glViewport(0, 0, halfWidth, getScreenHeight());
             draw(cameras[0]);
-            GLES20.glViewport(halfWidth, 0, halfWidth, mScreenHeight);
+            GLES20.glViewport(halfWidth, 0, halfWidth, getScreenHeight());
             draw(cameras[1]);
         } else {
-            GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);
+            GLES20.glViewport(0, 0, getScreenWidth(), getScreenHeight());
             draw(mCamera);
         }
 
@@ -162,6 +173,10 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
                 mLockObj.notifyAll();
             }
         }
+    }
+
+    public void requestToUpdateTexture() {
+        mTextureUpdate = true;
     }
 
     private void draw(final Camera camera) {
@@ -183,13 +198,17 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         float upX = camera.getUpperDirection().x();
         float upY = camera.getUpperDirection().y();
         float upZ = camera.getUpperDirection().z();
+        float fov = camera.mFovDegree;
 
         if (mFlipVertical) {
             frontY *= -1;
         }
 
+//        Log.d("AAA", "draw: width = " + mScreenWidth + ", height = " + mScreenHeight
+//            + ", FOV = " + fov + ", dir = (x:" + frontX + ", y:" + frontY + ", z:" + frontZ + ")");
+
         Matrix.setLookAtM(mViewMatrix, 0, x, y, z, frontX, frontY, frontZ, upX, upY, upZ);
-        Matrix.perspectiveM(mProjectionMatrix, 0, camera.mFovDegree, getScreenAspect(), Z_NEAR, Z_FAR);
+        Matrix.perspectiveM(mProjectionMatrix, 0, fov, getScreenAspect(), Z_NEAR, Z_FAR);
 
         GLES20.glUniformMatrix4fv(mModelMatrixHandle, 1, false, mModelMatrix, 0);
         GLES20.glUniformMatrix4fv(mProjectionMatrixHandle, 1, false, mProjectionMatrix, 0);
@@ -210,11 +229,8 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
      */
     @Override
     public void onSurfaceChanged(final GL10 gl10, final int width, final int height) {
-        if (BuildConfig.DEBUG) {
-            Log.i("AAA", "onSurfaceChanged: width = " + width + ", height = " + height);
-        }
-        setScreenWidth(width);
-        setScreenHeight(height);
+        mScreenWidth = width;
+        mScreenHeight = height;
     }
 
     /**
@@ -252,7 +268,17 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
      *
      * @param texture Photo object for texture
      */
-    public void setTexture(Bitmap texture) {
+    public void setTexture(final Bitmap texture) {
+        if (mTexture != null && mIsDestroyTextureOnUpdate) {
+            try {
+                GLES20.glDeleteTextures(1, mTextures, 0);
+                //checkGlError("AAA", "glDeleteTextures");
+                mTexture.recycle();
+                //Log.d("AAA", "DestroyTextureOnUpdate");
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
         mTexture = texture;
         mTextureUpdate = true;
     }
@@ -308,26 +334,46 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         return mScreenWidth;
     }
 
-    public void setScreenWidth(final int screenWidth) {
-        mScreenWidth = screenWidth;
-    }
-
     public int getScreenHeight() {
         return mScreenHeight;
     }
 
-    public void setScreenHeight(final int screenHeight) {
-        mScreenHeight = screenHeight;
+    public boolean isStereo() {
+        return mIsStereo;
+    }
+
+    public void setScreenSettings(final int width, final int height, final boolean isStereo) {
+        boolean isChanged = false;
+        if (isScreenSizeMutable()) {
+            if (mScreenWidth != width || mScreenHeight != height) {
+                isChanged = true;
+            }
+            mScreenWidth = width;
+            mScreenHeight = height;
+        }
+
+        if (mIsStereo != isStereo) {
+            isChanged = true;
+        }
+        mIsStereo = isStereo;
+
+        if (isChanged && mSurfaceListener != null) {
+            mSurfaceListener.onSurfaceChanged(width, height, isStereo);
+        }
+    }
+
+    public void setScreenSizeMutable(final boolean isMutable) {
+        mIsScreenSizeMutable = isMutable;
+    }
+
+    public boolean isScreenSizeMutable() {
+        return mIsScreenSizeMutable;
     }
 
     public void setSphereRadius(final float radius) {
         if (radius != mShell.getRadius()) {
             mShell = new UVSphere(radius, SHELL_DIVIDES);
         }
-    }
-
-    public void setStereoMode(final boolean isStereo) {
-        mIsStereo = isStereo;
     }
 
     public Camera getCamera() {
@@ -479,5 +525,11 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
                 rightCamera.create()
             };
         }
+    }
+
+    public interface SurfaceListener {
+
+        void onSurfaceChanged(final int width, final int height, final boolean isStereo);
+
     }
 }

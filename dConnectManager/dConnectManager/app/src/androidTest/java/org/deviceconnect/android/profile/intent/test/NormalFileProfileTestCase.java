@@ -7,9 +7,7 @@
 package org.deviceconnect.android.profile.intent.test;
 
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Parcelable;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -20,12 +18,6 @@ import org.deviceconnect.profile.FileProfileConstants;
 import org.deviceconnect.profile.FileProfileConstants.FileType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 
 
@@ -173,14 +165,11 @@ public class NormalFileProfileTestCase extends IntentDConnectTestCase {
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileProfileConstants.ATTRIBUTE_SEND);
         request.putExtra(FileProfileConstants.PARAM_PATH, TestFileProfileConstants.PATH);
         request.putExtra(FileProfileConstants.PARAM_FILE_TYPE, FileType.FILE.getValue());
-        try {
-            String uri = saveAssetFile(name);
-            request.putExtra(FileProfileConstants.PARAM_URI, uri);
-            Intent response = sendRequest(request);
-            assertResultOK(response);
-        } catch (IOException e) {
-            fail();
-        }
+
+        String uri = getContentProviderFileUri(name);
+        request.putExtra(FileProfileConstants.PARAM_URI, uri);
+        Intent response = sendRequest(request);
+        assertResultOK(response);
     }
 
     /**
@@ -212,27 +201,9 @@ public class NormalFileProfileTestCase extends IntentDConnectTestCase {
      * assetsフォルダ内のファイルをアプリ領域に保存する.
      * 
      * @param name assetファイル名
-     * @throws IOException ファイルの保存に失敗した場合
      * @return URIを示す文字列
      */
-    private String saveAssetFile(final String name) throws IOException {
-        AssetManager manager = getApplicationContext().getAssets();
-        InputStream is = manager.open(name);
-        File file = new File(Environment.getExternalStorageDirectory(), name);
-        if (!file.exists()) {
-            if (!file.createNewFile()) {
-                fail("Failed to create file: " + name);
-            }
-        }
-        OutputStream os = new FileOutputStream(file);
-        int len;
-        byte[] buf = new byte[BUF_SIZE];
-        while ((len = is.read(buf)) > 0) {
-            os.write(buf, 0, len);
-            os.flush();
-        }
-        os.close();
-        is.close();
+    private String getContentProviderFileUri(final String name) {
         return "content://org.deviceconnect.android.test.file/" + name;
     }
 }

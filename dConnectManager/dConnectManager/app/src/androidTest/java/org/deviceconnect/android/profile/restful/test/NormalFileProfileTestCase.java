@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.profile.restful.test;
 
-import android.content.res.AssetManager;
 import android.support.test.runner.AndroidJUnit4;
 
 import junit.framework.Assert;
@@ -15,7 +14,6 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.mime.MultipartEntity;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
@@ -26,9 +24,8 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Fileプロファイルの正常系テスト.
@@ -159,38 +156,17 @@ public class NormalFileProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(FileProfileConstants.PARAM_FILE_TYPE,
                 String.valueOf(FileProfileConstants.FileType.FILE.getValue()));
 
-        AssetManager manager = getApplicationContext().getAssets();
-        InputStream in = null;
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(FileProfileConstants.PARAM_DATA, data);
         try {
-            MultipartEntity entity = new MultipartEntity();
-            in = manager.open(name);
-            // ファイルのデータを読み込む
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            int len;
-            byte[] buf = new byte[BUF_SIZE];
-            while ((len = in.read(buf)) > 0) {
-                baos.write(buf, 0, len);
-            }
-            // ボディにデータを追加
-            entity.addPart(FileProfileConstants.PARAM_DATA, new BinaryBody(baos.toByteArray(), name));
-
-            HttpPost request = new HttpPost(builder.toString());
-            request.setEntity(entity);
-
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
+            JSONObject response = sendRequest("POST", builder.toString(), null, body);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
-            fail("IOException in JSONObject." + e.getMessage());
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 

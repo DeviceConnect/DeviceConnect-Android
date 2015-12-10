@@ -7,20 +7,12 @@
 package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.io.UnsupportedEncodingException;
 
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.StringBody;
 import org.deviceconnect.android.test.plugin.profile.TestFileDescriptorProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.DConnectMessage.ErrorCode;
@@ -30,6 +22,12 @@ import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -1015,18 +1013,16 @@ public class FailFileDescriptorProfileTestCase extends RESTfulDConnectTestCase {
                 TestFileDescriptorProfileConstants.PATH);
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("media", "test".getBytes());
         try {
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart("media", new StringBody("test"));
-            HttpPut request = new HttpPut(builder.toString());
-            request.addHeader("Content-Disposition", "form-data; name=\"media\"; filename=\"test.txt\"");
-            request.setEntity(entity);
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
+            JSONObject response = sendRequest("PUT", builder.build().toString(), null, body);
+            assertResultOK(response);
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (UnsupportedEncodingException e) {
-            fail("Exception in StringBody." + e.getMessage());
+            fail("Failed to parse JSON: " + e.getMessage());
+        } catch (URISyntaxException e) {
+            fail("Failed to create uri: " + e.getMessage());
         }
     }
 

@@ -6,15 +6,12 @@
  */
 package org.deviceconnect.android.profile.restful.test;
 
-import android.content.res.AssetManager;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.mime.MultipartEntity;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
@@ -26,9 +23,9 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * dConnectManagerの負荷テスト.
@@ -39,9 +36,6 @@ public class StressTestCase extends RESTfulDConnectTestCase {
 
     /** リクエストの連続送信回数. */
     private static final int REQUEST_COUNT = 1000;
-
-    /** バッファサイズを定義. */
-    private static final int BUF_SIZE = 4096;
 
     /**
      * 負荷テストを実行する.
@@ -78,15 +72,22 @@ public class StressTestCase extends RESTfulDConnectTestCase {
      */
     @Test
     public void testStressTestDConnectManagerProfileFileSend() throws IOException  {
+        final String name = "test.png";
         URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(SystemProfileConstants.PROFILE_NAME);
-        builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-        HttpUriRequest request = createFileSendRequest();
+        builder.setProfile(FileProfileConstants.PROFILE_NAME);
+        builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
+        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
+        builder.addParameter(FileProfileConstants.PARAM_PATH, "/test/test.png");
+
+        Map<String, Object> body = new HashMap<>();
+        body.put(FileProfileConstants.PARAM_DATA, getBytesFromAssets(name));
+
         try {
             JSONObject[] responses = new JSONObject[REQUEST_COUNT];
             for (int i = 0; i < responses.length; i++) {
                 // リクエスト送信間隔をできるだけ短くするために、レスポンスのチェックは後まわしにする.
-                responses[i] = sendRequest(request);
+                responses[i] = sendRequest("POST", builder.toString(), null, body);
             }
             for (int i = 0; i < responses.length; i++) {
                 assertResultOK(responses[i]);
@@ -236,49 +237,6 @@ public class StressTestCase extends RESTfulDConnectTestCase {
             }
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
-        }
-    }
-
-    /**
-     * Create File Send Request.
-     * @return HTTP URI Request
-     * @throws IOException IO Exception
-     */
-    private HttpUriRequest createFileSendRequest() throws IOException {
-        final String name = "test.png";
-        URIBuilder builder = TestURIBuilder.createURIBuilder();
-        builder.setProfile(FileProfileConstants.PROFILE_NAME);
-        builder.setAttribute(FileProfileConstants.ATTRIBUTE_SEND);
-        builder.addParameter(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-        builder.addParameter(DConnectMessage.EXTRA_ACCESS_TOKEN, getAccessToken());
-        builder.addParameter(FileProfileConstants.PARAM_PATH, "/test/test.png");
-
-        AssetManager manager = getApplicationContext().getAssets();
-        InputStream in = null;
-        try {
-            MultipartEntity entity = new MultipartEntity();
-            in = manager.open(name);
-            // ファイルのデータを読み込む
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            int len;
-            byte[] buf = new byte[BUF_SIZE];
-            while ((len = in.read(buf)) > 0) {
-                baos.write(buf, 0, len);
-            }
-            // ボディにデータを追加
-            entity.addPart(FileProfileConstants.PARAM_DATA, new BinaryBody(baos.toByteArray(), name));
-
-            HttpPost request = new HttpPost(builder.toString());
-            request.setEntity(entity);
-            return request;
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
     

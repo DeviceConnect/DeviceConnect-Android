@@ -7,9 +7,7 @@
 package org.deviceconnect.android.profile.intent.test;
 
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.deviceconnect.android.test.plugin.profile.TestFileDescriptorProfileConstants;
@@ -19,12 +17,7 @@ import org.deviceconnect.profile.FileDescriptorProfileConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 
 
 /**
@@ -137,7 +130,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         Intent response = sendRequest(request);
         assertResultOK(response);
         assertTrue(response.hasExtra(FileDescriptorProfileConstants.PARAM_SIZE));
-        assertEquals(TestFileDescriptorProfileConstants.BYTE, 
+        assertEquals(TestFileDescriptorProfileConstants.BYTE,
                 response.getIntExtra(FileDescriptorProfileConstants.PARAM_SIZE, -1));
         assertTrue(response.hasExtra(FileDescriptorProfileConstants.PARAM_FILE_DATA));
     }
@@ -177,7 +170,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
 
         assertResultOK(response);
         assertTrue(response.hasExtra(FileDescriptorProfileConstants.PARAM_SIZE));
-        assertEquals(TestFileDescriptorProfileConstants.BYTE, 
+        assertEquals(TestFileDescriptorProfileConstants.BYTE,
                 response.getIntExtra(FileDescriptorProfileConstants.PARAM_SIZE, -1));
         assertTrue(response.hasExtra(FileDescriptorProfileConstants.PARAM_FILE_DATA));
     }
@@ -209,7 +202,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_WRITE);
         request.putExtra(FileDescriptorProfileConstants.PARAM_PATH, TestFileDescriptorProfileConstants.PATH);
-        String uri = saveAssetFile("test.png");
+        String uri = getContentProviderFileUri("test.png");
         request.putExtra(FileDescriptorProfileConstants.PARAM_URI, uri);
         Intent response = sendRequest(request);
         assertResultOK(response);
@@ -243,7 +236,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         request.putExtra(DConnectMessage.EXTRA_PROFILE, FileDescriptorProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, FileDescriptorProfileConstants.ATTRIBUTE_WRITE);
         request.putExtra(FileDescriptorProfileConstants.PARAM_PATH, TestFileDescriptorProfileConstants.PATH);
-        String uri = saveAssetFile("test.png");
+        String uri = getContentProviderFileUri("test.png");
         request.putExtra(FileDescriptorProfileConstants.PARAM_URI, uri);
         request.putExtra(FileDescriptorProfileConstants.PARAM_POSITION, 0);
         Intent response = sendRequest(request);
@@ -283,7 +276,7 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
         Bundle file = event.getBundleExtra(FileDescriptorProfileConstants.PARAM_FILE);
         assertEquals(TestFileDescriptorProfileConstants.CURR, 
                 file.getString(FileDescriptorProfileConstants.PARAM_CURR));
-        assertEquals(TestFileDescriptorProfileConstants.PREV, 
+        assertEquals(TestFileDescriptorProfileConstants.PREV,
                 file.getString(FileDescriptorProfileConstants.PARAM_PREV));
     }
 
@@ -317,30 +310,12 @@ public class NormalFileDescriptorProfileTestCase extends IntentDConnectTestCase 
     }
 
     /**
-     * assetsフォルダ内のファイルをアプリ領域に保存する.
+     * assetsフォルダ内のファイルへのURIを返却します.
      * 
      * @param name assetファイル名
-     * @throws IOException ファイルの保存に失敗した場合
      * @return URIを示す文字列
      */
-    private String saveAssetFile(final String name) throws IOException {
-        AssetManager manager = getApplicationContext().getAssets();
-        InputStream is = manager.open(name);
-        File file = new File(Environment.getExternalStorageDirectory(), name);
-        if (!file.exists()) {
-            if (!file.createNewFile()) {
-                fail("Failed to create file: " + name);
-            }
-        }
-        OutputStream os = new FileOutputStream(file);
-        int len;
-        byte[] buf = new byte[BUF_SIZE];
-        while ((len = is.read(buf)) > 0) {
-            os.write(buf, 0, len);
-            os.flush();
-        }
-        os.close();
-        is.close();
+    private String getContentProviderFileUri(final String name) {
         return "content://org.deviceconnect.android.test.file/" + name;
     }
 }

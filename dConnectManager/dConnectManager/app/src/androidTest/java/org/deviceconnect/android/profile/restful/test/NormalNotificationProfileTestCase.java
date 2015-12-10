@@ -7,12 +7,6 @@
 package org.deviceconnect.android.profile.restful.test;
 
 import android.support.test.runner.AndroidJUnit4;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.io.IOException;
 
 import junit.framework.Assert;
 
@@ -20,8 +14,6 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.InputStreamBody;
 import org.deviceconnect.android.test.plugin.profile.TestNotificationProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
@@ -29,8 +21,11 @@ import org.deviceconnect.profile.DConnectProfileConstants;
 import org.deviceconnect.profile.NotificationProfileConstants;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import android.content.res.AssetManager;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -1044,25 +1039,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1094,25 +1087,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_DIR + "=auto");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1144,25 +1135,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1196,25 +1185,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_DIR + "=auto");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1246,25 +1233,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1298,25 +1283,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_DIR + "=auto");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1350,25 +1333,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1404,25 +1385,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1454,25 +1433,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_TYPE + "=0");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1506,25 +1483,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_DIR + "=auto");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1558,25 +1533,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1612,25 +1585,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_LANG + "=jp-JP");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1664,25 +1635,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1718,25 +1687,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1772,25 +1739,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }
@@ -1828,25 +1793,23 @@ public class NormalNotificationProfileTestCase extends RESTfulDConnectTestCase {
         builder.append(NotificationProfileConstants.PARAM_BODY + "=test_body");
         builder.append("&");
         builder.append(NotificationProfileConstants.PARAM_TAG + "=tag1,tag2,tag3");
-
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
-        try {
-            HttpPost request = new HttpPost(builder.toString());
-            String name = "test.png";
-            AssetManager manager = getApplicationContext().getAssets();
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart(NotificationProfileConstants.PARAM_ICON, new InputStreamBody(manager.open(name), name));
-            request.setEntity(entity);
 
-            JSONObject root = sendRequest(request);
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(NotificationProfileConstants.PARAM_ICON, data);
+        try {
+            JSONObject root = sendRequest("POST", builder.toString(), null, body);
             Assert.assertNotNull("root is null.", root);
             Assert.assertEquals(DConnectMessage.RESULT_OK, root.getInt(DConnectMessage.EXTRA_RESULT));
             Assert.assertEquals("notificationid is not equals.", TestNotificationProfileConstants.NOTIFICATION_ID[0],
                     root.getString(NotificationProfileConstants.PARAM_NOTIFICATION_ID));
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
-        } catch (IOException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
     }

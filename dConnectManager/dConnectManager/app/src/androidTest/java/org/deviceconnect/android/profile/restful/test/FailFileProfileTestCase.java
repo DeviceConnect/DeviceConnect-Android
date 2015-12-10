@@ -6,13 +6,8 @@
  */
 package org.deviceconnect.android.profile.restful.test;
 
+import android.content.res.AssetManager;
 import android.support.test.runner.AndroidJUnit4;
-import org.junit.Before;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.io.IOException;
 
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -31,8 +26,12 @@ import org.deviceconnect.profile.FileProfileConstants.FileType;
 import org.deviceconnect.utils.URIBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import android.content.res.AssetManager;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -561,11 +560,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(FileProfileConstants.PARAM_DATA, data);
         try {
-            HttpPost request = new HttpPost(builder.toString());
-            request.setEntity(getEntity());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), root);
+            JSONObject response = sendRequest("POST", builder.toString(), null, body);
+            assertResultError(ErrorCode.EMPTY_SERVICE_ID.getCode(), response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -592,11 +597,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(FileProfileConstants.PARAM_DATA, data);
         try {
-            HttpPost request = new HttpPost(builder.toString());
-            request.setEntity(getEntity());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
+            JSONObject response = sendRequest("POST", builder.toString(), null, body);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -623,11 +634,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(FileProfileConstants.PARAM_DATA, data);
         try {
-            HttpPost request = new HttpPost(builder.toString());
-            request.setEntity(getEntity());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
+            JSONObject response = sendRequest("POST", builder.toString(), null, body);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -657,11 +674,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(FileProfileConstants.PARAM_FILE_TYPE, String.valueOf(FileType.FILE.getValue()));
         builder.addParameter("abc", "abc");
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(FileProfileConstants.PARAM_DATA, data);
         try {
-            HttpPost request = new HttpPost(builder.toString());
-            request.setEntity(getEntity());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
+            JSONObject response = sendRequest("POST", builder.toString(), null, body);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -690,11 +713,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(FileProfileConstants.PARAM_DATA, data);
         try {
-            HttpPost request = new HttpPost(builder.toString());
-            request.setEntity(getEntity());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), root);
+            JSONObject response = sendRequest("POST", builder.toString(), null, body);
+            assertResultError(ErrorCode.NOT_FOUND_SERVICE.getCode(), response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -750,11 +779,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(FileProfileConstants.PARAM_DATA, data);
         try {
-            HttpPut request = new HttpPut(builder.toString());
-            request.setEntity(getEntity());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), root);
+            JSONObject response = sendRequest("PUT", builder.toString(), null, body);
+            assertResultError(ErrorCode.NOT_SUPPORT_ACTION.getCode(), response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -1053,11 +1088,17 @@ public class FailFileProfileTestCase extends RESTfulDConnectTestCase {
         builder.addParameter(FileProfileConstants.PARAM_PATH,
                 TestFileProfileConstants.PATH);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
+
+        String name = "test.png";
+        byte[] data = getBytesFromAssets(name);
+        if (data == null) {
+            fail("Cannot find the file." + name);
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put(FileProfileConstants.PARAM_DATA, data);
         try {
-            HttpPost request = new HttpPost(builder.toString());
-            request.setEntity(getEntity());
-            JSONObject root = sendRequest(request);
-            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), root);
+            JSONObject response = sendRequest("POST", builder.toString(), null, body);
+            assertResultError(ErrorCode.UNKNOWN_ATTRIBUTE.getCode(), response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }

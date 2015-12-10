@@ -8,9 +8,6 @@ package org.deviceconnect.android.manager.test;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.deviceconnect.android.profile.restful.test.RESTfulDConnectTestCase;
 import org.deviceconnect.android.profile.restful.test.TestURIBuilder;
 import org.deviceconnect.message.DConnectMessage;
@@ -25,6 +22,10 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * リクエストのマルチパート解析処理のテスト.
@@ -34,45 +35,65 @@ import org.junit.runner.RunWith;
 public class MultipartTest extends RESTfulDConnectTestCase {
     /**
      * POSTリクエストパラメータをマルチパートで指定可能であることのテスト.
+     * <pre>
+     * Method: POST
+     * Path: /notification/notify
+     * Body: serviceId=xxxx&type=0&accessToken=xxxx
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに0が返ってくること。
+     * </pre>
      */
     @Test
     public void testParsingMultipartAsRequestParametersMethodPost() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(NotificationProfileConstants.PROFILE_NAME);
         builder.setAttribute(NotificationProfileConstants.ATTRIBUTE_NOTIFY);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        body.put(NotificationProfileConstants.PARAM_TYPE, "0");
+        body.put(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
-            MultipartEntityBuilder build = MultipartEntityBuilder.create();
-            build.addTextBody(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-            build.addTextBody(NotificationProfileConstants.PARAM_TYPE, "0");
-            build.addTextBody(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-            HttpPost request = new HttpPost(builder.toString());
-            request.setEntity(build.build());
-            JSONObject response = sendRequest(request);
+            JSONObject response = sendRequest("POST", builder.build().toString(), null, body);
             assertResultOK(response);
         } catch (JSONException e) {
-            fail(e.getMessage());
+            fail("Failed to parse JSON: " + e.getMessage());
+        } catch (URISyntaxException e) {
+            fail("Failed to create uri: " + e.getMessage());
         }
     }
 
     /**
      * PUTリクエストパラメータをマルチパートで指定可能であることのテスト.
+     * <pre>
+     * Method: PUT
+     * Path: /deviceorientation/ondeviceorientation
+     * Body: serviceId=xxxx&sessionKey=xxxx&accessToken=xxxx
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに0が返ってくること。
+     * </pre>
      */
     @Test
     public void testParsingMultipartAsRequestParametersMethodPut() {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(DeviceOrientationProfileConstants.PROFILE_NAME);
         builder.setAttribute(DeviceOrientationProfileConstants.ATTRIBUTE_ON_DEVICE_ORIENTATION);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
+        body.put(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
+        body.put(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
         try {
-            MultipartEntityBuilder build = MultipartEntityBuilder.create();
-            build.addTextBody(DConnectProfileConstants.PARAM_SERVICE_ID, getServiceId());
-            build.addTextBody(DConnectProfileConstants.PARAM_SESSION_KEY, getClientId());
-            build.addTextBody(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN, getAccessToken());
-            HttpPut request = new HttpPut(builder.toString());
-            request.setEntity(build.build());
-            JSONObject response = sendRequest(request);
+            JSONObject response = sendRequest("PUT", builder.build().toString(), null, body);
             assertResultOK(response);
         } catch (JSONException e) {
-            fail(e.getMessage());
+            fail("Failed to parse JSON: " + e.getMessage());
+        } catch (URISyntaxException e) {
+            fail("Failed to create uri: " + e.getMessage());
         }
     }
 
@@ -97,15 +118,16 @@ public class MultipartTest extends RESTfulDConnectTestCase {
         builder.addParameter(FileProfileConstants.PARAM_PATH, "/test/zero.dat");
         builder.addParameter(FileProfileConstants.PARAM_FILE_TYPE,
                 String.valueOf(FileProfileConstants.FileType.FILE.getValue()));
+
+        Map<String, Object> body = new HashMap<>();
+        body.put(FileProfileConstants.PARAM_DATA, new byte[0]);
         try {
-            MultipartEntityBuilder build = MultipartEntityBuilder.create();
-            build.addBinaryBody(FileProfileConstants.PARAM_DATA, new byte[0]);
-            HttpPost request = new HttpPost(builder.toString());
-            request.setEntity(build.build());
-            JSONObject root = sendRequest(request);
-            assertResultOK(root);
+            JSONObject response = sendRequest("POST", builder.build().toString(), null, body);
+            assertResultOK(response);
         } catch (JSONException e) {
-            fail("Exception in JSONObject." + e.getMessage());
+            fail("Failed to parse JSON: " + e.getMessage());
+        } catch (URISyntaxException e) {
+            fail("Failed to create uri: " + e.getMessage());
         }
     }
 }

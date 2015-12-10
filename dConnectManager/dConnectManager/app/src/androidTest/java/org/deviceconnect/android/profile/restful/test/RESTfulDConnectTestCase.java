@@ -21,6 +21,7 @@ import org.apache.http.entity.mime.content.AbstractContentBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.deviceconnect.android.test.DConnectTestCase;
+import org.deviceconnect.android.test.http.HttpUtil;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
@@ -43,7 +44,9 @@ import java.net.URI;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -127,7 +130,7 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
         URIBuilder builder = TestURIBuilder.createURIBuilder();
         builder.setProfile(ServiceDiscoveryProfileConstants.PROFILE_NAME);
         builder.addParameter(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN,
-            getAccessToken());
+                getAccessToken());
         HttpGet request = new HttpGet(builder.toString());
         try {
             JSONObject root = sendRequest(request);
@@ -237,6 +240,103 @@ public class RESTfulDConnectTestCase extends DConnectTestCase {
             Assert.fail("ClientProtocolException: " + e.getMessage());
         } catch (IOException e) {
             Assert.fail("IOException: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * 指定されたURIにリクエストを送信します.
+     * @param method HTTPメソッド
+     * @param uri URI
+     * @param headers ヘッダー
+     * @param body ボディ
+     * @return レスポンス
+     */
+    protected final JSONObject sendRequest(final String method, final String uri, final Map<String, String> headers, final String body) {
+        Map<String, String> requestHeaders = headers;
+        if (requestHeaders == null) {
+            requestHeaders = new HashMap<>();
+        }
+        requestHeaders.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
+
+        final byte[] nonce = generateRandom(16);
+        String requestBody = body;
+        if (requestBody == null) {
+            requestBody = IntentDConnectMessage.EXTRA_NONCE + "=" + toHexString(nonce);
+        } else {
+            requestBody += ("&" + IntentDConnectMessage.EXTRA_NONCE + "=" + toHexString(nonce));
+        }
+
+        try {
+            byte[] data = HttpUtil.connect(method, uri, requestHeaders, requestBody);
+            if (data == null) {
+                fail("Failed to connect Device Connect Manager.");
+            }
+            JSONObject response = new JSONObject(new String(data));
+
+            assertEquals(response.getString(DConnectProfileConstants.PARAM_PRODUCT), DCONNECT_MANAGER_APP_NAME);
+            assertEquals(response.getString(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
+            assertTrue("Device Connect Manager must send HMAC.", response.has(IntentDConnectMessage.EXTRA_HMAC));
+
+            String hmacString = response.getString(IntentDConnectMessage.EXTRA_HMAC);
+            byte[] expectedHmac = calculateHMAC(nonce);
+            assertEquals(expectedHmac, toByteArray(hmacString));
+
+            return response;
+        } catch (JSONException e) {
+            fail("Failed to parse response: " + e.getMessage());
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
+        }
+        return null;
+    }
+
+    /**
+     * 指定されたURIにマルチパートのリクエストを送信します.
+     * @param method HTTPメソッド
+     * @param uri URI
+     * @param headers ヘッダー
+     * @param body ボディ
+     * @return レスポンス
+     */
+    protected final JSONObject sendRequest(final String method, final String uri, final Map<String, String> headers, final Map<String, Object> body) {
+        Map<String, String> requestHeaders = headers;
+        if (requestHeaders == null) {
+            requestHeaders = new HashMap<>();
+        }
+        requestHeaders.put(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
+
+        final byte[] nonce = generateRandom(16);
+        Map<String, Object> requestBody = body;
+        if (requestBody == null) {
+            requestBody = new HashMap<>();
+        }
+        requestBody.put(IntentDConnectMessage.EXTRA_NONCE, toHexString(nonce));
+
+        try {
+            byte[] data = HttpUtil.connect(method, uri, requestHeaders, requestBody);
+            if (data == null) {
+                fail("Failed to connect Device Connect Manager.");
+            }
+            JSONObject response = new JSONObject(new String(data));
+
+            assertEquals(response.getString(DConnectProfileConstants.PARAM_PRODUCT), DCONNECT_MANAGER_APP_NAME);
+            assertEquals(response.getString(DConnectProfileConstants.PARAM_VERSION), DCONNECT_MANAGER_VERSION_NAME);
+            assertTrue("Device Connect Manager must send HMAC.", response.has(IntentDConnectMessage.EXTRA_HMAC));
+
+            String hmacString = response.getString(IntentDConnectMessage.EXTRA_HMAC);
+            byte[] expectedHmac = calculateHMAC(nonce);
+            assertEquals(expectedHmac, toByteArray(hmacString));
+
+            return response;
+        } catch (JSONException e) {
+            fail("Failed to parse response: " + e.getMessage());
+        } catch (InvalidKeyException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("The JDK does not support HMAC-SHA256.");
         }
         return null;
     }

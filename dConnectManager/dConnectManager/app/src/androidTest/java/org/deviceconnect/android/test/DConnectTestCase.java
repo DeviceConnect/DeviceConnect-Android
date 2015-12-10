@@ -343,6 +343,7 @@ public abstract class DConnectTestCase extends AndroidTestCase {
                 sAccessToken = requestAccessToken(sClientId, PROFILES);
                 assertNotNull(sAccessToken);
             }
+            Thread.sleep(2000);
         }
         if (isSearchDevices()) {
             // テストデバイスプラグインを探す

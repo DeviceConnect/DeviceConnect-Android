@@ -14,8 +14,6 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.StringBody;
 import org.deviceconnect.android.test.plugin.profile.TestFileDescriptorProfileConstants;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
@@ -27,7 +25,8 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -215,19 +214,14 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append(FileDescriptorProfileConstants.PARAM_PATH + "=test.txt");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("media", "test".getBytes());
         try {
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart("media", new StringBody("test"));
-            HttpPut request = new HttpPut(builder.toString());
-            request.addHeader("Content-Disposition", "form-data; name=\"media\"; filename=\"test.txt\"");
-            request.setEntity(entity);
-            JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            assertResultOK(root);
+            JSONObject response = sendRequest("PUT", builder.toString(), null, body);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
-        } catch (UnsupportedEncodingException e) {
-            fail("Exception in StringBody." + e.getMessage());
         }
     }
 
@@ -236,7 +230,7 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /file_descriptor/write?deviceid=xxxx&mediaid=xxxx&position=xxx
+     * Path: /file_descriptor/write?deviceid=xxxx&mediaid=xxxx&position=2
      * Entity: 文字列"test"。
      * </pre>
      * <pre>
@@ -255,23 +249,17 @@ public class NormalFileDescriptorProfileTestCase extends RESTfulDConnectTestCase
         builder.append("&");
         builder.append(FileDescriptorProfileConstants.PARAM_PATH + "=test.txt");
         builder.append("&");
-        builder.append(FileDescriptorProfileConstants.PARAM_POSITION + "=0");
-
+        builder.append(FileDescriptorProfileConstants.PARAM_POSITION + "=2");
         builder.append("&");
         builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("media", "test".getBytes());
         try {
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart("media", new StringBody("test"));
-            HttpPut request = new HttpPut(builder.toString());
-            request.addHeader("Content-Disposition", "form-data; name=\"media\"; filename=\"test.txt\"");
-            request.setEntity(entity);
-            JSONObject root = sendRequest(request);
-            Assert.assertNotNull("root is null.", root);
-            assertResultOK(root);
+            JSONObject response = sendRequest("PUT", builder.toString(), null, body);
+            assertResultOK(response);
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
-        } catch (UnsupportedEncodingException e) {
-            fail("Exception in StringBody." + e.getMessage());
         }
     }
 

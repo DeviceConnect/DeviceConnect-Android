@@ -8,16 +8,13 @@ package org.deviceconnect.android.deviceplugin.kadecot.fragment;
 
 import org.deviceconnect.android.deviceplugin.kadecot.R;
 
-import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 /**
@@ -30,17 +27,7 @@ public class KadecotInstallFragment extends Fragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_install_kadecot, container, false);
-        ImageButton installKadecotButton = (ImageButton) root.findViewById(R.id.install_kadecot_button_install_kadecot);
-        installKadecotButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                Uri uri = Uri.parse("market://details?id=" + getString(R.string.kadecot_package_name));
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                startActivity(intent);
-            }
-        });
-        return root;
+        return inflater.inflate(R.layout.fragment_install_kadecot, container, false);
     }
 
     @Override

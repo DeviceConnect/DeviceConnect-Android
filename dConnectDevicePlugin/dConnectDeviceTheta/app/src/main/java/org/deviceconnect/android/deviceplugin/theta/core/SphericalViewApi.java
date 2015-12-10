@@ -56,13 +56,11 @@ public class SphericalViewApi implements HeadTrackingListener {
 
     @Override
     public void onHeadRotated(final Quaternion rotation) {
-        synchronized (this) {
-            if (isRunning()) {
-                SphericalViewRenderer.Camera currentCamera = mRenderer.getCamera();
-                SphericalViewRenderer.CameraBuilder newCamera = new SphericalViewRenderer.CameraBuilder(currentCamera);
-                newCamera.rotate(rotation);
-                mRenderer.setCamera(newCamera.create());
-            }
+        if (isRunning()) {
+            SphericalViewRenderer.Camera currentCamera = mRenderer.getCamera();
+            SphericalViewRenderer.CameraBuilder newCamera = new SphericalViewRenderer.CameraBuilder(currentCamera);
+            newCamera.rotate(rotation);
+            mRenderer.setCamera(newCamera.create());
         }
     }
 

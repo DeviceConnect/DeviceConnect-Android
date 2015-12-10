@@ -41,6 +41,8 @@ import java.util.List;
  */
 public class ThetaDeviceService extends DConnectMessageService {
 
+    private static final String TYPE_NONE = "none";
+
     private ThetaDeviceManager mDeviceMgr;
     private ThetaDeviceClient mClient;
 
@@ -92,23 +94,23 @@ public class ThetaDeviceService extends DConnectMessageService {
         ThetaDevice device = mDeviceMgr.getConnectedDevice();
         if (device != null) {
             Bundle service = new Bundle();
-            service.putString(ServiceDiscoveryProfile.PARAM_ID, device.getId());
-            service.putString(ServiceDiscoveryProfile.PARAM_NAME, device.getName());
-            service.putString(ServiceDiscoveryProfile.PARAM_TYPE,
-                ServiceDiscoveryProfile.NetworkType.WIFI.getValue());
-            service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+            ServiceDiscoveryProfile.setId(service, device.getId());
+            ServiceDiscoveryProfile.setName(service, device.getName());
+            ServiceDiscoveryProfile.setType(service, ServiceDiscoveryProfile.NetworkType.WIFI);
+            ServiceDiscoveryProfile.setOnline(service, true);
             ServiceDiscoveryProfile.setScopes(service, this);
             services.add(service);
         }
 
         Bundle service = new Bundle();
-        service.putString(ServiceDiscoveryProfile.PARAM_ID,
+        ServiceDiscoveryProfile.setId(service,
             ThetaOmnidirectionalImageProfile.SERVICE_ID);
-        service.putString(ServiceDiscoveryProfile.PARAM_NAME,
+        ServiceDiscoveryProfile.setName(service,
             ThetaOmnidirectionalImageProfile.SERVICE_NAME);
-        service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+        ServiceDiscoveryProfile.setType(service, TYPE_NONE);
+        ServiceDiscoveryProfile.setOnline(service, true);
         service.putStringArray(ServiceDiscoveryProfile.PARAM_SCOPES,
-            new String[] {OmnidirectionalImageProfile.PROFILE_NAME});
+            new String[]{OmnidirectionalImageProfile.PROFILE_NAME});
         services.add(service);
 
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);

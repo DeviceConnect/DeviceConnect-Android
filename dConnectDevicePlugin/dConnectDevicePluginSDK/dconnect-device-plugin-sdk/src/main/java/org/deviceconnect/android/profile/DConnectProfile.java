@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.message.DConnectMessage;
@@ -650,9 +651,20 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      * イベントを送信します.
      * @param event イベント
      * @param accessToken アクセストークン
+     * @return 送信成功の場合true、アクセストークンエラーの場合はfalseを返す。
      */
-    protected final void sendEvent(final Intent event, final String accessToken) {
-        ((DConnectMessageService) getContext()).sendEvent(event, accessToken);
+    protected final boolean sendEvent(final Intent event, final String accessToken) {
+        return ((DConnectMessageService) getContext()).sendEvent(event, accessToken);
+    }
+
+    /**
+     * イベントを送信します.
+     * @param event イベント
+     * @param bundle パラメータ
+     * @return 送信成功の場合true、アクセストークンエラーの場合はfalseを返す。
+     */
+    protected final boolean sendEvent(final Event event, final Bundle bundle) {
+        return ((DConnectMessageService) getContext()).sendEvent(event, bundle);
     }
 
     /**

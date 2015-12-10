@@ -9,8 +9,11 @@ package org.deviceconnect.android.message;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.IBinder;
 
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
 import org.deviceconnect.android.localoauth.LocalOAuth2Main;
 import org.deviceconnect.android.profile.AuthorizationProfile;
@@ -335,6 +338,19 @@ public abstract class DConnectMessageService extends Service implements DConnect
 
         getContext().sendBroadcast(event);
         return true;
+    }
+
+    /**
+     * Device Connectにイベントを送信する.
+     *
+     * @param event イベントパラメータ
+     * @param bundle パラメータ
+     * @return 送信成功の場合true、アクセストークンエラーの場合はfalseを返す。
+     */
+    public final boolean sendEvent(final Event event, final Bundle bundle) {
+        Intent intent = EventManager.createEventMessage(event);
+        intent.getExtras().putAll(bundle);
+        return sendEvent(intent, event.getAccessToken());
     }
 
     /**

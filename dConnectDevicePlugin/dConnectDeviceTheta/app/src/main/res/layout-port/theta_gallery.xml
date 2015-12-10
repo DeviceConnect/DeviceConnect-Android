@@ -5,34 +5,6 @@
     android:fitsSystemWindows="true"
     android:orientation="horizontal">
     <LinearLayout
-        android:id="@+id/theta_gallery_progress"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:visibility="gone"
-        android:background="@drawable/gallery_listview_footer">
-        <org.deviceconnect.android.deviceplugin.theta.activity.view.ThetaLoadingProgressView
-
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_gravity="center"
-            android:visibility="visible"/>
-
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/theta_shutter"
-        android:visibility="gone"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:background="@drawable/vr_mode_screen_shot_button"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_margin="16dp"/>
-    <RelativeLayout
-        android:id="@+id/theta_reconnect_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"

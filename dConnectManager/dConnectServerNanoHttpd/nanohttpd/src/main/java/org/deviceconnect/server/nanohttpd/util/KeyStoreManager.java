@@ -366,7 +366,6 @@ public final class KeyStoreManager {
      * @return 読み込み成功時はSSLServerSocketFactoryを、その他はnullを返す.
      */
     public SSLServerSocketFactory getServerSocketFactory() {
-        mLogger.entering(getClass().getName(), "createServerSocketFactory");
         SSLServerSocketFactory retval = null;
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -381,8 +380,6 @@ public final class KeyStoreManager {
             mLogger.warning("KeyManagementException in the DConnectServerNanoHttpd#createServerSocketFactory() method. "
                     + e.toString());
         }
-        mLogger.exiting(getClass().getName(), "createServerSocketFactory", retval);
-
         return retval;
     }
 }

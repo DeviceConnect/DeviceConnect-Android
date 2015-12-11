@@ -76,7 +76,6 @@ public final class MessageUtils {
 
         ComponentName receiver = request.getParcelable(DConnectMessage.EXTRA_RECEIVER);
         if (receiver != null) {
-            sLogger.fine("create calling component: " + receiver);
             intent.setComponent(receiver);
         } else {
             sLogger.warning("request does not have receiver.");
@@ -84,7 +83,6 @@ public final class MessageUtils {
 
         int requestCode = request.getInt(DConnectMessage.EXTRA_REQUEST_CODE, Integer.MIN_VALUE);
         if (requestCode != Integer.MIN_VALUE) {
-            sLogger.fine("put request code into response: " + requestCode);
             intent.putExtra(DConnectMessage.EXTRA_REQUEST_CODE, requestCode);
         }
 

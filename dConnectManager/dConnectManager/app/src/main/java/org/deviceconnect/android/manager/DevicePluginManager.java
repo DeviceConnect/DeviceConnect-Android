@@ -330,7 +330,6 @@ public class DevicePluginManager {
                         + receiver.flattenToString();
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
-            mLogger.info("sessionKey [dConnectManager->DevicePlugin]: " + sessionKey);
         }
     }
 
@@ -354,7 +353,6 @@ public class DevicePluginManager {
                         + receiver.flattenToString();
             }
             request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, sessionKey);
-            mLogger.info("sessionKey [dConnectManager->DevicePlugin]: " + sessionKey);
         }
     }
 
@@ -362,13 +360,12 @@ public class DevicePluginManager {
      * 指定されたリクエストのserviceIdからプラグインIDを削除する.
      * @param request リクエスト
      */
-    public void splitePluginIdToServiceId(final Intent request) {
+    public void splitPluginIdToServiceId(final Intent request) {
         String serviceId = request.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
         List<DevicePlugin> plugins = getDevicePlugins(serviceId);
         // 各デバイスプラグインへ渡すサービスIDを作成
-        String id = DevicePluginManager.spliteServiceId(plugins.get(0), serviceId);
+        String id = DevicePluginManager.splitServiceId(plugins.get(0), serviceId);
         request.putExtra(IntentDConnectMessage.EXTRA_SERVICE_ID, id);
-        mLogger.info("serviceId [dConnectManager->DevicePlugin]: " + id);
     }
 
     /**
@@ -378,7 +375,7 @@ public class DevicePluginManager {
      * @param serviceId サービスID
      * @return Device Connect Managerのドメインが省かれたサービスID
      */
-    public static String spliteServiceId(final DevicePlugin plugin, final String serviceId) {
+    public static String splitServiceId(final DevicePlugin plugin, final String serviceId) {
         String p = plugin.getServiceId();
         int idx = serviceId.indexOf(p);
         if (idx > 0) {

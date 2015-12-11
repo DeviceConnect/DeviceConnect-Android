@@ -148,7 +148,10 @@ public class DConnectServerEventListenerImpl implements
         String attribute = null;
 
         long start = System.currentTimeMillis();
-        mLogger.info("@@@ Request URI: " + method + " " + uri);
+
+        if (BuildConfig.DEBUG) {
+            mLogger.info(String.format("@@@ Request URI: %s %s", method, uri));
+        }
 
         if (segments.size() == SEGMENT_PROFILE) {
             api = segments.get(0);
@@ -236,8 +239,10 @@ public class DConnectServerEventListenerImpl implements
             setErrorResponse(response);
         }
 
-        mLogger.info("@@@ Request URI END(" + (System.currentTimeMillis() - start) + "): "
-                + request.getMethod() + " " + request.getUri());
+        if (BuildConfig.DEBUG) {
+            mLogger.info(String.format("@@@ Request URI END(%d): %s %s",
+                    (System.currentTimeMillis() - start), method, request.getUri()));
+        }
         return true;
     }
 

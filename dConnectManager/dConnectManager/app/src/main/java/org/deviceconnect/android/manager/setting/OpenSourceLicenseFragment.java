@@ -1,13 +1,5 @@
 package org.deviceconnect.android.manager.setting;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.logging.Logger;
-
-import org.deviceconnect.android.manager.R;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -23,6 +15,14 @@ import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.deviceconnect.android.manager.R;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * オープンソースライセンスフラグメント.
@@ -230,11 +230,7 @@ public class OpenSourceLicenseFragment extends DialogFragment {
          */
         public SoftwareArrayAdapter(final Context context, final int resource) {
             super(context, resource);
-            mLogger.entering(getClass().getName(), "SoftwareArrayAdapter", new Object[] { context, resource });
-
             mResourceId = resource;
-
-            mLogger.exiting(getClass().getName(), "SoftwareArrayAdapter");
         }
 
         /**
@@ -246,11 +242,7 @@ public class OpenSourceLicenseFragment extends DialogFragment {
          */
         public SoftwareArrayAdapter(final Context context, final int resource, final List<Parcelable> objects) {
             super(context, resource, objects);
-            mLogger.entering(getClass().getName(), "SoftwareArrayAdapter", new Object[] { context, resource, objects });
-
             mResourceId = resource;
-
-            mLogger.exiting(getClass().getName(), "SoftwareArrayAdapter");
         }
 
         /**
@@ -262,17 +254,11 @@ public class OpenSourceLicenseFragment extends DialogFragment {
          */
         public SoftwareArrayAdapter(final Context context, final int resource, final OpenSourceSoftware[] objects) {
             super(context, resource, objects);
-            mLogger.entering(getClass().getName(), "SoftwareArrayAdapter", new Object[] { context, resource, objects });
-
             mResourceId = resource;
-
-            mLogger.exiting(getClass().getName(), "SoftwareArrayAdapter");
         }
 
         @Override
         public View getView(final int position, final View convertView, final ViewGroup parent) {
-            mLogger.entering(getClass().getName(), "getView", new Object[] { position, convertView, parent });
-
             View view;
             if (convertView != null) {
                 view = convertView;
@@ -296,8 +282,6 @@ public class OpenSourceLicenseFragment extends DialogFragment {
             TextView bodyView = (TextView) view.findViewById(android.R.id.text2);
             bodyView.setVisibility(View.VISIBLE);
             bodyView.setText(item.getLicenseText());
-
-            mLogger.exiting(getClass().getName(), "getView", view);
             return view;
         }
 

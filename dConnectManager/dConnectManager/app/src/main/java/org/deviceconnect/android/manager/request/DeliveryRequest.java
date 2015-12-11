@@ -6,12 +6,13 @@
  */
 package org.deviceconnect.android.manager.request;
 
-import java.util.logging.Logger;
+import android.content.Intent;
 
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
-import android.content.Intent;
+import java.util.logging.Logger;
 
 /**
  * 指定されたリクエストメッセージを各デバイスプラグインに配送するDConnectRequset実装クラス.
@@ -33,8 +34,10 @@ public class DeliveryRequest extends LocalOAuthRequest {
         // 命令を実行する前にレスポンスを初期化しておく
         mResponse = null;
 
-        mLogger.info("Delivery Request: " + mDevicePlugin.getPackageName() 
-                + ", intent: " + mRequest.getExtras());
+        if (BuildConfig.DEBUG) {
+            mLogger.info(String.format("Delivery Request: %s, intent: %s",
+                    mDevicePlugin.getPackageName(), mRequest.getExtras()));
+        }
 
         // 命令をデバイスプラグインに送信
         Intent request = createRequestMessage(mRequest, mDevicePlugin);

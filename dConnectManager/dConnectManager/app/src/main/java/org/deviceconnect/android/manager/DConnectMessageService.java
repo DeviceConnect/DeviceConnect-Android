@@ -142,8 +142,6 @@ public abstract class DConnectMessageService extends Service
             mLogger.setLevel(Level.OFF);
         }
 
-        mLogger.entering(this.getClass().getName(), "onCreate");
-
         // イベント管理クラスの初期化
         EventManager.INSTANCE.setController(new MemoryCacheController());
 
@@ -174,16 +172,12 @@ public abstract class DConnectMessageService extends Service
         // dConnect Managerで処理せず、登録されたデバイスプラグインに処理させるプロファイル
         setDeliveryProfile(new DConnectDeliveryProfile(mPluginMgr, mLocalOAuth,
                 mSettings.requireOrigin()));
-
-        mLogger.exiting(this.getClass().getName(), "onCreate");
     }
 
     @Override
     public void onDestroy() {
-        mLogger.entering(this.getClass().getName(), "onDestroy");
         stopDConnect();
         LocalOAuth2Main.destroy();
-        mLogger.exiting(this.getClass().getName(), "onDestroy");
         super.onDestroy();
     }
 
@@ -192,7 +186,6 @@ public abstract class DConnectMessageService extends Service
         super.onStartCommand(intent, flags, startId);
         if (intent == null) {
             mLogger.warning("intent is null.");
-            mLogger.exiting(this.getClass().getName(), "onStartCommand");
             return START_STICKY;
         }
 
@@ -203,7 +196,6 @@ public abstract class DConnectMessageService extends Service
         String action = intent.getAction();
         if (action == null) {
             mLogger.warning("action is null.");
-            mLogger.exiting(this.getClass().getName(), "onStartCommand");
             return START_STICKY;
         }
 
@@ -369,8 +361,10 @@ public abstract class DConnectMessageService extends Service
         String inter = event.getStringExtra(DConnectMessage.EXTRA_INTERFACE);
         String attribute = event.getStringExtra(DConnectMessage.EXTRA_ATTRIBUTE);
 
-        mLogger.fine("onEventReceive: [sessionKey: " + sessionKey + " serviceId: " + serviceId
-                + " profile: " + profile + " inter: " + inter + " attribute: " + attribute + "]");
+        if (BuildConfig.DEBUG) {
+            mLogger.info(String.format("onEventReceive: [sessionKey: %s serviceId: %s profile: %s inter: %s attribute: %s]",
+                    sessionKey, serviceId, profile, inter, attribute));
+        }
 
         if (sessionKey != null) {
             // セッションキーからreceiverを取得する
@@ -572,12 +566,14 @@ public abstract class DConnectMessageService extends Service
         // 設定の更新
         mSettings.load(this);
 
-        mLogger.info("Settings");
-        mLogger.info("    SSL: " + mSettings.isSSL());
-        mLogger.info("    Host: " + mSettings.getHost());
-        mLogger.info("    Port: " + mSettings.getPort());
-        mLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
-        mLogger.info("    OriginBlock: " + mSettings.isBlockingOrigin());
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Settings");
+            mLogger.info("    SSL: " + mSettings.isSSL());
+            mLogger.info("    Host: " + mSettings.getHost());
+            mLogger.info("    Port: " + mSettings.getPort());
+            mLogger.info("    LocalOAuth: " + mSettings.isUseALocalOAuth());
+            mLogger.info("    OriginBlock: " + mSettings.isBlockingOrigin());
+        }
 
         // HMAC管理クラス
         mHmacManager = new HmacManager(this);
@@ -700,13 +696,10 @@ public abstract class DConnectMessageService extends Service
 
         // HMAC生成
         String origin = request.getStringExtra(IntentDConnectMessage.EXTRA_ORIGIN);
-        mLogger.info("Origin in Extra: " + origin);
         if (origin == null) {
             String accessToken = request.getStringExtra(DConnectMessage.EXTRA_ACCESS_TOKEN);
-            mLogger.info("Check accessToken in Extra: " + accessToken);
             if (accessToken != null) {
                 origin = findOrigin(accessToken);
-                mLogger.info("Find origin by accessToken:" + origin);
             }
         }
         if (origin != null) {
@@ -782,7 +775,9 @@ public abstract class DConnectMessageService extends Service
      * @param event 送信するイベントメッセージ
      */
     public void sendEvent(final String receiver, final Intent event) {
-        mLogger.fine("★ sendEvent: " + receiver + " intent: " + event.getExtras());
+        if (BuildConfig.DEBUG) {
+            mLogger.info(String.format("sendEvent: %s intent: %s", receiver, event.getExtras()));
+        }
         Intent targetIntent = new Intent(event);
         targetIntent.setComponent(ComponentName.unflattenFromString(receiver));
         sendBroadcast(targetIntent);

@@ -56,8 +56,6 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
-        mLogger.entering(this.getClass().getName(), "onCreate");
-        mLogger.exiting(this.getClass().getName(), "onCreate");
     }
 
     @Override
@@ -82,7 +80,9 @@ public class DConnectService extends DConnectMessageService {
             String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
             try {
                 if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
-                    mLogger.fine("■ sendEvent: " + key + " extra: " + event.getExtras());
+                    if (BuildConfig.DEBUG) {
+                        mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
+                    }
                     JSONObject root = new JSONObject();
                     DConnectUtil.convertBundleToJSON(root, event.getExtras());
                     mRESTfulServer.sendEvent(key, root.toString());
@@ -111,16 +111,19 @@ public class DConnectService extends DConnectMessageService {
             .documentRootPath(getFilesDir().getAbsolutePath());
 
         if (!mSettings.allowExternalIP()) {
-            ArrayList<String> list = new ArrayList<String>();
+            ArrayList<String> list = new ArrayList<>();
             list.add("127.0.0.1");
             list.add("::1");
             builder.ipWhiteList(list);
         }
 
-        mLogger.fine("Host: " + mSettings.getHost());
-        mLogger.fine("Port: " + mSettings.getPort());
-        mLogger.fine("SSL: " + mSettings.isSSL());
-        mLogger.fine("External IP: " + mSettings.allowExternalIP());
+        if (BuildConfig.DEBUG) {
+            mLogger.info("RESTful Server was Started.");
+            mLogger.info("Host: " + mSettings.getHost());
+            mLogger.info("Port: " + mSettings.getPort());
+            mLogger.info("SSL: " + mSettings.isSSL());
+            mLogger.info("External IP: " + mSettings.allowExternalIP());
+        }
 
         if (mRESTfulServer == null) {
             mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), this);
@@ -136,6 +139,9 @@ public class DConnectService extends DConnectMessageService {
         if (mRESTfulServer != null) {
             mRESTfulServer.shutdown();
             mRESTfulServer = null;
+        }
+        if (BuildConfig.DEBUG) {
+            mLogger.info("RESTful Server was Stopped.");
         }
     }
 

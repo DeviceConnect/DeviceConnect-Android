@@ -470,17 +470,17 @@ public final class LocalOAuth2Main {
                             }
                             strScopes += scopes[i];
                         }
-                        sLogger.fine("checkSignature() - signature not equal.");
-                        sLogger.fine(" - signature: " + signature);
-                        sLogger.fine(" - innerSignature:" + innerSignature);
-                        sLogger.fine(" - clientId:" + clientId);
-                        sLogger.fine(" - grantType:" + grantType);
-                        sLogger.fine(" - serviceId:" + serviceId);
-                        sLogger.fine(" - scopes:" + strScopes);
-                        sLogger.fine(" - clientSecret:" + clientSecret);
+                        sLogger.warning("checkSignature() - signature not equal.");
+                        sLogger.warning(" - signature: " + signature);
+                        sLogger.warning(" - innerSignature:" + innerSignature);
+                        sLogger.warning(" - clientId:" + clientId);
+                        sLogger.warning(" - grantType:" + grantType);
+                        sLogger.warning(" - serviceId:" + serviceId);
+                        sLogger.warning(" - scopes:" + strScopes);
+                        sLogger.warning(" - clientSecret:" + clientSecret);
                     }
                 } else {
-                    sLogger.fine("client not found.  clientId: " + clientId);
+                    sLogger.warning("client not found.  clientId: " + clientId);
                 }
             } catch (SQLiteException e) {
                 throw new RuntimeException(e);
@@ -522,11 +522,11 @@ public final class LocalOAuth2Main {
         /* Signatureが一致するか */
         boolean result = signature.equals(innerSignature);
         if (!result) {
-            sLogger.fine("checkSignature() - signature not equal.");
-            sLogger.fine(" - signature: " + signature);
-            sLogger.fine(" - innerSignature:" + innerSignature);
-            sLogger.fine(" - accessToken:" + accessToken);
-            sLogger.fine(" - clientSecret:" + clientSecret);
+            sLogger.warning("checkSignature() - signature not equal.");
+            sLogger.warning(" - signature: " + signature);
+            sLogger.warning(" - innerSignature:" + innerSignature);
+            sLogger.warning(" - accessToken:" + accessToken);
+            sLogger.warning(" - clientSecret:" + clientSecret);
         }
         
         return result;
@@ -875,13 +875,13 @@ public final class LocalOAuth2Main {
         CheckAccessTokenResult result = new CheckAccessTokenResult(isExistClientId, isExistAccessToken, isExistScope,
                 isNotExpired);
         if (!result.checkResult()) {
-            sLogger.fine("checkAccessToken() - error.");
-            sLogger.fine(" - isExistClientId: " + isExistClientId);
-            sLogger.fine(" - isExistAccessToken: " + isExistAccessToken);
-            sLogger.fine(" - isExistScope:" + isExistScope);
-            sLogger.fine(" - isNotExpired:" + isNotExpired);
-            sLogger.fine(" - accessToken:" + accessToken);
-            sLogger.fine(" - scope:" + scope);
+            sLogger.warning("checkAccessToken() - error.");
+            sLogger.warning(" - isExistClientId: " + isExistClientId);
+            sLogger.warning(" - isExistAccessToken: " + isExistAccessToken);
+            sLogger.warning(" - isExistScope:" + isExistScope);
+            sLogger.warning(" - isNotExpired:" + isNotExpired);
+            sLogger.warning(" - accessToken:" + accessToken);
+            sLogger.warning(" - scope:" + scope);
         }
         return result;
     }

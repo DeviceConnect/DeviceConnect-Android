@@ -6,22 +6,22 @@
  */
 package org.deviceconnect.android.manager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
-
-import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
-import org.deviceconnect.profile.AuthorizationProfileConstants;
-import org.deviceconnect.profile.AvailabilityProfileConstants;
-import org.deviceconnect.profile.SystemProfileConstants;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+
+import org.deviceconnect.android.manager.profile.DConnectFilesProfile;
+import org.deviceconnect.profile.AuthorizationProfileConstants;
+import org.deviceconnect.profile.AvailabilityProfileConstants;
+import org.deviceconnect.profile.SystemProfileConstants;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * デバイスプラグインとのLocal OAuthの認可を行うためのクラス.
@@ -242,8 +242,6 @@ public class DConnectLocalOAuth {
      * @return 削除に成功した場合はtrue、それ以外はfalse
      */
     public synchronized boolean deleteAccessToken(final String token) {
-        mLogger.fine("deleteAccessToken[token]: " + token);
-
         SQLiteDatabase db = mDBHelper.getWritableDatabase();
         try {
             String select = AccessTokenColumns.ACCESS_TOKEN + "=?";

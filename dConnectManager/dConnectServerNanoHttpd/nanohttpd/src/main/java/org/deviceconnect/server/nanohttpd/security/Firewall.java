@@ -61,10 +61,8 @@ public final class Firewall {
      * @return ホワイトリストに含まれる場合true、その他はfalseを返す。
      */
     public boolean isWhiteIP(final String ip) {
-        mLogger.entering(getClass().getName(), "isWhiteIP", ip);
         if (mIPWhiteList == null || mIPWhiteList.size() == 0) {
             // IPのリストがない場合は制限なしと判断し、すべてtrueにする。
-            mLogger.exiting(getClass().getName(), "isWhiteIP", true);
             return true;
         }
 
@@ -72,13 +70,11 @@ public final class Firewall {
         // 192.168.0.*など
         for (String white : mIPWhiteList) {
             if (white.equals(ip)) {
-                mLogger.exiting(getClass().getName(), "isWhiteIP", true);
                 return true;
             }
         }
 
         mLogger.warning("Firewall#isWhiteIP(). Not allowed IP : " + ip);
-        mLogger.exiting(getClass().getName(), "isWhiteIP", false);
         return false;
     }
 

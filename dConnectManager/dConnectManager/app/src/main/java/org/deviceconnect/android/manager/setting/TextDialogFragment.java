@@ -56,7 +56,7 @@ public class TextDialogFragment extends DialogFragment {
                 try {
                     is.close();
                 } catch (IOException e) {
-                    mLogger.fine(e.toString());
+                    mLogger.warning(e.toString());
                 }
             }
         }

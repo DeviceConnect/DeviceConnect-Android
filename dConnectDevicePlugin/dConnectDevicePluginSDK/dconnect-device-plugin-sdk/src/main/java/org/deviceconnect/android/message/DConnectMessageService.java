@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
 
+import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
@@ -73,7 +74,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
     /**
      * プロファイルインスタンスマップ.
      */
-    private Map<String, DConnectProfile> mProfileMap = new HashMap<String, DConnectProfile>();
+    private Map<String, DConnectProfile> mProfileMap = new HashMap<>();
 
     /**
      * Local OAuth使用フラグ.
@@ -178,8 +179,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     protected void onRequest(final Intent request, final Intent response) {
 
-        mLogger.fine("request: " + request);
-        mLogger.fine("request extras: " + request.getExtras());
+        if (BuildConfig.DEBUG) {
+            mLogger.info("request: " + request);
+            mLogger.info("request extras: " + request.getExtras());
+        }
 
         // プロファイル名の取得
         String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
@@ -305,8 +308,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
             throw new IllegalArgumentException("response is null.");
         }
 
-        mLogger.info("sendResponse: " + response);
-        mLogger.info("sendResponse Extra: " + response.getExtras());
+        if (BuildConfig.DEBUG) {
+            mLogger.info("sendResponse: " + response);
+            mLogger.info("sendResponse Extra: " + response.getExtras());
+        }
 
         getContext().sendBroadcast(response);
         return true;
@@ -333,8 +338,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
             }
         }
 
-        mLogger.info("sendEvent: " + event);
-        mLogger.info("sendEvent Extra: " + event.getExtras());
+        if (BuildConfig.DEBUG) {
+            mLogger.info("sendEvent: " + event);
+            mLogger.info("sendEvent Extra: " + event.getExtras());
+        }
 
         getContext().sendBroadcast(event);
         return true;

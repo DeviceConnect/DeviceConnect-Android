@@ -134,9 +134,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
     @Override
     public synchronized void start() {
-
-        mLogger.entering(getClass().getName(), "start");
-
         if (mServer != null) {
             throw new IllegalStateException("Server is already running.");
         }
@@ -145,7 +142,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             if (mListener != null) {
                 mListener.onError(DConnectServerError.LAUNCH_FAILED);
             }
-            mLogger.exiting(getClass().getName(), "start");
             return;
         }
 
@@ -157,7 +153,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 if (mListener != null) {
                     mListener.onError(DConnectServerError.LAUNCH_FAILED);
                 }
-                mLogger.exiting(getClass().getName(), "start");
                 return;
             }
 
@@ -182,14 +177,10 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 }
             }
         }).start();
-
-        mLogger.exiting(getClass().getName(), "start");
     }
 
     @Override
     public synchronized void shutdown() {
-        mLogger.entering(getClass().getName(), "shutdown");
-
         if (!isRunning()) {
             if (mListener != null) {
                 mListener.onError(DConnectServerError.SHUTDOWN_FAILED);
@@ -213,7 +204,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         mServer.stop();
         mServer = null;
-        mLogger.exiting(getClass().getName(), "shutdown");
     }
 
     @Override
@@ -227,10 +217,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      * @return 読み込み成功時はSSLServerSocketFactoryを、その他はnullを返す。
      */
     private SSLServerSocketFactory createServerSocketFactory() {
-
-        mLogger.entering(getClass().getName(), "createServerSocketFactory");
         SSLServerSocketFactory retval = null;
-
         do {
             mKeyStoreManager = new KeyStoreManager();
             try {
@@ -243,9 +230,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
             retval = mKeyStoreManager.getServerSocketFactory();
         } while (false);
-
-        mLogger.exiting(getClass().getName(), "createServerSocketFactory", retval);
-
         return retval;
     }
 
@@ -255,17 +239,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
      * @return 正しい場合true、不正な場合falseを返す。
      */
     private boolean checkDocumentRoot() {
-
-        mLogger.entering(getClass().getName(), "checkDocumentRoot");
         boolean retval = true;
         File documentRoot = new File(mConfig.getDocumentRootPath());
-
         if (!documentRoot.exists() || !documentRoot.isDirectory()) {
             mLogger.warning("Invalid document root path : " + documentRoot.getPath());
             retval = false;
         }
-
-        mLogger.exiting(getClass().getName(), "checkDocumentRoot", retval);
         return retval;
     }
 
@@ -287,20 +266,14 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          */
         public NanoServer(final String hostname, final int port) {
             super(hostname, port);
-            mLogger.entering(getClass().getName(), "NanoServer", new Object[] {hostname, port});
-
             Firewall firewall = new Firewall(mConfig.getIPWhiteList());
             setFirewall(firewall);
-
-            mLogger.exiting(getClass().getName(), "NanoServer");
             mWebSocketCount = 0;
         }
 
         @Override
         public Response serve(final IHTTPSession session) {
-            mLogger.entering(getClass().getName(), "serve", session);
-            NanoHTTPD.Response nanoRes = null;
-
+            NanoHTTPD.Response nanoRes;
             do {
 
                 if (isWebsocketRequested(session)) {
@@ -377,8 +350,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             }
 
             nanoRes.addHeader("Access-Control-Allow-Headers", requestHeaders);
-
-            mLogger.exiting(getClass().getName(), "serve", nanoRes);
             return nanoRes;
         }
 
@@ -473,8 +444,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @return Device Connect へのリクエストの場合はnullを返す。
          */
         private Response checkStaticFile(final IHTTPSession session) {
-
-            mLogger.entering(getClass().getName(), "checkStaticFile", session);
             Response retval = null;
 
             do {
@@ -524,8 +493,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 retval.addHeader("Accept-Ranges", "none");
 
             } while (false);
-
-            mLogger.exiting(getClass().getName(), "checkStaticFile", retval);
             return retval;
         }
 
@@ -552,15 +519,12 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @return コネクション数が上限に達していない場合true、上限に達した場合はfalseを返す
          */
         private synchronized boolean countupWebSocket() {
-
-            mLogger.entering(getClass().getName(), "countupWebSocket");
             if (mConfig.getMaxWebSocketConnectionSize() <= mWebSocketCount) {
                 mLogger.exiting(getClass().getName(), "countupWebSocket", false);
                 return false;
             }
 
             mWebSocketCount++;
-            mLogger.exiting(getClass().getName(), "countupWebSocket", true);
             return true;
         }
 
@@ -568,11 +532,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * WebSocketのコネクションカウンタを1減らす.
          */
         private synchronized void countdownWebSocket() {
-            mLogger.entering(getClass().getName(), "countdownWebSocket");
             if (mWebSocketCount > 0) {
                 mWebSocketCount--;
             }
-            mLogger.exiting(getClass().getName(), "countdownWebSocket");
         }
 
         /**
@@ -649,10 +611,9 @@ public class DConnectServerNanoHttpd extends DConnectServer {
         private byte[] parseBody(final IHTTPSession session) {
             // NanoHTTPDのparseBodyではマルチパートの場合に自動的に一時ファイルに
             // データを格納するようになっているため、独自にBodyを抜き出す。
-            mLogger.entering(getClass().getName(), "parseBody", session);
 
             if (!(session instanceof HTTPSession)) {
-                mLogger.exiting(getClass().getName(), "parseBody", null);
+                mLogger.warning("session is not HTTPSession.");
                 return null;
             }
             
@@ -698,7 +659,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 mLogger.warning("Exception in the NanoServer#parseBody() method. " + e.toString());
             }
 
-            mLogger.exiting(getClass().getName(), "parseBody", retval);
             return retval;
         }
 
@@ -709,9 +669,7 @@ public class DConnectServerNanoHttpd extends DConnectServer {
          * @return 読み込めるファイルの場合trueを、その他はfalseを返す。
          */
         private boolean isReadableFile(final File file) {
-
-            mLogger.entering(getClass().getName(), "isDeployedInDocumentRoot", file);
-            boolean retval = false;
+            boolean retval;
             try {
                 // ../ などのDocument Rootより上の階層にいくファイルパスをチェックし
                 // 不正なリクエストを拒否する。
@@ -723,8 +681,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
                 mLogger.warning("Exception in the NanoServer#isDeployedInDocumentRoot() method. " + e.toString());
                 retval = false;
             }
-
-            mLogger.exiting(getClass().getName(), "isDeployedInDocumentRoot", retval);
             return retval;
         }
     }
@@ -772,23 +728,18 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
         @Override
         protected void onPong(final WebSocketFrame pongFrame) {
-            mLogger.entering(getClass().getName(), "onPong", pongFrame);
-            mLogger.fine(pongFrame.toString());
             synchronized (mKeepAliveTask) {
                 if (mKeepAliveTask.getState() == KeepAliveState.WAITING_PONG) {
                     mKeepAliveTask.setState(KeepAliveState.GOT_PONG);
                 }
             }
-
-            mLogger.exiting(getClass().getName(), "onPong");
         }
 
         @Override
         protected void onMessage(final WebSocketFrame messageFrame) {
-            mLogger.entering(getClass().getName(), "onMessage", messageFrame);
             String jsonText = messageFrame.getTextPayload();
             if (jsonText == null || jsonText.length() == 0) {
-                mLogger.exiting(getClass().getName(), "onMessage");
+                mLogger.warning("onMessage: jsonText is null.");
                 return;
             }
 
@@ -804,20 +755,14 @@ public class DConnectServerNanoHttpd extends DConnectServer {
 
                     mSessionKey = sessionKey;
                     mSockets.put(sessionKey, this);
-                    mLogger.fine("websocket session key: " + sessionKey);
                 }
             } catch (JSONException e) {
                 mLogger.warning("Exception in the NanoWebSocket#onMessage() method." + e.toString());
             }
-
-            mLogger.exiting(getClass().getName(), "onMessage");
         }
 
         @Override
         protected void onClose(final CloseCode code, final String reason, final boolean initiatedByRemote) {
-
-            mLogger.entering(getClass().getName(), "onClose", new Object[] {code, reason, initiatedByRemote});
-
             if (mSessionKey != null) {
                 mSockets.remove(mSessionKey);
                 mLogger.fine("WebSocket closed. Session Key : " + mSessionKey);
@@ -828,7 +773,6 @@ public class DConnectServerNanoHttpd extends DConnectServer {
             }
 
             mKeepAliveTimer.cancel();
-            mLogger.exiting(getClass().getName(), "onClose");
         }
 
         @Override

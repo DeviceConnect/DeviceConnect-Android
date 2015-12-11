@@ -6,10 +6,10 @@
  */
 package org.deviceconnect.android.manager.request;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.logging.Logger;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Parcelable;
+import android.util.SparseArray;
 
 import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DevicePlugin;
@@ -18,10 +18,10 @@ import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Parcelable;
-import android.util.SparseArray;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Logger;
 
 /**
  * Service Discovery用のリクエストクラス.
@@ -82,11 +82,8 @@ public class ServiceDiscoveryRequest extends DConnectRequest {
 
                     if (BuildConfig.DEBUG) {
                         Object scopes = b.getStringArray(ServiceDiscoveryProfileConstants.PARAM_SCOPES);
-                        if (scopes != null && scopes instanceof String[]) {
-                            mLogger.info("Scopes of device: serviceId=" + id + ", scopes="
-                                    + toString((String[]) scopes));
-                        } else {
-                            mLogger.warning("Scopes param is illegal type: " + scopes);
+                        if (scopes == null || !(scopes instanceof String[])) {
+                            mLogger.warning(String.format("Scopes param is illegal type.serviceId: %s scopes: %s", id, scopes));
                         }
                     }
                 }

@@ -83,10 +83,12 @@ public class DConnectWebService extends Service {
             builder.port(mSettings.getWebPort())
                     .documentRootPath(mSettings.getDocumentRootPath());
 
-            mLogger.fine("Web Server was Started.");
-            mLogger.fine("Host: " + mSettings.getHost());
-            mLogger.fine("Port: " + mSettings.getWebPort());
-            mLogger.fine("Document Root: " + mSettings.getDocumentRootPath());
+            if (BuildConfig.DEBUG) {
+                mLogger.info("Web Server was Started.");
+                mLogger.info("Host: " + mSettings.getHost());
+                mLogger.info("Port: " + mSettings.getWebPort());
+                mLogger.info("Document Root: " + mSettings.getDocumentRootPath());
+            }
 
             mWebServer = new DConnectServerNanoHttpd(builder.build(), this);
             mWebServer.start();
@@ -103,7 +105,9 @@ public class DConnectWebService extends Service {
             mWebServer = null;
             hideNotification();
         }
-        mLogger.fine("Web Server was Stopped.");
+        if (BuildConfig.DEBUG) {
+            mLogger.info("Web Server was Stopped.");
+        }
     }
 
     /**

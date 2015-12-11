@@ -6,9 +6,7 @@
  */
 package org.deviceconnect.android.manager.request;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.logging.Logger;
+import android.content.Intent;
 
 import org.deviceconnect.android.manager.DConnectLocalOAuth;
 import org.deviceconnect.android.manager.DConnectLocalOAuth.OAuthData;
@@ -20,7 +18,9 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.DConnectProfileConstants;
 
-import android.content.Intent;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Logger;
 
 /**
  * LocalOAuthを行うためのリクエスト.
@@ -149,8 +149,6 @@ public class LocalOAuthRequest extends DConnectRequest {
         // 命令を実行する前にレスポンスを初期化しておく
         mResponse = null;
 
-        mLogger.info("executeCreateClient: " + serviceId);
-
         // 各デバイスに送信するリクエストを作成
         Intent request = createRequestMessage(mRequest, mDevicePlugin);
         request.setAction(IntentDConnectMessage.ACTION_GET);
@@ -220,8 +218,6 @@ public class LocalOAuthRequest extends DConnectRequest {
     protected String executeAccessToken(final String serviceId, final String clientId) {
         // 命令を実行する前にレスポンスを初期化しておく
         mResponse = null;
-
-        mLogger.info("executeAccessToken: {serviceId: " + serviceId + ", clientId: " + clientId + "}");
 
         // 各デバイスに送信するリクエストを作成
         Intent request = createRequestMessage(mRequest, mDevicePlugin);

@@ -145,7 +145,7 @@ public abstract class DConnectRequest {
                 mPluginMgr.appendPluginIdToSessionKey(targetIntent, plugin);
             }
             if (serviceId != null) {
-                mPluginMgr.splitePluginIdToServiceId(targetIntent);
+                mPluginMgr.splitPluginIdToServiceId(targetIntent);
             }
         }
         targetIntent.putExtra(IntentDConnectMessage.EXTRA_RECEIVER,

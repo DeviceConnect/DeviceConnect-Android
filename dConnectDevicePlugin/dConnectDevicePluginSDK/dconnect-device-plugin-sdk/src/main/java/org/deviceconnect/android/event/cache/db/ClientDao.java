@@ -6,14 +6,14 @@
  */
 package org.deviceconnect.android.event.cache.db;
 
-import java.sql.Timestamp;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.cache.Utils;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import java.sql.Timestamp;
 
 /**
  * Clientテーブル用DAOクラス.
@@ -256,8 +256,9 @@ final class ClientDao implements ClientSchema {
         sb.append(prepared);
 
         String inter = (event.getInterface() == null) ? "" : event.getInterface();
+        String attr = (event.getAttribute() == null) ? "" : event.getAttribute();
         String serviceId = (event.getServiceId() == null) ? "" : event.getServiceId();
-        String[] params = {event.getProfile(), inter, event.getAttribute(), serviceId};
+        String[] params = {event.getProfile(), inter, attr, serviceId};
         Cursor c = db.rawQuery(sb.toString(), params);
 
         if (c.moveToFirst()) {

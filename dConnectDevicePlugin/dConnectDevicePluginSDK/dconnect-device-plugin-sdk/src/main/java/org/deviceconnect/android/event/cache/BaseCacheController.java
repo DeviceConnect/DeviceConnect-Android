@@ -27,7 +27,6 @@ public abstract class BaseCacheController implements EventCacheController {
         
         if (event == null
                 || event.getProfile() == null 
-                || event.getAttribute() == null 
                 || event.getSessionKey() == null) {
             return false;
         }

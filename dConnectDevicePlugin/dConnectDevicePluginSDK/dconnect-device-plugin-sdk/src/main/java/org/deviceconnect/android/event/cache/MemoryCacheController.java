@@ -6,15 +6,15 @@
  */
 package org.deviceconnect.android.event.cache;
 
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventError;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventError;
 
 /**
  * イベントデータをメモリにキャッシュし、キャッシュの操作機能を提供する.
@@ -44,7 +44,7 @@ public class MemoryCacheController extends BaseCacheController {
      * メモリキャッシュコントローラーを生成する.
      */
     public MemoryCacheController() {
-        mEventMap = new HashMap<String, Map<String, List<Event>>>();
+        mEventMap = new HashMap<>();
     }
     
     /**
@@ -79,16 +79,15 @@ public class MemoryCacheController extends BaseCacheController {
     
     @Override
     public synchronized EventError addEvent(final Event event) {
-        
         if (!checkParameter(event)) {
             return EventError.INVALID_PARAMETER;
         }
-        
+
         String serviceId = getServiceId(event);
         Map<String, List<Event>> events = mEventMap.get(serviceId);
         
         if (events == null) {
-            events = new HashMap<String, List<Event>>();
+            events = new HashMap<>();
             mEventMap.put(serviceId, events);
         }
         
@@ -96,11 +95,13 @@ public class MemoryCacheController extends BaseCacheController {
         if (event.getInterface() != null) {
             path += event.getInterface();
         }
-        path += event.getAttribute();
-        
+        if (event.getAttribute() != null) {
+            path += event.getAttribute();
+        }
+
         List<Event> eventList = events.get(path);
         if (eventList == null) {
-            eventList = new CopyOnWriteArrayList<Event>();
+            eventList = new CopyOnWriteArrayList<>();
             events.put(path, eventList);
         }
         
@@ -139,8 +140,10 @@ public class MemoryCacheController extends BaseCacheController {
         if (event.getInterface() != null) {
             path += event.getInterface();
         }
-        path += event.getAttribute();
-        
+        if (event.getAttribute() != null) {
+            path += event.getAttribute();
+        }
+
         List<Event> eventList = events.get(path);
         if (eventList == null) {
             return EventError.NOT_FOUND;
@@ -198,17 +201,20 @@ public class MemoryCacheController extends BaseCacheController {
         Map<String, List<Event>> events = mEventMap.get(tmpServiceId);
         
         if (events == null) {
-            return new ArrayList<Event>();
+            return new ArrayList<>();
         }
 
         String path = profile;
         if (inter != null) {
             path += inter;
         }
-        path += attribute;
+        if (attribute != null) {
+            path += attribute;
+        }
+
         List<Event> res = events.get(path);
         if (res == null) {
-            return new ArrayList<Event>();
+            return new ArrayList<>();
         }
         
         return res;
@@ -256,7 +262,7 @@ public class MemoryCacheController extends BaseCacheController {
         
         for (Entry<String, Map<String, List<Event>>> entry : mEventMap.entrySet()) {
             for (Entry<String, List<Event>> events : entry.getValue().entrySet()) {
-                List<Event> removes = new ArrayList<Event>();
+                List<Event> removes = new ArrayList<>();
                 for (Event event : events.getValue()) {
                     if (sessionKey.equals(event.getSessionKey())) {
                         removes.add(event);

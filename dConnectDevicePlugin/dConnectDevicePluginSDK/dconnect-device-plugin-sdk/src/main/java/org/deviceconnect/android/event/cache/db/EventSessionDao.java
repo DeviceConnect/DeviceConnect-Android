@@ -6,16 +6,16 @@
  */
 package org.deviceconnect.android.event.cache.db;
 
-import java.sql.Timestamp;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.cache.Utils;
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
+import java.sql.Timestamp;
 
 /**
  * EventSessionテーブル用DAOクラス.
@@ -249,10 +249,11 @@ final class EventSessionDao implements EventSessionSchema {
         sb.append(prepared);
         
         String inter = null2WhiteSpace(event.getInterface());
+        String attr = null2WhiteSpace(event.getAttribute());
         String serviceId =  null2WhiteSpace(event.getServiceId());
         String receiver = null2WhiteSpace(event.getReceiverName());
         
-        String[] params = {event.getProfile(), inter, event.getAttribute(), 
+        String[] params = {event.getProfile(), inter, attr,
                 serviceId, event.getSessionKey(), receiver};
         Cursor c = db.rawQuery(sb.toString(), params);
         

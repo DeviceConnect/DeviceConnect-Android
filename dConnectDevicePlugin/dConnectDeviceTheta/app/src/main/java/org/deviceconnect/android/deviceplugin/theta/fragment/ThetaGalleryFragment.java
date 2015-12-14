@@ -1008,6 +1008,13 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 mGalleryAdapter.addAll(removedList);
                 mGalleryAdapter.notifyDataSetChanged();
             }
+            if ((mUpdateThetaList.size() > 0 && !mIsGalleryMode)
+                    || (mUpdateAppList.size() > 0 && mIsGalleryMode)) {
+                mStatusView.setVisibility(View.GONE);
+            } else {
+                mStatusView.setVisibility(View.VISIBLE);
+            }
+
         }
     }
 

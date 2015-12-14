@@ -376,6 +376,10 @@ public class ThetaShootingFragment extends Fragment implements ThetaDeviceEventL
                     mShootingLayouts[MODE_S_SHOOTING].setVisibility(View.VISIBLE);
                     mShootingLayouts[MODE_MOVIE_SHOOTING].setVisibility(View.GONE);
                 } else {
+                    if (mNowShootingMode != ThetaDevice.ShootingMode.IMAGE) {
+                        ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
+                                getString(R.string.theta_error_failed_change_mode), null);
+                    }
                     mShootingLayouts[MODE_M15_SHOOTING].setVisibility(View.VISIBLE);
                     mShootingLayouts[MODE_S_SHOOTING].setVisibility(View.GONE);
                     mShootingLayouts[MODE_MOVIE_SHOOTING].setVisibility(View.GONE);
@@ -395,6 +399,11 @@ public class ThetaShootingFragment extends Fragment implements ThetaDeviceEventL
                     mNowShootingMode = ThetaDevice.ShootingMode.VIDEO;
                     ShootingChangeTask shooting = new ShootingChangeTask(mNowShootingMode);
                     mShootingTasker.execute(shooting);
+                } else if (mNowShootingMode != ThetaDevice.ShootingMode.VIDEO
+                        && mDevice != null
+                        && mDevice.getModel() == ThetaDeviceModel.THETA_M15) {
+                        ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_ssid_prefix),
+                                getString(R.string.theta_error_failed_change_mode), null);
                 }
                 mShootingLayouts[MODE_M15_SHOOTING].setVisibility(View.GONE);
                 mShootingLayouts[MODE_S_SHOOTING].setVisibility(View.GONE);
@@ -768,6 +777,8 @@ public class ThetaShootingFragment extends Fragment implements ThetaDeviceEventL
                 enableShootingMode(SPINNER_MODE_PICTURE);
                 mShootingMode.setSelection(SPINNER_MODE_PICTURE);
             }
+
+
             mShootingMode.setOnItemSelectedListener(mModeListener);
 
             if (mShootingTasker != null) {

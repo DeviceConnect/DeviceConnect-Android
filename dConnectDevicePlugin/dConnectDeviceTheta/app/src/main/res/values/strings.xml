@@ -29,7 +29,7 @@
     <string name="ok">OK</string>
     <string name="button_cancel">キャンセル</string>
     <string name="camera_must_connect">THETAと接続してください。</string>
-    <string name="theta_gallery_no_data">静止画および動画が撮影されていません。</string>
+    <string name="theta_gallery_no_data">静止画および動画が保存されていません。</string>
     <string name="theta_no_connect_message">THETAと接続されていません。</string>
     <string name="theta_reconnect_button">設定画面で再接続</string>
     <string name="open_settings">設定画面を開く</string>

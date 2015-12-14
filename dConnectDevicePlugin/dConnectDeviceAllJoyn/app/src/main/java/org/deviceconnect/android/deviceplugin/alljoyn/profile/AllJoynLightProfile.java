@@ -103,7 +103,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -117,18 +117,18 @@ public class AllJoynLightProfile extends LightProfile {
                     lights.add(light);
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
                 response.putExtra(PARAM_LIGHTS, lights.toArray(new Bundle[lights.size()]));
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -146,7 +146,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -157,7 +157,7 @@ public class AllJoynLightProfile extends LightProfile {
                     if (lampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp IDs (code: " + lampIDsResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     for (String lampId : lampIDsResponse.lampIDs) {
@@ -196,18 +196,18 @@ public class AllJoynLightProfile extends LightProfile {
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
                 response.putExtra(PARAM_LIGHTS, lights.toArray(new Bundle[lights.size()]));
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -275,7 +275,7 @@ public class AllJoynLightProfile extends LightProfile {
         if (!lightId.equals(LIGHT_ID_SELF)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "A light with ID specified by 'lightId' not found.");
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
 
@@ -288,13 +288,13 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxyState == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
                 if (proxyDetails == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.LampDetails .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -324,23 +324,23 @@ public class AllJoynLightProfile extends LightProfile {
                     if (responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to change lamp states (code: " + responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -359,7 +359,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -368,19 +368,19 @@ public class AllJoynLightProfile extends LightProfile {
                             proxy.getAllLampIDs();
                     if (getAllLampIDsResponse == null) {
                         MessageUtils.setUnknownError(response, "Failed to obtain lamp IDs.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     } else if (getAllLampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp IDs (code: "
                                         + getAllLampIDsResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(lightId)) {
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "A light with ID specified by 'lightId' not found.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -389,12 +389,12 @@ public class AllJoynLightProfile extends LightProfile {
                     if (lampDetailsResponse == null) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp details.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     } else if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp details (code: " + lampDetailsResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -443,23 +443,23 @@ public class AllJoynLightProfile extends LightProfile {
                             transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -510,7 +510,7 @@ public class AllJoynLightProfile extends LightProfile {
         if (!lightId.equals(LIGHT_ID_SELF)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "A light with ID specified by 'lightId' not found.");
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
 
@@ -522,7 +522,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -530,18 +530,18 @@ public class AllJoynLightProfile extends LightProfile {
                     proxy.setOnOff(false);
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -560,7 +560,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -569,19 +569,19 @@ public class AllJoynLightProfile extends LightProfile {
                             proxy.getAllLampIDs();
                     if (getAllLampIDsResponse == null) {
                         MessageUtils.setUnknownError(response, "Failed to obtain lamp IDs.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     } else if (getAllLampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp IDs (code: "
                                         + getAllLampIDsResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(lightId)) {
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "A light with ID specified by 'lightId' not found.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -592,23 +592,23 @@ public class AllJoynLightProfile extends LightProfile {
                     if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to turn off the light (code: " + transLampStateResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -676,7 +676,7 @@ public class AllJoynLightProfile extends LightProfile {
         if (!lightId.equals(LIGHT_ID_SELF)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "A light with ID specified by 'lightId' not found.");
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
         if (name == null) {
@@ -685,14 +685,14 @@ public class AllJoynLightProfile extends LightProfile {
         if (brightness != null && (brightness < 0 || brightness > 1)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'brightness' must be within range [0, 1].");
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
         if (color != null && color.length != 3) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'color' must be a string representing " +
                             "an RGB hexadecimal (e.g. ff0000).");
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
 
@@ -707,13 +707,13 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxyState == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.LampState .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
                 if (proxyDetails == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.LampDetails .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -743,23 +743,23 @@ public class AllJoynLightProfile extends LightProfile {
                         MessageUtils.setUnknownError(response,
                                 "Failed to change lamp states (code: "
                                         + responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -771,14 +771,14 @@ public class AllJoynLightProfile extends LightProfile {
         if (brightness != null && (brightness < 0 || brightness > 1)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'brightness' must be within range [0, 1].");
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
         if (color != null && color.length != 3) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'color' must be a string representing " +
                             "an RGB hexadecimal (e.g. ff0000).");
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
 
@@ -792,7 +792,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -801,19 +801,19 @@ public class AllJoynLightProfile extends LightProfile {
                             proxy.getAllLampIDs();
                     if (getAllLampIDsResponse == null) {
                         MessageUtils.setUnknownError(response, "Failed to obtain lamp IDs.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     } else if (getAllLampIDsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp IDs (code: "
                                         + getAllLampIDsResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     if (!Arrays.asList(getAllLampIDsResponse.lampIDs).contains(lightId)) {
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "A light with ID specified by 'lightId' not found.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -827,7 +827,7 @@ public class AllJoynLightProfile extends LightProfile {
                     if (lampDetailsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp details (code: " + lampDetailsResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -857,7 +857,7 @@ public class AllJoynLightProfile extends LightProfile {
                     if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -867,24 +867,24 @@ public class AllJoynLightProfile extends LightProfile {
                         if (lampNameResponse.responseCode != ResponseCode.OK.getValue()) {
                             MessageUtils.setUnknownError(response,
                                     "Failed to change name (code: " + lampNameResponse.responseCode + ").");
-                            getContext().sendBroadcast(response);
+                            sendResponse(response);
                             return;
                         }
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -934,7 +934,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxyLampGroup == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -944,7 +944,7 @@ public class AllJoynLightProfile extends LightProfile {
                     if (allLampGroupIDsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp group IDs (code: " + allLampGroupIDsResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -1018,7 +1018,7 @@ public class AllJoynLightProfile extends LightProfile {
                     if (proxyLamp == null) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.Lamp .");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     for (LampGroupInfo lampGroup : lampGroups.values()) {
@@ -1100,10 +1100,10 @@ public class AllJoynLightProfile extends LightProfile {
                     response.putExtra(PARAM_LIGHT_GROUPS,
                             lightGroupsBundle.toArray(new Bundle[lightGroupsBundle.size()]));
                     setResultOK(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
             }
@@ -1111,7 +1111,7 @@ public class AllJoynLightProfile extends LightProfile {
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -1185,7 +1185,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -1194,19 +1194,19 @@ public class AllJoynLightProfile extends LightProfile {
                             proxy.getAllLampGroupIDs();
                     if (getAllLampGroupIDsResponse == null) {
                         MessageUtils.setUnknownError(response, "Failed to obtain lamp group IDs.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     } else if (getAllLampGroupIDsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp IDs (code: "
                                         + getAllLampGroupIDsResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     if (!Arrays.asList(getAllLampGroupIDsResponse.lampGroupIDs).contains(groupID)) {
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "A light group with ID specified by 'groupId' not found.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -1236,28 +1236,28 @@ public class AllJoynLightProfile extends LightProfile {
                     if (transLampGroupStateResponse == null) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to change lamp group states.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     } else if (transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to change lamp group states (code: " + transLampGroupStateResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -1314,7 +1314,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -1323,19 +1323,19 @@ public class AllJoynLightProfile extends LightProfile {
                             proxy.getAllLampGroupIDs();
                     if (getAllLampGroupIDsResponse == null) {
                         MessageUtils.setUnknownError(response, "Failed to obtain lamp group IDs.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     } else if (getAllLampGroupIDsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp IDs (code: "
                                         + getAllLampGroupIDsResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     if (!Arrays.asList(getAllLampGroupIDsResponse.lampGroupIDs).contains(groupID)) {
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "A light group with ID specified by 'groupId' not found.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -1346,23 +1346,23 @@ public class AllJoynLightProfile extends LightProfile {
                     if (transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to turn off the light group (code: " + transLampGroupStateResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -1437,7 +1437,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -1446,19 +1446,19 @@ public class AllJoynLightProfile extends LightProfile {
                             proxy.getAllLampGroupIDs();
                     if (getAllLampGroupIDsResponse == null) {
                         MessageUtils.setUnknownError(response, "Failed to obtain lamp group IDs.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     } else if (getAllLampGroupIDsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp IDs (code: "
                                         + getAllLampGroupIDsResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     if (!Arrays.asList(getAllLampGroupIDsResponse.lampGroupIDs).contains(groupID)) {
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "A light group with ID specified by 'groupId' not found.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -1487,13 +1487,13 @@ public class AllJoynLightProfile extends LightProfile {
                     if (transLampGroupStateResponse == null) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to change lamp group states.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     if (transLampGroupStateResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to change lamp group states (code: " + transLampGroupStateResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -1503,24 +1503,24 @@ public class AllJoynLightProfile extends LightProfile {
                         if (setLampGroupNameResponse.responseCode != ResponseCode.OK.getValue()) {
                             MessageUtils.setUnknownError(response,
                                     "Failed to change group name (code: " + setLampGroupNameResponse.responseCode + ").");
-                            getContext().sendBroadcast(response);
+                            sendResponse(response);
                             return;
                         }
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -1584,7 +1584,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxyLampGroup == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -1595,23 +1595,23 @@ public class AllJoynLightProfile extends LightProfile {
                     if (createLampGroupResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to create a light group (code: " + createLampGroupResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
@@ -1669,7 +1669,7 @@ public class AllJoynLightProfile extends LightProfile {
                 if (proxy == null) {
                     MessageUtils.setUnknownError(response,
                             "Failed to obtain a proxy object for org.allseen.LSF.ControllerService.LampGroup .");
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
@@ -1678,19 +1678,19 @@ public class AllJoynLightProfile extends LightProfile {
                             proxy.getAllLampGroupIDs();
                     if (getAllLampGroupIDsResponse == null) {
                         MessageUtils.setUnknownError(response, "Failed to obtain lamp group IDs.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     } else if (getAllLampGroupIDsResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to obtain lamp IDs (code: "
                                         + getAllLampGroupIDsResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     if (!Arrays.asList(getAllLampGroupIDsResponse.lampGroupIDs).contains(groupID)) {
                         MessageUtils.setInvalidRequestParameterError(response,
                                 "A light group with ID specified by 'groupId' not found.");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
 
@@ -1699,23 +1699,23 @@ public class AllJoynLightProfile extends LightProfile {
                     if (deleteLampGroupResponse.responseCode != ResponseCode.OK.getValue()) {
                         MessageUtils.setUnknownError(response,
                                 "Failed to delete the light group (code: " + deleteLampGroupResponse.responseCode + ").");
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
 
                 setResultOK(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
 
             @Override
             public void onSessionFailed(@NonNull String busName, short port) {
                 MessageUtils.setUnknownError(response, "Failed to join session.");
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             }
         };
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);

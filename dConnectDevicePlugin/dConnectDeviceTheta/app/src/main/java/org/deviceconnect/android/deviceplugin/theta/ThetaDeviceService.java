@@ -43,6 +43,8 @@ import java.util.logging.Logger;
  */
 public class ThetaDeviceService extends DConnectMessageService {
 
+    private static final String TYPE_NONE = "none";
+
     private final Logger mLogger = Logger.getLogger("theta.dplugin");
 
     private ThetaApiClient mClient;
@@ -126,23 +128,23 @@ public class ThetaDeviceService extends DConnectMessageService {
         ThetaDeviceInfo deviceInfo = mClient.getDevice();
         if (deviceInfo != null) {
             Bundle service = new Bundle();
-            service.putString(ServiceDiscoveryProfile.PARAM_ID, deviceInfo.mServiceId);
-            service.putString(ServiceDiscoveryProfile.PARAM_NAME, deviceInfo.mName);
-            service.putString(ServiceDiscoveryProfile.PARAM_TYPE,
-                ServiceDiscoveryProfile.NetworkType.WIFI.getValue());
-            service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+            ServiceDiscoveryProfile.setId(service, deviceInfo.mServiceId);
+            ServiceDiscoveryProfile.setName(service, deviceInfo.mName);
+            ServiceDiscoveryProfile.setType(service, ServiceDiscoveryProfile.NetworkType.WIFI);
+            ServiceDiscoveryProfile.setOnline(service, true);
             ServiceDiscoveryProfile.setScopes(service, this);
             services.add(service);
         }
 
         Bundle service = new Bundle();
-        service.putString(ServiceDiscoveryProfile.PARAM_ID,
+        ServiceDiscoveryProfile.setId(service,
             ThetaOmnidirectionalImageProfile.SERVICE_ID);
-        service.putString(ServiceDiscoveryProfile.PARAM_NAME,
+        ServiceDiscoveryProfile.setName(service,
             ThetaOmnidirectionalImageProfile.SERVICE_NAME);
-        service.putBoolean(ServiceDiscoveryProfile.PARAM_ONLINE, true);
+        ServiceDiscoveryProfile.setType(service, TYPE_NONE);
+        ServiceDiscoveryProfile.setOnline(service, true);
         service.putStringArray(ServiceDiscoveryProfile.PARAM_SCOPES,
-            new String[] {OmnidirectionalImageProfile.PROFILE_NAME});
+            new String[]{OmnidirectionalImageProfile.PROFILE_NAME});
         services.add(service);
 
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);

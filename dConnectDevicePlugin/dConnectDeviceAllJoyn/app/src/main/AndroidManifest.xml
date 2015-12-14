@@ -1,81 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.deviceconnect.android.deviceplugin.alljoyn" >
+<manifest
+    package="org.deviceconnect.android.deviceplugin.alljoyn"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
 
     <application
         android:name=".AllJoynDeviceApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
             android:name=".activity.AllJoynSettingActivity"
+            android:exported="false"
             android:label="@string/app_name"
-            android:launchMode="singleTask" >
+            android:launchMode="singleTask">
         </activity>
 
         <activity
             android:name=".activity.AllJoynSettingLIFXActivity"
-            android:launchMode="singleTask" >
+            android:exported="false"
+            android:launchMode="singleTask">
         </activity>
 
         <!-- d-Connect AllJoyn Device Plugin Provider. -->
-        <receiver android:name=".AllJoynDeviceProvider" >
+        <receiver android:name=".AllJoynDeviceProvider">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/deviceplugin" />
+                android:resource="@xml/deviceplugin"/>
 
             <intent-filter>
-                <action android:name="org.deviceconnect.action.GET" />
-                <action android:name="org.deviceconnect.action.PUT" />
-                <action android:name="org.deviceconnect.action.POST" />
-                <action android:name="org.deviceconnect.action.DELETE" />
-                <action android:name="org.deviceconnect.action.RESPONSE" />
-                <action android:name="org.deviceconnect.action.EVENT" />
+                <action android:name="org.deviceconnect.action.GET"/>
+                <action android:name="org.deviceconnect.action.PUT"/>
+                <action android:name="org.deviceconnect.action.POST"/>
+                <action android:name="org.deviceconnect.action.DELETE"/>
+                <action android:name="org.deviceconnect.action.RESPONSE"/>
+                <action android:name="org.deviceconnect.action.EVENT"/>
             </intent-filter>
         </receiver>
 
         <service
             android:name=".AllJoynDeviceService"
-            android:exported="true" >
-
-            <!-- <service -->
-            <!-- android:name=".AllJoynDeviceService" -->
-            <!-- android:exported="false"> -->
-            <intent-filter>
-                <action android:name="org.deviceconnect.action.GET" />
-                <action android:name="org.deviceconnect.action.PUT" />
-                <action android:name="org.deviceconnect.action.POST" />
-                <action android:name="org.deviceconnect.action.DELETE" />
-            </intent-filter>
+            android:exported="false">
         </service>
-        <service
-            android:name="org.deviceconnect.android.message.DConnectLaunchService"
-            android:exported="true" >
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:value="enable" />
-        </service>
-
-        <!-- LocalOAuth -->
-        <activity
-            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:excludeFromRecents="true"
-            android:exported="false" />
-
-        <service
-            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false" >
-            <intent-filter>
-                <action android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service" />
-            </intent-filter>
-        </service>
-
     </application>
-
 </manifest>

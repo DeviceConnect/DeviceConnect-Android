@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.activity;
 
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -72,18 +71,6 @@ public class ThetaFeatureActivity extends FragmentActivity {
             }
         }
         return super.dispatchKeyEvent(event);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
     }
 
     /**

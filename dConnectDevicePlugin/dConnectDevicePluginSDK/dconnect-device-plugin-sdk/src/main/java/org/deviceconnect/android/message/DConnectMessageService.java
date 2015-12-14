@@ -356,7 +356,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     public final boolean sendEvent(final Event event, final Bundle bundle) {
         Intent intent = EventManager.createEventMessage(event);
-        intent.getExtras().putAll(bundle);
+        Bundle original = intent.getExtras();
+        original.putAll(bundle);
+        intent.putExtras(original);
         return sendEvent(intent, event.getAccessToken());
     }
 

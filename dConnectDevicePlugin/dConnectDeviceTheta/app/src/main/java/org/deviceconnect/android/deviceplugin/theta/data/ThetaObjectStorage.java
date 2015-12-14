@@ -130,6 +130,13 @@ public class ThetaObjectStorage {
      */
     public synchronized void addThetaObjectCache(final ThetaObject object) {
         ContentValues values = makeContentValue(object);
+        if (!object.isFetched(ThetaObject.DataType.MAIN)
+                || !object.isFetched(ThetaObject.DataType.THUMBNAIL)) {
+            if (mListener != null) {
+                mListener.onCompleted(DBMode.Add, -1);
+            }
+            return;
+        }
         SQLiteDatabase db = mThetaDBHelper.getWritableDatabase();
         long result = -1;
         try {

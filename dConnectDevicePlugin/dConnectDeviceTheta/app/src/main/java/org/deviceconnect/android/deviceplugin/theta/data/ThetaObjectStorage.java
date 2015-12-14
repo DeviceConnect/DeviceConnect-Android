@@ -242,6 +242,21 @@ public class ThetaObjectStorage {
         }
         return objects;
     }
+
+    /**
+     * THETA Data's index.
+     * @param name search data name
+     * @return index
+     */
+    public synchronized int getThetaObjectCachesIndex(final String name) {
+        List<ThetaObject> objects = geThetaObjectCaches(name);
+        for (int i = 0; i < objects.size(); i++) {
+            if (objects.get(i).getFileName().equals(name)) {
+                return i;
+            }
+        }
+        return -1;
+    }
     /** Make Content Value. */
     private ContentValues makeContentValue(final ThetaObject object) {
         ContentValues values = new ContentValues();

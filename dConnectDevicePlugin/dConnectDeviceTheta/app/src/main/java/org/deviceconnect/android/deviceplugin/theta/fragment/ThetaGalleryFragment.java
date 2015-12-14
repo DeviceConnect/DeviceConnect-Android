@@ -514,10 +514,20 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 Intent intent = new Intent();
                 intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
                         ThetaFeatureActivity.MODE_VR);
-                intent.putExtra(ThetaFeatureActivity.FEATURE_IS_STORAGE,
-                        mIsGalleryMode);
-                intent.putExtra(ThetaFeatureActivity.FEATURE_DATA,
-                        position);
+
+                int index = mStorage.getThetaObjectCachesIndex(mUpdateThetaList.get(position).getFileName());
+                if (!mIsGalleryMode
+                        && index != -1) {
+                    intent.putExtra(ThetaFeatureActivity.FEATURE_IS_STORAGE,
+                            !mIsGalleryMode);
+                    intent.putExtra(ThetaFeatureActivity.FEATURE_DATA,
+                            index);
+                } else {
+                    intent.putExtra(ThetaFeatureActivity.FEATURE_IS_STORAGE,
+                            mIsGalleryMode);
+                    intent.putExtra(ThetaFeatureActivity.FEATURE_DATA,
+                            position);
+                }
                 intent.setClass(getActivity(), ThetaFeatureActivity.class);
                 startActivity(intent);
             }

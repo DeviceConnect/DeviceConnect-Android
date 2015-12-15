@@ -68,7 +68,7 @@
     <string name="activity_settings_web_server_default_port">8080</string>
     <string name="activity_settings_web_server_document_root">Document Root Path</string>
     <string name="activity_settings_web_server_warning_title">Warning</string>
-    <string name="activity_settings_web_server_warning_message">Access to the file in the SD card If you enable this feature is to allow the outside.\nDo you may be enabled?</string>
+    <string name="activity_settings_web_server_warning_message">Start the web server.\n\nIf you enable this feature you can access from the outside to the file in the SD card.\n\nDo you may be enabled?</string>
     <string name="activity_settings_web_server_warning_positive">OK</string>
     <string name="activity_settings_web_server_warning_negative">Cancel</string>
 

@@ -68,7 +68,7 @@
     <string name="activity_settings_web_server_default_port">8080</string>
     <string name="activity_settings_web_server_document_root">ドキュメントルートパス</string>
     <string name="activity_settings_web_server_warning_title">警告</string>
-    <string name="activity_settings_web_server_warning_message">この機能を有効にするとSDカードにあるファイルへのアクセスが外部が行えるようになります。\n有効にしてよろしいでしょうか？</string>
+    <string name="activity_settings_web_server_warning_message">Webサーバを起動します。\n\nこの機能を有効にすると外部からSDカードにあるファイルへアクセスが行えるようになります。\n\n有効にしてよろしいでしょうか？</string>
     <string name="activity_settings_web_server_warning_positive">はい</string>
     <string name="activity_settings_web_server_warning_negative">いいえ</string>
 

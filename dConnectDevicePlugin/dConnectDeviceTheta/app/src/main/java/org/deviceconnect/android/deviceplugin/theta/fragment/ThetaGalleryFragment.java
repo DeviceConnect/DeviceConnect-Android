@@ -874,8 +874,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
             } catch (IllegalStateException e) {  //Check background/foreground
                 return;
             }
-            if ((mUpdateThetaList.size() > 0 && !mIsGalleryMode)
-                    || (mUpdateAppList.size() > 0 && mIsGalleryMode)) {
+            if (mResult.size() > 0) {
                 mStatusView.setVisibility(View.GONE);
             } else {
                 mStatusView.setVisibility(View.VISIBLE);
@@ -957,6 +956,13 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 }
             }
             loadingView.setVisibility(View.GONE);
+            if ((mUpdateThetaList.size() > 0 && !mIsGalleryMode)
+                    || (mUpdateAppList.size() > 0 && mIsGalleryMode)) {
+                mStatusView.setVisibility(View.GONE);
+            } else {
+                mStatusView.setVisibility(View.VISIBLE);
+            }
+
         }
     }
 
@@ -1008,8 +1014,7 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 mGalleryAdapter.addAll(removedList);
                 mGalleryAdapter.notifyDataSetChanged();
             }
-            if ((mUpdateThetaList.size() > 0 && !mIsGalleryMode)
-                    || (mUpdateAppList.size() > 0 && mIsGalleryMode)) {
+            if (removedList.size() > 0) {
                 mStatusView.setVisibility(View.GONE);
             } else {
                 mStatusView.setVisibility(View.VISIBLE);

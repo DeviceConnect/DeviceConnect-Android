@@ -856,6 +856,12 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 showSettingsActivity();
                 return;
             }
+            if (mResult.size() > 0) {
+                mStatusView.setVisibility(View.GONE);
+            } else {
+                mStatusView.setVisibility(View.VISIBLE);
+            }
+
             if (mIsGalleryMode) {
                 mUpdateAppList = mResult;
             } else {
@@ -873,11 +879,6 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 }
             } catch (IllegalStateException e) {  //Check background/foreground
                 return;
-            }
-            if (mResult.size() > 0) {
-                mStatusView.setVisibility(View.GONE);
-            } else {
-                mStatusView.setVisibility(View.VISIBLE);
             }
 
             if (mError > 0) {

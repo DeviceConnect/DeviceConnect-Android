@@ -13,11 +13,18 @@ import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
 
-class OverlayProjector extends DefaultProjector {
+import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewParam;
+
+class OverlayProjector extends AbstractProjector {
+
+    private static final long MAX_INTERVAL = 100;
 
     private final Context mContext;
     private final WindowManager mWinMgr;
     private final Handler mHandler;
+
+    private Thread mThread;
+    private boolean mIsRequestedToStop;
 
     private OverlayView mPreview;
     private boolean mIsAttachedView;
@@ -53,7 +60,44 @@ class OverlayProjector extends DefaultProjector {
                 show();
             }
         });
-        return super.start();
+
+        if (mScreen != null) {
+            startProjectionThread();
+        }
+
+        return true;
+    }
+
+    private void startProjectionThread() {
+        mThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mScreen.onStart(OverlayProjector.this);
+
+                    while (!mIsRequestedToStop) {
+                        long start = System.currentTimeMillis();
+
+                        byte[] frame = mRenderer.takeSnapshot();
+                        mScreen.onProjected(OverlayProjector.this, frame);
+
+                        long end = System.currentTimeMillis();
+                        long interval = MAX_INTERVAL - (end - start);
+                        if (interval > 0) {
+                            Thread.sleep(interval);
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    // Nothing to do.
+                } finally {
+                    mIsRequestedToStop = false;
+                    mThread = null;
+
+                    mScreen.onStop(OverlayProjector.this);
+                }
+            }
+        });
+        mThread.start();
     }
 
     @Override
@@ -67,14 +111,16 @@ class OverlayProjector extends DefaultProjector {
                 hide();
             }
         });
-        return super.stop();
+        if (mThread != null) {
+            mIsRequestedToStop = true;
+        }
+        return true;
     }
 
     @Override
-    protected void draw() {
-        // NOTE:
-        //     Nothing to do here.
-        //     The rendering will be executed in OverlayView class.
+    public void setParameter(final SphericalViewParam param) {
+        updateViewSize(param.getWidth(), param.getHeight());
+        super.setParameter(param);
     }
 
     private boolean isShow() {
@@ -83,7 +129,19 @@ class OverlayProjector extends DefaultProjector {
 
     private void show() {
         Point size = getDisplaySize();
+        int x = -size.x / 2;
+        int y = -size.y / 2;
+        show(x, y, size.x, size.y);
+    }
 
+    private void show(final int width , final int height) {
+        Point size = getDisplaySize();
+        int x = -size.x / 2;
+        int y = -size.y / 2;
+        show(x, y, width, height);
+    }
+
+    private void show(final int x, final int y, final int width , final int height) {
         mPreview = new OverlayView(mContext);
         mPreview.setRenderer(getRenderer());
         mPreview.setOnClickListener(new View.OnClickListener() {
@@ -124,16 +182,16 @@ class OverlayProjector extends DefaultProjector {
         });
 
         final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
-            size.x, //pt,
-            size.y, //pt,
+            width, //pt,
+            height, //pt,
             WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                 | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                 | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
             PixelFormat.TRANSLUCENT);
-        l.x = -size.x / 2;
-        l.y = -size.y / 2;
+        l.x = x;
+        l.y = y;
         mWinMgr.addView(mPreview, l);
         mIsAttachedView = true;
 
@@ -147,16 +205,32 @@ class OverlayProjector extends DefaultProjector {
             mWinMgr.removeView(mPreview);
             mPreview = null;
         }
-//        if (mZoomInBtn != null) {
-//            mWinMgr.removeView(mZoomInBtn);
-//            mZoomInBtn = null;
-//        }
-//        if (mZoomOutBtn != null) {
-//            mWinMgr.removeView(mZoomOutBtn);
-//            mZoomOutBtn = null;
-//        }
         mIsAttachedView = false;
         mContext.unregisterReceiver(mOrientReceiver);
+    }
+
+    private void updateViewSize(final int width, final int height) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                Point size = getDisplaySize();
+                int x = -size.x / 2;
+                int y = -size.y / 2;
+
+                final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
+                    width, //pt,
+                    height, //pt,
+                    WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                    PixelFormat.TRANSLUCENT);
+                l.x = x;
+                l.y = y;
+                mWinMgr.updateViewLayout(mPreview, l);
+            }
+        });
     }
 
     private float getScaledDensity() {

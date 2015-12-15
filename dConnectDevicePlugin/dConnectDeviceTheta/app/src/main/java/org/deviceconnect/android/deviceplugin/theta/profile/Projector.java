@@ -1,5 +1,6 @@
 package org.deviceconnect.android.deviceplugin.theta.profile;
 
+import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewParam;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewRenderer;
 
 interface Projector {
@@ -13,5 +14,7 @@ interface Projector {
     boolean start();
 
     boolean stop();
+
+    void setParameter(SphericalViewParam param);
 
 }

@@ -130,6 +130,13 @@ public class ThetaObjectStorage {
      */
     public synchronized void addThetaObjectCache(final ThetaObject object) {
         ContentValues values = makeContentValue(object);
+        if (!object.isFetched(ThetaObject.DataType.MAIN)
+                || !object.isFetched(ThetaObject.DataType.THUMBNAIL)) {
+            if (mListener != null) {
+                mListener.onCompleted(DBMode.Add, -1);
+            }
+            return;
+        }
         SQLiteDatabase db = mThetaDBHelper.getWritableDatabase();
         long result = -1;
         try {
@@ -234,6 +241,21 @@ public class ThetaObjectStorage {
             db.close();
         }
         return objects;
+    }
+
+    /**
+     * THETA Data's index.
+     * @param name search data name
+     * @return index
+     */
+    public synchronized int getThetaObjectCachesIndex(final String name) {
+        List<ThetaObject> objects = geThetaObjectCaches(name);
+        for (int i = 0; i < objects.size(); i++) {
+            if (objects.get(i).getFileName().equals(name)) {
+                return i;
+            }
+        }
+        return -1;
     }
     /** Make Content Value. */
     private ContentValues makeContentValue(final ThetaObject object) {

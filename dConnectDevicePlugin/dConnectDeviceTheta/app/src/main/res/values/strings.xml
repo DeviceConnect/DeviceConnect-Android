@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">THETA (Device Web API Plug-in)</string>
 
+    <string name="splash_title">サンプルアプリ起動中...</string>
     <string name="device_name_theta_s">THETA S</string>
     <string name="device_name_theta_m15">THETA m15</string>
     <string name="theta_ssid_prefix">THETA</string>
@@ -21,7 +22,7 @@
     <string name="camera_search_button">カメラ検索</string>
     <string name="theta_confirm_wifi">Wi-Fi接続確認</string>
     <string name="camera_search_message_not_found">THETAが見つかりません。</string>
-    <string name="camera_search_message_found">$NAME$ に接続されました。</string>
+    <string name="camera_search_message_found">$NAME$ に接続されました。\nバックキーまたは画面左上のCLOSEを押して、設定画面を閉じてください。</string>
     <string name="wifi_settings_button">WiFi設定画面を開く</string>
     <string name="theta_password_dialog">パスワード入力ダイアログ</string>
     <string name="theta_connecting">THETAカメラに接続中...</string>
@@ -29,7 +30,7 @@
     <string name="ok">OK</string>
     <string name="button_cancel">キャンセル</string>
     <string name="camera_must_connect">THETAと接続してください。</string>
-    <string name="theta_gallery_no_data">静止画および動画が撮影されていません。</string>
+    <string name="theta_gallery_no_data">静止画および動画が保存されていません。</string>
     <string name="theta_no_connect_message">THETAと接続されていません。</string>
     <string name="theta_reconnect_button">設定画面で再接続</string>
     <string name="open_settings">設定画面を開く</string>

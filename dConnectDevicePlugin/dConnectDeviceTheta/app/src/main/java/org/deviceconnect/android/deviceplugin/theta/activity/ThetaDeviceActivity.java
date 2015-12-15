@@ -46,4 +46,5 @@ public class ThetaDeviceActivity extends FragmentActivity {
         ThetaDeviceApplication app = (ThetaDeviceApplication) getApplication();
         return app.getDeviceManager();
     }
+
 }

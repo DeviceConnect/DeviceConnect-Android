@@ -514,10 +514,20 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 Intent intent = new Intent();
                 intent.putExtra(ThetaFeatureActivity.FEATURE_MODE,
                         ThetaFeatureActivity.MODE_VR);
-                intent.putExtra(ThetaFeatureActivity.FEATURE_IS_STORAGE,
-                        mIsGalleryMode);
-                intent.putExtra(ThetaFeatureActivity.FEATURE_DATA,
-                        position);
+
+                int index = mStorage.getThetaObjectCachesIndex(mUpdateThetaList.get(position).getFileName());
+                if (!mIsGalleryMode
+                        && index != -1) {
+                    intent.putExtra(ThetaFeatureActivity.FEATURE_IS_STORAGE,
+                            !mIsGalleryMode);
+                    intent.putExtra(ThetaFeatureActivity.FEATURE_DATA,
+                            index);
+                } else {
+                    intent.putExtra(ThetaFeatureActivity.FEATURE_IS_STORAGE,
+                            mIsGalleryMode);
+                    intent.putExtra(ThetaFeatureActivity.FEATURE_DATA,
+                            position);
+                }
                 intent.setClass(getActivity(), ThetaFeatureActivity.class);
                 startActivity(intent);
             }
@@ -846,6 +856,12 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 showSettingsActivity();
                 return;
             }
+            if (mResult.size() > 0) {
+                mStatusView.setVisibility(View.GONE);
+            } else {
+                mStatusView.setVisibility(View.VISIBLE);
+            }
+
             if (mIsGalleryMode) {
                 mUpdateAppList = mResult;
             } else {
@@ -863,12 +879,6 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 }
             } catch (IllegalStateException e) {  //Check background/foreground
                 return;
-            }
-            if ((mUpdateThetaList.size() > 0 && !mIsGalleryMode)
-                    || (mUpdateAppList.size() > 0 && mIsGalleryMode)) {
-                mStatusView.setVisibility(View.GONE);
-            } else {
-                mStatusView.setVisibility(View.VISIBLE);
             }
 
             if (mError > 0) {
@@ -947,6 +957,13 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 }
             }
             loadingView.setVisibility(View.GONE);
+            if ((mUpdateThetaList.size() > 0 && !mIsGalleryMode)
+                    || (mUpdateAppList.size() > 0 && mIsGalleryMode)) {
+                mStatusView.setVisibility(View.GONE);
+            } else {
+                mStatusView.setVisibility(View.VISIBLE);
+            }
+
         }
     }
 
@@ -998,6 +1015,12 @@ public class ThetaGalleryFragment extends Fragment implements ThetaDeviceEventLi
                 mGalleryAdapter.addAll(removedList);
                 mGalleryAdapter.notifyDataSetChanged();
             }
+            if (removedList.size() > 0) {
+                mStatusView.setVisibility(View.GONE);
+            } else {
+                mStatusView.setVisibility(View.VISIBLE);
+            }
+
         }
     }
 

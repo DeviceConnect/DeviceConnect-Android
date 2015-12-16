@@ -8,9 +8,7 @@ package org.deviceconnect.android.deviceplugin.theta.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
 import org.deviceconnect.android.deviceplugin.theta.core.LiveCamera;
 import org.deviceconnect.android.deviceplugin.theta.core.LivePreviewTask;
@@ -278,9 +276,6 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
 
             @Override
             public void onFailed(final ThetaDeviceException cause) {
-                if (BuildConfig.DEBUG) {
-                    Log.w("AAA", "Failed to stopVideoRecording.", cause);
-                }
                 switch (cause.getReason()) {
                     case ThetaDeviceException.NOT_FOUND_THETA:
                         MessageUtils.setNotFoundServiceError(response);

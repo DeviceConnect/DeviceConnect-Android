@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.theta.activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceApplication;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDevice;
@@ -40,7 +39,6 @@ public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActi
         mSummary,
         mPhotoMode,
         mMovieMode,
-//        new WifiConnectionFragment(),
         new ConfirmationFragment()
     };
 
@@ -60,7 +58,6 @@ public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActi
     public void onSaveInstanceState(final Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putSerializable(KEY_SELECTED_MODEL, mSelectedModel);
-        Log.d("AAA", "onSaveInstanceState: model = " + mSelectedModel);
     }
 
     @Override
@@ -69,7 +66,6 @@ public class ThetaDeviceSettingsActivity extends DConnectSettingPageFragmentActi
         if (savedInstanceState != null) {
             mSelectedModel = (ThetaDeviceModel) savedInstanceState.get(KEY_SELECTED_MODEL);
         }
-        Log.d("AAA", "SettingsActivity.onRestoreInstanceState: model = " + mSelectedModel);
     }
 
     @Override

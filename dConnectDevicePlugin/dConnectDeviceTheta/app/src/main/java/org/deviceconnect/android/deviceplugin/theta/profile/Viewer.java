@@ -53,7 +53,6 @@ abstract class Viewer implements HeadTrackingListener {
 
     @Override
     public void onHeadRotated(final Quaternion rotation) {
-        //Log.d("THETA", "onHeadRotated: " + rotation);
         if (mProjector == null) {
             return;
         }

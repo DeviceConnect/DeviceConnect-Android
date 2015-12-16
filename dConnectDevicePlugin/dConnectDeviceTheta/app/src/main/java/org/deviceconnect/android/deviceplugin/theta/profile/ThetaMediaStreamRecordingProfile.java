@@ -28,7 +28,6 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -132,20 +131,27 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                     byte[] data = picture.getMainData();
                     picture.clear(ThetaObject.DataType.MAIN);
 
-                    String uri = mFileMgr.saveFile(picture.getFileName(), data);
-                    String path = "/" + picture.getFileName();
+                    mFileMgr.saveFile(picture.getFileName(), data, new FileManager.SaveFileCallback() {
 
-                    setUri(response, uri);
-                    setPath(response, path);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    sendResponse(response);
+                        @Override
+                        public void onSuccess(final String uri) {
+                            String path = "/" + picture.getFileName();
+                            setUri(response, uri);
+                            setPath(response, path);
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            sendResponse(response);
 
-                    sendOnPhotoEvent(serviceId, picture.getMimeType(), uri, path);
+                            sendOnPhotoEvent(serviceId, picture.getMimeType(), uri, path);
+                        }
+
+                        @Override
+                        public void onFail(final Throwable e) {
+                            MessageUtils.setUnknownError(response, e.getMessage());
+                            sendResponse(response);
+                        }
+                    });
                 } catch (ThetaDeviceException e) {
                     onFailed(e);
-                } catch (IOException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
-                    sendResponse(response);
                 }
             }
 

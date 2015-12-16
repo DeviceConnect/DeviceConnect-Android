@@ -6,10 +6,18 @@
  */
 package org.deviceconnect.android.deviceplugin.theta.profile;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.ResultReceiver;
+import android.provider.Settings;
 import android.text.TextUtils;
 
+import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewParam;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewRenderer;
@@ -27,8 +35,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Theta Omnidirectional Image Profile.
@@ -59,6 +69,8 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     private final HeadTracker mHeadTracker;
+
+    private final Handler mHandler;
 
     static {
         List<ParamDefinition> def = new ArrayList<ParamDefinition>();
@@ -114,6 +126,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     public ThetaOmnidirectionalImageProfile(final HeadTracker tracker) {
         mHeadTracker = tracker;
+        mHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
@@ -161,6 +174,12 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
                     Projector projector;
                     if (isRequiredOverlay(outputs)) {
+                        if (!checkOverlayPermission()) {
+                            MessageUtils.setIllegalDeviceStateError(response, "Overlay is not allowed.");
+                            ((ThetaDeviceService) getContext()).sendResponse(response);
+                            return;
+                        }
+
                         projector = new OverlayProjector(getContext());
                     } else if (isRequiredMJPEG(outputs)) {
                         projector = new DefaultProjector();
@@ -218,6 +237,36 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                 ((ThetaDeviceService) getContext()).sendResponse(response);
             }
         });
+    }
+
+    private boolean checkOverlayPermission() {
+        final Context context = getContext();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Settings.canDrawOverlays(context)) {
+                return true;
+            }
+
+            final Boolean[] isPermitted = new Boolean[1];
+            final CountDownLatch lockObj = new CountDownLatch(1);
+
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + context.getPackageName()));
+            IntentHandlerActivity.startActivityForResult(context, intent, new ResultReceiver(mHandler) {
+                @Override
+                protected void onReceiveResult(final int resultCode, final Bundle resultData) {
+                    isPermitted[0] = Settings.canDrawOverlays(context);
+                    lockObj.countDown();
+                }
+            });
+            try {
+                lockObj.await(60, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                return false;
+            }
+            return isPermitted[0] != null && isPermitted[0];
+        } else {
+            return true;
+        }
     }
 
     private String generateId() {

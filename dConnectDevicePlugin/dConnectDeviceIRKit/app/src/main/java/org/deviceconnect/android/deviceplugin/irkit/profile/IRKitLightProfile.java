@@ -24,19 +24,15 @@ import java.util.List;
  */
 public class IRKitLightProfile extends LightProfile {
 
-
     /**
      * ライトのID.
      */
     private static final String LIGHT_ID = "1";
 
-
     /**
      * ライトの名前.
      */
     private static final String LIGHT_NAME = "照明";
-
-
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
@@ -78,34 +74,32 @@ public class IRKitLightProfile extends LightProfile {
      * @param response レスポンス
      * @return true:同期　false:非同期
      */
-    private boolean sendLightRequest(final String serviceId,
-                                     final String lightId,
-                                     final String method,
-                                     final Intent response) {
-        boolean send = true;
+    private boolean sendLightRequest(final String serviceId, final String lightId,
+                                     final String method, final Intent response) {
         IRKitDBHelper helper = new IRKitDBHelper(getContext());
         List<VirtualProfileData> requests = helper.getVirtualProfiles(serviceId, "Light");
         if (requests.size() == 0) {
             MessageUtils.setNotSupportAttributeError(response);
-            return send;
+            return true;
         }
-        if (lightId == null || (lightId != null && !lightId.equals(LIGHT_ID))) {
-            MessageUtils.setInvalidRequestParameterError(response, "Invalid lihgtId.");
-            return send;
+
+        if (lightId != null && LIGHT_ID.equals(lightId)) {
+            MessageUtils.setInvalidRequestParameterError(response, "Invalid lightId.");
+            return true;
         }
+
         for (VirtualProfileData req : requests) {
             String uri = req.getUri();
             if (req.getUri().equals(uri)
                     && req.getMethod().equals(method)
                     && req.getIr() != null) {
                 final IRKitDeviceService service = (IRKitDeviceService) getContext();
-                send = service.sendIR(serviceId, req.getIr(), response);
-                break;
+                return service.sendIR(serviceId, req.getIr(), response);
             } else {
                 MessageUtils.setInvalidRequestParameterError(response, "IR is not registered for that request");
             }
         }
-        return send;
+        return true;
     }
 
 }

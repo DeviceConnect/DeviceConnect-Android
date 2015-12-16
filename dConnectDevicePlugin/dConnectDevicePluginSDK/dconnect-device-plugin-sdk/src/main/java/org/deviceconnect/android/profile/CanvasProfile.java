@@ -54,10 +54,19 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
         if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
             String serviceId = getServiceID(request);
             String mimeType = getMIMEType(request);
-            String uri = request.getStringExtra(CanvasProfile.PARAM_URI);
-            byte[] data = getContentData(uri);
+            String uri = request.getStringExtra(PARAM_URI);
+            byte[] data = null;
+            if (uri != null) {
+                if (uri.startsWith("content://")) {
+                    data = getContentData(uri);
+                    uri = null;
+                }
+            }
 
-
+            if (data == null && uri == null) {
+                MessageUtils.setInvalidRequestParameterError(response, "not found data.");
+                return result;
+            }
             if (mimeType != null && !checkMimeTypeFormat(mimeType)) {
                 MessageUtils.setInvalidRequestParameterError(response, "mimeType format is incorrect.");
                 return result;
@@ -74,7 +83,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
             double x = getX(request);
             double y = getY(request);
             String mode = getMode(request);
-            result = onPostDrawImage(request, response, serviceId, mimeType, data, x, y, mode);
+            result = onPostDrawImage(request, response, serviceId, mimeType, data, uri, x, y, mode);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -107,13 +116,14 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
      * @param serviceId サービスID
      * @param mimeType dataのマイムタイプ。省略された場合はnullが渡される。
      * @param data 画像ファイルのバイナリ。
+     * @param uri 画像ファイルのURI。
      * @param x X座標
      * @param y Y座標
      * @param mode 画像描画モード
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId, 
-            final String mimeType, final byte[] data, final double x, final double y, final String mode) {
+    protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId,
+                                      final String mimeType, final byte[] data, String uri, final double x, final double y, final String mode) {
         setUnsupportedError(response);
         return true;
     }

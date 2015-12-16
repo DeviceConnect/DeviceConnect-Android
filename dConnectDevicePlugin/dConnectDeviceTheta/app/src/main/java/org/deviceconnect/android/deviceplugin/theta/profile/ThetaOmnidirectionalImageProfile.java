@@ -22,6 +22,9 @@ import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewParam;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewRenderer;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTracker;
+import org.deviceconnect.android.deviceplugin.theta.profile.param.BooleanParamDefinition;
+import org.deviceconnect.android.deviceplugin.theta.profile.param.DoubleParamDefinition;
+import org.deviceconnect.android.deviceplugin.theta.profile.param.ParamDefinitionSet;
 import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.OmnidirectionalImageProfile;
@@ -30,9 +33,7 @@ import org.deviceconnect.message.DConnectMessage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -58,7 +59,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
      */
     public static final String SERVICE_NAME = "ROI Image Service";
 
-    private static final List<ParamDefinition> ROI_PARAM_DEFINITIONS;
+    private final ParamDefinitionSet mParamSet;
 
     private final Object mLockObj = new Object();
 
@@ -72,56 +73,55 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     private final Handler mHandler;
 
-    static {
-        List<ParamDefinition> def = new ArrayList<ParamDefinition>();
-        def.add(new DoubleParamDefinition(PARAM_X, null));
-        def.add(new DoubleParamDefinition(PARAM_Y, null));
-        def.add(new DoubleParamDefinition(PARAM_Z, null));
-        def.add(new DoubleParamDefinition(PARAM_ROLL, new DoubleParamRange() {
+    {
+        mParamSet = new ParamDefinitionSet();
+        mParamSet.add(new DoubleParamDefinition(PARAM_X, null));
+        mParamSet.add(new DoubleParamDefinition(PARAM_Y, null));
+        mParamSet.add(new DoubleParamDefinition(PARAM_Z, null));
+        mParamSet.add(new DoubleParamDefinition(PARAM_ROLL, new DoubleParamDefinition.Range() {
             @Override
             public boolean validate(final double v) {
                 return 0.0 <= v && v < 360.0;
             }
         }));
-        def.add(new DoubleParamDefinition(PARAM_YAW, new DoubleParamRange() {
+        mParamSet.add(new DoubleParamDefinition(PARAM_YAW, new DoubleParamDefinition.Range() {
             @Override
             public boolean validate(final double v) {
                 return 0.0 <= v && v < 360.0;
             }
         }));
-        def.add(new DoubleParamDefinition(PARAM_PITCH, new DoubleParamRange() {
+        mParamSet.add(new DoubleParamDefinition(PARAM_PITCH, new DoubleParamDefinition.Range() {
             @Override
             public boolean validate(final double v) {
                 return 0.0 <= v && v < 360.0;
             }
         }));
-        def.add(new DoubleParamDefinition(PARAM_FOV, new DoubleParamRange() {
+        mParamSet.add(new DoubleParamDefinition(PARAM_FOV, new DoubleParamDefinition.Range() {
             @Override
             public boolean validate(final double v) {
                 return 0.0 < v && v < 180.0;
             }
         }));
-        def.add(new DoubleParamDefinition(PARAM_SPHERE_SIZE, new DoubleParamRange() {
+        mParamSet.add(new DoubleParamDefinition(PARAM_SPHERE_SIZE, new DoubleParamDefinition.Range() {
             @Override
             public boolean validate(final double v) {
                 return SphericalViewRenderer.Z_NEAR < v && v < SphericalViewRenderer.Z_FAR;
             }
         }));
-        def.add(new DoubleParamDefinition(PARAM_WIDTH, new DoubleParamRange() {
+        mParamSet.add(new DoubleParamDefinition(PARAM_WIDTH, new DoubleParamDefinition.Range() {
             @Override
             public boolean validate(final double v) {
                 return 0.0 < v;
             }
         }));
-        def.add(new DoubleParamDefinition(PARAM_HEIGHT, new DoubleParamRange() {
+        mParamSet.add(new DoubleParamDefinition(PARAM_HEIGHT, new DoubleParamDefinition.Range() {
             @Override
             public boolean validate(final double v) {
                 return 0.0 < v;
             }
         }));
-        def.add(new BooleanParamDefinition(PARAM_STEREO));
-        def.add(new BooleanParamDefinition(PARAM_VR));
-        ROI_PARAM_DEFINITIONS = def;
+        mParamSet.add(new BooleanParamDefinition(PARAM_STEREO));
+        mParamSet.add(new BooleanParamDefinition(PARAM_VR));
     }
 
     public ThetaOmnidirectionalImageProfile(final HeadTracker tracker) {
@@ -329,7 +329,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
             MessageUtils.setInvalidRequestParameterError(response, "uri is not specified.");
             return true;
         }
-        if (!validateRequest(request, response)) {
+        if (!mParamSet.validateRequest(request, response)) {
             return true;
         }
         final Viewer viewer = mViewers.get(omitParameters(uri));
@@ -434,133 +434,4 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
         return param;
     }
 
-    private static boolean validateRequest(final Intent request, final Intent response) {
-        Bundle extras = request.getExtras();
-        if (extras == null) {
-            MessageUtils.setUnknownError(response, "request has no parameter.");
-            return false;
-        }
-        for (ParamDefinition definition : ROI_PARAM_DEFINITIONS) {
-            if (!definition.validate(extras, response)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static abstract class ParamDefinition {
-
-        protected final String mName;
-
-        protected final boolean mIsOptional;
-
-        protected ParamDefinition(final String name, final boolean isOptional) {
-            mName = name;
-            mIsOptional = isOptional;
-        }
-
-        public abstract boolean validate(final Bundle extras, final Intent response);
-    }
-
-    private static class BooleanParamDefinition extends ParamDefinition {
-
-        private static final String TRUE = "true";
-        private static final String FALSE = "false";
-
-        public BooleanParamDefinition(final String name, final boolean isOptional) {
-            super(name, isOptional);
-        }
-
-        public BooleanParamDefinition(final String name) {
-            this(name, true);
-        }
-
-        @Override
-        public boolean validate(final Bundle extras, final Intent response) {
-            Object value = extras.get(mName);
-            if (value == null) {
-                if (mIsOptional) {
-                    return true;
-                } else {
-                    MessageUtils.setInvalidRequestParameterError(response, mName + " is not specified.");
-                    return false;
-                }
-            }
-            if (value instanceof Boolean) {
-                return true;
-            } else if (value instanceof String) {
-                String stringValue = (String) value;
-                if (!TRUE.equals(stringValue) && !FALSE.equals(stringValue)) {
-                    MessageUtils.setInvalidRequestParameterError(response, "Format of " + mName + " is invalid.");
-                    return false;
-                }
-                try {
-                    Boolean.parseBoolean(stringValue);
-                    return true;
-                } catch (NumberFormatException e) {
-                    // Nothing to do.
-                }
-            }
-            MessageUtils.setInvalidRequestParameterError(response, "Format of " + mName + " is invalid.");
-            return false;
-        }
-    }
-
-    private static class DoubleParamDefinition extends ParamDefinition {
-
-        private DoubleParamRange mRange;
-
-        public DoubleParamDefinition(final String name, final boolean isOptional,
-                                     final DoubleParamRange range) {
-            super(name, isOptional);
-            mRange = range;
-        }
-
-        public DoubleParamDefinition(final String name, final DoubleParamRange range) {
-            this(name, true, range);
-        }
-
-        @Override
-        public boolean validate(final Bundle extras, final Intent response) {
-            Object value = extras.get(mName);
-            if (value == null) {
-                if (mIsOptional) {
-                    return true;
-                } else {
-                    MessageUtils.setInvalidRequestParameterError(response, mName + " is not specified.");
-                    return false;
-                }
-            }
-            if (value instanceof Double) {
-                if (validateRange((Double) value)) {
-                    return true;
-                } else {
-                    MessageUtils.setInvalidRequestParameterError(response, mName + " is out of range.");
-                    return false;
-                }
-            } else if (value instanceof String) {
-                try {
-                    double doubleValue = Double.parseDouble((String) value);
-                    if (validateRange(doubleValue)) {
-                        return true;
-                    } else {
-                        MessageUtils.setInvalidRequestParameterError(response, mName + " is out of range.");
-                        return false;
-                    }
-                } catch (NumberFormatException e) {
-                    // Nothing to do.
-                }
-            }
-            MessageUtils.setInvalidRequestParameterError(response, "Format of " + mName + " is invalid.");
-            return false;
-        }
-
-        private boolean validateRange(double value) {
-            return mRange == null || mRange.validate(value);
-        }
-    }
-
-    private interface DoubleParamRange {
-        boolean validate(double value);
-    }
 }

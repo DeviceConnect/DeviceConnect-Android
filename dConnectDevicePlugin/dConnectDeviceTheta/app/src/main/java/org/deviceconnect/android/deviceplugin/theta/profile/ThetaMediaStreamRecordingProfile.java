@@ -19,6 +19,8 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceModel;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
+import org.deviceconnect.android.deviceplugin.theta.profile.param.IntegerParamDefinition;
+import org.deviceconnect.android.deviceplugin.theta.profile.param.ParamDefinitionSet;
 import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
 import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.event.Event;
@@ -52,6 +54,22 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     private final FileManager mFileMgr;
     private final Object mLockObj = new Object();
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private final ParamDefinitionSet mPreviewParamSet;
+    {
+        mPreviewParamSet = new ParamDefinitionSet();
+        mPreviewParamSet.add(new IntegerParamDefinition(PARAM_WIDTH, new IntegerParamDefinition.Range() {
+            @Override
+            public boolean validate(final int value) {
+                return 0 < value;
+            }
+        }));
+        mPreviewParamSet.add(new IntegerParamDefinition(PARAM_HEIGHT, new IntegerParamDefinition.Range() {
+            @Override
+            public boolean validate(final int value) {
+                return 0 < value;
+            }
+        }));
+    }
 
     private LivePreviewTask mLivePreviewTask;
     private MixedReplaceMediaServer mServer;
@@ -307,6 +325,9 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
             ThetaDevice device = mClient.getConnectedDevice(serviceId);
             if (device.getModel() != ThetaDeviceModel.THETA_S) {
                 MessageUtils.setNotSupportAttributeError(response);
+                return true;
+            }
+            if (!mPreviewParamSet.validateRequest(request, response)) {
                 return true;
             }
 

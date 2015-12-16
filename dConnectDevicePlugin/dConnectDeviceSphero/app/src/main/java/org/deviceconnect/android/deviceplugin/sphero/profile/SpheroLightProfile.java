@@ -108,7 +108,7 @@ public class SpheroLightProfile extends LightProfile {
         }
 
         synchronized (info) {
-            if (COLOR_LED_LIGHT_ID.equals(lightId)) {
+            if (COLOR_LED_LIGHT_ID.equals(lightId) || lightId == null || lightId.length() == 0) {
                 info.setColor(0, 0, 0);
                 setResult(response, DConnectMessage.RESULT_OK);
             } else if (BACK_LED_LIGHT_ID.equals(lightId)) {
@@ -152,7 +152,7 @@ public class SpheroLightProfile extends LightProfile {
 
             int[] colors = convertColor(color, brightness);
 
-            if (COLOR_LED_LIGHT_ID.equals(lightId)) {
+            if (COLOR_LED_LIGHT_ID.equals(lightId) || lightId == null || lightId.length() == 0) {
                 if (flashing != null) {
                     SpheroManager.flashFrontLight(info, colors, flashing);
                 } else {

@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
  * Fragment to display the VR mode of THETA.
@@ -90,6 +91,10 @@ public class ThetaVRModeFragment extends Fragment {
     private ThetaDialogFragment mProgress;
     /** Task. */
     private DownloadThetaDataTask mDownloadTask;
+    /**
+     * Logger.
+     */
+    private final Logger mLogger = Logger.getLogger("theta.sampleapp");
 
     /** Default VR. */
     private int mDefaultId;
@@ -388,7 +393,7 @@ public class ThetaVRModeFragment extends Fragment {
                 try {
                     saveFile(filePath, mSphereView.takeSnapshot());
                     if (BuildConfig.DEBUG) {
-                        Log.d("AAA", "absolute path:" + filePath);
+                        mLogger.severe("absolute path:" + filePath);
                     }
                     ContentValues values = new ContentValues();
                     ContentResolver contentResolver = getActivity().getContentResolver();

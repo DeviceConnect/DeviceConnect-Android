@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +39,6 @@ public class MovieModeFragment extends SettingsFragment {
     @Override
     public void onResume() {
         super.onResume();
-        Log.d("AAA", "MovieModeFragment.onResume: ");
         updateView();
     }
 
@@ -57,7 +55,6 @@ public class MovieModeFragment extends SettingsFragment {
     }
 
     public void updateView(final ThetaDeviceModel model) {
-        Log.d("AAA", "MovieModeFragment.updateView: root = " + mRoot);
         if (mRoot != null) {
             int imageId;
             int textId;

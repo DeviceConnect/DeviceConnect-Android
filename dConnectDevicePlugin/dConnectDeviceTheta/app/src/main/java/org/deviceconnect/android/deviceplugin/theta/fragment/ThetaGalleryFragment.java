@@ -52,6 +52,7 @@ import org.deviceconnect.android.provider.FileManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * THETA Device's Gallery Fragment.

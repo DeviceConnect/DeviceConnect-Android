@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +29,6 @@ public class PhotoModeFragment extends SettingsFragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
-        Log.d("AAA", "PhotoModeFragment.onCreateView");
         if (mRoot == null) {
             mRoot = inflater.inflate(R.layout.fragment_photo_mode, null);
         }
@@ -41,7 +39,6 @@ public class PhotoModeFragment extends SettingsFragment {
     @Override
     public void onResume() {
         super.onResume();
-        Log.d("AAA", "PhotoModeFragment.onResume: ");
         updateView();
     }
 
@@ -59,7 +56,6 @@ public class PhotoModeFragment extends SettingsFragment {
 
     public void updateView(final ThetaDeviceModel model) {
         View root = getView();
-        Log.d("AAA", "PhotoModeFragment [" + this.hashCode() + "].updateView: root = " + root);
         if (root != null) {
             int imageId;
             int textId;

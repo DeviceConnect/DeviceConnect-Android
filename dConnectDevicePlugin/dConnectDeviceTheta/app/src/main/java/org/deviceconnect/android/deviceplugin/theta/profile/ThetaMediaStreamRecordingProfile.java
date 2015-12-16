@@ -7,6 +7,8 @@
 package org.deviceconnect.android.deviceplugin.theta.profile;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
@@ -17,6 +19,7 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceModel;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
+import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
 import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -26,6 +29,7 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,6 +42,9 @@ import java.util.concurrent.Executors;
  * @author NTT DOCOMO, INC.
  */
 public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfile {
+
+    private static final String PARAM_WIDTH = "width";
+    private static final String PARAM_HEIGHT = "height";
 
     private static final String SEGMENT_LIVE_PREVIEW = "1";
 
@@ -303,7 +310,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 return true;
             }
 
-            String uri = startLivePreview(device);
+            String uri = startLivePreview(device, getWidth(request), getHeight(request));
             setUri(response, uri);
             setResult(response, DConnectMessage.RESULT_OK);
             return true;
@@ -331,7 +338,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         return true;
     }
 
-    private String startLivePreview(final LiveCamera liveCamera) {
+    private String startLivePreview(final LiveCamera liveCamera, final Integer width, final Integer height) {
         synchronized (mLockObj) {
             if (mServer == null) {
                 mServer = new MixedReplaceMediaServer();
@@ -343,13 +350,29 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 mLivePreviewTask = new LivePreviewTask(liveCamera) {
                     @Override
                     protected void onFrame(final byte[] frame) {
-                        offerFrame(segment, frame);
+                        byte[] b;
+                        if (width != null || height != null) {
+                            b = resizeFrame(frame, width, height);
+                        } else {
+                            b = frame;
+                        }
+                        offerFrame(segment, b);
                     }
                 };
                 mExecutor.execute(mLivePreviewTask);
             }
             return mServer.getUrl() + "/" + segment;
         }
+    }
+
+    private byte[] resizeFrame(final byte[] frame, final Integer newWidth, final Integer newHeight) {
+        Bitmap preview = BitmapFactory.decodeByteArray(frame, 0, frame.length);
+        int w = newWidth != null ? newWidth : preview.getWidth();
+        int h = newHeight != null ? newHeight : preview.getHeight();
+        Bitmap resized = BitmapUtils.resize(preview, w, h);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        resized.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+        return baos.toByteArray();
     }
 
     private void offerFrame(final String segment, final byte[] frame) {
@@ -462,5 +485,13 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
 
     private void sendResponse(final Intent response) {
         ((ThetaDeviceService) getContext()).sendResponse(response);
+    }
+
+    private static Integer getWidth(final Intent request) {
+        return parseInteger(request, PARAM_WIDTH);
+    }
+
+    private static Integer getHeight(final Intent request) {
+        return parseInteger(request, PARAM_HEIGHT);
     }
 }

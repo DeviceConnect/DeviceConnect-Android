@@ -6,7 +6,6 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.opengl.model.UVSphere;
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
@@ -14,11 +13,17 @@ import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.IntBuffer;
+import java.util.logging.Logger;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class SphericalViewRenderer implements GLSurfaceView.Renderer {
+
+    /**
+     * Logger.
+     */
+    private final Logger mLogger = Logger.getLogger("theta.dplugin");
 
     /**
      * Distance of left and right eye: {@value} cm.
@@ -207,9 +212,6 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
             frontY *= -1;
         }
 
-//        Log.d("AAA", "draw: width = " + mScreenWidth + ", height = " + mScreenHeight
-//            + ", FOV = " + fov + ", dir = (x:" + frontX + ", y:" + frontY + ", z:" + frontZ + ")");
-
         Matrix.setLookAtM(mViewMatrix, 0, x, y, z, frontX, frontY, frontZ, upX, upY, upZ);
         Matrix.perspectiveM(mProjectionMatrix, 0, fov, getScreenAspect(), Z_NEAR, Z_FAR);
 
@@ -277,7 +279,6 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
                 GLES20.glDeleteTextures(1, mTextures, 0);
                 //checkGlError("AAA", "glDeleteTextures");
                 mTexture.recycle();
-                //Log.d("AAA", "DestroyTextureOnUpdate");
             } catch (Throwable e) {
                 e.printStackTrace();
             }
@@ -294,17 +295,15 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     public Bitmap getTexture() {
         return mTexture;
     }
-
-
+    
     /**
      * GL error judgment method for debugging
-     * @param TAG TAG output character string
      * @param glOperation Message output character string
      */
-    public static void checkGlError(String TAG, String glOperation) {
+    private void checkGlError(final String glOperation) {
         int error;
         while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
-            Log.e(TAG, glOperation + ": glError " + error);
+            mLogger.warning(glOperation + ": glError " + error);
             throw new RuntimeException(glOperation + ": glError " + error);
         }
     }

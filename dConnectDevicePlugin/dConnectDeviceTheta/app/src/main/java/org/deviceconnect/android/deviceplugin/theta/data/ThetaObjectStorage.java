@@ -17,7 +17,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
 import android.provider.BaseColumns;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
@@ -32,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Save the data of Theta in Storage of Android.
@@ -91,6 +91,10 @@ public class ThetaObjectStorage {
 
     /** Listener. */
     private Listener mListener;
+    /**
+     * Logger.
+     */
+    private static final Logger sLogger = Logger.getLogger("theta.sampleapp");
 
     /** Storage's Listener. */
     public interface Listener {
@@ -562,7 +566,7 @@ public class ThetaObjectStorage {
         int v = (int) (total / (1024.f * 1024.f));
         if(BuildConfig.DEBUG) {
             if(v < LIMIT_APK_SIZE) {
-                Log.e("AAA", "hasEnoughStorageSize is less than " + LIMIT_APK_SIZE + ", rest size =" + v);
+                sLogger.warning("hasEnoughStorageSize is less than " + LIMIT_APK_SIZE + ", rest size =" + v);
             }
         }
         return v >= LIMIT_APK_SIZE;

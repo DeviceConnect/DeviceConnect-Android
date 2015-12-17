@@ -7,10 +7,10 @@
 package org.deviceconnect.android.deviceplugin.theta.profile;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
 import org.deviceconnect.android.deviceplugin.theta.core.LiveCamera;
 import org.deviceconnect.android.deviceplugin.theta.core.LivePreviewTask;
@@ -19,6 +19,9 @@ import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceModel;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaObject;
+import org.deviceconnect.android.deviceplugin.theta.profile.param.IntegerParamDefinition;
+import org.deviceconnect.android.deviceplugin.theta.profile.param.ParamDefinitionSet;
+import org.deviceconnect.android.deviceplugin.theta.utils.BitmapUtils;
 import org.deviceconnect.android.deviceplugin.theta.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
@@ -28,7 +31,7 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
-import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,12 +45,31 @@ import java.util.concurrent.Executors;
  */
 public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfile {
 
+    private static final String PARAM_WIDTH = "width";
+    private static final String PARAM_HEIGHT = "height";
+
     private static final String SEGMENT_LIVE_PREVIEW = "1";
 
     private final ThetaDeviceClient mClient;
     private final FileManager mFileMgr;
     private final Object mLockObj = new Object();
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private final ParamDefinitionSet mPreviewParamSet;
+    {
+        mPreviewParamSet = new ParamDefinitionSet();
+        mPreviewParamSet.add(new IntegerParamDefinition(PARAM_WIDTH, new IntegerParamDefinition.Range() {
+            @Override
+            public boolean validate(final int value) {
+                return 0 < value;
+            }
+        }));
+        mPreviewParamSet.add(new IntegerParamDefinition(PARAM_HEIGHT, new IntegerParamDefinition.Range() {
+            @Override
+            public boolean validate(final int value) {
+                return 0 < value;
+            }
+        }));
+    }
 
     private LivePreviewTask mLivePreviewTask;
     private MixedReplaceMediaServer mServer;
@@ -123,7 +145,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     @Override
     protected boolean onPostTakePhoto(final Intent request, final Intent response,
                                       final String serviceId, final String target) {
-        mClient.takePicture(serviceId, new ThetaDeviceClient.DefaultListener() {
+        mClient.takePicture(serviceId, target, new ThetaDeviceClient.DefaultListener() {
 
             @Override
             public void onTakenPicture(final ThetaObject picture) {
@@ -132,20 +154,27 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                     byte[] data = picture.getMainData();
                     picture.clear(ThetaObject.DataType.MAIN);
 
-                    String uri = mFileMgr.saveFile(picture.getFileName(), data);
-                    String path = "/" + picture.getFileName();
+                    mFileMgr.saveFile(picture.getFileName(), data, new FileManager.SaveFileCallback() {
 
-                    setUri(response, uri);
-                    setPath(response, path);
-                    setResult(response, DConnectMessage.RESULT_OK);
-                    sendResponse(response);
+                        @Override
+                        public void onSuccess(final String uri) {
+                            String path = "/" + picture.getFileName();
+                            setUri(response, uri);
+                            setPath(response, path);
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            sendResponse(response);
 
-                    sendOnPhotoEvent(serviceId, picture.getMimeType(), uri, path);
+                            sendOnPhotoEvent(serviceId, picture.getMimeType(), uri, path);
+                        }
+
+                        @Override
+                        public void onFail(final Throwable e) {
+                            MessageUtils.setUnknownError(response, e.getMessage());
+                            sendResponse(response);
+                        }
+                    });
                 } catch (ThetaDeviceException e) {
                     onFailed(e);
-                } catch (IOException e) {
-                    MessageUtils.setUnknownError(response, e.getMessage());
-                    sendResponse(response);
                 }
             }
 
@@ -154,6 +183,9 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 switch (cause.getReason()) {
                     case ThetaDeviceException.NOT_FOUND_THETA:
                         MessageUtils.setNotFoundServiceError(response);
+                        break;
+                    case ThetaDeviceException.NOT_FOUND_RECORDER:
+                        MessageUtils.setInvalidRequestParameterError(response, cause.getMessage());
                         break;
                     default:
                         MessageUtils.setUnknownError(response, cause.getMessage());
@@ -263,6 +295,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                                                 final boolean hasStopped) {
                 if (hasStopped) {
                     MessageUtils.setIllegalDeviceStateError(response, "Video recording has stopped already.");
+                    sendResponse(response);
                 } else {
                     setResult(response, DConnectMessage.RESULT_OK);
                     sendResponse(response);
@@ -272,9 +305,6 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
 
             @Override
             public void onFailed(final ThetaDeviceException cause) {
-                if (BuildConfig.DEBUG) {
-                    Log.w("AAA", "Failed to stopVideoRecording.", cause);
-                }
                 switch (cause.getReason()) {
                     case ThetaDeviceException.NOT_FOUND_THETA:
                         MessageUtils.setNotFoundServiceError(response);
@@ -301,8 +331,11 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 MessageUtils.setNotSupportAttributeError(response);
                 return true;
             }
+            if (!mPreviewParamSet.validateRequest(request, response)) {
+                return true;
+            }
 
-            String uri = startLivePreview(device);
+            String uri = startLivePreview(device, getWidth(request), getHeight(request));
             setUri(response, uri);
             setResult(response, DConnectMessage.RESULT_OK);
             return true;
@@ -330,7 +363,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         return true;
     }
 
-    private String startLivePreview(final LiveCamera liveCamera) {
+    private String startLivePreview(final LiveCamera liveCamera, final Integer width, final Integer height) {
         synchronized (mLockObj) {
             if (mServer == null) {
                 mServer = new MixedReplaceMediaServer();
@@ -342,13 +375,29 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 mLivePreviewTask = new LivePreviewTask(liveCamera) {
                     @Override
                     protected void onFrame(final byte[] frame) {
-                        offerFrame(segment, frame);
+                        byte[] b;
+                        if (width != null || height != null) {
+                            b = resizeFrame(frame, width, height);
+                        } else {
+                            b = frame;
+                        }
+                        offerFrame(segment, b);
                     }
                 };
                 mExecutor.execute(mLivePreviewTask);
             }
             return mServer.getUrl() + "/" + segment;
         }
+    }
+
+    private byte[] resizeFrame(final byte[] frame, final Integer newWidth, final Integer newHeight) {
+        Bitmap preview = BitmapFactory.decodeByteArray(frame, 0, frame.length);
+        int w = newWidth != null ? newWidth : preview.getWidth();
+        int h = newHeight != null ? newHeight : preview.getHeight();
+        Bitmap resized = BitmapUtils.resize(preview, w, h);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        resized.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+        return baos.toByteArray();
     }
 
     private void offerFrame(final String segment, final byte[] frame) {
@@ -461,5 +510,13 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
 
     private void sendResponse(final Intent response) {
         ((ThetaDeviceService) getContext()).sendResponse(response);
+    }
+
+    private static Integer getWidth(final Intent request) {
+        return parseInteger(request, PARAM_WIDTH);
+    }
+
+    private static Integer getHeight(final Intent request) {
+        return parseInteger(request, PARAM_HEIGHT);
     }
 }

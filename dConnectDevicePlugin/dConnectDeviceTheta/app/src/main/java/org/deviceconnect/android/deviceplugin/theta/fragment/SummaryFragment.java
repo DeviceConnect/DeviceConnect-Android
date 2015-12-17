@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.theta.fragment;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,8 +49,6 @@ public class SummaryFragment extends SettingsFragment implements RadioGroup.OnCh
             default:
                 return;
         }
-
-        Log.d("AAA", "onCheckedChanged: model = " + model);
 
         ThetaDeviceSettingsActivity activity = (ThetaDeviceSettingsActivity) getActivity();
         if (activity != null) {

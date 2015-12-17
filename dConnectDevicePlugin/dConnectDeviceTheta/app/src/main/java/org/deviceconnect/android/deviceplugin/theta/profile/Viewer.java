@@ -6,7 +6,6 @@ import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewRenderer;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTracker;
 import org.deviceconnect.android.deviceplugin.theta.core.sensor.HeadTrackingListener;
 import org.deviceconnect.android.deviceplugin.theta.utils.Quaternion;
-import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
 
 abstract class Viewer implements HeadTrackingListener {
 
@@ -43,35 +42,17 @@ abstract class Viewer implements HeadTrackingListener {
     }
 
     public void setParameter(final SphericalViewParam param) {
-
         if (!mCurrentParam.isVRMode() && param.isVRMode()) {
             mHeadTracker.registerTrackingListener(this);
         } else if (mCurrentParam.isVRMode() && !param.isVRMode()) {
             mHeadTracker.unregisterTrackingListener(this);
         }
-
-        SphericalViewRenderer renderer = mProjector.getRenderer();
-        SphericalViewRenderer.CameraBuilder camera
-            = new SphericalViewRenderer.CameraBuilder(renderer.getCamera());
-        camera.setFov((float) param.getFOV());
-        camera.setPosition(new Vector3D((float) param.getCameraX(),
-            (float) param.getCameraY(),
-            (float) param.getCameraZ()));
-        camera.rotateByEulerAngle(
-            (float) param.getCameraRoll(),
-            (float) param.getCameraYaw(),
-            (float) param.getCameraPitch()
-        );
-        renderer.setCamera(camera.create());
-        renderer.setSphereRadius((float) param.getSphereSize());
-        renderer.setScreenSettings(param.getWidth(), param.getHeight(), param.isStereo());
-
+        mProjector.setParameter(param);
         mCurrentParam = param;
     }
 
     @Override
     public void onHeadRotated(final Quaternion rotation) {
-        //Log.d("THETA", "onHeadRotated: " + rotation);
         if (mProjector == null) {
             return;
         }

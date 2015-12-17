@@ -29,7 +29,10 @@ import java.util.logging.SimpleFormatter;
  */
 public class ThetaDeviceApplication extends Application {
 
-    private Logger mLogger = Logger.getLogger("theta.dplugin");
+    private final Logger[] mLoggers = {
+        Logger.getLogger("theta.dplugin"),
+        Logger.getLogger("theta.sampleapp")
+    };
 
     private ThetaDeviceManager mDeviceMgr;
 
@@ -60,13 +63,17 @@ public class ThetaDeviceApplication extends Application {
         super.onCreate();
 
         if (BuildConfig.DEBUG) {
-            AndroidHandler handler = new AndroidHandler("theta.dplugin");
-            handler.setFormatter(new SimpleFormatter());
-            handler.setLevel(Level.ALL);
-            mLogger.addHandler(handler);
-            mLogger.setLevel(Level.ALL);
+            for (Logger logger : mLoggers) {
+                AndroidHandler handler = new AndroidHandler(logger.getName());
+                handler.setFormatter(new SimpleFormatter());
+                handler.setLevel(Level.ALL);
+                logger.addHandler(handler);
+                logger.setLevel(Level.ALL);
+            }
         } else {
-            mLogger.setLevel(Level.OFF);
+            for (Logger logger : mLoggers) {
+                logger.setLevel(Level.OFF);
+            }
         }
 
         Context context = getApplicationContext();

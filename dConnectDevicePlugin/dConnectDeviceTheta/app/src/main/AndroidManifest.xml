@@ -71,7 +71,6 @@
 
         <activity
             android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:screenOrientation="landscape"
             android:excludeFromRecents="true"
             android:exported="false" >
         </activity>

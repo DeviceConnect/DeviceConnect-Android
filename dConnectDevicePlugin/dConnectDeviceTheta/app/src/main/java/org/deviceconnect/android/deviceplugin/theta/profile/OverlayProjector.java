@@ -57,7 +57,9 @@ class OverlayProjector extends AbstractProjector {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                show();
+                int w = mRenderer.getScreenWidth();
+                int h = mRenderer.getScreenHeight();
+                show(w, h);
             }
         });
 

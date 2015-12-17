@@ -145,7 +145,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     @Override
     protected boolean onPostTakePhoto(final Intent request, final Intent response,
                                       final String serviceId, final String target) {
-        mClient.takePicture(serviceId, new ThetaDeviceClient.DefaultListener() {
+        mClient.takePicture(serviceId, target, new ThetaDeviceClient.DefaultListener() {
 
             @Override
             public void onTakenPicture(final ThetaObject picture) {
@@ -183,6 +183,9 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 switch (cause.getReason()) {
                     case ThetaDeviceException.NOT_FOUND_THETA:
                         MessageUtils.setNotFoundServiceError(response);
+                        break;
+                    case ThetaDeviceException.NOT_FOUND_RECORDER:
+                        MessageUtils.setInvalidRequestParameterError(response, cause.getMessage());
                         break;
                     default:
                         MessageUtils.setUnknownError(response, cause.getMessage());

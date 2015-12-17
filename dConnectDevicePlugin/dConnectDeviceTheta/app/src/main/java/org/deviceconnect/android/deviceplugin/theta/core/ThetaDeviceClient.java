@@ -33,13 +33,22 @@ public class ThetaDeviceClient {
         });
     }
 
-    public void takePicture(final String id, final ResponseListener listener) {
+    public void takePicture(final String deviceId, final String recorderId,
+                            final ResponseListener listener) {
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    ThetaDevice device = getConnectedDevice(id);
-                    listener.onTakenPicture(device.takePicture());
+                    ThetaDevice device = getConnectedDevice(deviceId);
+                    ThetaDevice.Recorder recorder = device.getRecorder();
+                    if (recorderId == null || recorder.getId().equals(recorderId)) {
+                        listener.onTakenPicture(device.takePicture());
+                    } else {
+                        listener.onFailed(
+                            new ThetaDeviceException(
+                                ThetaDeviceException.NOT_FOUND_RECORDER,
+                                "recorder is not found."));
+                    }
                 } catch (ThetaDeviceException e) {
                     listener.onFailed(e);
                 }

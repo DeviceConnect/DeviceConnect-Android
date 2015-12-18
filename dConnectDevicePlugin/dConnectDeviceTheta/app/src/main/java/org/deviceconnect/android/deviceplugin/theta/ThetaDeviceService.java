@@ -20,6 +20,7 @@ import org.deviceconnect.android.deviceplugin.theta.profile.ThetaFileProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaOmnidirectionalImageProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaServiceDiscoveryProfile;
+import org.deviceconnect.android.deviceplugin.theta.profile.ThetaServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.theta.profile.ThetaSystemProfile;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
@@ -80,8 +81,7 @@ public class ThetaDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) {
-        };
+        return new ThetaServiceInformationProfile(this);
     }
 
     @Override
@@ -116,6 +116,10 @@ public class ThetaDeviceService extends DConnectMessageService {
         response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
         response.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES, services.toArray(new Bundle[services.size()]));
         return true;
+    }
+
+    public ThetaDeviceManager getDeviceManager() {
+        return mDeviceMgr;
     }
 
 }

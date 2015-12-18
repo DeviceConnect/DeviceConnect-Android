@@ -83,7 +83,7 @@ public class IRKitLightProfile extends LightProfile {
             return true;
         }
 
-        if (lightId != null && LIGHT_ID.equals(lightId)) {
+        if (lightId != null && !LIGHT_ID.equals(lightId)) {
             MessageUtils.setInvalidRequestParameterError(response, "Invalid lightId.");
             return true;
         }

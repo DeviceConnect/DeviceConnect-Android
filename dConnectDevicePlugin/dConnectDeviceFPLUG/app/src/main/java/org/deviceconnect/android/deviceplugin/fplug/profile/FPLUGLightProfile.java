@@ -65,13 +65,16 @@ public class FPLUGLightProfile extends LightProfile {
             return true;
         }
 
-        if (lightId == null || lightId.length() == 0) {
+        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
+        FPLUGController controller;
+        if (lightId == null) {
+            controller = app.getConnectedController(serviceId);
+        } else if (lightId.length() != 0) {
+            controller = app.getConnectedController(lightId);
+        } else {
             MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
             return true;
         }
-
-        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getConnectedController(lightId);
         if (controller == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
             return true;
@@ -103,13 +106,16 @@ public class FPLUGLightProfile extends LightProfile {
             return true;
         }
 
-        // 必須パラメータの存在チェック
-        if (lightId == null || lightId.length() == 0) {
+        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
+        FPLUGController controller;
+        if (lightId == null) {
+            controller = app.getConnectedController(serviceId);
+        } else if (lightId.length() != 0) {
+            controller = app.getConnectedController(lightId);
+        } else {
             MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
             return true;
         }
-        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getConnectedController(lightId);
         if (controller == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
             return true;

@@ -212,6 +212,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                     }
 
                     ImageViewer viewer = new ImageViewer(getContext());
+                    viewer.setId(id);
                     viewer.setHeadTracker(mHeadTracker);
                     viewer.setImage(source);
                     viewer.setProjector(projector);
@@ -344,7 +345,14 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
     @Override
     public byte[] onConnect(final MixedReplaceMediaServer.Request request) {
-        return null;
+        String resourceUri = request.getUri();
+        Viewer viewer = mViewers.get(resourceUri);
+        if (viewer == null) {
+            return null;
+        }
+        byte[] cache = viewer.getImageCache();
+        mServer.offerMedia(viewer.getId(), cache);
+        return cache;
     }
 
     @Override

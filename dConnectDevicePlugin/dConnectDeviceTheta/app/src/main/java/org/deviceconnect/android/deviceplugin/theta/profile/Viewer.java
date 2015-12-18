@@ -51,6 +51,10 @@ abstract class Viewer implements HeadTrackingListener {
         mCurrentParam = param;
     }
 
+    public byte[] getImageCache() {
+        return mProjector.getImageCache();
+    }
+
     @Override
     public void onHeadRotated(final Quaternion rotation) {
         if (mProjector == null) {

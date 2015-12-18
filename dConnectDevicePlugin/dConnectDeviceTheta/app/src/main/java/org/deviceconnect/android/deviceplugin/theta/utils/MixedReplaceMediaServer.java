@@ -396,28 +396,30 @@ public class MixedReplaceMediaServer {
                 String segment = Uri.parse(mRequest.getUri()).getLastPathSegment();
                 boolean isGet = header.hasParam("snapshot");
 
+                byte[] jpeg = null;
                 if (mServerEventListener != null) {
-                    mServerEventListener.onConnect(mRequest);
+                    jpeg = mServerEventListener.onConnect(mRequest);
                 }
 
                 if (isGet) {
-                    BlockingQueue<byte[]> mediaQueue = mMediaQueues.get(segment);
-                    byte[] media;
-                    if (mediaQueue != null) {
-                        media = mediaQueue.take();
-                    } else {
-                        media = new byte[0];
+                    if (jpeg == null) {
+                        BlockingQueue<byte[]> mediaQueue = mMediaQueues.get(segment);
+                        if (mediaQueue != null) {
+                            jpeg = mediaQueue.take();
+                        } else {
+                            jpeg = new byte[0];
+                        }
                     }
                     StringBuilder sb = new StringBuilder();
                     sb.append("HTTP/1.0 200 OK\r\n");
                     sb.append("Server: " + mServerName + "\r\n");
                     sb.append("Connection: close\r\n");
                     sb.append("Content-Type: image/jpeg\r\n");
-                    sb.append("Content-Length: " + media.length + "\r\n");
+                    sb.append("Content-Length: " + jpeg.length + "\r\n");
                     sb.append("\r\n");
                     mStream.write(sb.toString().getBytes());
                     mStream.flush();
-                    mStream.write(media);
+                    mStream.write(jpeg);
                     mStream.flush();
                     return;
                 }

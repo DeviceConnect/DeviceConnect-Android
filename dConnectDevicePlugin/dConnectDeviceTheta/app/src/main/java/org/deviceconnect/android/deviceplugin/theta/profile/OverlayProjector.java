@@ -29,6 +29,7 @@ class OverlayProjector extends AbstractProjector {
     private OverlayView mPreview;
     private boolean mIsAttachedView;
     private EventListener mEventListener;
+    private byte[] mImageCache;
 
     private final BroadcastReceiver mOrientReceiver = new BroadcastReceiver() {
         @Override
@@ -81,6 +82,7 @@ class OverlayProjector extends AbstractProjector {
                         long start = System.currentTimeMillis();
 
                         byte[] frame = mRenderer.takeSnapshot();
+                        mImageCache = frame;
                         mScreen.onProjected(OverlayProjector.this, frame);
 
                         long end = System.currentTimeMillis();
@@ -125,21 +127,26 @@ class OverlayProjector extends AbstractProjector {
         super.setParameter(param);
     }
 
+    @Override
+    public byte[] getImageCache() {
+        return mImageCache;
+    }
+
     private boolean isShow() {
         return mIsAttachedView;
     }
 
     private void show() {
         Point size = getDisplaySize();
-        int x = -size.x / 2;
-        int y = -size.y / 2;
+        int x = size.x / 2;
+        int y = size.y / 2;
         show(x, y, size.x, size.y);
     }
 
     private void show(final int width , final int height) {
         Point size = getDisplaySize();
-        int x = -size.x / 2;
-        int y = -size.y / 2;
+        int x = size.x / 2;
+        int y = size.y / 2;
         show(x, y, width, height);
     }
 
@@ -184,16 +191,16 @@ class OverlayProjector extends AbstractProjector {
         });
 
         final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
-            width, //pt,
-            height, //pt,
+            (int) (width * getScaledDensity()),
+            (int) (height * getScaledDensity()),
             WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                 | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                 | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
             PixelFormat.TRANSLUCENT);
-        l.x = x;
-        l.y = y;
+        l.x = (int) (x * getScaledDensity());
+        l.y = (int) (y * getScaledDensity());
         mWinMgr.addView(mPreview, l);
         mIsAttachedView = true;
 
@@ -215,21 +222,18 @@ class OverlayProjector extends AbstractProjector {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                Point size = getDisplaySize();
-                int x = -size.x / 2;
-                int y = -size.y / 2;
-
                 final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
-                    width, //pt,
-                    height, //pt,
+                    (int) (width * getScaledDensity()),
+                    (int) (height * getScaledDensity()),
                     WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                         | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                         | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                     PixelFormat.TRANSLUCENT);
-                l.x = x;
-                l.y = y;
+                Point size = getDisplaySize();
+                l.x = (int) ((size.x / 2) * getScaledDensity());
+                l.y = (int) ((size.y / 2) * getScaledDensity());
                 mWinMgr.updateViewLayout(mPreview, l);
             }
         });
@@ -252,11 +256,11 @@ class OverlayProjector extends AbstractProjector {
         if (view == null) {
             return;
         }
-        Point size = getDisplaySize();
         WindowManager.LayoutParams lp =
             (WindowManager.LayoutParams) view.getLayoutParams();
-        lp.x = -size.x / 2;
-        lp.y = -size.y / 2;
+        Point size = getDisplaySize();
+        lp.x = (int) ((size.x / 2) * getScaledDensity());
+        lp.y = (int) ((size.y / 2) * getScaledDensity());
         mWinMgr.updateViewLayout(view, lp);
     }
 

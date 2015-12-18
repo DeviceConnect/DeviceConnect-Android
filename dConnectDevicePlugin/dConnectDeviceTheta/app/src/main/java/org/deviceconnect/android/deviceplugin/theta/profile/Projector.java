@@ -17,4 +17,6 @@ interface Projector {
 
     void setParameter(SphericalViewParam param);
 
+    byte[] getImageCache();
+
 }

@@ -20,6 +20,8 @@ class DefaultProjector extends AbstractProjector implements SphericalViewRendere
 
     private boolean mIsChangedImageSize = true;
 
+    private byte[] mImageCache;
+
     @Override
     public void onSurfaceChanged(final int width, final int height, final boolean isStereo) {
         mIsChangedImageSize = true;
@@ -91,6 +93,11 @@ class DefaultProjector extends AbstractProjector implements SphericalViewRendere
         return true;
     }
 
+    @Override
+    public byte[] getImageCache() {
+        return mImageCache;
+    }
+
     private void prepareBuffer() {
         if (mPixelBuffer == null) {
             int width = mRenderer.getScreenWidth();
@@ -114,6 +121,7 @@ class DefaultProjector extends AbstractProjector implements SphericalViewRendere
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         b.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] jpeg = baos.toByteArray();
+        mImageCache = jpeg;
 
         mScreen.onProjected(this, jpeg);
     }

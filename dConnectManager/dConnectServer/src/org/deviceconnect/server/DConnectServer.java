@@ -6,15 +6,15 @@
  */
 package org.deviceconnect.server;
 
+import org.deviceconnect.server.logger.LogHandler;
+import org.deviceconnect.server.websocket.DConnectWebSocket;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
-
-import org.deviceconnect.server.logger.LogHandler;
-import org.deviceconnect.server.websocket.DConnectWebSocket;
 
 /**
  * Device Connect用HTTPサーバー.
@@ -106,8 +106,6 @@ public abstract class DConnectServer {
      * @throws IOException セッションが見つからない場合スローされる
      */
     public void sendEvent(final String sessionKey, final String event) throws IOException {
-
-        mLogger.entering(getClass().getName(), "sendEvent", new Object[] {sessionKey, event });
         if (!isRunning()) {
             throw new RuntimeException("DConnectServer is not running.");
         }
@@ -118,6 +116,5 @@ public abstract class DConnectServer {
         }
 
         socket.sendEvent(event);
-        mLogger.exiting(getClass().getName(), "sendEvent");
     }
 }

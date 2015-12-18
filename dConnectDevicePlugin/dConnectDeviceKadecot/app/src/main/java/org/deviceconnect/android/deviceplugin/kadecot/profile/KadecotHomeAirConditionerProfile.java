@@ -67,13 +67,13 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                             break;
                         default:
                             MessageUtils.setNotSupportAttributeError(response);
-                            getContext().sendBroadcast(response);
+                            sendResponse(response);
                             break;
                     }
                 }
             } else if (action.endsWith(DConnectMessage.METHOD_POST)) {
                 MessageUtils.setNotSupportAttributeError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             } else if (action.endsWith(DConnectMessage.METHOD_PUT)) {
                 if (attr == null) {
                     putAirConditioner(request, response);
@@ -96,7 +96,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                             break;
                         default:
                             MessageUtils.setNotSupportAttributeError(response);
-                            getContext().sendBroadcast(response);
+                            sendResponse(response);
                             break;
                     }
                 }
@@ -105,7 +105,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                     deleteAirConditioner(request, response);
                 } else {
                     MessageUtils.setNotSupportAttributeError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             }
             return null;
@@ -166,7 +166,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -208,7 +208,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -254,7 +254,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -296,7 +296,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -334,7 +334,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -387,7 +387,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -414,7 +414,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
             String strEpcs = getEpc(request);
             if (strEpcs == null) {
                 MessageUtils.setInvalidRequestParameterError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
                 return;
             }
 
@@ -429,13 +429,13 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                     int checkInt = Integer.decode(strValue);
                     if (checkInt < 0x0 || checkInt >= 0x100) {
                         MessageUtils.setInvalidRequestParameterError(response);
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     epcs[i] = "0x" + Integer.toHexString(checkInt);
                 } catch (NumberFormatException e) {
                     MessageUtils.setInvalidRequestParameterError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
             }
@@ -454,7 +454,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                             cursor.close();
                             MessageUtils.setNotSupportAttributeError(response,
                                     "This device not support 'get' procedure.");
-                            getContext().sendBroadcast(response);
+                            sendResponse(response);
                             return;
                         } else {
                             resultData.putString(PARAM_EPC, propertyName);
@@ -464,13 +464,13 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                     } else {
                         cursor.close();
                         createInvalidKadecotResponseError(response);
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     cursor.close();
                 } else {
                     createInvalidKadecotResponseError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
             }
@@ -479,7 +479,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         } else {
             createInvalidKadecotResponseError(response);
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
 
@@ -521,7 +521,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -545,7 +545,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         String status = getPowerSaving(request);
         if (status == null) {
             MessageUtils.setInvalidRequestParameterError(response);
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
 
@@ -554,7 +554,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
             case "PowerSaving": index = KadecotHomeAirConditioner.POWERSAVING_ON;  break;
             default:
                 MessageUtils.setInvalidRequestParameterError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
                 return;
         }
 
@@ -579,7 +579,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -603,7 +603,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         String status = getOperationModeSetting(request);
         if (status == null) {
             MessageUtils.setInvalidRequestParameterError(response);
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
 
@@ -616,7 +616,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
             case "AirCirculator":       index = KadecotHomeAirConditioner.OPERATIONMODE_WIND;  break;
             default:
                 MessageUtils.setInvalidRequestParameterError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
                 return;
         }
 
@@ -645,7 +645,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -668,7 +668,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         int value = getTemperatureValue(request);
         if (value == -1 || value < 0 || value > 50) {
             MessageUtils.setInvalidRequestParameterError(response);
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
 
@@ -693,7 +693,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -715,7 +715,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
     protected void putAirConditionerAirFlowValue(final Intent request, final Intent response) {
         if (isNullAirFlowValue(request) && isNullAirFlowAuto(request)) {
             MessageUtils.setInvalidRequestParameterError(response);
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return;
         }
 
@@ -744,7 +744,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 param = KadecotHomeAirConditioner.AIRFLOW_LV8;
             } else {
                 MessageUtils.setInvalidRequestParameterError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
                 return;
             }
         }
@@ -800,7 +800,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -828,7 +828,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
             String value = getEpcValue(request);
             if (epc == null || value == null) {
                 MessageUtils.setInvalidRequestParameterError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
                 return;
             }
 
@@ -836,13 +836,13 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 int checkInt = Integer.decode(epc);
                 if (checkInt < 0x0 || checkInt >= 0x100) {
                     MessageUtils.setInvalidRequestParameterError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
                 epc = "0x" + Integer.toHexString(checkInt);
             } catch (NumberFormatException e) {
                 MessageUtils.setInvalidRequestParameterError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
                 return;
             }
 
@@ -854,13 +854,13 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                     int checkInt = Integer.decode(strValue);
                     if (checkInt < 0x0 || checkInt >= 0x100) {
                         MessageUtils.setInvalidRequestParameterError(response);
-                        getContext().sendBroadcast(response);
+                        sendResponse(response);
                         return;
                     }
                     values[i] = "0x" + Integer.toHexString(checkInt);
                 } catch (NumberFormatException e) {
                     MessageUtils.setInvalidRequestParameterError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                     return;
                 }
             }
@@ -901,7 +901,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
         } else {
             createInvalidKadecotResponseError(response);
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
 
@@ -942,7 +942,7 @@ public class KadecotHomeAirConditionerProfile extends AirConditionerProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
 

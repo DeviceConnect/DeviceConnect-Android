@@ -168,7 +168,7 @@ public class KadecotDeviceService extends DConnectMessageService {
 
             response.putExtra(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_OK);
             response.putExtra(ServiceDiscoveryProfile.PARAM_SERVICES, services.toArray(new Bundle[services.size()]));
-            getContext().sendBroadcast(response);
+            sendResponse(response);
             return null;
         }
     }

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.deviceconnect.android.deviceplugin.sonycamera"
+    android:versionCode="1"
+    android:versionName="2.0.0" >
+
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+
+    <application
+        android:name="org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/dconnect_icon"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="org.deviceconnect.android.deviceplugin.sonycamera.activity.SonyCameraSettingActivity"
+            android:label="@string/app_name"
+            android:exported="false"
+            android:screenOrientation="portrait" >
+        </activity>
+
+        <provider
+            android:name="org.deviceconnect.android.provider.FileProvider"
+            android:authorities="org.deviceconnect.android.deviceplugin.sonycamera.provider"
+            android:exported="true" >
+            <meta-data
+                android:name="filelocation"
+                android:resource="@xml/filelocation" />
+        </provider>
+
+        <receiver android:name="org.deviceconnect.android.deviceplugin.sonycamera.receiver.WiFiStateReceiver" >
+            <intent-filter>
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
+                <action android:name="android.net.wifi.STATE_CHANGE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- SonyCamera Device Plugin Provider. -->
+        <receiver android:name="org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceProvider" >
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:resource="@xml/deviceplugin" />
+
+            <intent-filter>
+                <action android:name="org.deviceconnect.action.GET" />
+                <action android:name="org.deviceconnect.action.PUT" />
+                <action android:name="org.deviceconnect.action.POST" />
+                <action android:name="org.deviceconnect.action.DELETE" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name="org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService"
+            android:exported="false" >
+        </service>
+    </application>
+
+</manifest>

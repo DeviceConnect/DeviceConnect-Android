@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    package="org.deviceconnect.android.manager.test"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="1"
+    android:versionName="2.0.0">
+
+    <application>
+        <!-- テスト用レスポンスを受け取るBroadcastReceiver. -->
+        <receiver
+            android:name="org.deviceconnect.android.test.TestCaseBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true" >
+        </receiver>
+
+        <!-- テスト用ファイルを管理するProvider. -->
+        <provider
+            android:name="org.deviceconnect.android.test.TestFileProvider"
+            android:authorities="org.deviceconnect.android.test.file"
+            android:exported="true" />
+    </application>
+
+</manifest>

@@ -302,8 +302,13 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
                                     ScanResult result = scanList.get(pos[0]);
                                     List<WifiConfiguration> list = mWifiMgr.getConfiguredNetworks();
                                     for (WifiConfiguration i : list) {
-                                        if (i.SSID != null && i.SSID.indexOf(result.SSID) > 0) {
+                                        if (i.SSID != null && i.SSID.contains(result.SSID)
+                                                && i.SSID.contains("THETA")) {
+                                            mWifiMgr.disconnect();
                                             mWifiMgr.removeNetwork(i.networkId);
+                                            mWifiMgr.disableNetwork(i.networkId);
+                                            mWifiMgr.saveConfiguration();
+                                            mWifiMgr.reconnect();
                                             break;
                                         }
                                     }
@@ -386,59 +391,33 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
      */
     private void connectWifi(final ScanResult result) {
         final WifiConfiguration wc = new WifiConfiguration();
-        String capabilities = result.capabilities;
         String ssid = "\"" + result.SSID + "\"";
+        String password = mSettings.getSSIDPassword(ssid);
+        showPasswordDialog(password, new PasswordListener() {
+            @Override
+            public void onIntputPassword(final String password) {
+                wc.SSID = "\"" + result.SSID + "\"";
+                wc.preSharedKey = password;
+                wc.hiddenSSID = true;
+                wc.status = WifiConfiguration.Status.ENABLED;
+                wc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+                wc.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+                wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+                wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_EAP);
+                wc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+                wc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+                wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+                wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+                wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
+                wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
+                testConnectWifi(wc, password);
+            }
 
-        if (capabilities.contains("WPA")) {
-            String password = mSettings.getSSIDPassword(ssid);
-            showPasswordDialog(password, new PasswordListener() {
-                @Override
-                public void onIntputPassword(final String password) {
-                    wc.SSID = "\"" + result.SSID + "\"";
-                    wc.preSharedKey = password;
-                    wc.hiddenSSID = true;
-                    wc.status = WifiConfiguration.Status.ENABLED;
-                    wc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-                    wc.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-                    wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-                    wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_EAP);
-                    wc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
-                    wc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-                    wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
-                    wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
-                    wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
-                    wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
-                    testConnectWifi(wc, password);
-                }
-
-                @Override
-                public void onCancel() {
-                    mServiceIdView.setText(R.string.camera_search_message_not_found);
-                }
-            });
-        } else if (capabilities.contains("WEP")) {
-            String password = mSettings.getSSIDPassword(ssid);
-            showPasswordDialog(password, new PasswordListener() {
-                @Override
-                public void onIntputPassword(final String password) {
-                    wc.SSID = "\"" + result.SSID + "\"";
-                    wc.wepKeys[0] = password;
-                    wc.wepTxKeyIndex = 0;
-                    wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-                    wc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
-                    testConnectWifi(wc, password);
-                }
-
-                @Override
-                public void onCancel() {
-                    mServiceIdView.setText(R.string.camera_search_message_not_found);
-                }
-            });
-        } else {
-            wc.SSID = "\"" + result.SSID + "\"";
-            wc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-            testConnectWifi(wc, null);
-        }
+            @Override
+            public void onCancel() {
+                mServiceIdView.setText(R.string.camera_search_message_not_found);
+            }
+        });
     }
 
     /**

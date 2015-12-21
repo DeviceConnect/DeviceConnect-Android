@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Theta (Device Connect Device Plug-in)</string>
+    <string name="app_name">THETA (Device Web API Plug-in)</string>
     <string name="splash_title">サンプルアプリ起動中...</string>
     <string name="device_name_theta_s">THETA S</string>
     <string name="device_name_theta_m15">THETA m15</string>

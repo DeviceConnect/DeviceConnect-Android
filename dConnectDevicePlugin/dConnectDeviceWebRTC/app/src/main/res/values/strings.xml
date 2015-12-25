@@ -1,0 +1,45 @@
+<resources>
+    <string name="app_name">WebRTC (Device Connect Device Plug-in)</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="settings_title">[1/4] WebRTC設定</string>
+    <string name="settings_name_description">この端末の名前を入力します。相手の画面に表示されます。</string>
+    <string name="settings_default_name">WebRTC001</string>
+    <string name="settings_dialog_cancel">閉じる</string>
+    <string name="settings_dialog_peer_list_title">Peer切断</string>
+    <string name="settings_dialog_peer_list_message">指定されたPeerを切断しても良いですか？</string>
+    <string name="settings_dialog_btn_positive">はい</string>
+    <string name="settings_dialog_btn_negative">いいえ</string>
+
+    <string name="settings_peer_list_title">[2/4] Peer一覧</string>
+
+    <string name="settings_camera_title">[3/4] カメラ設定</string>
+    <string name="settings_camera_params">カメラ設定</string>
+    <string name="settings_camera_facing_front">前面カメラ</string>
+    <string name="settings_camera_facing_back">背面カメラ</string>
+    <string name="settings_camera_facing">使用するカメラ</string>
+    <string name="settings_camera_size">解像度</string>
+    <string name="settings_camera_fps">FPS</string>
+
+    <string name="settings_audio_title">[4/4] 音声設定</string>
+    <string name="settings_audio_params">音声設定</string>
+    <string name="settings_audio_sample_rate">サンプルレート</string>
+    <string name="settings_audio_channels">チャンネル</string>
+    <string name="settings_audio_channels_mono">モノラル</string>
+    <string name="settings_audio_channels_stereo">ステレオ</string>
+    <string name="settings_audio_bit_depth">ビット深度</string>
+    <string name="settings_audio_bit_depth_8">8bit-byte</string>
+    <string name="settings_audio_bit_depth_16">16bit-short</string>
+    <string name="settings_audio_bit_depth_32">32bit-float</string>
+    <string name="settings_audio_processing">音声処理</string>
+    <string name="settings_audio_processing_description">ノイズキャンセラーなどの音声処理の有無を設定する。</string>
+
+    <string name="error_failed_to_connect_p2p_title">Error</string>
+    <string name="error_failed_to_connect_p2p_msg">Failed to connect the WebRTC.</string>
+    <string name="error_failed_to_connect_p2p_btn">OK</string>
+    <string name="error_failed_to_connect_camera">カメラが起動できませんでした。</string>
+    <string name="error_failed_to_connect_audio">マイクが起動できませんでした。</string>
+
+</resources>

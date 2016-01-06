@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">UVC (Device Connect Device Plug-in)</string>
+
+    <string name="uvc_device_connection">USBカメラを選択</string>
+    <string name="current_uvc_device">現在接続中</string>
+    <string name="no_uvc_device">なし</string>
 </resources>

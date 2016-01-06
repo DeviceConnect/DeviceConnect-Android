@@ -23,6 +23,8 @@ public class UVCDeviceApplication extends Application {
 
     private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
+    private UVCDeviceManager mDeviceMgr;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -36,6 +38,12 @@ public class UVCDeviceApplication extends Application {
         } else {
             mLogger.setLevel(Level.OFF);
         }
+
+        mDeviceMgr = new UVCDeviceManager(getApplicationContext());
+    }
+
+    public UVCDeviceManager getDeviceManager() {
+        return mDeviceMgr;
     }
 
 }

@@ -27,11 +27,22 @@ public class UVCDeviceService extends DConnectMessageService {
 
     private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
+    private UVCDeviceManager mDeviceMgr;
+
     @Override
     public void onCreate() {
         super.onCreate();
 
         addProfile(new UVCMediaStreamRecordingProfile());
+
+        mDeviceMgr = getDeviceManager();
+        mDeviceMgr.start();
+    }
+
+    @Override
+    public void onDestroy() {
+        mDeviceMgr.stop();
+        super.onDestroy();
     }
 
     @Override
@@ -47,6 +58,11 @@ public class UVCDeviceService extends DConnectMessageService {
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
         return new UVCServiceDiscoveryProfile(this);
+    }
+
+    private UVCDeviceManager getDeviceManager() {
+        UVCDeviceApplication app = (UVCDeviceApplication) getApplication();
+        return app.getDeviceManager();
     }
 
 }

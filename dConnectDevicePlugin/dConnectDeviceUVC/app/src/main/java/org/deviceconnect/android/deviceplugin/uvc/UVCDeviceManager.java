@@ -1,3 +1,9 @@
+/*
+ UVCDeviceManager.java
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.uvc;
 
 
@@ -24,6 +30,8 @@ public class UVCDeviceManager {
     private final List<DeviceListener> mDeviceListeners = new ArrayList<DeviceListener>();
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    private boolean mIsStarted;
 
     public UVCDeviceManager(final Context context) {
         mUSBMonitor = new USBMonitor(context, new USBMonitor.OnDeviceConnectListener() {
@@ -131,16 +139,35 @@ public class UVCDeviceManager {
         });
     }
 
-    public void start() {
+    public synchronized void start() {
+        if (mIsStarted) {
+            return;
+        }
+        mIsStarted = true;
         mUSBMonitor.register();
     }
 
-    public void stop() {
+    public synchronized void stop() {
+        if (!mIsStarted) {
+            return;
+        }
         mUSBMonitor.unregister();
+        mIsStarted = false;
     }
 
     public List<UVCDevice> getDeviceList() {
         return mConnectedDevices;
+    }
+
+    public UVCDevice getDevice(final String id) {
+        synchronized (mConnectedDevices) {
+            for (UVCDevice device : mConnectedDevices) {
+                if (device.getId().equals(id)) {
+                    return device;
+                }
+            }
+        }
+        return null;
     }
 
     public USBMonitor getUSBMonitor() {

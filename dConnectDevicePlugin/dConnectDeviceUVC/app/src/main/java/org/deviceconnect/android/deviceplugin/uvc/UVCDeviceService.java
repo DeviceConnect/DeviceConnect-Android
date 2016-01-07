@@ -33,10 +33,10 @@ public class UVCDeviceService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
 
-        addProfile(new UVCMediaStreamRecordingProfile());
-
         mDeviceMgr = getDeviceManager();
         mDeviceMgr.start();
+
+        addProfile(new UVCMediaStreamRecordingProfile());
     }
 
     @Override
@@ -60,7 +60,7 @@ public class UVCDeviceService extends DConnectMessageService {
         return new UVCServiceDiscoveryProfile(this);
     }
 
-    private UVCDeviceManager getDeviceManager() {
+    public UVCDeviceManager getDeviceManager() {
         UVCDeviceApplication app = (UVCDeviceApplication) getApplication();
         return app.getDeviceManager();
     }

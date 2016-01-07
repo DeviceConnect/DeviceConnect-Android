@@ -95,7 +95,7 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
 
         UVCDeviceManager deviceMgr = getDeviceManager();
         if (deviceMgr != null) {
-            deviceMgr.start(); // TODO delete
+            deviceMgr.start();
             deviceMgr.addDeviceListener(this);
         }
     }
@@ -105,7 +105,6 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
         UVCDeviceManager deviceMgr = getDeviceManager();
         if (deviceMgr != null) {
             deviceMgr.removeDeviceListener(this);
-            deviceMgr.stop(); // TODO delete
         }
 
         super.onPause();

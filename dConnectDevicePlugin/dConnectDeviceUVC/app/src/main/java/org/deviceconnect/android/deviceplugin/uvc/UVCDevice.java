@@ -1,3 +1,9 @@
+/*
+ UVCDevice.java
+ Copyright (c) 2015 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.uvc;
 
 
@@ -18,12 +24,19 @@ public class UVCDevice {
 
     private final UVCCamera mCamera;
 
+    private final String mId;
+
     private PreviewListener mPreviewListener;
 
     UVCDevice(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
         mDevice = device;
+        mId = Integer.toString(device.getDeviceId());
         mCtrlBlock = ctrlBlock;
         mCamera = new UVCCamera();
+    }
+
+    public String getId() {
+        return mId;
     }
 
     public String getName() {

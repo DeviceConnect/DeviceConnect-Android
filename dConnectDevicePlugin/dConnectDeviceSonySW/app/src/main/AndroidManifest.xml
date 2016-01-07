@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="org.deviceconnect.android.deviceplugin.sw"
-          xmlns:android="http://schemas.android.com/apk/res/android"
-          android:versionCode="1"
-          android:versionName="2.0.0">
+<manifest
+    package="org.deviceconnect.android.deviceplugin.sw"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="1"
+    android:versionName="2.0.0">
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -13,6 +14,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
         android:name="org.deviceconnect.android.deviceplugin.sw.SWApplication"

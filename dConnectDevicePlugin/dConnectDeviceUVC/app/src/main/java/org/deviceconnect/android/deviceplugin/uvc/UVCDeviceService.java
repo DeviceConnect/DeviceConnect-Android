@@ -36,7 +36,7 @@ public class UVCDeviceService extends DConnectMessageService {
         mDeviceMgr = getDeviceManager();
         mDeviceMgr.start();
 
-        addProfile(new UVCMediaStreamRecordingProfile());
+        addProfile(new UVCMediaStreamRecordingProfile(mDeviceMgr));
     }
 
     @Override

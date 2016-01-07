@@ -29,7 +29,16 @@ public class UVCDeviceManager {
 
     private final List<DeviceListener> mDeviceListeners = new ArrayList<DeviceListener>();
 
+    private final List<PreviewListener> mPreviewListeners = new ArrayList<PreviewListener>();
+
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    private final UVCDevice.PreviewListener mPreviewListener = new UVCDevice.PreviewListener() {
+        @Override
+        public void onFrame(final UVCDevice device, final byte[] frame) {
+            notifyPreviewFrame(device, frame);
+        }
+    };
 
     private boolean mIsStarted;
 
@@ -53,6 +62,7 @@ public class UVCDeviceManager {
                 if (createNew) {
                     UVCDevice device = new UVCDevice(usbDevice, ctrlBlock);
                     pushDevice(device);
+                    device.addPreviewListener(mPreviewListener);
                     device.open();
                     notifyEventOnOpen(device);
                 }
@@ -112,31 +122,62 @@ public class UVCDeviceManager {
     }
 
     private void notifyEventOnOpen(final UVCDevice device) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (mDeviceListeners) {
-                    for (Iterator<DeviceListener> it = mDeviceListeners.iterator(); it.hasNext(); ) {
-                        DeviceListener l = it.next();
+        synchronized (mDeviceListeners) {
+            for (Iterator<DeviceListener> it = mDeviceListeners.iterator(); it.hasNext(); ) {
+                final DeviceListener l = it.next();
+                mExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
                         l.onOpen(device);
                     }
-                }
+                });
             }
-        });
+        }
     }
 
     private void notifyEventOnClose(final UVCDevice device) {
-        mExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (mDeviceListeners) {
-                    for (Iterator<DeviceListener> it = mDeviceListeners.iterator(); it.hasNext(); ) {
-                        DeviceListener l = it.next();
+        synchronized (mDeviceListeners) {
+            for (Iterator<DeviceListener> it = mDeviceListeners.iterator(); it.hasNext(); ) {
+                final DeviceListener l = it.next();
+                mExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
                         l.onClose(device);
                     }
+                });
+            }
+        }
+    }
+
+    public void addPreviewListener(final PreviewListener listener) {
+        synchronized (mPreviewListeners) {
+            for (Iterator<PreviewListener> it = mPreviewListeners.iterator(); it.hasNext(); ) {
+                if (it.next() == listener) {
+                    return;
                 }
             }
-        });
+            mPreviewListeners.add(listener);
+        }
+    }
+
+    private void clearPreviewListeners() {
+        synchronized (mPreviewListeners) {
+            mPreviewListeners.clear();
+        }
+    }
+
+    private void notifyPreviewFrame(final UVCDevice device, final byte[] frame) {
+        synchronized (mPreviewListeners) {
+            for (Iterator<PreviewListener> it = mPreviewListeners.iterator(); it.hasNext(); ) {
+                final PreviewListener l = it.next();
+                mExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        l.onFrame(device, frame);
+                    }
+                });
+            }
+        }
     }
 
     public synchronized void start() {
@@ -182,4 +223,9 @@ public class UVCDeviceManager {
 
     }
 
+    public interface PreviewListener {
+
+        void onFrame(UVCDevice device, byte[] frame);
+
+    }
 }

@@ -6,19 +6,25 @@
  */
 package org.deviceconnect.android.profile;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.CanvasProfileConstants;
 
-import android.content.Intent;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Canvas プロファイル.
- * 
+ *
  * <p>
  * スマートデバイスに対してのキャンバス操作機能を提供するAPI.<br/>
  * スマートデバイスに対してのキャンバス操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br/>
  * </p>
- * 
+ *
  * <h1>各API提供メソッド</h1>
  * <p>
  * Canvas Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
@@ -31,11 +37,12 @@ import android.content.Intent;
  * <li>Canvas DrawImage API [DELETE] :
  * {@link CanvasProfile#onDeleteDrawImage(Intent, Intent, String))}</li>
  * </ul>
+ *
  * @author NTT DOCOMO, INC.
  */
 public abstract class CanvasProfile extends DConnectProfile implements CanvasProfileConstants {
 
-	/**
+    /**
      * コンストラクタ.
      */
     public CanvasProfile() {
@@ -111,15 +118,16 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
      * スマートフォンまたは周辺機器から他方のスマートデバイスに対して、画像描画を依頼し、
      * その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
+     *
+     * @param request   リクエストパラメータ
+     * @param response  レスポンスパラメータ
      * @param serviceId サービスID
-     * @param mimeType dataのマイムタイプ。省略された場合はnullが渡される。
-     * @param data 画像ファイルのバイナリ。
-     * @param uri 画像ファイルのURI。
-     * @param x X座標
-     * @param y Y座標
-     * @param mode 画像描画モード
+     * @param mimeType  dataのマイムタイプ。省略された場合はnullが渡される。
+     * @param data      画像ファイルのバイナリ。
+     * @param uri       画像ファイルのURI。
+     * @param x         X座標
+     * @param y         Y座標
+     * @param mode      画像描画モード
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId,
@@ -133,13 +141,14 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
      * スマートフォンまたは周辺機器から他方のスマートデバイスに対して、画像描画の削除を依頼し、
      * その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
+     *
+     * @param request   リクエストパラメータ
+     * @param response  レスポンスパラメータ
      * @param serviceId サービスID
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onDeleteDrawImage(final Intent request, final Intent response,
-            final String serviceId) {
+                                        final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
@@ -150,7 +159,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
 
     /**
      * メッセージににファイルのMIMEタイプを設定する.
-     * 
+     *
      * @param response メッセージ
      * @param mimeType MIMEタイプ
      */
@@ -160,39 +169,39 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
 
     /**
      * レスポンスにファイルデータ一覧を設定する.
-     * 
+     *
      * @param response レスポンスパラメータ
-     * @param data 画像ファイルのバイナリ
+     * @param data     画像ファイルのバイナリ
      */
     public static void setData(final Intent response, final Byte[] data) {
         response.putExtra(PARAM_DATA, data);
     }
-    
+
     /**
      * レスポンスにX座標を設定する.
-     * 
+     *
      * @param response レスポンスパラメータ
-     * @param x X座標
+     * @param x        X座標
      */
     public static void setX(final Intent response, final double x) {
         response.putExtra(PARAM_X, x);
     }
-    
+
     /**
      * レスポンスにY座標を設定する.
-     * 
+     *
      * @param response レスポンスパラメータ
-     * @param y Y座標
+     * @param y        Y座標
      */
     public static void setY(final Intent response, final double y) {
         response.putExtra(PARAM_Y, y);
     }
-    
+
     /**
      * レスポンスに画像描画モードを設定する.
-     * 
+     *
      * @param response レスポンスパラメータ
-     * @param mode 画像描画モード
+     * @param mode     画像描画モード
      */
     public static void setY(final Intent response, final String mode) {
         response.putExtra(PARAM_MODE, mode);
@@ -204,7 +213,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
 
     /**
      * リクエストからファイルのMIMEタイプを取得する.
-     * 
+     *
      * @param request リクエストパラメータ
      * @return ファイルのMIMEタイプ。無い場合はnullを返す。
      */
@@ -214,7 +223,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
 
     /**
      * リクエストから画像ファイルのバイナリを取得する.
-     * 
+     *
      * @param request リクエストパラメータ
      * @return 画像ファイルのバイナリ。無い場合はnullを返す。
      */
@@ -224,35 +233,35 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
 
     /**
      * リクエストからX座標を取得する.
-     * 
+     *
      * @param request リクエストパラメータ
      * @return X座標。無い場合は0.0を返す。
      */
     public static double getX(final Intent request) {
         Double x = parseDouble(request, PARAM_X);
         if (x == null) {
-        	x = 0.0;
+            x = 0.0;
         }
         return x;
     }
 
     /**
      * リクエストからY座標を取得する.
-     * 
+     *
      * @param request リクエストパラメータ
      * @return Y座標。無い場合は0.0を返す。
      */
     public static double getY(final Intent request) {
         Double y = parseDouble(request, PARAM_Y);
         if (y == null) {
-        	y = 0.0;
+            y = 0.0;
         }
         return y;
     }
 
     /**
      * リクエストから画像描画モードを取得する.
-     * 
+     *
      * @param request リクエストパラメータ
      * @return 画像描画モード。無い場合はnullを返す。
      */
@@ -262,6 +271,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
 
     /**
      * check MimeType format.
+     *
      * @param mimeType MimeType
      * @return true: OK / false: ERROR
      */
@@ -272,6 +282,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
 
     /**
      * check x value format.
+     *
      * @param request request
      * @return true: check OK or nothing / false: check ERROR
      */
@@ -286,6 +297,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
 
     /**
      * check y value format.
+     *
      * @param request request
      * @return true: check OK or nothing / false: check ERROR
      */
@@ -297,6 +309,49 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
             return true;
         }
     }
+
+    protected byte[] getData(String uri) {
+        HttpURLConnection connection = null;
+        InputStream inputStream = null;
+        byte[] data = null;
+        try {
+            URL url = new URL(uri);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+            inputStream = connection.getInputStream();
+            data = readAll(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        return data;
+    }
+
+    private byte[] readAll(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        while (true) {
+            int len = inputStream.read(buffer);
+            if (len < 0) {
+                break;
+            }
+            bout.write(buffer, 0, len);
+        }
+        return bout.toByteArray();
+    }
+
 }
 
 

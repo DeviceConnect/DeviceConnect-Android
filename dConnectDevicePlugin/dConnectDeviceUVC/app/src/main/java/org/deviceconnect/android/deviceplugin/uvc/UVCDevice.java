@@ -29,7 +29,7 @@ public class UVCDevice {
 
     private final USBMonitor.UsbControlBlock mCtrlBlock;
 
-    private final UVCCamera mCamera;
+    private UVCCamera mCamera;
 
     private final String mId;
 
@@ -37,11 +37,12 @@ public class UVCDevice {
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
+    private boolean mIsOpen;
+
     UVCDevice(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
         mDevice = device;
         mId = Integer.toString(device.getDeviceId());
         mCtrlBlock = ctrlBlock;
-        mCamera = new UVCCamera();
     }
 
     public String getId() {
@@ -52,11 +53,21 @@ public class UVCDevice {
         return mDevice.getDeviceName();
     }
 
+    public boolean isOpen() {
+        return mIsOpen;
+    }
+
     boolean isSameDevice(final UsbDevice usbDevice) {
         return usbDevice.getDeviceName().equals(mDevice.getDeviceName());
     }
 
-    void open() {
+    synchronized boolean open() {
+        if (mIsOpen) {
+            return false;
+        }
+        mIsOpen = true;
+
+        mCamera = new UVCCamera();
         mCamera.open(mCtrlBlock);
 
         List<Size> previewSizeList = mCamera.getSupportedSizeList();
@@ -74,6 +85,8 @@ public class UVCDevice {
                 notifyPreviewFrame(frame);
             }
         }, UVCCamera.PIXEL_FORMAT_RAW);
+
+        return true;
     }
 
     private void notifyPreviewFrame(final byte[] frame) {
@@ -90,9 +103,16 @@ public class UVCDevice {
         }
     }
 
-    void close() {
-        clearPreviewListeners();
+    synchronized boolean close() {
+        if (!mIsOpen) {
+            return false;
+        }
+        mIsOpen = false;
+
         mCamera.close();
+        mCamera.destroy();
+
+        return true;
     }
 
     void addPreviewListener(final PreviewListener listener) {
@@ -112,12 +132,20 @@ public class UVCDevice {
         }
     }
 
-    public void startPreview() {
+    public synchronized boolean startPreview() {
+        if (!mIsOpen) {
+            return false;
+        }
         mCamera.startPreview();
+        return true;
     }
 
-    public void stopPreview() {
+    public synchronized boolean stopPreview() {
+        if (!mIsOpen) {
+            return false;
+        }
         mCamera.stopPreview();
+        return false;
     }
 
     interface PreviewListener {

@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.uvc.fragment;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -24,11 +23,12 @@ import org.deviceconnect.android.deviceplugin.uvc.UVCDevice;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager;
 import org.deviceconnect.android.deviceplugin.uvc.activity.UVCDeviceSettingsActivity;
 
-import java.util.Iterator;
 import java.util.List;
 
 
 public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceManager.DeviceListener {
+
+    private ConnectionButton mConnectionButton;
 
     private TextView mCurrentDeviceTextView;
 
@@ -38,19 +38,10 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
                              final Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_uvc_device_connection, null);
 
-        Button connectionButton = (Button) root.findViewById(R.id.button_uvc_device_connection);
-        connectionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                Activity activity = getActivity();
-                if (activity != null) {
-                    CameraDialog.showDialog(activity);
-                }
-            }
-        });
-
+        mConnectionButton
+            = new ConnectionButton((Button) root.findViewById(R.id.button_uvc_device_connection));
         mCurrentDeviceTextView = (TextView) root.findViewById(R.id.text_current_uvc_device);
-        showCurrentDeviceNames();
+        updateViews();
         return root;
     }
 
@@ -59,34 +50,32 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
         super.onAttach(context);
     }
 
-    private void showCurrentDeviceNames() {
-        final Activity activity = getActivity();
+    private void updateViews() {
+        final UVCDeviceSettingsActivity activity = (UVCDeviceSettingsActivity) getActivity();
         if (activity != null) {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    showCurrentDeviceNames(activity);
+                    UVCDeviceManager deviceMgr = activity.getDeviceManager();
+                    List<UVCDevice> devices = deviceMgr.getDeviceList();
+                    mConnectionButton.update(devices);
+                    showCurrentDeviceNames(devices);
                 }
             });
         }
     }
 
-    private void showCurrentDeviceNames(final Context context) {
-        UVCDeviceManager deviceMgr = getDeviceManager();
-        if (deviceMgr != null) {
-            List<UVCDevice> devices = deviceMgr.getDeviceList();
-            StringBuilder sb = new StringBuilder();
-            sb.append(context.getString(R.string.current_uvc_device));
-            sb.append(": ");
-            for (Iterator<UVCDevice> it = devices.iterator(); it.hasNext(); ) {
-                UVCDevice device = it.next();
-                sb.append(device.getName());
-                if (it.hasNext()) {
-                    sb.append(", ");
-                }
-            }
-            mCurrentDeviceTextView.setText(sb.toString());
+    private void showCurrentDeviceNames(final List<UVCDevice> devices) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getString(R.string.current_uvc_device));
+        sb.append(": ");
+        if (devices.size() == 0 || !devices.get(0).isOpen()) {
+            sb.append(getString(R.string.no_uvc_device));
+        } else {
+            UVCDevice device = devices.get(0);
+            sb.append(device.getName());
         }
+        mCurrentDeviceTextView.setText(sb.toString());
     }
 
     @Override
@@ -120,12 +109,53 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
 
     @Override
     public void onOpen(final UVCDevice device) {
-        showCurrentDeviceNames();
+        updateViews();
     }
 
     @Override
     public void onClose(final UVCDevice device) {
-        showCurrentDeviceNames();
+        updateViews();
+    }
+
+    private class ConnectionButton implements View.OnClickListener  {
+
+        private final Button mButton;
+
+        private UVCDevice mOpenedDevice;
+
+        public ConnectionButton(final Button button) {
+            mButton = button;
+            mButton.setOnClickListener(this);
+        }
+
+        public void update(final List<UVCDevice> devices) {
+            if (devices.size() == 0 || !devices.get(0).isOpen()) {
+                mOpenedDevice = null;
+            } else {
+                mOpenedDevice = devices.get(0);
+            }
+
+            int messageId;
+            if (mOpenedDevice == null) {
+                messageId = R.string.uvc_device_connection;
+            } else {
+                messageId = R.string.uvc_device_disconnection;
+            }
+            mButton.setText(getString(messageId));
+        }
+
+        @Override
+        public void onClick(final View view) {
+            UVCDeviceSettingsActivity activity = (UVCDeviceSettingsActivity) getActivity();
+            if (activity != null) {
+                if (mOpenedDevice == null) {
+                    CameraDialog.showDialog(activity);
+                } else {
+                    UVCDeviceManager deviceMgr = activity.getDeviceManager();
+                    deviceMgr.closeDevice(mOpenedDevice);
+                }
+            }
+        }
     }
 
 }

@@ -58,12 +58,17 @@ public class UVCDeviceManager {
             public void onConnect(final UsbDevice usbDevice,
                                   final USBMonitor.UsbControlBlock ctrlBlock,
                                   final boolean createNew) {
-                mLogger.info("onConnect: " + usbDevice.getDeviceName());
-                if (createNew) {
-                    UVCDevice device = new UVCDevice(usbDevice, ctrlBlock);
+                mLogger.info("onConnect: device = " + usbDevice.getDeviceName()
+                    + ", ctrlBlock = " + ctrlBlock + ", createNew = " + createNew);
+
+                UVCDevice device = getDevice(usbDevice);
+                if (device == null) {
+                    device = new UVCDevice(usbDevice, ctrlBlock);
                     pushDevice(device);
                     device.addPreviewListener(mPreviewListener);
-                    device.open();
+                }
+
+                if (device.open()) {
                     notifyEventOnOpen(device);
                 }
             }
@@ -73,8 +78,9 @@ public class UVCDeviceManager {
                                      final USBMonitor.UsbControlBlock ctrlBlock) {
                 mLogger.info("onDisconnect: " + usbDevice.getDeviceName());
                 UVCDevice device = pullDevice(usbDevice);
-                device.close();
-                notifyEventOnClose(device);
+                if (device != null && device.close()) {
+                    notifyEventOnClose(device);
+                }
             }
 
             @Override
@@ -82,6 +88,15 @@ public class UVCDeviceManager {
                 mLogger.info("onCancel");
             }
         });
+    }
+
+    public void closeDevice(final UVCDevice device) {
+        if (device.close()) {
+            mLogger.info("closeDevice: closed " + device.getName());
+            notifyEventOnClose(device);
+        } else {
+            mLogger.info("closeDevice: already closed " + device.getName());
+        }
     }
 
     private void pushDevice(final UVCDevice device) {
@@ -96,6 +111,18 @@ public class UVCDeviceManager {
                 UVCDevice device = it.next();
                 if (device.isSameDevice(usbDevice)) {
                     it.remove();
+                    return device;
+                }
+            }
+        }
+        return null;
+    }
+
+    private UVCDevice getDevice(final UsbDevice usbDevice) {
+        synchronized (mConnectedDevices) {
+            for (Iterator<UVCDevice> it = mConnectedDevices.iterator(); it.hasNext(); ) {
+                UVCDevice device = it.next();
+                if (device.isSameDevice(usbDevice)) {
                     return device;
                 }
             }

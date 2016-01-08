@@ -58,19 +58,23 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
     @Override
     protected boolean onPutPreview(final Intent request, final Intent response,
                                    final String serviceId) {
-        final UVCDevice device = mDeviceMgr.getDevice(serviceId);
-        if (device == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                String uri = startMediaServer(device.getId());
-                device.startPreview();
+                UVCDevice device = mDeviceMgr.getDevice(serviceId);
+                if (device == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    sendResponse(response);
+                    return;
+                }
 
-                setResult(response, DConnectMessage.RESULT_OK);
-                setUri(response, uri);
+                String uri = startMediaServer(device.getId());
+                if (device.startPreview()) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    setUri(response, uri);
+                } else {
+                    MessageUtils.setIllegalDeviceStateError(response, "UVC device is not open.");
+                }
                 sendResponse(response);
             }
         });
@@ -80,14 +84,16 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
     @Override
     protected boolean onDeletePreview(final Intent request, final Intent response,
                                       final String serviceId) {
-        final UVCDevice device = mDeviceMgr.getDevice(serviceId);
-        if (device == null) {
-            MessageUtils.setNotFoundServiceError(response);
-            return true;
-        }
         mExecutor.execute(new Runnable() {
             @Override
             public void run() {
+                UVCDevice device = mDeviceMgr.getDevice(serviceId);
+                if (device == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    sendResponse(response);
+                    return;
+                }
+
                 device.stopPreview();
                 stopMediaServer(device.getId());
 

@@ -9,17 +9,14 @@ package org.deviceconnect.android.deviceplugin.webrtc.core;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
+import org.webrtc.CameraEnumerationAndroid;
 import org.webrtc.MediaConstraints;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.VideoCapturerAndroid;
-import org.webrtc.VideoCapturerCamera;
 import org.webrtc.VideoCapturerObject;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
-import org.webrtc.voiceengine.WebRtcAudioRecord;
-import org.webrtc.voiceengine.WebRtcAudioRecordModule;
-import org.webrtc.voiceengine.WebRtcAudioRecordModuleFactory;
 
 /**
  * MediaStream.
@@ -329,18 +326,18 @@ public class MediaStream {
      * Creates a instance of WebRtcAudioRecord.
      */
     private void createAudioCapturer() {
-        if (mOption.getAudioType() == PeerOption.AudioType.EXTERNAL_RESOURCE) {
-            WebRtcAudioRecord.setAudioRecordModuleFactory(new WebRtcAudioRecordModuleFactory() {
-                @Override
-                public WebRtcAudioRecordModule create() {
-                    AudioCapturerExternalResource module = new AudioCapturerExternalResource();
-                    module.setUri(mOption.getAudioUri());
-                    return module;
-                }
-            });
-        } else {
-            WebRtcAudioRecord.setAudioRecordModuleFactory(null);
-        }
+//        if (mOption.getAudioType() == PeerOption.AudioType.EXTERNAL_RESOURCE) {
+//            WebRtcAudioRecord.setAudioRecordModuleFactory(new WebRtcAudioRecordModuleFactory() {
+//                @Override
+//                public WebRtcAudioRecordModule create() {
+//                    AudioCapturerExternalResource module = new AudioCapturerExternalResource();
+//                    module.setUri(mOption.getAudioUri());
+//                    return module;
+//                }
+//            });
+//        } else {
+//            WebRtcAudioRecord.setAudioRecordModuleFactory(null);
+//        }
     }
 
     /**
@@ -364,31 +361,73 @@ public class MediaStream {
      * @return VideoCapturerAndroid
      */
     private VideoCapturerAndroid createCameraCapture() {
-        int numberOfCameras = VideoCapturerCamera.getDeviceCount();
-        if (numberOfCameras == 0) {
-            if (BuildConfig.DEBUG) {
-                Log.w(TAG, "failed to open camera.");
-            }
-            mEnableVideo = false;
-        } else {
-            String cameraDeviceName = VideoCapturerCamera.getDeviceName(0);
-            String frontCameraDeviceName =
-                    VideoCapturerCamera.getNameOfFrontFacingDevice();
-            if (numberOfCameras > 1 && frontCameraDeviceName != null && mOption.getVideoFacing() == 1) {
-                cameraDeviceName = frontCameraDeviceName;
-            }
-            VideoCapturerAndroid videoCapturer  = VideoCapturerAndroid.create(cameraDeviceName,
-                    new VideoCapturerAndroid.CameraErrorHandler() {
-                @Override
-                public void onCameraError(String s) {
-                    Log.w(TAG, "failed to open camera." + s);
-                    mEnableVideo = false;
-                }
-            });
-            mEnableVideo = (videoCapturer != null);
-            return videoCapturer;
-        }
-        return null;
+//        int numberOfCameras = VideoCapturerCamera.getDeviceCount();
+//        if (numberOfCameras == 0) {
+//            if (BuildConfig.DEBUG) {
+//                Log.w(TAG, "failed to open camera.");
+//            }
+//            mEnableVideo = false;
+//        } else {
+//            String cameraDeviceName = VideoCapturerCamera.getDeviceName(0);
+//            String frontCameraDeviceName =
+//                    VideoCapturerCamera.getNameOfFrontFacingDevice();
+//            if (numberOfCameras > 1 && frontCameraDeviceName != null && mOption.getVideoFacing() == 1) {
+//                cameraDeviceName = frontCameraDeviceName;
+//            }
+//            VideoCapturerAndroid videoCapturer  = VideoCapturerAndroid.create(cameraDeviceName,
+//                    new VideoCapturerAndroid.CameraErrorHandler() {
+//                @Override
+//                public void onCameraError(String s) {
+//                    Log.w(TAG, "failed to open camera." + s);
+//                    mEnableVideo = false;
+//                }
+//            });
+//            mEnableVideo = (videoCapturer != null);
+//            return videoCapturer;
+//        }
+
+
+        String deviceName = CameraEnumerationAndroid.getDeviceName(0);
+
+        VideoCapturerAndroid videoCapturer  = VideoCapturerAndroid.create(deviceName,
+                new VideoCapturerAndroid.CameraEventsHandler() {
+                    @Override
+                    public void onCameraError(String s) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "onCameraError");
+                        }
+                    }
+
+                    @Override
+                    public void onCameraFreezed(String s) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "onCameraFreezed: " + s);
+                        }
+                    }
+
+                    @Override
+                    public void onCameraOpening(int i) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "onCameraOpening: " + i);
+                        }
+                    }
+
+                    @Override
+                    public void onFirstFrameAvailable() {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "onFirstFrameAvailable: ");
+                        }
+                    }
+
+                    @Override
+                    public void onCameraClosed() {
+                        if (BuildConfig.DEBUG) {
+                            Log.d(TAG, "onCameraClosed: ");
+                        }
+                    }
+                }, mOption.getEglBase().getEglBaseContext());
+        mEnableVideo = (videoCapturer != null);
+        return videoCapturer;
     }
 
     /**
@@ -406,16 +445,45 @@ public class MediaStream {
                 Log.d(TAG, "createExternalResource: " + mOption.getVideoUri());
             }
 
-            VideoCapturerObject capturer = new VideoCapturerExternalResource(
+            VideoCapturerObject capturerObject = new VideoCapturerExternalResource(
                     mOption.getVideoUri(), mOption.getVideoWidth(), mOption.getVideoHeight());
-            VideoCapturerAndroid videoCapturer  = VideoCapturerAndroid.create("", capturer,
-                    new VideoCapturerAndroid.CameraErrorHandler() {
+            VideoCapturerAndroid videoCapturer  = VideoCapturerAndroid.create(capturerObject,
+                    new VideoCapturerAndroid.CameraEventsHandler() {
                         @Override
                         public void onCameraError(String s) {
-                            Log.w(TAG, "failed to open camera." + s);
-                            mEnableVideo = false;
+                            if (BuildConfig.DEBUG) {
+                                Log.d(TAG, "onCameraError");
+                            }
                         }
-                    });
+
+                        @Override
+                        public void onCameraFreezed(String s) {
+                            if (BuildConfig.DEBUG) {
+                                Log.d(TAG, "onCameraFreezed: " + s);
+                            }
+                        }
+
+                        @Override
+                        public void onCameraOpening(int i) {
+                            if (BuildConfig.DEBUG) {
+                                Log.d(TAG, "onCameraOpening: " + i);
+                            }
+                        }
+
+                        @Override
+                        public void onFirstFrameAvailable() {
+                            if (BuildConfig.DEBUG) {
+                                Log.d(TAG, "onFirstFrameAvailable: ");
+                            }
+                        }
+
+                        @Override
+                        public void onCameraClosed() {
+                            if (BuildConfig.DEBUG) {
+                                Log.d(TAG, "onCameraClosed: ");
+                            }
+                        }
+                    }, mOption.getEglBase().getEglBaseContext());
             mEnableVideo = (videoCapturer != null);
             return videoCapturer;
         }

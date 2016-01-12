@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.webrtc.core;
 
 import android.content.Context;
-import android.opengl.EGLContext;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
@@ -18,7 +17,6 @@ import org.json.JSONObject;
 import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SessionDescription;
-import org.webrtc.VideoRendererGui;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -449,10 +447,12 @@ public class Peer {
                 enableHWCodec = PeerUtil.validateHWCodec();
             }
 
-            EGLContext rendererEGLContext = VideoRendererGui.getEGLContext();
+//            EGLContext rendererEGLContext = VideoRendererGui.getEGLContext();
             PeerConnectionFactory.initializeFieldTrials("WebRTC-SupportVP9/Enabled/");
+//            boolean result = PeerConnectionFactory.initializeAndroidGlobals(mContext,
+//                    enableAudio, enableVideo, enableHWCodec, rendererEGLContext);
             boolean result = PeerConnectionFactory.initializeAndroidGlobals(mContext,
-                    enableAudio, enableVideo, enableHWCodec, rendererEGLContext);
+                    enableAudio, enableVideo, enableHWCodec);
             if (!result) {
                 throw new RuntimeException("PeerConnectionFactory global initialize is failed.");
             }

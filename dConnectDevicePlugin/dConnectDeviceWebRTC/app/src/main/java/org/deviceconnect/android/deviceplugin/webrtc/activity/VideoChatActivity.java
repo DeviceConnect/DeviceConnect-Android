@@ -11,7 +11,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.Camera;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -26,14 +25,16 @@ import org.deviceconnect.android.deviceplugin.webrtc.core.Peer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerOption;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerUtil;
+import org.deviceconnect.android.deviceplugin.webrtc.fragment.PercentFrameLayout;
 import org.deviceconnect.android.deviceplugin.webrtc.setting.SettingUtil;
 import org.deviceconnect.android.deviceplugin.webrtc.util.AudioUtils;
 import org.deviceconnect.android.deviceplugin.webrtc.util.CameraUtils;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.profile.VideoChatProfile;
-import org.webrtc.VideoRenderer;
-import org.webrtc.VideoRendererGui;
+import org.webrtc.EglBase;
+import org.webrtc.RendererCommon;
+import org.webrtc.SurfaceViewRenderer;
 
 import java.util.List;
 
@@ -101,20 +102,27 @@ public class VideoChatActivity extends Activity {
      */
     private MediaConnection mConnection;
 
-    /**
-     * View for OpenGLES.
-     */
-    private GLSurfaceView mVideoView;
+//    /**
+//     * View for OpenGLES.
+//     */
+//    private GLSurfaceView mVideoView;
+//
+//    /**
+//     * Renderer for remote video.
+//     */
+//    private VideoRenderer.Callbacks mPrimaryRender;
+//
+//    /**
+//     * Renderer for myself video.
+//     */
+//    private VideoRenderer.Callbacks mSecondaryRender;
 
-    /**
-     * Renderer for remote video.
-     */
-    private VideoRenderer.Callbacks mPrimaryRender;
+    private PercentFrameLayout mLocalLayout;
+    private PercentFrameLayout mRemoteLayout;
 
-    /**
-     * Renderer for myself video.
-     */
-    private VideoRenderer.Callbacks mSecondaryRender;
+    private SurfaceViewRenderer mLocalRender;
+    private SurfaceViewRenderer mRemoteRender;
+    private EglBase mEglBase;
 
     /**
      * Option of peer's connection.
@@ -127,7 +135,18 @@ public class VideoChatActivity extends Activity {
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        mVideoView = (GLSurfaceView) findViewById(R.id.glview_call);
+//        mVideoView = (GLSurfaceView) findViewById(R.id.glview_call);
+
+        mLocalLayout = (PercentFrameLayout) findViewById(R.id.local_view_layout);
+        mRemoteLayout = (PercentFrameLayout) findViewById(R.id.remote_video_layout);
+
+        mLocalRender = (SurfaceViewRenderer) findViewById(R.id.local_video_view);
+        mRemoteRender = (SurfaceViewRenderer) findViewById(R.id.remote_video_view);
+
+        mEglBase = EglBase.create();
+        mRemoteRender.init(mEglBase.getEglBaseContext(), null);
+        mLocalRender.init(mEglBase.getEglBaseContext(), null);
+        mLocalRender.setZOrderMediaOverlay(true);
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -153,29 +172,44 @@ public class VideoChatActivity extends Activity {
             }
 
             if (mConfig != null && mAddressId != null) {
-                VideoRendererGui.setView(mVideoView, new Runnable() {
+//                VideoRendererGui.setView(mVideoView, new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        WebRTCApplication application = (WebRTCApplication) getApplication();
+//                        application.getPeer(mConfig, new WebRTCApplication.OnGetPeerCallback() {
+//                            @Override
+//                            public void onGetPeer(final Peer peer) {
+//                                if (peer != null) {
+//                                    mPeer = peer;
+//                                    startConnection();
+//                                } else {
+//                                    openWebRTCErrorDialog();
+//                                }
+//                            }
+//                        });
+//                    }
+//                });
+//                mPrimaryRender = VideoRendererGui.create(
+//                        0, 0, 100, 100, RendererCommon.ScalingType.SCALE_ASPECT_FILL, false);
+//
+//                // If using a camera front camera , to reverse the image.
+//                mSecondaryRender = VideoRendererGui.create(
+//                        70, 70, 25, 25, RendererCommon.ScalingType.SCALE_ASPECT_FIT, isUseCamera());
+
+                updateVideoView();
+
+                WebRTCApplication application = (WebRTCApplication) getApplication();
+                application.getPeer(mConfig, new WebRTCApplication.OnGetPeerCallback() {
                     @Override
-                    public void run() {
-                        WebRTCApplication application = (WebRTCApplication) getApplication();
-                        application.getPeer(mConfig, new WebRTCApplication.OnGetPeerCallback() {
-                            @Override
-                            public void onGetPeer(final Peer peer) {
-                                if (peer != null) {
-                                    mPeer = peer;
-                                    startConnection();
-                                } else {
-                                    openWebRTCErrorDialog();
-                                }
-                            }
-                        });
+                    public void onGetPeer(final Peer peer) {
+                        if (peer != null) {
+                            mPeer = peer;
+                            startConnection();
+                        } else {
+                            openWebRTCErrorDialog();
+                        }
                     }
                 });
-                mPrimaryRender = VideoRendererGui.create(
-                        0, 0, 100, 100, VideoRendererGui.ScalingType.SCALE_ASPECT_FILL, false);
-
-                // If using a camera front camera , to reverse the image.
-                mSecondaryRender = VideoRendererGui.create(
-                        70, 70, 25, 25, VideoRendererGui.ScalingType.SCALE_ASPECT_FIT, isUseCamera());
                 return;
             }
         }
@@ -186,7 +220,7 @@ public class VideoChatActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        mVideoView.onResume();
+//        mVideoView.onResume();
         if (mConnection != null) {
             mConnection.startVideo();
         }
@@ -196,7 +230,7 @@ public class VideoChatActivity extends Activity {
     protected void onPause() {
         super.onPause();
 
-        mVideoView.onPause();
+//        mVideoView.onPause();
         if (mConnection != null) {
             mConnection.stopVideo();
         }
@@ -216,6 +250,19 @@ public class VideoChatActivity extends Activity {
             finish();
             return false;
         }
+    }
+
+    private void updateVideoView() {
+        mRemoteLayout.setPosition(0,0,100,100);
+        mRemoteRender.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+        mRemoteRender.setMirror(false);
+
+        mLocalLayout.setPosition(72, 72, 25, 25);
+        mLocalRender.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
+        mLocalRender.setMirror(true);
+
+        mLocalRender.requestLayout();
+        mRemoteRender.requestLayout();
     }
 
     /**
@@ -270,12 +317,13 @@ public class VideoChatActivity extends Activity {
         mOption.setVideoFacing(videoFacing);
         mOption.setVideoType(mVideoType);
         mOption.setVideoUri(mVideoUri);
-        mOption.setVideoRender(mSecondaryRender);
+        mOption.setVideoRender(mRemoteRender);
         mOption.setAudioType(mAudioType);
         mOption.setAudioUri(mAudioUri);
         mOption.setNoAudioProcessing(audioFormat.isNoAudioProcessing());
         mOption.addIceServer(STUN_SERVER);
         mOption.setContext(this);
+        mOption.setEglBase(mEglBase);
 
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "option: " + mOption.toString());
@@ -359,7 +407,7 @@ public class VideoChatActivity extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mediaStream.setVideoRender(mPrimaryRender);
+                    mediaStream.setVideoRender(mLocalRender);
                 }
             });
         }

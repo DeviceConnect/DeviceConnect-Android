@@ -12,6 +12,7 @@ import org.deviceconnect.android.deviceplugin.webrtc.util.MixedReplaceMediaClien
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.VideoCapturerAndroid;
 import org.webrtc.VideoCapturerObject;
 
@@ -32,11 +33,6 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
     private int mWidth;
     private int mHeight;
     private int mFPS;
-
-    /**
-     * The capturing of format.
-     */
-    private VideoCapturerAndroid.CaptureFormat mCaptureFormat;
 
     /**
      * Observer to send the buffer of capture image.
@@ -94,11 +90,6 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
         mWidth = width;
         mHeight = height;
         mFPS = 30;
-    }
-
-    @Override
-    public boolean init(final String s) {
-        return true;
     }
 
     @Override
@@ -170,13 +161,13 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
     public void onOutputFormatRequest(final int width, final int height, final int fps) {
         if (mFrameObserver != null) {
             synchronized (mLockObj) {
-                mFrameObserver.OnOutputFormatRequest(width, height, fps);
+                mFrameObserver.onOutputFormatRequest(width, height, fps);
             }
         }
     }
 
     @Override
-    public void dispose() {
+    public void release() {
         stopCapture();
     }
 
@@ -186,9 +177,11 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
     private void updateFrameCaptured() {
         synchronized (mLockObj) {
             if (mYUVData != null && mFrameObserver != null) {
-                mFrameObserver.OnFrameCaptured(mYUVData, mCaptureFormat.frameSize(),
-                        mCaptureFormat.width, mCaptureFormat.height,
+                mFrameObserver.onByteBufferFrameCaptured(mYUVData, 0, 0, 0,
                         0, TimeUnit.MILLISECONDS.toNanos(SystemClock.elapsedRealtime()));
+//                mFrameObserver.OnFrameCaptured(mYUVData, mCaptureFormat.frameSize(),
+//                        mCaptureFormat.width, mCaptureFormat.height,
+//                        0, TimeUnit.MILLISECONDS.toNanos(SystemClock.elapsedRealtime()));
             }
         }
     }
@@ -208,7 +201,7 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
                 Log.i(TAG, "@@@ VideoThread is start");
             }
 
-            mFrameObserver.OnCapturerStarted(true);
+            mFrameObserver.onCapturerStarted(true);
 
             int sleep = 1000 / mFPS;
             while (mKeepAlive) {
@@ -260,8 +253,8 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
                     if (mRequestWidth != bitmap.getWidth() || mRequestHeight != bitmap.getHeight() || mRGBData == null) {
                         mRequestWidth = bitmap.getWidth();
                         mRequestHeight = bitmap.getHeight();
-                        mFrameObserver.OnOutputFormatRequest(mRequestWidth, mRequestHeight, mFPS);
-                        mCaptureFormat = new VideoCapturerAndroid.CaptureFormat(mRequestWidth, mRequestHeight, mFPS, mFPS);
+                        mFrameObserver.onOutputFormatRequest(mRequestWidth, mRequestHeight, mFPS);
+//                        mCaptureFormat = new VideoCapturerAndroid.CaptureFormat(mRequestWidth, mRequestHeight, mFPS, mFPS);
                         mYUVData = ImageUtils.createBuffer(bitmap);
                         mRGBData = new int[mWidth * mHeight];
                         if (BuildConfig.DEBUG) {
@@ -284,4 +277,24 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
             }
         }
     };
+
+    @Override
+    public void switchCamera(VideoCapturerAndroid.CameraSwitchHandler cameraSwitchHandler) {
+
+    }
+
+    @Override
+    public void changeCaptureFormat(int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public SurfaceTextureHelper getSurfaceTextureHelper() {
+        return null;
+    }
+
+    @Override
+    public void onTextureFrameAvailable(int i, float[] floats, long l) {
+
+    }
 }

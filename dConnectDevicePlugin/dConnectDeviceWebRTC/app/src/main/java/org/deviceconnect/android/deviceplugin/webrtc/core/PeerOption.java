@@ -8,6 +8,7 @@ package org.deviceconnect.android.deviceplugin.webrtc.core;
 
 import android.content.Context;
 
+import org.webrtc.EglBase;
 import org.webrtc.VideoRenderer;
 
 import java.util.ArrayList;
@@ -35,6 +36,8 @@ public class PeerOption {
     private VideoRenderer.Callbacks mRender;
 
     private AudioType mAudioType = AudioType.MICROPHONE;
+
+    private EglBase mEglBase;
 
     private Context mContext;
 
@@ -204,6 +207,14 @@ public class PeerOption {
     public PeerOption setContext(Context context) {
         mContext = context;
         return this;
+    }
+
+    public EglBase getEglBase() {
+        return mEglBase;
+    }
+
+    public void setEglBase(EglBase eglBase) {
+        mEglBase = eglBase;
     }
 
     @Override

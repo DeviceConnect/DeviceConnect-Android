@@ -22,6 +22,7 @@ import com.philips.lighting.model.PHLightState;
 
 import org.deviceconnect.android.deviceplugin.hue.HueDeviceService;
 import org.deviceconnect.android.deviceplugin.hue.R;
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -29,24 +30,39 @@ import org.deviceconnect.message.DConnectMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
  * 親クラスで振り分けられたメソッドに対して、Hueのlight attribute処理を呼び出す.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class HueLightProfile extends LightProfile {
 
-    /** hue minimum brightness value. */
+    /**
+     * hue minimum brightness value.
+     */
     private static final int HUE_BRIGHTNESS_MIN_VALUE = 1;
 
-    /** hue maximum brightness value. */
+    /**
+     * hue maximum brightness value.
+     */
     private static final int HUE_BRIGHTNESS_MAX_VALUE = 255;
 
-    /** hue SDK maximum brightness value. */
+    /**
+     * hue SDK maximum brightness value.
+     */
     private static final int HUE_BRIGHTNESS_TUNED_MAX_VALUE = 254;
+
+    private ScheduledExecutorService mFlashingService = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture mLatestScheduledFuture;
+    private Queue<Long> mFlashingQueue = new ConcurrentLinkedQueue<Long>();
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
@@ -78,60 +94,49 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId, final Integer color, final Double brightness, final long[] flashing) {
+                                  final String lightId, final Integer color, final Double brightness, final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
 
-        PHBridge bridge = findBridge(serviceId);
+        final PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
             MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
-        PHLight light = findLight(bridge, lightId);
+        final PHLight light = findLight(bridge, lightId);
         if (light == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
-        int[] colors = convertColor(color);
+        final PHLightState lightState = makeLightState(color, brightness, flashing);
+        if (flashing != null) {
+            flashing(lightState, bridge, light, flashing);
+            sendResultOK(response);//do not check result of flashing
+            return true;
+        } else {
+            bridge.updateLightState(light, lightState, new PHLightAdapter() {
+                @Override
+                public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
+                    sendResultOK(response);
+                }
 
-        // Brightness magnification conversion
-        calcColorParam(colors, brightness);
-
-        // Calculation of brightness.
-        int mCalcBrightness = calcBrightnessParam(colors);
-
-        PHLightState lightState = new PHLightState();
-        lightState.setOn(true);
-        lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
-
-        Color hueColor = new Color(color);
-        lightState.setX(hueColor.mX);
-        lightState.setY(hueColor.mY);
-        lightState.setBrightness(mCalcBrightness);
-
-        bridge.updateLightState(light, lightState, new PHLightAdapter() {
-            @Override
-            public void onStateUpdate(final Map<String, String> successAttribute,
-                                      final List<PHHueError> errorAttribute) {
-                sendResultOK(response);
-            }
-
-            @Override
-            public void onError(final int code, final String message) {
-                MessageUtils.setUnknownError(response, code + ": " + message);
-                sendResultERR(response);
-            }
-        });
-        return false;
+                @Override
+                public void onError(final int code, final String message) {
+                    MessageUtils.setUnknownError(response, code + ": " + message);
+                    sendResultERR(response);
+                }
+            });
+            return false;
+        }
     }
 
     @Override
     protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId) {
+                                    final String lightId) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -151,12 +156,14 @@ public class HueLightProfile extends LightProfile {
 
         PHLightState lightState = new PHLightState();
         lightState.setOn(false);
+
         bridge.updateLightState(light, lightState, new PHLightAdapter() {
             @Override
             public void onStateUpdate(final Map<String, String> successAttribute,
-                    final List<PHHueError> errorAttribute) {
+                                      final List<PHHueError> errorAttribute) {
                 sendResultOK(response);
             }
+
             @Override
             public void onError(final int code, final String message) {
                 String errMsg = getContext().getString(
@@ -171,7 +178,7 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId, final String name, final Integer color, final Double brightness, final long[] flashing) {
+                                 final String lightId, final String name, final Integer color, final Double brightness, final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -182,41 +189,36 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(serviceId);
+        final PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
             MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
-        PHLight light = findLight(bridge, lightId);
+        final PHLight light = findLight(bridge, lightId);
         if (light == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
+        //wait for change name and status
         final CountDownLatch countDownLatch = new CountDownLatch(2);
-        final PHLightAdapter adaptor = new PHLightAdapter() {
+        sendResponseAfterAwait(response, countDownLatch);
+
+        PHLight newLight = new PHLight(light);
+        newLight.setName(name);
+        bridge.updateLight(newLight, new PHLightAdapter() {
             private boolean mErrorFlag = false;
-            private void countDown() {
-                if (!mErrorFlag) {
-                    setResult(response, DConnectMessage.RESULT_OK);
-                }
-                countDownLatch.countDown();
-            }
 
             @Override
             public void onSuccess() {
+                super.onSuccess();
                 countDown();
             }
 
             @Override
-            public void onStateUpdate(final Map<String, String> successAttribute,
-                    final List<PHHueError> errorAttribute) {
-                countDown();
-            }
-
-            @Override
-            public void onError(final int code, final String message) {
+            public void onError(int code, String message) {
+                super.onError(code, message);
                 String errMsg = getContext().getString(
                         R.string.error_message_failed_to_update_light,
                         code, message);
@@ -224,34 +226,58 @@ public class HueLightProfile extends LightProfile {
                 mErrorFlag = true;
                 countDown();
             }
-        };
 
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                    if (!countDownLatch.await(30, TimeUnit.SECONDS)) {
-                        MessageUtils.setTimeoutError(response);
-                    }
-                } catch (InterruptedException e) {
-                    MessageUtils.setTimeoutError(response);
+            private void countDown() {
+                if (!mErrorFlag) {
+                    setResult(response, DConnectMessage.RESULT_OK);
                 }
-                HueDeviceService service = (HueDeviceService) getContext();
-                service.sendResponse(response);
+                countDownLatch.countDown();
             }
-        }).start();
 
-        // change the name
-        PHLight newLight = new PHLight(light);
-        newLight.setName(name);
-        bridge.updateLight(newLight, adaptor);
+        });
 
+        final PHLightState lightState = makeLightState(color, brightness, flashing);
+        if (flashing != null) {
+            flashing(lightState, bridge, light, flashing);
+            countDownLatch.countDown();//do not check result of flashing
+        } else {
+            bridge.updateLightState(light, lightState, new PHLightAdapter() {
+                private boolean mErrorFlag = false;
+
+                @Override
+                public void onStateUpdate(Map<String, String> successAttribute, List<PHHueError> errorAttribute) {
+                    countDown();
+                }
+
+                @Override
+                public void onError(int code, String message) {
+                    String errMsg = getContext().getString(
+                            R.string.error_message_failed_to_update_light,
+                            code, message);
+                    MessageUtils.setUnknownError(response, errMsg);
+                    mErrorFlag = true;
+                    countDown();
+                }
+
+                private void countDown() {
+                    if (!mErrorFlag) {
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    }
+                    countDownLatch.countDown();
+                }
+            });
+        }
+        return false;
+    }
+
+    private PHLightState makeLightState(Integer color, Double brightness, long[] flashing) {
         int[] colors = convertColor(color);
 
         // Brightness magnification conversion
         calcColorParam(colors, brightness);
 
         // Calculation of brightness.
-        int mCalcBrightness = calcBrightnessParam(colors);
+        int calcBrightness = calcBrightnessParam(colors);
 
         PHLightState lightState = new PHLightState();
         lightState.setOn(true);
@@ -260,14 +286,70 @@ public class HueLightProfile extends LightProfile {
         Color hueColor = new Color(color);
         lightState.setX(hueColor.mX);
         lightState.setY(hueColor.mY);
-        lightState.setBrightness(mCalcBrightness);
+        lightState.setBrightness(calcBrightness);
+        if (flashing != null) {
+            lightState.setTransitionTime(1);
+        }
+        return lightState;
+    }
 
-        bridge.updateLightState(light, lightState, adaptor);
-        return false;
+    private void flashing(final PHLightState lightState, final PHBridge bridge, final PHLight light, long[] flashing) {
+        if (mLatestScheduledFuture != null && !mLatestScheduledFuture.isCancelled()) {
+            mLatestScheduledFuture.cancel(false);
+        }
+        mFlashingQueue.clear();
+        for (long value : flashing) {
+            mFlashingQueue.add(value);
+        }
+        mLatestScheduledFuture = mFlashingService.schedule(new Runnable() {
+            boolean isOn = true;
+
+            @Override
+            public void run() {
+                lightState.setOn(isOn);
+                bridge.updateLightState(light, lightState, new PHLightAdapter() {
+                    @Override
+                    public void onStateUpdate(Map<String, String> successAttribute, List<PHHueError> errorAttribute) {
+                        next();
+                    }
+
+                    @Override
+                    public void onError(int code, String message) {
+                        next();
+                    }
+                });
+            }
+
+            private void next() {
+                Long interval = mFlashingQueue.poll();
+                if (interval != null) {
+                    mLatestScheduledFuture = mFlashingService.schedule(this, interval, TimeUnit.MILLISECONDS);
+                    isOn = !isOn;
+                }
+            }
+        }, mFlashingQueue.poll(), TimeUnit.MILLISECONDS);
+    }
+
+
+    private void sendResponseAfterAwait(final Intent response, final CountDownLatch latch) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (!latch.await(30, TimeUnit.SECONDS)) {
+                        MessageUtils.setTimeoutError(response);
+                    }
+                } catch (InterruptedException e) {
+                    MessageUtils.setTimeoutError(response);
+                }
+                ((DConnectMessageService) getContext()).sendResponse(response);
+            }
+        }).start();
     }
 
     /**
      * Convert Integer to int[].
+     *
      * @param color color
      * @return int[]
      */
@@ -287,7 +369,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Hueのブリッジを検索する.
-     * 
+     *
      * @param serviceId Service ID
      * @return Hueのブリッジを管理するオブジェクト
      */
@@ -306,9 +388,10 @@ public class HueLightProfile extends LightProfile {
     /**
      * Hueに接続されているライトを検索する.
      * <p>
-     *     ライトが見つからない場合には<code>null</code>を返却する。
+     * ライトが見つからない場合には<code>null</code>を返却する。
      * </p>
-     * @param bridge Hueのブリッジ
+     *
+     * @param bridge  Hueのブリッジ
      * @param lightId ライトID
      * @return Hueのブリッジに接続されたライト
      */
@@ -327,7 +410,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * 成功レスポンス送信.
-     * 
+     *
      * @param response response
      */
     private void sendResultOK(final Intent response) {
@@ -338,7 +421,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * エラーレスポンスを送信する.
-     * 
+     *
      * @param response エラーレスポンス
      */
     private void sendResultERR(final Intent response) {
@@ -349,8 +432,8 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Calculate color parameter.
-     * 
-     * @param color Color parameters.
+     *
+     * @param color      Color parameters.
      * @param brightness Brightness parameter.
      */
     private void calcColorParam(final int[] color, final Double brightness) {
@@ -363,7 +446,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Calculate brightness parameter.
-     * 
+     *
      * @param color Color parameters.
      * @return brightness Brightness parameter.
      */
@@ -380,25 +463,38 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Hueの色指定.
-     * 
+     *
      * @author NTT DOCOMO, INC.
      */
     private static class Color {
-        /** モデル. */
+        /**
+         * モデル.
+         */
         private static final String MODEL = "LCT001";
-        /** R. */
+        /**
+         * R.
+         */
         final int mR;
-        /** G. */
+        /**
+         * G.
+         */
         final int mG;
-        /** B. */
+        /**
+         * B.
+         */
         final int mB;
-        /** 色相のX座標. */
+        /**
+         * 色相のX座標.
+         */
         final float mX;
-        /** 色相のY座標. */
+        /**
+         * 色相のY座標.
+         */
         final float mY;
 
         /**
          * コンストラクタ.
+         *
          * @param rgb RGB
          */
         Color(final int rgb) {
@@ -412,6 +508,7 @@ public class HueLightProfile extends LightProfile {
 
         /**
          * コンストラクタ.
+         *
          * @param rgb RGB
          */
         Color(final Integer rgb) {
@@ -421,7 +518,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * ライトのアダプター.
-     * 
+     *
      * @author NTT DOCOMO, INC.
      */
     private static class PHLightAdapter implements PHLightListener {

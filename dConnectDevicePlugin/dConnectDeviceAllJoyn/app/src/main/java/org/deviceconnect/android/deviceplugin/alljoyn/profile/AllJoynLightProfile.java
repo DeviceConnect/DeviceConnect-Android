@@ -28,6 +28,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Light profile for AllJoyn.
@@ -51,6 +57,10 @@ public class AllJoynLightProfile extends LightProfile {
         TYPE_LAMP_CONTROLLER,
         TYPE_UNKNOWN,
     }
+
+    private ScheduledExecutorService mFlashingService = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture mLatestScheduledFuture;
+    private Queue<Long> mFlashingQueue = new ConcurrentLinkedQueue<Long>();
 
     AllJoynDeviceApplication getApplication() {
         return (AllJoynDeviceApplication) getContext().getApplicationContext();
@@ -227,12 +237,6 @@ public class AllJoynLightProfile extends LightProfile {
             return true;
         }
 
-        if (flashing != null) {
-            MessageUtils.setNotSupportActionError(response
-                    , "Parameter 'flashing' is not supported.");
-            return true;
-        }
-
         int[] colors = new int[3];
         String colorParam = getColorString(request);
         if (colorParam != null) {
@@ -244,11 +248,11 @@ public class AllJoynLightProfile extends LightProfile {
         }
         switch (getLampServiceType(service)) {
             case TYPE_SINGLE_LAMP: {
-                onPostLightForSingleLamp(request, response, service, lightId, brightness, colors);
+                onPostLightForSingleLamp(request, response, service, lightId, brightness, colors, flashing);
                 return false;
             }
             case TYPE_LAMP_CONTROLLER: {
-                onPostLightForLampController(request, response, service, lightId, brightness, colors);
+                onPostLightForLampController(request, response, service, lightId, brightness, colors, flashing);
                 return false;
             }
             case TYPE_UNKNOWN:
@@ -260,9 +264,8 @@ public class AllJoynLightProfile extends LightProfile {
     }
 
     private void onPostLightForSingleLamp(final Intent request, final Intent response, final AllJoynServiceEntity service,
-                                          final String lightId, final Double brightness, final int[] color) {
+                                          final String lightId, final Double brightness, final int[] color, final long[] flashing) {
         final AllJoynDeviceApplication app = getApplication();
-
         if (lightId != null && !lightId.equals(LIGHT_ID_SELF)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "A light with ID specified by 'lightId' not found.");
@@ -273,8 +276,8 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(final String busName, final short port, final int sessionId) {
-                LampState proxyState = app.getInterface(busName, sessionId, LampState.class);
-                LampDetails proxyDetails = app.getInterface(busName, sessionId, LampDetails.class);
+                final LampState proxyState = app.getInterface(busName, sessionId, LampState.class);
+                final LampDetails proxyDetails = app.getInterface(busName, sessionId, LampDetails.class);
 
                 if (proxyState == null) {
                     MessageUtils.setUnknownError(response,
@@ -290,7 +293,7 @@ public class AllJoynLightProfile extends LightProfile {
                 }
 
                 try {
-                    HashMap<String, Variant> newStates = new HashMap<>();
+                    final HashMap<String, Variant> newStates = new HashMap<>();
 
                     // NOTE: Arithmetic operations in primitive types may lead to arithmetic
                     // overflow. To retain precision, BigDecimal objects are used.
@@ -311,12 +314,16 @@ public class AllJoynLightProfile extends LightProfile {
                         newStates.put("Brightness", new Variant(intScaledVal, "u"));
                     }
 
-                    int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
-                    if (responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response,
-                                "Failed to change lamp states (code: " + responseCode + ").");
-                        sendResponse(response);
-                        return;
+                    if (flashing != null) {
+                        flashing(newStates, proxyState, flashing);//do not check result of flashing
+                    } else {
+                        int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
+                        if (responseCode != ResponseCode.OK.getValue()) {
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to change lamp states (code: " + responseCode + ").");
+                            sendResponse(response);
+                            return;
+                        }
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
@@ -339,9 +346,8 @@ public class AllJoynLightProfile extends LightProfile {
 
     private void onPostLightForLampController(final Intent request, final Intent response,
                                               final AllJoynServiceEntity service, final String lightId,
-                                              final Double brightness, final int[] color) {
+                                              final Double brightness, final int[] color, final long[] flashing) {
         final AllJoynDeviceApplication app = getApplication();
-
         OneShotSessionHandler.SessionJoinCallback callback = new OneShotSessionHandler.SessionJoinCallback() {
             @Override
             public void onSessionJoined(final String busName, final short port, final int sessionId) {
@@ -374,8 +380,6 @@ public class AllJoynLightProfile extends LightProfile {
                         sendResponse(response);
                         return;
                     }
-
-                    getAllLampIDsResponse.lampIDs[0];
 
                     Lamp.GetLampDetails_return_value_usa_sv lampDetailsResponse = proxy.getLampDetails(lightId);
                     if (lampDetailsResponse == null) {
@@ -429,14 +433,18 @@ public class AllJoynLightProfile extends LightProfile {
                         }
                     }
 
-                    Lamp.TransitionLampState_return_value_us transLampStateResponse =
-                            proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
-                    if (transLampStateResponse == null ||
-                            transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response,
-                                "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
-                        sendResponse(response);
-                        return;
+                    if (flashing != null) {
+                        flashingForController(newStates, proxy, lightId, flashing);//do not check result of flashing
+                    } else {
+                        Lamp.TransitionLampState_return_value_us transLampStateResponse =
+                                proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
+                        if (transLampStateResponse == null ||
+                                transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
+                            sendResponse(response);
+                            return;
+                        }
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
@@ -629,11 +637,6 @@ public class AllJoynLightProfile extends LightProfile {
             return true;
         }
 
-        if (flashing != null) {
-            MessageUtils.setNotSupportActionError(response
-                    , "Parameter 'flashing' is not supported.");
-            return true;
-        }
         int[] colors = new int[3];
         String colorParam = getColorString(request);
         if (colorParam != null) {
@@ -645,11 +648,11 @@ public class AllJoynLightProfile extends LightProfile {
         }
         switch (getLampServiceType(service)) {
             case TYPE_SINGLE_LAMP: {
-                onPutLightForSingleLamp(request, response, service, lightId, name, brightness, colors);
+                onPutLightForSingleLamp(request, response, service, lightId, name, brightness, colors, flashing);
                 return false;
             }
             case TYPE_LAMP_CONTROLLER: {
-                onPutLightForLampController(request, response, service, lightId, name, brightness, colors);
+                onPutLightForLampController(request, response, service, lightId, name, brightness, colors, flashing);
                 return false;
             }
             case TYPE_UNKNOWN:
@@ -664,7 +667,7 @@ public class AllJoynLightProfile extends LightProfile {
     // TODO: Implement name change functionality using AllJoyn Config service.
     private void onPutLightForSingleLamp(@NonNull Intent request, @NonNull final Intent response
             , @NonNull AllJoynServiceEntity service, @NonNull String lightId, String name
-            , final Double brightness, final int[] color) {
+            , final Double brightness, final int[] color, final long[] flashing) {
         if (!lightId.equals(LIGHT_ID_SELF)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "A light with ID specified by 'lightId' not found.");
@@ -730,13 +733,17 @@ public class AllJoynLightProfile extends LightProfile {
                         newStates.put("Brightness", new Variant(intScaledVal, "u"));
                     }
 
-                    int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
-                    if (responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response,
-                                "Failed to change lamp states (code: "
-                                        + responseCode + ").");
-                        sendResponse(response);
-                        return;
+                    if (flashing != null) {
+                        flashing(newStates, proxyState, flashing);//do not check result of flashing
+                    } else {
+                        int responseCode = proxyState.transitionLampState(0, newStates, TRANSITION_PERIOD);
+                        if (responseCode != ResponseCode.OK.getValue()) {
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to change lamp states (code: "
+                                            + responseCode + ").");
+                            sendResponse(response);
+                            return;
+                        }
                     }
                 } catch (BusException e) {
                     MessageUtils.setUnknownError(response, e.getLocalizedMessage());
@@ -759,7 +766,7 @@ public class AllJoynLightProfile extends LightProfile {
 
     private void onPutLightForLampController(@NonNull Intent request, @NonNull final Intent response
             , @NonNull final AllJoynServiceEntity service, @NonNull final String lightId
-            , final String name, final Double brightness, final int[] color) {
+            , final String name, final Double brightness, final int[] color, final long[] flashing) {
         if (brightness != null && (brightness < 0 || brightness > 1)) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Parameter 'brightness' must be within range [0, 1].");
@@ -844,13 +851,18 @@ public class AllJoynLightProfile extends LightProfile {
                         }
                     }
 
-                    Lamp.TransitionLampState_return_value_us transLampStateResponse =
-                            proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
-                    if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
-                        MessageUtils.setUnknownError(response,
-                                "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
-                        sendResponse(response);
-                        return;
+                    if (flashing != null) {
+                        flashingForController(newStates, proxy, lightId, flashing);//do not check result of flashing
+                    } else {
+                        Lamp.TransitionLampState_return_value_us transLampStateResponse =
+                                proxy.transitionLampState(lightId, newStates, TRANSITION_PERIOD);
+
+                        if (transLampStateResponse.responseCode != ResponseCode.OK.getValue()) {
+                            MessageUtils.setUnknownError(response,
+                                    "Failed to change lamp states (code: " + transLampStateResponse.responseCode + ").");
+                            sendResponse(response);
+                            return;
+                        }
                     }
 
                     if (name != null) {
@@ -882,6 +894,70 @@ public class AllJoynLightProfile extends LightProfile {
         OneShotSessionHandler.run(getContext(), service.busName, service.port, callback);
     }
 
+
+    private void flashing(final HashMap<String, Variant> newStates, final LampState proxyState, long[] flashing) {
+        if (mLatestScheduledFuture != null && !mLatestScheduledFuture.isCancelled()) {
+            mLatestScheduledFuture.cancel(false);
+        }
+        mFlashingQueue.clear();
+        for (long value : flashing) {
+            mFlashingQueue.add(value);
+        }
+        mLatestScheduledFuture = mFlashingService.schedule(new Runnable() {
+            boolean isOn = true;
+
+            @Override
+            public void run() {
+                newStates.put("OnOff", new Variant(isOn, "b"));
+                try {
+                    proxyState.transitionLampState(0, newStates, 0);
+                } catch (BusException e) {
+                    e.printStackTrace();
+                }
+                next();
+            }
+
+            private void next() {
+                Long interval = mFlashingQueue.poll();
+                if (interval != null) {
+                    mLatestScheduledFuture = mFlashingService.schedule(this, interval, TimeUnit.MILLISECONDS);
+                    isOn = !isOn;
+                }
+            }
+        }, mFlashingQueue.poll(), TimeUnit.MILLISECONDS);
+    }
+
+    private void flashingForController(final HashMap<String, Variant> newStates, final Lamp proxy, final String lightId, long[] flashing) {
+        if (mLatestScheduledFuture != null && !mLatestScheduledFuture.isCancelled()) {
+            mLatestScheduledFuture.cancel(false);
+        }
+        mFlashingQueue.clear();
+        for (long value : flashing) {
+            mFlashingQueue.add(value);
+        }
+        mLatestScheduledFuture = mFlashingService.schedule(new Runnable() {
+            boolean isOn = true;
+
+            @Override
+            public void run() {
+                newStates.put("OnOff", new Variant(isOn, "b"));
+                try {
+                    proxy.transitionLampState(lightId, newStates, 0);
+                } catch (BusException e) {
+                    e.printStackTrace();
+                }
+                next();
+            }
+
+            private void next() {
+                Long interval = mFlashingQueue.poll();
+                if (interval != null) {
+                    mLatestScheduledFuture = mFlashingService.schedule(this, interval, TimeUnit.MILLISECONDS);
+                    isOn = !isOn;
+                }
+            }
+        }, mFlashingQueue.poll(), TimeUnit.MILLISECONDS);
+    }
 
     /**
      * 成功レスポンス設定。

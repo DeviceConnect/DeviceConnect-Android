@@ -15,6 +15,8 @@ import com.serenegiant.usb.USBMonitor;
 import com.serenegiant.usb.UVCCamera;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -22,6 +24,10 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class UVCDevice {
+
+    private static final int VS_FORMAT_UNCOMPRESSED = 0x04;
+
+    private static final int VS_FORMAT_MJPEG = 0x06;
 
     private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
@@ -72,13 +78,20 @@ public class UVCDevice {
 
         List<Size> previewSizeList = mCamera.getSupportedSizeList();
         mLogger.info("Supported preview sizes: " + previewSizeList.size());
-        if (previewSizeList.size() > 0) {
-            Size size = previewSizeList.get(0);
-            mLogger.info("Preview size: width = " + size.width + ", height = " + size.height);
-            mCamera.setPreviewSize(size.width, size.height, UVCCamera.FRAME_FORMAT_MJPEG);
+        Size size = selectSize(previewSizeList);
+        int width;
+        int height;
+        if (size == null) {
+            mLogger.warning("Preview size fof supported format (MJPEG or YUY2) is not found.");
+            width = 1280;
+            height = 720;
         } else {
-            mCamera.setPreviewSize(1280, 720, UVCCamera.FRAME_FORMAT_MJPEG);
+            mLogger.info("Selected Preview size: type = " + size.type +  ", width = " + size.width + ", height = " + size.height);
+            width = size.width;
+            height = size.height;
         }
+
+        mCamera.setPreviewSize(width, height, UVCCamera.FRAME_FORMAT_MJPEG);
         mCamera.setPreviewFrameCallback(new IPreviewFrameCallback() {
             @Override
             public void onFrame(final byte[] frame) {
@@ -87,6 +100,31 @@ public class UVCDevice {
         }, UVCCamera.PIXEL_FORMAT_RAW);
 
         return true;
+    }
+
+    private Size selectSize(final List<Size> sizeList) {
+        if (sizeList.size() == 0) {
+            return null;
+        }
+        List<Size> mjpegList = new ArrayList<>();
+        int i = 0;
+        for (Size size : sizeList) {
+            mLogger.info("Preview size (" + (i++) + ") : type = " + size.type
+                + ", width = " + size.width + ", height = " + size.height);
+            if (size.type == VS_FORMAT_MJPEG || size.type == VS_FORMAT_UNCOMPRESSED) {
+                mjpegList.add(size);
+            }
+        }
+        if (mjpegList.size() == 0) {
+            return null;
+        }
+        Collections.sort(mjpegList, new Comparator<Size>() {
+            @Override
+            public int compare(final Size s1, final Size s2) {
+                return s2.width * s2.height - s1.width * s1.height;
+            }
+        });
+        return mjpegList.get(0);
     }
 
     private void notifyPreviewFrame(final byte[] frame) {

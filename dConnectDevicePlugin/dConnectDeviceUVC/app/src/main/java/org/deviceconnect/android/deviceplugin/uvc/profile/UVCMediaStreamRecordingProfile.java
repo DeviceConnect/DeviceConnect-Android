@@ -8,14 +8,18 @@ package org.deviceconnect.android.deviceplugin.uvc.profile;
 
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import org.deviceconnect.android.deviceplugin.uvc.UVCDevice;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager;
+import org.deviceconnect.android.deviceplugin.uvc.utils.BitmapUtils;
 import org.deviceconnect.android.deviceplugin.uvc.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -29,21 +33,41 @@ import java.util.logging.Logger;
  */
 public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile {
 
+    private static final String PARAM_WIDTH = "width";
+
+    private static final String PARAM_HEIGHT = "height";
+
     private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
     private final UVCDeviceManager mDeviceMgr;
 
-    private final Map<String, MixedReplaceMediaServer> mServers
-        = new HashMap<String, MixedReplaceMediaServer>();
+    private final Map<String, PreviewContext> mContexts = new HashMap<String, PreviewContext>();
 
     private final UVCDeviceManager.PreviewListener mPreviewListener
         = new UVCDeviceManager.PreviewListener() {
         @Override
         public void onFrame(final UVCDevice device, final byte[] frame) {
             mLogger.info("onFrame: " + frame.length);
-            MixedReplaceMediaServer server = mServers.get(device.getId());
-            if (server != null) {
-                server.offerMedia(frame);
+            PreviewContext context = mContexts.get(device.getId());
+            if (context != null) {
+                final byte[] media;
+                if (context.mWidth == null && context.mHeight == null) {
+                    media = frame;
+                } else {
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(frame, 0, frame.length);
+                    if (bitmap == null) {
+                        mLogger.warning("MotionJPEG Frame could not be decoded to bitmap.");
+                        return;
+                    }
+                    int w = context.mWidth != null ? context.mWidth : bitmap.getWidth();
+                    int h = context.mHeight != null ? context.mHeight : bitmap.getHeight();
+                    Bitmap resizedBitmap = BitmapUtils.resize(bitmap, w, h);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                    media = baos.toByteArray();
+                    resizedBitmap.recycle();
+                }
+                context.mServer.offerMedia(media);
             }
         }
     };
@@ -67,11 +91,18 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     sendResponse(response);
                     return;
                 }
+                if (!checkPreviewParams(request, response)) {
+                    sendResponse(response);
+                    return;
+                }
 
-                String uri = startMediaServer(device.getId());
+                PreviewContext context = startMediaServer(device.getId());
+                context.mWidth = getWidth(request);
+                context.mHeight = getHeight(request);
+
                 if (device.startPreview()) {
                     setResult(response, DConnectMessage.RESULT_OK);
-                    setUri(response, uri);
+                    setUri(response, context.mServer.getUrl());
                 } else {
                     MessageUtils.setIllegalDeviceStateError(response, "UVC device is not open.");
                 }
@@ -79,6 +110,26 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             }
         });
         return false;
+    }
+
+    private boolean checkPreviewParams(final Intent request, final Intent response) {
+        if (!checkType(request, response, PARAM_WIDTH)) {
+            return false;
+        }
+        if (!checkType(request, response, PARAM_HEIGHT)) {
+            return false;
+        }
+        Integer width = getWidth(request);
+        Integer height = getHeight(request);
+        if (width != null && width <= 0) {
+            MessageUtils.setInvalidRequestParameterError(response, PARAM_WIDTH + " must be positive.");
+            return false;
+        }
+        if (height != null && height <= 0) {
+            MessageUtils.setInvalidRequestParameterError(response, PARAM_HEIGHT + " must be positive.");
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -104,22 +155,71 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         return false;
     }
 
-    private synchronized String startMediaServer(final String id) {
-        MixedReplaceMediaServer server = mServers.get(id);
-        if (server == null) {
-            server = new MixedReplaceMediaServer();
+    private synchronized PreviewContext startMediaServer(final String id) {
+        PreviewContext context = mContexts.get(id);
+        if (context == null) {
+            MixedReplaceMediaServer server = new MixedReplaceMediaServer();
             server.setServerName("UVC Video Server");
             server.setContentType("image/jpg");
             server.start();
-            mServers.put(id, server);
+
+            context = new PreviewContext(server);
+            mContexts.put(id, context);
         }
-        return server.getUrl();
+        return context;
     }
 
     public synchronized void stopMediaServer(final String id) {
-        MixedReplaceMediaServer server = mServers.remove(id);
-        if (server != null) {
-            server.stop();
+        PreviewContext context = mContexts.remove(id);
+        if (context != null) {
+            context.mServer.stop();
         }
+    }
+
+    private static Integer getWidth(final Intent request) {
+        return parseInteger(request, PARAM_WIDTH);
+    }
+
+    private static Integer getHeight(final Intent request) {
+        return parseInteger(request, PARAM_HEIGHT);
+    }
+
+    private boolean checkType(final Intent request, final Intent response,
+                              final String paramName) {
+        if (!request.hasExtra(paramName)) {
+            return true;
+        }
+        Object param = request.getExtras().get(paramName);
+        if (param instanceof Integer) {
+            return true;
+        } else if (param instanceof String) {
+            try {
+                Integer.parseInt((String) param);
+                return true;
+            } catch (NumberFormatException e) {
+                MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid format.");
+                return false;
+            }
+        } else {
+            MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid type.");
+            return false;
+        }
+    }
+
+    private static class PreviewContext {
+
+        Integer mWidth;
+
+        Integer mHeight;
+
+        final MixedReplaceMediaServer mServer;
+
+        PreviewContext(final MixedReplaceMediaServer server) {
+            if (server == null) {
+                throw new IllegalArgumentException();
+            }
+            mServer = server;
+        }
+
     }
 }

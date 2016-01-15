@@ -315,6 +315,11 @@ public class UVCCamera {
 		return getSupportedSize(type, mSupportedSize);
 	}
 
+	// MODIFIED
+	public List<Size> getSupportedSizeListAll() {
+		return getSupportedSize(-1, mSupportedSize);
+	}
+
 	public static List<Size> getSupportedSize(final int type, final String supportedSize) {
 		final List<Size> result = new ArrayList<Size>();
 		if (!TextUtils.isEmpty(supportedSize))

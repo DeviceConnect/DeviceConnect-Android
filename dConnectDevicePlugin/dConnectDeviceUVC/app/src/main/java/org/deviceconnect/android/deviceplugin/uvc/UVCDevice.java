@@ -76,28 +76,37 @@ public class UVCDevice {
         mCamera = new UVCCamera();
         mCamera.open(mCtrlBlock);
 
-        List<Size> previewSizeList = mCamera.getSupportedSizeList();
+        List<Size> previewSizeList = mCamera.getSupportedSizeListAll();
         mLogger.info("Supported preview sizes: " + previewSizeList.size());
         Size size = selectSize(previewSizeList);
-        int width;
-        int height;
+        final int width;
+        final int height;
+        final int frameFormat;
+        final int pixelFormat;
         if (size == null) {
             mLogger.warning("Preview size fof supported format (MJPEG or YUY2) is not found.");
-            width = 1280;
-            height = 720;
+            return false;
         } else {
+            //mLogger.info("Selected Preview size: type = " + size.type +  ", width = " + size.width + ", height = " + size.height);
+//            width = 1280; //size.width;
+//            height = 720; //size.height;
+
             mLogger.info("Selected Preview size: type = " + size.type +  ", width = " + size.width + ", height = " + size.height);
             width = size.width;
             height = size.height;
+            frameFormat = size.type == VS_FORMAT_MJPEG ?
+                UVCCamera.FRAME_FORMAT_MJPEG : UVCCamera.FRAME_FORMAT_YUYV;
+            pixelFormat = size.type == VS_FORMAT_MJPEG ?
+                UVCCamera.PIXEL_FORMAT_RAW : UVCCamera.PIXEL_FORMAT_RGB565;
         }
 
-        mCamera.setPreviewSize(width, height, UVCCamera.FRAME_FORMAT_MJPEG);
+        mCamera.setPreviewSize(width, 720, frameFormat);
         mCamera.setPreviewFrameCallback(new IPreviewFrameCallback() {
             @Override
             public void onFrame(final byte[] frame) {
-                notifyPreviewFrame(frame);
+                notifyPreviewFrame(frame, frameFormat, width, height);
             }
-        }, UVCCamera.PIXEL_FORMAT_RAW);
+        }, pixelFormat);
 
         return true;
     }
@@ -106,35 +115,48 @@ public class UVCDevice {
         if (sizeList.size() == 0) {
             return null;
         }
-        List<Size> mjpegList = new ArrayList<>();
-        int i = 0;
-        for (Size size : sizeList) {
-            mLogger.info("Preview size (" + (i++) + ") : type = " + size.type
-                + ", width = " + size.width + ", height = " + size.height);
-            if (size.type == VS_FORMAT_MJPEG || size.type == VS_FORMAT_UNCOMPRESSED) {
-                mjpegList.add(size);
+        final int[] formats = {
+            VS_FORMAT_MJPEG,
+            VS_FORMAT_UNCOMPRESSED
+        };
+        for (int format : formats) {
+            Size size = selectSize(sizeList, format);
+            if (size != null) {
+                return size;
             }
         }
-        if (mjpegList.size() == 0) {
+        return null;
+    }
+
+    private Size selectSize(final List<Size> sizeList, final int format) {
+        List<Size> list = new ArrayList<>();
+        int i = 0;
+        for (Size size : sizeList) {
+            if (size.type == format) {
+                list.add(size);
+            }
+        }
+        if (list.size() == 0) {
             return null;
         }
-        Collections.sort(mjpegList, new Comparator<Size>() {
+        Collections.sort(list, new Comparator<Size>() {
             @Override
             public int compare(final Size s1, final Size s2) {
                 return s2.width * s2.height - s1.width * s1.height;
             }
         });
-        return mjpegList.get(0);
+        return list.get(0);
     }
 
-    private void notifyPreviewFrame(final byte[] frame) {
+    private void notifyPreviewFrame(final byte[] frame, final int frameFormat,
+                                    final int width, final int height) {
         synchronized (mPreviewListeners) {
             for (Iterator<PreviewListener> it = mPreviewListeners.iterator(); it.hasNext(); ) {
                 final PreviewListener l = it.next();
                 mExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        l.onFrame(UVCDevice.this, frame);
+                        l.onFrame(UVCDevice.this, frame, frameFormat, width, height);
                     }
                 });
             }
@@ -188,7 +210,7 @@ public class UVCDevice {
 
     interface PreviewListener {
 
-        void onFrame(UVCDevice device, byte[] frame);
+        void onFrame(UVCDevice device, byte[] frame, int frameFormat, int width, int height);
 
     }
 

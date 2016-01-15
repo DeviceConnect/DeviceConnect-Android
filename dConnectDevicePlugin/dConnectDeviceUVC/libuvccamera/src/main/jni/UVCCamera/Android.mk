@@ -48,6 +48,7 @@ LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -ldl
 LOCAL_LDLIBS += -llog
 LOCAL_LDLIBS += -landroid
 
+LOCAL_STATIC_LIBRARIES += jpeg-turbo1400_static
 LOCAL_SHARED_LIBRARIES += usb100 uvc
 
 LOCAL_ARM_MODE := arm

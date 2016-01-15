@@ -40,6 +40,7 @@
 #include "utilbase.h"
 #include "UVCPreview.h"
 #include "libuvc_internal.h"
+#include "jpeglib.h"
 
 #define	LOCAL_DEBUG 0
 #define MAX_FRAME 4
@@ -589,7 +590,14 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 			// yuvyv mode
 			for ( ; LIKELY(isRunning()) ; ) {
 				frame = waitPreviewFrame();
+
+				LOGI("**** frame: %d", frame->data_bytes);
+
 				if (LIKELY(frame)) {
+
+					// MODIFIED
+					do_preview_pass_through(env, frame);
+
 					frame = draw_preview_one(frame, &mPreviewWindow, uvc_any2rgbx, 4);
 					addCaptureFrame(frame);
 				}
@@ -924,10 +932,12 @@ void UVCPreview::do_capture_callback(JNIEnv *env, uvc_frame_t *frame) {
 }
 
 // MODIFIED
-void UVCPreview::do_preview_pass_through(JNIEnv * env, uvc_frame_t * frame) {
+void UVCPreview::do_preview_pass_through(JNIEnv *env, uvc_frame_t *frame) {
 	ENTER();
 	if (LIKELY(frame)) {
 		if (mPreviewFrameCallbackObj) {
+			resize_frame(frame, 320, 240);
+
 			int len = frame->data_bytes;
 			jbyteArray array = env->NewByteArray(len);
 			jbyte *elems = env->GetByteArrayElements(array, NULL);
@@ -939,5 +949,60 @@ void UVCPreview::do_preview_pass_through(JNIEnv * env, uvc_frame_t * frame) {
 			env->DeleteLocalRef(array);
 		}
 	}
+	EXIT();
+}
+
+// MODIFIED
+void UVCPreview::resize_frame(uvc_frame_t * frame, size_t width, size_t height) {
+	ENTER();
+	unsigned char *result_data = NULL;
+	unsigned long result_size = 0;
+
+	// Read JPEG from memory.
+	struct jpeg_decompress_struct in_info;
+	struct jpeg_error_mgr in_err;
+
+	struct jpeg_compress_struct out_info;
+	struct jpeg_error_mgr out_err;
+
+	in_info.err = jpeg_std_error(&in_err);
+	jpeg_create_decompress(&in_info);
+	jpeg_mem_src(&in_info, (unsigned char *) frame->data, frame->data_bytes);
+	jpeg_read_header(&in_info, true);
+
+	jpeg_start_decompress(&in_info);
+	LOGI("***** resize_frame: width = %d, height = %d", in_info.output_width, in_info.output_height);
+	JSAMPARRAY buffer = (JSAMPARRAY) malloc(sizeof(JSAMPROW) * in_info.output_height);
+	for(int i = 0; i < in_info.output_height; ++i){
+		buffer[i] = (JSAMPROW) calloc(sizeof(JSAMPLE), in_info.output_width * in_info.output_components);
+	}
+	while(in_info.output_scanline < in_info.output_height){
+		jpeg_read_scanlines(&in_info, buffer + in_info.output_scanline, in_info.output_height - in_info.output_scanline);
+	}
+	jpeg_finish_decompress(&in_info);
+	jpeg_destroy_decompress(&in_info);
+
+	out_info.err = jpeg_std_error(&out_err);
+	jpeg_create_compress(&out_info);
+	out_info.image_width = in_info.output_width;
+	out_info.image_height = in_info.output_height;
+	out_info.output_width = width;
+	out_info.output_height = height;
+	out_info.input_components = 3;
+	out_info.in_color_space = JCS_RGB;
+	jpeg_set_defaults(&out_info);
+	jpeg_mem_dest(&out_info, &result_data, &result_size);
+	jpeg_start_compress(&out_info, true);
+	jpeg_write_scanlines(&out_info, buffer, in_info.output_height);
+	jpeg_finish_compress(&out_info);
+	jpeg_destroy_compress(&out_info);
+	for (int i = 0; i < in_info.output_height; i++) {
+		free(buffer[i]);
+	}
+	free(buffer);
+
+	frame->data = result_data;
+	frame->data_bytes = result_size;
+
 	EXIT();
 }

@@ -35,8 +35,9 @@ public class UVCDeviceManager {
 
     private final UVCDevice.PreviewListener mPreviewListener = new UVCDevice.PreviewListener() {
         @Override
-        public void onFrame(final UVCDevice device, final byte[] frame) {
-            notifyPreviewFrame(device, frame);
+        public void onFrame(final UVCDevice device, final byte[] frame, final int frameFormat,
+                            final int width, final int height) {
+            notifyPreviewFrame(device, frame, frameFormat, width, height);
         }
     };
 
@@ -193,14 +194,15 @@ public class UVCDeviceManager {
         }
     }
 
-    private void notifyPreviewFrame(final UVCDevice device, final byte[] frame) {
+    private void notifyPreviewFrame(final UVCDevice device, final byte[] frame, final int frameFormat,
+                                    final int width, final int height) {
         synchronized (mPreviewListeners) {
             for (Iterator<PreviewListener> it = mPreviewListeners.iterator(); it.hasNext(); ) {
                 final PreviewListener l = it.next();
                 mExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        l.onFrame(device, frame);
+                        l.onFrame(device, frame, frameFormat, width, height);
                     }
                 });
             }
@@ -252,7 +254,7 @@ public class UVCDeviceManager {
 
     public interface PreviewListener {
 
-        void onFrame(UVCDevice device, byte[] frame);
+        void onFrame(UVCDevice device, byte[] frame, int frameFormat, int width, int height);
 
     }
 }

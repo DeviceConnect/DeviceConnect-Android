@@ -986,8 +986,6 @@ void UVCPreview::resize_frame(uvc_frame_t * frame, size_t width, size_t height) 
 	jpeg_create_compress(&out_info);
 	out_info.image_width = in_info.output_width;
 	out_info.image_height = in_info.output_height;
-	out_info.output_width = width;
-	out_info.output_height = height;
 	out_info.input_components = 3;
 	out_info.in_color_space = JCS_RGB;
 	jpeg_set_defaults(&out_info);

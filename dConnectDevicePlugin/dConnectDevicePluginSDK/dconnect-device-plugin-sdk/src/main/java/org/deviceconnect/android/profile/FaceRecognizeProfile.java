@@ -1,6 +1,6 @@
 /*
- HumanDetectProfile.java
- Copyright (c) 2015 NTT DOCOMO,INC.
+ FaceRecognizeProfile.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
@@ -10,62 +10,42 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.HumanDetectProfileConstants;
+import org.deviceconnect.profile.FaceRecognizeProfileConstants;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * Human Detect Profile.
- * 
- * <p>
- * API that provides Setting, the Detection feature for Human Detect Device.<br/>
- * 
- * DevicePlugin that provides a HumanDetect operation function of for smart device inherits an
- * equivalent class, and implements the corresponding API thing. <br/>
- * </p>
- * 
- * <h1>API provides methods</h1>
- * <p>
- * For requests to each API of HumanDetectProfile, following callback method group is automatically
- * invoked.<br/>
- * Subclasses override the methods for API provided by the DevicePlugin from the following methods
- * group, to implement the functionality that.<br/>
- * Features that are not overridden automatically return the response as non-compliant API.
- * </p>
+ * Face Recognize Profile.
  * @author NTT DOCOMO, INC.
  */
-public abstract class HumanDetectProfile extends DConnectProfile implements HumanDetectProfileConstants {
+public abstract class FaceRecognizeProfile extends DConnectProfile implements FaceRecognizeProfileConstants {
 
     /**
      * Constructor.
      */
-    public HumanDetectProfile() {
+    public FaceRecognizeProfile() {
     }
 
     @Override
     public final String getProfileName() {
         return PROFILE_NAME;
     }
-    
+
+
     @Override
     protected boolean onGetRequest(final Intent request, final Intent response) {
-        String interfac = getInterface(request);
+        String profile = getProfile(request);
         String attribute = getAttribute(request);
         boolean result = true;
-        if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_BODY_DETECTION.equals(attribute)) {
+        if (PROFILE_NAME.equals(profile)) {
+            String serviceId = getServiceID(request);
+            result = onGetFaceRecognize(request, response, serviceId);
+        } else if (PROFILE_NAME.equals(profile) && ATTRIBUTE_ON_FACE_RECOGNIZE.equals(attribute)) {
             String serviceId = getServiceID(request);
             List<String> options = getOptions(request);
-            result = onGetBodyDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_HAND_DETECTION.equals(attribute)) {
-            String serviceId = getServiceID(request);
-            List<String> options = getOptions(request);
-            result = onGetHandDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_FACE_DETECTION.equals(attribute)) {
-            String serviceId = getServiceID(request);
-            List<String> options = getOptions(request);
-            result = onGetFaceDetection(request, response, serviceId, options);
+            result = onGetOnFaceRecognize(request, response, serviceId, options);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -73,41 +53,14 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
         return result;
     }
 
-    @Override
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-        String interfac = getInterface(request);
-        String attribute = getAttribute(request);
-        boolean result = true;
-        if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_BODY_DETECTION.equals(attribute)) {
-            String serviceId = getServiceID(request);
-            List<String> options = getOptions(request);
-            result = onPostBodyDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_HAND_DETECTION.equals(attribute)) {
-            String serviceId = getServiceID(request);
-            List<String> options = getOptions(request);
-            result = onPostHandDetection(request, response, serviceId, options);
-        } else if (INTERFACE_DETECTION.equals(interfac) && ATTRIBUTE_FACE_DETECTION.equals(attribute)) {
-            String serviceId = getServiceID(request);
-            List<String> options = getOptions(request);
-            result = onPostFaceDetection(request, response, serviceId, options);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
-    
     @Override
     protected boolean onPutRequest(final Intent request, final Intent response) {
         boolean result = true;
+        String profile = getProfile(request);
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_BODY_DETECTION.equals(attribute)) {
-            result = onPutOnBodyDetection(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_HAND_DETECTION.equals(attribute)) {
-            result = onPutOnHandDetection(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_FACE_DETECTION.equals(attribute)) {
-            result = onPutOnFaceDetection(request, response, getServiceID(request), getSessionKey(request));
+        if (PROFILE_NAME.equals(profile) && ATTRIBUTE_ON_FACE_RECOGNIZE.equals(attribute)) {
+            result = onPutOnFaceRecognize(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -118,258 +71,95 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     @Override
     protected boolean onDeleteRequest(final Intent request, final Intent response) {
         boolean result = true;
+        String profile = getProfile(request);
         String attribute = getAttribute(request);
-        if (ATTRIBUTE_ON_BODY_DETECTION.equals(attribute)) {
-            result = onDeleteOnBodyDetection(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_HAND_DETECTION.equals(attribute)) {
-            result = onDeleteOnHandDetection(request, response, getServiceID(request), getSessionKey(request));
-        } else if (ATTRIBUTE_ON_FACE_DETECTION.equals(attribute)) {
-            result = onDeleteOnFaceDetection(request, response, getServiceID(request), getSessionKey(request));
+
+        if (PROFILE_NAME.equals(profile) && ATTRIBUTE_ON_FACE_RECOGNIZE.equals(attribute)) {
+            result = onDeleteOnFaceRecognize(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
 
         return result;
     }
-    // ------------------------------------
-    // PUT
-    // ------------------------------------
+
 
     /**
-     * onbodydetectionコールバック登録リクエストハンドラー.<br/>
-     * onbodydetectionコールバックを登録し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
+     * onfacerecognize callback registration request handler.<br/>
+     * Register the onfacerecognize call back, and the result is stored in the response parameters.
+     * To be specified true the return value if you could send preparation of response parameters.
+     * If you are not ready to transmit, specify a false return value,
+     * in that thread and launch the thread finally able to transmit the response parameters.
+     *
+     * @param request request parameter
+     * @param response response parameter
+     * @param serviceId serviceID
+     * @param sessionKey session Key
+     * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
      */
-    protected boolean onPutOnBodyDetection(final Intent request, final Intent response, 
-            final String serviceId, final String sessionKey) {
+    protected boolean onPutOnFaceRecognize(final Intent request, final Intent response,
+                                           final String serviceId, final String sessionKey) {
         setUnsupportedError(response);
         return true;
     }
 
     /**
-     * onhanddetectionコールバック登録リクエストハンドラー.<br/>
-     * onhanddetectionコールバックを登録し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
+     * onfacerecognize callback release request handler.<br/>
+     * Release the onfacerecognize call back, and the result is stored in the response parameters.
+     * To be specified true the return value if you could send preparation of response parameters.
+     * If you are not ready to transmit, specify a false return value,
+     * in that thread and launch the thread finally able to transmit the response parameters.
+     *
+     * @param request request parameter
+     * @param response response parameter
+     * @param serviceId serviceID
+     * @param sessionKey session Key
+     * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
      */
-    protected boolean onPutOnHandDetection(final Intent request, final Intent response, 
-            final String serviceId, final String sessionKey) {
+    protected boolean onDeleteOnFaceRecognize(final Intent request, final Intent response,
+                                              final String serviceId, final String sessionKey) {
         setUnsupportedError(response);
         return true;
     }
 
-    /**
-     * onfacedetectionコールバック登録リクエストハンドラー.<br/>
-     * onfacedetectionコールバックを登録し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onPutOnFaceDetection(final Intent request, final Intent response, 
-            final String serviceId, final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    // ------------------------------------
-    // DELETE
-    // ------------------------------------
 
     /**
-     * onbodydetectionコールバック解除リクエストハンドラー.<br/>
-     * onbodydetectionコールバックを解除し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteOnBodyDetection(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * onhanddetectionコールバック解除リクエストハンドラー.<br/>
-     * onhanddetectionコールバックを解除し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteOnHandDetection(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * onfacedetectionコールバック解除リクエストハンドラー.<br/>
-     * onfacedetectionコールバックを解除し、その結果をレスポンスパラメータに格納する。
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
-     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
-     * 
-     * @param request リクエストパラメータ
-     * @param response レスポンスパラメータ
-     * @param serviceId サービスID
-     * @param sessionKey セッションキー
-     * @return レスポンスパラメータを送信するか否か
-     */
-    protected boolean onDeleteOnFaceDetection(final Intent request, final Intent response,
-            final String serviceId, final String sessionKey) {
-        setUnsupportedError(response);
-        return true;
-    }
-    
-    // ------------------------------------
-    // GET
-    // ------------------------------------
-
-    /**
-     * body detection attribute request handler.<br/>
-     * And ask the human body detection, and the result is stored in the response parameters.
+     * face recognition attribute request handler.<br/>
+     * And ask the human face recognition, and the result is stored in the response parameters.
      * If the response parameter is ready, please return true.
      * If you are not ready, please return false to start the process in the thread.
      * Once the thread is complete, send the response parameters.
      * @param request request parameter
-     * @param response response parameter.
+     * @param response response parameter
      * @param serviceId serviceID
-     * @param options options.
+     * @param options options
      * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
      */
-    protected boolean onGetBodyDetection(final Intent request, final Intent response,
+    protected boolean onGetOnFaceRecognize(final Intent request, final Intent response,
                                          final String serviceId, final List<String> options) {
         setUnsupportedError(response);
         return true;
     }
-
     /**
-     * hand detection attribute request handler.<br/>
-     * And ask the human hand detection, and the result is stored in the response parameters.
+     * face recognition attribute request handler.<br/>
+     * And ask the human face recognition, and the result is stored in the response parameters.
      * If the response parameter is ready, please return true.
      * If you are not ready, please return false to start the process in the thread.
      * Once the thread is complete, send the response parameters.
      * @param request request parameter
-     * @param response response parameter.
+     * @param response response parameter
      * @param serviceId serviceID
-     * @param options options.
      * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
      */
-    protected boolean onGetHandDetection(final Intent request, final Intent response,
-                                         final String serviceId, final List<String> options) {
+    protected boolean onGetFaceRecognize(final Intent request, final Intent response,
+                                         final String serviceId) {
         setUnsupportedError(response);
         return true;
     }
 
-    /**
-     * face detection attribute request handler.<br/>
-     * And ask the human face detection, and the result is stored in the response parameters.
-     * If the response parameter is ready, please return true.
-     * If you are not ready, please return false to start the process in the thread.
-     * Once the thread is complete, send the response parameters.
-     * @param request request parameter
-     * @param response response parameter.
-     * @param serviceId serviceID
-     * @param options options.
-     * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
-     */
-    protected boolean onGetFaceDetection(final Intent request, final Intent response,
-                                         final String serviceId, final List<String> options) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    // ------------------------------------
-    // POST
-    // ------------------------------------
-
-    /**
-     * body detection attribute request handler.<br/>
-     * And ask the human body detection, and the result is stored in the response parameters.
-     * If the response parameter is ready, please return true.
-     * If you are not ready, please return false to start the process in the thread.
-     * Once the thread is complete, send the response parameters.
-     * @param request request parameter
-     * @param response response parameter.
-     * @param serviceId serviceID
-     * @param options options.
-     * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
-     */
-    protected boolean onPostBodyDetection(final Intent request, final Intent response,
-                                          final String serviceId, final List<String> options) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * hand detection attribute request handler.<br/>
-     * And ask the human hand detection, and the result is stored in the response parameters.
-     * If the response parameter is ready, please return true.
-     * If you are not ready, please return false to start the process in the thread.
-     * Once the thread is complete, send the response parameters.
-     * @param request request parameter
-     * @param response response parameter.
-     * @param serviceId serviceID
-     * @param options options.
-     * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
-     */
-    protected boolean onPostHandDetection(final Intent request, final Intent response,
-                                          final String serviceId, final List<String> options) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    /**
-     * face detection attribute request handler.<br/>
-     * And ask the human face detection, and the result is stored in the response parameters.
-     * If the response parameter is ready, please return true.
-     * If you are not ready, please return false to start the process in the thread.
-     * Once the thread is complete, send the response parameters.
-     * @param request request parameter
-     * @param response response parameter.
-     * @param serviceId serviceID
-     * @param options options.
-     * @return send response flag.(true:sent / unsent (Send after the thread has been completed))
-     */
-    protected boolean onPostFaceDetection(final Intent request, final Intent response,
-                                          final String serviceId, final List<String> options) {
-        setUnsupportedError(response);
-        return true;
-    }
-
-    // ------------------------------------
-    // Getter methods.
-    // ------------------------------------
-    
     /**
      * get options string array list from request.
-     * 
+     *
      * @param request request parameter.
      * @return options. if nothing, null.
      */
@@ -379,15 +169,15 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
         if (strOptions != null) {
             String[] options = strOptions.split(",", 0);
             if (options != null) {
-            optionList = Arrays.asList(options);
+                optionList = Arrays.asList(options);
             }
         }
         return optionList;
     }
-    
+
     /**
      * get threshold from request.
-     * 
+     *
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -406,10 +196,10 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
             throw new NumberFormatException(ERROR_THRESHOLD_OUT_OF_RANGE);
         }
     }
-    
+
     /**
      * get minWidth from request.
-     * 
+     *
      * @param request request parameter.
      * @return minWidth(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -430,7 +220,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     }
     /**
      * get maxWidth from request.
-     * 
+     *
      * @param request request parameter.
      * @return maxWidth(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -449,10 +239,10 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
             throw new NumberFormatException(ERROR_MAXWIDTH_OUT_OF_RANGE);
         }
     }
-    
+
     /**
      * get minHeight from request.
-     * 
+     *
      * @param request request parameter.
      * @return minHeight(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -473,7 +263,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     }
     /**
      * get maxHeight from request.
-     * 
+     *
      * @param request request parameter.
      * @return maxHeight(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -492,10 +282,10 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
             throw new NumberFormatException(ERROR_MAXHEIGHT_OUT_OF_RANGE);
         }
     }
-    
+
     /**
      * get interval from request.
-     * 
+     *
      * @param request request parameter.
      * @param minInterval minimum interval[msec]
      * @param maxInterval maximum interval[msec]
@@ -514,7 +304,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
         if (interval == 0 || minInterval <= interval && interval <= maxInterval) {
             return interval;
         } else {
-            String error = String.format(Locale.ENGLISH, 
+            String error = String.format(Locale.ENGLISH,
                     ERROR_INTERVAL_OUT_OF_RANGE, minInterval, maxInterval);
             throw new NumberFormatException(error);
         }
@@ -522,7 +312,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
 
     /**
      * get eye threshold from request.
-     * 
+     *
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -544,7 +334,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
 
     /**
      * get nose threshold from request.
-     * 
+     *
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -566,7 +356,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
 
     /**
      * get mouth threshold from request.
-     * 
+     *
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -588,7 +378,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
 
     /**
      * get blink threshold from request.
-     * 
+     *
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -610,7 +400,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
 
     /**
      * get age threshold from request.
-     * 
+     *
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -632,7 +422,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
 
     /**
      * get gender threshold from request.
-     * 
+     *
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -654,7 +444,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
 
     /**
      * get face direction threshold from request.
-     * 
+     *
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -676,7 +466,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
 
     /**
      * get gaze threshold from request.
-     * 
+     *
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -698,7 +488,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
 
     /**
      * get expression threshold from request.
-     * 
+     *
      * @param request request parameter.
      * @return threshold(0.0 ... 1.0). if nothing, null.
      * @throws NumberFormatException
@@ -717,14 +507,14 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
             throw new NumberFormatException(ERROR_EXPRESSION_THRESHOLD_OUT_OF_RANGE);
         }
     }
-    
+
     // ------------------------------------
     // Setter methods.
     // ------------------------------------
 
     /**
      * set body detects data to response.
-     * 
+     *
      * @param response response
      * @param bodyDetects body detects data.
      */
@@ -734,7 +524,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
 
     /**
      * set hand detects data to response.
-     * 
+     *
      * @param response response
      * @param handDetects hand detects data.
      */
@@ -744,7 +534,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
 
     /**
      * set face detects data to response.
-     * 
+     *
      * @param response response
      * @param faceDetects face detects data.
      */
@@ -796,7 +586,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamConfidence(final Bundle bundle, final double normalizeConfidence) {
         bundle.putDouble(PARAM_CONFIDENCE, normalizeConfidence);
     }
-    
+
     /**
      * set yaw degree value to bundle.
      * @param bundle bundle
@@ -805,7 +595,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamYaw(final Bundle bundle, final double yawDegree) {
         bundle.putDouble(PARAM_YAW, yawDegree);
     }
-    
+
     /**
      * set roll degree value to bundle.
      * @param bundle bundle
@@ -814,7 +604,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamRoll(final Bundle bundle, final double rollDegree) {
         bundle.putDouble(PARAM_ROLL, rollDegree);
     }
-    
+
     /**
      * set pitch degree value to bundle.
      * @param bundle bundle
@@ -823,7 +613,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamPitch(final Bundle bundle, final double pitchDegree) {
         bundle.putDouble(PARAM_PITCH, pitchDegree);
     }
-    
+
     /**
      * set age value to bundle.
      * @param bundle bundle
@@ -832,7 +622,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamAge(final Bundle bundle, final int age) {
         bundle.putInt(PARAM_AGE, age);
     }
-    
+
     /**
      * set gender value to bundle.
      * @param bundle bundle
@@ -841,7 +631,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamGender(final Bundle bundle, final String gender) {
         bundle.putString(PARAM_GENDER, gender);
     }
-    
+
     /**
      * set gazeLR value to bundle.
      * @param bundle bundle
@@ -850,7 +640,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamGazeLR(final Bundle bundle, final double gazeLR) {
         bundle.putDouble(PARAM_GAZE_LR, gazeLR);
     }
-    
+
     /**
      * set gazeUD value to bundle.
      * @param bundle bundle
@@ -859,7 +649,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamGazeUD(final Bundle bundle, final double gazeUD) {
         bundle.putDouble(PARAM_GAZE_UD, gazeUD);
     }
-    
+
     /**
      * set left eye value to bundle.
      * @param bundle bundle
@@ -868,7 +658,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamLeftEye(final Bundle bundle, final double leftEye) {
         bundle.putDouble(PARAM_LEFTEYE, leftEye);
     }
-    
+
     /**
      * set right eye value to bundle.
      * @param bundle bundle
@@ -877,7 +667,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamRightEye(final Bundle bundle, final double rightEye) {
         bundle.putDouble(PARAM_RIGHTEYE, rightEye);
     }
-    
+
     /**
      * set expression value to bundle.
      * @param bundle bundle
@@ -886,11 +676,34 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamExpression(final Bundle bundle, final String expression) {
         bundle.putString(PARAM_EXPRESSION, expression);
     }
-    
-    
-    
-    
-    
+
+
+    /**
+     * set names value to bundle.
+     * @param response bundle
+     * @param names names value.
+     */
+    public static void setParamNames(final Intent response, final String[] names) {
+        response.putExtra(PARAM_NAMES, names);
+    }
+
+    /**
+     * set name value to bundle.
+     * @param response bundle
+     * @param name name value.
+     */
+    public static void setParamName(final Bundle response, final String name) {
+        response.putString(PARAM_NAMES, name);
+    }
+
+    /**
+     * set Face Recognition result to bundle.
+     * @param bundle bundle
+     * @param faceRecognitionResults face recognition results.
+     */
+    public static void setParamFaceRecognitionResults(final Bundle bundle, final Bundle faceRecognitionResults) {
+        bundle.putParcelable(PARAM_FACEDIRECTIONRESULTS, faceRecognitionResults);
+    }
     /**
      * set face direction result to bundle.
      * @param bundle bundle
@@ -899,7 +712,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamFaceDirectionResults(final Bundle bundle, final Bundle faceDirectionResults) {
         bundle.putParcelable(PARAM_FACEDIRECTIONRESULTS, faceDirectionResults);
     }
-    
+
     /**
      * set age value to bundle.
      * @param bundle bundle
@@ -908,7 +721,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamAgeResults(final Bundle bundle, final Bundle ageResults) {
         bundle.putParcelable(PARAM_AGERESULTS, ageResults);
     }
-    
+
     /**
      * set gender value to bundle.
      * @param bundle bundle
@@ -917,7 +730,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamGenderResults(final Bundle bundle, final Bundle genderResults) {
         bundle.putParcelable(PARAM_GENDERRESULTS, genderResults);
     }
-    
+
     /**
      * set gaze value to bundle.
      * @param bundle bundle
@@ -926,7 +739,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamGazeResults(final Bundle bundle, final Bundle gazeResults) {
         bundle.putParcelable(PARAM_GAZERESULTS, gazeResults);
     }
-    
+
     /**
      * set blink value to bundle.
      * @param bundle bundle
@@ -935,7 +748,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamBlinkResults(final Bundle bundle, final Bundle blinkResults) {
         bundle.putParcelable(PARAM_BLINKRESULTS, blinkResults);
     }
-    
+
     /**
      * set expression value to bundle.
      * @param bundle bundle
@@ -944,9 +757,9 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     public static void setParamExpressionResults(final Bundle bundle, final Bundle expressionResults) {
         bundle.putParcelable(PARAM_EXPRESSIONRESULTS, expressionResults);
     }
-    
+
     /**
-     * check exist request data. 
+     * check exist request data.
      * @param request request
      * @param param param
      * @return true: exist / false: not exist
@@ -955,4 +768,5 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
         Bundle b = request.getExtras();
         return b != null && b.get(param) != null;
     }
+
 }

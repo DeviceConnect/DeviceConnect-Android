@@ -13,6 +13,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
+import android.util.Log;
 
 import com.serenegiant.usb.UVCCamera;
 
@@ -61,12 +62,17 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                 if (context.mWidth == null && context.mHeight == null) {
                     media = frame;
                 } else {
+                    long start = 0;
+                    long end = 0;
+
                     Bitmap bitmap;
                     switch (frameFormat) {
                         case UVCCamera.FRAME_FORMAT_MJPEG:
                             bitmap = BitmapFactory.decodeByteArray(frame, 0, frame.length);
                             break;
                         case UVCCamera.FRAME_FORMAT_YUYV: {
+                            start = System.currentTimeMillis();
+
                             YuvImage yuv = new YuvImage(frame, ImageFormat.YUY2, width, height, null);
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
                             boolean isSuccess = yuv.compressToJpeg(new Rect(0, 0, width, height), 100, baos);
@@ -76,6 +82,11 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                             }
                             byte[] jpeg = baos.toByteArray();
                             bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
+                            Log.i("AAA", "***** Bitmap size: " + bitmap.getByteCount());
+
+                            end = System.currentTimeMillis();
+                            Log.d("AAA", "***** Convert YUYV to Bitmap: " + (end - start) + " msec.");
+
                         }   break;
                         default:
                             // Nothing to do.
@@ -89,11 +100,15 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     }
                     int w = context.mWidth != null ? context.mWidth : bitmap.getWidth();
                     int h = context.mHeight != null ? context.mHeight : bitmap.getHeight();
+                    start = System.currentTimeMillis();
                     Bitmap resizedBitmap = BitmapUtils.resize(bitmap, w, h);
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                     media = baos.toByteArray();
                     resizedBitmap.recycle();
+                    end = System.currentTimeMillis();
+                    Log.d("AAA", "***** Resize Bitmap: " + (end - start) + " msec.");
+
                 }
                 context.mServer.offerMedia(media);
             }

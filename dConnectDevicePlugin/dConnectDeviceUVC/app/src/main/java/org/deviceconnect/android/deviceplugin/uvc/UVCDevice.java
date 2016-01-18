@@ -87,10 +87,6 @@ public class UVCDevice {
             mLogger.warning("Preview size fof supported format (MJPEG or YUY2) is not found.");
             return false;
         } else {
-            //mLogger.info("Selected Preview size: type = " + size.type +  ", width = " + size.width + ", height = " + size.height);
-//            width = 1280; //size.width;
-//            height = 720; //size.height;
-
             mLogger.info("Selected Preview size: type = " + size.type +  ", width = " + size.width + ", height = " + size.height);
             width = size.width;
             height = size.height;
@@ -100,7 +96,7 @@ public class UVCDevice {
                 UVCCamera.PIXEL_FORMAT_RAW : UVCCamera.PIXEL_FORMAT_RGB565;
         }
 
-        mCamera.setPreviewSize(width, 720, frameFormat);
+        mCamera.setPreviewSize(width, height, frameFormat);
         mCamera.setPreviewFrameCallback(new IPreviewFrameCallback() {
             @Override
             public void onFrame(final byte[] frame) {

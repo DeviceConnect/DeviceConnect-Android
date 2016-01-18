@@ -111,7 +111,7 @@ private:
 
 	// MODIFIED
 	void do_preview_pass_through(JNIEnv *env, uvc_frame_t *frame);
-	void resize_frame(uvc_frame_t *frame, size_t width, size_t height);
+	void rewrite_jpeg_metadata(uvc_frame_t *frame, size_t width, size_t height);
 
 	//
 	void addCaptureFrame(uvc_frame_t *frame);

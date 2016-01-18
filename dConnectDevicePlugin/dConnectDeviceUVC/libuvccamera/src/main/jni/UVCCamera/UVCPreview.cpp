@@ -936,7 +936,11 @@ void UVCPreview::do_preview_pass_through(JNIEnv *env, uvc_frame_t *frame) {
 	ENTER();
 	if (LIKELY(frame)) {
 		if (mPreviewFrameCallbackObj) {
-			resize_frame(frame, 320, 240);
+			// Insert omitted meta data to JPEG frames from some web-cameras
+			// which output Motion-JPEG movie encoded with AVI format,
+			// so that BitmapFactory class of Android API decodes and re-sizes JPEG frames.
+			// (Motion-JPEG as AVI movie is often omitted huffman tables.)
+			rewrite_jpeg_metadata(frame, frame->width, frame->height);
 
 			int len = frame->data_bytes;
 			jbyteArray array = env->NewByteArray(len);
@@ -953,7 +957,7 @@ void UVCPreview::do_preview_pass_through(JNIEnv *env, uvc_frame_t *frame) {
 }
 
 // MODIFIED
-void UVCPreview::resize_frame(uvc_frame_t * frame, size_t width, size_t height) {
+void UVCPreview::rewrite_jpeg_metadata(uvc_frame_t * frame, size_t width, size_t height) {
 	ENTER();
 	unsigned char *result_data = NULL;
 	unsigned long result_size = 0;
@@ -971,7 +975,6 @@ void UVCPreview::resize_frame(uvc_frame_t * frame, size_t width, size_t height) 
 	jpeg_read_header(&in_info, true);
 
 	jpeg_start_decompress(&in_info);
-	LOGI("***** resize_frame: width = %d, height = %d", in_info.output_width, in_info.output_height);
 	JSAMPARRAY buffer = (JSAMPARRAY) malloc(sizeof(JSAMPROW) * in_info.output_height);
 	for(int i = 0; i < in_info.output_height; ++i){
 		buffer[i] = (JSAMPROW) calloc(sizeof(JSAMPLE), in_info.output_width * in_info.output_components);

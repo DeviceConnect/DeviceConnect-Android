@@ -7,18 +7,12 @@
 package org.deviceconnect.android.deviceplugin.uvc.profile;
 
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
-import android.net.Uri;
-import android.os.Environment;
-import android.provider.MediaStore;
 
 import com.serenegiant.usb.UVCCamera;
 
@@ -31,9 +25,6 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -63,19 +54,6 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         public void onFrame(final UVCDevice device, final byte[] frame, final int frameFormat,
                             final int width, final int height) {
             mLogger.info("onFrame: " + frame.length);
-
-//            synchronized (mLockObj) {
-//                try {
-//                    String path = saveFrame(device.getId(), frame);
-//                    if (path != null) {
-//                        mLogger.info("Saved frame: " + path);
-//                    } else {
-//                        mLogger.info("Saved frame already.");
-//                    }
-//                } catch (IOException e) {
-//                    mLogger.info("ERROR: " + e.getMessage());
-//                }
-//            }
 
             PreviewContext context = mContexts.get(device.getId());
             if (context != null) {
@@ -121,58 +99,6 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
             }
         }
     };
-
-    private final Object mLockObj = new Object();
-
-    private boolean isSavedFrame;
-
-    private String saveFrame(final String deviceId, final byte[] frame) throws IOException {
-        if (isSavedFrame) {
-            return null;
-        }
-        Context context = getContext();
-
-        String root = Environment.getExternalStorageDirectory().getPath() + "/DCIM/Camera/";
-        File dir = new File(root);
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
-
-        final String fileName = "uvc." + deviceId + "." + System.currentTimeMillis() + ".jpg";
-        final String filePath = root + fileName;
-
-        saveFile(context, filePath, frame);
-        addToGallery(context, filePath, fileName);
-
-        isSavedFrame = true;
-        return filePath;
-    }
-
-    private static void addToGallery(final Context context, final String filePath, final String fileName) {
-        ContentValues values = new ContentValues();
-        ContentResolver contentResolver = context.getContentResolver();
-        values.put(MediaStore.Images.Media.TITLE, fileName);
-        values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
-        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
-        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-        values.put(MediaStore.Images.Media.DATA, filePath);
-        contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-    }
-
-    private static void saveFile(final Context context, final String filename, final byte[] data) throws IOException {
-        Uri u = Uri.parse("file://" + filename);
-        ContentResolver contentResolver = context.getContentResolver();
-        OutputStream out = null;
-        try {
-            out = contentResolver.openOutputStream(u, "w");
-            out.write(data);
-            out.flush();
-        } finally {
-            if (out != null) {
-                out.close();
-            }
-        }
-    }
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 

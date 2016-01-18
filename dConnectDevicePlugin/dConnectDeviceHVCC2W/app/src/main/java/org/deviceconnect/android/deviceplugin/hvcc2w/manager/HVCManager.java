@@ -422,32 +422,17 @@ public enum HVCManager {
                     OkaoResult result = HVCManager.INSTANCE.execute();
 
                     if (camera.getBodyEvent() != null) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d("ABC", "bodydetect");
-                        }
                         camera.getBodyEvent().onNotifyForBodyDetectResult(key, result);
                     }
 
                     if (camera.getHandEvent() != null) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d("ABC", "handdetect");
-                        }
                         camera.getHandEvent().onNotifyForHandDetectResult(key, result);
                     }
 
                     if (camera.getFaceEvent() != null) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d("ABC", "facedetect");
-                        }
                         camera.getFaceEvent().onNotifyForFaceDetectResult(key, result);
-                        if (BuildConfig.DEBUG) {
-                            Log.d("ABC", "facedetect");
-                        }
                     }
                     if (camera.getFaceRecognizeEvent() != null) {
-                        if (BuildConfig.DEBUG) {
-                            Log.d("ABC", "faceRecog");
-                        }
                         camera.getFaceRecognizeEvent().onNotifyForFaceRecognizeResult(key, result);
                     }
                 }
@@ -576,13 +561,15 @@ public enum HVCManager {
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "json:" + json);
                 }
+                if (json != null) {
+                    HVCStorage.INSTANCE.removeUserData(lists.get(0).getEmail());
+                    mServices.clear();
+                    mEventList.clear();
+                }
                 if (l != null ){
                     l.onReceived(json);
                 }
 
-                if (json != null) {
-                    HVCStorage.INSTANCE.removeUserData(lists.get(0).getEmail());
-                }
             }
         });
 
@@ -854,29 +841,24 @@ public enum HVCManager {
             sb.append(String.format("faceCount=%d", count));
             for (int i = 0; i < count; ++i) {
 
-                // 顔検出結果
                 sb.append(String.format("\nface[%d] x=%d,y=%d,size=%d,confidence=%d", i,
                         rf[i].getCenter().getX(),
                         rf[i].getCenter().getY(),
                         rf[i].getSize(),
                         rf[i].getConfidence()));
-                // 顔向き推定結果
                 ResultDirection rd = rf[i].getDirection();
                 sb.append(String.format("\nface[%d] leftRight=%d,upDown=%d,roll=%d", i,
                         rd.getLR(),
                         rd.getUD(),
                         rd.getRoll()));
-                // 年齢推定結果
                 ResultAeg ra = rf[i].getAge();
                 sb.append(String.format("\nface[%d] age=%d,confidence=%d", i,
                         ra.getAge(),
                         ra.getConfidence()));
-                // 性別推定結果
                 ResultGender rg = rf[i].getGender();
                 sb.append(String.format("\nface[%d] gender=%d,confidence=%d", i,
                         rg.getGender(),
                         rg.getConfidence()));
-                // 顔認証
                 ResultRecognition rr = rf[i].getRecognition();
 
                 String recg;

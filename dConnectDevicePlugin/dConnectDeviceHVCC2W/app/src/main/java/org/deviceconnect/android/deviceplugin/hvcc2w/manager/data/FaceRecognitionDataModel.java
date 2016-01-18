@@ -17,17 +17,29 @@ public class FaceRecognitionDataModel implements FaceRecognitionObject {
     private int mUserId;
     /** Data ID. */
     private int mDataId;
-
+    /** Device ID. */
+    private String mDeviceId;
     /**
      * Constructor.
      * @param name Name
+     * @param deviceId Device ID
      * @param userId User ID
      * @param dataId Data ID
      */
-    public FaceRecognitionDataModel(final String name, final int userId, final int dataId) {
+    public FaceRecognitionDataModel(final String name, final String deviceId, final int userId, final int dataId) {
         mName = name;
+        mDeviceId = deviceId;
         mUserId = userId;
         mDataId = dataId;
+    }
+    @Override
+    public String getDeviceId() {
+        return mDeviceId;
+    }
+
+    @Override
+    public void setDeviceId(final String deviceId) {
+        mDeviceId = deviceId;
     }
 
 

@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.deviceplugin.hvcc2w.manager.data;
 
+import java.util.List;
+
 import jp.co.omron.hvcw.OkaoResult;
 
 /**
@@ -35,7 +37,8 @@ public final class HVCCameraInfo {
     private OnFaceEventListener mFaceEvent;
     /** Face Recognize Event Listener. */
     private OnFaceRecognizeEventListener mFaceRecogEvent;
-
+    /** Human detect Profile's Options. */
+    private List<String> mOptions;
 
 
     /**
@@ -283,6 +286,22 @@ public final class HVCCameraInfo {
      */
     public void setFaceRecognizeEvent(final OnFaceRecognizeEventListener faceRecogEvent) {
         mFaceRecogEvent = faceRecogEvent;
+    }
+
+    /**
+     * Get Human Detect Profile's options.
+     * @return options
+     */
+    public List<String> getOptions() {
+        return mOptions;
+    }
+
+    /**
+     * Set Human Detect Profile's options.
+     * @param options options
+     */
+    public void setOptions(final List<String> options) {
+        mOptions = options;
     }
 
 }

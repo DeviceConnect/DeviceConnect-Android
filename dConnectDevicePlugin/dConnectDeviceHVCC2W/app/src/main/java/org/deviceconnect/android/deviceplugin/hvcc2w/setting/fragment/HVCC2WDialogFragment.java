@@ -112,12 +112,12 @@ public class HVCC2WDialogFragment extends DialogFragment {
     }
 
 
-    public static void showSelectWifiDialog(final Activity activity,
-                                            final String title,
-                                            final String[] list,
-                                            final DialogInterface.OnClickListener singleChoiceListner,
-                                            final DialogInterface.OnClickListener positiveListener,
-                                            final DialogInterface.OnClickListener negativeListener) {
+    public static void showSelectDialog(final Activity activity,
+                                        final String title,
+                                        final String[] list,
+                                        final DialogInterface.OnClickListener singleChoiceListner,
+                                        final DialogInterface.OnClickListener positiveListener,
+                                        final DialogInterface.OnClickListener negativeListener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setIcon(android.R.drawable.ic_dialog_alert);
         builder.setTitle(title);

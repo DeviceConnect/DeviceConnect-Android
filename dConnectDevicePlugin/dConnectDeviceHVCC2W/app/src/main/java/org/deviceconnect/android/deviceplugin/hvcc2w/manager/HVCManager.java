@@ -80,6 +80,26 @@ public enum HVCManager {
     /** Network Setting file name. */
     private static final String HVC_NETWORK_SETTING = "/network_setting.pcm";
 
+    /** Option parameter:{@value}. */
+    public static final String PARAM_OPTIONS_EYE = "eye";
+    /** Option parameter:{@value}. */
+    public static final String PARAM_OPTIONS_NOSE = "nose";
+    /** Option parameter:{@value}. */
+    public static final String PARAM_OPTIONS_MOUTH = "mouth";
+    /** Option parameter:{@value}. */
+    public static final String PARAM_OPTIONS_BLINK = "blink";
+    /** Option parameter:{@value}. */
+    public static final String PARAM_OPTIONS_AGE = "age";
+    /** Option parameter:{@value}. */
+    public static final String PARAM_OPTIONS_GENDER = "gender";
+    /** Option parameter:{@value}. */
+    public static final String PARAM_OPTIONS_FACE_DIRECTION = "faceDirection";
+    /** Option parameter:{@value}. */
+    public static final String PARAM_OPTIONS_GAZE = "gaze";
+    /** Option parameter:{@value}. */
+    public static final String PARAM_OPTIONS_EXPRESSION = "expression";
+
+
 
     /** HVC-C2W body detect threshold initial value. */
     private static final int HVC_C2W_BODY_DETECT_THRESHOLD = 500; //1〜1000
@@ -304,13 +324,17 @@ public enum HVCManager {
      * Add Face Detect Event Listener.
      * @param serviceId ServiceID
      * @param l Listener
+     * @param options Options
      */
     public void addFaceDetectEventListener(final String serviceId,
-                                           final HVCCameraInfo.OnFaceEventListener l) {
+                                           final HVCCameraInfo.OnFaceEventListener l,
+                                           final List<String> options) {
         if (!mEventList.contains(serviceId)) {
             mEventList.add(serviceId);
         }
+
         HVCCameraInfo camera = mServices.get(serviceId);
+        camera.setOptions(options);
         camera.setFaceEvent(l);
     }
 
@@ -318,13 +342,16 @@ public enum HVCManager {
      * Add Face Recognize Event Listener.
      * @param serviceId ServiceID
      * @param l Listener
+     * @param options Options
      */
     public void addFaceRecognizeEventListener(final String serviceId,
-                                              final HVCCameraInfo.OnFaceRecognizeEventListener l) {
+                                              final HVCCameraInfo.OnFaceRecognizeEventListener l,
+                                              final List<String> options) {
         if (!mEventList.contains(serviceId)) {
             mEventList.add(serviceId);
         }
         HVCCameraInfo camera = mServices.get(serviceId);
+        camera.setOptions(options);
         camera.setFaceRecognizeEvent(l);
     }
 
@@ -332,6 +359,7 @@ public enum HVCManager {
      * Check Remove Event list.
      * @param serviceId ServiceID
      * @param camera Camera Info
+     *
      */
     private void removeEventList(final String serviceId, final HVCCameraInfo camera) {
         if (mEventList.contains(serviceId) && camera.getBodyEvent() == null
@@ -392,18 +420,34 @@ public enum HVCManager {
                 for (String key : mServices.keySet()) {
                     HVCCameraInfo camera = mServices.get(key);
                     OkaoResult result = HVCManager.INSTANCE.execute();
+
                     if (camera.getBodyEvent() != null) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d("ABC", "bodydetect");
+                        }
                         camera.getBodyEvent().onNotifyForBodyDetectResult(key, result);
                     }
 
                     if (camera.getHandEvent() != null) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d("ABC", "handdetect");
+                        }
                         camera.getHandEvent().onNotifyForHandDetectResult(key, result);
                     }
 
                     if (camera.getFaceEvent() != null) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d("ABC", "facedetect");
+                        }
                         camera.getFaceEvent().onNotifyForFaceDetectResult(key, result);
+                        if (BuildConfig.DEBUG) {
+                            Log.d("ABC", "facedetect");
+                        }
                     }
                     if (camera.getFaceRecognizeEvent() != null) {
+                        if (BuildConfig.DEBUG) {
+                            Log.d("ABC", "faceRecog");
+                        }
                         camera.getFaceRecognizeEvent().onNotifyForFaceRecognizeResult(key, result);
                     }
                 }
@@ -719,7 +763,7 @@ public enum HVCManager {
      * @param dataId Face Recognition DataId
      * @param l Manager's Response Listener
      */
-    public void registerAlbum(final String name, final int userId, final int dataId, final ResponseListener l) {
+    public void registerAlbum(final String name, final String serviceId, final int userId, final int dataId, final ResponseListener l) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -739,7 +783,7 @@ public enum HVCManager {
                             rd.getCenter().getY(),
                             rd.getSize(),
                             rd.getConfidence()));
-                    FaceRecognitionObject faceRecognition = new FaceRecognitionDataModel(name, userId, dataId);
+                    FaceRecognitionObject faceRecognition = new FaceRecognitionDataModel(name, serviceId, userId, dataId);
                     HVCStorage.INSTANCE.registerFaceRecognitionData(faceRecognition);
                 } else {
                     sb.append(String.format("errorCode=%d,returnStatus=%#x", ret, returnStatus.getIntValue()));
@@ -795,7 +839,7 @@ public enum HVCManager {
      * @return Okao Result
      */
     public OkaoResult execute() {
-        int useFunction[] = {1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1};
+        int useFunction[] = {1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1};
         OkaoResult result = new OkaoResult();
         Int returnStatus = new Int();
         // 実行

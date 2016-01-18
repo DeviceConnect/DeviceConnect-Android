@@ -149,7 +149,7 @@ public class HVCC2WAccountRegisterFragment extends Fragment {
                         if (msg.equals("success")) {
                             HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name),
                                     getString(R.string.c2w_setting_message_2_3), null);
-                            enableButtons();
+                            mLogout.setVisibility(View.VISIBLE);
                         } else {
                             HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name),
                                     getString(R.string.c2w_setting_error_2), null);
@@ -184,8 +184,11 @@ public class HVCC2WAccountRegisterFragment extends Fragment {
                         Log.d("ABC", String.format("response=%s(%s)", code, msg));
                     }
                     if (msg.equals("success")) {
+                        mAddress.setText("");
+                        mPassword.setText("");
                         HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name),
                                 getString(R.string.c2w_setting_message_2_4), null);
+                        mLogout.setVisibility(View.GONE);
                     } else {
                         HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name),
                                 getString(R.string.c2w_setting_error_3), null);

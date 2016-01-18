@@ -74,6 +74,10 @@ public enum HVCStorage {
     /**
      * Face Recognition Param: {@value}.
      */
+    private static final String FACE_RECOGNITION_SERVICE_ID = "service_id";
+    /**
+     * Face Recognition Param: {@value}.
+     */
     private static final String FACE_RECOGNITION_USER_ID = "user_id";
     /**
      * Face Recognition Param: {@value}.
@@ -229,9 +233,10 @@ public enum HVCStorage {
             boolean next = cursor.moveToFirst();
             while (next) {
                 String n = cursor.getString(cursor.getColumnIndex(FACE_RECOGNITION_NAME));
+                String deviceId = cursor.getString(cursor.getColumnIndex(FACE_RECOGNITION_SERVICE_ID));
                 int userId = cursor.getInt(cursor.getColumnIndex(FACE_RECOGNITION_USER_ID));
                 int dataId = cursor.getInt(cursor.getColumnIndex(FACE_RECOGNITION_DATA_ID));
-                FaceRecognitionObject object = new FaceRecognitionDataModel(n, userId, dataId);
+                FaceRecognitionObject object = new FaceRecognitionDataModel(n, deviceId, userId, dataId);
                 objects.add(object);
                 next = cursor.moveToNext();
             }
@@ -262,9 +267,10 @@ public enum HVCStorage {
             boolean next = cursor.moveToFirst();
             while (next) {
                 String n = cursor.getString(cursor.getColumnIndex(FACE_RECOGNITION_NAME));
+                String deviceId = cursor.getString(cursor.getColumnIndex(FACE_RECOGNITION_SERVICE_ID));
                 int userId = cursor.getInt(cursor.getColumnIndex(FACE_RECOGNITION_USER_ID));
                 int dataId = cursor.getInt(cursor.getColumnIndex(FACE_RECOGNITION_DATA_ID));
-                FaceRecognitionObject object = new FaceRecognitionDataModel(n, userId, dataId);
+                FaceRecognitionObject object = new FaceRecognitionDataModel(n, deviceId, userId, dataId);
                 objects.add(object);
                 next = cursor.moveToNext();
             }
@@ -273,7 +279,40 @@ public enum HVCStorage {
         }
         return objects;
     }
+    /**
+     * Get Face Recognition Data List For UserId.
+     * @param id UserId
+     * @return Face Recognition Data List
+     */
+    public synchronized List<FaceRecognitionObject> getFaceRecognitionDatasForDeviceId(final String id) {
+        String sql = "SELECT * FROM " + FACE_RECOGNITION_TBL_NAME;
+        if (id != null) {
+            sql += " WHERE " + FACE_RECOGNITION_SERVICE_ID + "='" + id + "'";
+        }
+        sql += " ORDER BY " + FACE_RECOGNITION_USER_ID + " ASC;";
 
+        String[] selectionArgs = {};
+        SQLiteDatabase db = null;
+        List<FaceRecognitionObject> objects = new ArrayList<FaceRecognitionObject>();
+        try {
+            db = mHVCDBHelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery(sql, selectionArgs);
+
+            boolean next = cursor.moveToFirst();
+            while (next) {
+                String n = cursor.getString(cursor.getColumnIndex(FACE_RECOGNITION_NAME));
+                String deviceId = cursor.getString(cursor.getColumnIndex(FACE_RECOGNITION_SERVICE_ID));
+                int userId = cursor.getInt(cursor.getColumnIndex(FACE_RECOGNITION_USER_ID));
+                int dataId = cursor.getInt(cursor.getColumnIndex(FACE_RECOGNITION_DATA_ID));
+                FaceRecognitionObject object = new FaceRecognitionDataModel(n, deviceId, userId, dataId);
+                objects.add(object);
+                next = cursor.moveToNext();
+            }
+        } finally {
+            db.close();
+        }
+        return objects;
+    }
     /** Make User Data Content Value. */
     private ContentValues makeUserDataContentValue(final UserDataObject object) {
         ContentValues values = new ContentValues();
@@ -287,6 +326,7 @@ public enum HVCStorage {
     private ContentValues makeFaceRecognitionDataContentValue(final FaceRecognitionObject object) {
         ContentValues values = new ContentValues();
         values.put(FACE_RECOGNITION_NAME, object.getName());
+        values.put(FACE_RECOGNITION_SERVICE_ID, object.getDeviceId());
         values.put(FACE_RECOGNITION_USER_ID, object.getUserId());
         values.put(FACE_RECOGNITION_DATA_ID, object.getDataId());
         return values;
@@ -332,6 +372,7 @@ public enum HVCStorage {
             db.execSQL(userdataSQL);
             String faceRecognitionSQL = "CREATE TABLE " + FACE_RECOGNITION_TBL_NAME + " ("
                     + FACE_RECOGNITION_NAME + " TEXT NOT NULL PRIMARY KEY,"
+                    + FACE_RECOGNITION_SERVICE_ID + " TEXT,"
                     + FACE_RECOGNITION_USER_ID + " INTEGER,"
                     + FACE_RECOGNITION_DATA_ID + " INTEGER"
                     + ");";

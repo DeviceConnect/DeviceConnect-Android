@@ -73,7 +73,7 @@ public class HVCC2WHumanDetectProfile extends HumanDetectProfile {
     protected boolean onGetBodyDetection(final Intent request, final Intent response,
                                          final String serviceId, final List<String> options) {
 
-        ((HVCC2WDeviceService) getContext()).doGetHumanDetectProfile(request, response, serviceId, HumanDetectKind.BODY);
+        ((HVCC2WDeviceService) getContext()).doGetHumanDetectProfile(request, response, serviceId, HumanDetectKind.BODY, options);
         return false;
     }
 
@@ -83,7 +83,7 @@ public class HVCC2WHumanDetectProfile extends HumanDetectProfile {
     protected boolean onGetHandDetection(final Intent request, final Intent response,
                                          final String serviceId, final List<String> options) {
 
-        ((HVCC2WDeviceService) getContext()).doGetHumanDetectProfile(request, response, serviceId, HumanDetectKind.HAND);
+        ((HVCC2WDeviceService) getContext()).doGetHumanDetectProfile(request, response, serviceId, HumanDetectKind.HAND, options);
         return false;
     }
 
@@ -91,7 +91,7 @@ public class HVCC2WHumanDetectProfile extends HumanDetectProfile {
     protected boolean onGetFaceDetection(final Intent request, final Intent response,
                                          final String serviceId, final List<String> options) {
 
-        ((HVCC2WDeviceService) getContext()).doGetHumanDetectProfile(request, response, serviceId, HumanDetectKind.FACE);
+        ((HVCC2WDeviceService) getContext()).doGetHumanDetectProfile(request, response, serviceId, HumanDetectKind.FACE, options);
         return false;
     }
 

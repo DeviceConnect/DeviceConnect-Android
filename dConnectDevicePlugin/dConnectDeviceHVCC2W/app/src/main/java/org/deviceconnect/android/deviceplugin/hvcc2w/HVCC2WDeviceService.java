@@ -26,11 +26,13 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.FaceRecognizeProfile;
 import org.deviceconnect.android.profile.HumanDetectProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.message.DConnectMessage;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -118,6 +120,10 @@ public class HVCC2WDeviceService extends DConnectMessageService
                             : HumanDetectProfile.getMaxHeight(request);
                     Long interval = HumanDetectProfile.getInterval(request, HVCManager.PARAM_INTERVAL_MIN,
                             HVCManager.PARAM_INTERVAL_MAX);
+                    if (interval == null) {
+                        interval = new Long(HVCManager.PARAM_INTERVAL_MIN);
+                    }
+                    List<String> options = HumanDetectProfile.getOptions(request);
                     HVCManager.INSTANCE.setThreshold(bodyThreshold, null, null, null, null);
                     HVCManager.INSTANCE.setMinMaxSize(bodyMin, bodyMax, null, null, null, null, null, null);
                     EventError error = EventManager.INSTANCE.addEvent(request);
@@ -131,14 +137,16 @@ public class HVCC2WDeviceService extends DConnectMessageService
                                 HVCManager.INSTANCE.addHandDetectEventListener(serviceId, HVCC2WDeviceService.this);
                                 break;
                             case FACE:
-                                HVCManager.INSTANCE.addFaceDetectEventListener(serviceId, HVCC2WDeviceService.this);
+                                HVCManager.INSTANCE.addFaceDetectEventListener(serviceId, HVCC2WDeviceService.this, options);
                                 break;
                             case RECOGNIZE:
-                                HVCManager.INSTANCE.addFaceRecognizeEventListener(serviceId, HVCC2WDeviceService.this);
+                                HVCManager.INSTANCE.addFaceRecognizeEventListener(serviceId, HVCC2WDeviceService.this, options);
                                 break;
                             default:
                         }
                         HVCManager.INSTANCE.startEventTimer(interval);
+                        DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response, "Can not register event.");
                     }
@@ -186,6 +194,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                             break;
                         default:
                     }
+                    DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
                 } else {
                     MessageUtils.setIllegalDeviceStateError(response, "Can not unregister event.");
                 }
@@ -200,9 +209,10 @@ public class HVCC2WDeviceService extends DConnectMessageService
      * @param response Response
      * @param serviceId Service ID
      * @param kind Detect type
+     * @param options FaceDetectOptions
      */
     public void doGetHumanDetectProfile(final Intent request, final Intent response, String serviceId,
-                                        final HumanDetectKind kind) {
+                                        final HumanDetectKind kind, final List<String> options) {
         HVCManager.INSTANCE.setCamera(serviceId, new HVCManager.ResponseListener() {
             @Override
             public void onReceived(String json) {
@@ -225,13 +235,15 @@ public class HVCC2WDeviceService extends DConnectMessageService
                             makeHandDetectResultResponse(response, result);
                             break;
                         case FACE:
-                            makeFaceDetectResultResponse(response, result);
+                            makeFaceDetectResultResponse(response, result, options);
                             break;
                         case RECOGNIZE:
-                            makeFaceRecognitionResultResponse(response, result);
+                            makeFaceRecognitionResultResponse(response, result, options);
                             break;
                         default:
                     }
+                    DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
+
                 } catch (IllegalStateException e) {
                     // BUG: detectKind unknown value.
                     MessageUtils.setUnknownError(response, e.getMessage());
@@ -264,24 +276,12 @@ public class HVCC2WDeviceService extends DConnectMessageService
     @Override
     public void onNotifyForFaceDetectResult(String serviceId, OkaoResult result) {
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
-                HumanDetectProfile.PROFILE_NAME, null, HumanDetectProfile.ATTRIBUTE_ON_HAND_DETECTION);
-        for (Event event : events) {
-            Intent intent = EventManager.createEventMessage(event);
-            makeHandDetectResultResponse(intent, result);
-            sendEvent(intent, event.getAccessToken());
-            if (BuildConfig.DEBUG) {
-                Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectProfile.ATTRIBUTE_ON_HAND_DETECTION);
-            }
-        }
-    }
-
-    @Override
-    public void onNotifyForFaceRecognizeResult(String serviceId, OkaoResult result) {
-        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 HumanDetectProfile.PROFILE_NAME, null, HumanDetectProfile.ATTRIBUTE_ON_FACE_DETECTION);
+        HVCCameraInfo camera = HVCManager.INSTANCE.getHVCDevices().get(serviceId);
+
         for (Event event : events) {
             Intent intent = EventManager.createEventMessage(event);
-            makeFaceDetectResultResponse(intent, result);
+            makeFaceDetectResultResponse(intent, result, camera.getOptions());
             sendEvent(intent, event.getAccessToken());
             if (BuildConfig.DEBUG) {
                 Log.d("ABC", "<EVENT> send event. attribute:" + HumanDetectProfile.ATTRIBUTE_ON_FACE_DETECTION);
@@ -290,15 +290,29 @@ public class HVCC2WDeviceService extends DConnectMessageService
     }
 
     @Override
-    public void onNotifyForHandDetectResult(String serviceId, OkaoResult result) {
+    public void onNotifyForFaceRecognizeResult(String serviceId, OkaoResult result) {
+
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 FaceRecognizeProfile.PROFILE_NAME, null, FaceRecognizeProfile.ATTRIBUTE_ON_FACE_RECOGNIZE);
+        HVCCameraInfo camera = HVCManager.INSTANCE.getHVCDevices().get(serviceId);
         for (Event event : events) {
             Intent intent = EventManager.createEventMessage(event);
-            makeFaceRecognitionResultResponse(intent, result);
+            makeFaceRecognitionResultResponse(intent, result, camera.getOptions());
+            sendEvent(intent, event.getAccessToken());
+        }
+    }
+
+    @Override
+    public void onNotifyForHandDetectResult(String serviceId, OkaoResult result) {
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                HumanDetectProfile.PROFILE_NAME, null, FaceRecognizeProfile.ATTRIBUTE_ON_HAND_DETECTION);
+
+        for (Event event : events) {
+            Intent intent = EventManager.createEventMessage(event);
+            makeHandDetectResultResponse(intent, result);
             sendEvent(intent, event.getAccessToken());
             if (BuildConfig.DEBUG) {
-                Log.d("ABC", "<EVENT> send event. attribute:" + FaceRecognizeProfile.ATTRIBUTE_ON_FACE_RECOGNIZE);
+                Log.d("ABC", "<EVENT> send event. attribute:" + FaceRecognizeProfile.ATTRIBUTE_ON_HAND_DETECTION);
             }
         }
     }
@@ -314,7 +328,8 @@ public class HVCC2WDeviceService extends DConnectMessageService
         List<Bundle> bodyDetects = new LinkedList<Bundle>();
         ResultBodys r = result.getResultBodys();
         ResultDetection[] bodies = r.getResultDetection();
-        for (int i = 0; i < bodies.length; i++) {
+        int count = result.getResultBodys().getCount();
+        for (int i = 0; i < count; i++) {
             ResultDetection detection = bodies[i];
             Bundle bodyDetect = new Bundle();
             HumanDetectProfile.setParamX(bodyDetect,
@@ -345,7 +360,9 @@ public class HVCC2WDeviceService extends DConnectMessageService
         List<Bundle> handDetects = new LinkedList<Bundle>();
         ResultHands hands = result.getResultHands();
         ResultDetection[] h = hands.getResultDetection();
-        for (int i = 0; i < h.length; i++) {
+        int count = result.getResultHands().getCount();
+
+        for (int i = 0; i < count; i++) {
             Bundle handDetect = new Bundle();
             HumanDetectProfile.setParamX(handDetect,
                     (double) h[i].getCenter().getX() / (double) HVCManager.HVC_C2W_MAX_SIZE);
@@ -369,12 +386,15 @@ public class HVCC2WDeviceService extends DConnectMessageService
      * Make Face Detect Result Respnse.
      * @param response response
      * @param result result
+     * @param options Options
      */
-    private void makeFaceDetectResultResponse(final Intent response, final OkaoResult result) {
+    private void makeFaceDetectResultResponse(final Intent response, final OkaoResult result, final List<String> options) {
         ResultFaces results = result.getResultFaces();
         ResultFace[] f = results.getResultFace();
         List<Bundle> faceDetects = new LinkedList<Bundle>();
-        for (int i = 0; i < f.length; i++) {
+        int count = result.getResultFaces().getCount();
+
+        for (int i = 0; i < count; i++) {
             Bundle faceDetect = new Bundle();
             HumanDetectProfile.setParamX(faceDetect,
                     (double) f[i].getCenter().getX() / (double) HVCManager.HVC_C2W_MAX_SIZE);
@@ -387,7 +407,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
             HumanDetectProfile.setParamConfidence(faceDetect,
                     (double) f[i].getConfidence() / (double) HVCManager.HVC_C2W_MAX_CONFIDENCE);
             ResultDirection faceDirection = f[i].getDirection();
-            if (faceDirection != null) {
+            if (faceDirection != null && existOption(HVCManager.PARAM_OPTIONS_FACE_DIRECTION, options)) {
                 // face direction.
                 Bundle faceDirectionResult = new Bundle();
                 HumanDetectProfile.setParamYaw(faceDirectionResult, faceDirection.getLR());
@@ -397,7 +417,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 HumanDetectProfile.setParamFaceDirectionResults(faceDetect, faceDirectionResult);
             }
             ResultAeg age = f[i].getAge();
-            if (age != null) {
+            if (age != null && existOption(HVCManager.PARAM_OPTIONS_AGE, options)) {
                 // age.
                 Bundle ageResult = new Bundle();
                 HumanDetectProfile.setParamAge(ageResult, age.getAge());
@@ -406,7 +426,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 HumanDetectProfile.setParamAgeResults(faceDetect, ageResult);
             }
             ResultGender gender = f[i].getGender();
-            if (gender != null) {
+            if (gender != null && existOption(HVCManager.PARAM_OPTIONS_GENDER, options)) {
                 // gender.
                 Bundle genderResult = new Bundle();
                 HumanDetectProfile.setParamGender(genderResult,
@@ -417,7 +437,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 HumanDetectProfile.setParamGenderResults(faceDetect, genderResult);
             }
             ResultGaze gaze = f[i].getGaze();
-            if (gaze != null) {
+            if (gaze != null && existOption(HVCManager.PARAM_OPTIONS_GAZE, options)) {
                 // gaze.
                 Bundle gazeResult = new Bundle();
                 HumanDetectProfile.setParamGazeLR(gazeResult, gaze.getLR());
@@ -426,7 +446,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 HumanDetectProfile.setParamGazeResults(faceDetect, gazeResult);
             }
             ResultBlink blink = f[i].getBlink();
-            if (blink != null) {
+            if (blink != null && existOption(HVCManager.PARAM_OPTIONS_BLINK, options)) {
                 // blink.
                 Bundle blinkResult = new Bundle();
                 HumanDetectProfile.setParamLeftEye(blinkResult,
@@ -437,15 +457,15 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 HumanDetectProfile.setParamBlinkResults(faceDetect, blinkResult);
             }
             ResultExpression expression = f[i].getExpression();
-            if (expression != null) {
+            if (expression != null && existOption(HVCManager.PARAM_OPTIONS_EXPRESSION, options)) {
                 int score = -1;
                 int index = -1;
                 int[] scores = expression.getScore();
                 for (int j = 0; j < scores.length;j++) {
-                    int s = scores[i];
-                    if (s >= score) {
+                    int s = scores[j];
+                    if (s > score) {
                         score = s;
-                        index = i;
+                        index = j;
                     }
                 }
                 // expression.
@@ -469,12 +489,15 @@ public class HVCC2WDeviceService extends DConnectMessageService
      * Make Face Recognition Result Respnse.
      * @param response response
      * @param result result
+     * @param options Options
      */
-    private void makeFaceRecognitionResultResponse(final Intent response, final OkaoResult result) {
+    private void makeFaceRecognitionResultResponse(final Intent response, final OkaoResult result, final List<String> options) {
         ResultFaces results = result.getResultFaces();
         ResultFace[] f = results.getResultFace();
         List<Bundle> faceDetects = new LinkedList<Bundle>();
-        for (int i = 0; i < f.length; i++) {
+        int count = result.getResultFaces().getCount();
+
+        for (int i = 0; i < count; i++) {
             Bundle faceDetect = new Bundle();
             HumanDetectProfile.setParamX(faceDetect,
                     (double) f[i].getCenter().getX() / (double) HVCManager.HVC_C2W_MAX_SIZE);
@@ -487,7 +510,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
             HumanDetectProfile.setParamConfidence(faceDetect,
                     (double) f[i].getConfidence() / (double) HVCManager.HVC_C2W_MAX_CONFIDENCE);
             ResultDirection faceDirection = f[i].getDirection();
-            if (faceDirection != null) {
+            if (faceDirection != null && existOption(HVCManager.PARAM_OPTIONS_FACE_DIRECTION, options)) {
                 // face direction.
                 Bundle faceDirectionResult = new Bundle();
                 HumanDetectProfile.setParamYaw(faceDirectionResult, faceDirection.getLR());
@@ -497,7 +520,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 HumanDetectProfile.setParamFaceDirectionResults(faceDetect, faceDirectionResult);
             }
             ResultAeg age = f[i].getAge();
-            if (age != null) {
+            if (age != null && existOption(HVCManager.PARAM_OPTIONS_AGE, options)) {
                 // age.
                 Bundle ageResult = new Bundle();
                 HumanDetectProfile.setParamAge(ageResult, age.getAge());
@@ -506,7 +529,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 HumanDetectProfile.setParamAgeResults(faceDetect, ageResult);
             }
             ResultGender gender = f[i].getGender();
-            if (gender != null) {
+            if (gender != null && existOption(HVCManager.PARAM_OPTIONS_GENDER, options)) {
                 // gender.
                 Bundle genderResult = new Bundle();
                 HumanDetectProfile.setParamGender(genderResult,
@@ -517,7 +540,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 HumanDetectProfile.setParamGenderResults(faceDetect, genderResult);
             }
             ResultGaze gaze = f[i].getGaze();
-            if (gaze != null) {
+            if (gaze != null && existOption(HVCManager.PARAM_OPTIONS_GAZE, options)) {
                 // gaze.
                 Bundle gazeResult = new Bundle();
                 HumanDetectProfile.setParamGazeLR(gazeResult, gaze.getLR());
@@ -526,7 +549,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 HumanDetectProfile.setParamGazeResults(faceDetect, gazeResult);
             }
             ResultBlink blink = f[i].getBlink();
-            if (blink != null) {
+            if (blink != null && existOption(HVCManager.PARAM_OPTIONS_BLINK, options)) {
                 // blink.
                 Bundle blinkResult = new Bundle();
                 HumanDetectProfile.setParamLeftEye(blinkResult,
@@ -537,7 +560,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
                 HumanDetectProfile.setParamBlinkResults(faceDetect, blinkResult);
             }
             ResultExpression expression = f[i].getExpression();
-            if (expression != null) {
+            if (expression != null && existOption(HVCManager.PARAM_OPTIONS_EXPRESSION, options)) {
                 int score = -1;
                 int index = -1;
                 int[] scores = expression.getScore();
@@ -579,6 +602,22 @@ public class HVCC2WDeviceService extends DConnectMessageService
             HumanDetectProfile.setFaceDetects(response, faceDetects.toArray(new Bundle[faceDetects.size()]));
         }
     }
-
+    /**
+     * Exist Option.
+     * @param option option
+     * @param options options
+     * @return true:exist, false:no exist
+     */
+    public boolean existOption(final String option, final List<String> options) {
+        if (options == null) {
+            return true;  //options is null if true
+        }
+        for (String o: options) {
+            if (o.equals(option)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }

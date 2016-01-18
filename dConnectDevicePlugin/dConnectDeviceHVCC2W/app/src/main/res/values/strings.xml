@@ -45,6 +45,7 @@
     <string name="c2w_setting_message_6_2">削除する顔認証するデータの名前を登録してください。</string>
 
     <string name="c2w_name">name</string>
+    <string name="search_devices">HVC-C2Wの選択</string>
     <string name="c2w_register_face_recognition">顔登録</string>
     <string name="c2w_unregister_face_recognition">顔削除</string>
     <string name="c2w_progress_register_face_recognition">顔認証データ登録中...</string>
@@ -60,4 +61,6 @@
     <string name="button_ok">OK</string>
 
     <string name="button_gmail">GMailを開く</string>
+
+    <string name="select_dialog_message">顔認証データを登録するデバイスを選択してください。</string>
 </resources>

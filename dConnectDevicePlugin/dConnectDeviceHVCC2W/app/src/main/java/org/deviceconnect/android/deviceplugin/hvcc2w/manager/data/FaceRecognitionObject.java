@@ -23,6 +23,14 @@ public interface FaceRecognitionObject {
      */
     void setName(final String name);
     /**
+     * Set User ID.
+     */
+    void setDeviceId(final String deviceId);
+    /**
+     * Get Device ID.
+     */
+    String getDeviceId();
+    /**
      * Get User ID.
      */
     int getUserId();

@@ -44,7 +44,7 @@ public class HVCC2WFaceRecognizeProfile extends FaceRecognizeProfile {
     @Override
     protected boolean onGetOnFaceRecognize(final Intent request, final Intent response,
                                            final String serviceId, final List<String> options) {
-        ((HVCC2WDeviceService) getContext()).doGetHumanDetectProfile(request, response, serviceId, HumanDetectKind.RECOGNIZE);
+        ((HVCC2WDeviceService) getContext()).doGetHumanDetectProfile(request, response, serviceId, HumanDetectKind.RECOGNIZE, options);
         return false;
 
     }

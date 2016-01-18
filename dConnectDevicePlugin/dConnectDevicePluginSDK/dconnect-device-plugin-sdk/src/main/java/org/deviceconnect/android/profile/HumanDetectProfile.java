@@ -514,7 +514,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
         if (interval == 0 || minInterval <= interval && interval <= maxInterval) {
             return interval;
         } else {
-            String error = String.format(Locale.ENGLISH, 
+            String error = String.format(Locale.ENGLISH,
                     ERROR_INTERVAL_OUT_OF_RANGE, minInterval, maxInterval);
             throw new NumberFormatException(error);
         }

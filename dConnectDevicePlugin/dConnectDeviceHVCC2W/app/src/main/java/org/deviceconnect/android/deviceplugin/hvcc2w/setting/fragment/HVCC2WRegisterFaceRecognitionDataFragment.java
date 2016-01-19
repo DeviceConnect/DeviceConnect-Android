@@ -30,6 +30,8 @@ import org.deviceconnect.android.deviceplugin.hvcc2w.manager.HVCStorage;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.FaceRecognitionDataModel;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.FaceRecognitionObject;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.HVCCameraInfo;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,6 +71,10 @@ public class HVCC2WRegisterFaceRecognitionDataFragment extends Fragment {
      * Service ID.
      */
     private String mServiceId;
+    /**
+     * Progress.
+     */
+    private HVCC2WDialogFragment mProgress;
 
 
     @Override
@@ -108,6 +114,15 @@ public class HVCC2WRegisterFaceRecognitionDataFragment extends Fragment {
         return root;
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mProgress != null) {
+            mProgress.dismiss();
+            mProgress = null;
+        }
+
+    }
 
     /**
      * Initial List View.
@@ -140,6 +155,8 @@ public class HVCC2WRegisterFaceRecognitionDataFragment extends Fragment {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     mServiceId = serviceIds[pos[0]];
+                                    mRegister.setVisibility(View.VISIBLE);
+                                    mUnregister.setVisibility(View.VISIBLE);
 
                                     List<FaceRecognitionObject> objects = HVCStorage.INSTANCE.getFaceRecognitionDatasForDeviceId(mServiceId);
                                     for (FaceRecognitionObject object : objects) {
@@ -148,8 +165,6 @@ public class HVCC2WRegisterFaceRecognitionDataFragment extends Fragment {
                                     mListView.setAdapter(mAdapter);
                                 }
                             }, null);
-                    mRegister.setVisibility(View.VISIBLE);
-                    mUnregister.setVisibility(View.VISIBLE);
                 } else {
                     List<FaceRecognitionObject> objects = HVCStorage.INSTANCE.getFaceRecognitionDatasForDeviceId(mServiceId);
                     for (FaceRecognitionObject object : objects) {
@@ -169,6 +184,10 @@ public class HVCC2WRegisterFaceRecognitionDataFragment extends Fragment {
     private void registerFaceRecognitionData() {
         final String name = mName.getText().toString();
         if (!name.isEmpty()) {
+            mProgress = HVCC2WDialogFragment.newInstance(getString(R.string.hw_name),
+                    getString(R.string.loading_face_recognize_register));
+            mProgress.show(getActivity().getFragmentManager(),
+                    "fragment_dialog");
             registerFaceRecognize(name, mServiceId);
         } else {
             Toast.makeText(getContext(), getString(R.string.c2w_setting_message_6_1), Toast.LENGTH_LONG).show();
@@ -181,6 +200,10 @@ public class HVCC2WRegisterFaceRecognitionDataFragment extends Fragment {
     private void unregisterFaceRecognitionData() {
         String name = mName.getText().toString();
         if (!name.isEmpty()) {
+            mProgress = HVCC2WDialogFragment.newInstance(getString(R.string.hw_name),
+                    getString(R.string.loading_face_recognize_unregister));
+            mProgress.show(getActivity().getFragmentManager(),
+                    "fragment_dialog");
             unregisterFaceRecognize(name, mServiceId);
         } else {
             Toast.makeText(getContext(), getString(R.string.c2w_setting_message_6_2), Toast.LENGTH_LONG).show();
@@ -235,15 +258,37 @@ public class HVCC2WRegisterFaceRecognitionDataFragment extends Fragment {
                     HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_fail_register_over), null);
                     return;
                 }
-                FaceRecognitionObject registerObject = new FaceRecognitionDataModel(name, serviceId, userId, 0);
-                HVCManager.INSTANCE.registerAlbum(name, serviceId, userId, 0, null);
-                long ret = HVCStorage.INSTANCE.registerFaceRecognitionData(registerObject);
-                Log.d("ABC", "ret:" + ret); // TODO Comment out
-                mHandler.post(new Runnable() {
+                final int uId = userId;
+                HVCManager.INSTANCE.registerAlbum(name, serviceId, userId, 0, new HVCManager.ResponseListener() {
                     @Override
-                    public void run() {
-                        HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_success_register), null);
-                        initListView();
+                    public void onReceived(String json) {
+                        final int[] res = new int[1];
+                        res[0] = 0;
+                        try {
+                            JSONObject ret = new JSONObject(json);
+                            res[0] = ret.getInt("result");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (res[0] == 1) {
+                                    FaceRecognitionObject registerObject = new FaceRecognitionDataModel(name, serviceId, uId, 0);
+                                    HVCStorage.INSTANCE.registerFaceRecognitionData(registerObject);
+                                    HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_success_register), null);
+                                } else {
+                                    HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_fail_register), null);
+                                }
+
+                                initListView();
+
+                                if (mProgress != null) {
+                                    mProgress.dismiss();
+                                    mProgress = null;
+                                }
+                            }
+                        });
 
                     }
                 });
@@ -267,15 +312,36 @@ public class HVCC2WRegisterFaceRecognitionDataFragment extends Fragment {
                     HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_fail_unregister_nothing), null);
                     return;
                 }
-                long ret = HVCStorage.INSTANCE.removeFaceRecognitionData(name);
-                HVCManager.INSTANCE.deleteAlbum(name, null);
-                Log.d("ABC", "ret:" + ret); // TODO Comment out
-                mHandler.post(new Runnable() {
+                HVCManager.INSTANCE.deleteAlbum(name, new HVCManager.ResponseListener() {
                     @Override
-                    public void run() {
-                        HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_success_unregister), null);
-                        initListView();
-                        mName.setText("");
+                    public void onReceived(String json) {
+                        final int[] res = new int[1];
+                        res[0] = 0;
+                        try {
+                            JSONObject ret = new JSONObject(json);
+                            res[0] = ret.getInt("result");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (res[0] == 1) {
+                                    HVCStorage.INSTANCE.removeFaceRecognitionData(name);
+                                    HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_success_unregister), null);
+                                } else {
+                                    HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_fail_unregister), null);
+                                }
+                                initListView();
+                                mName.setText("");
+                                if (mProgress != null) {
+                                    mProgress.dismiss();
+                                    mProgress = null;
+                                }
+
+                            }
+                        });
+
                     }
                 });
             }

@@ -146,7 +146,6 @@ public class HVCC2WDeviceService extends DConnectMessageService
                         }
                         HVCManager.INSTANCE.startEventTimer(interval);
                         DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
-
                     } else {
                         MessageUtils.setIllegalDeviceStateError(response, "Can not register event.");
                     }
@@ -583,8 +582,8 @@ public class HVCC2WDeviceService extends DConnectMessageService
 
             ResultRecognition recognition = f[i].getRecognition();
             List<FaceRecognitionObject> objects = HVCStorage.INSTANCE.getFaceRecognitionDatasForUserId(recognition.getUID());
-            if (objects.size() > 0) {
-                // TODO Error Handle
+            if (objects.size() > 0 && (recognition.getUID() != -128 || recognition.getUID() != -127
+                    || recognition.getUID() != -1)) {
                 // Recognition.
                 Bundle recognitionResult = new Bundle();
                 FaceRecognizeProfile.setParamName(recognitionResult, objects.get(0).getName());
@@ -610,7 +609,7 @@ public class HVCC2WDeviceService extends DConnectMessageService
      */
     public boolean existOption(final String option, final List<String> options) {
         if (options == null) {
-            return true;  //options is null if true
+            return false;
         }
         for (String o: options) {
             if (o.equals(option)) {

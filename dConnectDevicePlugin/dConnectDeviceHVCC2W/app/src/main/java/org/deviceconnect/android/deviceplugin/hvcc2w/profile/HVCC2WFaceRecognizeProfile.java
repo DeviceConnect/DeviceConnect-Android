@@ -60,7 +60,7 @@ public class HVCC2WFaceRecognizeProfile extends FaceRecognizeProfile {
         }
         FaceRecognizeProfile.setParamNames(response, recognizes);
         setResult(response, DConnectMessage.RESULT_OK);
-        return false;
+        return true;
 
     }
 }

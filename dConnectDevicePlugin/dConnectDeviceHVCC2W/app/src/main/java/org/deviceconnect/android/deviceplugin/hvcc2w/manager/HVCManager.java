@@ -46,7 +46,6 @@ import jp.co.omron.hvcw.ResultDetection;
 import jp.co.omron.hvcw.ResultDirection;
 import jp.co.omron.hvcw.ResultFace;
 import jp.co.omron.hvcw.ResultGender;
-import jp.co.omron.hvcw.ResultPets;
 import jp.co.omron.hvcw.ResultRecognition;
 
 /**
@@ -822,7 +821,6 @@ public enum HVCManager {
 
     /**
      * Face Detect & Face Recognize Execute.
-     * TODO implement
      * @return Okao Result
      */
     public OkaoResult execute() {
@@ -877,8 +875,6 @@ public enum HVCManager {
                 }
                 sb.append(String.format("\nface[%d] %s", i, recg));
             }
-            ResultPets pets = result.getResultPets();
-            pets.getResultPet()[0].getSize();
         } else {
             sb.append(String.format("errorCode=%d,returnStatus=%#x", ret, returnStatus.getIntValue()));
         }

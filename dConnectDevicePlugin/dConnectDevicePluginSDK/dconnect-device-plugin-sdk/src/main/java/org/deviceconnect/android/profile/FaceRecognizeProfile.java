@@ -39,7 +39,7 @@ public abstract class FaceRecognizeProfile extends DConnectProfile implements Fa
         String profile = getProfile(request);
         String attribute = getAttribute(request);
         boolean result = true;
-        if (PROFILE_NAME.equals(profile)) {
+        if (PROFILE_NAME.equals(profile) && attribute == null) {
             String serviceId = getServiceID(request);
             result = onGetFaceRecognize(request, response, serviceId);
         } else if (PROFILE_NAME.equals(profile) && ATTRIBUTE_ON_FACE_RECOGNIZE.equals(attribute)) {
@@ -693,7 +693,7 @@ public abstract class FaceRecognizeProfile extends DConnectProfile implements Fa
      * @param name name value.
      */
     public static void setParamName(final Bundle response, final String name) {
-        response.putString(PARAM_NAMES, name);
+        response.putString(PARAM_NAME, name);
     }
 
     /**
@@ -702,7 +702,7 @@ public abstract class FaceRecognizeProfile extends DConnectProfile implements Fa
      * @param faceRecognitionResults face recognition results.
      */
     public static void setParamFaceRecognitionResults(final Bundle bundle, final Bundle faceRecognitionResults) {
-        bundle.putParcelable(PARAM_FACEDIRECTIONRESULTS, faceRecognitionResults);
+        bundle.putParcelable(PARAM_RECOGNITION_RESULTS, faceRecognitionResults);
     }
     /**
      * set face direction result to bundle.

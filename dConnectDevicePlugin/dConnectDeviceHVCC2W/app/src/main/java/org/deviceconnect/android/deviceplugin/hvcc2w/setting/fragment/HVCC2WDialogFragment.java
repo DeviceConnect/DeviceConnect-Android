@@ -112,6 +112,15 @@ public class HVCC2WDialogFragment extends DialogFragment {
     }
 
 
+    /**
+     * Show Select Dialog.
+     * @param activity Activity
+     * @param title Dialog's title
+     * @param list Dialog's select
+     * @param singleChoiceListner choice listener
+     * @param positiveListener click listener
+     * @param negativeListener click listener
+     */
     public static void showSelectDialog(final Activity activity,
                                         final String title,
                                         final String[] list,

@@ -25,9 +25,11 @@ import java.util.logging.Logger;
 
 public class UVCDevice {
 
-    private static final int VS_FORMAT_UNCOMPRESSED = 0x04;
-
     private static final int VS_FORMAT_MJPEG = 0x06;
+
+    private static final int[] SUPPORTED_PAYLOAD_FORMATS = {
+        VS_FORMAT_MJPEG
+    };
 
     private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
@@ -79,22 +81,15 @@ public class UVCDevice {
         List<Size> previewSizeList = mCamera.getSupportedSizeListAll();
         mLogger.info("Supported preview sizes: " + previewSizeList.size());
         Size size = selectSize(previewSizeList);
-        final int width;
-        final int height;
-        final int frameFormat;
-        final int pixelFormat;
         if (size == null) {
             mLogger.warning("Preview size fof supported format (MJPEG or YUY2) is not found.");
             return false;
-        } else {
-            mLogger.info("Selected Preview size: type = " + size.type +  ", width = " + size.width + ", height = " + size.height);
-            width = size.width;
-            height = size.height;
-            frameFormat = size.type == VS_FORMAT_MJPEG ?
-                UVCCamera.FRAME_FORMAT_MJPEG : UVCCamera.FRAME_FORMAT_YUYV;
-            pixelFormat = size.type == VS_FORMAT_MJPEG ?
-                UVCCamera.PIXEL_FORMAT_RAW : UVCCamera.PIXEL_FORMAT_RGB565;
         }
+        mLogger.info("Selected Preview size: type = " + size.type +  ", width = " + size.width + ", height = " + size.height);
+        final int width = size.width;
+        final int height = size.height;
+        final int frameFormat = UVCCamera.FRAME_FORMAT_MJPEG;
+        final int pixelFormat = UVCCamera.PIXEL_FORMAT_RAW;
 
         mCamera.setPreviewSize(width, height, frameFormat);
         mCamera.setPreviewFrameCallback(new IPreviewFrameCallback() {
@@ -111,11 +106,7 @@ public class UVCDevice {
         if (sizeList.size() == 0) {
             return null;
         }
-        final int[] formats = {
-            VS_FORMAT_MJPEG,
-            VS_FORMAT_UNCOMPRESSED
-        };
-        for (int format : formats) {
+        for (int format : SUPPORTED_PAYLOAD_FORMATS) {
             Size size = selectSize(sizeList, format);
             if (size != null) {
                 return size;

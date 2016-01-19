@@ -10,9 +10,6 @@ package org.deviceconnect.android.deviceplugin.uvc.profile;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.util.Log;
 
 import com.serenegiant.usb.UVCCamera;
@@ -70,24 +67,6 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                         case UVCCamera.FRAME_FORMAT_MJPEG:
                             bitmap = BitmapFactory.decodeByteArray(frame, 0, frame.length);
                             break;
-                        case UVCCamera.FRAME_FORMAT_YUYV: {
-                            start = System.currentTimeMillis();
-
-                            YuvImage yuv = new YuvImage(frame, ImageFormat.YUY2, width, height, null);
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            boolean isSuccess = yuv.compressToJpeg(new Rect(0, 0, width, height), 100, baos);
-                            if (!isSuccess) {
-                                mLogger.warning("YUV2 Frame could not be compressed to JPEG.");
-                                return;
-                            }
-                            byte[] jpeg = baos.toByteArray();
-                            bitmap = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.length);
-                            Log.i("AAA", "***** Bitmap size: " + bitmap.getByteCount());
-
-                            end = System.currentTimeMillis();
-                            Log.d("AAA", "***** Convert YUYV to Bitmap: " + (end - start) + " msec.");
-
-                        }   break;
                         default:
                             // Nothing to do.
                             return;

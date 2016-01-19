@@ -21,7 +21,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.hvcc2w.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvcc2w.R;
@@ -190,7 +189,7 @@ public class HVCC2WRegisterFaceRecognitionDataFragment extends Fragment {
                     "fragment_dialog");
             registerFaceRecognize(name, mServiceId);
         } else {
-            Toast.makeText(getContext(), getString(R.string.c2w_setting_message_6_1), Toast.LENGTH_LONG).show();
+            HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_setting_message_6_1), null);
         }
     }
 
@@ -206,7 +205,7 @@ public class HVCC2WRegisterFaceRecognitionDataFragment extends Fragment {
                     "fragment_dialog");
             unregisterFaceRecognize(name, mServiceId);
         } else {
-            Toast.makeText(getContext(), getString(R.string.c2w_setting_message_6_2), Toast.LENGTH_LONG).show();
+            HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_setting_message_6_2), null);
         }
     }
 

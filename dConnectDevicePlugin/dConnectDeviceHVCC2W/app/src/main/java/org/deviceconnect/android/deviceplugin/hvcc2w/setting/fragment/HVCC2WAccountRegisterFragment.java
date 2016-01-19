@@ -17,7 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.hvcc2w.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvcc2w.R;
@@ -126,7 +125,7 @@ public class HVCC2WAccountRegisterFragment extends Fragment {
                 }
             });
         } else {
-            Toast.makeText(getContext(), getString(R.string.c2w_setting_error_1), Toast.LENGTH_LONG).show();
+            HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_setting_error_1), null);
         }
     }
 
@@ -165,7 +164,7 @@ public class HVCC2WAccountRegisterFragment extends Fragment {
                 }
             });
         } else {
-            Toast.makeText(getContext(), getString(R.string.c2w_setting_error_2), Toast.LENGTH_LONG).show();
+            HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_setting_error_2), null);
         }
     }
 

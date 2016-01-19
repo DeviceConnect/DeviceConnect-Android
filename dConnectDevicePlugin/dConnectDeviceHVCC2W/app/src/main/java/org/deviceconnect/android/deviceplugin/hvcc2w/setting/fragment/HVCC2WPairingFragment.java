@@ -27,7 +27,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import org.deviceconnect.android.activity.PermissionRequestActivity;
 import org.deviceconnect.android.deviceplugin.hvcc2w.R;
@@ -60,7 +59,7 @@ public class HVCC2WPairingFragment extends Fragment {
                 if (!ssid.isEmpty() && !password.isEmpty()) {
                     HVCManager.INSTANCE.playConnectSound(getContext(), ssid, password);
                 } else {
-                    Toast.makeText(getContext(), getString(R.string.c2w_setting_error_5_1), Toast.LENGTH_LONG).show();
+                    HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), getString(R.string.c2w_setting_error_5_1), null);
                 }
             }
         });
@@ -99,19 +98,18 @@ public class HVCC2WPairingFragment extends Fragment {
                         String[] retPermissions = resultData.getStringArray("EXTRA_PERMISSIONS");
                         int[] retGrantResults = resultData.getIntArray("EXTRA_GRANT_RESULTS");
                         if (retPermissions == null || retGrantResults == null) {
-                            Toast.makeText(getContext(), "WiFi scan aborted.", Toast.LENGTH_LONG).show();
+                            HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), "WiFi scan aborted.", null);
                             return;
                         }
                         for (int i = 0; i < retPermissions.length; ++i) {
                             if (retGrantResults[i] == PackageManager.PERMISSION_DENIED) {
-                                Toast.makeText(getContext(), "WiFi scan aborted.", Toast.LENGTH_LONG).show();
+                                HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name), "WiFi scan aborted.", null);
                                 return;
                             }
                         }
                         searchWifi();
                     }
                 });
-                Toast.makeText(getContext(), "WiFi scan requires Location permission.", Toast.LENGTH_LONG).show();
             }
         }
     }

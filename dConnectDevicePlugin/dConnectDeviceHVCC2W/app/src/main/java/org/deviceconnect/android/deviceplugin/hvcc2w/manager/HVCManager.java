@@ -200,7 +200,7 @@ public enum HVCManager {
     /**
      * HVC interval parameter minimum value.
      */
-    public static final long PARAM_INTERVAL_MIN = 100;
+    public static final long PARAM_INTERVAL_MIN = 3 * 1000;
 
     /**
      * HVC interval parameter maximum value.

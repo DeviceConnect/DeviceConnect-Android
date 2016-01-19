@@ -10,13 +10,11 @@ package org.deviceconnect.android.deviceplugin.uvc.profile;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 
 import com.serenegiant.usb.UVCCamera;
 
 import org.deviceconnect.android.deviceplugin.uvc.UVCDevice;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager;
-import org.deviceconnect.android.deviceplugin.uvc.utils.BitmapUtils;
 import org.deviceconnect.android.deviceplugin.uvc.utils.MixedReplaceMediaServer;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
@@ -53,42 +51,14 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                             final int width, final int height) {
             mLogger.info("onFrame: " + frame.length);
 
+            if (frameFormat != UVCCamera.FRAME_FORMAT_MJPEG) {
+                mLogger.warning("onFrame: unsupported frame format: " + frameFormat);
+                return;
+            }
+
             PreviewContext context = mContexts.get(device.getId());
             if (context != null) {
-                final byte[] media;
-                if (context.mWidth == null && context.mHeight == null) {
-                    media = frame;
-                } else {
-                    long start = 0;
-                    long end = 0;
-
-                    Bitmap bitmap;
-                    switch (frameFormat) {
-                        case UVCCamera.FRAME_FORMAT_MJPEG:
-                            bitmap = BitmapFactory.decodeByteArray(frame, 0, frame.length);
-                            break;
-                        default:
-                            // Nothing to do.
-                            return;
-                    }
-
-                    // Resize bitmap
-                    if (bitmap == null) {
-                        mLogger.warning("MotionJPEG Frame could not be decoded to bitmap.");
-                        return;
-                    }
-                    int w = context.mWidth != null ? context.mWidth : bitmap.getWidth();
-                    int h = context.mHeight != null ? context.mHeight : bitmap.getHeight();
-                    start = System.currentTimeMillis();
-                    Bitmap resizedBitmap = BitmapUtils.resize(bitmap, w, h);
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                    media = baos.toByteArray();
-                    resizedBitmap.recycle();
-                    end = System.currentTimeMillis();
-                    Log.d("AAA", "***** Resize Bitmap: " + (end - start) + " msec.");
-
-                }
+                final byte[] media = context.willResize() ? context.resize(frame) : frame;
                 context.mServer.offerMedia(media);
             }
         }
@@ -236,11 +206,35 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
 
         final MixedReplaceMediaServer mServer;
 
+        final Logger mLogger = Logger.getLogger("uvc.dplugin");
+
         PreviewContext(final MixedReplaceMediaServer server) {
             if (server == null) {
                 throw new IllegalArgumentException();
             }
             mServer = server;
+        }
+
+        boolean willResize() {
+            return mWidth != null || mHeight != null;
+        }
+
+        byte[] resize(final byte[] frame) {
+            Bitmap src = BitmapFactory.decodeByteArray(frame, 0, frame.length);
+            if (src == null) {
+                mLogger.warning("MotionJPEG Frame could not be decoded to bitmap.");
+                return null;
+            }
+
+            int w = mWidth != null ? mWidth : src.getWidth();
+            int h = mHeight != null ? mHeight : src.getHeight();
+
+            Bitmap resizedBitmap = Bitmap.createScaledBitmap(src, w, h, true);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            byte[] resizedBytes = baos.toByteArray();
+            resizedBitmap.recycle();
+            return resizedBytes;
         }
 
     }

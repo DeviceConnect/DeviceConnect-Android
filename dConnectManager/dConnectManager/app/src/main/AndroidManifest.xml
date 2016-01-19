@@ -149,8 +149,11 @@
         <!-- Device Plug-in List Activity. -->
         <activity
             android:name="org.deviceconnect.android.manager.setting.DevicePluginListActivity"
-            android:exported="false"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+             </intent-filter>
         </activity>
 
         <!-- Device Plug-in Information Activity. -->

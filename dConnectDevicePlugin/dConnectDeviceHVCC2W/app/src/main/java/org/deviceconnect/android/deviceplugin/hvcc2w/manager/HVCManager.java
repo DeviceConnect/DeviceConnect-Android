@@ -176,7 +176,15 @@ public enum HVCManager {
      * HVC-C expression score max.
      */
     public static final int EXPRESSION_SCORE_MAX = 100;
+    /**
+     * HVC-C2W detect camera width[pixels].
+     */
+    public static final int HVC_C2W_CAMERA_WIDTH = 1920;
 
+    /**
+     * HVC-C2W detect camera height[pixels].
+     */
+    public static final int HVC_C2W_CAMERA_HEIGHT = 1080;
     /** HVC-C2W body min size. */
     private static final int HVC_C2W_BODY_MIN_SIZE = 30; //20〜8192
     /** HVC-C2W body max size. */

@@ -334,13 +334,13 @@ public class HVCC2WDeviceService extends DConnectMessageService
             ResultDetection detection = bodies[i];
             Bundle bodyDetect = new Bundle();
             HumanDetectProfile.setParamX(bodyDetect,
-                    (double) detection.getCenter().getX() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) detection.getCenter().getX() / (double) HVCManager.HVC_C2W_CAMERA_WIDTH);
             HumanDetectProfile.setParamY(bodyDetect,
-                    (double) detection.getCenter().getY() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) detection.getCenter().getY() / (double) HVCManager.HVC_C2W_CAMERA_HEIGHT);
             HumanDetectProfile.setParamWidth(bodyDetect,
-                    (double) detection.getSize() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) detection.getSize() / (double) HVCManager.HVC_C2W_CAMERA_WIDTH);
             HumanDetectProfile.setParamHeight(bodyDetect,
-                    (double) detection.getSize() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) detection.getSize() / (double) HVCManager.HVC_C2W_CAMERA_HEIGHT);
             HumanDetectProfile.setParamConfidence(bodyDetect,
                     (double) detection.getConfidence() / (double) HVCManager.HVC_C2W_MAX_THRESHOLD);
 
@@ -366,13 +366,13 @@ public class HVCC2WDeviceService extends DConnectMessageService
         for (int i = 0; i < count; i++) {
             Bundle handDetect = new Bundle();
             HumanDetectProfile.setParamX(handDetect,
-                    (double) h[i].getCenter().getX() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) h[i].getCenter().getX() / (double) HVCManager.HVC_C2W_CAMERA_WIDTH);
             HumanDetectProfile.setParamY(handDetect,
-                    (double) h[i].getCenter().getY() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) h[i].getCenter().getY() / (double) HVCManager.HVC_C2W_CAMERA_HEIGHT);
             HumanDetectProfile.setParamWidth(handDetect,
-                    (double) h[i].getSize() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) h[i].getSize() / (double) HVCManager.HVC_C2W_CAMERA_WIDTH);
             HumanDetectProfile.setParamHeight(handDetect,
-                    (double) h[i].getSize() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) h[i].getSize() / (double) HVCManager.HVC_C2W_CAMERA_HEIGHT);
             HumanDetectProfile.setParamConfidence(handDetect,
                     (double) h[i].getConfidence() / (double) HVCManager.HVC_C2W_MAX_THRESHOLD);
 
@@ -398,13 +398,13 @@ public class HVCC2WDeviceService extends DConnectMessageService
         for (int i = 0; i < count; i++) {
             Bundle faceDetect = new Bundle();
             HumanDetectProfile.setParamX(faceDetect,
-                    (double) f[i].getCenter().getX() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) f[i].getCenter().getX() / (double) HVCManager.HVC_C2W_CAMERA_WIDTH);
             HumanDetectProfile.setParamY(faceDetect,
-                    (double) f[i].getCenter().getY() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) f[i].getCenter().getY() / (double) HVCManager.HVC_C2W_CAMERA_HEIGHT);
             HumanDetectProfile.setParamWidth(faceDetect,
-                    (double) f[i].getSize() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) f[i].getSize() / (double) HVCManager.HVC_C2W_CAMERA_WIDTH);
             HumanDetectProfile.setParamHeight(faceDetect,
-                    (double) f[i].getSize() / (double) HVCManager.HVC_C2W_MAX_SIZE);
+                    (double) f[i].getSize() / (double) HVCManager.HVC_C2W_CAMERA_HEIGHT);
             HumanDetectProfile.setParamConfidence(faceDetect,
                     (double) f[i].getConfidence() / (double) HVCManager.HVC_C2W_MAX_CONFIDENCE);
             ResultDirection faceDirection = f[i].getDirection();

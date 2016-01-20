@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">HVC-C2W(Device Connect Device Plug-in)</string>
     <string name="hw_name">HVC-C2W</string>
-    <string name="api_key">3CKrePVL7Y2hkH7eHnpDTBwenxE2R7PLGncNiBtx</string>
-    <string name="app_id">100</string>
+    <string name="api_key">[YOU API KEY]</string>
+    <string name="app_id">[YOU APP ID]</string>
 
     <string name="page_1">[1/5] HVC-C2W の電源をOnにする</string>
     <string name="page_2">[2/5] アカウントの作成 or ログイン</string>

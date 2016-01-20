@@ -12,7 +12,6 @@ import org.deviceconnect.android.deviceplugin.hvcc2w.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvcc2w.setting.fragment.HVCC2WAccountRegisterFragment;
 import org.deviceconnect.android.deviceplugin.hvcc2w.setting.fragment.HVCC2WPairingFragment;
 import org.deviceconnect.android.deviceplugin.hvcc2w.setting.fragment.HVCC2WPushButtonFragment;
-import org.deviceconnect.android.deviceplugin.hvcc2w.setting.fragment.HVCC2WRegisterFaceRecognitionDataFragment;
 import org.deviceconnect.android.deviceplugin.hvcc2w.setting.fragment.HVCC2WWakeupFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 /**
@@ -29,7 +28,6 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
             HVCC2WAccountRegisterFragment.class,
             HVCC2WPushButtonFragment.class,
             HVCC2WPairingFragment.class,
-            HVCC2WRegisterFaceRecognitionDataFragment.class,
     };
 
 
@@ -57,7 +55,4 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
         }
         return page;
     }
-
-
-
 }

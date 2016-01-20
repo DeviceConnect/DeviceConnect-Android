@@ -25,10 +25,4 @@
         <name lang="en">Human Detect</name>
         <description lang="en">Human Detect. </description>
     </profile>
-    <profile name="facerecognize" expireperiod="86400000">
-        <name lang="ja">顔認証</name>
-        <description lang="ja">顔を認証する。</description>
-        <name lang="en">Face Recognize</name>
-        <description lang="en">Face Recognize. </description>
-    </profile>
 </deviceplugin-provider>

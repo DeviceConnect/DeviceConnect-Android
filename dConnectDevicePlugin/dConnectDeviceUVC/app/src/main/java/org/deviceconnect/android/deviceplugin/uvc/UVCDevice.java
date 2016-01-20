@@ -8,6 +8,8 @@ package org.deviceconnect.android.deviceplugin.uvc;
 
 
 import android.hardware.usb.UsbDevice;
+import android.view.Surface;
+import android.view.TextureView;
 
 import com.serenegiant.usb.IPreviewFrameCallback;
 import com.serenegiant.usb.Size;
@@ -47,6 +49,8 @@ public class UVCDevice {
 
     private boolean mIsOpen;
 
+    private boolean mhasStartedPreview;
+
     UVCDevice(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
         mDevice = device;
         mId = Integer.toString(device.getDeviceId());
@@ -63,6 +67,10 @@ public class UVCDevice {
 
     public boolean isOpen() {
         return mIsOpen;
+    }
+
+    public boolean hasStartedPreview() {
+        return mhasStartedPreview;
     }
 
     boolean isSameDevice(final UsbDevice usbDevice) {
@@ -154,6 +162,10 @@ public class UVCDevice {
         if (!mIsOpen) {
             return false;
         }
+        if (mhasStartedPreview) {
+            mhasStartedPreview = false;
+            mCamera.stopPreview();
+        }
         mIsOpen = false;
 
         mCamera.close();
@@ -173,6 +185,15 @@ public class UVCDevice {
         }
     }
 
+    public void setPreviewDisplay(final TextureView display) {
+        Surface surface = new Surface(display.getSurfaceTexture());
+        mCamera.setPreviewDisplay(surface);
+    }
+
+    public void clearPreviewDisplay() {
+        mCamera.setPreviewDisplay((Surface) null);
+    }
+
     private void clearPreviewListeners() {
         synchronized (mPreviewListeners) {
             mPreviewListeners.clear();
@@ -183,7 +204,11 @@ public class UVCDevice {
         if (!mIsOpen) {
             return false;
         }
+        if (mhasStartedPreview) {
+            return false;
+        }
         mCamera.startPreview();
+        mhasStartedPreview = true;
         return true;
     }
 
@@ -191,8 +216,22 @@ public class UVCDevice {
         if (!mIsOpen) {
             return false;
         }
+        if (!mhasStartedPreview) {
+             return false;
+        }
         mCamera.stopPreview();
-        return false;
+        mhasStartedPreview = false;
+        return true;
+    }
+
+    public int getPreviewWidth() {
+        Size size = mCamera.getPreviewSize();
+        return size.width;
+    }
+
+    public int getPreviewHeight() {
+        Size size = mCamera.getPreviewSize();
+        return size.width;
     }
 
     interface PreviewListener {

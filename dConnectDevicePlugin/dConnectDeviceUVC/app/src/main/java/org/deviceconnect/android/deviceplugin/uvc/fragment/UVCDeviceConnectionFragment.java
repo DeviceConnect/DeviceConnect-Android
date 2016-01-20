@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -32,6 +33,8 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
 
     private TextView mCurrentDeviceTextView;
 
+    private TextureView mPreviewTextureView;
+
     @Nullable
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -41,7 +44,12 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
         mConnectionButton
             = new ConnectionButton((Button) root.findViewById(R.id.button_uvc_device_connection));
         mCurrentDeviceTextView = (TextView) root.findViewById(R.id.text_current_uvc_device);
-        updateViews();
+        mPreviewTextureView = (TextureView) root.findViewById(R.id.view_preview);
+
+        UVCDevice device = getDevice();
+        if (device != null) {
+            updateViews(device);
+        }
         return root;
     }
 
@@ -50,32 +58,37 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
         super.onAttach(context);
     }
 
-    private void updateViews() {
+    private void updateViews(final UVCDevice device) {
         final UVCDeviceSettingsActivity activity = (UVCDeviceSettingsActivity) getActivity();
         if (activity != null) {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    UVCDeviceManager deviceMgr = activity.getDeviceManager();
-                    List<UVCDevice> devices = deviceMgr.getDeviceList();
-                    mConnectionButton.update(devices);
-                    showCurrentDeviceNames(devices);
+                    mConnectionButton.update(device);
+                    showCurrentDeviceNames(device);
+                    showPreview(device);
                 }
             });
         }
     }
 
-    private void showCurrentDeviceNames(final List<UVCDevice> devices) {
+    private void showCurrentDeviceNames(final UVCDevice device) {
         StringBuilder sb = new StringBuilder();
         sb.append(getString(R.string.current_uvc_device));
         sb.append(": ");
-        if (devices.size() == 0 || !devices.get(0).isOpen()) {
+        if (device == null || !device.isOpen()) {
             sb.append(getString(R.string.no_uvc_device));
         } else {
-            UVCDevice device = devices.get(0);
             sb.append(device.getName());
         }
         mCurrentDeviceTextView.setText(sb.toString());
+    }
+
+    private void showPreview(final UVCDevice device) {
+        if (device != null && device.isOpen()) {
+            device.setPreviewDisplay(mPreviewTextureView);
+            device.startPreview();
+        }
     }
 
     @Override
@@ -91,6 +104,11 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
 
     @Override
     public void onPause() {
+        UVCDevice device = getDevice();
+        if (device != null && device.isOpen()) {
+            device.stopPreview();
+            device.clearPreviewDisplay();
+        }
         UVCDeviceManager deviceMgr = getDeviceManager();
         if (deviceMgr != null) {
             deviceMgr.removeDeviceListener(this);
@@ -107,14 +125,26 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
         return activity.getDeviceManager();
     }
 
+    private UVCDevice getDevice() {
+        UVCDeviceManager deviceMgr = getDeviceManager();
+        if (deviceMgr == null) {
+            return null;
+        }
+        List<UVCDevice> devices = deviceMgr.getDeviceList();
+        if (devices.size() == 0) {
+            return null;
+        }
+        return devices.get(0);
+    }
+
     @Override
     public void onOpen(final UVCDevice device) {
-        updateViews();
+        updateViews(device);
     }
 
     @Override
     public void onClose(final UVCDevice device) {
-        updateViews();
+        updateViews(null);
     }
 
     private class ConnectionButton implements View.OnClickListener  {
@@ -128,11 +158,11 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
             mButton.setOnClickListener(this);
         }
 
-        public void update(final List<UVCDevice> devices) {
-            if (devices.size() == 0 || !devices.get(0).isOpen()) {
+        public void update(final UVCDevice device) {
+            if (device == null || !device.isOpen()) {
                 mOpenedDevice = null;
             } else {
-                mOpenedDevice = devices.get(0);
+                mOpenedDevice = device;
             }
 
             int messageId;
@@ -151,6 +181,8 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
                 if (mOpenedDevice == null) {
                     CameraDialog.showDialog(activity);
                 } else {
+                    mOpenedDevice.stopPreview();
+                    mOpenedDevice.clearPreviewDisplay();
                     UVCDeviceManager deviceMgr = activity.getDeviceManager();
                     deviceMgr.closeDevice(mOpenedDevice);
                 }

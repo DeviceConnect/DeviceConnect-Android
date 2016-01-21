@@ -10,6 +10,7 @@ package org.deviceconnect.android.deviceplugin.uvc.profile;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Bundle;
 
 import com.serenegiant.usb.UVCCamera;
 
@@ -21,7 +22,11 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,6 +42,16 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
     private static final String PARAM_WIDTH = "width";
 
     private static final String PARAM_HEIGHT = "height";
+
+    private static final String RECORDER_ID = "0";
+
+    private static final String RECORDER_MIME_TYPE_MJPEG = "video/x-mjpeg";
+
+    private static final String[] RECORDER_MIME_TYPE_LIST = {
+        RECORDER_MIME_TYPE_MJPEG
+    };
+
+    private static final String RECORDER_CONFIG = ""; // No config.
 
     private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
@@ -72,6 +87,171 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
     }
 
     @Override
+    protected boolean onGetMediaRecorder(final Intent request, final Intent response,
+                                         final String serviceId) {
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                UVCDevice device = mDeviceMgr.getDevice(serviceId);
+                if (device == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    sendResponse(response);
+                    return;
+                }
+
+                setMediaRecorders(response, device);
+                setResult(response, DConnectMessage.RESULT_OK);
+                sendResponse(response);
+            }
+        });
+        return false;
+    }
+
+    private static void setMediaRecorders(final Intent response, final UVCDevice device) {
+        List<Bundle> recorderList = new ArrayList<Bundle>();
+        Bundle recorder = new Bundle();
+        setMediaRecorder(recorder, device);
+        recorderList.add(recorder);
+        setRecorders(response, recorderList);
+    }
+
+    private static void setMediaRecorder(final Bundle recorder, final UVCDevice device) {
+        setRecorderId(recorder, RECORDER_ID);
+        setRecorderName(recorder, device.getName());
+        setRecorderState(recorder, device.hasStartedPreview() ? RecorderState.RECORDING
+            : RecorderState.INACTIVE);
+        setRecorderImageWidth(recorder, device.getPreviewWidth());
+        setRecorderImageHeight(recorder, device.getPreviewHeight());
+        setRecorderMIMEType(recorder, RECORDER_MIME_TYPE_MJPEG);
+        setRecorderConfig(recorder, RECORDER_CONFIG);
+    }
+
+    @Override
+    protected boolean onGetOptions(final Intent request, final Intent response,
+                                   final String serviceId, final String target) {
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                UVCDevice device = mDeviceMgr.getDevice(serviceId);
+                if (device == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    sendResponse(response);
+                    return;
+                }
+                if (target != null && !RECORDER_ID.equals(target)) {
+                    MessageUtils.setInvalidRequestParameterError(response,
+                        "No such target: " + target);
+                    sendResponse(response);
+                    return;
+                }
+
+                setOptions(response, device);
+                setResult(response, DConnectMessage.RESULT_OK);
+                sendResponse(response);
+            }
+        });
+        return false;
+    }
+
+    private static void setOptions(final Intent response, final UVCDevice device) {
+        List<UVCDevice.PreviewOption> options = device.getPreviewOptions();
+        if (options.size() > 0) {
+            // imageWidth
+            Collections.sort(options, new Comparator<UVCDevice.PreviewOption>() {
+                @Override
+                public int compare(final UVCDevice.PreviewOption op1,
+                                   final UVCDevice.PreviewOption op2) {
+                    return op1.getWidth() - op2.getWidth();
+                }
+            });
+            int minWidth = options.get(0).getWidth();
+            int maxWidth = options.get(options.size() - 1).getWidth();
+            setImageWidth(response, minWidth, maxWidth);
+
+            // imageHeight
+            Collections.sort(options, new Comparator<UVCDevice.PreviewOption>() {
+                @Override
+                public int compare(final UVCDevice.PreviewOption op1,
+                                   final UVCDevice.PreviewOption op2) {
+                    return op1.getHeight() - op2.getHeight();
+                }
+            });
+            int minHeight = options.get(0).getHeight();
+            int maxHeight = options.get(options.size() - 1).getHeight();
+            setImageHeight(response, minHeight, maxHeight);
+
+            // mimeType
+            setMIMEType(response, RECORDER_MIME_TYPE_LIST);
+        }
+    }
+
+    @Override
+    protected boolean onPutOptions(final Intent request, final Intent response,
+                                   final String serviceId, final String target,
+                                   final Integer imageWidth, final Integer imageHeight,
+                                   final String mimeType) {
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                UVCDevice device = mDeviceMgr.getDevice(serviceId);
+                if (device == null) {
+                    MessageUtils.setNotFoundServiceError(response);
+                    sendResponse(response);
+                    return;
+                }
+                if (!checkOptionParams(target, imageWidth, imageHeight, mimeType, response)) {
+                    sendResponse(response);
+                    return;
+                }
+
+                if (device.setNearestPreviewSize(imageWidth, imageHeight)) {
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setUnknownError(response, "Failed to change preview size: "
+                        + imageWidth + " x " + imageHeight);
+                }
+                sendResponse(response);
+            }
+        });
+        return false;
+    }
+
+    private static boolean checkOptionParams(final String target, final Integer imageWidth,
+                                             final Integer imageHeight, final String mimeType,
+                                             final Intent response) {
+        if (target != null && !RECORDER_ID.equals(target)) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                "No such target: " + target);
+            return false;
+        }
+        if (mimeType == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "mimeType is null.");
+            return false;
+        }
+        if (!RECORDER_MIME_TYPE_MJPEG.equals(mimeType)) {
+            MessageUtils.setInvalidRequestParameterError(response, mimeType + " is unsupported MIME-Type.");
+            return false;
+        }
+        if (imageWidth == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "imageWidth is null.");
+            return false;
+        }
+        if (imageWidth <= 0) {
+            MessageUtils.setInvalidRequestParameterError(response, "imageWidth must be positive.");
+            return false;
+        }
+        if (imageHeight == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "imageHeight is null.");
+            return false;
+        }
+        if (imageHeight <= 0) {
+            MessageUtils.setInvalidRequestParameterError(response, "imageHeight must be positive.");
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     protected boolean onPutPreview(final Intent request, final Intent response,
                                    final String serviceId) {
         mExecutor.execute(new Runnable() {
@@ -104,7 +284,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         return false;
     }
 
-    private boolean checkPreviewParams(final Intent request, final Intent response) {
+    private static boolean checkPreviewParams(final Intent request, final Intent response) {
         if (!checkType(request, response, PARAM_WIDTH)) {
             return false;
         }
@@ -176,7 +356,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         return parseInteger(request, PARAM_HEIGHT);
     }
 
-    private boolean checkType(final Intent request, final Intent response,
+    private static boolean checkType(final Intent request, final Intent response,
                               final String paramName) {
         if (!request.hasExtra(paramName)) {
             return true;

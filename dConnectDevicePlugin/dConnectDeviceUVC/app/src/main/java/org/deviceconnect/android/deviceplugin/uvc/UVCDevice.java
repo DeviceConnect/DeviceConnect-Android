@@ -51,6 +51,8 @@ public class UVCDevice {
 
     private boolean mhasStartedPreview;
 
+    private PreviewOption mCurrentOption = null;
+
     UVCDevice(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
         mDevice = device;
         mId = Integer.toString(device.getDeviceId());
@@ -81,10 +83,10 @@ public class UVCDevice {
         if (mIsOpen) {
             return false;
         }
-        mIsOpen = true;
 
         mCamera = new UVCCamera();
         mCamera.open(mCtrlBlock);
+        mIsOpen = true;
 
         List<Size> previewSizeList = mCamera.getSupportedSizeListAll();
         mLogger.info("Supported preview sizes: " + previewSizeList.size());
@@ -94,12 +96,19 @@ public class UVCDevice {
             return false;
         }
         mLogger.info("Selected Preview size: type = " + size.type +  ", width = " + size.width + ", height = " + size.height);
-        final int width = size.width;
-        final int height = size.height;
+        if (mCurrentOption == null) {
+            mCurrentOption = new PreviewOption(size.width, size.height);
+        }
+        final int width = mCurrentOption.getWidth();
+        final int height = mCurrentOption.getHeight();
         final int frameFormat = UVCCamera.FRAME_FORMAT_MJPEG;
         final int pixelFormat = UVCCamera.PIXEL_FORMAT_RAW;
 
-        mCamera.setPreviewSize(width, height, frameFormat);
+        if (!setPreviewSize(width, height)) {
+            mIsOpen = false;
+            mCurrentOption = null;
+            return false;
+        }
         mCamera.setPreviewFrameCallback(new IPreviewFrameCallback() {
             @Override
             public void onFrame(final byte[] frame) {
@@ -167,6 +176,7 @@ public class UVCDevice {
             mCamera.stopPreview();
         }
         mIsOpen = false;
+        mCurrentOption = null;
 
         mCamera.close();
         mCamera.destroy();
@@ -183,6 +193,46 @@ public class UVCDevice {
             }
             mPreviewListeners.add(listener);
         }
+    }
+
+    public boolean setPreviewSize(final int width, final int height) {
+        mCurrentOption = new PreviewOption(width, height);
+        try {
+            if (mIsOpen) {
+                mCamera.setPreviewSize(width, height, UVCCamera.FRAME_FORMAT_MJPEG);
+            }
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public boolean setNearestPreviewSize(final int requestedWidth,
+                                         final int requestedHeight) {
+        PreviewOption option = getNearestPreviewSize(requestedWidth, requestedHeight);
+        return setPreviewSize(option.getWidth(), option.getHeight());
+    }
+
+    public PreviewOption getNearestPreviewSize(final int requestedWidth,
+                                               final int requestedHeight) {
+        List<PreviewOption> options = getPreviewOptions();
+        final float ratio = requestedWidth / requestedHeight;
+        final int area = requestedWidth * requestedHeight;
+        Collections.sort(options, new Comparator<PreviewOption>() {
+            @Override
+            public int compare(final PreviewOption op1, final PreviewOption op2) {
+                if (op1.getRatio() == op2.getRatio()) {
+                    int d1 = Math.abs(area - op1.getWidth() * op2.getHeight());
+                    int d2 = Math.abs(area - op2.getWidth() * op2.getHeight());
+                    return d1 - d2;
+                } else {
+                    float d1 = Math.abs(ratio - op1.getRatio());
+                    float d2 = Math.abs(ratio - op2.getRatio());
+                    return d1 > d2 ? 1 : d1 == d2 ? 0 : -1;
+                }
+            }
+        });
+        return options.get(0);
     }
 
     public void setPreviewDisplay(final TextureView display) {
@@ -231,13 +281,50 @@ public class UVCDevice {
 
     public int getPreviewHeight() {
         Size size = mCamera.getPreviewSize();
-        return size.width;
+        return size.height;
+    }
+
+    public List<PreviewOption> getPreviewOptions() {
+        List<PreviewOption> options = new ArrayList<PreviewOption>();
+        List<Size> supportedSizes = mCamera.getSupportedSizeList();
+        for (Size size : supportedSizes) {
+            options.add(new PreviewOption(size));
+        }
+        return options;
     }
 
     interface PreviewListener {
 
         void onFrame(UVCDevice device, byte[] frame, int frameFormat, int width, int height);
 
+    }
+
+    public static class PreviewOption {
+
+        private final int mWidth;
+
+        private final int mHeight;
+
+        private PreviewOption(final int width, final int height) {
+            mWidth = width;
+            mHeight = height;
+        }
+
+        private PreviewOption(final Size size) {
+            this(size.width, size.height);
+        }
+
+        public int getWidth() {
+            return mWidth;
+        }
+
+        public int getHeight() {
+            return mHeight;
+        }
+
+        public float getRatio() {
+            return mWidth / mHeight;
+        }
     }
 
 }

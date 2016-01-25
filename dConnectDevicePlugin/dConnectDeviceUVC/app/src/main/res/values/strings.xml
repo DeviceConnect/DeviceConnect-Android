@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">UVC (Device Connect Device Plug-in)</string>
 
-    <string name="settings_title_uvc_device_connection">[1/1] USBカメラの接続</string>
-    <string name="uvc_device_connection">USBカメラを選択</string>
-    <string name="uvc_device_disconnection">USBカメラとの接続を切断</string>
+    <string name="settings_title_uvc_device_connection">[1/1] プレビューの確認</string>
+    <string name="uvc_device_connection">プレビューを開始</string>
+    <string name="uvc_device_disconnection">プレビューを停止</string>
     <string name="current_uvc_device">現在接続中</string>
     <string name="no_uvc_device">なし</string>
 </resources>

@@ -17,23 +17,28 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.serenegiant.usb.CameraDialog;
-
 import org.deviceconnect.android.deviceplugin.uvc.R;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDevice;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager;
 import org.deviceconnect.android.deviceplugin.uvc.activity.UVCDeviceSettingsActivity;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 
 public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceManager.DeviceListener {
+
+    private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
     private ConnectionButton mConnectionButton;
 
     private TextView mCurrentDeviceTextView;
 
     private TextureView mPreviewTextureView;
+
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     @Nullable
     @Override
@@ -66,7 +71,6 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
                 public void run() {
                     mConnectionButton.update(device);
                     showCurrentDeviceNames(device);
-                    showPreview(device);
                 }
             });
         }
@@ -82,13 +86,6 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
             sb.append(device.getName());
         }
         mCurrentDeviceTextView.setText(sb.toString());
-    }
-
-    private void showPreview(final UVCDevice device) {
-        if (device != null && device.isOpen()) {
-            device.setPreviewDisplay(mPreviewTextureView);
-            device.startPreview();
-        }
     }
 
     @Override
@@ -147,7 +144,7 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
         updateViews(null);
     }
 
-    private class ConnectionButton implements View.OnClickListener  {
+    private class ConnectionButton implements View.OnClickListener, UVCPreviewDialogFragment.OnSelectListener  {
 
         private final Button mButton;
 
@@ -179,7 +176,7 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
             UVCDeviceSettingsActivity activity = (UVCDeviceSettingsActivity) getActivity();
             if (activity != null) {
                 if (mOpenedDevice == null) {
-                    CameraDialog.showDialog(activity);
+                    UVCPreviewDialogFragment.show(activity, this);
                 } else {
                     mOpenedDevice.stopPreview();
                     mOpenedDevice.clearPreviewDisplay();
@@ -187,6 +184,24 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
                     deviceMgr.closeDevice(mOpenedDevice);
                 }
             }
+        }
+
+        @Override
+        public void onSelect(final UVCDevice device) {
+            mExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    UVCDeviceManager deviceMgr = getDeviceManager();
+                    if (!device.isOpen()) {
+                        if (!deviceMgr.openDevice(device)) {
+                            mLogger.severe("Failed to open UVC device for preview: " + device.getId());
+                            return;
+                        }
+                    }
+                    device.setPreviewDisplay(mPreviewTextureView);
+                    device.startPreview();
+                }
+            });
         }
     }
 

@@ -91,8 +91,12 @@ public class UVCDeviceManager {
             }
 
             @Override
-            public void onCancel() {
+            public void onCancel(final UsbDevice usbDevice) {
                 mLogger.info("onCancel");
+                UVCDevice device = getDevice(usbDevice);
+                if (device != null) {
+                    device.notifyPermission(null);
+                }
             }
         });
 
@@ -105,6 +109,7 @@ public class UVCDeviceManager {
     }
 
     public boolean openDevice(final UVCDevice device) {
+        mLogger.info("Opening Device... : " + device.getName());
         try {
             device.requestPermission();
         } catch (InterruptedException e) {

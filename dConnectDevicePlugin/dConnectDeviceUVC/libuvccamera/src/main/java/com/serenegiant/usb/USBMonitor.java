@@ -88,8 +88,9 @@ public final class USBMonitor {
 		public void onDisconnect(UsbDevice device, UsbControlBlock ctrlBlock);
 		/**
 		 * called when canceled or could not get permission from user
+		 * @param device
 		 */
-		public void onCancel();
+		public void onCancel(UsbDevice device); // MODIFIED
 	}
 
 	public USBMonitor(final Context context, final OnDeviceConnectListener listener) {
@@ -387,7 +388,7 @@ public final class USBMonitor {
 			mHandler.post(new Runnable() {
 				@Override
 				public void run() {
-					mOnDeviceConnectListener.onCancel();
+					mOnDeviceConnectListener.onCancel(device); // MODIFIED
 				}
 			});
 		}

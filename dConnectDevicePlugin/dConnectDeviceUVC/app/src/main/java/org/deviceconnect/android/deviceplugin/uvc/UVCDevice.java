@@ -55,7 +55,7 @@ public class UVCDevice {
 
     private boolean mIsOpen;
 
-    private boolean mHasStartedPreview;
+    private int mPreviewClientNum;
 
     private PreviewOption mCurrentOption = null;
 
@@ -73,12 +73,20 @@ public class UVCDevice {
         return mDevice.getDeviceName();
     }
 
+    public int getVendorId() {
+        return mDevice.getVendorId();
+    }
+
+    public int getProductId() {
+        return mDevice.getProductId();
+    }
+
     public boolean isOpen() {
         return mIsOpen;
     }
 
     public boolean hasStartedPreview() {
-        return mHasStartedPreview;
+        return mPreviewClientNum > 0;
     }
 
     boolean isSameDevice(final UsbDevice usbDevice) {
@@ -96,7 +104,7 @@ public class UVCDevice {
 
     void notifyPermission(final USBMonitor.UsbControlBlock ctrlBlock) {
         synchronized (mLockPermission) {
-            mIsPermitted = true;
+            mIsPermitted = ctrlBlock != null;
             mCtrlBlock = ctrlBlock;
             mLockPermission.notifyAll();
         }
@@ -104,6 +112,9 @@ public class UVCDevice {
 
     synchronized boolean open() {
         if (mIsOpen) {
+            return false;
+        }
+        if (!mIsPermitted) {
             return false;
         }
 
@@ -194,8 +205,8 @@ public class UVCDevice {
         if (!mIsOpen) {
             return false;
         }
-        if (mHasStartedPreview) {
-            mHasStartedPreview = false;
+        if (hasStartedPreview()) {
+            mPreviewClientNum = 0;
             mCamera.stopPreview();
         }
         mIsOpen = false;
@@ -277,11 +288,10 @@ public class UVCDevice {
         if (!mIsOpen) {
             return false;
         }
-        if (mHasStartedPreview) {
-            return false;
+        boolean isFirstActiveClient = (++mPreviewClientNum) == 1;
+        if (isFirstActiveClient) {
+            mCamera.startPreview();
         }
-        mCamera.startPreview();
-        mHasStartedPreview = true;
         return true;
     }
 
@@ -289,11 +299,10 @@ public class UVCDevice {
         if (!mIsOpen) {
             return false;
         }
-        if (!mHasStartedPreview) {
-             return false;
+        boolean isLastActiveClient = (mPreviewClientNum--) == 1;
+        if (isLastActiveClient) {
+            mCamera.stopPreview();
         }
-        mCamera.stopPreview();
-        mHasStartedPreview = false;
         return true;
     }
 

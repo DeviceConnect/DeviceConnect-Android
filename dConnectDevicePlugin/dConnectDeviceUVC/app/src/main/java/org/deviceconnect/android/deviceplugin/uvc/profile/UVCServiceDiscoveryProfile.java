@@ -46,7 +46,7 @@ public class UVCServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             }
             Bundle service = new Bundle();
             setId(service, device.getId());
-            setName(service, device.getName());
+            setName(service, "UVC: " + device.getName());
             setType(service, NETWORK_TYPE_USB);
             ServiceDiscoveryProfile.setOnline(service, true);
             ServiceDiscoveryProfile.setScopes(service, getProfileProvider());

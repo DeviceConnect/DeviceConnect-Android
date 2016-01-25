@@ -7,10 +7,6 @@
 
 package org.deviceconnect.android.deviceplugin.host.activity;
 
-import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
-import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,9 +26,13 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
+import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
+
 /**
  * Canvas Profile Activity.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class CanvasProfileActivity extends Activity {
@@ -130,6 +130,7 @@ public class CanvasProfileActivity extends Activity {
 
     /**
      * Set a argument that draw in canvas.
+     *
      * @param intent argument
      */
     private void setDrawingArgument(final Intent intent) {
@@ -140,6 +141,7 @@ public class CanvasProfileActivity extends Activity {
 
     /**
      * Refresh image.
+     *
      * @param intent Intent
      */
     private synchronized void refreshImage(final Intent intent) {
@@ -154,37 +156,37 @@ public class CanvasProfileActivity extends Activity {
             mBitmap = null;
         }
 
-        String uri = drawObj.getUri();
-        mBitmap = CanvasDrawUtils.getBitmap(this, uri);
+        byte[] data = drawObj.getData();
+        mBitmap = CanvasDrawUtils.getBitmap(data);
         if (mBitmap == null) {
             // failed to load bitmap.
             return;
         }
 
         switch (drawObj.getMode()) {
-        default:
-        case NONSCALE_MODE:
-            Matrix matrix = new Matrix();
-            matrix.postTranslate((float) drawObj.getX(), (float) drawObj.getY());
-            mCanvasView.setImageBitmap(mBitmap);
-            mCanvasView.setScaleType(ScaleType.MATRIX);
-            mCanvasView.setImageMatrix(matrix);
-            break;
-        case SCALE_MODE:
-            mCanvasView.setImageBitmap(mBitmap);
-            mCanvasView.setScaleType(ScaleType.FIT_CENTER);
-            mCanvasView.setTranslationX((int) drawObj.getX());
-            mCanvasView.setTranslationY((int) drawObj.getY());
-            break;
-        case FILL_MODE:
-            BitmapDrawable bd = new BitmapDrawable(getResources(), mBitmap);
-            bd.setTileModeX(Shader.TileMode.REPEAT);
-            bd.setTileModeY(Shader.TileMode.REPEAT);
-            mCanvasView.setImageDrawable(bd);
-            mCanvasView.setScaleType(ScaleType.FIT_XY);
-            mCanvasView.setTranslationX((int) drawObj.getX());
-            mCanvasView.setTranslationY((int) drawObj.getY());
-            break;
+            default:
+            case NONSCALE_MODE:
+                Matrix matrix = new Matrix();
+                matrix.postTranslate((float) drawObj.getX(), (float) drawObj.getY());
+                mCanvasView.setImageBitmap(mBitmap);
+                mCanvasView.setScaleType(ScaleType.MATRIX);
+                mCanvasView.setImageMatrix(matrix);
+                break;
+            case SCALE_MODE:
+                mCanvasView.setImageBitmap(mBitmap);
+                mCanvasView.setScaleType(ScaleType.FIT_CENTER);
+                mCanvasView.setTranslationX((int) drawObj.getX());
+                mCanvasView.setTranslationY((int) drawObj.getY());
+                break;
+            case FILL_MODE:
+                BitmapDrawable bd = new BitmapDrawable(getResources(), mBitmap);
+                bd.setTileModeX(Shader.TileMode.REPEAT);
+                bd.setTileModeY(Shader.TileMode.REPEAT);
+                mCanvasView.setImageDrawable(bd);
+                mCanvasView.setScaleType(ScaleType.FIT_XY);
+                mCanvasView.setTranslationX((int) drawObj.getX());
+                mCanvasView.setTranslationY((int) drawObj.getY());
+                break;
         }
     }
 }

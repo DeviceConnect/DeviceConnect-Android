@@ -188,7 +188,6 @@ public class ChromeCastService extends DConnectMessageService implements
         mApplication.reconnect();
     }
 
-
     /**
      * Connected By Selected ChromeCast.
      * @param serviceId Service Identifier
@@ -201,8 +200,8 @@ public class ChromeCastService extends DConnectMessageService implements
                     && !mApplication.getGoogleApiClient().isConnecting()) {
                 mApplication.connect();
                 // Whether application that had been started before whether other apps
-                if ((Cast.CastApi.getApplicationStatus(mApplication.getGoogleApiClient())
-                    .equals(""))) {
+                String status = Cast.CastApi.getApplicationStatus(mApplication.getGoogleApiClient());
+                if (status != null) {
                     for (int i = 0; i < mAsyncResponse.size(); i++) {
                         Callback call = mAsyncResponse.remove(i);
                         call.onResponse();
@@ -272,7 +271,7 @@ public class ChromeCastService extends DConnectMessageService implements
         response.putExtra(DConnectMessage.EXTRA_VALUE, "Register OnStatusChange event");
         sendResponse(response);
     }
-	
+
     /**
      * StatusChange通知を無効にする.
      * 

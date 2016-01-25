@@ -12,7 +12,7 @@
     <string name="setting_pairing_first">初めてペアリングする場合はF-PLUGのLEDが点滅するので、F-PLUGのペアリングボタンを長押ししてください。</string>
 
     <string name="setting_connect_title">[3/3]F-PLUGの接続</string>
-    <string name="setting_connect_start">F-PLUGの検索と接続をタップください。</string>
+    <string name="setting_connect_start">F-PLUGの検索と接続をタップしてください。</string>
     <string name="setting_connect_search">F-PLUGの検索と接続</string>
     <string name="setting_connect_result">接続成功時はリストの文字が青色に変わります。接続ができた場合はこれで準備が完了です。F-PLUGを直接操作したい場合はリストから選択してください。</string>
     <string name="setting_connect_not_found">F-PLUGが見つかりませんでした。</string>

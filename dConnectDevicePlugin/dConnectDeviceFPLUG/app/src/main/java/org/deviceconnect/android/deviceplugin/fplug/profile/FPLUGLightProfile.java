@@ -20,6 +20,12 @@ import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Light Profile.
@@ -27,6 +33,10 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class FPLUGLightProfile extends LightProfile {
+
+    private ScheduledExecutorService mFlashingService = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture mLatestScheduledFuture;
+    private Queue<Long> mFlashingQueue = new ConcurrentLinkedQueue<>();
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
@@ -65,34 +75,43 @@ public class FPLUGLightProfile extends LightProfile {
             return true;
         }
 
-        if (lightId == null || lightId.length() == 0) {
+        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
+        FPLUGController controller;
+        if (lightId == null) {
+            controller = app.getConnectedController(serviceId);
+        } else if (lightId.length() != 0) {
+            controller = app.getConnectedController(lightId);
+        } else {
             MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
             return true;
         }
-
-        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getConnectedController(lightId);
         if (controller == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
             return true;
         }
-        controller.requestLEDControl(true, new FPLUGRequestCallback() {
-            @Override
-            public void onSuccess(final FPLUGResponse fResponse) {
-                sendResultOK(response);
-            }
+        if (flashing != null) {
+            flashing(controller, flashing);//do not check result of flashing
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        } else {
+            controller.requestLEDControl(true, new FPLUGRequestCallback() {
+                @Override
+                public void onSuccess(final FPLUGResponse fResponse) {
+                    sendResultOK(response);
+                }
 
-            @Override
-            public void onError(final String message) {
-                sendResultError(response);
-            }
+                @Override
+                public void onError(final String message) {
+                    sendResultError(response);
+                }
 
-            @Override
-            public void onTimeout() {
-                sendResultTimeout(response);
-            }
-        });
-        return false;
+                @Override
+                public void onTimeout() {
+                    sendResultTimeout(response);
+                }
+            });
+            return false;
+        }
     }
 
     @Override
@@ -103,13 +122,16 @@ public class FPLUGLightProfile extends LightProfile {
             return true;
         }
 
-        // 必須パラメータの存在チェック
-        if (lightId == null || lightId.length() == 0) {
+        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
+        FPLUGController controller;
+        if (lightId == null) {
+            controller = app.getConnectedController(serviceId);
+        } else if (lightId.length() != 0) {
+            controller = app.getConnectedController(lightId);
+        } else {
             MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
             return true;
         }
-        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getConnectedController(lightId);
         if (controller == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
             return true;
@@ -133,6 +155,48 @@ public class FPLUGLightProfile extends LightProfile {
         return false;
     }
 
+    private void flashing(final FPLUGController controller, long[] flashing) {
+        if (mLatestScheduledFuture != null && !mLatestScheduledFuture.isCancelled()) {
+            mLatestScheduledFuture.cancel(false);
+        }
+        mFlashingQueue.clear();
+        for (long value : flashing) {
+            mFlashingQueue.add(value);
+        }
+        mLatestScheduledFuture = mFlashingService.schedule(new Runnable() {
+            boolean isOn = true;
+
+            @Override
+            public void run() {
+                controller.requestLEDControl(isOn, new FPLUGRequestCallback() {
+                    @Override
+                    public void onSuccess(FPLUGResponse response) {
+                        next();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        next();
+                    }
+
+                    @Override
+                    public void onTimeout() {
+                        next();
+                    }
+                });
+            }
+
+            private void next() {
+                Long interval = mFlashingQueue.poll();
+                if (interval != null) {
+                    mLatestScheduledFuture = mFlashingService.schedule(this, interval, TimeUnit.MILLISECONDS);
+                    isOn = !isOn;
+                }
+            }
+        }, mFlashingQueue.poll(), TimeUnit.MILLISECONDS);
+    }
+
+
     private void sendResultOK(final Intent response) {
         setResult(response, DConnectMessage.RESULT_OK);
         ((FPLUGDeviceService) getContext()).sendResponse(response);
@@ -147,4 +211,5 @@ public class FPLUGLightProfile extends LightProfile {
         MessageUtils.setTimeoutError(response);
         ((FPLUGDeviceService) getContext()).sendResponse(response);
     }
+
 }

@@ -229,7 +229,7 @@ public class IRKitDeviceService extends DConnectMessageService implements Detect
                     } else {
                         MessageUtils.setUnknownError(response);
                     }
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             });
         }

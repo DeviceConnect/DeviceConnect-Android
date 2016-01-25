@@ -126,7 +126,7 @@ public class UVCCamera {
 	private UsbControlBlock mCtrlBlock;
     protected long mControlSupports;			// カメラコントロールでサポートしている機能フラグ
     protected long mProcSupports;				// プロセッシングユニットでサポートしている機能フラグ
-    protected int mCurrentPreviewMode = 0;
+    protected int mCurrentPreviewMode = -1; // MODIFIED
 	protected int mCurrentPreviewWidth = DEFAULT_PREVIEW_WIDTH, mCurrentPreviewHeight = DEFAULT_PREVIEW_HEIGHT;
     protected String mSupportedSize;
 	// these fields from here are accessed from native code and do not change name and remove

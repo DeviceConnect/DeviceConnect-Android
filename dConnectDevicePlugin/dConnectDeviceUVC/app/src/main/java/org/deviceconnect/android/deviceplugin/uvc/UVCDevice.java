@@ -37,7 +37,9 @@ public class UVCDevice {
 
     private final UsbDevice mDevice;
 
-    private final USBMonitor.UsbControlBlock mCtrlBlock;
+    private final UVCDeviceManager mDeviceMgr;
+
+    private USBMonitor.UsbControlBlock mCtrlBlock;
 
     private UVCCamera mCamera;
 
@@ -47,16 +49,20 @@ public class UVCDevice {
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
+    final Object mLockPermission = new Object();
+
+    private boolean mIsPermitted;
+
     private boolean mIsOpen;
 
-    private boolean mhasStartedPreview;
+    private boolean mHasStartedPreview;
 
     private PreviewOption mCurrentOption = null;
 
-    UVCDevice(final UsbDevice device, final USBMonitor.UsbControlBlock ctrlBlock) {
+    UVCDevice(final UsbDevice device, final UVCDeviceManager deviceMgr) {
         mDevice = device;
         mId = Integer.toString(device.getDeviceId());
-        mCtrlBlock = ctrlBlock;
+        mDeviceMgr = deviceMgr;
     }
 
     public String getId() {
@@ -72,11 +78,28 @@ public class UVCDevice {
     }
 
     public boolean hasStartedPreview() {
-        return mhasStartedPreview;
+        return mHasStartedPreview;
     }
 
     boolean isSameDevice(final UsbDevice usbDevice) {
         return usbDevice.getDeviceName().equals(mDevice.getDeviceName());
+    }
+
+    void requestPermission() throws InterruptedException {
+        synchronized (mLockPermission) {
+            while (!mIsPermitted) {
+                mDeviceMgr.requestPermission(mDevice);
+                mLockPermission.wait(100);
+            }
+        }
+    }
+
+    void notifyPermission(final USBMonitor.UsbControlBlock ctrlBlock) {
+        synchronized (mLockPermission) {
+            mIsPermitted = true;
+            mCtrlBlock = ctrlBlock;
+            mLockPermission.notifyAll();
+        }
     }
 
     synchronized boolean open() {
@@ -171,15 +194,15 @@ public class UVCDevice {
         if (!mIsOpen) {
             return false;
         }
-        if (mhasStartedPreview) {
-            mhasStartedPreview = false;
+        if (mHasStartedPreview) {
+            mHasStartedPreview = false;
             mCamera.stopPreview();
         }
         mIsOpen = false;
-        mCurrentOption = null;
 
         mCamera.close();
         mCamera.destroy();
+        mCamera = null;
 
         return true;
     }
@@ -254,11 +277,11 @@ public class UVCDevice {
         if (!mIsOpen) {
             return false;
         }
-        if (mhasStartedPreview) {
+        if (mHasStartedPreview) {
             return false;
         }
         mCamera.startPreview();
-        mhasStartedPreview = true;
+        mHasStartedPreview = true;
         return true;
     }
 
@@ -266,11 +289,11 @@ public class UVCDevice {
         if (!mIsOpen) {
             return false;
         }
-        if (!mhasStartedPreview) {
+        if (!mHasStartedPreview) {
              return false;
         }
         mCamera.stopPreview();
-        mhasStartedPreview = false;
+        mHasStartedPreview = false;
         return true;
     }
 
@@ -284,7 +307,10 @@ public class UVCDevice {
         return size.height;
     }
 
-    public List<PreviewOption> getPreviewOptions() {
+    public synchronized List<PreviewOption> getPreviewOptions() {
+        if (!mIsOpen) {
+            return null;
+        }
         List<PreviewOption> options = new ArrayList<PreviewOption>();
         List<Size> supportedSizes = mCamera.getSupportedSizeList();
         for (Size size : supportedSizes) {

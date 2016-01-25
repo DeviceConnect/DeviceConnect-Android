@@ -10,6 +10,7 @@ package org.deviceconnect.android.deviceplugin.uvc;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 
+import com.serenegiant.usb.DeviceFilter;
 import com.serenegiant.usb.USBMonitor;
 
 import java.util.ArrayList;
@@ -47,12 +48,23 @@ public class UVCDeviceManager {
         mUSBMonitor = new USBMonitor(context, new USBMonitor.OnDeviceConnectListener() {
             @Override
             public void onAttach(final UsbDevice usbDevice) {
+                if (usbDevice == null) {
+                    return;
+                }
                 mLogger.info("onAttach: " + usbDevice.getDeviceName());
+
+                UVCDevice device = getDevice(usbDevice);
+                if (device == null) {
+                    device = new UVCDevice(usbDevice, UVCDeviceManager.this);
+                    device.addPreviewListener(mPreviewListener);
+                    pushDevice(device);
+                }
             }
 
             @Override
             public void onDettach(final UsbDevice usbDevice) {
                 mLogger.info("onDettach: " + usbDevice.getDeviceName());
+                pullDevice(usbDevice);
             }
 
             @Override
@@ -63,14 +75,8 @@ public class UVCDeviceManager {
                     + ", ctrlBlock = " + ctrlBlock + ", createNew = " + createNew);
 
                 UVCDevice device = getDevice(usbDevice);
-                if (device == null) {
-                    device = new UVCDevice(usbDevice, ctrlBlock);
-                    pushDevice(device);
-                    device.addPreviewListener(mPreviewListener);
-                }
-
-                if (device.open()) {
-                    notifyEventOnOpen(device);
+                if (device != null) {
+                    device.notifyPermission(ctrlBlock);
                 }
             }
 
@@ -78,7 +84,7 @@ public class UVCDeviceManager {
             public void onDisconnect(final UsbDevice usbDevice,
                                      final USBMonitor.UsbControlBlock ctrlBlock) {
                 mLogger.info("onDisconnect: " + usbDevice.getDeviceName());
-                UVCDevice device = pullDevice(usbDevice);
+                UVCDevice device = getDevice(usbDevice);
                 if (device != null && device.close()) {
                     notifyEventOnClose(device);
                 }
@@ -89,6 +95,27 @@ public class UVCDeviceManager {
                 mLogger.info("onCancel");
             }
         });
+
+        List<DeviceFilter> filters = DeviceFilter.getDeviceFilters(context, R.xml.device_filter);
+        mUSBMonitor.setDeviceFilter(filters);
+    }
+
+    void requestPermission(final UsbDevice usbDevice) {
+        mUSBMonitor.requestPermission(usbDevice);
+    }
+
+    public boolean openDevice(final UVCDevice device) {
+        try {
+            device.requestPermission();
+        } catch (InterruptedException e) {
+            return false;
+        }
+        if (device.open()) {
+            notifyEventOnOpen(device);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void closeDevice(final UVCDevice device) {
@@ -214,6 +241,15 @@ public class UVCDeviceManager {
             return;
         }
         mIsStarted = true;
+
+        // Find UVC devices connected to Host device already.
+        List<UsbDevice> usbDevices = mUSBMonitor.getDeviceList();
+        for (UsbDevice usbDevice : usbDevices) {
+            UVCDevice device = new UVCDevice(usbDevice, this);
+            device.addPreviewListener(mPreviewListener);
+            pushDevice(device);
+        }
+
         mUSBMonitor.register();
     }
 

@@ -144,17 +144,30 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     sendResponse(response);
                     return;
                 }
+                if (!device.isOpen()) {
+                    if (!mDeviceMgr.openDevice(device)) {
+                        MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
+                        sendResponse(response);
+                        return;
+                    }
+                }
 
-                setOptions(response, device);
-                setResult(response, DConnectMessage.RESULT_OK);
+                List<UVCDevice.PreviewOption> options = device.getPreviewOptions();
+                if (options != null) {
+                    setOptions(response, options);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } else {
+                    MessageUtils.setUnknownError(response, "Failed to get preview options: " + device.getId());
+                }
                 sendResponse(response);
+
+                mDeviceMgr.closeDevice(device);
             }
         });
         return false;
     }
 
-    private static void setOptions(final Intent response, final UVCDevice device) {
-        List<UVCDevice.PreviewOption> options = device.getPreviewOptions();
+    private static void setOptions(final Intent response, final List<UVCDevice.PreviewOption> options) {
         if (options.size() > 0) {
             // imageWidth
             Collections.sort(options, new Comparator<UVCDevice.PreviewOption>() {
@@ -203,6 +216,13 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     sendResponse(response);
                     return;
                 }
+                if (!device.isOpen()) {
+                    if (!mDeviceMgr.openDevice(device)) {
+                        MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
+                        sendResponse(response);
+                        return;
+                    }
+                }
 
                 if (device.setNearestPreviewSize(imageWidth, imageHeight)) {
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -211,6 +231,8 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                         + imageWidth + " x " + imageHeight);
                 }
                 sendResponse(response);
+
+                mDeviceMgr.closeDevice(device);
             }
         });
         return false;
@@ -272,11 +294,19 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                 context.mWidth = getWidth(request);
                 context.mHeight = getHeight(request);
 
+                if (!device.isOpen()) {
+                    if (!mDeviceMgr.openDevice(device)) {
+                        MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
+                        sendResponse(response);
+                        return;
+                    }
+                }
+
                 if (device.startPreview()) {
                     setResult(response, DConnectMessage.RESULT_OK);
                     setUri(response, context.mServer.getUrl());
                 } else {
-                    MessageUtils.setIllegalDeviceStateError(response, "UVC device is not open.");
+                    MessageUtils.setIllegalDeviceStateError(response, "Failed to start the preview of UVC device: " + device.getId());
                 }
                 sendResponse(response);
             }
@@ -317,8 +347,9 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return;
                 }
 
-                device.stopPreview();
                 stopMediaServer(device.getId());
+                device.stopPreview();
+                mDeviceMgr.closeDevice(device);
 
                 setResult(response, DConnectMessage.RESULT_OK);
                 sendResponse(response);

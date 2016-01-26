@@ -16,6 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * HVCC2W Service Discovery Profile.
@@ -45,6 +46,7 @@ public class HVCC2WServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
                 final Map<String, HVCCameraInfo> devices = HVCManager.INSTANCE.getHVCDevices();
                 final Bundle[] services = new Bundle[devices.size()];
+                final CountDownLatch countDownLatch = new CountDownLatch(devices.size());
                 final int[] index = new int[1];
                 index[0] = 0;
                 for (String key : devices.keySet()) {
@@ -74,12 +76,20 @@ public class HVCC2WServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                             ServiceDiscoveryProfile.setOnline(service, true);
                             ServiceDiscoveryProfile.setScopes(service, getProfileProvider());
                             services[index[0]++] = service;
-                            setServices(response, services);
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            sendResponse(response);
+                            countDownLatch.countDown();
                         }
                     });
                 }
+                try {
+                    countDownLatch.await();
+                    setServices(response, services);
+                    setResult(response, DConnectMessage.RESULT_OK);
+                } catch (InterruptedException e) {
+                    if (BuildConfig.DEBUG) {
+                        e.printStackTrace();
+                    }
+                }
+                sendResponse(response);
             }
         });
         return false;

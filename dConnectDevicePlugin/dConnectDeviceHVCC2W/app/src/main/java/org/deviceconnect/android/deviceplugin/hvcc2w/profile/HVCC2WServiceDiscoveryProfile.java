@@ -6,11 +6,14 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 
+import org.deviceconnect.android.deviceplugin.hvcc2w.BuildConfig;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.HVCManager;
 import org.deviceconnect.android.deviceplugin.hvcc2w.manager.data.HVCCameraInfo;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Map;
 
@@ -39,24 +42,44 @@ public class HVCC2WServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         HVCManager.INSTANCE.getCameraList(new HVCManager.ResponseListener() {
             @Override
             public void onReceived(String json) {
-                Map<String, HVCCameraInfo> devices = HVCManager.INSTANCE.getHVCDevices();
 
-                Bundle[] services = new Bundle[devices.size()];
-                int index = 0;
+                final Map<String, HVCCameraInfo> devices = HVCManager.INSTANCE.getHVCDevices();
+                final Bundle[] services = new Bundle[devices.size()];
+                final int[] index = new int[1];
+                index[0] = 0;
                 for (String key : devices.keySet()) {
-                    HVCCameraInfo camera = devices.get(key);
-                    Bundle service = new Bundle();
-                    ServiceDiscoveryProfile.setId(service, camera.getID());
-                    ServiceDiscoveryProfile.setName(service, camera.getName());
-                    ServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
-                    ServiceDiscoveryProfile.setOnline(service, true);
-                    ServiceDiscoveryProfile.setScopes(service, getProfileProvider());
-                    services[index++] = service;
-                }
+                    final HVCCameraInfo camera = devices.get(key);
+                    HVCManager.INSTANCE.setCamera(camera.getID(), new HVCManager.ResponseListener() {
+                        @Override
+                        public void onReceived(String json) {
+                            if (json == null) {
+                                return;
+                            }
+                            try {
+                                JSONObject result = new JSONObject(json);
+                                if (result.getInt("result") != 1) {
+                                    return;
+                                }
+                            } catch (JSONException e) {
+                                if (BuildConfig.DEBUG) {
+                                    e.printStackTrace();
+                                }
+                                return;
+                            }
 
-                setServices(response, services);
-                setResult(response, DConnectMessage.RESULT_OK);
-                sendResponse(response);
+                            Bundle service = new Bundle();
+                            ServiceDiscoveryProfile.setId(service, camera.getID());
+                            ServiceDiscoveryProfile.setName(service, camera.getName());
+                            ServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
+                            ServiceDiscoveryProfile.setOnline(service, true);
+                            ServiceDiscoveryProfile.setScopes(service, getProfileProvider());
+                            services[index[0]++] = service;
+                            setServices(response, services);
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            sendResponse(response);
+                        }
+                    });
+                }
             }
         });
         return false;

@@ -568,12 +568,10 @@ public enum HVCManager {
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "json:" + json);
                 }
-                if (json != null) {
-                    HVCStorage.INSTANCE.removeUserData(lists.get(0).getEmail());
-                    mServices.clear();
-                    mEventList.clear();
-                }
-                if (l != null ){
+                HVCStorage.INSTANCE.removeUserData(lists.get(0).getEmail());
+                mServices.clear();
+                mEventList.clear();
+                if (l != null){
                     l.onReceived(json);
                 }
 
@@ -695,9 +693,9 @@ public enum HVCManager {
                             e.printStackTrace();
                         }
                     }
-                    if (l != null) {
-                        l.onReceived(json);
-                    }
+                }
+                if (l != null) {
+                    l.onReceived(json);
                 }
             }
         });

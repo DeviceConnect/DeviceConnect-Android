@@ -175,6 +175,11 @@ public class HVCC2WAccountRegisterFragment extends Fragment {
             @Override
             public void onReceived(String json) {
                 try {
+                    if (json == null) {
+                        HVCC2WDialogFragment.showAlert(getActivity(), getString(R.string.hw_name),
+                                getString(R.string.c2w_setting_error_3), null);
+                        return;
+                    }
                     JSONObject jsonObject = new JSONObject(json);
                     JSONObject result = jsonObject.getJSONObject("result");
                     String code = result.getString("code");

@@ -42,7 +42,7 @@ import java.util.logging.Logger;
 public class MixedReplaceMediaServer {
 
     /** Logger. */
-    private Logger mLogger = Logger.getLogger("sonycamera.dplugin");
+    private Logger mLogger = Logger.getLogger("uvc.dplugin");
 
     /**
      * Max value of cache of media.
@@ -302,6 +302,7 @@ public class MixedReplaceMediaServer {
         if (mStopFlag) {
             return;
         }
+        mLogger.fine("Stopping MixedReplaceMediaServer...");
         mStopFlag = true;
         mExecutor.shutdown();
         synchronized (mRunnables) {
@@ -323,7 +324,7 @@ public class MixedReplaceMediaServer {
         if (mListener != null) {
             mListener.onStop();
         }
-        mLogger.fine("MixedReplaceMediaServer is stop.");
+        mLogger.fine("MixedReplaceMediaServer has been stopped.");
     }
 
     /**
@@ -459,10 +460,6 @@ public class MixedReplaceMediaServer {
                     }
                 }
                 mRunnables.remove(this);
-
-                if (mRunnables.isEmpty()) {
-                    stop();
-                }
             }
         }
 

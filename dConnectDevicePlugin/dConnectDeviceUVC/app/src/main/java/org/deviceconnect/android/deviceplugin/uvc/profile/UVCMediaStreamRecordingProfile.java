@@ -304,6 +304,11 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                 context.mWidth = getWidth(request);
                 context.mHeight = getHeight(request);
 
+                if (context.mServer.getUrl() == null) {
+                    MessageUtils.setIllegalServerStateError(response, "Failed to start UVC preview server.");
+                    sendResponse(response);
+                    return;
+                }
                 if (!device.isOpen()) {
                     if (!mDeviceMgr.openDevice(device)) {
                         MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());

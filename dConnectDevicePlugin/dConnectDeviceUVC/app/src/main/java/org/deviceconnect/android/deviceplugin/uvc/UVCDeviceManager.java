@@ -9,11 +9,10 @@ package org.deviceconnect.android.deviceplugin.uvc;
 
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
+import android.os.Build;
 
 import com.serenegiant.usb.DeviceFilter;
 import com.serenegiant.usb.USBMonitor;
-
-import org.deviceconnect.android.deviceplugin.uvc.activity.ErrorDialogActivity;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -24,6 +23,8 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 public class UVCDeviceManager {
+
+    private static final long INTERVAL_MONITORING = 3000; // 3 seconds
 
     private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
@@ -49,11 +50,48 @@ public class UVCDeviceManager {
 
     private boolean mIsStarted;
 
+    private final Thread mMonitorThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            mLogger.info("Started UVC device monitoring: ");
+
+            Context context = mWeakContext.get();
+            if (context == null) {
+                return;
+            }
+
+            // Find UVC devices connected to Host device already.
+            try {
+                do {
+                    List<UsbDevice> usbDevices = mUSBMonitor.getDeviceList();
+                    for (UsbDevice usbDevice : usbDevices) {
+                        if (getDevice(usbDevice) != null) {
+                            continue;
+                        }
+                        UVCDevice device = new UVCDevice(usbDevice, UVCDeviceManager.this);
+                        device.addPreviewListener(mPreviewListener);
+                        pushDevice(device);
+                        notifyEventOnAttach(device);
+                    }
+
+                    Thread.sleep(INTERVAL_MONITORING);
+                } while (mIsStarted && !supportedAttachEvent());
+            } catch (InterruptedException e) {
+                // Nothing to do.
+            }
+
+            mLogger.info("Stopped UVC device monitoring.");
+        }
+    });
+
     public UVCDeviceManager(final Context context) {
         mWeakContext = new WeakReference<Context>(context);
         mUSBMonitor = new USBMonitor(context, new USBMonitor.OnDeviceConnectListener() {
             @Override
             public void onAttach(final UsbDevice usbDevice) {
+                if (!supportedAttachEvent()) {
+                    return;
+                }
                 if (usbDevice == null) {
                     return;
                 }
@@ -264,35 +302,18 @@ public class UVCDeviceManager {
         mIsStarted = true;
 
         mUSBMonitor.register();
+        mMonitorThread.start();
+    }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Context context = mWeakContext.get();
-                if (context == null) {
-                    return;
-                }
-
-                // Find UVC devices connected to Host device already.
-                List<UsbDevice> usbDevices = mUSBMonitor.getDeviceList();
-                for (UsbDevice usbDevice : usbDevices) {
-                    UVCDevice device = new UVCDevice(usbDevice, UVCDeviceManager.this);
-                    device.addPreviewListener(mPreviewListener);
-                    pushDevice(device);
-                    if (device.initialize()) {
-                        if (!device.canPreview()) {
-                            ErrorDialogActivity.showNotSupportedError(context, device);
-                        }
-                    }
-                }
-            }
-        }).start();
+    private boolean supportedAttachEvent() {
+        return Build.VERSION.SDK_INT > Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1;
     }
 
     public synchronized void stop() {
         if (!mIsStarted) {
             return;
         }
+        mMonitorThread.interrupt();
         mUSBMonitor.unregister();
         mIsStarted = false;
     }

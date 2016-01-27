@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.uvc;
 
 
+import org.deviceconnect.android.deviceplugin.uvc.activity.ErrorDialogActivity;
 import org.deviceconnect.android.deviceplugin.uvc.profile.UVCMediaStreamRecordingProfile;
 import org.deviceconnect.android.deviceplugin.uvc.profile.UVCServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.uvc.profile.UVCServiceInformationProfile;
@@ -72,8 +73,8 @@ public class UVCDeviceService extends DConnectMessageService
         if (device.initialize()) {
             mLogger.severe("UVC device has been initialized: " + device.getName());
             if (!device.canPreview()) {
-                // TODO: Show error dialog.
                 mLogger.info("UVC device CANNOT start preview: " + device.getName());
+                ErrorDialogActivity.showNotSupportedError(this, device);
             } else {
                 mLogger.info("UVC device can start preview: " + device.getName());
             }

@@ -15,6 +15,11 @@
             android:label="@string/app_name" >
         </activity>
 
+        <activity
+            android:name=".activity.ErrorDialogActivity"
+            android:theme="@style/Theme.Transparent">
+        </activity>
+
         <receiver android:name=".UVCDeviceServiceProvider" >
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"

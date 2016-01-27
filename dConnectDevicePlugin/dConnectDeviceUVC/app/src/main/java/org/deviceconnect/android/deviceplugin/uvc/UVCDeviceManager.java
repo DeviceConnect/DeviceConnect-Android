@@ -13,6 +13,9 @@ import android.hardware.usb.UsbDevice;
 import com.serenegiant.usb.DeviceFilter;
 import com.serenegiant.usb.USBMonitor;
 
+import org.deviceconnect.android.deviceplugin.uvc.activity.ErrorDialogActivity;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -42,9 +45,12 @@ public class UVCDeviceManager {
         }
     };
 
+    private final WeakReference<Context> mWeakContext;
+
     private boolean mIsStarted;
 
     public UVCDeviceManager(final Context context) {
+        mWeakContext = new WeakReference<Context>(context);
         mUSBMonitor = new USBMonitor(context, new USBMonitor.OnDeviceConnectListener() {
             @Override
             public void onAttach(final UsbDevice usbDevice) {
@@ -262,13 +268,22 @@ public class UVCDeviceManager {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                Context context = mWeakContext.get();
+                if (context == null) {
+                    return;
+                }
+
                 // Find UVC devices connected to Host device already.
                 List<UsbDevice> usbDevices = mUSBMonitor.getDeviceList();
                 for (UsbDevice usbDevice : usbDevices) {
                     UVCDevice device = new UVCDevice(usbDevice, UVCDeviceManager.this);
                     device.addPreviewListener(mPreviewListener);
                     pushDevice(device);
-                    device.initialize();
+                    if (device.initialize()) {
+                        if (!device.canPreview()) {
+                            ErrorDialogActivity.showNotSupportedError(context, device);
+                        }
+                    }
                 }
             }
         }).start();

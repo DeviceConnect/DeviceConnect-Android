@@ -19,13 +19,9 @@ import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 /**
  * Light Profile.
@@ -34,9 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class FPLUGLightProfile extends LightProfile {
 
-    private ScheduledExecutorService mFlashingService = Executors.newSingleThreadScheduledExecutor();
-    private ScheduledFuture mLatestScheduledFuture;
-    private Queue<Long> mFlashingQueue = new ConcurrentLinkedQueue<>();
+    private Map<String, FlashingExecutor> mFlashingMap = new HashMap<String, FlashingExecutor>();
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
@@ -156,46 +150,34 @@ public class FPLUGLightProfile extends LightProfile {
     }
 
     private void flashing(final FPLUGController controller, long[] flashing) {
-        if (mLatestScheduledFuture != null && !mLatestScheduledFuture.isCancelled()) {
-            mLatestScheduledFuture.cancel(false);
+        FlashingExecutor exe = mFlashingMap.get(controller.getAddress());
+        if (exe == null) {
+            exe = new FlashingExecutor();
+            mFlashingMap.put(controller.getAddress(), exe);
         }
-        mFlashingQueue.clear();
-        for (long value : flashing) {
-            mFlashingQueue.add(value);
-        }
-        mLatestScheduledFuture = mFlashingService.schedule(new Runnable() {
-            boolean isOn = true;
-
+        exe.setLightControllable(new FlashingExecutor.LightControllable() {
             @Override
-            public void run() {
+            public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
                 controller.requestLEDControl(isOn, new FPLUGRequestCallback() {
                     @Override
                     public void onSuccess(FPLUGResponse response) {
-                        next();
+                        listener.onComplete();
                     }
 
                     @Override
                     public void onError(String message) {
-                        next();
+                        listener.onComplete();
                     }
 
                     @Override
                     public void onTimeout() {
-                        next();
+                        listener.onComplete();
                     }
                 });
             }
-
-            private void next() {
-                Long interval = mFlashingQueue.poll();
-                if (interval != null) {
-                    mLatestScheduledFuture = mFlashingService.schedule(this, interval, TimeUnit.MILLISECONDS);
-                    isOn = !isOn;
-                }
-            }
-        }, mFlashingQueue.poll(), TimeUnit.MILLISECONDS);
+        });
+        exe.start(flashing);
     }
-
 
     private void sendResultOK(final Intent response) {
         setResult(response, DConnectMessage.RESULT_OK);

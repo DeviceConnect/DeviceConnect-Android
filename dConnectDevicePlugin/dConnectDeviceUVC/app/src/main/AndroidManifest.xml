@@ -3,7 +3,6 @@
     package="org.deviceconnect.android.deviceplugin.uvc" >
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:name=".UVCDeviceApplication"
@@ -14,10 +13,6 @@
         <activity
             android:name=".activity.UVCDeviceSettingsActivity"
             android:label="@string/app_name" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
         <receiver android:name=".UVCDeviceServiceProvider" >

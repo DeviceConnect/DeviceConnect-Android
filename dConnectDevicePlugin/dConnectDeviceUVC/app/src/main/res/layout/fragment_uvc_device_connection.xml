@@ -19,27 +19,11 @@
         android:orientation="vertical"
         android:padding="20dp" >
 
-        <Button
-            android:id="@+id/button_uvc_device_connection"
-            android:text="@string/uvc_device_connection"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:paddingTop="20dp"
-            android:paddingBottom="20dp"
-            android:background="@drawable/button_blue"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
         <TextView
-            android:id="@+id/text_current_uvc_device"
+            android:text="@string/settings_description_uvc_device_connection"
             android:paddingTop="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
-
-        <TextureView
-            android:id="@+id/view_preview"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
 
     </LinearLayout>
 

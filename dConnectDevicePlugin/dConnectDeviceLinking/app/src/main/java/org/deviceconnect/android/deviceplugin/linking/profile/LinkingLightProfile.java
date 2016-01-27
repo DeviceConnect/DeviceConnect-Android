@@ -19,7 +19,9 @@ import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Light Profile.
@@ -27,6 +29,8 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class LinkingLightProfile extends LightProfile {
+
+    private Map<String, FlashingExecutor> mFlashingMap = new HashMap<String, FlashingExecutor>();
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
@@ -54,7 +58,11 @@ public class LinkingLightProfile extends LightProfile {
             return true;
         }
         LinkingManager manager = LinkingManagerFactory.createManager(getContext().getApplicationContext());
-        manager.sendLEDCommand(device, true);
+        if (flashing != null) {
+            flashing(serviceId, manager, device, flashing);
+        } else {
+            manager.sendLEDCommand(device, true);
+        }
         sendResultOK(response);
         return true;
     }
@@ -70,6 +78,22 @@ public class LinkingLightProfile extends LightProfile {
         manager.sendLEDCommand(device, false);
         sendResultOK(response);
         return true;
+    }
+
+    private void flashing(String serviceId, final LinkingManager manager, final LinkingDevice device, long[] flashing) {
+        FlashingExecutor exe = mFlashingMap.get(serviceId);
+        if (exe == null) {
+            exe = new FlashingExecutor();
+            mFlashingMap.put(serviceId, exe);
+        }
+        exe.setLightControllable(new FlashingExecutor.LightControllable() {
+            @Override
+            public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
+                manager.sendLEDCommand(device, isOn);
+                listener.onComplete();
+            }
+        });
+        exe.start(flashing);
     }
 
     private void sendResultOK(final Intent response) {

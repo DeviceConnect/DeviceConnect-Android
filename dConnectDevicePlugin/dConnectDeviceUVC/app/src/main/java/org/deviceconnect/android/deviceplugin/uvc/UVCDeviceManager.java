@@ -26,7 +26,7 @@ public class UVCDeviceManager {
 
     private final USBMonitor mUSBMonitor;
 
-    private final List<UVCDevice> mConnectedDevices = new ArrayList<UVCDevice>();
+    private final List<UVCDevice> mAttachedDevices = new ArrayList<UVCDevice>();
 
     private final List<DeviceListener> mDeviceListeners = new ArrayList<DeviceListener>();
 
@@ -58,6 +58,7 @@ public class UVCDeviceManager {
                     device = new UVCDevice(usbDevice, UVCDeviceManager.this);
                     device.addPreviewListener(mPreviewListener);
                     pushDevice(device);
+                    notifyEventOnAttach(device);
                 }
             }
 
@@ -110,11 +111,6 @@ public class UVCDeviceManager {
 
     public boolean openDevice(final UVCDevice device) {
         mLogger.info("Opening Device... : " + device.getName());
-        try {
-            device.requestPermission();
-        } catch (InterruptedException e) {
-            return false;
-        }
         if (device.open()) {
             notifyEventOnOpen(device);
             return true;
@@ -133,14 +129,14 @@ public class UVCDeviceManager {
     }
 
     private void pushDevice(final UVCDevice device) {
-        synchronized (mConnectedDevices) {
-            mConnectedDevices.add(device);
+        synchronized (mAttachedDevices) {
+            mAttachedDevices.add(device);
         }
     }
 
     private UVCDevice pullDevice(final UsbDevice usbDevice) {
-        synchronized (mConnectedDevices) {
-            for (Iterator<UVCDevice> it = mConnectedDevices.iterator(); it.hasNext(); ) {
+        synchronized (mAttachedDevices) {
+            for (Iterator<UVCDevice> it = mAttachedDevices.iterator(); it.hasNext(); ) {
                 UVCDevice device = it.next();
                 if (device.isSameDevice(usbDevice)) {
                     it.remove();
@@ -152,8 +148,8 @@ public class UVCDeviceManager {
     }
 
     private UVCDevice getDevice(final UsbDevice usbDevice) {
-        synchronized (mConnectedDevices) {
-            for (Iterator<UVCDevice> it = mConnectedDevices.iterator(); it.hasNext(); ) {
+        synchronized (mAttachedDevices) {
+            for (Iterator<UVCDevice> it = mAttachedDevices.iterator(); it.hasNext(); ) {
                 UVCDevice device = it.next();
                 if (device.isSameDevice(usbDevice)) {
                     return device;
@@ -177,6 +173,20 @@ public class UVCDeviceManager {
                     it.remove();
                     return;
                 }
+            }
+        }
+    }
+
+    private void notifyEventOnAttach(final UVCDevice device) {
+        synchronized (mDeviceListeners) {
+            for (Iterator<DeviceListener> it = mDeviceListeners.iterator(); it.hasNext(); ) {
+                final DeviceListener l = it.next();
+                mExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        l.onAttach(device);
+                    }
+                });
             }
         }
     }
@@ -247,15 +257,21 @@ public class UVCDeviceManager {
         }
         mIsStarted = true;
 
-        // Find UVC devices connected to Host device already.
-        List<UsbDevice> usbDevices = mUSBMonitor.getDeviceList();
-        for (UsbDevice usbDevice : usbDevices) {
-            UVCDevice device = new UVCDevice(usbDevice, this);
-            device.addPreviewListener(mPreviewListener);
-            pushDevice(device);
-        }
-
         mUSBMonitor.register();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // Find UVC devices connected to Host device already.
+                List<UsbDevice> usbDevices = mUSBMonitor.getDeviceList();
+                for (UsbDevice usbDevice : usbDevices) {
+                    UVCDevice device = new UVCDevice(usbDevice, UVCDeviceManager.this);
+                    device.addPreviewListener(mPreviewListener);
+                    pushDevice(device);
+                    device.initialize();
+                }
+            }
+        }).start();
     }
 
     public synchronized void stop() {
@@ -267,12 +283,12 @@ public class UVCDeviceManager {
     }
 
     public List<UVCDevice> getDeviceList() {
-        return mConnectedDevices;
+        return mAttachedDevices;
     }
 
     public UVCDevice getDevice(final String id) {
-        synchronized (mConnectedDevices) {
-            for (UVCDevice device : mConnectedDevices) {
+        synchronized (mAttachedDevices) {
+            for (UVCDevice device : mAttachedDevices) {
                 if (device.getId().equals(id)) {
                     return device;
                 }
@@ -286,6 +302,8 @@ public class UVCDeviceManager {
     }
 
     public interface DeviceListener {
+
+        void onAttach(UVCDevice device);
 
         void onOpen(UVCDevice device);
 

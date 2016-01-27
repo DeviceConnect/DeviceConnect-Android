@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 
-public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceManager.DeviceListener {
+public class UVCDeviceConnectionFragment extends Fragment {
 
     private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
@@ -88,32 +88,6 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
         mCurrentDeviceTextView.setText(sb.toString());
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        UVCDeviceManager deviceMgr = getDeviceManager();
-        if (deviceMgr != null) {
-            deviceMgr.start();
-            deviceMgr.addDeviceListener(this);
-        }
-    }
-
-    @Override
-    public void onPause() {
-        UVCDevice device = getDevice();
-        if (device != null && device.isOpen()) {
-            device.stopPreview();
-            device.clearPreviewDisplay();
-        }
-        UVCDeviceManager deviceMgr = getDeviceManager();
-        if (deviceMgr != null) {
-            deviceMgr.removeDeviceListener(this);
-        }
-
-        super.onPause();
-    }
-
     private UVCDeviceManager getDeviceManager() {
         UVCDeviceSettingsActivity activity = (UVCDeviceSettingsActivity) getActivity();
         if (activity == null) {
@@ -132,16 +106,6 @@ public class UVCDeviceConnectionFragment extends Fragment implements UVCDeviceMa
             return null;
         }
         return devices.get(0);
-    }
-
-    @Override
-    public void onOpen(final UVCDevice device) {
-        updateViews(device);
-    }
-
-    @Override
-    public void onClose(final UVCDevice device) {
-        updateViews(null);
     }
 
     private class ConnectionButton implements View.OnClickListener, UVCPreviewDialogFragment.OnSelectListener  {

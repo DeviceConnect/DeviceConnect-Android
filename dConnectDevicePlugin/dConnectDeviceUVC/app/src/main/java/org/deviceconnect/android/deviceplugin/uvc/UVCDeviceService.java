@@ -23,7 +23,8 @@ import java.util.logging.Logger;
  *
  * @author NTT DOCOMO, INC.
  */
-public class UVCDeviceService extends DConnectMessageService {
+public class UVCDeviceService extends DConnectMessageService
+    implements UVCDeviceManager.DeviceListener {
 
     private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
@@ -34,6 +35,7 @@ public class UVCDeviceService extends DConnectMessageService {
         super.onCreate();
 
         mDeviceMgr = getDeviceManager();
+        mDeviceMgr.addDeviceListener(this);
         mDeviceMgr.start();
 
         addProfile(new UVCMediaStreamRecordingProfile(mDeviceMgr));
@@ -65,4 +67,28 @@ public class UVCDeviceService extends DConnectMessageService {
         return app.getDeviceManager();
     }
 
+    @Override
+    public void onAttach(final UVCDevice device) {
+        if (device.initialize()) {
+            mLogger.severe("UVC device has been initialized: " + device.getName());
+            if (!device.canPreview()) {
+                // TODO: Show error dialog.
+                mLogger.info("UVC device CANNOT start preview: " + device.getName());
+            } else {
+                mLogger.info("UVC device can start preview: " + device.getName());
+            }
+        } else {
+            mLogger.severe("UVC device COULD NOT be initialized: " + device.getName());
+        }
+    }
+
+    @Override
+    public void onOpen(final UVCDevice device) {
+        // Nothing to do.
+    }
+
+    @Override
+    public void onClose(final UVCDevice device) {
+        // Nothing to do.
+    }
 }

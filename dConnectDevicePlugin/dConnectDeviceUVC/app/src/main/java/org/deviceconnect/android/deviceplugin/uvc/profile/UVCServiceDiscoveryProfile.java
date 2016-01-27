@@ -41,6 +41,10 @@ public class UVCServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         List<UVCDevice> devices = mDeviceMgr.getDeviceList();
         List<Bundle> services = new ArrayList<Bundle>();
         for (UVCDevice device : devices) {
+            if (device.isInitialized() && !device.canPreview()) {
+                mLogger.warning("UVC device [" + device.getName() + "] CANNOT preview.");
+                continue;
+            }
             Bundle service = new Bundle();
             setId(service, device.getId());
             setName(service, "UVC: " + device.getName());

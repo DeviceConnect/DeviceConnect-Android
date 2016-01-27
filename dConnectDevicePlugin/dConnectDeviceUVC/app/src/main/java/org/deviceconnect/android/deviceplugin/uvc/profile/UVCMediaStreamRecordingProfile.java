@@ -151,6 +151,11 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                         return;
                     }
                 }
+                if (!device.canPreview()) {
+                    MessageUtils.setNotSupportAttributeError(response, "UVC device does not support MJPEG format: " + device.getId());
+                    sendResponse(response);
+                    return;
+                }
 
                 List<UVCDevice.PreviewOption> options = device.getPreviewOptions();
                 if (options != null) {
@@ -222,6 +227,11 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                         sendResponse(response);
                         return;
                     }
+                }
+                if (!device.canPreview()) {
+                    MessageUtils.setNotSupportAttributeError(response, "UVC device does not support MJPEG format: " + device.getId());
+                    sendResponse(response);
+                    return;
                 }
 
                 if (device.setNearestPreviewSize(imageWidth, imageHeight)) {
@@ -300,6 +310,11 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                         sendResponse(response);
                         return;
                     }
+                }
+                if (!device.canPreview()) {
+                    MessageUtils.setNotSupportAttributeError(response, "UVC device does not support MJPEG format: " + device.getId());
+                    sendResponse(response);
+                    return;
                 }
 
                 if (device.startPreview()) {

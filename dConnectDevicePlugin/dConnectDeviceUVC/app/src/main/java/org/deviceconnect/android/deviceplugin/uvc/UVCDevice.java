@@ -53,11 +53,15 @@ public class UVCDevice {
 
     private boolean mIsPermitted;
 
+    private boolean mIsInitialized;
+
     private boolean mIsOpen;
 
     private int mPreviewClientNum;
 
     private PreviewOption mCurrentOption = null;
+
+    private PendingPermissionRequest mPermissionRequest;
 
     UVCDevice(final UsbDevice device, final UVCDeviceManager deviceMgr) {
         mDevice = device;
@@ -85,6 +89,14 @@ public class UVCDevice {
         return mIsOpen;
     }
 
+    public boolean isInitialized() {
+        return mIsInitialized;
+    }
+
+    public boolean canPreview() {
+        return mCurrentOption != null;
+    }
+
     public boolean hasStartedPreview() {
         return mPreviewClientNum > 0;
     }
@@ -95,19 +107,50 @@ public class UVCDevice {
 
     void requestPermission() throws InterruptedException {
         synchronized (mLockPermission) {
-            while (!mIsPermitted) {
-                mDeviceMgr.requestPermission(mDevice);
+            if (mPermissionRequest == null) {
+                mPermissionRequest = new PendingPermissionRequest();
+            }
+            mDeviceMgr.requestPermission(mDevice);
+            while (mPermissionRequest != null
+                && mPermissionRequest.isWaitingResult()) {
                 mLockPermission.wait(100);
             }
+            mIsPermitted = mPermissionRequest.isPermitted();
+            mPermissionRequest = null;
         }
     }
 
     void notifyPermission(final USBMonitor.UsbControlBlock ctrlBlock) {
         synchronized (mLockPermission) {
-            mIsPermitted = ctrlBlock != null;
-            mCtrlBlock = ctrlBlock;
+            if (mPermissionRequest != null) {
+                mPermissionRequest.setResult(ctrlBlock != null);
+                mCtrlBlock = ctrlBlock;
+            }
             mLockPermission.notifyAll();
         }
+    }
+
+    synchronized boolean initialize() {
+        if (mIsInitialized) {
+            return true;
+        }
+        if (!mIsPermitted) {
+            try {
+                mLogger.info("Requesting permission...");
+                requestPermission();
+                mLogger.info("Received the response for permission request: result = " + mIsPermitted);
+            } catch (InterruptedException e) {
+                return false;
+            }
+        }
+        if (!open()) { // Check supported video formats.
+            return false;
+        }
+        if (!close()) {
+            return false;
+        }
+        mIsInitialized = true;
+        return true;
     }
 
     synchronized boolean open() {
@@ -151,6 +194,15 @@ public class UVCDevice {
         }, pixelFormat);
 
         return true;
+    }
+
+    private boolean supportsFormat(final Size previewSize) {
+        for (int format : SUPPORTED_PAYLOAD_FORMATS) {
+            if (previewSize.type == format) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Size selectSize(final List<Size> sizeList) {
@@ -323,9 +375,30 @@ public class UVCDevice {
         List<PreviewOption> options = new ArrayList<PreviewOption>();
         List<Size> supportedSizes = mCamera.getSupportedSizeList();
         for (Size size : supportedSizes) {
+            if (!supportsFormat(size)) {
+                continue;
+            }
             options.add(new PreviewOption(size));
         }
         return options;
+    }
+
+    private static class PendingPermissionRequest {
+
+        Boolean mIsPermitted;
+
+        boolean isWaitingResult() {
+            return mIsPermitted == null;
+        }
+
+        void setResult(final boolean isPermitted) {
+            mIsPermitted = isPermitted;
+        }
+
+        boolean isPermitted() {
+            return mIsPermitted;
+        }
+
     }
 
     interface PreviewListener {

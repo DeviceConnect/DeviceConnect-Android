@@ -21,6 +21,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.io.ByteArrayOutputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -85,6 +86,12 @@ public class WearCanvasProfile extends CanvasProfile {
             return true;
         }
         int mm = WearUtils.convertMode(m);
+
+        //Adjust image format and compress
+        ByteArrayOutputStream o = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, o);
+        data = o.toByteArray();
+
         getManager().sendImageData(data, (int) x, (int) y, mm, new OnDataItemResultListener() {
             @Override
             public void onResult(final DataItemResult result) {

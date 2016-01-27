@@ -390,23 +390,35 @@ public class MixedReplaceMediaServer {
                     // error
                     return;
                 }
-                decodeHeader(buf, len);
+                MediaType type = decodeHeader(buf, len);
 
                 if (mRunnables.size() > MAX_CLIENT_SIZE) {
                     mStream.write(generateServiceUnavailable().getBytes());
                     mStream.flush();
                 } else {
-                    mStream.write(generateHttpHeader().getBytes());
-                    mStream.flush();
+                    switch (type) {
+                        case MJPEG:
+                            mStream.write(generateHttpHeaderMJPEG().getBytes());
+                            mStream.flush();
 
-                    while (!mStopFlag) {
-                        byte[] media = mMediaQueue.take();
-                        if (mSocket.isClosed()) {
+                            while (!mStopFlag) {
+                                byte[] media = mMediaQueue.take();
+                                if (mSocket.isClosed()) {
+                                    break;
+                                }
+                                if (media.length > 0) {
+                                    sendMedia(media);
+                                }
+                            }
                             break;
-                        }
-                        if (media.length > 0) {
-                            sendMedia(media);
-                        }
+                        default: // JPEG
+                            byte[] media = mMediaQueue.take();
+                            mStream.write(generateHttpHeaderJPEG(media.length).getBytes());
+                            if (media.length > 0) {
+                                mStream.write(media);
+                            }
+                            mStream.flush();
+                            break;
                     }
                 }
             } catch (InterruptedException e) {
@@ -487,9 +499,10 @@ public class MixedReplaceMediaServer {
          * Decode a Http header.
          * @param buf buffer of http header
          * @param len buffer size
+         * @return media type
          * @throws IOException if this http header is invalid.
          */
-        private void decodeHeader(final byte[] buf, final int len) throws IOException {
+        private MediaType decodeHeader(final byte[] buf, final int len) throws IOException {
             HashMap<String, String> pre = new HashMap<String, String>();
             HashMap<String, String> headers = new HashMap<String, String>();
             HashMap<String, String> params = new HashMap<String, String>();
@@ -549,6 +562,12 @@ public class MixedReplaceMediaServer {
             if (segment == null || !segment.equals(mPath)) {
                 throw new IOException("Header is invalid format.");
             }
+
+            if (params.containsKey("snapshot")) {
+                return MediaType.JPEG;
+            } else {
+                return MediaType.MJPEG;
+            }
         }
 
         /**
@@ -588,10 +607,10 @@ public class MixedReplaceMediaServer {
     }
 
     /**
-     * Generate a http header.
+     * Generate a http header for MJPEG.
      * @return http header
      */
-    private String generateHttpHeader() {
+    private String generateHttpHeaderMJPEG() {
         StringBuilder sb = new StringBuilder();
         sb.append("HTTP/1.0 200 OK\r\n");
         sb.append("Server: " + mServerName + "\r\n");
@@ -604,6 +623,21 @@ public class MixedReplaceMediaServer {
         sb.append("boundary=" + mBoundary + "\r\n");
         sb.append("\r\n");
         sb.append("--" + mBoundary + "\r\n");
+        return sb.toString();
+    }
+
+    /**
+     * Generate a http header for plain JPEG.
+     * @return http header
+     */
+    private String generateHttpHeaderJPEG(final int length) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("HTTP/1.0 200 OK\r\n");
+        sb.append("Server: " + mServerName + "\r\n");
+        sb.append("Connection: close\r\n");
+        sb.append("Content-Type: image/jpeg\r\n");
+        sb.append("Content-Length: " + length + "\r\n");
+        sb.append("\r\n");
         return sb.toString();
     }
 
@@ -643,5 +677,22 @@ public class MixedReplaceMediaServer {
         sb.append("Connection: close\r\n");
         sb.append("\r\n");
         return sb.toString();
+    }
+
+    /**
+     * Media type requested by clients.
+     */
+    private enum MediaType {
+
+        /**
+         * Media Type: Motion-JPEG.
+         */
+        MJPEG,
+
+        /**
+         * Media Type: JPEG.
+         */
+        JPEG
+
     }
 }

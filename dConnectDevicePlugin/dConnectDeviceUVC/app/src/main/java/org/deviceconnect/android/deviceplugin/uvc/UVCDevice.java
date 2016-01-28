@@ -59,7 +59,11 @@ public class UVCDevice {
 
     private int mPreviewClientNum;
 
-    private PreviewOption mCurrentOption = null;
+    private PreviewOption mCurrentOption;
+
+    private Long mMinFrameInterval;
+
+    private long mLastFrameTime = -1;
 
     private PendingPermissionRequest mPermissionRequest;
 
@@ -146,6 +150,7 @@ public class UVCDevice {
         if (!open()) { // Check supported video formats.
             return false;
         }
+        mLogger.info("UVC device: name = " + getName() + ", supported format = " + mCamera.getSupportedSize());
         if (!close()) {
             return false;
         }
@@ -189,6 +194,9 @@ public class UVCDevice {
         mCamera.setPreviewFrameCallback(new IPreviewFrameCallback() {
             @Override
             public void onFrame(final byte[] frame) {
+                if (checkFrameInterval()) {
+                    return;
+                }
                 notifyPreviewFrame(frame, frameFormat, width, height);
             }
         }, pixelFormat);
@@ -232,10 +240,24 @@ public class UVCDevice {
         Collections.sort(list, new Comparator<Size>() {
             @Override
             public int compare(final Size s1, final Size s2) {
-                return s2.width * s2.height - s1.width * s1.height;
+                return s1.width * s1.height - s2.width * s2.height;
+                //return s2.width * s2.height - s1.width * s1.height;
             }
         });
         return list.get(0);
+    }
+
+    private boolean checkFrameInterval() {
+        if (mMinFrameInterval == null) {
+            mLogger.info("checkFrameInterval: Use default interval.");
+            return false;
+        }
+        long currentFrameTime = System.currentTimeMillis();
+        if (mLastFrameTime < 0 || currentFrameTime - mLastFrameTime >= mMinFrameInterval) {
+            mLastFrameTime = currentFrameTime;
+            return false;
+        }
+        return true;
     }
 
     private void notifyPreviewFrame(final byte[] frame, final int frameFormat,
@@ -291,6 +313,10 @@ public class UVCDevice {
         } catch (IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public void setPreviewFrameRate(final Float maxFrameRate) {
+        mMinFrameInterval = maxFrameRate == null ? null : (long) (1000 / maxFrameRate);
     }
 
     public boolean setNearestPreviewSize(final int requestedWidth,
@@ -359,13 +385,11 @@ public class UVCDevice {
     }
 
     public int getPreviewWidth() {
-        Size size = mCamera.getPreviewSize();
-        return size.width;
+        return mCurrentOption.getWidth();
     }
 
     public int getPreviewHeight() {
-        Size size = mCamera.getPreviewSize();
-        return size.height;
+        return mCurrentOption.getHeight();
     }
 
     public synchronized List<PreviewOption> getPreviewOptions() {

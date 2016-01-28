@@ -43,6 +43,8 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
 
     private static final String PARAM_HEIGHT = "height";
 
+    private static final String PARAM_MAX_FRAME_RATE = "maxFrameRate";
+
     private static final String RECORDER_ID = "0";
 
     private static final String RECORDER_MIME_TYPE_MJPEG = "video/x-mjpeg";
@@ -64,7 +66,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         @Override
         public void onFrame(final UVCDevice device, final byte[] frame, final int frameFormat,
                             final int width, final int height) {
-            mLogger.info("onFrame: " + frame.length);
+            //mLogger.info("onFrame: " + frame.length);
 
             if (frameFormat != UVCCamera.FRAME_FORMAT_MJPEG) {
                 mLogger.warning("onFrame: unsupported frame format: " + frameFormat);
@@ -95,6 +97,12 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                 UVCDevice device = mDeviceMgr.getDevice(serviceId);
                 if (device == null) {
                     MessageUtils.setNotFoundServiceError(response);
+                    sendResponse(response);
+                    return;
+                }
+                if (!device.isInitialized()) {
+                    MessageUtils.setIllegalDeviceStateError(response,
+                        "UVC device is not permitted by user: " + device.getName());
                     sendResponse(response);
                     return;
                 }
@@ -299,6 +307,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     sendResponse(response);
                     return;
                 }
+                device.setPreviewFrameRate(getMaxFrameRate(request));
 
                 PreviewContext context = startMediaServer(device.getId());
                 context.mWidth = getWidth(request);
@@ -335,20 +344,28 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
     }
 
     private static boolean checkPreviewParams(final Intent request, final Intent response) {
-        if (!checkType(request, response, PARAM_WIDTH)) {
+        if (!checkTypeInteger(request, response, PARAM_WIDTH)) {
             return false;
         }
-        if (!checkType(request, response, PARAM_HEIGHT)) {
+        if (!checkTypeInteger(request, response, PARAM_HEIGHT)) {
+            return false;
+        }
+        if (!checkTypeFloat(request, response, PARAM_MAX_FRAME_RATE)) {
             return false;
         }
         Integer width = getWidth(request);
         Integer height = getHeight(request);
+        Float maxFrameRate = getMaxFrameRate(request);
         if (width != null && width <= 0) {
             MessageUtils.setInvalidRequestParameterError(response, PARAM_WIDTH + " must be positive.");
             return false;
         }
         if (height != null && height <= 0) {
             MessageUtils.setInvalidRequestParameterError(response, PARAM_HEIGHT + " must be positive.");
+            return false;
+        }
+        if (maxFrameRate != null && maxFrameRate <= 0.0f) {
+            MessageUtils.setInvalidRequestParameterError(response, PARAM_MAX_FRAME_RATE + " must be positive.");
             return false;
         }
         return true;
@@ -407,8 +424,12 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         return parseInteger(request, PARAM_HEIGHT);
     }
 
-    private static boolean checkType(final Intent request, final Intent response,
-                              final String paramName) {
+    private static Float getMaxFrameRate(final Intent request) {
+        return parseFloat(request, PARAM_MAX_FRAME_RATE);
+    }
+
+    private static boolean checkTypeInteger(final Intent request, final Intent response,
+                                            final String paramName) {
         if (!request.hasExtra(paramName)) {
             return true;
         }
@@ -420,11 +441,33 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                 Integer.parseInt((String) param);
                 return true;
             } catch (NumberFormatException e) {
-                MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid format.");
+                MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid format: " + param);
                 return false;
             }
         } else {
-            MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid type.");
+            MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid type: " + param);
+            return false;
+        }
+    }
+
+    private static boolean checkTypeFloat(final Intent request, final Intent response,
+                                          final String paramName) {
+        if (!request.hasExtra(paramName)) {
+            return true;
+        }
+        Object param = request.getExtras().get(paramName);
+        if (param instanceof Float) {
+            return true;
+        } else if (param instanceof String) {
+            try {
+                Float.parseFloat((String) param);
+                return true;
+            } catch (NumberFormatException e) {
+                MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid format: " + param);
+                return false;
+            }
+        } else {
+            MessageUtils.setInvalidRequestParameterError(response, paramName + " is invalid type: " + param);
             return false;
         }
     }

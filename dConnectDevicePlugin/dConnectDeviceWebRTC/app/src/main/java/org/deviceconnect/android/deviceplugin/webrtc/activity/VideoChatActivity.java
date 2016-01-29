@@ -253,7 +253,7 @@ public class VideoChatActivity extends Activity {
     }
 
     private void updateVideoView() {
-        mRemoteLayout.setPosition(0,0,100,100);
+        mRemoteLayout.setPosition(0, 0, 100, 90);
         mRemoteRender.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
         mRemoteRender.setMirror(false);
 
@@ -317,7 +317,7 @@ public class VideoChatActivity extends Activity {
         mOption.setVideoFacing(videoFacing);
         mOption.setVideoType(mVideoType);
         mOption.setVideoUri(mVideoUri);
-        mOption.setVideoRender(mRemoteRender);
+        mOption.setVideoRender(mLocalRender);
         mOption.setAudioType(mAudioType);
         mOption.setAudioUri(mAudioUri);
         mOption.setNoAudioProcessing(audioFormat.isNoAudioProcessing());
@@ -407,7 +407,7 @@ public class VideoChatActivity extends Activity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mediaStream.setVideoRender(mLocalRender);
+                    mediaStream.setVideoRender(mRemoteRender);
                 }
             });
         }

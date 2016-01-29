@@ -55,17 +55,20 @@ public class HVCC2WServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                         @Override
                         public void onReceived(String json) {
                             if (json == null) {
+                                countDownLatch.countDown();
                                 return;
                             }
                             try {
                                 JSONObject result = new JSONObject(json);
                                 if (result.getInt("result") != 1) {
+                                    countDownLatch.countDown();
                                     return;
                                 }
                             } catch (JSONException e) {
                                 if (BuildConfig.DEBUG) {
                                     e.printStackTrace();
                                 }
+                                countDownLatch.countDown();
                                 return;
                             }
 
@@ -82,7 +85,9 @@ public class HVCC2WServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                 }
                 try {
                     countDownLatch.await();
-                    setServices(response, services);
+                    if (services[0] != null) {
+                        setServices(response, services);
+                    }
                     setResult(response, DConnectMessage.RESULT_OK);
                 } catch (InterruptedException e) {
                     if (BuildConfig.DEBUG) {

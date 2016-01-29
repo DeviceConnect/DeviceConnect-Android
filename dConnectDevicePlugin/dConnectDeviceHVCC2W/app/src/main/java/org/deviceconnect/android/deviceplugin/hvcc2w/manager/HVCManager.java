@@ -49,8 +49,10 @@ import jp.co.omron.hvcw.ResultGender;
 import jp.co.omron.hvcw.ResultRecognition;
 
 /**
- * Created by hoshit on 2016/01/14.
+ * HVC Manager.
+ * @author NTT DOCOMO, INC.
  */
+
 public enum HVCManager {
     /**
      * Singleton instance.

@@ -106,11 +106,11 @@ public class HVCC2WDeviceService extends DConnectMessageService
             @Override
             public void onReceived(String json) {
                 try {
-                    Double bodyThreshold = HumanDetectProfile.getThreshold(request);
-                    Double bodyMin = HumanDetectProfile.getMinWidth(request) != null
+                    Double threshold = HumanDetectProfile.getThreshold(request);
+                    Double min = HumanDetectProfile.getMinWidth(request) != null
                             ? HumanDetectProfile.getMinWidth(request)
                             : HumanDetectProfile.getMinHeight(request);
-                    Double bodyMax = HumanDetectProfile.getMaxWidth(request) != null
+                    Double max = HumanDetectProfile.getMaxWidth(request) != null
                             ? HumanDetectProfile.getMaxWidth(request)
                             : HumanDetectProfile.getMaxHeight(request);
 
@@ -129,19 +129,23 @@ public class HVCC2WDeviceService extends DConnectMessageService
                         interval = new Long(HVCManager.PARAM_INTERVAL_MIN);
                     }
                     List<String> options = HumanDetectProfile.getOptions(request);
-                    HVCManager.INSTANCE.setThreshold(bodyThreshold, null, null, null, null);
-                    HVCManager.INSTANCE.setMinMaxSize(bodyMin, bodyMax, null, null, null, null, null, null);
                     EventError error = EventManager.INSTANCE.addEvent(request);
 
                     if (error == EventError.NONE) {
                         switch (kind) {
                             case BODY:
+                                HVCManager.INSTANCE.setThreshold(threshold, null, null, null, null);
+                                HVCManager.INSTANCE.setMinMaxSize(min, max, null, null, null, null, null, null);
                                 HVCManager.INSTANCE.addBodyDetectEventListener(serviceId, HVCC2WDeviceService.this);
                                 break;
                             case HAND:
+                                HVCManager.INSTANCE.setThreshold(null, threshold, null, null, null);
+                                HVCManager.INSTANCE.setMinMaxSize(null, null, min, max, null, null, null, null);
                                 HVCManager.INSTANCE.addHandDetectEventListener(serviceId, HVCC2WDeviceService.this);
                                 break;
                             case FACE:
+                                HVCManager.INSTANCE.setThreshold(null, null, null, threshold, null);
+                                HVCManager.INSTANCE.setMinMaxSize(null, null, null, null, null, null, min, max);
                                 HVCManager.INSTANCE.addFaceDetectEventListener(serviceId, HVCC2WDeviceService.this, options);
                                 break;
                             default:
@@ -212,17 +216,17 @@ public class HVCC2WDeviceService extends DConnectMessageService
      * @param kind Detect type
      * @param options FaceDetectOptions
      */
-    public void doGetHumanDetectProfile(final Intent request, final Intent response, String serviceId,
+    public void doGetHumanDetectProfile(final Intent request, final Intent response, final String serviceId,
                                         final HumanDetectKind kind, final List<String> options) {
         HVCManager.INSTANCE.setCamera(serviceId, new HVCManager.ResponseListener() {
             @Override
             public void onReceived(String json) {
                 try {
-                    Double bodyThreshold = HumanDetectProfile.getThreshold(request);
-                    Double bodyMin = HumanDetectProfile.getMinWidth(request) != null
+                    Double threshold = HumanDetectProfile.getThreshold(request);
+                    Double min = HumanDetectProfile.getMinWidth(request) != null
                             ? HumanDetectProfile.getMinWidth(request)
                             : HumanDetectProfile.getMinHeight(request);
-                    Double bodyMax = HumanDetectProfile.getMaxWidth(request) != null
+                    Double max = HumanDetectProfile.getMaxWidth(request) != null
                             ? HumanDetectProfile.getMaxWidth(request)
                             : HumanDetectProfile.getMaxHeight(request);
 
@@ -236,20 +240,26 @@ public class HVCC2WDeviceService extends DConnectMessageService
                     HumanDetectProfile.getGazeThreshold(request);
                     HumanDetectProfile.getExpressionThreshold(request);
 
-                    HVCManager.INSTANCE.setThreshold(bodyThreshold, null, null, null, null);
-                    HVCManager.INSTANCE.setMinMaxSize(bodyMin, bodyMax, null, null, null, null, null, null);
                     HumanDetectProfile.getInterval(request, HVCManager.PARAM_INTERVAL_MIN,
                             HVCManager.PARAM_INTERVAL_MAX);
-
-                    OkaoResult result = HVCManager.INSTANCE.execute();
+                    OkaoResult result;
                     switch (kind) {
                         case BODY:
+                            HVCManager.INSTANCE.setThreshold(threshold, null, null, null, null);
+                            HVCManager.INSTANCE.setMinMaxSize(min, max, null, null, null, null, null, null);
+                            result = HVCManager.INSTANCE.execute();
                             makeBodyDetectResultResponse(response, result);
                             break;
                         case HAND:
+                            HVCManager.INSTANCE.setThreshold(null, threshold, null, null, null);
+                            HVCManager.INSTANCE.setMinMaxSize(null, null, min, max, null, null, null, null);
+                            result = HVCManager.INSTANCE.execute();
                             makeHandDetectResultResponse(response, result);
                             break;
                         case FACE:
+                            HVCManager.INSTANCE.setThreshold(null, null, null, threshold, null);
+                            HVCManager.INSTANCE.setMinMaxSize(null, null, null, null, null, null, min, max);
+                            result = HVCManager.INSTANCE.execute();
                             makeFaceDetectResultResponse(response, result, options);
                             break;
                         default:

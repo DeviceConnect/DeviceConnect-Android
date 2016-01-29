@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.webrtc.core;
 
+import android.hardware.Camera;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
@@ -372,7 +373,21 @@ public class MediaStream {
             mEnableVideo = false;
             return null;
         } else {
-            String deviceName = CameraEnumerationAndroid.getDeviceName(0);
+            String deviceName = null;
+            switch (mOption.getVideoFacing()) {
+                case Camera.CameraInfo.CAMERA_FACING_BACK:
+                    deviceName = CameraEnumerationAndroid.getNameOfBackFacingDevice();
+                    break;
+                case Camera.CameraInfo.CAMERA_FACING_FRONT:
+                    deviceName = CameraEnumerationAndroid.getNameOfFrontFacingDevice();
+                    break;
+                default:
+                    deviceName = CameraEnumerationAndroid.getDeviceName(0);
+                    break;
+            }
+            if (deviceName == null) {
+                deviceName = CameraEnumerationAndroid.getDeviceName(0);
+            }
             VideoCapturerAndroid videoCapturer  = VideoCapturerAndroid.create(deviceName,
                     new VideoCapturerAndroid.CameraEventsHandler() {
                         @Override

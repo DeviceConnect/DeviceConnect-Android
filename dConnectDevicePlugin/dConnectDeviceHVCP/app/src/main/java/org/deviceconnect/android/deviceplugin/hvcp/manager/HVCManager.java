@@ -221,10 +221,13 @@ public enum HVCManager {
      */
     private final int CMD_SET_SIZE = 4;
     /**
-     * Command type.
+     * Command mType.
      */
-    private int type = 0;
-
+    private int mType = 0;
+    /**
+     * Now interval.
+     */
+    private Long mNowInterval = PARAM_INTERVAL_MIN;
     /**
      * HVC Cameras.
      */
@@ -251,7 +254,7 @@ public enum HVCManager {
             }
             String action = intent.getAction();
             if (BuildConfig.DEBUG) {
-                Log.d("ABC", "action:" + action);
+                Log.d(TAG, "action:" + action);
             }
             UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
             if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
@@ -260,7 +263,6 @@ public enum HVCManager {
                 HVCManager.INSTANCE.init(context);
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "device:true:" + device.getDeviceId());
-                    Log.d(TAG, "device:true:" + device.getDeviceName());
                 }
             } else {
                 if (BuildConfig.DEBUG) {
@@ -279,7 +281,7 @@ public enum HVCManager {
         mOneShotList = new ArrayList<String>();
 
         mTimer = new Handler();
-        type = CMD_UNKNOWN;
+        mType = CMD_UNKNOWN;
     }
     /**
      * Return HVC Cameras.
@@ -341,7 +343,7 @@ public enum HVCManager {
         }
         HVCCameraInfo camera = mServices.get(serviceId);
         camera.setBodyEvent(l);
-        type = CMD_OKAO_EXECUTE;
+        mType = CMD_OKAO_EXECUTE;
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "register body event ");
         }
@@ -362,7 +364,7 @@ public enum HVCManager {
         }
         HVCCameraInfo camera = mServices.get(serviceId);
         camera.setHandEvent(l);
-        type = CMD_OKAO_EXECUTE;
+        mType = CMD_OKAO_EXECUTE;
         sendCommand(OKAO_EXECUTE, interval);
     }
 
@@ -384,7 +386,7 @@ public enum HVCManager {
         HVCCameraInfo camera = mServices.get(serviceId);
         camera.setOptions(options);
         camera.setFaceEvent(l);
-        type = CMD_OKAO_EXECUTE;
+        mType = CMD_OKAO_EXECUTE;
         sendCommand(OKAO_EXECUTE, interval);
     }
 
@@ -412,7 +414,7 @@ public enum HVCManager {
                 break;
             default:
         }
-        type = CMD_OKAO_EXECUTE;
+        mType = CMD_OKAO_EXECUTE;
         sendCommand(OKAO_EXECUTE, new Long(1));
     }
 
@@ -449,7 +451,7 @@ public enum HVCManager {
         mOneShotList.add(serviceId);
         HVCCameraInfo camera = mServices.get(serviceId);
         camera.setThresholdSet(l);
-        type = CMD_SET_THRESHOLD;
+        mType = CMD_SET_THRESHOLD;
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Set threshold cmd:" + cmdThreshold.toString());
         }
@@ -504,7 +506,7 @@ public enum HVCManager {
         mOneShotList.add(serviceId);
         HVCCameraInfo camera = mServices.get(serviceId);
         camera.setSizeSet(l);
-        type = CMD_SET_SIZE;
+        mType = CMD_SET_SIZE;
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Set size cmd:" + cmdThreshold.toString());
         }
@@ -560,8 +562,9 @@ public enum HVCManager {
             @Override
             public void run() {
                 try {
-                        byte buf[] = new byte[32768];
-                        int num = mUsbDriver.read(buf, buf.length);
+                    byte buf[] = new byte[32768];
+                    int num = mUsbDriver.read(buf, buf.length);
+
                     if (num > 0) {
                             int buf_pos = 0;
                             for (int i = 0; i + buf_pos < num; i++) {
@@ -576,7 +579,7 @@ public enum HVCManager {
                         }
                         for (String key : mServices.keySet()) {
                             HVCCameraInfo camera = mServices.get(key);
-                                if (type == CMD_OKAO_EXECUTE) {
+                                if (mType == CMD_OKAO_EXECUTE) {
                                     if (buf[0] == (byte) 0xfe) {
                                         OkaoResult result = parseOkaoResult(buf);
                                         if (camera.getBodyEvent() != null) {
@@ -606,12 +609,8 @@ public enum HVCManager {
                                             camera.setFaceGet(null);
                                             mOneShotList.remove(key);
                                         }
-                                    } else {
-                                        if (BuildConfig.DEBUG) {
-                                            Log.d(TAG, "no data");
-                                        }
                                     }
-                                } else if (type == CMD_SET_THRESHOLD) {
+                                } else if (mType == CMD_SET_THRESHOLD) {
                                     if (buf[0] == (byte) 0xfe && camera.getThresholdSet() != null) {
                                         camera.getThresholdSet().onResponse(buf[1]);
                                         camera.setThresholdSet(null);
@@ -624,7 +623,7 @@ public enum HVCManager {
                                             Log.d(TAG, "SET Threshold no response");
                                         }
                                     }
-                                } else if (type == CMD_SET_SIZE) {
+                                } else if (mType == CMD_SET_SIZE) {
                                     if (buf[0] == (byte) 0xfe && camera.getSizeSet() != null) {
                                         camera.getSizeSet().onResponse(buf[1]);
                                         camera.setSizeSet(null);
@@ -643,10 +642,13 @@ public enum HVCManager {
                     if (BuildConfig.DEBUG) {
                         e.printStackTrace();
                     }
+                    mEventList.clear();
+                    mOneShotList.clear();
+                    return;
                 }
                 if (mEventList.size() > 0 || mOneShotList.size() > 0) {
 
-                    if (type == CMD_OKAO_EXECUTE) {
+                    if (mType == CMD_OKAO_EXECUTE) {
                         byte send[] = hex2bin(OKAO_EXECUTE);
                         try {
                             mUsbDriver.write(send, send.length);
@@ -654,12 +656,16 @@ public enum HVCManager {
                             if (BuildConfig.DEBUG) {
                                 e.printStackTrace();
                             }
+                            mEventList.clear();
+                            mOneShotList.clear();
+                            return;
                         }
                     }
                     mTimer.postDelayed(this, interval.longValue());
                 }
             }
         }, interval.longValue());
+        mNowInterval = interval;
     }
 
     @NonNull
@@ -765,15 +771,12 @@ public enum HVCManager {
             return;
         }
 
-// Open a connection to the first available driver.
         UsbSerialDriver driver = availableDrivers.get(0);
         UsbDeviceConnection connection = mUsbManager.openDevice(driver.getDevice());
         if (connection == null) {
             // You probably need to call UsbManager.requestPermission(driver.getDevice(), ..)
             return;
         }
-
-// Read some data! Most have just one port (port 0).
         mUsbDriver = driver.getPorts().get(0);
 
         if (mUsbDriver != null) {
@@ -781,11 +784,12 @@ public enum HVCManager {
                 mUsbDriver.open(connection);
 
                 mUsbDriver.setParameters(921600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
-//                mUsbDriver.setReadBufferSize(921600);
 
                 startReadThread(stCommand, interval);
                 byte send[] = hex2bin(stCommand);
                 mUsbDriver.write(send, send.length);
+
+
             } catch (IOException e) {
                 if (BuildConfig.DEBUG) {
                     e.printStackTrace();

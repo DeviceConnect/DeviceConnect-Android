@@ -56,9 +56,6 @@ public class HVCPDeviceService extends DConnectMessageService
                 return;
             }
             String action = intent.getAction();
-            if (BuildConfig.DEBUG) {
-                Log.d("ABC", "action:" + action);
-            }
             if (action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
                 synchronized (this) {
                     UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);

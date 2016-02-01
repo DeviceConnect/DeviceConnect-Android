@@ -201,7 +201,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
                             }
 
                             @Override
-                            public void onProjected(final Projector projector, byte[] frame) {
+                            public void onProjected(final Projector projector, final byte[] frame) {
                                 mServer.offerMedia(id, frame);
                             }
 

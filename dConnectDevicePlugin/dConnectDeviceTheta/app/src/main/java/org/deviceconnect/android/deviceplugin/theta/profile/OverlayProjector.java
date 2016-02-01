@@ -191,8 +191,8 @@ class OverlayProjector extends AbstractProjector {
         });
 
         final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
-            (int) (width * getScaledDensity()),
-            (int) (height * getScaledDensity()),
+            width,
+            height,
             WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
@@ -223,8 +223,8 @@ class OverlayProjector extends AbstractProjector {
             @Override
             public void run() {
                 final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
-                    (int) (width * getScaledDensity()),
-                    (int) (height * getScaledDensity()),
+                    width,
+                    height,
                     WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                         | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN

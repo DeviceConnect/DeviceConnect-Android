@@ -306,4 +306,13 @@ public class OmnidirectionalImageProfile extends DConnectProfile
     public static Boolean getVR(final Intent request) {
         return parseBoolean(request, PARAM_VR);
     }
+
+    /**
+     * Gets output formats from the specified request.
+     * @param request Request data
+     * @return output formats
+     */
+    public static String getOutput(final Intent request) {
+        return request.getStringExtra(PARAM_OUTPUT);
+    }
 }

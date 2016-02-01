@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.theta.profile;
 
 import android.content.Intent;
 
-import org.deviceconnect.android.deviceplugin.theta.ThetaDeviceService;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceClient;
 import org.deviceconnect.android.deviceplugin.theta.core.ThetaDeviceException;
 import org.deviceconnect.android.message.MessageUtils;
@@ -74,10 +73,6 @@ public class ThetaBatteryProfile extends BatteryProfile {
 
         });
         return false;
-    }
-
-    private void sendResponse(final Intent response) {
-        ((ThetaDeviceService) getContext()).sendResponse(response);
     }
 
 }

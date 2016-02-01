@@ -508,10 +508,6 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
         return ((ThetaDeviceService) getContext());
     }
 
-    private void sendResponse(final Intent response) {
-        ((ThetaDeviceService) getContext()).sendResponse(response);
-    }
-
     private static Integer getWidth(final Intent request) {
         return parseInteger(request, PARAM_WIDTH);
     }

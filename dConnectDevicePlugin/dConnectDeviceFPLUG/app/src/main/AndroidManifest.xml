@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.deviceconnect.android.deviceplugin.fplug">
+<manifest
+    package="org.deviceconnect.android.deviceplugin.fplug"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 
     <application
         android:name=".FPLUGApplication"
@@ -21,43 +22,21 @@
             android:exported="true">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
-                android:resource="@xml/deviceplugin" />
+                android:resource="@xml/deviceplugin"/>
         </receiver>
 
         <service
             android:name=".FPLUGDeviceService"
             android:enabled="true"
-            android:exported="false" />
-
-        <!-- 再起動用のService. -->
-        <service
-            android:name="org.deviceconnect.android.message.DConnectLaunchService"
-            android:exported="true">
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:value="enable" />
-        </service>
+            android:exported="false"/>
 
         <activity
             android:name=".setting.SettingActivity"
             android:configChanges="orientation|screenSize"
+            android:exported="false"
             android:label="@string/app_name"
-            android:launchMode="singleInstance" />
+            android:launchMode="singleInstance"/>
 
-        <!-- LocalOAuth ユーザ認可ダイアログ用Activity -->
-        <activity
-            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:excludeFromRecents="true"
-            android:exported="false" />
-
-        <!-- LocalOAuth ユーザ認可ダイアログ用Service -->
-        <service
-            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service" />
-            </intent-filter>
-        </service>
     </application>
 
 </manifest>

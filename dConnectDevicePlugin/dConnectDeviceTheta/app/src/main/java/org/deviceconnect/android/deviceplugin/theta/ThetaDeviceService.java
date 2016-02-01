@@ -42,7 +42,6 @@ import java.util.List;
 public class ThetaDeviceService extends DConnectMessageService {
 
     private static final String TYPE_NONE = "none";
-
     private ThetaDeviceManager mDeviceMgr;
     private ThetaDeviceClient mClient;
 

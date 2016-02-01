@@ -62,24 +62,24 @@ public class KadecotLightProfile extends LightProfile {
                     getLight(request, response);
                 } else {
                     MessageUtils.setNotSupportAttributeError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             } else if (action.endsWith(DConnectMessage.METHOD_POST)) {
                 if (attr == null) {
                     postLight(request, response);
                 } else {
                     MessageUtils.setNotSupportAttributeError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             } else if (action.endsWith(DConnectMessage.METHOD_PUT)) {
                 MessageUtils.setNotSupportAttributeError(response);
-                getContext().sendBroadcast(response);
+                sendResponse(response);
             } else if (action.endsWith(DConnectMessage.METHOD_DELETE)) {
                 if (attr == null) {
                     deleteLight(request, response);
                 } else {
                     MessageUtils.setNotSupportAttributeError(response);
-                    getContext().sendBroadcast(response);
+                    sendResponse(response);
                 }
             }
             return null;
@@ -137,7 +137,7 @@ public class KadecotLightProfile extends LightProfile {
             }
         }
         response.putExtra(PARAM_LIGHTS, lightsParam.toArray(new Bundle[lightsParam.size()]));
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -189,7 +189,7 @@ public class KadecotLightProfile extends LightProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     @Override
@@ -239,7 +239,7 @@ public class KadecotLightProfile extends LightProfile {
                 createInvalidKadecotResponseError(response);
             }
         }
-        getContext().sendBroadcast(response);
+        sendResponse(response);
     }
 
     /**

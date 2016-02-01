@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    package="org.deviceconnect.android"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="1"
+    android:versionName="1.0">
+
+    <uses-sdk
+        android:minSdkVersion="14"
+        android:targetSdkVersion="19"/>
+
+    <application>
+        <!--
+        The following activities will be merged into a module that depends on this library.
+        -->
+        <activity
+            android:name=".activity.IntentHandlerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Transparent"/>
+
+        <activity
+            android:name=".activity.PermissionRequestActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Dialog.Transparent"/>
+
+        <service
+            android:name="org.deviceconnect.android.message.DConnectLaunchService"
+            android:exported="true">
+            <meta-data
+                android:name="org.deviceconnect.android.deviceplugin"
+                android:value="enable"/>
+        </service>
+
+        <!-- LocalOAuth -->
+        <activity
+            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"/>
+
+        <activity
+            android:name="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity"
+            android:excludeFromRecents="true"
+            android:exported="false">
+        </activity>
+
+        <service
+            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
+            android:exported="false"/>
+    </application>
+</manifest>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Host (Device Connect Device Plug-in)</string>
+    <string name="app_name">Host (Device Web API device plug-in)</string>
 
     <string name="shutter">Shutter</string>
     <string name="zoomin">Zoomin</string>
@@ -19,4 +19,3 @@
     <string name="overlay_preview_content_title">Being captured by the camera</string>
     <string name="overlay_preview_content_message">You can stop the capture by click.</string>
 </resources>
-

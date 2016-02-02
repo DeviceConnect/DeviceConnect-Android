@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.text.TextUtils;
@@ -24,6 +25,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.manager.hmac.HmacManager;
 import org.deviceconnect.android.manager.setting.SettingActivity;
+import org.deviceconnect.android.observer.receiver.MonacaReceiver;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.io.UnsupportedEncodingException;
@@ -66,6 +68,7 @@ public class DConnectLaunchActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dconnect_launcher);
+
         mHmacManager = new HmacManager(this);
 
         mMessageView = (TextView) findViewById(R.id.text_manager_launcher_message);
@@ -81,6 +84,13 @@ public class DConnectLaunchActivity extends Activity {
         Intent i1 = new Intent();
         i1.setClass(this, DConnectService.class);
         startService(i1);
+
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            if (extras.containsKey(MonacaReceiver.MONACA)) {
+                initMonaca();
+            }
+        }
     }
 
     @Override
@@ -129,6 +139,7 @@ public class DConnectLaunchActivity extends Activity {
         Intent bindIntent = new Intent(IDConnectService.class.getName());
         bindIntent.setPackage(getPackageName());
         bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+
     }
 
     @Override
@@ -225,6 +236,7 @@ public class DConnectLaunchActivity extends Activity {
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             mDConnectService = (IDConnectService) service;
+            sDConnectService = mDConnectService;
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -243,4 +255,36 @@ public class DConnectLaunchActivity extends Activity {
             mDConnectService = null;
         }
     };
+
+    private void initMonaca() {
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = getIntent();
+                if (intent.getStringExtra(MonacaReceiver.MONACA).equals(MonacaReceiver.MONACA_START)) {
+                    if (mDConnectService != null) {
+                        try {
+                            mDConnectService.start();
+                        } catch (RemoteException e) {
+                            // do nothing
+                            mLogger.warning("Failed to start service");
+                        }
+                    }
+                }
+                if (intent.getStringExtra(MonacaReceiver.MONACA).equals(MonacaReceiver.MONACA_STOP)) {
+                    if (mDConnectService != null) {
+                        try {
+                            mDConnectService.stop();
+                        } catch (RemoteException e) {
+                            // do nothing
+                            mLogger.warning("Failed to stop service");
+                        }
+                    }
+                }
+                finish();
+            }
+        }, 100);
+    }
+    public static IDConnectService sDConnectService;
 }

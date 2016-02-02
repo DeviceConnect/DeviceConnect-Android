@@ -180,6 +180,16 @@
                 <action android:name="org.deviceconnect.android.intent.action.observer.CHECK"/>
             </intent-filter>
         </receiver>
+
+        <!-- Monaca BroadcastReceiver. -->
+        <receiver android:name="org.deviceconnect.android.observer.receiver.MonacaReceiver">
+            <intent-filter>
+                <action android:name="org.deviceconnect.android.intent.action.observer.MONACA_START"/>
+                <action android:name="org.deviceconnect.android.intent.action.observer.MONACA_STOP"/>
+                <action android:name="org.deviceconnect.android.intent.action.observer.MONACA_CHECK"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

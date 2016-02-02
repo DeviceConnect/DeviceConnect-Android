@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">hue (Device Connect Device Plug-in)</string>
+    <string name="app_name">hue (Device Web API device plug-in)</string>
     <string name="index1">[1/4] hueの検索</string>
     <string name="index2">[2/4] hueへの接続設定</string>
     <string name="index3">[3/4] ライトの設定</string>

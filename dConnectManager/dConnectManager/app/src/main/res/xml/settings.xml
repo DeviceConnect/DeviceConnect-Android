@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
+  <PreferenceCategory android:title="@string/activity_settings_demo_link" >
+      <PreferenceScreen
+          android:key="@string/key_settings_demo_link"
+          android:title="@string/activity_settings_demo_link" />
+  </PreferenceCategory>
     <PreferenceCategory android:title="@string/activity_settings_server_on_off" >
         <org.deviceconnect.android.manager.setting.SwitchPreference
             android:key="@string/key_settings_dconn_server_on_off"

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Device Connect Manager</string>
+    <string name="app_name">Device Web API Manager</string>
     <string name="description"></string>
 
     <!-- ================= DConnectLaunchActivity ================= -->
@@ -61,6 +61,8 @@
     <string name="activity_settings_yes">はい</string>
     <string name="activity_settings_no">いいえ</string>
     <string name="activity_settings_close">閉じる</string>
+    <string name="activity_settings_demo_link">デモアプリへのリンク</string>
+    <string name="activity_settings_consortium_link">デバイスWebAPIコンソーシアム</string>
 
     <string name="activity_settings_web_server_settings">Webサーバ設定</string>
     <string name="activity_settings_web_server">Webサーバ</string>
@@ -93,7 +95,9 @@
     <string name="key_settings_web_server_host">key_settings_web_server_host</string>
     <string name="key_settings_web_server_port">key_settings_web_server_port</string>
     <string name="key_settings_web_server_document_root_path">key_settings_web_server_document_root_path</string>
-
+    <string name="key_settings_demo_link">settings_demo_link</string>
+    <string name="key_settings_about_consortium_link">settings_about_consortium_link</string>
+    
     <!-- ================= WhitelistActivity ================= -->
     <string name="activity_whitelist_title">Originホワイトリスト</string>
     <string name="no_origin">ユーザーによって許可されている\nOriginはありません。</string>
@@ -415,7 +419,7 @@
         <item></item>
         <item>zoom</item>
     </string-array>
-    
+
     <!-- Dice API -->
     <string name="dice_profile">camera</string>
 
@@ -427,7 +431,7 @@
         <item>ondice</item>
         <item>onmagnetometer</item>
     </string-array>
-    
+
     <!-- Temperature API -->
     <string name="temperature_profile">camera</string>
 
@@ -437,7 +441,7 @@
     <string-array name="temperature_attrib_list">
         <item></item>
     </string-array>
-    
+
     <!-- drive_controller API -->
     <string name="drive_controller_profile">drive_controller</string>
 
@@ -449,7 +453,7 @@
         <item>stop</item>
         <item>rotate</item>
     </string-array>
-   
+
     <!-- remote_controller API -->
     <string name="remote_controller_profile">remote_controller</string>
 
@@ -459,8 +463,8 @@
     <string-array name="remote_controller_attrib_list">
         <item></item>
     </string-array>
-        
-    
+
+
     <!-- sphero API -->
     <string name="sphero_profile">sphero</string>
 
@@ -476,7 +480,7 @@
         <item>onlocator</item>
         <item>oncollision</item>
     </string-array>
-        
+
     <!-- MHealth API -->
     <string name="mhealth_profile">mhealth</string>
 

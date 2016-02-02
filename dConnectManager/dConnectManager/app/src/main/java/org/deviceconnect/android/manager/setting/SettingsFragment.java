@@ -14,12 +14,14 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -51,7 +53,7 @@ import java.util.Random;
 
 /**
  * 設定画面Fragment.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
@@ -240,7 +242,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public boolean onPreferenceChange(final Preference preference, final Object newValue) {
         final String key = preference.getKey();
         if (preference instanceof EditTextPreference) {
-            if (getString(R.string.key_settings_dconn_port).equals(key) || 
+            if (getString(R.string.key_settings_dconn_port).equals(key) ||
                     getString(R.string.key_settings_web_server_port).equals(key)) {
                 String value = newValue.toString();
                 try {
@@ -411,6 +413,28 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
             fragment.show(getFragmentManager(), null);
         } else if (getString(R.string.key_settings_restart_device_plugin).equals(preference.getKey())) {
             restartDevicePlugins();
+        } else if (getString(R.string.key_settings_demo_link).equals(preference.getKey())) {
+        	Uri uri = Uri.parse("http://www.gclue.io/dwa/demo.html");
+        	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        	intent.setPackage("com.android.chrome");
+        	try {
+            	startActivity(intent);
+        	} catch (ActivityNotFoundException ex) {
+        	    // Chrome browser presumably not installed so allow user to choose instead
+        	    intent.setPackage(null);
+            	startActivity(intent);
+            }
+        } else if (getString(R.string.key_settings_about_consortium_link).equals(preference.getKey())) {
+        	Uri uri = Uri.parse("http://device-webapi.org/index.html");
+        	Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        	intent.setPackage("com.android.chrome");
+        	try {
+            	startActivity(intent);
+        	} catch (ActivityNotFoundException ex) {
+        	    // Chrome browser presumably not installed so allow user to choose instead
+        	    intent.setPackage(null);
+            	startActivity(intent);
+          }
         }
         showIPAddress();
 
@@ -458,7 +482,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
     /**
      * キーワードを作成する.
-     * 
+     *
      * @return キーワード
      */
     private String createKeyword() {
@@ -475,7 +499,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
     /**
      * dConnectManagerの監視サービスの起動状態を取得する.
-     * 
+     *
      * @return 起動している場合はtrue、それ以外はfalse
      */
     private boolean isObservationServices() {
@@ -507,7 +531,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
 
     /**
      * Start a device plugin.
-     * 
+     *
      * @param plugin device plugin to be started
      */
     private void restartDevicePlugin(final DevicePlugin plugin) {
@@ -543,7 +567,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         EditTextPreference editHostPreferences = (EditTextPreference) getPreferenceScreen()
                 .findPreference(getString(R.string.key_settings_dconn_host));
         editHostPreferences.setSummary(ipAddress);
-        
+
         // Set Host IP Address.
         EditTextPreference webHostPref = (EditTextPreference)
                 getPreferenceScreen().findPreference(getString(R.string.key_settings_web_server_host));

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/activity_settings_server_on_off" >
+        <org.deviceconnect.android.manager.setting.SwitchPreference
+            android:key="@string/key_settings_dconn_server_on_off"
+            android:summaryOff="@string/activity_settings_dconnect_disabled"
+            android:summaryOn="@string/activity_settings_dconnect_enabled"
+            android:title="@string/app_name" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/activity_settings_device_plugin" >
+        <PreferenceScreen
+            android:key="@string/key_settings_list_device_plugin"
+            android:title="@string/activity_settings_list_device_plugin" >
+            <intent android:targetPackage="org.deviceconnect.android.manager"
+                    android:targetClass="org.deviceconnect.android.manager.setting.DevicePluginListActivity" />
+        </PreferenceScreen>
+        <PreferenceScreen
+            android:key="@string/key_settings_restart_device_plugin"
+            android:title="@string/activity_settings_restart_device_plugin" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/activity_settings_server_settings" >
+        <EditTextPreference
+            android:defaultValue="@string/activity_settings_default_host"
+            android:key="@string/key_settings_dconn_host"
+            android:summary="@string/activity_settings_default_host"
+            android:title="@string/activity_settings_host" />
+        <EditTextPreference
+            android:defaultValue="@string/activity_settings_default_port"
+            android:inputType="number"
+            android:key="@string/key_settings_dconn_port"
+            android:summary="@string/activity_settings_default_port"
+            android:title="@string/activity_settings_port" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/activity_settings_security" >
+        <CheckBoxPreference
+            android:key="@string/key_settings_dconn_ssl"
+            android:summaryOff="@string/activity_settings_dconn_disabled"
+            android:summaryOn="@string/activity_settings_dconn_enabled"
+            android:title="@string/activity_settings_ssl" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="@string/key_settings_dconn_allow_external_ip"
+            android:summaryOff="@string/activity_settings_dconn_disabled"
+            android:summaryOn="@string/activity_settings_dconn_enabled"
+            android:title="@string/activity_settings_allow_external_ip" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="@string/key_settings_dconn_local_oauth"
+            android:summary="@string/activity_settings_local_oauth_summary"
+            android:title="@string/activity_settings_local_oauth" />
+        <PreferenceScreen
+            android:key="@string/key_settings_list_access_token"
+            android:title="@string/activity_settings_list_access_token_list" >
+            <intent android:targetPackage="org.deviceconnect.android.manager"
+                    android:targetClass="org.deviceconnect.android.localoauth.activity.AccessTokenListActivity" />
+        </PreferenceScreen>
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="@string/key_settings_dconn_require_origin"
+            android:summary="@string/activity_settings_require_origin_summary"
+            android:title="@string/activity_settings_require_origin" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="@string/key_settings_dconn_whitelist_origin_blocking"
+            android:summary="@string/activity_settings_whitelist_enable_summary"
+            android:title="@string/activity_settings_whitelist_enable" />
+        <PreferenceScreen
+            android:key="@string/key_settings_dconn_whitelist"
+            android:title="@string/activity_settings_manage_whitelist">
+            <intent android:targetPackage="org.deviceconnect.android.manager"
+                    android:targetClass="org.deviceconnect.android.manager.policy.WhitelistActivity" />
+        </PreferenceScreen>
+        <CheckBoxPreference
+            android:key="@string/key_settings_dconn_observer_on_off"
+            android:summary="@string/activity_settings_observer_summary"
+            android:title="@string/activity_settings_observer" />
+        <EditTextPreference
+            android:defaultValue="@string/activity_settings_default_keyword"
+            android:key="@string/key_settings_dconn_keyword"
+            android:summary="@string/activity_settings_default_keyword"
+            android:title="@string/activity_settings_keyword" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/activity_settings_web_server_settings" >
+        <org.deviceconnect.android.manager.setting.SwitchPreference
+            android:key="@string/key_settings_web_server_on_off"
+            android:summaryOff="@string/activity_settings_dconnect_disabled"
+            android:summaryOn="@string/activity_settings_dconnect_enabled"
+            android:title="@string/activity_settings_web_server" />
+        <EditTextPreference
+            android:key="@string/key_settings_web_server_host"
+            android:summary="@string/activity_settings_web_server_default_host"
+            android:title="@string/activity_settings_host" />
+        <EditTextPreference
+            android:defaultValue="@string/activity_settings_web_server_default_port"
+            android:inputType="number"
+            android:key="@string/key_settings_web_server_port"
+            android:title="@string/activity_settings_port" />
+        <EditTextPreference
+            android:key="@string/key_settings_web_server_document_root_path"
+            android:title="@string/activity_settings_web_server_document_root" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/activity_settings_about" >
+        <PreferenceScreen
+            android:key="@string/key_settings_open_source_licenses"
+            android:summary="@string/activity_settings_open_source_licenses_summary"
+            android:title="@string/activity_settings_open_source_licenses" />
+        <PreferenceScreen
+            android:key="@string/key_settings_about_tos"
+            android:title="@string/activity_settings_terms_of_service" />
+        <PreferenceScreen
+            android:key="@string/key_settings_about_privacypolicy"
+            android:title="@string/activity_settings_privacy_policy" />
+        <PreferenceScreen
+            android:key="@string/key_settings_about_appinfo"
+            android:summary="@string/activity_settings_app_infomation_summary"
+            android:title="@string/app_name" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

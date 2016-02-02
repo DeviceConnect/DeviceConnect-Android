@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="org.deviceconnect.android.deviceplugin.heartrate">
 
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 
@@ -27,7 +29,6 @@
             android:exported="false">
         </activity>
 
-
         <!-- ============================================================== -->
         <!-- Service -->
         <!-- ============================================================== -->
@@ -49,33 +50,6 @@
             android:exported="false">
         </service>
 
-        <!-- ============================================================== -->
-        <!-- Restart service -->
-        <!-- ============================================================== -->
-        <service
-            android:name="org.deviceconnect.android.message.DConnectLaunchService"
-            android:exported="true">
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:value="enable"/>
-        </service>
-
-        <!-- ============================================================== -->
-        <!-- LocalOAuth -->
-        <!-- ============================================================== -->
-        <activity
-            android:name="org.deviceconnect.android.localoauth.activity.ConfirmAuthActivity"
-            android:excludeFromRecents="true"
-            android:exported="false">
-        </activity>
-
-        <service
-            android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"/>
-            </intent-filter>
-        </service>
     </application>
 
 </manifest>

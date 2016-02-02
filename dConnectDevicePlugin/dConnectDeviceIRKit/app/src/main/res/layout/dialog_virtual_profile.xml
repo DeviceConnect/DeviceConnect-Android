@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical" android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:background="#CCFFFF"
+              android:padding="10dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/select_category"
+        android:layout_gravity="left"
+        />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/select_light"
+        android:id="@+id/select_light"
+        android:background="@drawable/button_pink"
+        />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/select_tv"
+        android:id="@+id/select_tv"
+        android:background="@drawable/button_blue"
+        />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/alert_btn_close"
+        android:background="@drawable/button_dark"
+        android:id="@+id/close" />
+</LinearLayout>

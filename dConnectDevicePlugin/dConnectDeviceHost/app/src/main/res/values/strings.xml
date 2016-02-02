@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Host (Device Connect Device Plug-in)</string>
+
+    <string name="shutter">Shutter</string>
+    <string name="zoomin">Zoomin</string>
+    <string name="zoomout">Zoomout</string>
+
+    <string name="stop_btn">Stop</string>
+
+    <string name="touch_activity">Touch Activity</string>
+
+    <string name="canvas_profile_view_close_guidance">tap to close.</string>
+    <string name="keyevent_activity">Key Event Activity</string>
+
+    <string name="overlay_preview">PREVIEW</string>
+    <string name="overlay_preview_ticker">Start the camera</string>
+    <string name="overlay_preview_content_title">Being captured by the camera</string>
+    <string name="overlay_preview_content_message">You can stop the capture by click.</string>
+</resources>
+

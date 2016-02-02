@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Device Connect Manager</string>
+    <string name="description"></string>
+
+    <!-- ================= DConnectLaunchActivity ================= -->
+    <string name="activity_launch_button_launch">Launch</string>
+    <string name="activity_launch_button_stop">Stop</string>
+    <string name="activity_launch_button_cancel">Cancel</string>
+    <string name="activity_launch_button_settings">Settings</string>
+    <string name="activity_launch_message_launch">Please click the below button\nto launch Device Connect Manager.</string>
+    <string name="activity_launch_message_stop">Please click the below button\nto stop Device Connect Manager.</string>
+
+    <!-- ================= SettingsActivity ================= -->
+
+    <string name="activity_settings_server_on_off">Device Connect Manager</string>
+    <string name="activity_settings_observer">使用ポート監視</string>
+    <string name="activity_settings_observer_summary">他のアプリによってポートが占有された場合、なりすましが発生する可能性があることを通知します。</string>
+    <string name="activity_settings_allow_external_ip">外部IPを許可</string>
+    <string name="activity_settings_require_origin">Origin有効化</string>
+    <string name="activity_settings_require_origin_summary">リクエストにOriginヘッダーが設定されていることを要求します。</string>
+    <string name="activity_settings_server_keyword">キーワード</string>
+    <string name="activity_settings_server_settings">設定</string>
+    <string name="activity_settings_dconnect_enabled">オン</string>
+    <string name="activity_settings_dconnect_disabled">オフ</string>
+    <string name="activity_settings_default_keyword"></string>
+    <string name="activity_settings_keyword">キーワード</string>
+    <string name="activity_settings_ssl">SSL</string>
+    <string name="activity_settings_host">Host</string>
+    <string name="activity_settings_port">Port</string>
+    <string name="activity_settings_default_host">localhost</string>
+    <string name="activity_settings_document_root">ドキュメントルートパス</string>
+    <string name="activity_settings_default_port">4035</string>
+    <string name="activity_settings_local_oauth">Local OAuth</string>
+    <string name="activity_settings_local_oauth_summary">ユーザによってアプリケーションを認可します。</string>
+    <string name="activity_settings_dconn_enabled">有効</string>
+    <string name="activity_settings_dconn_disabled">無効</string>
+    <string name="activity_settings_list_access_token_list">アクセストークン管理</string>
+    <string name="activity_settings_terms_of_service">Terms of Service</string>
+    <string name="activity_settings_privacy_policy">Privacy Policy</string>
+    <string name="activity_settings_open_source_licenses">Open Source Licenses</string>
+    <string name="activity_settings_open_source_licenses_summary">Legal information about licenses</string>
+    <string name="activity_settings_app_infomation_summary">Version %1$s</string>
+    <string name="activity_settings_about">About</string>
+    <string name="activity_settings_general">General</string>
+    <string name="activity_settings_not_logged_in">Not logged in yet</string>
+    <string name="activity_settings_security">セキュリティ</string>
+    <string name="activity_settings_whitelist">Whitelist</string>
+    <string name="activity_settings_whitelist_enable">Originブロック機能</string>
+    <string name="activity_settings_whitelist_enable_summary">Originホワイトリストに含まれないOrigin上のアプリからのアクセスをブロックします。</string>
+    <string name="activity_settings_manage_whitelist">Originホワイトリスト管理</string>
+    <string name="activity_settings_device_plugin">デバイスプラグイン</string>
+    <string name="activity_settings_list_device_plugin">デバイスプラグイン管理</string>
+    <string name="activity_settings_restart_device_plugin">全デバイスプラグインを再起動</string>
+    <string name="activity_settings_restart_device_plugin_title">デバイスプラグインを再起動しています</string>
+    <string name="activity_settings_restart_device_plugin_message">処理中</string>
+    <string name="activity_settings_warning_require_origin_disabled">下記の機能がアプリのOriginを参照するため、下記もOFFに切り替わります。\n\n%1\nよろしいですか？</string>
+    <string name="activity_settings_warning_require_origin_enabled">本機能はアプリのOriginを参照するため、下記もONに切り替わります。\n\n%1\nよろしいですか？</string>
+    <string name="activity_settings_warning">警告</string>
+    <string name="activity_settings_yes">はい</string>
+    <string name="activity_settings_no">いいえ</string>
+    <string name="activity_settings_close">閉じる</string>
+
+    <string name="activity_settings_web_server_settings">Webサーバ設定</string>
+    <string name="activity_settings_web_server">Webサーバ</string>
+    <string name="activity_settings_web_server_default_host">localhost</string>
+    <string name="activity_settings_web_server_default_port">8080</string>
+    <string name="activity_settings_web_server_document_root">ドキュメントルートパス</string>
+
+    <!-- ================= SharedPreferences ================= -->
+
+    <string name="key_settings_about_appinfo">settings_about_appinfo</string>
+    <string name="key_settings_dconn_server_on_off">settings_dconn_server_on_off</string>
+    <string name="key_settings_dconn_observer_on_off">settings_dconn_observer_on_off</string>
+    <string name="key_settings_dconn_keyword">settings_dconn_server_keyword</string>
+    <string name="key_settings_dconn_allow_external_ip">settings_dconn_allow_external_ip</string>
+    <string name="key_settings_dconn_require_origin">settings_dconn_require_origin</string>
+    <string name="key_settings_dconn_ssl">settings_dconn_ssl</string>
+    <string name="key_settings_dconn_host">settings_dconn_host</string>
+    <string name="key_settings_dconn_port">settings_dconn_port</string>
+    <string name="key_settings_dconn_local_oauth">settings_dconn_local_oauth</string>
+    <string name="key_settings_list_access_token">settings_list_access_token</string>
+    <string name="key_settings_dconn_observation_interval">key_settings_dconn_observation_interval</string>
+    <string name="key_settings_open_source_licenses">settings_open_source_licenses</string>
+    <string name="key_settings_about_privacypolicy">settings_about_privacypolicy</string>
+    <string name="key_settings_about_tos">settings_about_tos</string>
+    <string name="key_settings_dconn_whitelist">settings_whitelist</string>
+    <string name="key_settings_dconn_whitelist_origin_blocking">settings_whitelist_origin_blocking</string>
+    <string name="key_settings_list_device_plugin">settings_list_device_plugin</string>
+    <string name="key_settings_restart_device_plugin">settings_device_plugin</string>
+    <string name="key_settings_web_server_on_off">key_settings_web_server_on_off</string>
+    <string name="key_settings_web_server_host">key_settings_web_server_host</string>
+    <string name="key_settings_web_server_port">key_settings_web_server_port</string>
+    <string name="key_settings_web_server_document_root_path">key_settings_web_server_document_root_path</string>
+
+    <!-- ================= WhitelistActivity ================= -->
+    <string name="activity_whitelist_title">Originホワイトリスト</string>
+    <string name="no_origin">ユーザーによって許可されている\nOriginはありません。</string>
+    <string name="dialog_delete_origin_message">このOriginをホワイトリストから削除してよろしいですか?</string>
+    <string name="dialog_delete_origin_positive">削除</string>
+    <string name="dialog_delete_origin_negative">キャンセル</string>
+    <string name="menu_add_origin">追加</string>
+    <string name="dialog_add_origin_title">Originを追加する</string>
+    <string name="dialog_add_origin_positive">追加</string>
+    <string name="dialog_add_origin_negative">キャンセル</string>
+    <string name="dialog_update_origin_title">Origin設定を更新する</string>
+    <string name="dialog_update_origin_positive">更新</string>
+    <string name="dialog_update_origin_negative">キャンセル</string>
+    <string name="dialog_origin_manual_entry_item_title">タイトル</string>
+    <string name="dialog_origin_manual_entry_item_origin">Origin</string>
+    <string name="dialog_origin_manual_entry_message">少なくともOriginを入力してください。</string>
+    <string-array name="whitelist_menu_origin_pre_marshmallow">
+        <item>Chromeのブックマークから追加</item>
+        <item>インストール済みのアプリを追加</item>
+        <item>手入力で追加</item>
+    </string-array>
+    <string-array name="whitelist_menu_origin_post_marshmallow">
+        <item>インストール済みのアプリを追加</item>
+        <item>手入力で追加</item>
+    </string-array>
+
+    <!-- ================= DevicePluginListActivity ================= -->
+    <string name="activity_devicepluginlist_title">デバイスプラグイン一覧</string>
+    <string name="activity_devicepluginlist_version">バージョン: </string>
+
+    <!-- ================= DevicePluginInfoActivity ================= -->
+    <string name="activity_deviceplugin_info_title">デバイスプラグイン情報</string>
+    <string name="activity_deviceplugin_info_version">バージョン: </string>
+    <string name="activity_deviceplugin_info_restart">再起動</string>
+    <string name="activity_deviceplugin_info_uninstall">削除</string>
+    <string name="activity_deviceplugin_info_settings">設定</string>
+    <string name="activity_deviceplugin_info_open_settings">設定を開く</string>
+    <string name="activity_deviceplugin_info_profile">プロファイル</string>
+
+    <!-- ================= KeywordDialogActivity ================= -->
+    <string name="activity_keyword">Keyword</string>
+    <string name="activity_keyword_ok">OK</string>
+
+    <!-- ================= WarningDialogActivity ================= -->
+    <string name="activity_warning">警告</string>
+    <string name="activity_warning_mess">DeviceConnect以外のアプリケーションがポートを利用しているため、d-Connectを起動することができません。</string>
+    <string name="activity_warning_ok">OK</string>
+    <string name="activity_warning_disable">次から表示しない</string>
+
+    <!-- ================= DConnectObservationService ================= -->
+    <string name="service_observation_warning">警告</string>
+    <string name="service_observation_msg_no_permission">ファイル読み込み権限が拒否されたため、ポート監視が中断されました。</string>
+
+    <string name="service_web_server">Webサーバ</string>
+
+    <!-- =================     DebugActivity     ================= -->
+
+    <string name="contents"></string>
+    <string name="action_settings">Settings</string>
+    <string name="action_menu">Menu</string>
+    <string name="action_search">Network Service Discovery</string>
+    <string name="action_access_token">Request AccessToken</string>
+    <string name="action_input_session_key">Input SessionKey</string>
+    <string name="discovery">servicediscovery</string>
+    <string name="http_method">HTTP Method:</string>
+    <string name="profile">Profile:</string>
+    <string name="interfaces">Interfaces:</string>
+    <string name="attribute">Attribute:</string>
+    <string name="serviceid">Service ID:</string>
+    <string name="send_request">Send</string>
+    <string name="select_or_url">Parameter or URL</string>
+    <string name="url_hint1">param1=xxx&amp;param2=yyy</string>
+    <string name="url_hint2">/profile/interfaces/attribute?param1=xxx</string>
+    <string name="content_description"></string>
+    <string name="websocket_open">WebSocket Open</string>
+    <string name="websocket_close">WebSocket Close</string>
+
+    <!-- ================= Chrome for Android ================= -->
+    <string name="chrome_bookmark_provider_url">content://com.android.chrome.browser/bookmarks</string>
+
+    <!-- ================= API ================= -->
+
+    <string name="authorization_profile">/authorization</string>
+
+    <string-array name="authorization_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="authorization_attrib_list">
+        <item></item>
+        <item>create_client</item>
+        <item>request_accesstoken</item>
+    </string-array>
+
+    <!-- ServiceDiscovery API -->
+    <string name="servicediscovery_profile">servicediscovery</string>
+
+    <string-array name="servicediscovery_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="servicediscovery_attrib_list">
+        <item></item>
+        <item>onservicechange</item>
+    </string-array>
+
+    <!-- ServiceInformation API -->
+    <string name="serviceinformation_profile">serviceinformation</string>
+
+    <string-array name="serviceinformation_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="serviceinformation_attrib_list">
+        <item></item>
+    </string-array>
+
+    <!-- System API -->
+    <string name="system_profile">system</string>
+
+    <string-array name="system_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="system_attrib_list">
+        <item></item>
+        <item>wakeup</item>
+        <item>keyword</item>
+        <item>events</item>
+    </string-array>
+
+    <!-- File API -->
+    <string name="file_profile">file</string>
+
+    <string-array name="file_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="file_attrib_list">
+        <item></item>
+        <item>send</item>
+        <item>receive</item>
+        <item>list</item>
+        <item>remove</item>
+        <item>mkdir</item>
+        <item>rmdir</item>
+    </string-array>
+
+    <!-- MediaStream Recording API -->
+    <string name="mediastream_recording_profile">mediastream_recording</string>
+
+    <string-array name="mediastream_recording_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="mediastream_recording_attrib_list">
+        <item></item>
+        <item>mediarecorder</item>
+        <item>takephoto</item>
+        <item>record</item>
+        <item>pause</item>
+        <item>resume</item>
+        <item>stop</item>
+        <item>mutetrack</item>
+        <item>unmutetrack</item>
+        <item>options</item>
+        <item>onphoto</item>
+    </string-array>
+
+    <!-- Phone Call API -->
+    <string name="phone_profile">phone</string>
+
+    <string-array name="phone_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="phone_attrib_list">
+        <item></item>
+        <item>call</item>
+        <item>set</item>
+    </string-array>
+
+    <!-- File Descriptor API -->
+    <string name="file_descriptor_profile">file_descriptor</string>
+
+    <string-array name="file_descriptor_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="file_descriptor_attrib_list">
+        <item></item>
+        <item>open</item>
+        <item>close</item>
+        <item>read</item>
+        <item>write</item>
+    </string-array>
+
+    <!-- proximity API -->
+    <string name="proximity_profile">rssi</string>
+
+    <string-array name="proximity_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="proximity_attrib_list">
+        <item></item>
+        <item>ondeviceproximity</item>
+        <item>onuserproximity</item>
+    </string-array>
+    <!-- Setting API -->
+    <string name="settings_profile">settings</string>
+
+    <string-array name="settings_interface_list">
+        <item></item>
+        <item>sound</item>
+        <item>display</item>
+    </string-array>
+    <string-array name="settings_attrib_list">
+        <item></item>
+        <item>volume</item>
+        <item>date</item>
+        <item>sleep</item>
+        <item>light</item>
+    </string-array>
+
+    <!-- Vibration API -->
+    <string name="vibration_profile">vibration</string>
+
+    <string-array name="vibration_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="vibration_attrib_list">
+        <item></item>
+        <item>vibrate</item>
+    </string-array>
+    <!-- Notification API -->
+    <string name="notification_profile">notification</string>
+
+    <string-array name="notification_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="notification_attrib_list">
+        <item></item>
+        <item>notify</item>
+    </string-array>
+
+    <!-- Battery API -->
+    <string name="battery_profile">battery</string>
+
+    <string-array name="battery_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="battery_attrib_list">
+        <item></item>
+        <item>charging</item>
+        <item>level</item>
+        <item>onchargingchange</item>
+        <item>onbatterychange</item>
+    </string-array>
+
+    <!-- Media Player API -->
+    <string name="media_player_profile">media_player</string>
+
+    <string-array name="media_player_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="media_player_attrib_list">
+        <item></item>
+        <item>media</item>
+        <item>media_list</item>
+        <item>play_status</item>
+        <item>play</item>
+        <item>stop</item>
+        <item>pause</item>
+        <item>resume</item>
+        <item>seek</item>
+        <item>volume</item>
+        <item>mute</item>
+        <item>onstatuschange</item>
+    </string-array>
+
+    <!-- Connect API -->
+    <string name="connect_recording_profile">connect</string>
+
+    <string-array name="connect_interface_list">
+        <item></item>
+        <item>wifi</item>
+        <item>bluetooth</item>
+        <item>nfc</item>
+    </string-array>
+    <string-array name="connect_attrib_list">
+        <item></item>
+        <item>discoverable</item>
+    </string-array>
+
+    <!-- Smart Sensor API -->
+    <string name="deviceorientation_profile">deviceorientation</string>
+
+    <string-array name="deviceorientation_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="deviceorientation_attrib_list">
+        <item></item>
+        <item>ondeviceorientation</item>
+    </string-array>
+
+    <!-- Light API -->
+    <string name="light_profile">light</string>
+
+    <string-array name="light_interface_list">
+        <item></item>
+        <item>group</item>
+    </string-array>
+    <string-array name="light_attrib_list">
+        <item></item>
+        <item>group</item>
+        <item>create</item>
+        <item>clear</item>
+    </string-array>
+
+    <!-- Camera API -->
+    <string name="camera_profile">camera</string>
+
+    <string-array name="camera_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="camera_attrib_list">
+        <item></item>
+        <item>zoom</item>
+    </string-array>
+    
+    <!-- Dice API -->
+    <string name="dice_profile">camera</string>
+
+    <string-array name="dice_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="dice_attrib_list">
+        <item></item>
+        <item>ondice</item>
+        <item>onmagnetometer</item>
+    </string-array>
+    
+    <!-- Temperature API -->
+    <string name="temperature_profile">camera</string>
+
+    <string-array name="temperature_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="temperature_attrib_list">
+        <item></item>
+    </string-array>
+    
+    <!-- drive_controller API -->
+    <string name="drive_controller_profile">drive_controller</string>
+
+    <string-array name="drive_controller_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="drive_controller_attrib_list">
+        <item>move</item>
+        <item>stop</item>
+        <item>rotate</item>
+    </string-array>
+   
+    <!-- remote_controller API -->
+    <string name="remote_controller_profile">remote_controller</string>
+
+    <string-array name="remote_controller_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="remote_controller_attrib_list">
+        <item></item>
+    </string-array>
+        
+    
+    <!-- sphero API -->
+    <string name="sphero_profile">sphero</string>
+
+    <string-array name="sphero_interface_list">
+        <item></item>
+        <item>quaternion</item>
+        <item>locator</item>
+        <item>collision</item>
+    </string-array>
+    <string-array name="sphero_attrib_list">
+        <item></item>
+        <item>onquaternion</item>
+        <item>onlocator</item>
+        <item>oncollision</item>
+    </string-array>
+        
+    <!-- MHealth API -->
+    <string name="mhealth_profile">mhealth</string>
+
+    <string-array name="mhealth_interface_list">
+        <item></item>
+    </string-array>
+    <string-array name="mhealth_attrib_list">
+        <item></item>
+        <item>setting</item>
+        <item>startgateway</item>
+        <item>stopgateway</item>
+        <item>startservice</item>
+        <item>stopservice</item>
+        <item>getmeasurements</item>
+        <item>sendmeasurement</item>
+        <item>deletemeasurement</item>
+        <item>setserverparameter</item>
+        <item>setmfcpermission</item>
+        <item>startmfcdetect</item>
+        <item>stopmfcdetect</item>
+        <item>insertmeasurement</item>
+        <item>getstatus</item>
+        <item>getdbinfo</item>
+        <item>startscanwithfilteringlist</item>
+        <item>stopscan</item>
+        <item>connectbledevice</item>
+        <item>disconnectbledevice</item>
+        <item>getscanresult</item>
+    </string-array>
+
+    <!-- Profile一覧 -->
+    <string-array name="dconnect_profile_list">
+        <item></item>
+        <item>authorization</item>
+        <item>battery</item>
+        <item>connect</item>
+        <item>deviceorientation</item>
+        <item>file_descriptor</item>
+        <item>file</item>
+        <item>media_player</item>
+        <item>mediastream_recording</item>
+        <item>notification</item>
+        <item>phone</item>
+        <item>proximity</item>
+        <item>settings</item>
+        <item>system</item>
+        <item>vibration</item>
+        <item>servicediscovery</item>
+        <item>serviceinformation</item>
+        <item>light</item>
+        <item>camera</item>
+        <item>mhealth</item>
+        <item>dice</item>
+        <item>sphero</item>
+        <item>temperature</item>
+        <item>drive_controller</item>
+        <item>remote_controller</item>
+    </string-array>
+    <string-array name="http_methods">
+        <item>GET</item>
+        <item>POST</item>
+        <item>PUT</item>
+        <item>DELETE</item>
+        <item>マルチパート</item>
+        <!-- <item>非マルチパート</item> -->
+    </string-array>
+    <string-array name="string_empty">
+        <item></item>
+    </string-array>
+
+</resources>

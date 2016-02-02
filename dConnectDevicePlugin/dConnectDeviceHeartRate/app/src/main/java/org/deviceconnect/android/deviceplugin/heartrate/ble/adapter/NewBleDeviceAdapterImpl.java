@@ -34,6 +34,7 @@ import java.util.UUID;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
 
+    private final Context mContext;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothLeScanner mBleScanner;
     private BleDeviceScanCallback mCallback;
@@ -42,6 +43,7 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
     };
 
     public NewBleDeviceAdapterImpl(final Context context) {
+        mContext = context;
         BluetoothManager manager = BleUtils.getManager(context);
         mBluetoothAdapter = manager.getAdapter();
         mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
@@ -61,12 +63,25 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
         }
         ScanSettings settings = new ScanSettings.Builder().build();
 
-        mBleScanner.startScan(filters, settings, mScanCallback);
+        mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
+        if (mBleScanner != null) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                mBleScanner.startScan(filters, settings, mScanCallback);
+            } else {
+                // Unless required permissions were acquired, scan does not start.
+                if (BleUtils.isBLEPermission(mContext)) {
+                    mBleScanner.startScan(filters, settings, mScanCallback);
+                }
+            }
+        }
     }
 
     @Override
     public void stopScan(final BleDeviceScanCallback callback) {
-        mBleScanner.stopScan(mScanCallback);
+        mBleScanner = mBluetoothAdapter.getBluetoothLeScanner();
+        if (mBleScanner != null) {
+            mBleScanner.stopScan(mScanCallback);
+        }
     }
 
     @Override
@@ -103,6 +118,7 @@ public class NewBleDeviceAdapterImpl extends BleDeviceAdapter {
 
         @Override
         public void onScanFailed(final int errorCode) {
+            mCallback.onFail();
         }
     };
 }

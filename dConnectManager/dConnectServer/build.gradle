@@ -1,4 +1,13 @@
 apply plugin: 'java'
+
+// Projects linked to this library must have a Java language level within this level range.
+// To prevent an error with message "bad class file magic or version" at build, Java language level
+// is configure to 1.6 to 1.7 .
+compileJava {
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.7
+}
+
 sourceSets {
     main.java.srcDirs = ['src']
     main.resources.srcDirs = ['src']

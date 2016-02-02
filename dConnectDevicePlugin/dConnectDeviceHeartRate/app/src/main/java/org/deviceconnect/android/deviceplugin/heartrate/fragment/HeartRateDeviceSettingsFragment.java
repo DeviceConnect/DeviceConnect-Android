@@ -6,11 +6,17 @@
  */
 package org.deviceconnect.android.deviceplugin.heartrate.fragment;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -25,6 +31,7 @@ import org.deviceconnect.android.deviceplugin.heartrate.HeartRateApplication;
 import org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager;
 import org.deviceconnect.android.deviceplugin.heartrate.R;
 import org.deviceconnect.android.deviceplugin.heartrate.activity.HeartRateDeviceSettingsActivity;
+import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 import org.deviceconnect.android.deviceplugin.heartrate.data.HeartRateDevice;
 import org.deviceconnect.android.deviceplugin.heartrate.fragment.dialog.ErrorDialogFragment;
 import org.deviceconnect.android.deviceplugin.heartrate.fragment.dialog.ProgressDialogFragment;
@@ -37,6 +44,7 @@ import static org.deviceconnect.android.deviceplugin.heartrate.HeartRateManager.
 
 /**
  * This fragment do setting of the connection to the ble device.
+ *
  * @author NTT DOCOMO, INC.
  */
 public class HeartRateDeviceSettingsFragment extends Fragment {
@@ -55,25 +63,73 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
      */
     private ProgressDialogFragment mProgressDialogFragment;
 
+    /**
+     * Handler.
+     */
+    private Handler mHandler = new Handler();
+
+    /**
+     * Bluetooth device list view.
+     */
+    private ListView mListView;
+
+    /**
+     * footer view.
+     */
+    private View mFooterView;
+
+    private boolean mCheckDialog;
+
+    /**
+     * Received a event that Bluetooth has been changed.
+     */
+    private final BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
+                if (state == BluetoothAdapter.STATE_ON ){
+                    addFooterView();
+                    getManager().startScanBle();
+                } else if (state == BluetoothAdapter.STATE_OFF) {
+                    addFooterView();
+                    getManager().stopScanBle();
+                }
+            }
+        }
+    };
+
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
-
+                             @Nullable Bundle savedInstanceState) {
         mDeviceAdapter = new DeviceAdapter(getActivity(), createDeviceContainers());
 
-        View footerView = inflater.inflate(R.layout.item_heart_rate_searching, null);
+        mFooterView = inflater.inflate(R.layout.item_heart_rate_searching, null);
+
         View rootView = inflater.inflate(R.layout.fragment_heart_rate_device_settings, null);
-        ListView listView = (ListView) rootView.findViewById(R.id.device_list_view);
-        listView.setAdapter(mDeviceAdapter);
-        listView.addFooterView(footerView);
+        mListView = (ListView) rootView.findViewById(R.id.device_list_view);
+        mListView.setAdapter(mDeviceAdapter);
+        mListView.setItemsCanFocus(true);
         return rootView;
     }
+
 
     @Override
     public void onResume() {
         super.onResume();
+        registerBluetoothFilter();
+
         getManager().setOnHeartRateDiscoveryListener(mEvtListener);
-        getManager().startScanBle();
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            getManager().startScanBle();
+        } else {
+            if (BleUtils.isBLEPermission(getActivity())) {
+                getManager().startScanBle();
+            }
+        }
+        addFooterView();
     }
 
     @Override
@@ -83,24 +139,83 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         getManager().stopScanBle();
         dismissProgressDialog();
         dismissErrorDialog();
+        unregisterBluetoothFilter();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+    }
+
+    /**
+     * Added the view at ListView.
+     */
+    private void addFooterView() {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                LayoutInflater inflater = getActivity().getLayoutInflater();
+
+                if (mFooterView != null) {
+                    mListView.removeFooterView(mFooterView);
+                }
+
+                if (!BleUtils.isBLEPermission(getActivity())) {
+                    mFooterView = inflater.inflate(R.layout.item_heart_rate_error, null);
+                    TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
+                    textView.setText(getString(R.string.heart_rate_setting_dialog_error_permission));
+                } else if (getManager().isEnabledBle()) {
+                    mFooterView = inflater.inflate(R.layout.item_heart_rate_searching, null);
+                } else {
+                    mFooterView = inflater.inflate(R.layout.item_heart_rate_error, null);
+                    TextView textView = (TextView) mFooterView.findViewById(R.id.error_message);
+                    textView.setText(getString(R.string.heart_rate_setting_dialog_disable_bluetooth));
+
+                    mDeviceAdapter.clear();
+                    mDeviceAdapter.addAll(createDeviceContainers());
+                    mDeviceAdapter.notifyDataSetChanged();
+                }
+
+                mListView.addFooterView(mFooterView);
+            }
+        });
+    }
+
+    /**
+     * Register a BroadcastReceiver of Bluetooth event.
+     */
+    private void registerBluetoothFilter() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        getActivity().registerReceiver(mSensorReceiver, filter, null, mHandler);
+    }
+
+    /**
+     * Unregister a previously registered BroadcastReceiver.
+     */
+    private void unregisterBluetoothFilter() {
+        getActivity().unregisterReceiver(mSensorReceiver);
     }
 
     /**
      * Connect to the BLE device that have heart rate service.
+     *
      * @param device BLE device that have heart rate service.
      */
     private void connectDevice(final DeviceContainer device) {
-        getManager().connectBleDevice(device.getAddress());
-        showProgressDialog(device.getName());
+        if (getManager().isEnabledBle()) {
+            getManager().connectBleDevice(device.getAddress());
+            showProgressDialog(device.getName());
+        }
     }
 
     /**
      * Disconnect to the BLE device that have heart rate service.
+     *
      * @param device BLE device that have heart rate service.
      */
     private void disconnectDevice(final DeviceContainer device) {
         getManager().disconnectBleDevice(device.getAddress());
-
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -115,6 +230,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
     /**
      * Display the dialog of connecting a ble device.
+     *
      * @param name device name
      */
     private void showProgressDialog(final String name) {
@@ -138,14 +254,12 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
     }
 
     /**
-     * Display the error dialog.
+     * Display the error dialog of not connect device.
+     *
      * @param name device name
      */
-    private void showErrorDialog(final String name) {
-        dismissErrorDialog();
-
+    private void showErrorDialogNotConnect(final String name) {
         Resources res = getActivity().getResources();
-        String title = res.getString(R.string.heart_rate_setting_dialog_error_title);
         String message;
         if (name == null) {
             message = res.getString(R.string.heart_rate_setting_dialog_error_message,
@@ -153,6 +267,28 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         } else {
             message = res.getString(R.string.heart_rate_setting_dialog_error_message, name);
         }
+        showErrorDialog(message);
+    }
+
+    /**
+     * Display the error dialog for no permissions.
+     */
+    private void showErrorDialogNoPermissions() {
+        Resources res = getActivity().getResources();
+        String message = res.getString(R.string.heart_rate_setting_dialog_error_permission);
+        showErrorDialog(message);
+    }
+
+    /**
+     * Display the error dialog.
+     *
+     * @param message error message
+     */
+    public void showErrorDialog(final String message) {
+        dismissErrorDialog();
+
+        Resources res = getActivity().getResources();
+        String title = res.getString(R.string.heart_rate_setting_dialog_error_title);
         mErrorDialogFragment = ErrorDialogFragment.newInstance(title, message);
         mErrorDialogFragment.show(getFragmentManager(), "error_dialog");
         mErrorDialogFragment.setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -175,6 +311,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
     /**
      * Gets a instance of HeartRateManager.
+     *
      * @return HeartRateManager
      */
     private HeartRateManager getManager() {
@@ -213,7 +350,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
                 @Override
                 public void run() {
                     dismissProgressDialog();
-                    showErrorDialog(device.getName());
+                    showErrorDialogNotConnect(device.getName());
                 }
             });
         }
@@ -238,12 +375,13 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
                     }
                     mDeviceAdapter.notifyDataSetChanged();
                 }
-           });
+            });
         }
     };
 
     /**
      * Create a list of device.
+     *
      * @return list of device
      */
     private List<DeviceContainer> createDeviceContainers() {
@@ -270,8 +408,9 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
     /**
      * Returns true if this address contains the list of device.
+     *
      * @param containers list of device
-     * @param address address of device
+     * @param address    address of device
      * @return true if address is an element of this List, false otherwise
      */
     private boolean containAddressForList(final List<DeviceContainer> containers, final String address) {
@@ -285,6 +424,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
     /**
      * Look for a DeviceContainer with the given address.
+     *
      * @param address address of device
      * @return The DeviceContainer that has the given address or null
      */
@@ -301,6 +441,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
     /**
      * Create a DeviceContainer from BluetoothDevice.
+     *
      * @param device Instance of BluetoothDevice
      * @return Instance of DeviceContainer
      */
@@ -313,7 +454,8 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
     /**
      * Create a DeviceContainer from HeartRateDevice.
-     * @param device Instance of HeartRateDevice
+     *
+     * @param device   Instance of HeartRateDevice
      * @param register Registration flag
      * @return Instance of DeviceContainer
      */
@@ -327,6 +469,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
     /**
      * Returns true if this address contains the mDeviceAdapter.
+     *
      * @param address address of device
      * @return true if address is an element of mDeviceAdapter, false otherwise
      */
@@ -353,7 +496,7 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
         public void setName(final String name) {
             if (name == null) {
                 mName = getActivity().getResources().getString(
-                    R.string.heart_rate_setting_default_name);
+                        R.string.heart_rate_setting_default_name);
             } else {
                 mName = name;
             }
@@ -378,11 +521,13 @@ public class HeartRateDeviceSettingsFragment extends Fragment {
 
     private class DeviceAdapter extends ArrayAdapter<DeviceContainer> {
         private LayoutInflater mInflater;
+
         public DeviceAdapter(final Context context, final List<DeviceContainer> objects) {
             super(context, 0, objects);
             mInflater = (LayoutInflater) context.getSystemService(
                     Context.LAYOUT_INFLATER_SERVICE);
         }
+
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
             if (convertView == null) {

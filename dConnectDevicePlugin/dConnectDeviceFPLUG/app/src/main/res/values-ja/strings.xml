@@ -1,0 +1,49 @@
+<resources>
+
+    <string name="app_name">F-PLUG (Device Connect Device Plug-in)</string>
+
+    <string name="setting_show_image_title">[1/3]F-PLUGの用意</string>
+    <string name="setting_show_image_explain">F-PLUGを電源につなぎます。</string>
+
+    <string name="setting_pairing_title">[2/3]F-PLUGのペアリング</string>
+    <string name="setting_pairing_bluetooth">Bluetoothの設定をタップしてください。</string>
+    <string name="setting_pairing_bluetooth_setting">Bluetoothの設定</string>
+    <string name="setting_pairing_start_pairing">F-PLUGという名前のデバイスを検索し、ペアリングします。</string>
+    <string name="setting_pairing_first">初めてペアリングする場合はF-PLUGのLEDが点滅するので、F-PLUGのペアリングボタンを長押ししてください。</string>
+
+    <string name="setting_connect_title">[3/3]F-PLUGの接続</string>
+    <string name="setting_connect_start">F-PLUGの検索と接続をタップしてください。</string>
+    <string name="setting_connect_search">F-PLUGの検索と接続</string>
+    <string name="setting_connect_result">接続成功時はリストの文字が青色に変わります。接続ができた場合はこれで準備が完了です。F-PLUGを直接操作したい場合はリストから選択してください。</string>
+    <string name="setting_connect_not_found">F-PLUGが見つかりませんでした。</string>
+    <string name="setting_connect_fplug_list">F-PLUG : %1$s</string>
+    <string name="setting_connect_not_connected">F-PLUGに接続されていません。数秒待っても接続されない場合はBluetoothのON/OFFを行い、再度検索を行ってください。</string>
+
+    <string name="setting_controller_title">F-PLUG 操作画面</string>
+    <string name="setting_controller_init">F-PLUG 初期化</string>
+    <string name="setting_controller_result_default">初期化結果</string>
+    <string name="setting_controller_init_dialog_title">F-PLUGの初期化</string>
+    <string name="setting_controller_init_dialog_message">F-PLUGを初期化しますか？これまで蓄積されたデータが消去され、新たなデータの蓄積を開始します。</string>
+    <string name="setting_controller_unselected_fplug">F-PLUGが選択されていません。</string>
+    <string name="setting_controller_mac_address">MAC Address : %1$s</string>
+    <string name="setting_controller_mac_address_default">MAC Address : 未選択</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="success">成功</string>
+    <string name="failed">失敗</string>
+    <string name="get_failed">取得失敗</string>
+    <string name="timeout">タイムアウト</string>
+    <string name="unselected">未選択</string>
+    <string name="get">取得</string>
+    <string name="on">ON</string>
+    <string name="off">OFF</string>
+
+    <string name="led">LED</string>
+    <string name="realtime">瞬間電力量</string>
+    <string name="integrated">積算電力量(24時間合計)</string>
+    <string name="temperature">温度</string>
+    <string name="humidity">湿度</string>
+    <string name="illuminance">照度</string>
+
+</resources>

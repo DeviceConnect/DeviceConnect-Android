@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">IRKit (Device Connect Device Plug-in)</string>
+    <string name="app_name">IRKit (Device Web API device plug-in)</string>
     <string name="no_device">No device</string>
     <string name="hint_ssid">SSID</string>
     <string name="column_ssid">SSID</string>

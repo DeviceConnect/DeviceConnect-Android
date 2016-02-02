@@ -28,14 +28,10 @@ import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -60,9 +56,7 @@ public class HueLightProfile extends LightProfile {
      */
     private static final int HUE_BRIGHTNESS_TUNED_MAX_VALUE = 254;
 
-    private ScheduledExecutorService mFlashingService = Executors.newSingleThreadScheduledExecutor();
-    private ScheduledFuture mLatestScheduledFuture;
-    private Queue<Long> mFlashingQueue = new ConcurrentLinkedQueue<Long>();
+    private Map<String, FlashingExecutor> mFlashingMap = new HashMap<String, FlashingExecutor>();
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
@@ -114,7 +108,8 @@ public class HueLightProfile extends LightProfile {
 
         final PHLightState lightState = makeLightState(color, brightness, flashing);
         if (flashing != null) {
-            flashing(lightState, bridge, light, flashing);
+
+            flashing(lightId, lightState, bridge, light, flashing);
             sendResultOK(response);//do not check result of flashing
             return true;
         } else {
@@ -238,7 +233,7 @@ public class HueLightProfile extends LightProfile {
 
         final PHLightState lightState = makeLightState(color, brightness, flashing);
         if (flashing != null) {
-            flashing(lightState, bridge, light, flashing);
+            flashing(lightId, lightState, bridge, light, flashing);
             countDownLatch.countDown();//do not check result of flashing
         } else {
             bridge.updateLightState(light, lightState, new PHLightAdapter() {
@@ -293,43 +288,31 @@ public class HueLightProfile extends LightProfile {
         return lightState;
     }
 
-    private void flashing(final PHLightState lightState, final PHBridge bridge, final PHLight light, long[] flashing) {
-        if (mLatestScheduledFuture != null && !mLatestScheduledFuture.isCancelled()) {
-            mLatestScheduledFuture.cancel(false);
+    private void flashing(String lightId, final PHLightState lightState, final PHBridge bridge, final PHLight light, long[] flashing) {
+        FlashingExecutor exe = mFlashingMap.get(lightId);
+        if (exe == null) {
+            exe = new FlashingExecutor();
+            mFlashingMap.put(lightId, exe);
         }
-        mFlashingQueue.clear();
-        for (long value : flashing) {
-            mFlashingQueue.add(value);
-        }
-        mLatestScheduledFuture = mFlashingService.schedule(new Runnable() {
-            boolean isOn = true;
-
+        exe.setLightControllable(new FlashingExecutor.LightControllable() {
             @Override
-            public void run() {
+            public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
                 lightState.setOn(isOn);
                 bridge.updateLightState(light, lightState, new PHLightAdapter() {
                     @Override
                     public void onStateUpdate(Map<String, String> successAttribute, List<PHHueError> errorAttribute) {
-                        next();
+                        listener.onComplete();
                     }
 
                     @Override
                     public void onError(int code, String message) {
-                        next();
+                        listener.onComplete();
                     }
                 });
             }
-
-            private void next() {
-                Long interval = mFlashingQueue.poll();
-                if (interval != null) {
-                    mLatestScheduledFuture = mFlashingService.schedule(this, interval, TimeUnit.MILLISECONDS);
-                    isOn = !isOn;
-                }
-            }
-        }, mFlashingQueue.poll(), TimeUnit.MILLISECONDS);
+        });
+        exe.start(flashing);
     }
-
 
     private void sendResponseAfterAwait(final Intent response, final CountDownLatch latch) {
         new Thread(new Runnable() {

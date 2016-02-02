@@ -57,7 +57,7 @@ public class UVCDevice {
 
     private boolean mIsOpen;
 
-    private int mPreviewClientNum;
+    private boolean mHasStartedPreview;
 
     private PreviewOption mCurrentOption;
 
@@ -102,7 +102,7 @@ public class UVCDevice {
     }
 
     public boolean hasStartedPreview() {
-        return mPreviewClientNum > 0;
+        return mHasStartedPreview;
     }
 
     boolean isSameDevice(final UsbDevice usbDevice) {
@@ -151,9 +151,6 @@ public class UVCDevice {
             return false;
         }
         mLogger.info("UVC device: name = " + getName() + ", supported format = " + mCamera.getSupportedSize());
-        if (!close()) {
-            return false;
-        }
         mIsInitialized = true;
         return true;
     }
@@ -280,7 +277,6 @@ public class UVCDevice {
             return false;
         }
         if (hasStartedPreview()) {
-            mPreviewClientNum = 0;
             mCamera.stopPreview();
         }
         mIsOpen = false;
@@ -364,23 +360,33 @@ public class UVCDevice {
 
     public synchronized boolean startPreview() {
         if (!mIsOpen) {
+            mLogger.warning("UVCDevice.startPreview: device is not open. name = " + getName());
             return false;
         }
-        boolean isFirstActiveClient = (++mPreviewClientNum) == 1;
-        if (isFirstActiveClient) {
-            mCamera.startPreview();
+        if (mHasStartedPreview) {
+            mLogger.info("UVCDevice.startPreview: preview is started already. name = " + getName());
+            return true;
         }
+        mLogger.info("UVCDevice.startPreview: preview is starting... name = " + getName());
+        mCamera.startPreview();
+        mLogger.info("UVCDevice.startPreview: preview has started. name = " + getName());
+        mHasStartedPreview = true;
         return true;
     }
 
     public synchronized boolean stopPreview() {
         if (!mIsOpen) {
+            mLogger.warning("UVCDevice.stopPreview: device is not open. name = " + getName());
             return false;
         }
-        boolean isLastActiveClient = (mPreviewClientNum--) == 1;
-        if (isLastActiveClient) {
-            mCamera.stopPreview();
+        if (!mHasStartedPreview) {
+            mLogger.info("UVCDevice.stopPreview: preview is stopped already. name = " + getName());
+            return true;
         }
+        mLogger.info("UVCDevice.stopPreview: preview is stopping... name = " + getName());
+        mCamera.stopPreview();
+        mLogger.info("UVCDevice.stopPreview: preview has stopped. name = " + getName());
+        mHasStartedPreview = false;
         return true;
     }
 

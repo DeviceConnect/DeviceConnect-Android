@@ -14,7 +14,6 @@ import android.os.Build;
 import com.serenegiant.usb.DeviceFilter;
 import com.serenegiant.usb.USBMonitor;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -46,19 +45,12 @@ public class UVCDeviceManager {
         }
     };
 
-    private final WeakReference<Context> mWeakContext;
-
     private boolean mIsStarted;
 
     private final Thread mMonitorThread = new Thread(new Runnable() {
         @Override
         public void run() {
             mLogger.info("Started UVC device monitoring: ");
-
-            Context context = mWeakContext.get();
-            if (context == null) {
-                return;
-            }
 
             // Find UVC devices connected to Host device already.
             try {
@@ -85,7 +77,6 @@ public class UVCDeviceManager {
     });
 
     public UVCDeviceManager(final Context context) {
-        mWeakContext = new WeakReference<Context>(context);
         mUSBMonitor = new USBMonitor(context, new USBMonitor.OnDeviceConnectListener() {
             @Override
             public void onAttach(final UsbDevice usbDevice) {

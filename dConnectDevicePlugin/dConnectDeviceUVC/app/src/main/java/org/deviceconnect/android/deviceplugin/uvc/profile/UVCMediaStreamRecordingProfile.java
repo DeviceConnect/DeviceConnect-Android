@@ -173,8 +173,6 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     MessageUtils.setUnknownError(response, "Failed to get preview options: " + device.getId());
                 }
                 sendResponse(response);
-
-                mDeviceMgr.closeDevice(device);
             }
         });
         return false;
@@ -249,8 +247,6 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                         + imageWidth + " x " + imageHeight);
                 }
                 sendResponse(response);
-
-                mDeviceMgr.closeDevice(device);
             }
         });
         return false;
@@ -384,9 +380,8 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return;
                 }
 
-                stopMediaServer(device.getId());
                 device.stopPreview();
-                mDeviceMgr.closeDevice(device);
+                stopMediaServer(device.getId());
 
                 setResult(response, DConnectMessage.RESULT_OK);
                 sendResponse(response);

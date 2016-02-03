@@ -64,6 +64,7 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     protected int mScreenWidth;
     protected int mScreenHeight;
     protected boolean mIsStereo;
+    protected StereoImageType mStereoType = StereoImageType.HALF;
     private Camera mCamera = new Camera();
     private boolean mFlipVertical;
 
@@ -111,6 +112,10 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         mFlipVertical = isFlip;
     }
 
+    public void setStereoImageType(final StereoImageType type) {
+        mStereoType = type;
+    }
+
     public byte[] takeSnapshot() {
         synchronized (mLockObj) {
             mIsWaitingSnapshot = true;
@@ -124,9 +129,18 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
         }
     }
 
+    public int getOutputWidth() {
+        return (!mIsStereo || mStereoType == StereoImageType.HALF)
+            ? getScreenWidth() : getScreenWidth() * 2;
+    }
+
+    public int getOutputHeight() {
+        return getScreenHeight();
+    }
+
     private void readPixelBuffer() {
-        int w = getScreenWidth();
-        int h = getScreenHeight();
+        int w = getOutputWidth();
+        int h = getOutputHeight();
         int bitmapBuffer[] = new int[w * h];
         int bitmapSource[] = new int[w * h];
         IntBuffer intBuffer = IntBuffer.wrap(bitmapBuffer);
@@ -160,15 +174,17 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(final GL10 gl10) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
+        int width = getOutputWidth();
+        int height = getOutputHeight();
         if (mIsStereo) {
             Camera[] cameras = mCamera.getCamerasForStereo(DISTANCE_EYES);
-            int halfWidth = getScreenWidth() / 2;
-            GLES20.glViewport(0, 0, halfWidth, getScreenHeight());
+            int halfWidth = width / 2;
+            GLES20.glViewport(0, 0, halfWidth, height);
             draw(cameras[0]);
-            GLES20.glViewport(halfWidth, 0, halfWidth, getScreenHeight());
+            GLES20.glViewport(halfWidth, 0, halfWidth, height);
             draw(cameras[1]);
         } else {
-            GLES20.glViewport(0, 0, getScreenWidth(), getScreenHeight());
+            GLES20.glViewport(0, 0, width, height);
             draw(mCamera);
         }
 
@@ -234,8 +250,10 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
      */
     @Override
     public void onSurfaceChanged(final GL10 gl10, final int width, final int height) {
-        mScreenWidth = width;
-        mScreenHeight = height;
+        if (!isScreenSizeMutable()) {
+            mScreenWidth = width;
+            mScreenHeight = height;
+        }
     }
 
     /**
@@ -264,7 +282,7 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
     }
 
     private float getScreenAspect() {
-        int width = mIsStereo ? mScreenWidth / 2 : mScreenWidth;
+        int width = mIsStereo && mStereoType == StereoImageType.HALF ? mScreenWidth / 2 : mScreenWidth;
         return (float) width / (float) (mScreenHeight == 0 ? 1 : mScreenHeight);
     }
 
@@ -533,5 +551,10 @@ public class SphericalViewRenderer implements GLSurfaceView.Renderer {
 
         void onSurfaceChanged(final int width, final int height, final boolean isStereo);
 
+    }
+
+    public enum StereoImageType {
+        HALF,
+        DOUBLE
     }
 }

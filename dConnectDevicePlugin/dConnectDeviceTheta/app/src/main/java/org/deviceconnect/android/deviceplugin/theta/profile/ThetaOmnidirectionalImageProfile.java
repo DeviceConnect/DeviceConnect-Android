@@ -191,6 +191,7 @@ public class ThetaOmnidirectionalImageProfile extends OmnidirectionalImageProfil
 
                     SphericalViewRenderer renderer = new SphericalViewRenderer();
                     renderer.setFlipVertical(true);
+                    renderer.setStereoImageType(SphericalViewRenderer.StereoImageType.DOUBLE);
                     renderer.setScreenSizeMutable(true);
                     renderer.setScreenSettings(600, 400, false);
                     projector.setRenderer(renderer);

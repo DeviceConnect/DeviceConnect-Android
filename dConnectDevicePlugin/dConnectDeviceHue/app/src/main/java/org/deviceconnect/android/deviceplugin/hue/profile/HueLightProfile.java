@@ -6,50 +6,63 @@
  */
 package org.deviceconnect.android.deviceplugin.hue.profile;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import org.deviceconnect.android.deviceplugin.hue.HueDeviceService;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.LightProfile;
-import org.deviceconnect.message.DConnectMessage;
-
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.philips.lighting.hue.listener.PHGroupListener;
 import com.philips.lighting.hue.listener.PHLightListener;
 import com.philips.lighting.hue.sdk.PHHueSDK;
 import com.philips.lighting.hue.sdk.utilities.PHUtilities;
 import com.philips.lighting.model.PHBridge;
 import com.philips.lighting.model.PHBridgeResource;
 import com.philips.lighting.model.PHBridgeResourcesCache;
-import com.philips.lighting.model.PHGroup;
 import com.philips.lighting.model.PHHueError;
 import com.philips.lighting.model.PHLight;
 import com.philips.lighting.model.PHLight.PHLightColorMode;
 import com.philips.lighting.model.PHLightState;
 
+import org.deviceconnect.android.deviceplugin.hue.HueDeviceService;
+import org.deviceconnect.android.deviceplugin.hue.R;
+import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.LightProfile;
+import org.deviceconnect.message.DConnectMessage;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 /**
  * 親クラスで振り分けられたメソッドに対して、Hueのlight attribute処理を呼び出す.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class HueLightProfile extends LightProfile {
 
-    /** hue minimum brightness value. */
+    /**
+     * hue minimum brightness value.
+     */
     private static final int HUE_BRIGHTNESS_MIN_VALUE = 1;
-    /** hue maximum brightness value. */
+
+    /**
+     * hue maximum brightness value.
+     */
     private static final int HUE_BRIGHTNESS_MAX_VALUE = 255;
-    /** hue SDK maximum brightness value. */
+
+    /**
+     * hue SDK maximum brightness value.
+     */
     private static final int HUE_BRIGHTNESS_TUNED_MAX_VALUE = 254;
 
-    /** エラーコード301. */
-    private static final int HUE_SDK_ERROR_301 = 301;
+    private ScheduledExecutorService mFlashingService = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture mLatestScheduledFuture;
+    private Queue<Long> mFlashingQueue = new ConcurrentLinkedQueue<Long>();
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
@@ -81,71 +94,51 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId, final Integer color, final Double brightness, final long[] flashing) {
+                                  final String lightId, final Integer color, final Double brightness, final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
 
-        if (lightId == null || lightId.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
-            return true;
-        }
-
-        PHBridge bridge = findBridge(serviceId);
+        final PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
             MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
-        PHLight light = bridge.getResourceCache().getLights().get(lightId);
+        final PHLight light = findLight(bridge, lightId);
         if (light == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
-        int[] colors = convertColor(color);
+        final PHLightState lightState = makeLightState(color, brightness, flashing);
+        if (flashing != null) {
+            flashing(lightState, bridge, light, flashing);
+            sendResultOK(response);//do not check result of flashing
+            return true;
+        } else {
+            bridge.updateLightState(light, lightState, new PHLightAdapter() {
+                @Override
+                public void onStateUpdate(final Map<String, String> successAttribute, final List<PHHueError> errorAttribute) {
+                    sendResultOK(response);
+                }
 
-        // Brightness magnification conversion
-        calcColorParam(colors, brightness);
-
-        // Calculation of brightness.
-        int mCalcBrightness = calcBrightnessParam(colors);
-
-        PHLightState lightState = new PHLightState();
-        lightState.setOn(true);
-        lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
-
-        Color hueColor = new Color(color);
-        lightState.setX(hueColor.mX);
-        lightState.setY(hueColor.mY);
-        lightState.setBrightness(mCalcBrightness);
-
-        bridge.updateLightState(light, lightState, new PHLightAdapter() {
-            @Override
-            public void onStateUpdate(final Map<String, String> successAttribute,
-                    final List<PHHueError> errorAttribute) {
-                sendResultOK(response);
-            }
-            @Override
-            public void onError(final int code, final String message) {
-                MessageUtils.setUnknownError(response, code + ": " + message);
-                sendResultERR(response);
-            }
-        });
-        return false;
+                @Override
+                public void onError(final int code, final String message) {
+                    MessageUtils.setUnknownError(response, code + ": " + message);
+                    sendResultERR(response);
+                }
+            });
+            return false;
+        }
     }
 
     @Override
     protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId) {
+                                    final String lightId) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        if (lightId == null || lightId.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
             return true;
         }
 
@@ -155,7 +148,7 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHLight light = bridge.getResourceCache().getLights().get(lightId);
+        PHLight light = findLight(bridge, lightId);
         if (light == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
@@ -163,15 +156,19 @@ public class HueLightProfile extends LightProfile {
 
         PHLightState lightState = new PHLightState();
         lightState.setOn(false);
+
         bridge.updateLightState(light, lightState, new PHLightAdapter() {
             @Override
             public void onStateUpdate(final Map<String, String> successAttribute,
-                    final List<PHHueError> errorAttribute) {
+                                      final List<PHHueError> errorAttribute) {
                 sendResultOK(response);
             }
+
             @Override
             public void onError(final int code, final String message) {
-                String errMsg = "ライトの状態更新に失敗しました hue:code = " + code + "  message = " + message;
+                String errMsg = getContext().getString(
+                        R.string.error_message_failed_to_update_light,
+                        code, message);
                 MessageUtils.setUnknownError(response, errMsg);
                 sendResultERR(response);
             }
@@ -181,14 +178,9 @@ public class HueLightProfile extends LightProfile {
 
     @Override
     protected boolean onPutLight(final Intent request, final Intent response, final String serviceId,
-            final String lightId, final String name, final Integer color, final Double brightness, final long[] flashing) {
+                                 final String lightId, final String name, final Integer color, final Double brightness, final long[] flashing) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        if (lightId == null || lightId.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
             return true;
         }
 
@@ -197,21 +189,44 @@ public class HueLightProfile extends LightProfile {
             return true;
         }
 
-        PHBridge bridge = findBridge(serviceId);
+        final PHBridge bridge = findBridge(serviceId);
         if (bridge == null) {
             MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
             return true;
         }
 
-        PHLight light = getLight(bridge, lightId);
+        final PHLight light = findLight(bridge, lightId);
         if (light == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found light: " + lightId + "@" + serviceId);
             return true;
         }
 
+        //wait for change name and status
         final CountDownLatch countDownLatch = new CountDownLatch(2);
-        final PHLightAdapter adaptor = new PHLightAdapter() {
+        sendResponseAfterAwait(response, countDownLatch);
+
+        PHLight newLight = new PHLight(light);
+        newLight.setName(name);
+        bridge.updateLight(newLight, new PHLightAdapter() {
             private boolean mErrorFlag = false;
+
+            @Override
+            public void onSuccess() {
+                super.onSuccess();
+                countDown();
+            }
+
+            @Override
+            public void onError(int code, String message) {
+                super.onError(code, message);
+                String errMsg = getContext().getString(
+                        R.string.error_message_failed_to_update_light,
+                        code, message);
+                MessageUtils.setUnknownError(response, errMsg);
+                mErrorFlag = true;
+                countDown();
+            }
+
             private void countDown() {
                 if (!mErrorFlag) {
                     setResult(response, DConnectMessage.RESULT_OK);
@@ -219,351 +234,122 @@ public class HueLightProfile extends LightProfile {
                 countDownLatch.countDown();
             }
 
-            @Override
-            public void onSuccess() {
-                countDown();
-            }
+        });
+
+        final PHLightState lightState = makeLightState(color, brightness, flashing);
+        if (flashing != null) {
+            flashing(lightState, bridge, light, flashing);
+            countDownLatch.countDown();//do not check result of flashing
+        } else {
+            bridge.updateLightState(light, lightState, new PHLightAdapter() {
+                private boolean mErrorFlag = false;
+
+                @Override
+                public void onStateUpdate(Map<String, String> successAttribute, List<PHHueError> errorAttribute) {
+                    countDown();
+                }
+
+                @Override
+                public void onError(int code, String message) {
+                    String errMsg = getContext().getString(
+                            R.string.error_message_failed_to_update_light,
+                            code, message);
+                    MessageUtils.setUnknownError(response, errMsg);
+                    mErrorFlag = true;
+                    countDown();
+                }
+
+                private void countDown() {
+                    if (!mErrorFlag) {
+                        setResult(response, DConnectMessage.RESULT_OK);
+                    }
+                    countDownLatch.countDown();
+                }
+            });
+        }
+        return false;
+    }
+
+    private PHLightState makeLightState(Integer color, Double brightness, long[] flashing) {
+        int[] colors = convertColor(color);
+
+        // Brightness magnification conversion
+        calcColorParam(colors, brightness);
+
+        // Calculation of brightness.
+        int calcBrightness = calcBrightnessParam(colors);
+
+        PHLightState lightState = new PHLightState();
+        lightState.setOn(true);
+        lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
+
+        Color hueColor = new Color(color);
+        lightState.setX(hueColor.mX);
+        lightState.setY(hueColor.mY);
+        lightState.setBrightness(calcBrightness);
+        if (flashing != null) {
+            lightState.setTransitionTime(1);
+        }
+        return lightState;
+    }
+
+    private void flashing(final PHLightState lightState, final PHBridge bridge, final PHLight light, long[] flashing) {
+        if (mLatestScheduledFuture != null && !mLatestScheduledFuture.isCancelled()) {
+            mLatestScheduledFuture.cancel(false);
+        }
+        mFlashingQueue.clear();
+        for (long value : flashing) {
+            mFlashingQueue.add(value);
+        }
+        mLatestScheduledFuture = mFlashingService.schedule(new Runnable() {
+            boolean isOn = true;
 
             @Override
-            public void onStateUpdate(final Map<String, String> successAttribute,
-                    final List<PHHueError> errorAttribute) {
-                countDown();
+            public void run() {
+                lightState.setOn(isOn);
+                bridge.updateLightState(light, lightState, new PHLightAdapter() {
+                    @Override
+                    public void onStateUpdate(Map<String, String> successAttribute, List<PHHueError> errorAttribute) {
+                        next();
+                    }
+
+                    @Override
+                    public void onError(int code, String message) {
+                        next();
+                    }
+                });
             }
 
-            @Override
-            public void onError(final int code, final String message) {
-                String errMsg = "ライトの状態更新に失敗しました hue:code = " + 
-                        code + "  message = " + message;
-                MessageUtils.setUnknownError(response, errMsg);
-                mErrorFlag = true;
-                countDown();
+            private void next() {
+                Long interval = mFlashingQueue.poll();
+                if (interval != null) {
+                    mLatestScheduledFuture = mFlashingService.schedule(this, interval, TimeUnit.MILLISECONDS);
+                    isOn = !isOn;
+                }
             }
-        };
+        }, mFlashingQueue.poll(), TimeUnit.MILLISECONDS);
+    }
 
+
+    private void sendResponseAfterAwait(final Intent response, final CountDownLatch latch) {
         new Thread(new Runnable() {
+            @Override
             public void run() {
                 try {
-                    if (!countDownLatch.await(30, TimeUnit.SECONDS)) {
+                    if (!latch.await(30, TimeUnit.SECONDS)) {
                         MessageUtils.setTimeoutError(response);
                     }
                 } catch (InterruptedException e) {
                     MessageUtils.setTimeoutError(response);
                 }
-                HueDeviceService service = (HueDeviceService) getContext();
-                service.sendResponse(response);
+                ((DConnectMessageService) getContext()).sendResponse(response);
             }
         }).start();
-
-        // change the name
-        PHLight newLight = new PHLight(light);
-        newLight.setName(name);
-        bridge.updateLight(newLight, adaptor);
-
-        int[] colors = convertColor(color);
-
-        // Brightness magnification conversion
-        calcColorParam(colors, brightness);
-
-        // Calculation of brightness.
-        int mCalcBrightness = calcBrightnessParam(colors);
-
-        PHLightState lightState = new PHLightState();
-        lightState.setOn(true);
-        lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
-
-        Color hueColor = new Color(color);
-        lightState.setX(hueColor.mX);
-        lightState.setY(hueColor.mY);
-        lightState.setBrightness(mCalcBrightness);
-
-        bridge.updateLightState(light, lightState, adaptor);
-        return false;
-    }
-
-    @Override
-    protected boolean onGetLightGroup(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        PHBridge bridge = findBridge(serviceId);
-        if (bridge == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
-            return true;
-        }
-
-        List<Bundle> groupList = new ArrayList<Bundle>();
-        Map<String, PHLight> phAllLights = bridge.getResourceCache().getLights();
-        for (PHGroup phGroup : bridge.getResourceCache().getAllGroups()) {
-            List<Bundle> lightList = new ArrayList<Bundle>();
-            for (String lightId : phGroup.getLightIdentifiers()) {
-                PHLight phLight = phAllLights.get(lightId);
-                if (phLight != null) {
-                    PHLightState state = phLight.getLastKnownLightState();
-                    Bundle light = new Bundle();
-                    setLightId(light, lightId);
-                    setName(light, lightId);
-                    setOn(light, state != null ? state.isOn() : false);
-                    setConfig(light, "");
-                    lightList.add(light);
-                }
-            }
-            Bundle group = new Bundle();
-            setGroupId(group, phGroup.getIdentifier());
-            setGroupName(group, phGroup.getName());
-            setLights(group, lightList);
-            setGroupConfig(group, "");
-            groupList.add(group);
-        }
-        setLightGroups(response, groupList);
-        setResult(response, DConnectMessage.RESULT_OK);
-        return true;
-    }
-
-    @Override
-    protected boolean onPostLightGroup(final Intent request, final Intent response, final String serviceId,
-            final String groupId, final Integer color, final Double brightness, final long[] flashing) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        if (groupId == null || groupId.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "groupId is not specified.");
-            return true;
-        }
-
-        PHBridge bridge = findBridge(serviceId);
-        if (bridge == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
-            return true;
-        }
-
-        int[] colors = convertColor(color);
-
-        // Brightness magnification conversion
-        calcColorParam(colors, brightness);
-
-        // Calculation of brightness.
-        int mCalcBrightness = calcBrightnessParam(colors);
-
-        PHLightState lightState = new PHLightState();
-        lightState.setOn(true);
-        lightState.setColorMode(PHLightColorMode.COLORMODE_XY);
-
-        Color hueColor = new Color(color);
-        lightState.setX(hueColor.mX);
-        lightState.setY(hueColor.mY);
-        lightState.setBrightness(mCalcBrightness);
-
-        if ("0".equals(groupId)) {
-            bridge.setLightStateForDefaultGroup(lightState);
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        }
-
-        PHGroup group = getGroup(bridge, groupId);
-        if (group == null) {
-            MessageUtils.setUnknownError(response, "Not found group: " + groupId);
-            return true;
-        }
-
-        bridge.setLightStateForGroup(group.getIdentifier(), lightState, new PHGroupAdapter() {
-            @Override
-            public void onError(final int code, final String message) {
-                String msg = "ライトの状態更新に失敗しました hue:code = " + code + "  message = " + message;
-                MessageUtils.setUnknownError(response, msg);
-                sendResultERR(response);
-            }
-
-            @Override
-            public void onStateUpdate(final Map<String, String> successAttributes,
-                    final List<PHHueError> errorAttributes) {
-                sendResultOK(response);
-            }
-        });
-        return false;
-    }
-
-    @Override
-    protected boolean onDeleteLightGroup(final Intent request, final Intent response, final String serviceId,
-            final String groupId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        if (groupId == null || groupId.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "groupId is not specified.");
-            return true;
-        }
-
-        PHBridge bridge = findBridge(serviceId);
-        if (bridge == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
-            return true;
-        }
-
-        PHLightState lightState = new PHLightState();
-        lightState.setOn(false);
-
-        if ("0".equals(groupId)) {
-            bridge.setLightStateForDefaultGroup(lightState);
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        }
-
-        PHGroup group = getGroup(bridge, groupId);
-        if (group == null) {
-            MessageUtils.setUnknownError(response, "Not found group: " + groupId);
-            return true;
-        }
-        bridge.setLightStateForGroup(group.getIdentifier(), lightState, new PHGroupAdapter() {
-            @Override
-            public void onError(final int code, final String message) {
-                String msg = "ライトの状態更新に失敗しました hue:code = " + code + "  message = " + message;
-                MessageUtils.setUnknownError(response, msg);
-                sendResultERR(response);
-            }
-
-            @Override
-            public void onStateUpdate(final Map<String, String> successAttributes,
-                    final List<PHHueError> errorAttributes) {
-                sendResultOK(response);
-            }
-        });
-        return false;
-    }
-
-    @Override
-    protected boolean onPutLightGroup(final Intent request, final Intent response, final String serviceId,
-            final String groupId, final String name, final Integer color, final Double brightness, final long[] flashing) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        if (groupId == null || groupId.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "groupId is not specified.");
-            return true;
-        }
-
-        PHBridge bridge = findBridge(serviceId);
-        if (bridge == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
-            return true;
-        }
-
-        if (name == null || name.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "name is not specified.");
-            return true;
-        }
-
-        PHGroup group = getGroup(bridge, groupId);
-        if (group == null) {
-            MessageUtils.setUnknownError(response, "Not found group: " + groupId);
-            return true;
-        }
-
-        PHGroup newGroup = new PHGroup(name, group.getIdentifier());
-        bridge.updateGroup(newGroup, new PHGroupAdapter() {
-            @Override
-            public void onSuccess() {
-                sendResultOK(response);
-            }
-
-            @Override
-            public void onError(final int code, final String message) {
-                String errMsg = "グループの名称変更に失敗しました hue:code = " + code + "  message = " + message;
-                MessageUtils.setUnknownError(response, errMsg);
-                sendResultERR(response);
-            }
-        });
-        return false;
-    }
-
-    @Override
-    protected boolean onPostLightGroupCreate(final Intent request, final Intent response,
-            final String serviceId, final String[] lightIds, final String groupName) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        if (groupName == null || groupName.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "groupName is not specified.");
-            return true;
-        }
-
-        if (lightIds == null || lightIds.length == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "lightIds is not specified.");
-            return true;
-        }
-
-        PHBridge bridge = findBridge(serviceId);
-        if (bridge == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
-            return true;
-        }
-
-        bridge.createGroup(groupName, Arrays.asList(lightIds), new PHGroupAdapter() {
-            @Override
-            public void onCreated(final PHGroup group) {
-                response.putExtra(PARAM_GROUP_ID, group.getIdentifier());
-                sendResultOK(response);
-            }
-
-            @Override
-            public void onError(final int code, final String msg) {
-                String errMsg = "グループ作成に失敗しました hue:code = " + code + "  message = " + msg;
-                if (code == HUE_SDK_ERROR_301) {
-                    MessageUtils.setUnknownError(response, "グループが作成できる上限に達しています");
-                } else {
-                    MessageUtils.setUnknownError(response, errMsg);
-                }
-                sendResultERR(response);
-            }
-        });
-        return false;
-    }
-
-    @Override
-    protected boolean onDeleteLightGroupClear(final Intent request, final Intent response, final String serviceId, final String groupId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-            return true;
-        }
-
-        if (groupId == null || groupId.length() == 0) {
-            MessageUtils.setInvalidRequestParameterError(response, "groupId is not specified.");
-            return true;
-        }
-
-        PHBridge bridge = findBridge(serviceId);
-        if (bridge == null) {
-            MessageUtils.setNotFoundServiceError(response, "Not found bridge: " + serviceId);
-            return true;
-        }
-
-        bridge.deleteGroup(groupId, new PHGroupAdapter() {
-            @Override
-            public void onSuccess() {
-                sendResultOK(response);
-            }
-
-            @Override
-            public void onError(final int code, final String msg) {
-                String errMsg = "グループ削除に失敗しました hue:code = " + code + "  message = " + msg;
-                MessageUtils.setUnknownError(response, errMsg);
-                sendResultERR(response);
-            }
-        });
-        return false;
     }
 
     /**
      * Convert Integer to int[].
+     *
      * @param color color
      * @return int[]
      */
@@ -583,7 +369,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Hueのブリッジを検索する.
-     * 
+     *
      * @param serviceId Service ID
      * @return Hueのブリッジを管理するオブジェクト
      */
@@ -600,40 +386,31 @@ public class HueLightProfile extends LightProfile {
     }
 
     /**
-     * Hue Lightを管理するオブジェクトを取得する.
-     * 
-     * @param bridge Hueのブリッジ
-     * @param lightId Light ID
-     * @return Lightを管理するオブジェクト
+     * Hueに接続されているライトを検索する.
+     * <p>
+     * ライトが見つからない場合には<code>null</code>を返却する。
+     * </p>
+     *
+     * @param bridge  Hueのブリッジ
+     * @param lightId ライトID
+     * @return Hueのブリッジに接続されたライト
      */
-    private PHLight getLight(final PHBridge bridge, final String lightId) {
-        for (PHLight light : bridge.getResourceCache().getAllLights()) {
-            if (light.getIdentifier().equals(lightId)) {
-                return light;
-            }
+    private PHLight findLight(final PHBridge bridge, final String lightId) {
+        Map<String, PHLight> lights = bridge.getResourceCache().getLights();
+        if (lights.size() == 0) {
+            return null;
         }
-        return null;
-    }
 
-    /**
-     * Hue Lightのグループ情報を管理するオブジェクトを取得する.
-     * 
-     * @param bridge Hueのブリッジ
-     * @param groupID Group ID
-     * @return Lightのグループ情報を持つオブジェクト
-     */
-    private PHGroup getGroup(final PHBridge bridge, final String groupID) {
-        for (PHGroup group : bridge.getResourceCache().getAllGroups()) {
-            if (groupID.equals(group.getIdentifier())) {
-                return group;
-            }
+        if (lightId == null || lightId.length() == 0) {
+            return lights.entrySet().iterator().next().getValue();
+        } else {
+            return bridge.getResourceCache().getLights().get(lightId);
         }
-        return null;
     }
 
     /**
      * 成功レスポンス送信.
-     * 
+     *
      * @param response response
      */
     private void sendResultOK(final Intent response) {
@@ -644,7 +421,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * エラーレスポンスを送信する.
-     * 
+     *
      * @param response エラーレスポンス
      */
     private void sendResultERR(final Intent response) {
@@ -655,10 +432,9 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Calculate color parameter.
-     * 
-     * @param color Color parameters.
+     *
+     * @param color      Color parameters.
      * @param brightness Brightness parameter.
-     * @return Color parameter.
      */
     private void calcColorParam(final int[] color, final Double brightness) {
         if (brightness != null) {
@@ -670,7 +446,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Calculate brightness parameter.
-     * 
+     *
      * @param color Color parameters.
      * @return brightness Brightness parameter.
      */
@@ -687,25 +463,38 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * Hueの色指定.
-     * 
+     *
      * @author NTT DOCOMO, INC.
      */
     private static class Color {
-        /** モデル. */
+        /**
+         * モデル.
+         */
         private static final String MODEL = "LCT001";
-        /** R. */
+        /**
+         * R.
+         */
         final int mR;
-        /** G. */
+        /**
+         * G.
+         */
         final int mG;
-        /** B. */
+        /**
+         * B.
+         */
         final int mB;
-        /** 色相のX座標. */
+        /**
+         * 色相のX座標.
+         */
         final float mX;
-        /** 色相のY座標. */
+        /**
+         * 色相のY座標.
+         */
         final float mY;
 
         /**
          * コンストラクタ.
+         *
          * @param rgb RGB
          */
         Color(final int rgb) {
@@ -719,6 +508,7 @@ public class HueLightProfile extends LightProfile {
 
         /**
          * コンストラクタ.
+         *
          * @param rgb RGB
          */
         Color(final Integer rgb) {
@@ -728,7 +518,7 @@ public class HueLightProfile extends LightProfile {
 
     /**
      * ライトのアダプター.
-     * 
+     *
      * @author NTT DOCOMO, INC.
      */
     private static class PHLightAdapter implements PHLightListener {
@@ -755,37 +545,6 @@ public class HueLightProfile extends LightProfile {
 
         @Override
         public void onSearchComplete() {
-        }
-    }
-
-    /**
-     * ライトグループのアダプター.
-     * 
-     * @author NTT DOCOMO, INC.
-     */
-    private static class PHGroupAdapter implements PHGroupListener {
-        @Override
-        public void onError(final int code, final String msg) {
-        }
-
-        @Override
-        public void onStateUpdate(final Map<String, String> arg0, final List<PHHueError> arg1) {
-        }
-
-        @Override
-        public void onSuccess() {
-        }
-
-        @Override
-        public void onCreated(final PHGroup group) {
-        }
-
-        @Override
-        public void onReceivingAllGroups(final List<PHBridgeResource> arg0) {
-        }
-
-        @Override
-        public void onReceivingGroupDetails(final PHGroup group) {
         }
     }
 }

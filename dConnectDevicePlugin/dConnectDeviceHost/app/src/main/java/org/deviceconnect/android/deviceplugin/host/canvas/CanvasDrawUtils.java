@@ -6,10 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host.canvas;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -17,9 +13,13 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.webkit.MimeTypeMap;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
  * Canvas Draw Utility.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public final class CanvasDrawUtils {
@@ -41,18 +41,17 @@ public final class CanvasDrawUtils {
     }
 
     /**
-     * Gets a bitmap from uri.
-     * @param context context
-     * @param uri uri
+     * Gets a bitmap from data.
+     *
+     * @param data data
      * @return Bitmap or null on error
      */
-    public static Bitmap getBitmap(final Context context, final String uri) {
-        byte[] buf = getContentData(context, uri);
-        if (buf != null) {
+    public static Bitmap getBitmap(final byte[] data) {
+        if (data != null) {
             try {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inMutable = true;
-                return BitmapFactory.decodeByteArray(buf, 0, buf.length, options);
+                return BitmapFactory.decodeByteArray(data, 0, data.length, options);
             } catch (OutOfMemoryError e) {
                 return null;
             }
@@ -62,8 +61,9 @@ public final class CanvasDrawUtils {
 
     /**
      * Gets binary from uri.
+     *
      * @param context context
-     * @param uri uri
+     * @param uri     uri
      * @return byte[] or null on error
      */
     public static byte[] getContentData(final Context context, final String uri) {
@@ -93,8 +93,10 @@ public final class CanvasDrawUtils {
             }
         }
     }
+
     /**
      * Get MimeType.
+     *
      * @param url file's url
      * @return file's MimeType
      */
@@ -106,19 +108,19 @@ public final class CanvasDrawUtils {
         }
         return type;
     }
+
     /**
-     * Checks whether uri is valid.
-     * @param context context
-     * @param uri uri
-     * @return true if uri is valid, false otherwise
+     * Checks whether data is valid.
+     *
+     * @param data image data
+     * @return true if data is valid, false otherwise
      */
-    public static boolean checkBitmap(final Context context, final String uri) {
-        byte[] buf = getContentData(context, uri);
-        if (buf != null) {
+    public static boolean checkBitmap(byte[] data) {
+        if (data != null) {
             try {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inJustDecodeBounds = true;
-                BitmapFactory.decodeByteArray(buf, 0, buf.length, options);
+                BitmapFactory.decodeByteArray(data, 0, data.length, options);
                 if (options.outWidth > MAX_SIZE || options.outHeight > MAX_SIZE) {
                     return false;
                 } else {

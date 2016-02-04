@@ -18,7 +18,6 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,26 +42,20 @@ public class ChromeCastServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
-        NetworkType deviceType = NetworkType.WIFI;
-        String deviceName = getContext().getResources().getString(R.string.device_name);
-
         ChromeCastDiscovery discovery = ((ChromeCastService) getContext()).getChromeCastDiscovery();
         discovery.registerEvent();
         List<Bundle> services = new ArrayList<Bundle>();
         for (int i = 0; i < discovery.getDeviceNames().size(); i++) {
             Bundle service = new Bundle();
             setId(service, discovery.getDeviceNames().get(i));
-            setName(service, deviceName + " (" + discovery.getDeviceNames().get(i) + ")");
-            setType(service, deviceType);
+            setName(service, getDeviceName(discovery.getDeviceNames().get(i)));
+            setType(service, NetworkType.WIFI);
             setOnline(service, true);
             setScopes(service, getProfileProvider());
             services.add(service);
         }
         setServices(response, services);
         setResult(response, DConnectMessage.RESULT_OK);
-        response.putExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, 
-                request.getIntExtra(IntentDConnectMessage.EXTRA_REQUEST_CODE, -1));
-        response.putExtra(PARAM_SERVICES, services.toArray(new Bundle[services.size()]));
         return true;
     }
 
@@ -100,5 +93,9 @@ public class ChromeCastServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             break;
         }
         return true;
+    }
+
+    private String getDeviceName(final String name) {
+        return getContext().getResources().getString(R.string.device_name, name);
     }
 }

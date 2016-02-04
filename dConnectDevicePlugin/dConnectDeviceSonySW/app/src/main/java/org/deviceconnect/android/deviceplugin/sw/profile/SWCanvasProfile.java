@@ -6,15 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.sw.profile;
 
-import java.io.ByteArrayOutputStream;
-
-import org.deviceconnect.android.deviceplugin.sw.R;
-import org.deviceconnect.android.deviceplugin.sw.SWConstants;
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.CanvasProfile;
-import org.deviceconnect.android.profile.util.CanvasProfileUtils;
-import org.deviceconnect.message.DConnectMessage;
-
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
@@ -26,59 +17,92 @@ import com.sonyericsson.extras.liveware.aef.control.Control;
 import com.sonyericsson.extras.liveware.aef.registration.Registration;
 import com.sonyericsson.extras.liveware.extension.util.registration.DeviceInfoHelper;
 
+import org.deviceconnect.android.deviceplugin.sw.R;
+import org.deviceconnect.android.deviceplugin.sw.SWConstants;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.CanvasProfile;
+import org.deviceconnect.android.profile.util.CanvasProfileUtils;
+import org.deviceconnect.message.DConnectMessage;
+
+import java.io.ByteArrayOutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * SonySWデバイスプラグインの{@link CanvasProfile}実装.
+ *
  * @author NTT DOCOMO, INC.
  */
 public class SWCanvasProfile extends CanvasProfile {
+
+    private ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
     /**
      * コンストラクタ.
      */
     public SWCanvasProfile() {
-        
+
     }
 
     @Override
-    protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId, 
-            final String mimeType, final byte[] data, final double x, final double y, final String mode) {
-        BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
+    protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId,
+                                      final String mimeType, final byte[] data, final String uri, final double x, final double y, final String mode) {
+        final BluetoothDevice device = SWUtil.findSmartWatch(serviceId);
         if (device == null) {
             MessageUtils.setNotFoundServiceError(response, "No device is found: " + serviceId);
             return true;
         }
-        if (data == null || serviceId == null) {
+        if (serviceId == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }
-        DisplaySize size = determineDisplaySize(getContext(), SWUtil.toHostAppPackageName(device.getName()));
+        if (data == null) {
+            mImageService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    byte[] result = getData(uri);
+                    if (result == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
+                        sendResponse(response);
+                        return;
+                    }
+                    drawImage(response, device, result, x, y, mode, serviceId);
+                    sendResponse(response);
+                }
+            });
+            return false;
+        } else {
+            drawImage(response, device, data, x, y, mode, serviceId);
+            return true;
+        }
+    }
 
+    private void drawImage(final Intent response, BluetoothDevice device, byte[] data, double x, double y, String mode, String serviceId) {
+        DisplaySize size = determineDisplaySize(getContext(), SWUtil.toHostAppPackageName(device.getName()));
         boolean result = showDisplay(data, x, y, mode, size, serviceId, response);
         if (!result) {
-        	/* unknown mode-value. */
-        	MessageUtils.setInvalidRequestParameterError(response);
-        	return true;
+            /* unknown mode-value. */
+            MessageUtils.setInvalidRequestParameterError(response);
+            return;
         }
-
         setResult(response, DConnectMessage.RESULT_OK);
-        return true;
     }
 
     /**
      * SWの画面に画像を表示する.
-     * 
-     * @param data バイナリデータ
-     * @param x x座標
-     * @param y y座標
-     * @param mode 画像描画モード
-     * @param size 画面サイズ
+     *
+     * @param data      バイナリデータ
+     * @param x         x座標
+     * @param y         y座標
+     * @param mode      画像描画モード
+     * @param size      画面サイズ
      * @param serviceId サービスID
-     * @param response レスポンス
+     * @param response  レスポンス
      * @return true: success / false: error(unknown mode-value)
      */
     private boolean showDisplay(final byte[] data, final double x, final double y,
-            final String mode, final DisplaySize size, final String serviceId,
-            final Intent response) {
+                                final String mode, final DisplaySize size, final String serviceId,
+                                final Intent response) {
 
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inMutable = true;
@@ -92,22 +116,22 @@ public class SWCanvasProfile extends CanvasProfile {
         boolean isDraw = false;
         if (mode == null || mode.equals("")) {
             // 等倍描画モード 
-        	CanvasProfileUtils.drawImageForNonScalesMode(viewBitmap, bitmap, x, y);
-        	isDraw = true;
+            CanvasProfileUtils.drawImageForNonScalesMode(viewBitmap, bitmap, x, y);
+            isDraw = true;
         } else if (mode.equals(Mode.SCALES.getValue())) {
             // スケールモード 
-        	CanvasProfileUtils.drawImageForScalesMode(viewBitmap, bitmap);
-        	isDraw = true;
+            CanvasProfileUtils.drawImageForScalesMode(viewBitmap, bitmap);
+            isDraw = true;
         } else if (mode.equals(Mode.FILLS.getValue())) {
             // フィルモード 
             CanvasProfileUtils.drawImageForFillsMode(viewBitmap, bitmap);
             isDraw = true;
         }
-        
+
         if (isDraw) {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream(SWConstants.OUTPUTSTREAM_SIZE);
             viewBitmap.compress(CompressFormat.JPEG, SWConstants.BITMAP_DECODE_QUALITY, outputStream);
-            
+
             Intent intent = new Intent(Control.Intents.CONTROL_DISPLAY_DATA_INTENT);
             intent.putExtra(Control.Intents.EXTRA_DATA, outputStream.toByteArray());
             sendToHostApp(intent, serviceId);
@@ -119,8 +143,8 @@ public class SWCanvasProfile extends CanvasProfile {
 
     /**
      * 指定されたホストアプリケーションに対応するSWの画面サイズを返す.
-     * 
-     * @param context コンテキスト
+     *
+     * @param context            コンテキスト
      * @param hostAppPackageName ホストアプリケーション名(SW1orSW2)
      * @return 画面サイズ
      */
@@ -140,8 +164,8 @@ public class SWCanvasProfile extends CanvasProfile {
 
     /**
      * ホストアプリケーションに対してインテントを送信する.
-     * 
-     * @param intent インテント
+     *
+     * @param intent    インテント
      * @param serviceId サービスID
      */
     protected void sendToHostApp(final Intent intent, final String serviceId) {

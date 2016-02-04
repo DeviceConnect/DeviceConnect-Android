@@ -61,7 +61,6 @@ public class UVSphere {
         return mRadius;
     }
 
-
     /**
      * Sphere drawing method
      *
@@ -69,22 +68,18 @@ public class UVSphere {
      * @param mUVHandle Handler value tied to the UV coordinates provided to the fragment shader via the varyig variable
      */
     public void draw(int mPositionHandle, int mUVHandle) {
-
         GLES20.glEnableVertexAttribArray(mPositionHandle);
         GLES20.glEnableVertexAttribArray(mUVHandle);
 
-        for (int i = 0; i < this.mStrips; i++) {
+        for (int i = 0; i < mStrips; i++) {
             GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, mVertices.get(i));
             GLES20.glVertexAttribPointer(mUVHandle, TEXTURE_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, textureStride, mTextureCoords.get(i));
-
 
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, mStripePointsNum);
         }
 
         GLES20.glDisableVertexAttribArray(mPositionHandle);
         GLES20.glDisableVertexAttribArray(mUVHandle);
-
-        return;
     }
 
 

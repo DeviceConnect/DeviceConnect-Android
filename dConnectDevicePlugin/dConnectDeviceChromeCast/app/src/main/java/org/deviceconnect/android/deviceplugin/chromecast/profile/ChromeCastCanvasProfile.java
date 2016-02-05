@@ -27,24 +27,34 @@ import java.util.logging.Logger;
 
 /**
  * Canvas Profile (Chromecast).
+ *
  * @author NTT DOCOMO, INC.
  */
 public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCastConstants {
 
-    /** Error message when Chromecast is not enabled. */
+    /**
+     * Error message when Chromecast is not enabled.
+     */
     private static final String ERROR_MESSAGE_DEVICE_NOT_ENABLED = "Chromecast is not enabled.";
 
-    /** Prefix of image file name. */
+    /**
+     * Prefix of image file name.
+     */
     private static final String PREFIX = "dConnectDeviceChromecast_";
 
-    /** The instance of {@link java.text.SimpleDateFormat}. */
+    /**
+     * The instance of {@link java.text.SimpleDateFormat}.
+     */
     private static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
 
-    /** Logger. */
+    /**
+     * Logger.
+     */
     private final Logger mLogger = Logger.getLogger("chromecast.dplugin");
 
     /**
      * Generates an image file name.
+     *
      * @return an image file name
      */
     private static String generateFileName() {
@@ -54,19 +64,24 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
 
     @Override
     protected boolean onPostDrawImage(final Intent request, final Intent response, final String serviceId,
-            final String mimeType, final byte[] data, final double x, final double y, final String mode) {
+                                      final String mimeType, final byte[] data, final String uri, final double x, final double y, final String mode) {
         ((ChromeCastService) getContext()).connectChromeCast(serviceId, new ChromeCastService.Callback() {
 
             @Override
             public void onResponse() {
-                if (data == null) {
+                if (data == null && uri == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "data is not specified.");
                     sendResponse(response);
                     return;
                 }
 
                 try {
-                    String path = exposeImage(data, mimeType);
+                    String path;
+                    if (data != null) {
+                        path = exposeImage(data, mimeType);
+                    } else {
+                        path = uri;
+                    }
                     mLogger.info("Exposed image: URL=" + path);
                     if (path == null) {
                         MessageUtils.setUnknownError(response, "The host device is not in local network.");
@@ -103,7 +118,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
     /**
      * Expose an image.
      *
-     * @param data the binary data of an image
+     * @param data     the binary data of an image
      * @param mimeType the mime type of an image
      * @return the path of the exposed image
      * @throws IOException if the specified image could not be exposed.
@@ -120,7 +135,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
      * Save binary data on local file system.
      *
      * @param fileName filename
-     * @param data binary data
+     * @param data     binary data
      * @return stored file
      * @throws IOException if the specified binary data could not be stored.
      */
@@ -144,6 +159,7 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
 
     /**
      * Gets HTTP server to expose images.
+     *
      * @return an instance of {@link ChromeCastHttpServer}
      */
     private ChromeCastHttpServer getHttpServer() {
@@ -177,10 +193,10 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
     /**
      * デバイスが有効か否かを返す<br/>.
      * デバイスが無効の場合、レスポンスにエラーを設定する
-     * 
-     * @param   response    レスポンス
-     * @param   app         ChromeCastMediaPlayer
-     * @return  デバイスが有効か否か（有効: true, 無効: false）
+     *
+     * @param response レスポンス
+     * @param app      ChromeCastMediaPlayer
+     * @return デバイスが有効か否か（有効: true, 無効: false）
      */
     private boolean isDeviceEnable(final Intent response, final ChromeCastMessage app) {
         if (!app.isDeviceEnable()) {

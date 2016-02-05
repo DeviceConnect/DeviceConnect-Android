@@ -44,6 +44,16 @@
                     android:textSize="16sp"/>
         </LinearLayout>
 
+        <ImageButton
+                android:id="@+id/install_kadecot_button_install_kadecot"
+                android:layout_width="130dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="0.10"
+                android:background="@null"
+                android:scaleType="fitCenter"
+                android:src="@drawable/g_play_img"/>
+
     </LinearLayout>
 
 </ScrollView>

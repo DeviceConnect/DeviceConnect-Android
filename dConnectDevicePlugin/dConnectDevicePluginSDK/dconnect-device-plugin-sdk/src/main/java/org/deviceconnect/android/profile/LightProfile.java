@@ -379,7 +379,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
-     * 
+     *
+     * @deprecated 廃止します。
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @param serviceId サービスID
@@ -413,7 +414,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
-     * 
+     *
+     * @deprecated 廃止します。
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @param serviceId サービスID
@@ -435,7 +437,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
-     * 
+     *
+     * @deprecated 廃止します。
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @param serviceId サービスID
@@ -471,7 +474,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
-     * 
+     *
+     * @deprecated 廃止します。
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @param serviceId サービスID
@@ -494,7 +498,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
-     * 
+     *
+     * @deprecated 廃止します。
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @param serviceId サービスID
@@ -514,7 +519,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
-     * 
+     *
+     * @deprecated 廃止します。
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @param serviceId サービスID
@@ -661,6 +667,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * <p>
      * 省略された場合にはnullを返却する。
      * </p>
+     * @deprecated 廃止します。
      * @param request リクエスト
      * @return groupId
      */
@@ -701,6 +708,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * <p>
      * 省略された場合にはnullを返却する。
      * </p>
+     * @deprecated 廃止します。
      * @param request リクエスト
      * @return groupName
      */
@@ -917,7 +925,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
 
     /**
      * レスポンスにライトグループ一覧を設定する.
-     * 
+     *
+     * @deprecated 廃止します。
      * @param response レスポンスデータ
      * @param lightGroups ライトグループ一覧
      */
@@ -929,7 +938,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
 
     /**
      * レスポンスにライトグループ一覧を設定する.
-     * 
+     *
+     * @deprecated 廃止します。
      * @param response レスポンスデータ
      * @param lightGroups ライトグループ一覧
      */
@@ -939,7 +949,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
 
     /**
      * レスポンスにグループIDを設定する.
-     * 
+     *
+     * @deprecated 廃止します。
      * @param response レスポンスデータ
      * @param groupId グループID
      */
@@ -949,7 +960,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
 
     /**
      * ライトグループ情報にライトグループIDを設定する.
-     * 
+     *
+     * @deprecated 廃止します。
      * @param lightGroup ライトグループ情報
      * @param groupId グループID
      */
@@ -959,7 +971,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
 
     /**
      * ライトグループ情報にライトグループ名を設定する.
-     * 
+     *
+     * @deprecated 廃止します。
      * @param lightGroup ライトグループ情報
      * @param name グループ名前
      */
@@ -969,7 +982,8 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
 
     /**
      * ライトグループ情報にライトグループの設定を設定する.
-     * 
+     *
+     * @deprecated 廃止します。
      * @param lightGroup ライトグループ情報
      * @param config グループの設定
      */

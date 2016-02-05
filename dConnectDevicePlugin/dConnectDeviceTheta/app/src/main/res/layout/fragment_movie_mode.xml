@@ -25,17 +25,17 @@
             android:padding="20dp" >
 
             <ImageView
+                android:id="@+id/image_theta_device_movie_mode"
                 android:layout_width="200dp"
                 android:layout_height="200dp"
-                android:layout_gravity="center"
-                android:src="@drawable/theta_movie" />
+                android:layout_gravity="center" />
 
             <TextView
+                android:id="@+id/text_movie_mode"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingTop="20dp"
                 android:paddingBottom="20dp"
-                android:text="@string/movie_mode_body"
                 android:textColor="#777777"
                 android:textSize="16sp"/>
 

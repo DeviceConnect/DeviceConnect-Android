@@ -325,10 +325,14 @@ public final class USBMonitor {
 					}
 				}
 			} else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
-				final UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-				processAttach(device);
+				final UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+				Log.i(TAG, "Attached USB Device: class = " + device.getDeviceClass()
+					+ ", subclass = " + device.getDeviceSubclass());
+				if (supportsDevice(device)) { // MODIFIED
+					processAttach(device);
+				}
 			} else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-				final UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+				final UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 				if (device != null) {
 					UsbControlBlock ctrlBlock = null;
 					ctrlBlock = mCtrlBlocks.remove(device);
@@ -341,6 +345,17 @@ public final class USBMonitor {
 			}
 		}
 	};
+
+	// MODIFIED: Add below method.
+	private boolean supportsDevice(final UsbDevice device) {
+		for (DeviceFilter filter : mDeviceFilters) {
+			if (filter.mClass == device.getDeviceClass()
+				&& filter.mSubclass == device.getDeviceSubclass()) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	private volatile int mDeviceCounts = 0;
 

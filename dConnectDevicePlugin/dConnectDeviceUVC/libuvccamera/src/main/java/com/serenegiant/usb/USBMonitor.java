@@ -326,8 +326,6 @@ public final class USBMonitor {
 				}
 			} else if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
 				final UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-				Log.i(TAG, "Attached USB Device: class = " + device.getDeviceClass()
-					+ ", subclass = " + device.getDeviceSubclass());
 				if (supportsDevice(device)) { // MODIFIED
 					processAttach(device);
 				}

@@ -21,7 +21,7 @@ import java.util.Map;
  */
 
 public class HVCPServiceDiscoveryProfile extends ServiceDiscoveryProfile {
-
+    private static final String NETWORK_TYPE_USB = "usb";
     /**
      * Constructor.
      *
@@ -44,7 +44,7 @@ public class HVCPServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             }
             setId(service, camera.getID());
             setName(service, camera.getName());
-            setType(service, NetworkType.UNKNOWN);
+            setType(service, NETWORK_TYPE_USB);
             setOnline(service, true);
             setScopes(service, getProfileProvider());
             services[index++] = service;

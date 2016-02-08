@@ -59,7 +59,10 @@ public class HVCPDeviceService extends DConnectMessageService
             if (action.equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
                 synchronized (this) {
                     UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                    HVCManager.INSTANCE.addUSBDevice(device);
+                    if ((device.getVendorId() == 1027 && device.getProductId() == 24577)
+                        || (device.getVendorId() == 1118 && device.getProductId() == 688)) {
+                        HVCManager.INSTANCE.addUSBDevice(device);
+                    }
                 }
             } else if (action.equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
                 synchronized (this) {

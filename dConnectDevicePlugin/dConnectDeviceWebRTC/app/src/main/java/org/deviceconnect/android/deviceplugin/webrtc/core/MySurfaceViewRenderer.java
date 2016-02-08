@@ -67,8 +67,6 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
 
     @Override
     public void renderFrame(VideoRenderer.I420Frame frame) {
-        super.renderFrame(frame);
-
         if (mReleased) {
             return;
         }
@@ -84,6 +82,8 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
                 Log.e(TAG, "renderFrame: frame is null.");
             }
         }
+
+        super.renderFrame(frame);
     }
 
     private int[] mTestBuffer;
@@ -101,10 +101,25 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
         mServer.offerMedia(out.toByteArray());
 */
+
+        if (frame.yuvPlanes == null || frame.yuvPlanes[0] == null) {
+            return;
+        }
+
         android.graphics.YuvImage remoteImage = ConvertTo(frame.width, frame.height, frame.yuvStrides, frame.yuvPlanes);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         remoteImage.compressToJpeg(new Rect(0, 0, frame.width, frame.height), 50, out);
         mServer.offerMedia(out.toByteArray());
+
+        if (frame.yuvPlanes[0] != null) {
+            frame.yuvPlanes[0].rewind();
+        }
+        if (frame.yuvPlanes[1] != null) {
+            frame.yuvPlanes[1].rewind();
+        }
+        if (frame.yuvPlanes[2] != null) {
+            frame.yuvPlanes[2].rewind();
+        }
     }
 
     private static void copyPlane(final ByteBuffer src, final ByteBuffer dst) {

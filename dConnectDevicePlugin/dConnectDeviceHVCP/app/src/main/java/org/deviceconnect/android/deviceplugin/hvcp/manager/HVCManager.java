@@ -258,7 +258,8 @@ public enum HVCManager {
             }
             UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
             if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                HVCCameraInfo camera = new HVCCameraInfo("" + device.getDeviceId() + "_" + device.getProductId() + "_" + device.getVendorId(), "HVC-P");
+                HVCCameraInfo camera = new HVCCameraInfo("" + device.getDeviceId() + "_" + device.getProductId() + "_" + device.getVendorId(),
+                                "HVC-P:" + "" + device.getDeviceId() + "_" + device.getProductId() + "_" + device.getVendorId());
                 mServices.put(camera.getID(), camera);
                 HVCManager.INSTANCE.init(context);
                 if (BuildConfig.DEBUG) {

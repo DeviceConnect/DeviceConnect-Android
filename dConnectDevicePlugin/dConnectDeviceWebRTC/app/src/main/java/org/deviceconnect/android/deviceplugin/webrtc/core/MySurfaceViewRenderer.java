@@ -92,7 +92,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         if (mTestBuffer == null || mTestBuffer.length != frame.width * frame.height) {
             mTestBuffer = new int[frame.width * frame.height];
         }
-
+/*
         mYuvConverter.test(mTestBuffer, frame.width, frame.height, frame.width, frame.textureId, frame.yuvStrides, frame.yuvPlanes, frame.samplingMatrix);
 
         Bitmap bitmap = Bitmap.createBitmap(frame.width, frame.height, Bitmap.Config.ARGB_8888);
@@ -100,8 +100,72 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
         mServer.offerMedia(out.toByteArray());
+*/
+        android.graphics.YuvImage remoteImage = ConvertTo(frame.width, frame.height, frame.yuvStrides, frame.yuvPlanes);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        remoteImage.compressToJpeg(new Rect(0, 0, frame.width, frame.height), 50, out);
+        mServer.offerMedia(out.toByteArray());
     }
 
+    private static void copyPlane(final ByteBuffer src, final ByteBuffer dst) {
+        src.position(0).limit(src.capacity());
+        dst.put(src);
+        dst.position(0).limit(dst.capacity());
+    }
+
+    public static android.graphics.YuvImage ConvertTo(final int width, final int height, final int[] yuvStrides, final ByteBuffer[] yuvPlanes) {
+
+        if (yuvStrides[0] != width)
+            return convertLineByLine(width, height, yuvStrides, yuvPlanes);
+        if (yuvStrides[1] != width/2)
+            return convertLineByLine(width, height, yuvStrides, yuvPlanes);
+        if (yuvStrides[2] != width/2)
+            return convertLineByLine(width, height, yuvStrides, yuvPlanes);
+
+        byte[] bytes = new byte[yuvStrides[0] * height +
+                yuvStrides[1] * height / 2 +
+                yuvStrides[2] * height / 2];
+        ByteBuffer tmp = ByteBuffer.wrap(bytes, 0, width*height);
+        copyPlane(yuvPlanes[0], tmp);
+
+        byte[] tmparray = new byte[width / 2 * height / 2];
+        tmp = ByteBuffer.wrap(tmparray, 0, width / 2 * height / 2);
+
+        copyPlane(yuvPlanes[2], tmp);
+        for (int row = 0; row < height / 2; row++) {
+            for (int col = 0; col < width / 2; col++) {
+                bytes[width * height + row * width + col * 2] = tmparray[row * width / 2 + col];
+            }
+        }
+        copyPlane(yuvPlanes[1], tmp);
+        for (int row = 0; row < height / 2; row++) {
+            for (int col = 0; col < width / 2; col++) {
+                bytes[width * height + row * width + col * 2 + 1] = tmparray[row * width / 2 + col];
+            }
+        }
+        return new YuvImage(bytes, android.graphics.ImageFormat.NV21, width, height, null);
+    }
+
+    public static android.graphics.YuvImage convertLineByLine(final int width, final int height, final int[] yuvStrides, final ByteBuffer[] yuvPlanes) {
+        byte[] bytes = new byte[width * height * 3 / 2];
+        byte[] yuvPlanes0 = yuvPlanes[0].array();
+        byte[] yuvPlanes1 = yuvPlanes[1].array();
+        byte[] yuvPlanes2 = yuvPlanes[2].array();
+
+        int i = 0;
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                bytes[i++] = yuvPlanes0[col + row * yuvStrides[0]];
+            }
+        }
+        for (int row = 0; row < height / 2; row++) {
+            for (int col = 0; col < width / 2; col++) {
+                bytes[i++] = yuvPlanes2[col + row * yuvStrides[2]];
+                bytes[i++] = yuvPlanes1[col + row * yuvStrides[1]];
+            }
+        }
+        return new YuvImage(bytes, android.graphics.ImageFormat.NV21, width, height, null);
+    }
 
     private void convertTextureToYUV(VideoRenderer.I420Frame frame) {
         if (mYuvConverter != null) {
@@ -231,7 +295,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
                 // TODO
                 return;
             }
-
+/*
             Log.e("ABC", "AAAAAA width, height = (" + width + ", " + height + ")");
             Log.e("ABC", "AAAAAA strides[0] = " + strides[0]);
             Log.e("ABC", "AAAAAA strides[1] = " + strides[1]);
@@ -241,7 +305,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
             Log.e("ABC", "AAAAAA planes[1] = " + planes[1].limit());
             Log.e("ABC", "AAAAAA planes[2] = " + planes[2].limit());
             Log.e("ABC", "AAAAAA mBuffer = " + buf.length);
-
+*/
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     int index1 = y * width + x;

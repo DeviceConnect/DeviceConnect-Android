@@ -10,7 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.IntBuffer;
 
 
-class DefaultProjector extends AbstractProjector implements SphericalViewRenderer.SurfaceListener {
+class DefaultProjector extends AbstractProjector {
 
     private PixelBuffer mPixelBuffer;
 
@@ -18,14 +18,7 @@ class DefaultProjector extends AbstractProjector implements SphericalViewRendere
 
     private boolean mIsRequestedToStop;
 
-    private boolean mIsChangedImageSize = true;
-
     private byte[] mImageCache;
-
-    @Override
-    public void onSurfaceChanged(final int width, final int height, final boolean isStereo) {
-        mIsChangedImageSize = true;
-    }
 
     @Override
     public void setRenderer(final SphericalViewRenderer renderer) {

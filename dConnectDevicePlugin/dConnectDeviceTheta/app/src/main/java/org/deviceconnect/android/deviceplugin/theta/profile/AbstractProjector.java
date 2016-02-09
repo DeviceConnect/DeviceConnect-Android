@@ -5,11 +5,13 @@ import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewParam;
 import org.deviceconnect.android.deviceplugin.theta.core.SphericalViewRenderer;
 import org.deviceconnect.android.deviceplugin.theta.utils.Vector3D;
 
-abstract class AbstractProjector implements Projector {
+abstract class AbstractProjector implements Projector, SphericalViewRenderer.SurfaceListener{
 
     protected SphericalViewRenderer mRenderer;
 
     protected ProjectionScreen mScreen;
+
+    protected boolean mIsChangedImageSize = true;
 
     @Override
     public SphericalViewRenderer getRenderer() {
@@ -43,6 +45,11 @@ abstract class AbstractProjector implements Projector {
         renderer.setCamera(camera.create());
         renderer.setSphereRadius((float) param.getSphereSize());
         renderer.setScreenSettings(param.getWidth(), param.getHeight(), param.isStereo());
+    }
+
+    @Override
+    public void onSurfaceChanged(final int width, final int height, final boolean isStereo) {
+        mIsChangedImageSize = true;
     }
 
 }

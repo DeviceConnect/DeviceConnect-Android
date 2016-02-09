@@ -60,7 +60,7 @@ class OverlayProjector extends AbstractProjector {
             public void run() {
                 int w = mRenderer.getScreenWidth();
                 int h = mRenderer.getScreenHeight();
-                show(w, h);
+                show(w, h, mRenderer.isStereo());
             }
         });
 
@@ -123,7 +123,7 @@ class OverlayProjector extends AbstractProjector {
 
     @Override
     public void setParameter(final SphericalViewParam param) {
-        updateViewSize(param.getWidth(), param.getHeight());
+        updateViewSize(param.getWidth(), param.getHeight(), param.isStereo());
         super.setParameter(param);
     }
 
@@ -136,21 +136,15 @@ class OverlayProjector extends AbstractProjector {
         return mIsAttachedView;
     }
 
-    private void show() {
+    private void show(final int width , final int height, final boolean isStereo) {
         Point size = getDisplaySize();
         int x = size.x / 2;
         int y = size.y / 2;
-        show(x, y, size.x, size.y);
+        show(x, y, width, height, isStereo);
     }
 
-    private void show(final int width , final int height) {
-        Point size = getDisplaySize();
-        int x = size.x / 2;
-        int y = size.y / 2;
-        show(x, y, width, height);
-    }
-
-    private void show(final int x, final int y, final int width , final int height) {
+    private void show(final int x, final int y, final int width , final int height,
+                      final boolean isStereo) {
         mPreview = new OverlayView(mContext);
         mPreview.setRenderer(getRenderer());
         mPreview.setOnClickListener(new View.OnClickListener() {
@@ -190,8 +184,9 @@ class OverlayProjector extends AbstractProjector {
             }
         });
 
+        final int w = isStereo ? width * 2 : width;
         final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
-            width,
+            w,
             height,
             WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
@@ -218,12 +213,13 @@ class OverlayProjector extends AbstractProjector {
         mContext.unregisterReceiver(mOrientReceiver);
     }
 
-    private void updateViewSize(final int width, final int height) {
+    private void updateViewSize(final int width, final int height, final boolean isStereo) {
+        final int w = isStereo ? width * 2 : width;
         mHandler.post(new Runnable() {
             @Override
             public void run() {
                 final WindowManager.LayoutParams l = new WindowManager.LayoutParams(
-                    width,
+                    w,
                     height,
                     WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE

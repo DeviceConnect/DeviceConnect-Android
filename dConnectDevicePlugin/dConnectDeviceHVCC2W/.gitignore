@@ -1,0 +1,14 @@
+*.iml
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+
+
+HVCW.jara
+
+/app/src/main/jniLibs/x86
+/app/src/main/jniLibs/armeabi-v7a

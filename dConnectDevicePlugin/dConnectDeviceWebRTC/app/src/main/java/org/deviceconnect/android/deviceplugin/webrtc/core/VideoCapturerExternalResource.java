@@ -263,7 +263,7 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
                         mFrameObserver.OnOutputFormatRequest(mRequestWidth, mRequestHeight, mFPS);
                         mCaptureFormat = new VideoCapturerAndroid.CaptureFormat(mRequestWidth, mRequestHeight, mFPS, mFPS);
                         mYUVData = ImageUtils.createBuffer(bitmap);
-                        mRGBData = new int[mWidth * mHeight];
+                        mRGBData = new int[mRequestWidth * mRequestHeight];
                         if (BuildConfig.DEBUG) {
                             Log.d(TAG, "@@@ ChangeSize: " + mRequestWidth + " " + mRequestHeight);
                         }

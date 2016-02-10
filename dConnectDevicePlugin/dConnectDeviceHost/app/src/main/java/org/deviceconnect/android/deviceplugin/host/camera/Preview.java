@@ -33,7 +33,7 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 @SuppressWarnings("deprecation")
-class Preview extends ViewGroup implements SurfaceHolder.Callback {
+public class Preview extends ViewGroup implements SurfaceHolder.Callback {
     /** デバック用タグ. */
     private static final String LOG_TAG = "Camera:Preview";
 

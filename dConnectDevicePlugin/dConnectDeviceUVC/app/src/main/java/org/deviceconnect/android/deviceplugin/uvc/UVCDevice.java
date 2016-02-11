@@ -134,7 +134,7 @@ public class UVCDevice {
         }
     }
 
-    synchronized boolean initialize() {
+    synchronized boolean connect() {
         if (mIsInitialized) {
             return true;
         }
@@ -155,9 +155,9 @@ public class UVCDevice {
         return true;
     }
 
-    synchronized boolean open() {
+    private boolean open() {
         if (mIsOpen) {
-            return false;
+            return true;
         }
         if (!mIsPermitted) {
             return false;
@@ -271,7 +271,7 @@ public class UVCDevice {
         }
     }
 
-    synchronized boolean close() {
+    synchronized boolean disconnect() {
         if (!mIsOpen) {
             return false;
         }

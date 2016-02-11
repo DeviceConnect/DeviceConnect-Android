@@ -153,7 +153,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return;
                 }
                 if (!device.isOpen()) {
-                    if (!mDeviceMgr.openDevice(device)) {
+                    if (!mDeviceMgr.connectDevice(device)) {
                         MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
                         sendResponse(response);
                         return;
@@ -228,7 +228,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return;
                 }
                 if (!device.isOpen()) {
-                    if (!mDeviceMgr.openDevice(device)) {
+                    if (!mDeviceMgr.connectDevice(device)) {
                         MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
                         sendResponse(response);
                         return;
@@ -315,7 +315,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return;
                 }
                 if (!device.isOpen()) {
-                    if (!mDeviceMgr.openDevice(device)) {
+                    if (!mDeviceMgr.connectDevice(device)) {
                         MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
                         sendResponse(response);
                         return;

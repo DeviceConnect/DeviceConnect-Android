@@ -16,13 +16,13 @@ import android.view.ViewGroup;
 import org.deviceconnect.android.deviceplugin.uvc.R;
 
 
-public class UVCDeviceConnectionFragment extends Fragment {
+public class UVCDeviceInstructionFragment extends Fragment {
 
     @Nullable
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_uvc_device_connection, null);
+        View root = inflater.inflate(R.layout.fragment_uvc_device_instruction, null);
         return root;
     }
 

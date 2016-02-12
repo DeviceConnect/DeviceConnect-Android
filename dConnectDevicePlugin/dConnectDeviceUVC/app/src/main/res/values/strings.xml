@@ -17,4 +17,5 @@
     <string name="uvc_settings_dialog_error_message">%1$sとの接続に失敗しました</string>
     <string name="uvc_settings_online">[ONLINE]</string>
     <string name="uvc_settings_offline">[OFFLINE]</string>
+    <string name="uvc_settings_no_device_found">USBカメラが接続されていません。</string>
 </resources>

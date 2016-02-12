@@ -91,6 +91,7 @@ public class UVCDeviceListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        addFooterView();
         getManager().startScan();
         getManager().addConnectionListener(mConnectionListener);
         getManager().addDiscoveryListener(mDiscoverListener);
@@ -110,15 +111,25 @@ public class UVCDeviceListFragment extends Fragment {
      * Added the view at ListView.
      */
     private void addFooterView() {
-        getActivity().runOnUiThread(new Runnable() {
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                LayoutInflater inflater = getActivity().getLayoutInflater();
+                UVCDeviceManager mgr = getManager();
+                if (mgr == null) {
+                    return;
+                }
+                LayoutInflater inflater = activity.getLayoutInflater();
                 if (mFooterView != null) {
                     mListView.removeFooterView(mFooterView);
                 }
-                mFooterView = inflater.inflate(R.layout.item_uvc_searching, null);
-                mListView.addFooterView(mFooterView);
+                if (mgr.getDeviceList().size() == 0) {
+                    mFooterView = inflater.inflate(R.layout.item_uvc_searching, null);
+                    mListView.addFooterView(mFooterView);
+                }
             }
         });
     }
@@ -231,6 +242,9 @@ public class UVCDeviceListFragment extends Fragment {
      */
     private UVCDeviceManager getManager() {
         Activity activity = getActivity();
+        if (activity == null) {
+            return null;
+        }
         UVCDeviceApplication application =
                 (UVCDeviceApplication) activity.getApplication();
         return application.getDeviceManager();
@@ -306,6 +320,7 @@ public class UVCDeviceListFragment extends Fragment {
                     mDeviceAdapter.clear();
                     mDeviceAdapter.addAll(createDeviceContainers());
                     mDeviceAdapter.notifyDataSetChanged();
+                    addFooterView();
                 }
             });
         }

@@ -147,6 +147,11 @@ public class MixedReplaceMediaClient {
                         if (BuildConfig.DEBUG) {
                             Log.e(TAG, "content type: " + contentType);
                         }
+
+                        if (mOnMixedReplaceMediaListener != null) {
+                            mOnMixedReplaceMediaListener.onConnected();
+                        }
+
                         if (contentType == null || contentType.startsWith(CONTENT_TYPE_IMAGE)) {
                             readImage(mConnection.getInputStream(), mConnection.getContentLength());
                         } else if (contentType.startsWith(CONTENT_TYPE_MULTIPART)) {
@@ -367,6 +372,7 @@ public class MixedReplaceMediaClient {
      * @author NTT DOCOMO, INC.
      */
     public interface OnMixedReplaceMediaListener {
+        void onConnected();
         /**
          * Notifies the received data.
          * @param in received data

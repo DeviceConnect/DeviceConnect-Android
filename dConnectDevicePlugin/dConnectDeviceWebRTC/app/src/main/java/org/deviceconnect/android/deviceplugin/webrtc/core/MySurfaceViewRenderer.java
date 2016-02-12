@@ -89,10 +89,11 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
     private int[] mTestBuffer;
 
     private void convertYuvToRGB(VideoRenderer.I420Frame frame) {
+/*
         if (mTestBuffer == null || mTestBuffer.length != frame.width * frame.height) {
             mTestBuffer = new int[frame.width * frame.height];
         }
-/*
+
         mYuvConverter.test(mTestBuffer, frame.width, frame.height, frame.width, frame.textureId, frame.yuvStrides, frame.yuvPlanes, frame.samplingMatrix);
 
         Bitmap bitmap = Bitmap.createBitmap(frame.width, frame.height, Bitmap.Config.ARGB_8888);
@@ -140,7 +141,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         byte[] bytes = new byte[yuvStrides[0] * height +
                 yuvStrides[1] * height / 2 +
                 yuvStrides[2] * height / 2];
-        ByteBuffer tmp = ByteBuffer.wrap(bytes, 0, width*height);
+        ByteBuffer tmp = ByteBuffer.wrap(bytes, 0, width * height);
         copyPlane(yuvPlanes[0], tmp);
 
         byte[] tmparray = new byte[width / 2 * height / 2];
@@ -478,5 +479,4 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
             eglBase.release();
         }
     }
-
 }

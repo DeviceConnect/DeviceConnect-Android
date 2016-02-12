@@ -67,7 +67,7 @@ public final class ImageUtils {
      */
     public static byte[] createBuffer(final int width, final int height) {
         int frameSize = frameSize(width, height);
-        byte[] yuv = new byte[frameSize + 10];
+        byte[] yuv = new byte[frameSize];
         return yuv;
     }
 

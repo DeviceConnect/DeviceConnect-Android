@@ -3,8 +3,13 @@ package org.deviceconnect.android.deviceplugin.webrtc.core;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.Surface;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.util.ImageUtils;
@@ -12,6 +17,7 @@ import org.deviceconnect.android.deviceplugin.webrtc.util.MixedReplaceMediaClien
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.webrtc.EglBase;
 import org.webrtc.SurfaceTextureHelper;
 import org.webrtc.VideoCapturerAndroid;
 import org.webrtc.VideoCapturerObject;
@@ -26,9 +32,14 @@ import java.util.concurrent.TimeUnit;
  */
 public class VideoCapturerExternalResource implements VideoCapturerObject {
     /**
+     * Flag for debugging.
+     */
+    private final static boolean DEBUG = BuildConfig.DEBUG;
+
+    /**
      * Tag for debugging.
      */
-    private final static String TAG = "VideoCapturerExternal";
+    private final static String TAG = "VideoExternal";
 
     private int mWidth;
     private int mHeight;
@@ -38,16 +49,6 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
      * Observer to send the buffer of capture image.
      */
     private VideoCapturerAndroid.CapturerObserver mFrameObserver;
-
-    /**
-     * The buffer of the image to be sent to the WebRTC.
-     */
-    private byte[] mYUVData;
-
-    /**
-     * The buffer of the bitmap.
-     */
-    private int[] mRGBData;
 
     /**
      * Width to request.
@@ -65,11 +66,6 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
     private MixedReplaceMediaClient mClient;
 
     /**
-     * Thread for updating the image.
-     */
-    private VideoThread mThread;
-
-    /**
      * Uri of resource.
      */
     private String mUri;
@@ -79,17 +75,27 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
      */
     private final Object mLockObj = new Object();
 
+    private SurfaceTextureHelper mSurfaceHelper;
+    private Handler cameraThreadHandler;
+    private Surface mSurface;
+
     /**
      * Constructor.
-     * @param uri uri of resource
-     * @param width width
+     *
+     * @param uri    uri of resource
+     * @param width  width
      * @param height height
      */
-    public VideoCapturerExternalResource(final String uri, final int width, final int height) {
+    public VideoCapturerExternalResource(EglBase.Context sharedContext, final String uri, final int width, final int height) {
         mUri = uri;
         mWidth = width;
         mHeight = height;
         mFPS = 30;
+
+        HandlerThread cameraThread = new HandlerThread(TAG);
+        cameraThread.start();
+        cameraThreadHandler = new Handler(cameraThread.getLooper());
+        mSurfaceHelper = SurfaceTextureHelper.create(sharedContext, cameraThreadHandler);
     }
 
     @Override
@@ -100,6 +106,16 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
         json_format.put("height", mHeight);
         json_format.put("framerate", mFPS);
         json_formats.put(json_format);
+
+        JSONObject json_format2 = new JSONObject();
+        json_format2.put("width", mHeight);
+        json_format2.put("height", mWidth);
+        json_format2.put("framerate", mFPS);
+        json_formats.put(json_format2);
+
+        if (DEBUG) {
+            Log.e(TAG, "@@@@ getSupportedFormatsAsJson: json=" + json_formats.toString(4));
+        }
         return json_formats.toString();
     }
 
@@ -107,22 +123,17 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
     public void startCapture(final int width, final int height, final int frameRate,
                              final Context applicationContext,
                              final VideoCapturerAndroid.CapturerObserver frameObserver) {
-        if (BuildConfig.DEBUG) {
+        if (DEBUG) {
             Log.i(TAG, "@@@ startCapture size:[" + width + ", " + height
                     + "] frameRate:" + frameRate);
         }
 
-        mRequestWidth = -1;
-        mRequestHeight = -1;
+        mSurfaceHelper.getSurfaceTexture().setDefaultBufferSize(width, height);
+        mSurface = new Surface(mSurfaceHelper.getSurfaceTexture());
+
+        mRequestWidth = width;
+        mRequestHeight = height;
         mFrameObserver = frameObserver;
-
-        if (mThread != null) {
-            mThread.joinThread();
-            mThread = null;
-        }
-
-        mThread = new VideoThread();
-        mThread.start();
 
         if (mClient != null) {
             mClient.stop();
@@ -136,7 +147,7 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
 
     @Override
     public void stopCapture() {
-        if (BuildConfig.DEBUG) {
+        if (DEBUG) {
             Log.i(TAG, "@@@ stopCapture");
         }
 
@@ -145,99 +156,76 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
             mClient = null;
         }
 
-        if (mThread != null) {
-            mThread.joinThread();
-            mThread = null;
+        if (mSurface != null) {
+            mSurface.release();
+            mSurface = null;
         }
 
         mFrameObserver = null;
     }
 
     @Override
-    public void returnBuffer(final long l) {
+    public void returnBuffer(final long timeStamp) {
+        if (DEBUG) {
+            Log.d(TAG, "@@@ returnBuffer");
+        }
     }
 
     @Override
     public void onOutputFormatRequest(final int width, final int height, final int fps) {
-        if (mFrameObserver != null) {
-            synchronized (mLockObj) {
-                mFrameObserver.onOutputFormatRequest(width, height, fps);
-            }
+        if (DEBUG) {
+            Log.d(TAG, "@@@ onOutputFormatRequest");
         }
     }
 
     @Override
     public void release() {
+        if (DEBUG) {
+            Log.d(TAG, "@@@ release");
+        }
+
         stopCapture();
-    }
 
-    /**
-     * Update the captured frame.
-     */
-    private void updateFrameCaptured() {
-        synchronized (mLockObj) {
-            if (mYUVData != null && mFrameObserver != null) {
-                mFrameObserver.onByteBufferFrameCaptured(mYUVData, 0, 0, 0,
-                        0, TimeUnit.MILLISECONDS.toNanos(SystemClock.elapsedRealtime()));
-//                mFrameObserver.OnFrameCaptured(mYUVData, mCaptureFormat.frameSize(),
-//                        mCaptureFormat.width, mCaptureFormat.height,
-//                        0, TimeUnit.MILLISECONDS.toNanos(SystemClock.elapsedRealtime()));
-            }
+        if (mSurfaceHelper != null) {
+            mSurfaceHelper.disconnect(cameraThreadHandler);
+            mSurfaceHelper = null;
         }
     }
 
-    /**
-     * Thread for updating the image.
-     */
-    private class VideoThread extends Thread {
-        /**
-         * Keep alive flag.
-         */
-        private volatile boolean mKeepAlive = true;
-
-        @Override
-        public void run() {
-            if (BuildConfig.DEBUG) {
-                Log.i(TAG, "@@@ VideoThread is start");
-            }
-
-            mFrameObserver.onCapturerStarted(true);
-
-            int sleep = 1000 / mFPS;
-            while (mKeepAlive) {
-                long oldTime = System.currentTimeMillis();
-                updateFrameCaptured();
-                long newTime = System.currentTimeMillis();
-                long sleepTime = sleep - (newTime - oldTime);
-                if (sleepTime > 0) {
-                    try {
-                        Thread.sleep(sleepTime);
-                    } catch (InterruptedException e) {
-                        break;
-                    }
-                }
-            }
-
-            if (BuildConfig.DEBUG) {
-                Log.i(TAG, "@@@ VideoThread is stop");
-            }
+    @Override
+    public void switchCamera(VideoCapturerAndroid.CameraSwitchHandler cameraSwitchHandler) {
+        if (DEBUG) {
+            Log.e(TAG, "switchCamera:");
         }
+    }
 
-
-        /**
-         * Wait until this thread is finished.
-         */
-        public void joinThread() {
-            mKeepAlive = false;
-            interrupt();
-            while (isAlive()) {
-                try {
-                    join();
-                } catch (InterruptedException e) {
-                    // do nothing.
-                }
-            }
+    @Override
+    public void changeCaptureFormat(int width, int height, int frameRate) {
+        if (DEBUG) {
+            Log.i(TAG, "changeCaptureFormat: (" + width + ", " + height + ") frameRate=" + frameRate);
         }
+    }
+
+    @Override
+    public SurfaceTextureHelper getSurfaceTextureHelper() {
+        return mSurfaceHelper;
+    }
+
+    @Override
+    public void onTextureFrameAvailable(int oesTextureId, float[] transformMatrix, long timestampNs) {
+        if (DEBUG) {
+            Log.d(TAG, "onTextureFrameAvailable: oesTextureId=" + oesTextureId + " timestampNs=" + timestampNs);
+        }
+        if (mFrameObserver != null) {
+            mFrameObserver.onTextureFrameCaptured(mRequestWidth, mRequestHeight, oesTextureId, transformMatrix, 0, timestampNs);
+        }
+    }
+
+    private void deliverTextureFrame() {
+        final float[] transformMatrix = new float[16];
+        mSurfaceHelper.getSurfaceTexture().getTransformMatrix(transformMatrix);
+        long timestampNs = TimeUnit.MILLISECONDS.toNanos(SystemClock.elapsedRealtime());
+        onTextureFrameAvailable(mSurfaceHelper.getOesTextureId(), transformMatrix, timestampNs);
     }
 
     /**
@@ -246,55 +234,49 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
     private final MixedReplaceMediaClient.OnMixedReplaceMediaListener mOnMixedReplaceMediaListener
             = new MixedReplaceMediaClient.OnMixedReplaceMediaListener() {
         @Override
+        public void onConnected() {
+            mFrameObserver.onCapturerStarted(true);
+        }
+
+        @Override
         public void onReceivedData(final InputStream in) {
-            Bitmap bitmap = ImageUtils.resize(BitmapFactory.decodeStream(in));
+            final Bitmap bitmap = ImageUtils.resize(BitmapFactory.decodeStream(in));
             if (bitmap != null) {
                 synchronized (mLockObj) {
-                    if (mRequestWidth != bitmap.getWidth() || mRequestHeight != bitmap.getHeight() || mRGBData == null) {
+                    if (mRequestWidth != bitmap.getWidth() || mRequestHeight != bitmap.getHeight()) {
                         mRequestWidth = bitmap.getWidth();
                         mRequestHeight = bitmap.getHeight();
                         mFrameObserver.onOutputFormatRequest(mRequestWidth, mRequestHeight, mFPS);
-//                        mCaptureFormat = new VideoCapturerAndroid.CaptureFormat(mRequestWidth, mRequestHeight, mFPS, mFPS);
-                        mYUVData = ImageUtils.createBuffer(bitmap);
-                        mRGBData = new int[mWidth * mHeight];
-                        if (BuildConfig.DEBUG) {
+                        if (DEBUG) {
                             Log.d(TAG, "@@@ ChangeSize: " + mRequestWidth + " " + mRequestHeight);
                         }
                     }
 
-                    int width = bitmap.getWidth();
-                    int height = bitmap.getHeight();
-                    bitmap.getPixels(mRGBData, 0, width, 0, 0, width, height);
-                    ImageUtils.argbToYV12(mYUVData, mRGBData, width, height);
+                    Canvas canvas = mSurface.lockCanvas(null);
+                    canvas.drawBitmap(bitmap, 0, 0, new Paint());
+                    mSurface.unlockCanvasAndPost(canvas);
+
+                    cameraThreadHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSurfaceHelper.getSurfaceTexture().updateTexImage();
+                            deliverTextureFrame();
+                        }
+                    });
                 }
+
                 bitmap.recycle();
             }
         }
+
         @Override
         public void onError(MixedReplaceMediaClient.MixedReplaceMediaError error) {
-            if (BuildConfig.DEBUG) {
+            if (DEBUG) {
                 Log.w(TAG, "Error occurred by MixedReplaceMediaClient. " + error);
+            }
+            if (mFrameObserver != null) {
+                mFrameObserver.onCapturerStarted(false);
             }
         }
     };
-
-    @Override
-    public void switchCamera(VideoCapturerAndroid.CameraSwitchHandler cameraSwitchHandler) {
-
-    }
-
-    @Override
-    public void changeCaptureFormat(int i, int i1, int i2) {
-
-    }
-
-    @Override
-    public SurfaceTextureHelper getSurfaceTextureHelper() {
-        return null;
-    }
-
-    @Override
-    public void onTextureFrameAvailable(int i, float[] floats, long l) {
-
-    }
 }

@@ -14,7 +14,6 @@ import org.webrtc.CameraEnumerationAndroid;
 import org.webrtc.MediaConstraints;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.VideoCapturerAndroid;
-import org.webrtc.VideoCapturerObject;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoSource;
 import org.webrtc.VideoTrack;
@@ -445,7 +444,8 @@ public class MediaStream {
                 Log.d(TAG, "createExternalResource: " + mOption.getVideoUri());
             }
 
-            VideoCapturerObject capturerObject = new VideoCapturerExternalResource(
+            VideoCapturerExternalResource capturerObject = new VideoCapturerExternalResource(
+                    mOption.getEglBase().getEglBaseContext(),
                     mOption.getVideoUri(), mOption.getVideoWidth(), mOption.getVideoHeight());
             VideoCapturerAndroid videoCapturer  = VideoCapturerAndroid.create(capturerObject,
                     new VideoCapturerAndroid.CameraEventsHandler() {

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">UVC (Device Connect Device Plug-in)</string>
+    <string name="uvc_error_dialog_default_title">エラー</string>
+    <string name="uvc_error_message_device_not_supported">USBカメラ {NAME} は下記のフォーマットをサポートしないため利用できません。\n\n - MotionJPEG</string>
+
+    <string name="uvc_settings_title_uvc_device_connection">[1/1] USBカメラとの接続</string>
+    <string name="uvc_settings_description_uvc_device_connection">端末のUSB端子にUSBカメラを接続してください。\n\n端末からUSBカメラへ電力を充分に供給できない場合には、セルフパワー付USBハブ経由で接続する必要があります。</string>
+</resources>

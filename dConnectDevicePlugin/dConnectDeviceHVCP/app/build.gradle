@@ -1,21 +1,16 @@
 apply plugin: 'com.android.application'
 
-dependencies {
-    compile fileTree(include: '*.jar', dir: 'libs')
-    compile project(':dconnect-device-plugin-sdk')
-    compile 'com.google.android.gms:play-services:6.1.+'
-}
-
 android {
-
     compileSdkVersion 23
-    buildToolsVersion '23.0.0'
+    buildToolsVersion "23.0.1"
 
     defaultConfig {
-        minSdkVersion 14
+        applicationId "org.deviceconnect.android.deviceplugin.hvcp"
+        minSdkVersion 15
         targetSdkVersion 23
+        versionCode 1
+        versionName "1.0.0"
     }
-
     signingConfigs {
         releaseConfig {
             storeFile=file(project.properties.storeFile)
@@ -28,7 +23,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.releaseConfig
         }
     }
@@ -43,3 +38,8 @@ android {
 }
 
 
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':dconnect-device-plugin-sdk')
+    compile project(':usbSerialForAndroid')
+}

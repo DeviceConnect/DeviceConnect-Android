@@ -1,0 +1,69 @@
+<resources>
+    <string name="app_name">HVC-C2W(Device Connect Device Plug-in)</string>
+    <string name="hw_name">HVC-C2W</string>
+    <string name="api_key">[YOUR API KEY]</string>
+    <string name="app_id">[YOUR APP ID]</string>
+
+    <string name="page_1">[1/5] HVC-C2W の電源をOnにする</string>
+    <string name="page_2">[2/5] アカウントの作成 or ログイン</string>
+    <string name="page_4">[3/5] HVC-C2W をペアリングモードにする</string>
+    <string name="page_5">[4/5] 接続するための音を鳴らす</string>
+    <string name="page_6">[5/5] 顔認証データの登録</string>
+
+    <string name="c2w_setting_message_1_1">HVC-C2Wの使用準備をします。HVC-C2WにACアダプタから電源を供給されたMicroUSBケーブルを挿入すると、電源が入ります。30秒後に音がなり準備が整います。</string>
+    <string name="c2w_setting_message_1_2">HVC-C2WにSDカードを挿入するのを忘れないでください。</string>
+
+    <string name="c2w_email">E-Mail:</string>
+    <string name="c2w_password">Password:</string>
+    <string name="c2w_signup">Signup</string>
+    <string name="c2w_login">Login</string>
+    <string name="c2w_logout">Logout</string>
+    <string name="c2w_setting_message_2_1">OMRONのアカウントでログインしてください。アカウントを持っていない場合は、E-Mailアドレスのみ入力してSignupボタンを押してください。その後、届いたメールに載っているパスワードを入力してください。</string>
+    <string name="c2w_setting_message_2_2">サインアップしました。登録したE-Mailアドレスの受信トレイをご確認ください。</string>
+    <string name="c2w_setting_message_2_3">ログインしました。</string>
+    <string name="c2w_setting_message_2_4">ログアウトしました。</string>
+    <string name="c2w_setting_error_1">E-Mailアドレスを入力してください。</string>
+    <string name="c2w_setting_error_2">ログインに失敗しました。もう一度パスワードをご確認ください。</string>
+    <string name="c2w_setting_error_3">ログアウトに失敗しました。</string>
+    <string name="c2w_setting_error_4">サインアップに失敗しました。メールアドレスをご確認ください。</string>
+
+    <string name="c2w_ssid">SSID:</string>
+    <string name="c2w_wifi_type_none">None</string>
+    <string name="c2w_wifi_type_wep">WEP</string>
+    <string name="c2w_wifi_type_wpa">WPA/WPA2</string>
+
+    <string name="c2w_setting_message_4_1">HVC-C2Wのファンクションスイッチを３秒以上長押ししてください。LEDが赤く点滅します。準備完了音が鳴ったら次のページに移動してください。</string>
+
+    <string name="c2w_setting_message_5_1">HVC-C2Wとスマートフォンを図のようにし、Connectボタンを押してください。</string>
+    <string name="c2w_setting_message_5_2">HVC-C2Wを接続したいネットワークのWiFiスポットのSSIDとパスワードを入力してください。</string>
+    <string name="c2w_setting_message_5_3">※スマートフォンから大音量で音声が流れます。ご注意ください。</string>
+    <string name="c2w_connect">Connect</string>
+    <string name="c2w_setting_error_5_1">SSIDとPasswordを入力してください。</string>
+    <string name="c2w_success_connect">HVC-C2Wとの接続に成功しました。</string>
+    <string name="c2w_fail_connect">HVC-C2Wとの接続に失敗しました。</string>
+    <string name="c2w_setting_message_6_1">顔認証するデータの名前を登録してください。</string>
+    <string name="c2w_setting_message_6_2">削除する顔認証するデータの名前を登録してください。</string>
+
+    <string name="c2w_name">name</string>
+    <string name="search_devices">HVC-C2Wの選択</string>
+    <string name="c2w_register_face_recognition">顔登録</string>
+    <string name="c2w_unregister_face_recognition">顔削除</string>
+    <string name="c2w_progress_register_face_recognition">顔認証データ登録中...</string>
+    <string name="c2w_progress_unregister_face_recognition">顔認証データ削除中...</string>
+    <string name="c2w_success_register">顔認証データを登録しました。</string>
+    <string name="c2w_fail_register">顔認証データの登録に失敗しました。</string>
+    <string name="c2w_fail_register_over">顔認証データがいっぱいです。削除してください。</string>
+    <string name="c2w_success_unregister">顔認証データを削除しました。</string>
+    <string name="c2w_fail_unregister">顔認証データの削除に失敗しました。</string>
+    <string name="c2w_fail_unregister_nothing">顔認証データが存在しません。</string>
+
+    <string name="button_cancel">キャンセル</string>
+    <string name="button_ok">OK</string>
+
+    <string name="button_gmail">GMailを開く</string>
+
+    <string name="select_dialog_message">顔認証データを登録するデバイスを選択してください。</string>
+
+    <string name="loading_face_recognize_register">顔認証データ\n登録中...</string>
+    <string name="loading_face_recognize_unregister">顔認証データ\n削除中...</string>
+</resources>

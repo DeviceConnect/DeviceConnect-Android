@@ -99,10 +99,15 @@ public class UVCDeviceManager {
             public void onDisconnect(final UsbDevice usbDevice,
                                      final USBMonitor.UsbControlBlock ctrlBlock) {
                 mLogger.info("onDisconnect: " + usbDevice.getDeviceName());
-                UVCDevice device = getDevice(usbDevice);
-                if (device != null && device.disconnect()) {
-                    notifyEventOnDisconnect(device);
-                }
+                final UVCDevice device = getDevice(usbDevice);
+                mExecutor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (device != null && device.disconnect()) {
+                            notifyEventOnDisconnect(device);
+                        }
+                    }
+                });
             }
 
             @Override

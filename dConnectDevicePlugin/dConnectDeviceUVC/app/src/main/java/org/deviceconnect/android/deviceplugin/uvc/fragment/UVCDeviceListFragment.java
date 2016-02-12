@@ -12,7 +12,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,6 +30,8 @@ import org.deviceconnect.android.deviceplugin.uvc.fragment.dialog.ProgressDialog
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager.ConnectionListener;
@@ -67,6 +68,11 @@ public class UVCDeviceListFragment extends Fragment {
      */
     private final Logger mLogger = Logger.getLogger("uvc.dplugin");
 
+    /**
+     * Executor.
+     */
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
@@ -85,7 +91,6 @@ public class UVCDeviceListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        addFooterView();
         getManager().startScan();
         getManager().addConnectionListener(mConnectionListener);
         getManager().addDiscoveryListener(mDiscoverListener);
@@ -124,8 +129,13 @@ public class UVCDeviceListFragment extends Fragment {
      * @param device UVC device that have heart rate service.
      */
     private void connectDevice(final DeviceContainer device) {
-        getManager().connectDevice(device.getId());
         showProgressDialog(device.getName());
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                getManager().connectDevice(device.getId());
+            }
+        });
     }
 
     /**
@@ -134,7 +144,12 @@ public class UVCDeviceListFragment extends Fragment {
      * @param device UVC device that have heart rate service.
      */
     private void disconnectDevice(final DeviceContainer device) {
-        getManager().disconnectDevice(device.getId());
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                getManager().disconnectDevice(device.getId());
+            }
+        });
     }
 
     /**
@@ -396,14 +411,6 @@ public class UVCDeviceListFragment extends Fragment {
             final DeviceContainer device = getItem(position);
 
             String name = device.getName();
-            if (device.isRegisterFlag()) {
-                if (getManager().getDevice(device.getId()) != null) {
-                    name += " " + getResources().getString(R.string.uvc_settings_online);
-                } else {
-                    name += " " + getResources().getString(R.string.uvc_settings_offline);
-                }
-            }
-
             TextView nameView = (TextView) convertView.findViewById(R.id.device_name);
             nameView.setText(name);
 

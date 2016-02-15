@@ -43,7 +43,7 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
 
     private MixedReplaceMediaServer mServer;
 
-    private CameraOverlay mCameraOverlay;
+    private final CameraOverlay mCameraOverlay;
 
     public HostDevicePhotoRecorder(final Context context, final int cameraId,
                                    final CameraFacing facing, final FileManager fileMgr) {
@@ -98,6 +98,16 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
     @Override
     public int getCameraId() {
         return mCameraId;
+    }
+
+    @Override
+    public PictureSize getCameraPictureSize() {
+        return mCameraOverlay.getCameraPictureSize();
+    }
+
+    @Override
+    public void setCameraPictureSize(final PictureSize size) {
+        mCameraOverlay.setCameraPictureSize(size);
     }
 
     /**

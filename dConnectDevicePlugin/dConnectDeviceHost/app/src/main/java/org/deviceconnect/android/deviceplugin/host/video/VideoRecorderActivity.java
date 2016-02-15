@@ -36,6 +36,7 @@ import android.widget.Button;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.provider.FileManager;
 
@@ -57,6 +58,9 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
 
     /** Camera. */
     private Camera mCamera;
+
+    /** Picture size. */
+    private HostDeviceRecorder.PictureSize mPictureSize;
 
     /** ファイル管理クラス. */
     private FileManager mFileMgr;
@@ -168,8 +172,14 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
         mFileMgr = new FileManager(this);
 
         mMediaRecorder = new MediaRecorder();
+
         final int cameraId = mIntent.getIntExtra(VideoConst.EXTRA_CAMERA_ID, -1);
+        mPictureSize = mIntent.getParcelableExtra(VideoConst.EXTRA_PICTURE_SIZE);
         mCamera = getCameraInstance(cameraId);
+        Camera.Parameters params = findSupportedSizedParameter();
+        if (params != null) {
+            mCamera.setParameters(params);
+        }
         mCamera.unlock();
 
         mFileName = mIntent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
@@ -191,6 +201,22 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
         }
 
         mIsInitialized = true;
+    }
+
+    private Camera.Parameters findSupportedSizedParameter() {
+        Camera camera = mCamera;
+        HostDeviceRecorder.PictureSize currentSize = mPictureSize;
+        if (camera != null && currentSize != null) {
+            Camera.Parameters params = camera.getParameters();
+            for (Camera.Size s : params.getSupportedPictureSizes()) {
+                if (s.width == currentSize.getWidth()
+                    && s.height == currentSize.getHeight()) {
+                    params.setPictureSize(s.width, s.height);
+                    return params;
+                }
+            }
+        }
+        return null;
     }
 
     @Override

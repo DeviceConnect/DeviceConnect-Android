@@ -7,6 +7,9 @@
 package org.deviceconnect.android.deviceplugin.host;
 
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Host Device Recorder.
  *
@@ -27,6 +30,10 @@ public interface HostDeviceRecorder {
     boolean usesCamera();
 
     int getCameraId();
+
+    PictureSize getCameraPictureSize();
+
+    void setCameraPictureSize(PictureSize size);
 
     enum RecorderState {
         INACTTIVE,
@@ -51,7 +58,7 @@ public interface HostDeviceRecorder {
         }
     }
 
-    class PictureSize {
+    class PictureSize implements Parcelable {
 
         private final int mWidth;
         private final int mHeight;
@@ -59,6 +66,10 @@ public interface HostDeviceRecorder {
         public PictureSize(final int w, final int h) {
             mWidth = w;
             mHeight = h;
+        }
+
+        private PictureSize(final Parcel in) {
+            this(in.readInt(), in.readInt());
         }
 
         public int getWidth() {
@@ -69,6 +80,26 @@ public interface HostDeviceRecorder {
             return mHeight;
         }
 
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(final Parcel out, final int flags) {
+            out.writeInt(mWidth);
+            out.writeInt(mHeight);
+        }
+
+        public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+            public PictureSize createFromParcel(Parcel in) {
+                return new PictureSize(in);
+            }
+
+            public PictureSize[] newArray(int size) {
+                return new PictureSize[size];
+            }
+        };
     }
 
 }

@@ -91,6 +91,16 @@ public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
+    public PictureSize getCameraPictureSize() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setCameraPictureSize(final PictureSize size) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean canPause() {
         return true;
     }

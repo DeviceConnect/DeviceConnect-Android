@@ -58,6 +58,9 @@ public final class VideoConst {
     /** Camera ID. */
     public static final String EXTRA_CAMERA_ID = "cameraId";
 
+    /** Picture size. */
+    public static final String EXTRA_PICTURE_SIZE = "pictureSize";
+
     /** ファイル名. */
     public static final String EXTRA_FILE_NAME = "filename";
 

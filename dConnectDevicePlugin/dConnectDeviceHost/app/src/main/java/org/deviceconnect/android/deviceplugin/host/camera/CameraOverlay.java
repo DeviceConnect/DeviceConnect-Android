@@ -45,6 +45,7 @@ import android.view.WindowManager;
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.provider.FileManager;
@@ -120,6 +121,8 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     /** 画像を送るサーバ. */
     private MixedReplaceMediaServer mServer;
 
+    private HostDeviceRecorder.PictureSize mPictureSize;
+
     /**
      * 終了フラグ.
      * <p/>
@@ -156,6 +159,14 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         mWorkerThread.start();
         mHandler = new Handler(mWorkerThread.getLooper());
         mCameraId = cameraId;
+    }
+
+    public HostDeviceRecorder.PictureSize getCameraPictureSize() {
+        return mPictureSize;
+    }
+
+    public void setCameraPictureSize(final HostDeviceRecorder.PictureSize size) {
+        mPictureSize = size;
     }
 
     @Override
@@ -256,17 +267,21 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     Point size = getDisplaySize();
                     int pt = (int) (5 * getScaledDensity());
                     WindowManager.LayoutParams l = new WindowManager.LayoutParams(pt, pt,
-                            WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                                    | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                                    | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                                    | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                            PixelFormat.TRANSLUCENT);
+                        WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                            | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                            | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                            | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                        PixelFormat.TRANSLUCENT);
                     l.x = -size.x / 2;
                     l.y = -size.y / 2;
                     mWinMgr.addView(mPreview, l);
 
                     mCamera = Camera.open(mCameraId);
+                    Camera.Parameters params = findSupportedSizedParameter();
+                    if (params != null) {
+                        mCamera.setParameters(params);
+                    }
                     mPreview.switchCamera(mCamera);
                     mCamera.setPreviewCallback(CameraOverlay.this);
                     mCamera.setErrorCallback(CameraOverlay.this);
@@ -286,6 +301,22 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                 }
             }
         });
+    }
+
+    private Camera.Parameters findSupportedSizedParameter() {
+        Camera camera = mCamera;
+        HostDeviceRecorder.PictureSize currentSize = mPictureSize;
+        if (camera != null && currentSize != null) {
+            Camera.Parameters params = camera.getParameters();
+            for (Camera.Size s : params.getSupportedPictureSizes()) {
+                if (s.width == currentSize.getWidth()
+                    && s.height == currentSize.getHeight()) {
+                    params.setPictureSize(s.width, s.height);
+                    return params;
+                }
+            }
+        }
+        return null;
     }
 
     /**

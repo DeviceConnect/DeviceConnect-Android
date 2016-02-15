@@ -46,6 +46,8 @@ public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
 
     private final String mName;
 
+    private PictureSize mPictureSize;
+
     public HostDeviceVideoRecorder(final Context context, final int cameraId,
                                    final CameraFacing facing) {
         mContext = context;
@@ -100,6 +102,16 @@ public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
+    public PictureSize getCameraPictureSize() {
+        return mPictureSize;
+    }
+
+    @Override
+    public void setCameraPictureSize(final PictureSize size) {
+        mPictureSize = size;
+    }
+
+    @Override
     public boolean canPause() {
         return false;
     }
@@ -115,6 +127,7 @@ public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
         intent.setClass(mContext, VideoRecorderActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(VideoConst.EXTRA_CAMERA_ID, mCameraId);
+        intent.putExtra(VideoConst.EXTRA_PICTURE_SIZE, mPictureSize);
         intent.putExtra(VideoConst.EXTRA_FILE_NAME, filename);
         intent.putExtra(VideoConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
             @Override

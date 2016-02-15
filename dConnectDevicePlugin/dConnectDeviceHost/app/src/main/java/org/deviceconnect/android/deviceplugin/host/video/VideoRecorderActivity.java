@@ -55,9 +55,6 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
     /** SurfaceHolder. */
     private SurfaceHolder mHolder;
 
-    /** Camera ID. */
-    private int mCameraId;
-
     /** Camera. */
     private Camera mCamera;
 

@@ -16,8 +16,10 @@ public interface HostDeviceRecorderManager {
 
     HostDeviceRecorder[] getRecorders();
 
-    HostDevicePhotoRecorder getPhotoRecorder(final String id);
+    HostDeviceRecorder getRecorder(String id);
 
-    HostDeviceStreamRecorder getStreamRecorder(final String id);
+    HostDevicePhotoRecorder getPhotoRecorder(String id);
+
+    HostDeviceStreamRecorder getStreamRecorder(String id);
 
 }

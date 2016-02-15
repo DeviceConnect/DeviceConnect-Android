@@ -33,6 +33,8 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
 
     private final Context mContext;
 
+    private final int mCameraId;
+
     private final String mId;
 
     private final String mName;
@@ -46,6 +48,7 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
     public HostDevicePhotoRecorder(final Context context, final int cameraId,
                                    final CameraFacing facing, final FileManager fileMgr) {
         mContext = context;
+        mCameraId = cameraId;
         mId = ID_BASE + "_" + cameraId;
         mName = NAME_BASE + " - " + facing.getName();
 
@@ -69,6 +72,11 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
     }
 
     @Override
+    public String[] getSupportedMimeTypes() {
+        return new String[] {MIME_TYPE};
+    }
+
+    @Override
     public RecorderState getState() {
         return isShowCamera() ? RecorderState.RECORDING : RecorderState.INACTTIVE;
     }
@@ -80,6 +88,16 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
      */
     private boolean isShowCamera() {
         return mCameraOverlay != null && mCameraOverlay.isShow();
+    }
+
+    @Override
+    public boolean usesCamera() {
+        return true;
+    }
+
+    @Override
+    public int getCameraId() {
+        return mCameraId;
     }
 
     /**

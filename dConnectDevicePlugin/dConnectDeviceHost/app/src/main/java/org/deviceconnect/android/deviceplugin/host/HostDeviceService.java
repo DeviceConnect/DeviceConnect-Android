@@ -286,6 +286,16 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
     }
 
     @Override
+    public HostDeviceRecorder getRecorder(final String id) {
+        for (HostDeviceRecorder recorder : mRecorders) {
+            if (id.equals(recorder.getId())) {
+                return recorder;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public HostDevicePhotoRecorder getPhotoRecorder(final String id) {
         if (id == null) {
             return mDefaultPhotoRecorder;

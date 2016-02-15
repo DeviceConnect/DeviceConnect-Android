@@ -70,6 +70,11 @@ public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
+    public String[] getSupportedMimeTypes() {
+        return new String[] {MIME_TYPE};
+    }
+
+    @Override
     public RecorderState getState() {
         String className = getClassnameOfTopActivity();
         if (VideoRecorderActivity.class.getName().equals(className)) {
@@ -82,6 +87,16 @@ public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
     private String getClassnameOfTopActivity() {
         ActivityManager activityMgr = (ActivityManager) mContext.getSystemService(Service.ACTIVITY_SERVICE);
         return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
+    }
+
+    @Override
+    public boolean usesCamera() {
+        return true;
+    }
+
+    @Override
+    public int getCameraId() {
+        return mCameraId;
     }
 
     @Override

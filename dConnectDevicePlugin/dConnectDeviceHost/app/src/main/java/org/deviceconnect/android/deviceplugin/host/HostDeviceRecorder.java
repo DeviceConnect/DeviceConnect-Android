@@ -20,7 +20,13 @@ public interface HostDeviceRecorder {
 
     String getMimeType();
 
+    String[] getSupportedMimeTypes();
+
     RecorderState getState();
+
+    boolean usesCamera();
+
+    int getCameraId();
 
     enum RecorderState {
         INACTTIVE,
@@ -34,7 +40,7 @@ public interface HostDeviceRecorder {
         FRONT("front"),
         UNKNOWN("unknown");
 
-        String mName;
+        private final String mName;
 
         CameraFacing(final String name) {
             mName = name;
@@ -43,6 +49,26 @@ public interface HostDeviceRecorder {
         public String getName() {
             return mName;
         }
+    }
+
+    class PictureSize {
+
+        private final int mWidth;
+        private final int mHeight;
+
+        public PictureSize(final int w, final int h) {
+            mWidth = w;
+            mHeight = h;
+        }
+
+        public int getWidth() {
+            return mWidth;
+        }
+
+        public int getHeight() {
+            return mHeight;
+        }
+
     }
 
 }

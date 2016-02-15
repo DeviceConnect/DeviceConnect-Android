@@ -8,6 +8,7 @@
 package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.content.Intent;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
@@ -27,6 +28,9 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,6 +39,7 @@ import java.util.List;
  *
  * @author NTT DOCOMO, INC.
  */
+@SuppressWarnings("deprecation")
 public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProfile {
 
     private final HostDeviceRecorderManager mRecorderMgr;
@@ -79,6 +84,80 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         setRecorders(response, recorders.toArray(new Bundle[recorders.size()]));
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
+    }
+
+    @Override
+    protected boolean onGetOptions(final Intent request, final Intent response,
+                                   final String serviceId, final String target) {
+        if (serviceId == null) {
+            createEmptyServiceId(response);
+            return true;
+        }
+        if (!checkServiceId(serviceId)) {
+            createNotFoundService(response);
+            return true;
+        }
+
+        HostDeviceRecorder recorder = mRecorderMgr.getRecorder(target);
+        if (recorder == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
+
+        setMIMEType(response, recorder.getSupportedMimeTypes());
+        if (recorder.usesCamera()) {
+            List<HostDeviceRecorder.PictureSize> sizes = getSupportedSizes(recorder.getCameraId());
+            if (sizes.size() > 0) {
+                sortByWidth(sizes);
+                int minWidth = sizes.get(0).getWidth();
+                int maxWidth = sizes.get(sizes.size() - 1).getWidth();
+                sortByHeight(sizes);
+                int minHeight = sizes.get(0).getHeight();
+                int maxHeight = sizes.get(sizes.size() - 1).getHeight();
+                setImageWidth(response, minWidth, maxWidth);
+                setImageHeight(response, minHeight, maxHeight);
+            }
+        }
+        return true;
+    }
+
+    private void sortByWidth(List<HostDeviceRecorder.PictureSize> sizes) {
+        Collections.sort(sizes, new Comparator<HostDeviceRecorder.PictureSize>() {
+            @Override
+            public int compare(final HostDeviceRecorder.PictureSize lhs,
+                               final HostDeviceRecorder.PictureSize rhs) {
+                return lhs.getWidth() - rhs.getWidth();
+            }
+        });
+    }
+
+    private void sortByHeight(List<HostDeviceRecorder.PictureSize> sizes) {
+        Collections.sort(sizes, new Comparator<HostDeviceRecorder.PictureSize>() {
+            @Override
+            public int compare(final HostDeviceRecorder.PictureSize lhs,
+                               final HostDeviceRecorder.PictureSize rhs) {
+                return lhs.getHeight() - rhs.getHeight();
+            }
+        });
+    }
+
+    private List<HostDeviceRecorder.PictureSize> getSupportedSizes(final int cameraId) {
+        Camera camera = Camera.open(cameraId);
+        List<Camera.Size> sizes = camera.getParameters().getSupportedPictureSizes();
+        List<HostDeviceRecorder.PictureSize> result = new ArrayList<HostDeviceRecorder.PictureSize>();
+        for (Camera.Size size : sizes) {
+            result.add(new HostDeviceRecorder.PictureSize(size.width, size.height));
+        }
+        camera.release();
+        return result;
+    }
+
+    @Override
+    protected boolean onPutOptions(final Intent request, final Intent response,
+                                   final String serviceId, final String target,
+                                   final Integer imageWidth, final Integer imageHeight,
+                                   final String mimeType) {
+        return super.onPutOptions(request, response, serviceId, target, imageWidth, imageHeight, mimeType);
     }
 
     @Override

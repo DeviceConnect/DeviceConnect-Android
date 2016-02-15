@@ -1,3 +1,9 @@
+/*
+ HostDeviceAudioRecorder.java
+ Copyright (c) 2014 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.host.audio;
 
 
@@ -18,6 +24,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * Host Device Audio Recorder.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
 
     private static final String ID = "audio";

@@ -1,3 +1,9 @@
+/*
+ HostDeviceVideoRecorder.java
+ Copyright (c) 2014 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.host.video;
 
 
@@ -17,6 +23,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * Host Device Video Recorder.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
 
     private static final String ID = "video";

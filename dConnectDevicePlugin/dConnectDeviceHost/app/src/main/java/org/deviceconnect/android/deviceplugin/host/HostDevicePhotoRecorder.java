@@ -1,3 +1,9 @@
+/*
+ HostDevicePhotoRecorder.java
+ Copyright (c) 2014 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.host;
 
 
@@ -12,6 +18,11 @@ import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay;
 import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServer;
 import org.deviceconnect.android.provider.FileManager;
 
+/**
+ * Host Device Photo Recorder.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 public class HostDevicePhotoRecorder implements HostDeviceRecorder {
 
     private static final String ID = "photo";

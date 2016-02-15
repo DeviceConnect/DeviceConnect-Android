@@ -6,15 +6,15 @@
  */
 package org.deviceconnect.android.deviceplugin.host;
 
-import org.deviceconnect.android.profile.BatteryProfile;
-import org.deviceconnect.android.profile.TouchProfile;
-import org.deviceconnect.android.profile.KeyEventProfile;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.message.intent.message.IntentDConnectMessage;
-
 import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.profile.BatteryProfile;
+import org.deviceconnect.android.profile.KeyEventProfile;
+import org.deviceconnect.android.profile.TouchProfile;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 /**
  * Host Device Plugin Application.

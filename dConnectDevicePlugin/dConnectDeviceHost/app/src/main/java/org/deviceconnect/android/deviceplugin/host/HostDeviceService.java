@@ -15,6 +15,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -68,6 +69,7 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -77,6 +79,7 @@ import java.util.Locale;
  *
  * @author NTT DOCOMO, INC.
  */
+@SuppressWarnings("deprecation")
 public class HostDeviceService extends DConnectMessageService implements HostDeviceRecorderManager {
     /** Application class instance. */
     private HostDeviceApplication mApp;
@@ -115,13 +118,10 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
     private HostDeviceRecorder[] mRecorders;
 
     /** HostDevicePhotoRecorder. */
-    private HostDevicePhotoRecorder mPhotoRecorder;
-
-    /** HostDeviceVideoRecorder. */
-    private HostDeviceVideoRecorder mVideoRecorder;
+    private HostDevicePhotoRecorder mDefaultPhotoRecorder;
 
     /** HostDeviceAudioRecorder. */
-    private HostDeviceAudioRecorder mAudioRecorder;
+    private HostDeviceVideoRecorder mDefaultVideoRecorder;
 
     @Override
     public void onCreate() {
@@ -138,12 +138,7 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
         mFileMgr = new FileManager(this);
         mFileDataManager = new FileDataManager(mFileMgr);
 
-        mPhotoRecorder = new HostDevicePhotoRecorder(this, mFileMgr);
-        mVideoRecorder = new HostDeviceVideoRecorder(this);
-        mAudioRecorder = new HostDeviceAudioRecorder(this);
-        mRecorders = new HostDeviceRecorder[] {
-            mPhotoRecorder, mVideoRecorder, mAudioRecorder
-        };
+        createRecorders(mFileMgr);
 
         // add supported profiles
         addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
@@ -180,6 +175,42 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
         mIfMediaPlayerVideo.addAction(VideoConst.SEND_VIDEOPLAYER_TO_HOSTDP);
     }
 
+    private void createRecorders(final FileManager fileMgr) {
+        List<HostDevicePhotoRecorder> photoRecorders = new ArrayList<HostDevicePhotoRecorder>();
+        List<HostDeviceVideoRecorder> videoRecorders = new ArrayList<HostDeviceVideoRecorder>();
+        for (int cameraId = 0; cameraId < Camera.getNumberOfCameras(); cameraId++) {
+            Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+            Camera.getCameraInfo(cameraId, cameraInfo);
+            HostDeviceRecorder.CameraFacing facing;
+            switch (cameraInfo.facing) {
+                case Camera.CameraInfo.CAMERA_FACING_BACK:
+                    facing = HostDeviceRecorder.CameraFacing.BACK;
+                    break;
+                case Camera.CameraInfo.CAMERA_FACING_FRONT:
+                    facing = HostDeviceRecorder.CameraFacing.FRONT;
+                    break;
+                default:
+                    facing = HostDeviceRecorder.CameraFacing.UNKNOWN;
+                    break;
+            }
+            photoRecorders.add(new HostDevicePhotoRecorder(this, cameraId, facing, fileMgr));
+            videoRecorders.add(new HostDeviceVideoRecorder(this, cameraId, facing));
+        }
+
+        if (photoRecorders.size() > 0) {
+            mDefaultPhotoRecorder = photoRecorders.get(0);
+        }
+        if (videoRecorders.size() > 0) {
+            mDefaultVideoRecorder = videoRecorders.get(0);
+        }
+
+        List<HostDeviceRecorder> recorders = new ArrayList<HostDeviceRecorder>();
+        recorders.addAll(photoRecorders);
+        recorders.addAll(videoRecorders);
+        recorders.add(new HostDeviceAudioRecorder(this));
+        mRecorders = recorders.toArray(new HostDeviceRecorder[recorders.size()]);
+    }
+
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
         if (intent == null) {
@@ -188,7 +219,7 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
 
         String action = intent.getAction();
         if (CameraOverlay.DELETE_PREVIEW_ACTION.equals(action)) {
-            mPhotoRecorder.stopWebServer();
+            mDefaultPhotoRecorder.stopWebServer();
             return START_STICKY;
         } else if ("android.intent.action.NEW_OUTGOING_CALL".equals(action)) {
             // Phone
@@ -255,14 +286,14 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
     }
 
     @Override
-    public HostDevicePhotoRecorder getPhotoRecorder() {
-        return mPhotoRecorder;
-    }
-
-    @Override
     public HostDevicePhotoRecorder getPhotoRecorder(final String id) {
-        if (id == null || id.equals(mPhotoRecorder.getId())) {
-            return mPhotoRecorder;
+        if (id == null) {
+            return mDefaultPhotoRecorder;
+        }
+        for (HostDeviceRecorder recorder : mRecorders) {
+            if (id.equals(recorder.getId()) && recorder instanceof HostDevicePhotoRecorder) {
+                return (HostDevicePhotoRecorder) recorder;
+            }
         }
         return null;
     }
@@ -270,7 +301,7 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
     @Override
     public HostDeviceStreamRecorder getStreamRecorder(final String id) {
         if (id == null) {
-            return mVideoRecorder;
+            return mDefaultVideoRecorder;
         }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof HostDeviceStreamRecorder) {

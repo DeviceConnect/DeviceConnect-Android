@@ -55,6 +55,9 @@ public final class VideoConst {
     /** 録画撮影再開. */
     public static final String EXTRA_VALUE_VIDEO_RECORD_RESUME = "resume";
 
+    /** Camera ID. */
+    public static final String EXTRA_CAMERA_ID = "cameraId";
+
     /** ファイル名. */
     public static final String EXTRA_FILE_NAME = "filename";
 

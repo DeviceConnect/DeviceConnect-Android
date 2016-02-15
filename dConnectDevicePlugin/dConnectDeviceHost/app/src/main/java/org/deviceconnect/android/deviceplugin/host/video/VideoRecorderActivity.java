@@ -46,6 +46,7 @@ import java.io.File;
  * 
  * @author NTT DOCOMO, INC.
  */
+@SuppressWarnings("deprecation")
 public class VideoRecorderActivity extends Activity implements SurfaceHolder.Callback {
 
     /** MediaRecorder. */
@@ -53,6 +54,9 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
 
     /** SurfaceHolder. */
     private SurfaceHolder mHolder;
+
+    /** Camera ID. */
+    private int mCameraId;
 
     /** Camera. */
     private Camera mCamera;
@@ -167,7 +171,8 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
         mFileMgr = new FileManager(this);
 
         mMediaRecorder = new MediaRecorder();
-        mCamera = getCameraInstance();
+        final int cameraId = mIntent.getIntExtra(VideoConst.EXTRA_CAMERA_ID, -1);
+        mCamera = getCameraInstance(cameraId);
         mCamera.unlock();
 
         mFileName = mIntent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
@@ -247,11 +252,12 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
 
     /**
      * Cameraのインスタンスを取得.
-     * 
-     * @return cameraのインスタンス
+     *
+     * @return Camera ID.
+     * @return Cameraのインスタンス
      */
-    private synchronized Camera getCameraInstance() {
-        return Camera.open();
+    private synchronized Camera getCameraInstance(final int cameraId) {
+        return Camera.open(cameraId);
     }
 
     /**

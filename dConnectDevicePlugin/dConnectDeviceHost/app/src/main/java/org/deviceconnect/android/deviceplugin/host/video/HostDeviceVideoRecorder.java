@@ -30,9 +30,9 @@ import java.util.Locale;
  */
 public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
 
-    private static final String ID = "video";
+    private static final String ID_BASE = "video";
 
-    private static final String NAME = "AndroidHost Video Recorder";
+    private static final String NAME_BASE = "AndroidHost Video Recorder";
 
     private static final String MIME_TYPE = "video/3gp";
 
@@ -40,18 +40,28 @@ public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
 
     private final Context mContext;
 
-    public HostDeviceVideoRecorder(final Context context) {
+    private final int mCameraId;
+
+    private final String mId;
+
+    private final String mName;
+
+    public HostDeviceVideoRecorder(final Context context, final int cameraId,
+                                   final CameraFacing facing) {
         mContext = context;
+        mCameraId = cameraId;
+        mId = ID_BASE + "_" + cameraId;
+        mName = NAME_BASE + " - " + facing.getName();
     }
 
     @Override
     public String getId() {
-        return ID;
+        return mId;
     }
 
     @Override
     public String getName() {
-        return NAME;
+        return mName;
     }
 
     @Override
@@ -89,6 +99,7 @@ public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
         Intent intent = new Intent();
         intent.setClass(mContext, VideoRecorderActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(VideoConst.EXTRA_CAMERA_ID, mCameraId);
         intent.putExtra(VideoConst.EXTRA_FILE_NAME, filename);
         intent.putExtra(VideoConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
             @Override

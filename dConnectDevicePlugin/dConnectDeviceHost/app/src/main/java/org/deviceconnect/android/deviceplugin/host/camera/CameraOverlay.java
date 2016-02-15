@@ -92,16 +92,19 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
     /** コンテキスト. */
-    private Context mContext;
+    private final Context mContext;
 
     /** ウィンドウ管理クラス. */
-    private WindowManager mWinMgr;
+    private final WindowManager mWinMgr;
 
     /** 作業用スレッド。 */
-    private HandlerThread mWorkerThread;
+    private final HandlerThread mWorkerThread;
 
     /** ハンドラ. */
-    private Handler mHandler;
+    private final Handler mHandler;
+
+    /** Camera ID. */
+    private final int mCameraId;
 
     /** ファイル管理クラス. */
     private FileManager mFileMgr;
@@ -144,13 +147,15 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      * コンストラクタ.
      *
      * @param context コンテキスト
+     * @param cameraId Camera ID.
      */
-    public CameraOverlay(final Context context) {
+    public CameraOverlay(final Context context, final int cameraId) {
         mContext = context;
         mWinMgr = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         mWorkerThread = new HandlerThread(getClass().getSimpleName());
         mWorkerThread.start();
         mHandler = new Handler(mWorkerThread.getLooper());
+        mCameraId = cameraId;
     }
 
     @Override
@@ -261,7 +266,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     l.y = -size.y / 2;
                     mWinMgr.addView(mPreview, l);
 
-                    mCamera = Camera.open();
+                    mCamera = Camera.open(mCameraId);
                     mPreview.switchCamera(mCamera);
                     mCamera.setPreviewCallback(CameraOverlay.this);
                     mCamera.setErrorCallback(CameraOverlay.this);

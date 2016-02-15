@@ -28,4 +28,21 @@ public interface HostDeviceRecorder {
         RECORDING
     }
 
+    enum CameraFacing {
+
+        BACK("back"),
+        FRONT("front"),
+        UNKNOWN("unknown");
+
+        String mName;
+
+        CameraFacing(final String name) {
+            mName = name;
+        }
+
+        public String getName() {
+            return mName;
+        }
+    }
+
 }

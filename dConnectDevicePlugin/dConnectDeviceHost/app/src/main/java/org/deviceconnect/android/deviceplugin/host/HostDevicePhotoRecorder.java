@@ -25,13 +25,17 @@ import org.deviceconnect.android.provider.FileManager;
  */
 public class HostDevicePhotoRecorder implements HostDeviceRecorder {
 
-    private static final String ID = "photo";
+    private static final String ID_BASE = "photo";
 
-    private static final String NAME = "AndroidHost Recorder";
+    private static final String NAME_BASE = "AndroidHost Recorder";
 
     private static final String MIME_TYPE = "image/png";
 
     private final Context mContext;
+
+    private final String mId;
+
+    private final String mName;
 
     private final Object mLockObj = new Object();
 
@@ -39,21 +43,24 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
 
     private CameraOverlay mCameraOverlay;
 
-    public HostDevicePhotoRecorder(final Context context, final FileManager fileMgr) {
+    public HostDevicePhotoRecorder(final Context context, final int cameraId,
+                                   final CameraFacing facing, final FileManager fileMgr) {
         mContext = context;
+        mId = ID_BASE + "_" + cameraId;
+        mName = NAME_BASE + " - " + facing.getName();
 
-        mCameraOverlay = new CameraOverlay(context);
+        mCameraOverlay = new CameraOverlay(context, cameraId);
         mCameraOverlay.setFileManager(fileMgr);
     }
 
     @Override
     public String getId() {
-        return ID;
+        return mId;
     }
 
     @Override
     public String getName() {
-        return NAME;
+        return mName;
     }
 
     @Override

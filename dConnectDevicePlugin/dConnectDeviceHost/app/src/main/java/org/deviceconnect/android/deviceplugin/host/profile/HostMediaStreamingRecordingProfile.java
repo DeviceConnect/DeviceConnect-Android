@@ -172,7 +172,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundService(response);
             return true;
         }
-        HostDevicePhotoRecorder recorder = mRecorderMgr.getPhotoRecorder();
+        HostDevicePhotoRecorder recorder = mRecorderMgr.getPhotoRecorder(null);
         recorder.startWebServer(new HostDevicePhotoRecorder.OnWebServerStartCallback() {
             @Override
             public void onStart(@NonNull String uri) {
@@ -200,7 +200,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundService(response);
             return true;
         }
-        HostDevicePhotoRecorder recorder = mRecorderMgr.getPhotoRecorder();
+        HostDevicePhotoRecorder recorder = mRecorderMgr.getPhotoRecorder(null);
         recorder.stopWebServer();
         setResult(response, DConnectMessage.RESULT_OK);
         return true;

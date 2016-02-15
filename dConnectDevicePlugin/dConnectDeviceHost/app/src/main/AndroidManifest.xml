@@ -85,7 +85,7 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.video.VideoRecorder"
+            android:name=".video.VideoRecorderActivity"
             android:exported="false"
             android:screenOrientation="landscape"/>
 
@@ -96,7 +96,7 @@
             android:screenOrientation="landscape"/>
 
         <activity
-            android:name="org.deviceconnect.android.deviceplugin.host.audio.AudioRecorder"
+            android:name=".audio.AudioRecorderActivity"
             android:exported="false"/>
 
         <activity

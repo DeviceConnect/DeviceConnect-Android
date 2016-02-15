@@ -5,6 +5,8 @@ public interface HostDeviceRecorder {
 
     String getId();
 
+    String getName();
+
     String getMimeType();
 
     RecorderState getState();

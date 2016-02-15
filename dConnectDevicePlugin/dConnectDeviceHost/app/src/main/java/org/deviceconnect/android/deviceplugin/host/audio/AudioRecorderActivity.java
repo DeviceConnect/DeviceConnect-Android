@@ -39,7 +39,7 @@ import android.view.Window;
  * 
  * @author NTT DOCOMO, INC.
  */
-public class AudioRecorder extends Activity {
+public class AudioRecorderActivity extends Activity {
 
     /** MediaRecoder. */
     private MediaRecorder mMediaRecorder;

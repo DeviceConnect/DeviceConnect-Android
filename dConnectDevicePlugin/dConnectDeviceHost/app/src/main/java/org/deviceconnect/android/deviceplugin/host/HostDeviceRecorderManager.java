@@ -1,39 +1,14 @@
 package org.deviceconnect.android.deviceplugin.host;
 
 
-import java.util.ArrayList;
-import java.util.List;
+public interface HostDeviceRecorderManager {
 
-public class HostDeviceRecorderManager {
+    HostDeviceRecorder[] getRecorders();
 
-    private final List<HostDeviceRecorder> mRecorders = new ArrayList<>();
+    HostDevicePhotoRecorder getPhotoRecorder();
 
-    public List<HostDeviceRecorder> getRecorders() {
-        return mRecorders;
-    }
+    HostDevicePhotoRecorder getPhotoRecorder(final String id);
 
-    public HostDevicePhotoRecorder getPhotoRecorder(final String id) {
-        if (id == null) {
-            throw new IllegalArgumentException("id is null.");
-        }
-        for (HostDeviceRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId()) && recorder instanceof HostDevicePhotoRecorder) {
-                return (HostDevicePhotoRecorder) recorder;
-            }
-        }
-        return null;
-    }
-
-    public HostDeviceStreamRecorder getStreamRecorder(final String id) {
-        if (id == null) {
-            throw new IllegalArgumentException("id is null.");
-        }
-        for (HostDeviceRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId()) && recorder instanceof HostDeviceStreamRecorder) {
-                return (HostDeviceStreamRecorder) recorder;
-            }
-        }
-        return null;
-    }
+    HostDeviceStreamRecorder getStreamRecorder(final String id);
 
 }

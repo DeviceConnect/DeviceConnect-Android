@@ -7,13 +7,6 @@
 
 package org.deviceconnect.android.deviceplugin.host.video;
 
-import java.io.File;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.provider.FileManager;
-
 import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -41,12 +34,19 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.Button;
 
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.provider.FileManager;
+
+import java.io.File;
+
 /**
  * Video Recorder.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
+public class VideoRecorderActivity extends Activity implements SurfaceHolder.Callback {
 
     /** MediaRecorder. */
     private MediaRecorder mMediaRecorder;

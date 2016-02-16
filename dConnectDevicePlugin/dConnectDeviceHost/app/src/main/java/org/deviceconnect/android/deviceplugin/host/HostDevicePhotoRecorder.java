@@ -27,7 +27,7 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder, HostDevicePr
 
     private static final String ID_BASE = "photo";
 
-    private static final String NAME_BASE = "AndroidHost Recorder";
+    private static final String NAME_BASE = "AndroidHost Photo Recorder";
 
     private static final String MIME_TYPE = "image/png";
 

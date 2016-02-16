@@ -11,7 +11,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -21,17 +20,11 @@ import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.R;
 import org.deviceconnect.android.deviceplugin.webrtc.WebRTCApplication;
 import org.deviceconnect.android.deviceplugin.webrtc.core.AudioTrackExternal;
-import org.deviceconnect.android.deviceplugin.webrtc.core.MediaConnection;
-import org.deviceconnect.android.deviceplugin.webrtc.core.MediaStream;
 import org.deviceconnect.android.deviceplugin.webrtc.core.MySurfaceViewRenderer;
-import org.deviceconnect.android.deviceplugin.webrtc.core.Peer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
-import org.deviceconnect.android.deviceplugin.webrtc.core.PeerOption;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerUtil;
+import org.deviceconnect.android.deviceplugin.webrtc.core.WebRTCController;
 import org.deviceconnect.android.deviceplugin.webrtc.fragment.PercentFrameLayout;
-import org.deviceconnect.android.deviceplugin.webrtc.setting.SettingUtil;
-import org.deviceconnect.android.deviceplugin.webrtc.util.AudioUtils;
-import org.deviceconnect.android.deviceplugin.webrtc.util.CameraUtils;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.profile.VideoChatProfile;
@@ -52,11 +45,6 @@ public class VideoChatActivity extends Activity {
      * Tag for debugging.
      */
     private static final String TAG = "WEBRTC";
-
-    /**
-     * Defined a stun server.
-     */
-    private static final String STUN_SERVER = "stun:stun.skyway.io:3478";
 
     /**
      * Defined a extra config.
@@ -88,36 +76,13 @@ public class VideoChatActivity extends Activity {
      */
     public static final String EXTRA_OFFER = "offer";
 
-    private PeerConfig mConfig;
-    private String mAddressId;
-    private String mVideoUri;
-    private String mAudioUri;
-    private boolean mOffer;
-
-    private PeerOption.VideoType mVideoType;
-    private PeerOption.AudioType mAudioType;
-
-    /**
-     * Peer.
-     */
-    private Peer mPeer;
-
-    /**
-     * Connection of WebRTC.
-     */
-    private MediaConnection mConnection;
-
     private PercentFrameLayout mLocalLayout;
     private PercentFrameLayout mRemoteLayout;
 
     private MySurfaceViewRenderer mLocalRender;
     private MySurfaceViewRenderer mRemoteRender;
-    private EglBase mEglBase;
 
-    /**
-     * Option of peer's connection.
-     */
-    private PeerOption mOption;
+    private WebRTCController mWebRTCController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,12 +96,12 @@ public class VideoChatActivity extends Activity {
         mLocalRender = (MySurfaceViewRenderer) findViewById(R.id.local_video_view);
         mRemoteRender = (MySurfaceViewRenderer) findViewById(R.id.remote_video_view);
 
-        mEglBase = EglBase.create();
-        mRemoteRender.init(mEglBase.getEglBaseContext(), null);
-        mRemoteRender.createYuvConvertor(mEglBase.getEglBaseContext(), 12345);
+        EglBase eglBase = EglBase.create();
+        mRemoteRender.init(eglBase.getEglBaseContext(), null);
+        mRemoteRender.createYuvConverter(eglBase.getEglBaseContext(), 12345);
 
-        mLocalRender.init(mEglBase.getEglBaseContext(), null);
-        mLocalRender.createYuvConvertor(mEglBase.getEglBaseContext(), 12346);
+        mLocalRender.init(eglBase.getEglBaseContext(), null);
+        mLocalRender.createYuvConverter(eglBase.getEglBaseContext(), 12346);
         mLocalRender.setZOrderMediaOverlay(true);
 
         WebRtcAudioTrack.setAudioTrackModuleFactory(new WebRtcAudioTrackModuleFactory() {
@@ -149,54 +114,37 @@ public class VideoChatActivity extends Activity {
 
         Intent intent = getIntent();
         if (intent != null) {
-            mConfig = intent.getParcelableExtra(EXTRA_CONFIG);
-            mAddressId = intent.getStringExtra(EXTRA_ADDRESS_ID);
-            mVideoUri = intent.getStringExtra(EXTRA_VIDEO_URI);
-            mAudioUri = intent.getStringExtra(EXTRA_AUDIO_URI);
-            mOffer = intent.getBooleanExtra(EXTRA_OFFER, false);
-            if ("true".equals(mVideoUri)) {
-                mVideoType = PeerOption.VideoType.CAMERA;
-            } else if ("false".equals(mVideoUri)) {
-                mVideoType = PeerOption.VideoType.NONE;
-            } else {
-                mVideoType = PeerOption.VideoType.EXTERNAL_RESOURCE;
-            }
+            PeerConfig config = intent.getParcelableExtra(EXTRA_CONFIG);
+            String videoUri = intent.getStringExtra(EXTRA_VIDEO_URI);
+            String audioUri = intent.getStringExtra(EXTRA_AUDIO_URI);
+            String addressId = intent.getStringExtra(EXTRA_ADDRESS_ID);
+            boolean offer = intent.getBooleanExtra(EXTRA_OFFER, false);
 
-            if ("true".equals(mAudioUri)) {
-                mAudioType = PeerOption.AudioType.MICROPHONE;
-            } else if ("false".equals(mAudioUri)) {
-                mAudioType = PeerOption.AudioType.NONE;
-            } else {
-                mAudioType = PeerOption.AudioType.EXTERNAL_RESOURCE;
-            }
-
-            if (mConfig != null && mAddressId != null) {
-                updateVideoView();
-
-                WebRTCApplication application = (WebRTCApplication) getApplication();
-                application.getPeer(mConfig, new WebRTCApplication.OnGetPeerCallback() {
-                    @Override
-                    public void onGetPeer(final Peer peer) {
-                        if (peer != null) {
-                            mPeer = peer;
-                            startConnection();
-                        } else {
-                            openWebRTCErrorDialog();
-                        }
-                    }
-                });
-                return;
-            }
+            WebRTCController.Builder builder = new WebRTCController.Builder();
+            builder.setApplication((WebRTCApplication) getApplication());
+            builder.setWebRTCEventListener(mListener);
+            builder.setContext(this);
+            builder.setEglBase(eglBase);
+            builder.setConfig(config);
+            builder.setRemoteRender(mRemoteRender);
+            builder.setLocalRender(mLocalRender);
+            builder.setVideoUri(videoUri);
+            builder.setAudioUri(audioUri);
+            builder.setAddressId(addressId);
+            builder.setOffer(offer);
+            mWebRTCController = builder.create();
+            updateVideoView();
+        } else {
+            openWebRTCErrorDialog();
         }
-        openWebRTCErrorDialog();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        if (mConnection != null) {
-            mConnection.startVideo();
+        if (mWebRTCController != null) {
+            mWebRTCController.onResume();
         }
     }
 
@@ -204,12 +152,9 @@ public class VideoChatActivity extends Activity {
     protected void onPause() {
         super.onPause();
 
-        if (mConnection != null) {
-            mConnection.stopVideo();
+        if (mWebRTCController != null) {
+            mWebRTCController.onPause();
         }
-
-        mLocalRender.release();
-        mRemoteRender.release();
     }
 
     @Override
@@ -228,6 +173,9 @@ public class VideoChatActivity extends Activity {
         }
     }
 
+    /**
+     * Updated layout of the views.
+     */
     private void updateVideoView() {
         mRemoteLayout.setPosition(0, 0, 100, 90);
         mRemoteRender.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
@@ -242,179 +190,6 @@ public class VideoChatActivity extends Activity {
     }
 
     /**
-     * Creates the PeerOption.
-     */
-    private boolean createOption() {
-
-        int videoWidth = 480;
-        int videoHeight = 640;
-        int videoFps = 30;
-        int videoFacing = Camera.CameraInfo.CAMERA_FACING_FRONT;
-
-        switch (mVideoType) {
-            default:
-            case CAMERA: {
-                String cameraText = SettingUtil.getCameraParam(this);
-                CameraUtils.CameraFormat cameraFormat = CameraUtils.textToFormat(cameraText);
-                if (cameraFormat == null) {
-                    cameraFormat = CameraUtils.getDefaultFormat();
-                }
-
-                if (cameraFormat == null) {
-                    openCameraErrorDialog();
-                    return false;
-                }
-
-                videoWidth = cameraFormat.getWidth();
-                videoHeight = cameraFormat.getHeight();
-                videoFps = cameraFormat.getMaxFrameRate();
-                videoFacing = cameraFormat.getFacing();
-            }   break;
-            case NONE:
-            case EXTERNAL_RESOURCE:
-                break;
-        }
-
-        String audioText = SettingUtil.getAudioParam(this);
-        AudioUtils.AudioFormat audioFormat = AudioUtils.textToFormat(audioText);
-        if (audioFormat == null) {
-            audioFormat = AudioUtils.getDefaultFormat();
-        }
-
-        if (audioFormat == null) {
-            openAudioErrorDialog();
-            return false;
-        }
-
-        mOption = new PeerOption();
-        mOption.setVideoWidth(videoWidth);
-        mOption.setVideoHeight(videoHeight);
-        mOption.setVideoFps(videoFps);
-        mOption.setVideoFacing(videoFacing);
-        mOption.setVideoType(mVideoType);
-        mOption.setVideoUri(mVideoUri);
-        mOption.setVideoRender(mLocalRender);
-        mOption.setAudioType(mAudioType);
-        mOption.setAudioUri(mAudioUri);
-        mOption.setNoAudioProcessing(audioFormat.isNoAudioProcessing());
-        mOption.addIceServer(STUN_SERVER);
-        mOption.setContext(this);
-        mOption.setEglBase(mEglBase);
-
-        if (BuildConfig.DEBUG) {
-            Log.i(TAG, "option: " + mOption.toString());
-        }
-
-        return true;
-    }
-
-    /**
-     * Starts the connection of WebRTC.
-     */
-    private void startConnection() {
-        if (!createOption()) {
-            return;
-        }
-
-        if (mOffer) {
-            answer(mAddressId);
-        } else {
-            call(mAddressId);
-        }
-    }
-
-    /**
-     * Makes a phone call.
-     * @param addressId address
-     */
-    private void call(final String addressId) {
-        if (BuildConfig.DEBUG) {
-            Log.i(TAG, "@@ answer");
-        }
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mConnection = mPeer.call(addressId, mOption, mOnMediaEventListener);
-                if (mConnection == null) {
-                    openWebRTCErrorDialog();
-                }
-            }
-        });
-    }
-
-    /**
-     * Takes a phone call.
-     * @param addressId address
-     */
-    private void answer(final String addressId) {
-        if (BuildConfig.DEBUG) {
-            Log.i(TAG, "@@ answer");
-        }
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mConnection = mPeer.answer(addressId, mOption, mOnMediaEventListener);
-                if (mConnection == null) {
-                    openWebRTCErrorDialog();
-                }
-            }
-        });
-    }
-
-    /**
-     * Tests whether you use the device of camera.
-     * @return true if you use device of camera, false otherwise
-     */
-    private boolean isUseCamera() {
-        return mVideoType == PeerOption.VideoType.CAMERA;
-    }
-
-    private MediaConnection.OnMediaEventListener mOnMediaEventListener
-            = new MediaConnection.OnMediaEventListener() {
-        @Override
-        public void onAddStream(final MediaStream mediaStream) {
-            if (BuildConfig.DEBUG) {
-                Log.i(TAG, "@@@ MediaConnection.onAddStream");
-            }
-            sendCallEvent();
-
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mediaStream.setVideoRender(mRemoteRender);
-                }
-            });
-        }
-
-        @Override
-        public void onRemoveStream(final MediaStream mediaStream) {
-            if (BuildConfig.DEBUG) {
-                Log.i(TAG, "@@@ MediaConnection.onRemoveStream");
-            }
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mediaStream.setVideoRender(null);
-                }
-            });
-        }
-
-        @Override
-        public void onClose() {
-            finish();
-        }
-
-        @Override
-        public void onError() {
-            if (BuildConfig.DEBUG) {
-                Log.i(TAG, "@@@ MediaConnection.onError");
-            }
-        }
-    };
-
-    /**
      * Hang up a call.
      */
     private void hangup() {
@@ -422,12 +197,9 @@ public class VideoChatActivity extends Activity {
             Log.d(TAG, "@@@ VideoChatActivity::hangup");
         }
 
-        if (mConnection != null) {
-            mConnection.close();
-            mConnection = null;
+        if (mWebRTCController != null) {
+            mWebRTCController.hangup();
         }
-
-        sendHangupEvent();
     }
 
     /**
@@ -435,13 +207,13 @@ public class VideoChatActivity extends Activity {
      */
     private void sendCallEvent() {
         List<Event> events = EventManager.INSTANCE.getEventList(
-                PeerUtil.getServiceId(mPeer),
+                PeerUtil.getServiceId(mWebRTCController.getPeer()),
                 VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_ONCALL);
         if (events.size() != 0) {
             Bundle[] args = new Bundle[1];
             args[0] = new Bundle();
-            args[0].putString(VideoChatProfile.PARAM_NAME, mAddressId);
-            args[0].putString(VideoChatProfile.PARAM_ADDRESSID, mAddressId);
+            args[0].putString(VideoChatProfile.PARAM_NAME, mWebRTCController.getAddressId());
+            args[0].putString(VideoChatProfile.PARAM_ADDRESSID, mWebRTCController.getAddressId());
             // TODO: 出力先のURIを指定
 //            args[0].putString(VideoChatProfile.PARAM_VIDEO, "XXX");
 //            args[0].putString(VideoChatProfile.PARAM_AUDIO, "XXX");
@@ -458,32 +230,18 @@ public class VideoChatActivity extends Activity {
      */
     private void sendHangupEvent() {
         List<Event> events = EventManager.INSTANCE.getEventList(
-                PeerUtil.getServiceId(mPeer),
+                PeerUtil.getServiceId(mWebRTCController.getPeer()),
                 VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_HANGUP);
         if (events.size() != 0) {
             Bundle arg = new Bundle();
-            arg.putString(VideoChatProfile.PARAM_NAME, mAddressId);
-            arg.putString(VideoChatProfile.PARAM_ADDRESSID, mAddressId);
+            arg.putString(VideoChatProfile.PARAM_NAME, mWebRTCController.getAddressId());
+            arg.putString(VideoChatProfile.PARAM_ADDRESSID, mWebRTCController.getAddressId());
             for (Event e : events) {
                 Intent event = EventManager.createEventMessage(e);
                 event.putExtra(VideoChatProfile.PARAM_HANGUP, arg);
                 sendBroadcast(event);
             }
         }
-    }
-
-    /**
-     * Open a error dialog of camera.
-     */
-    private void openCameraErrorDialog() {
-        openErrorDialog(R.string.error_failed_to_connect_camera);
-    }
-
-    /**
-     * Open a error dialog of audio.
-     */
-    private void openAudioErrorDialog() {
-        openErrorDialog(R.string.error_failed_to_connect_audio);
     }
 
     /**
@@ -523,4 +281,43 @@ public class VideoChatActivity extends Activity {
             }
         });
     }
+
+    private WebRTCController.WebRTCEventListener mListener = new WebRTCController.WebRTCEventListener() {
+        @Override
+        public void onFoundPeer(WebRTCController controller) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "WebRTCEventListener#onFoundPeer");
+            }
+        }
+
+        @Override
+        public void onNotFoundPeer(WebRTCController controller) {
+            openWebRTCErrorDialog();
+        }
+
+        @Override
+        public void onCallFailed(WebRTCController controller) {
+            openWebRTCErrorDialog();
+        }
+
+        @Override
+        public void onAnswerFailed(WebRTCController controller) {
+            openWebRTCErrorDialog();
+        }
+
+        @Override
+        public void onConnected(WebRTCController controller) {
+            sendCallEvent();
+        }
+
+        @Override
+        public void onDisconnected(WebRTCController controller) {
+            sendHangupEvent();
+        }
+
+        @Override
+        public void onError(WebRTCController controller) {
+            openWebRTCErrorDialog();
+        }
+    };
 }

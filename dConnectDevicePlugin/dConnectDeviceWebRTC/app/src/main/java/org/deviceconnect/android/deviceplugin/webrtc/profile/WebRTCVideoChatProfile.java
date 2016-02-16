@@ -20,6 +20,7 @@ import org.deviceconnect.android.deviceplugin.webrtc.core.Peer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerUtil;
 import org.deviceconnect.android.deviceplugin.webrtc.setting.SettingUtil;
+import org.deviceconnect.android.deviceplugin.webrtc.util.WebRTCManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -78,7 +79,7 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                 } else {
                     MessageUtils.setInvalidRequestParameterError(response);
                 }
-                ((WebRTCDeviceService) getContext()).sendResponse(response);
+                getWebRTCService().sendResponse(response);
             }
         });
         return false;
@@ -130,12 +131,12 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                             response.putExtra(PARAM_ADDRESSES, addresses);
 
                             setResult(response, DConnectMessage.RESULT_OK);
-                            ((WebRTCDeviceService) getContext()).sendResponse(response);
+                            getWebRTCService().sendResponse(response);
                         }
                     });
                 } else {
                     MessageUtils.setInvalidRequestParameterError(response);
-                    ((WebRTCDeviceService) getContext()).sendResponse(response);
+                    getWebRTCService().sendResponse(response);
                 }
             }
         });
@@ -167,7 +168,7 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
             return true;
         }
 
-        WebRTCApplication application = getWebRTCApplication();
+        final WebRTCApplication application = getWebRTCApplication();
         application.getPeer(config, new WebRTCApplication.OnGetPeerCallback() {
             @Override
             public void onGetPeer(final Peer peer) {
@@ -178,10 +179,13 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                             String addressId = request.getStringExtra(PARAM_ADDRESSID);
                             String video = request.getStringExtra(PARAM_VIDEO);
                             String audio = request.getStringExtra(PARAM_AUDIO);
+                            // TODO defined parameter name
+                            String outputs = request.getStringExtra("outputs");
 
                             // if value is null, sets "true" as default
                             video = (video == null || video.isEmpty()) ? "true" : video;
                             audio = (audio == null || audio.isEmpty()) ? "true" : audio;
+                            outputs = (outputs == null || outputs.isEmpty()) ? "host" : outputs;
 
                             if (addressId == null || addressId.length() == 0) {
                                 MessageUtils.setInvalidRequestParameterError(response, "addressId is invalid.");
@@ -201,15 +205,20 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                                 intent.putExtra(VideoChatActivity.EXTRA_CONFIG, peer.getConfig());
                                 intent.putExtra(VideoChatActivity.EXTRA_OFFER, offer);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                getContext().startActivity(intent);
+                                if (outputs.equals("host")) {
+                                    getContext().startActivity(intent);
+                                } else {
+                                    WebRTCManager mgr = getWebRTCService().getWebRTCManager();
+                                    mgr.connectOnUiThread(intent);
+                                }
                                 setResult(response, DConnectMessage.RESULT_OK);
                             }
-                            ((WebRTCDeviceService) getContext()).sendResponse(response);
+                            getWebRTCService().sendResponse(response);
                         }
                     });
                 } else {
                     MessageUtils.setInvalidRequestParameterError(response, "config is invalid.");
-                    ((WebRTCDeviceService) getContext()).sendResponse(response);
+                    getWebRTCService().sendResponse(response);
                 }
             }
         });
@@ -241,7 +250,6 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
     @Override
     protected boolean onPutHangup(final Intent request, final Intent response) {
         return registerEvent(request, response);
-
     }
 
     @Override
@@ -279,7 +287,7 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                 } else {
                     MessageUtils.setInvalidRequestParameterError(response);
                 }
-                ((WebRTCDeviceService) getContext()).sendResponse(response);
+                getWebRTCService().sendResponse(response);
             }
         });
 
@@ -359,7 +367,7 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                             break;
                     }
                 }
-                ((WebRTCDeviceService) getContext()).sendResponse(response);
+                getWebRTCService().sendResponse(response);
             }
         });
         return false;
@@ -405,10 +413,14 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                             break;
                     }
                 }
-                ((WebRTCDeviceService) getContext()).sendResponse(response);
+                getWebRTCService().sendResponse(response);
             }
         });
         return false;
+    }
+
+    private WebRTCDeviceService getWebRTCService() {
+        return (WebRTCDeviceService) getContext();
     }
 
     /**
@@ -416,9 +428,8 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
      * @return WebRTCApplication
      */
     private WebRTCApplication getWebRTCApplication() {
-        WebRTCDeviceService service = (WebRTCDeviceService) getContext();
-        WebRTCApplication application = (WebRTCApplication) service.getApplication();
-        return application;
+        WebRTCDeviceService service = getWebRTCService();
+        return (WebRTCApplication) service.getApplication();
     }
 
     /**
@@ -465,7 +476,7 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
         @Override
         public void onHangup(final Peer peer, final Address address) {
             if (BuildConfig.DEBUG) {
-                Log.i(TAG, "@@@ run onHangup event");
+                Log.i(TAG, "@@@ run onDisconnected event");
             }
 
             List<Event> events = EventManager.INSTANCE.getEventList(

@@ -51,7 +51,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         mYuvConverter.release();
     }
 
-    public void createYuvConvertor(EglBase.Context context, int port) {
+    public void createYuvConverter(EglBase.Context context, int port) {
         mYuvConverter = new YuvConverter(context);
         mServer = new MixedReplaceMediaServer();
         mServer.setPort(port);
@@ -86,23 +86,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         super.renderFrame(frame);
     }
 
-    private int[] mTestBuffer;
-
     private void convertYuvToRGB(VideoRenderer.I420Frame frame) {
-/*
-        if (mTestBuffer == null || mTestBuffer.length != frame.width * frame.height) {
-            mTestBuffer = new int[frame.width * frame.height];
-        }
-
-        mYuvConverter.test(mTestBuffer, frame.width, frame.height, frame.width, frame.textureId, frame.yuvStrides, frame.yuvPlanes, frame.samplingMatrix);
-
-        Bitmap bitmap = Bitmap.createBitmap(frame.width, frame.height, Bitmap.Config.ARGB_8888);
-        bitmap.setPixels(mTestBuffer, 0, frame.width, 0, 0, frame.width, frame.height);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
-        mServer.offerMedia(out.toByteArray());
-*/
-
         if (frame.yuvPlanes == null || frame.yuvPlanes[0] == null) {
             return;
         }
@@ -131,12 +115,15 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
 
     public static android.graphics.YuvImage ConvertTo(final int width, final int height, final int[] yuvStrides, final ByteBuffer[] yuvPlanes) {
 
-        if (yuvStrides[0] != width)
+        if (yuvStrides[0] != width) {
             return convertLineByLine(width, height, yuvStrides, yuvPlanes);
-        if (yuvStrides[1] != width/2)
+        }
+        if (yuvStrides[1] != width/2) {
             return convertLineByLine(width, height, yuvStrides, yuvPlanes);
-        if (yuvStrides[2] != width/2)
+        }
+        if (yuvStrides[2] != width/2) {
             return convertLineByLine(width, height, yuvStrides, yuvPlanes);
+        }
 
         byte[] bytes = new byte[yuvStrides[0] * height +
                 yuvStrides[1] * height / 2 +
@@ -302,61 +289,6 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
             shader.setVertexAttribArray("in_tc", 2, TEXTURE_RECTANGLE);
             eglBase.detachCurrent();
         }
-
-        private void test(int[] buf,
-                  int width, int height, int stride, int textureId, int[] strides, ByteBuffer[] planes, float[] transformMatrix) {
-
-            if (planes == null) {
-                Log.e("ABC", "AAAAAA planes = null.");
-                // TODO
-                return;
-            }
-/*
-            Log.e("ABC", "AAAAAA width, height = (" + width + ", " + height + ")");
-            Log.e("ABC", "AAAAAA strides[0] = " + strides[0]);
-            Log.e("ABC", "AAAAAA strides[1] = " + strides[1]);
-            Log.e("ABC", "AAAAAA strides[2] = " + strides[2]);
-            Log.e("ABC", "AAAAAA stride = " + stride);
-            Log.e("ABC", "AAAAAA planes[0] = " + planes[0].limit());
-            Log.e("ABC", "AAAAAA planes[1] = " + planes[1].limit());
-            Log.e("ABC", "AAAAAA planes[2] = " + planes[2].limit());
-            Log.e("ABC", "AAAAAA mBuffer = " + buf.length);
-*/
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    int index1 = y * width + x;
-                    int index2 = index1 / 4;
-                    int yy = planes[0].get(index1);
-                    int uu = planes[1].get(index2);
-                    int vv = planes[2].get(index2);
-
-                    int y1192 = 1192 * yy;
-                    int r = (y1192 + 1634 * vv);
-                    int g = (y1192 - 833 * vv - 400 * uu);
-                    int b = (y1192 + 2066 * uu);
-
-                    if (r < 0) {
-                        r = 0;
-                    } else if (r > 262143) {
-                        r = 262143;
-                    }
-                    if (g < 0) {
-                        g = 0;
-                    } else if (g > 262143) {
-                        g = 262143;
-                    }
-                    if (b < 0) {
-                        b = 0;
-                    } else if (b > 262143) {
-                        b = 262143;
-                    }
-
-                    buf[y * width + x] = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) & 0xff00) | ((b >> 10) & 0xff);
-                }
-            }
-        }
-
-
 
         private synchronized void convert(ByteBuffer buf,
                                   int width, int height, int stride, int textureId, float[] transformMatrix) {

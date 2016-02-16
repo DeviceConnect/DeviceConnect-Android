@@ -7,11 +7,14 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
+import android.Manifest;
 import android.content.Intent;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 
+import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
@@ -33,6 +36,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * MediaStream Recording Profile.
@@ -44,15 +51,13 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
     private final HostDeviceRecorderManager mRecorderMgr;
 
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+
+    private final Handler mHandler;
+
     public HostMediaStreamingRecordingProfile(final HostDeviceRecorderManager mgr) {
         mRecorderMgr = mgr;
-
-        // Set default picture sizes.
-        for (HostDeviceRecorder recorder : mRecorderMgr.getRecorders()) {
-            if (recorder.usesCamera()) {
-                recorder.setCameraPictureSize(getDefaultSize(recorder.getCameraId()));
-            }
-        }
+        mHandler = new Handler();
     }
 
     @Override
@@ -67,35 +72,95 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         }
 
-        List<Bundle> recorders = new LinkedList<Bundle>();
-        for (HostDeviceRecorder recorder : mRecorderMgr.getRecorders()) {
-            Bundle info = new Bundle();
-            setRecorderId(info, recorder.getId());
-            setRecorderName(info, recorder.getName());
-            setRecorderMIMEType(info, recorder.getMimeType());
-            switch (recorder.getState()) {
-                case RECORDING:
-                    setRecorderState(info, RecorderState.RECORDING);
-                    break;
-                default:
-                    setRecorderState(info, RecorderState.INACTIVE);
-                    break;
+        mExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (!initRecorders(response)) {
+                    sendResponse(response);
+                    return;
+                }
+
+                List<Bundle> recorders = new LinkedList<Bundle>();
+                for (HostDeviceRecorder recorder : mRecorderMgr.getRecorders()) {
+                    Bundle info = new Bundle();
+                    setRecorderId(info, recorder.getId());
+                    setRecorderName(info, recorder.getName());
+                    setRecorderMIMEType(info, recorder.getMimeType());
+                    switch (recorder.getState()) {
+                        case RECORDING:
+                            setRecorderState(info, RecorderState.RECORDING);
+                            break;
+                        default:
+                            setRecorderState(info, RecorderState.INACTIVE);
+                            break;
+                    }
+                    if (recorder instanceof HostDevicePhotoRecorder) {
+                        HostDeviceRecorder.PictureSize size = ((HostDevicePhotoRecorder) recorder).getInputPictureSize();
+                        setRecorderImageWidth(info, size.getWidth());
+                        setRecorderImageHeight(info, size.getHeight());
+                    } else if (recorder instanceof HostDeviceVideoRecorder) {
+                        HostDeviceRecorder.PictureSize size = ((HostDeviceVideoRecorder) recorder).getInputPictureSize();
+                        setRecorderImageWidth(info, size.getWidth());
+                        setRecorderImageHeight(info, size.getHeight());
+                    }
+                    setRecorderConfig(info, "");
+                    recorders.add(info);
+                }
+                setRecorders(response, recorders.toArray(new Bundle[recorders.size()]));
+                setResult(response, DConnectMessage.RESULT_OK);
+                sendResponse(response);
             }
-            if (recorder instanceof HostDevicePhotoRecorder) {
-                HostDeviceRecorder.PictureSize size = ((HostDevicePhotoRecorder) recorder).getInputPictureSize();
-                setRecorderImageWidth(info, size.getWidth());
-                setRecorderImageHeight(info, size.getHeight());
-            } else if (recorder instanceof HostDeviceVideoRecorder) {
-                HostDeviceRecorder.PictureSize size = ((HostDeviceVideoRecorder) recorder).getInputPictureSize();
-                setRecorderImageWidth(info, size.getWidth());
-                setRecorderImageHeight(info, size.getHeight());
+        });
+        return false;
+    }
+
+    private boolean initRecorders(final Intent response) {
+        try {
+            if (!requestPermission()) {
+                MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+                return false;
             }
-            setRecorderConfig(info, "");
-            recorders.add(info);
+        } catch (InterruptedException e) {
+            MessageUtils.setUnknownError(response, "Permission for camera is not granted.");
+            return false;
         }
-        setRecorders(response, recorders.toArray(new Bundle[recorders.size()]));
-        setResult(response, DConnectMessage.RESULT_OK);
+
+        for (HostDeviceRecorder recorder : mRecorderMgr.getRecorders()) {
+            if (recorder.usesCamera()) {
+                recorder.setInputPictureSize(getCurrentSize(recorder.getCameraId()));
+            }
+        }
         return true;
+    }
+
+    private boolean requestPermission() throws InterruptedException {
+        final Boolean[] isPermitted = new Boolean[1];
+        final CountDownLatch lockObj = new CountDownLatch(1);
+        PermissionUtility.requestPermissions(getContext(), mHandler, new String[]{Manifest.permission.CAMERA},
+            new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    isPermitted[0] = true;
+                    lockObj.countDown();
+                }
+
+                @Override
+                public void onFail(@NonNull String deniedPermission) {
+                    isPermitted[0] = false;
+                    lockObj.countDown();
+                }
+            });
+        while (isPermitted[0] == null) {
+            lockObj.await(100, TimeUnit.MILLISECONDS);
+        }
+        return isPermitted[0];
+    }
+
+    private HostDeviceRecorder.PictureSize getCurrentSize(final int cameraId) {
+        Camera camera = Camera.open(cameraId);
+        Camera.Parameters params = camera.getParameters();
+        Camera.Size size = params.getPictureSize();
+        return new HostDeviceRecorder.PictureSize(size.width, size.height);
     }
 
     @Override
@@ -217,27 +282,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 "target=" + target + " does not support to set imageWidth and imageHeight.");
         }
         return true;
-    }
-
-    private HostDeviceRecorder.PictureSize getDefaultSize(final int cameraId) {
-        Camera camera = Camera.open(cameraId);
-        Camera.Parameters params = camera.getParameters();
-        List<Camera.Size> sizes = params.getSupportedPictureSizes();
-        if (sizes.size() > 0) {
-            Collections.sort(sizes, new Comparator<Camera.Size>() {
-                @Override
-                public int compare(final Camera.Size s1, final Camera.Size s2) {
-                    int a1 = s1.width * s1.height;
-                    int a2 = s2.width * s2.height;
-                    return a1 - a2;
-                }
-            });
-            Camera.Size size = sizes.get(0);
-            camera.release();
-            return new HostDeviceRecorder.PictureSize(size.width, size.height);
-        }
-        camera.release();
-        return null;
     }
 
     private HostDeviceRecorder.PictureSize getOptimalSize(final int cameraId,

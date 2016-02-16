@@ -295,6 +295,9 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
 
     @Override
     public HostDeviceRecorder getRecorder(final String id) {
+        if (id == null) {
+            return mDefaultVideoRecorder;
+        }
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId())) {
                 return recorder;

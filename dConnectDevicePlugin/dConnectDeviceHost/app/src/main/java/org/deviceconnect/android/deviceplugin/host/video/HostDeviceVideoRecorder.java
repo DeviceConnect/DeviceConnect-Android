@@ -92,6 +92,11 @@ public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
+    public boolean mutableInputPictureSize() {
+        return true;
+    }
+
+    @Override
     public boolean usesCamera() {
         return true;
     }
@@ -102,12 +107,12 @@ public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
-    public PictureSize getCameraPictureSize() {
+    public PictureSize getInputPictureSize() {
         return mPictureSize;
     }
 
     @Override
-    public void setCameraPictureSize(final PictureSize size) {
+    public void setInputPictureSize(final PictureSize size) {
         mPictureSize = size;
     }
 

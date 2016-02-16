@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePhotoRecorder;
+import org.deviceconnect.android.deviceplugin.host.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
@@ -81,11 +82,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                     break;
             }
             if (recorder instanceof HostDevicePhotoRecorder) {
-                HostDeviceRecorder.PictureSize size = ((HostDevicePhotoRecorder) recorder).getCameraPictureSize();
+                HostDeviceRecorder.PictureSize size = ((HostDevicePhotoRecorder) recorder).getInputPictureSize();
                 setRecorderImageWidth(info, size.getWidth());
                 setRecorderImageHeight(info, size.getHeight());
             } else if (recorder instanceof HostDeviceVideoRecorder) {
-                HostDeviceRecorder.PictureSize size = ((HostDeviceVideoRecorder) recorder).getCameraPictureSize();
+                HostDeviceRecorder.PictureSize size = ((HostDeviceVideoRecorder) recorder).getInputPictureSize();
                 setRecorderImageWidth(info, size.getWidth());
                 setRecorderImageHeight(info, size.getHeight());
             }
@@ -116,7 +117,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
 
         setMIMEType(response, recorder.getSupportedMimeTypes());
-        if (recorder.usesCamera()) {
+        if (recorder.mutableInputPictureSize() && recorder.usesCamera()) {
             List<HostDeviceRecorder.PictureSize> sizes = getSupportedSizes(recorder.getCameraId());
             if (sizes.size() > 0) {
                 sortByWidth(sizes);
@@ -193,7 +194,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 "MIME-Type " + mimeType + " is unsupported.");
             return true;
         }
-        if (recorder.usesCamera()) {
+        if (recorder.mutableInputPictureSize()) {
             if (imageWidth == null) {
                 MessageUtils.setInvalidRequestParameterError(response, "imageWidth is null.");
                 return true;
@@ -202,9 +203,19 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 MessageUtils.setInvalidRequestParameterError(response, "imageHeight is null.");
                 return true;
             }
-            recorder.setCameraPictureSize(getOptimalSize(recorder.getCameraId(), imageWidth, imageHeight));
+
+            HostDeviceRecorder.PictureSize newSize;
+            if (recorder.usesCamera()) {
+                newSize = getOptimalSize(recorder.getCameraId(), imageWidth, imageHeight);
+            } else {
+                newSize = new HostDeviceRecorder.PictureSize(imageWidth, imageHeight);
+            }
+            recorder.setInputPictureSize(newSize);
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else {
+            MessageUtils.setInvalidRequestParameterError(response,
+                "target=" + target + " does not support to set imageWidth and imageHeight.");
         }
-        setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }
 
@@ -352,8 +363,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundService(response);
             return true;
         }
-        HostDevicePhotoRecorder recorder = mRecorderMgr.getPhotoRecorder(null);
-        recorder.startWebServer(new HostDevicePhotoRecorder.OnWebServerStartCallback() {
+        String target = getTarget(request);
+        HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
+        if (server == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
+
+        server.startWebServer(new HostDevicePhotoRecorder.OnWebServerStartCallback() {
             @Override
             public void onStart(@NonNull String uri) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -380,8 +397,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundService(response);
             return true;
         }
-        HostDevicePhotoRecorder recorder = mRecorderMgr.getPhotoRecorder(null);
-        recorder.stopWebServer();
+        String target = getTarget(request);
+        HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
+        if (server == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
+
+        server.stopWebServer();
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }

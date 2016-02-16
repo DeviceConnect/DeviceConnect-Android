@@ -81,6 +81,11 @@ public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
+    public boolean mutableInputPictureSize() {
+        return false;
+    }
+
+    @Override
     public boolean usesCamera() {
         return false;
     }
@@ -91,12 +96,12 @@ public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
-    public PictureSize getCameraPictureSize() {
+    public PictureSize getInputPictureSize() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setCameraPictureSize(final PictureSize size) {
+    public void setInputPictureSize(final PictureSize size) {
         throw new UnsupportedOperationException();
     }
 

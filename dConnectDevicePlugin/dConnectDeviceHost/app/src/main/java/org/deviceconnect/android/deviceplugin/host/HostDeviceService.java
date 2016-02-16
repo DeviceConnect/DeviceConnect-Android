@@ -49,6 +49,7 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingsProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
+import org.deviceconnect.android.deviceplugin.host.screen.HostDeviceScreenCast;
 import org.deviceconnect.android.deviceplugin.host.video.HostDeviceVideoRecorder;
 import org.deviceconnect.android.deviceplugin.host.video.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.video.VideoPlayer;
@@ -208,7 +209,14 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
         recorders.addAll(photoRecorders);
         recorders.addAll(videoRecorders);
         recorders.add(new HostDeviceAudioRecorder(this));
+        if (isSupportedMediaProjection()) {
+            recorders.add(new HostDeviceScreenCast(this));
+        }
         mRecorders = recorders.toArray(new HostDeviceRecorder[recorders.size()]);
+    }
+
+    private boolean isSupportedMediaProjection() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     }
 
     @Override
@@ -316,6 +324,19 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
         for (HostDeviceRecorder recorder : mRecorders) {
             if (id.equals(recorder.getId()) && recorder instanceof HostDeviceStreamRecorder) {
                 return (HostDeviceStreamRecorder) recorder;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public HostDevicePreviewServer getPreviewServer(final String id) {
+        if (id == null) {
+            return mDefaultPhotoRecorder;
+        }
+        for (HostDeviceRecorder recorder : mRecorders) {
+            if (id.equals(recorder.getId()) && recorder instanceof HostDevicePreviewServer) {
+                return (HostDevicePreviewServer) recorder;
             }
         }
         return null;

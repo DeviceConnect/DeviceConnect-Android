@@ -31,9 +31,11 @@ public interface HostDeviceRecorder {
 
     int getCameraId();
 
-    PictureSize getCameraPictureSize();
+    boolean mutableInputPictureSize();
 
-    void setCameraPictureSize(PictureSize size);
+    PictureSize getInputPictureSize();
+
+    void setInputPictureSize(PictureSize size);
 
     enum RecorderState {
         INACTTIVE,

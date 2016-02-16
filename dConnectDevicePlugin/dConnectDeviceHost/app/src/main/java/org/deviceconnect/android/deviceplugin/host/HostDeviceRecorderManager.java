@@ -22,4 +22,6 @@ public interface HostDeviceRecorderManager {
 
     HostDeviceStreamRecorder getStreamRecorder(String id);
 
+    HostDevicePreviewServer getPreviewServer(String id);
+
 }

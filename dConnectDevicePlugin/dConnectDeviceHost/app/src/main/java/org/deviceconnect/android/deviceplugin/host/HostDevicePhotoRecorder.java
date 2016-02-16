@@ -23,7 +23,7 @@ import org.deviceconnect.android.provider.FileManager;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDevicePhotoRecorder implements HostDeviceRecorder {
+public class HostDevicePhotoRecorder implements HostDeviceRecorder, HostDevicePreviewServer {
 
     private static final String ID_BASE = "photo";
 
@@ -91,6 +91,11 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
     }
 
     @Override
+    public boolean mutableInputPictureSize() {
+        return true;
+    }
+
+    @Override
     public boolean usesCamera() {
         return true;
     }
@@ -101,12 +106,12 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
     }
 
     @Override
-    public PictureSize getCameraPictureSize() {
+    public PictureSize getInputPictureSize() {
         return mCameraOverlay.getCameraPictureSize();
     }
 
     @Override
-    public void setCameraPictureSize(final PictureSize size) {
+    public void setInputPictureSize(final PictureSize size) {
         mCameraOverlay.setCameraPictureSize(size);
     }
 
@@ -151,6 +156,7 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
      *
      * @param callback a callback to return the result.
      */
+    @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
         synchronized (mLockObj) {
             if (mServer == null) {
@@ -187,6 +193,7 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
     /**
      * Stop a web server.
      */
+    @Override
     public void stopWebServer() {
         synchronized (mLockObj) {
             if (mServer != null) {
@@ -198,22 +205,4 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder {
             }
         }
     }
-
-    /**
-     * Callback interface used to receive the result of starting a web server.
-     */
-    public interface OnWebServerStartCallback {
-        /**
-         * Called when a web server successfully started.
-         *
-         * @param uri An ever-updating, static image URI.
-         */
-        void onStart(@NonNull String uri);
-
-        /**
-         * Called when a web server failed to start.
-         */
-        void onFail();
-    }
-
 }

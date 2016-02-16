@@ -480,7 +480,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
             if (mFinishFlag) {
                 hide();
             } else if (mCamera != null) {
-                mCamera.startPreview();
+                mCamera.stopPreview();
             }
         }
     }

@@ -10,11 +10,16 @@ import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
 
+import org.deviceconnect.android.logger.AndroidHandler;
 import org.deviceconnect.android.profile.BatteryProfile;
 import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.android.profile.TouchProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Host Device Plugin Application.
@@ -197,6 +202,17 @@ public class HostDeviceApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        Logger logger = Logger.getLogger("host.dplugin");
+        if (BuildConfig.DEBUG) {
+            AndroidHandler handler = new AndroidHandler(logger.getName());
+            handler.setFormatter(new SimpleFormatter());
+            handler.setLevel(Level.ALL);
+            logger.addHandler(handler);
+            logger.setLevel(Level.ALL);
+        } else {
+            logger.setLevel(Level.OFF);
+        }
 
         // start accept service
         Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);

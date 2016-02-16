@@ -22,7 +22,6 @@ import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.util.DisplayMetrics;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.host.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
@@ -30,6 +29,7 @@ import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServe
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 /**
  * Host Device Screen Cast.
@@ -46,8 +46,6 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     static final String RESULT_DATA = "result_data";
 
-    private static final String TAG = "AAA";
-
     private static final String ID = "screen";
 
     private static final String NAME = "AndroidHost Screen";
@@ -58,15 +56,13 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     private final Object mLockObj = new Object();
 
+    private final Logger mLogger = Logger.getLogger("host.dplugin");
+
     private MixedReplaceMediaServer mServer;
 
     private MediaProjectionManager mManager;
 
     private MediaProjection mMediaProjection;
-
-    private int mWidth;
-
-    private int mHeight;
 
     private VirtualDisplay mVirtualDisplay;
 
@@ -187,7 +183,6 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
     }
 
     private void requestPermission() {
-        Log.d(TAG, "requestPermission");
         Intent intent = new Intent();
         intent.setClass(mContext, PermissionReceiverActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -200,33 +195,33 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     private void setupVirtualDisplay() {
         DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        mWidth = metrics.widthPixels;
-        mHeight = metrics.heightPixels;
+        int w = metrics.widthPixels;
+        int h = metrics.heightPixels;
         int density = metrics.densityDpi;
-        mImageReader = ImageReader.newInstance(mWidth, mHeight, PixelFormat.RGBA_8888, 10);
+        mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 10);
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
             "Android Host Screen",
-            mWidth,
-            mHeight,
+            w,
+            h,
             density,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             mImageReader.getSurface(),
             new VirtualDisplay.Callback() {
                 @Override
                 public void onPaused() {
-                    Log.d(TAG, "VirtualDisplay.Callback.onPaused");
+                    mLogger.info("VirtualDisplay.Callback.onPaused");
                     stopScreenCast();
                 }
 
                 @Override
                 public void onResumed() {
-                    Log.d(TAG, "VirtualDisplay.Callback.onResumed");
+                    mLogger.info("VirtualDisplay.Callback.onResumed");
                     startScreenCast();
                 }
 
                 @Override
                 public void onStopped() {
-                    Log.d(TAG, "VirtualDisplay.Callback.onStopped");
+                    mLogger.info("VirtualDisplay.Callback.onStopped");
                 }
             }, null);
     }
@@ -239,7 +234,7 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
         mThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.d(TAG, "Server URL: " + mServer.getUrl());
+                mLogger.info("Server URL: " + mServer.getUrl());
                 try {
                     while (mIsCasting) {
                         Thread.sleep(100);
@@ -251,7 +246,6 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                         byte[] media = baos.toByteArray();
-                        Log.d(TAG, "Media: " + media.length);
                         mServer.offerMedia(media);
                     }
                 } catch (InterruptedException e) {

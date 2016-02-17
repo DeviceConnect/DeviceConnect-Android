@@ -45,10 +45,22 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
     }
 
     public void release() {
+        if (mReleased) {
+            return;
+        }
+
         mReleased = true;
         mByteBuffer = null;
-        mServer.stop();
-        mYuvConverter.release();
+
+        if (mServer != null) {
+            mServer.stop();
+            mServer = null;
+        }
+
+        if (mYuvConverter != null) {
+            mYuvConverter.release();
+            mYuvConverter = null;
+        }
     }
 
     public void createYuvConverter(EglBase.Context context, int port) {
@@ -71,15 +83,17 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
             return;
         }
 
-        if (frame != null) {
-            if (!frame.yuvFrame) {
-                convertTextureToYUV(frame);
+        if (mServer != null && mYuvConverter != null) {
+            if (frame != null) {
+                if (!frame.yuvFrame) {
+                    convertTextureToYUV(frame);
+                } else {
+                    convertYuvToRGB(frame);
+                }
             } else {
-                convertYuvToRGB(frame);
-            }
-        } else {
-            if (DEBUG) {
-                Log.e(TAG, "renderFrame: frame is null.");
+                if (DEBUG) {
+                    Log.e(TAG, "renderFrame: frame is null.");
+                }
             }
         }
 
@@ -197,8 +211,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         byte[] jdata = baos.toByteArray();
         BitmapFactory.Options bitmapFatoryOptions = new BitmapFactory.Options();
         bitmapFatoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
-        Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFatoryOptions);
-        return bmp;
+        return BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFatoryOptions);
     }
 
     private static class YuvConverter {

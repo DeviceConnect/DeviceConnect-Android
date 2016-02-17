@@ -16,6 +16,7 @@ import android.widget.RelativeLayout;
 import org.deviceconnect.android.deviceplugin.webrtc.R;
 import org.deviceconnect.android.deviceplugin.webrtc.WebRTCApplication;
 import org.deviceconnect.android.deviceplugin.webrtc.activity.VideoChatActivity;
+import org.deviceconnect.android.deviceplugin.webrtc.core.AudioTrackExternal;
 import org.deviceconnect.android.deviceplugin.webrtc.core.MySurfaceViewRenderer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.Peer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
@@ -27,6 +28,9 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.profile.VideoChatProfile;
 import org.webrtc.EglBase;
 import org.webrtc.RendererCommon;
+import org.webrtc.voiceengine.WebRtcAudioTrack;
+import org.webrtc.voiceengine.WebRtcAudioTrackModule;
+import org.webrtc.voiceengine.WebRtcAudioTrackModuleFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -77,6 +81,13 @@ public class WebRTCManager {
         String audioUri = intent.getStringExtra(VideoChatActivity.EXTRA_AUDIO_URI);
         String addressId = intent.getStringExtra(VideoChatActivity.EXTRA_ADDRESS_ID);
         boolean offer = intent.getBooleanExtra(VideoChatActivity.EXTRA_OFFER, false);
+
+        WebRtcAudioTrack.setAudioTrackModuleFactory(new WebRtcAudioTrackModuleFactory() {
+            @Override
+            public WebRtcAudioTrackModule create(Context context) {
+                return new AudioTrackExternal(context, 11111);
+            }
+        });
 
         WebRTCController.Builder builder = new WebRTCController.Builder();
         builder.setApplication(mApplication);

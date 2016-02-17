@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.webrtc.activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,7 +18,6 @@ import android.view.WindowManager;
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.R;
 import org.deviceconnect.android.deviceplugin.webrtc.WebRTCApplication;
-import org.deviceconnect.android.deviceplugin.webrtc.core.AudioTrackExternal;
 import org.deviceconnect.android.deviceplugin.webrtc.core.MySurfaceViewRenderer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerUtil;
@@ -30,9 +28,6 @@ import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.profile.VideoChatProfile;
 import org.webrtc.EglBase;
 import org.webrtc.RendererCommon;
-import org.webrtc.voiceengine.WebRtcAudioTrack;
-import org.webrtc.voiceengine.WebRtcAudioTrackModule;
-import org.webrtc.voiceengine.WebRtcAudioTrackModuleFactory;
 
 import java.util.List;
 
@@ -98,19 +93,8 @@ public class VideoChatActivity extends Activity {
 
         EglBase eglBase = EglBase.create();
         mRemoteRender.init(eglBase.getEglBaseContext(), null);
-        mRemoteRender.createYuvConverter(eglBase.getEglBaseContext(), 12345);
-
         mLocalRender.init(eglBase.getEglBaseContext(), null);
-        mLocalRender.createYuvConverter(eglBase.getEglBaseContext(), 12346);
         mLocalRender.setZOrderMediaOverlay(true);
-
-        WebRtcAudioTrack.setAudioTrackModuleFactory(new WebRtcAudioTrackModuleFactory() {
-            @Override
-            public WebRtcAudioTrackModule create(Context context) {
-                AudioTrackExternal module = new AudioTrackExternal(context, 11111);
-                return module;
-            }
-        });
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -136,7 +120,7 @@ public class VideoChatActivity extends Activity {
             updateVideoView();
         } else {
             openWebRTCErrorDialog();
-        }
+            }
     }
 
     @Override

@@ -76,7 +76,7 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
     private final Object mLockObj = new Object();
 
     private SurfaceTextureHelper mSurfaceHelper;
-    private Handler cameraThreadHandler;
+    private Handler mCameraThreadHandler;
     private Surface mSurface;
 
     /**
@@ -94,8 +94,8 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
 
         HandlerThread cameraThread = new HandlerThread(TAG);
         cameraThread.start();
-        cameraThreadHandler = new Handler(cameraThread.getLooper());
-        mSurfaceHelper = SurfaceTextureHelper.create(sharedContext, cameraThreadHandler);
+        mCameraThreadHandler = new Handler(cameraThread.getLooper());
+        mSurfaceHelper = SurfaceTextureHelper.create(sharedContext, mCameraThreadHandler);
     }
 
     @Override
@@ -187,7 +187,7 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
         stopCapture();
 
         if (mSurfaceHelper != null) {
-            mSurfaceHelper.disconnect(cameraThreadHandler);
+            mSurfaceHelper.disconnect(mCameraThreadHandler);
             mSurfaceHelper = null;
         }
     }
@@ -256,7 +256,7 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
                     canvas.drawBitmap(bitmap, 0, 0, new Paint());
                     mSurface.unlockCanvasAndPost(canvas);
 
-                    cameraThreadHandler.post(new Runnable() {
+                    mCameraThreadHandler.post(new Runnable() {
                         @Override
                         public void run() {
                             mSurfaceHelper.getSurfaceTexture().updateTexImage();

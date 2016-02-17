@@ -127,7 +127,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         dst.position(0).limit(dst.capacity());
     }
 
-    public static android.graphics.YuvImage ConvertTo(final int width, final int height, final int[] yuvStrides, final ByteBuffer[] yuvPlanes) {
+    public static YuvImage ConvertTo(final int width, final int height, final int[] yuvStrides, final ByteBuffer[] yuvPlanes) {
 
         if (yuvStrides[0] != width) {
             return convertLineByLine(width, height, yuvStrides, yuvPlanes);
@@ -160,10 +160,10 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
                 bytes[width * height + row * width + col * 2 + 1] = tmparray[row * width / 2 + col];
             }
         }
-        return new YuvImage(bytes, android.graphics.ImageFormat.NV21, width, height, null);
+        return new YuvImage(bytes, ImageFormat.NV21, width, height, null);
     }
 
-    public static android.graphics.YuvImage convertLineByLine(final int width, final int height, final int[] yuvStrides, final ByteBuffer[] yuvPlanes) {
+    public static YuvImage convertLineByLine(final int width, final int height, final int[] yuvStrides, final ByteBuffer[] yuvPlanes) {
         byte[] bytes = new byte[width * height * 3 / 2];
         byte[] yuvPlanes0 = yuvPlanes[0].array();
         byte[] yuvPlanes1 = yuvPlanes[1].array();
@@ -181,7 +181,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
                 bytes[i++] = yuvPlanes1[col + row * yuvStrides[1]];
             }
         }
-        return new YuvImage(bytes, android.graphics.ImageFormat.NV21, width, height, null);
+        return new YuvImage(bytes, ImageFormat.NV21, width, height, null);
     }
 
     private void convertTextureToYUV(VideoRenderer.I420Frame frame) {

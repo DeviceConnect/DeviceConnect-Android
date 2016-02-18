@@ -15,7 +15,7 @@ import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay;
-import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.host.camera.HostDeviceCameraRecorder;
 import org.deviceconnect.android.provider.FileManager;
 
 /**
@@ -23,7 +23,7 @@ import org.deviceconnect.android.provider.FileManager;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDevicePhotoRecorder implements HostDeviceRecorder, HostDevicePreviewServer {
+public class HostDevicePhotoRecorder extends HostDeviceCameraRecorder {
 
     private static final String ID_BASE = "photo";
 
@@ -31,39 +31,17 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder, HostDevicePr
 
     private static final String MIME_TYPE = "image/png";
 
-    private final Context mContext;
-
-    private final int mCameraId;
-
-    private final String mId;
-
-    private final String mName;
-
-    private final Object mLockObj = new Object();
-
-    private MixedReplaceMediaServer mServer;
-
-    private final CameraOverlay mCameraOverlay;
-
     public HostDevicePhotoRecorder(final Context context, final int cameraId,
                                    final CameraFacing facing, final FileManager fileMgr) {
-        mContext = context;
-        mCameraId = cameraId;
-        mId = ID_BASE + "_" + cameraId;
-        mName = NAME_BASE + " - " + facing.getName();
-
-        mCameraOverlay = new CameraOverlay(context, cameraId);
-        mCameraOverlay.setFileManager(fileMgr);
+        super(context, createId(cameraId), createName(facing), cameraId, fileMgr);
     }
 
-    @Override
-    public String getId() {
-        return mId;
+    private static String createId(final int cameraId) {
+        return ID_BASE + "_" + cameraId;
     }
 
-    @Override
-    public String getName() {
-        return mName;
+    private static String createName(final CameraFacing facing) {
+        return NAME_BASE + " - " + facing.getName();
     }
 
     @Override
@@ -81,38 +59,9 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder, HostDevicePr
         return isShowCamera() ? RecorderState.RECORDING : RecorderState.INACTTIVE;
     }
 
-    /**
-     * カメラが使用されているか確認する.
-     *
-     * @return カメラが使用されている場合はtrue、それ以外はfalse
-     */
-    private boolean isShowCamera() {
-        return mCameraOverlay != null && mCameraOverlay.isShow();
-    }
-
     @Override
-    public boolean mutableInputPictureSize() {
+    public boolean mutablePictureSize() {
         return true;
-    }
-
-    @Override
-    public boolean usesCamera() {
-        return true;
-    }
-
-    @Override
-    public int getCameraId() {
-        return mCameraId;
-    }
-
-    @Override
-    public PictureSize getInputPictureSize() {
-        return mCameraOverlay.getCameraPictureSize();
-    }
-
-    @Override
-    public void setInputPictureSize(final PictureSize size) {
-        mCameraOverlay.setCameraPictureSize(size);
     }
 
     /**
@@ -127,6 +76,7 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder, HostDevicePr
                 @Override
                 public void onSuccess() {
                     if (!mCameraOverlay.isShow()) {
+                        mCameraOverlay.setPictureSize(mPreviewSize);
                         mCameraOverlay.show(new CameraOverlay.Callback() {
                             @Override
                             public void onSuccess() {
@@ -149,60 +99,5 @@ public class HostDevicePhotoRecorder implements HostDeviceRecorder, HostDevicePr
                     listener.onFailedTakePhoto();
                 }
             });
-    }
-
-    /**
-     * Start a web server.
-     *
-     * @param callback a callback to return the result.
-     */
-    @Override
-    public void startWebServer(final OnWebServerStartCallback callback) {
-        synchronized (mLockObj) {
-            if (mServer == null) {
-                mServer = new MixedReplaceMediaServer();
-                mServer.setServerName("HostDevicePlugin Server");
-                mServer.setContentType("image/jpg");
-                final String ip = mServer.start();
-
-                if (!mCameraOverlay.isShow()) {
-                    mCameraOverlay.show(new CameraOverlay.Callback() {
-                        @Override
-                        public void onSuccess() {
-                            mCameraOverlay.setFinishFlag(false);
-                            mCameraOverlay.setServer(mServer);
-                            callback.onStart(ip);
-                        }
-
-                        @Override
-                        public void onFail() {
-                            callback.onFail();
-                        }
-                    });
-                } else {
-                    mCameraOverlay.setFinishFlag(false);
-                    mCameraOverlay.setServer(mServer);
-                    callback.onStart(ip);
-                }
-            } else {
-                callback.onStart(mServer.getUrl());
-            }
-        }
-    }
-
-    /**
-     * Stop a web server.
-     */
-    @Override
-    public void stopWebServer() {
-        synchronized (mLockObj) {
-            if (mServer != null) {
-                mServer.stop();
-                mServer = null;
-            }
-            if (isShowCamera()) {
-                mCameraOverlay.hide();
-            }
-        }
     }
 }

@@ -195,7 +195,7 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
                     break;
             }
             photoRecorders.add(new HostDevicePhotoRecorder(this, cameraId, facing, fileMgr));
-            videoRecorders.add(new HostDeviceVideoRecorder(this, cameraId, facing));
+            videoRecorders.add(new HostDeviceVideoRecorder(this, cameraId, facing, fileMgr));
         }
 
         if (photoRecorders.size() > 0) {

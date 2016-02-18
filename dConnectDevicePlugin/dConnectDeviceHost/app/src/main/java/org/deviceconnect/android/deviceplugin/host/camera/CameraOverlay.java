@@ -52,7 +52,9 @@ import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 
@@ -121,6 +123,11 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     /** 画像を送るサーバ. */
     private MixedReplaceMediaServer mServer;
 
+    private final List<HostDeviceRecorder.PictureSize> mSupportedPreviewSizes
+        = new ArrayList<HostDeviceRecorder.PictureSize>();
+
+    private HostDeviceRecorder.PictureSize mPreviewSize;
+
     private HostDeviceRecorder.PictureSize mPictureSize;
 
     /**
@@ -161,12 +168,12 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         mCameraId = cameraId;
     }
 
-    public HostDeviceRecorder.PictureSize getCameraPictureSize() {
-        return mPictureSize;
+    public void setPictureSize(final HostDeviceRecorder.PictureSize size) {
+        mPictureSize = size;
     }
 
-    public void setCameraPictureSize(final HostDeviceRecorder.PictureSize size) {
-        mPictureSize = size;
+    public void setPreviewSize(final HostDeviceRecorder.PictureSize size) {
+        mPreviewSize = size;
     }
 
     @Override
@@ -278,10 +285,8 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     mWinMgr.addView(mPreview, l);
 
                     mCamera = Camera.open(mCameraId);
-                    Camera.Parameters params = findSupportedSizedParameter();
-                    if (params != null) {
-                        mCamera.setParameters(params);
-                    }
+                    setRequestedPictureSize(mCamera);
+                    setRequestedPreviewSize(mCamera);
                     mPreview.switchCamera(mCamera);
                     mCamera.setPreviewCallback(CameraOverlay.this);
                     mCamera.setErrorCallback(CameraOverlay.this);
@@ -303,20 +308,22 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         });
     }
 
-    private Camera.Parameters findSupportedSizedParameter() {
-        Camera camera = mCamera;
+    private void setRequestedPictureSize(final Camera camera) {
         HostDeviceRecorder.PictureSize currentSize = mPictureSize;
         if (camera != null && currentSize != null) {
             Camera.Parameters params = camera.getParameters();
-            for (Camera.Size s : params.getSupportedPictureSizes()) {
-                if (s.width == currentSize.getWidth()
-                    && s.height == currentSize.getHeight()) {
-                    params.setPictureSize(s.width, s.height);
-                    return params;
-                }
-            }
+            params.setPictureSize(currentSize.getWidth(), currentSize.getHeight());
+            camera.setParameters(params);
         }
-        return null;
+    }
+
+    private void setRequestedPreviewSize(final Camera camera) {
+        HostDeviceRecorder.PictureSize currentSize = mPreviewSize;
+        if (camera != null && currentSize != null) {
+            Camera.Parameters params = camera.getParameters();
+            params.setPreviewSize(currentSize.getWidth(), currentSize.getHeight());
+            camera.setParameters(params);
+        }
     }
 
     /**

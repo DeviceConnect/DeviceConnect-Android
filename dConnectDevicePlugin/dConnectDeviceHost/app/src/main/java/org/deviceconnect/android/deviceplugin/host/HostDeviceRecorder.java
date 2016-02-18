@@ -10,6 +10,8 @@ package org.deviceconnect.android.deviceplugin.host;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.List;
+
 /**
  * Host Device Recorder.
  *
@@ -27,15 +29,23 @@ public interface HostDeviceRecorder {
 
     RecorderState getState();
 
+    void initialize();
+
     boolean usesCamera();
 
     int getCameraId();
 
-    boolean mutableInputPictureSize();
+    List<PictureSize> getSupportedPictureSizes();
 
-    PictureSize getInputPictureSize();
+    boolean supportsPictureSize(int width, int height);
 
-    void setInputPictureSize(PictureSize size);
+    boolean mutablePictureSize();
+
+    PictureSize getPictureSize();
+
+    void setPictureSize(PictureSize size);
+
+
 
     enum RecorderState {
         INACTTIVE,

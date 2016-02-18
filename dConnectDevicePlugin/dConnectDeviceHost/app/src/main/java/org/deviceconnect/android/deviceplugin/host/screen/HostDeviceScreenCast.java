@@ -29,6 +29,7 @@ import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServe
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -54,6 +55,8 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     private final Context mContext;
 
+    private final int mDisplayDensityDpi;
+
     private final Object mLockObj = new Object();
 
     private final Logger mLogger = Logger.getLogger("host.dplugin");
@@ -72,9 +75,15 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     private Thread mThread;
 
+    private PictureSize mPreviewSize;
+
     public HostDeviceScreenCast(final Context context) {
         mContext = context;
         mManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        mPreviewSize = new PictureSize(metrics.widthPixels, metrics.heightPixels);
+        mDisplayDensityDpi = metrics.densityDpi;
     }
 
     private BroadcastReceiver mPermissionReceiver;
@@ -105,7 +114,12 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
     }
 
     @Override
-    public boolean mutableInputPictureSize() {
+    public void initialize() {
+        // Nothing to do.
+    }
+
+    @Override
+    public boolean mutablePictureSize() {
         return false;
     }
 
@@ -120,12 +134,22 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
     }
 
     @Override
-    public PictureSize getInputPictureSize() {
+    public List<PictureSize> getSupportedPictureSizes() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setInputPictureSize(final PictureSize size) {
+    public boolean supportsPictureSize(int width, int height) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PictureSize getPictureSize() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setPictureSize(final PictureSize size) {
         throw new UnsupportedOperationException();
     }
 
@@ -194,16 +218,14 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
     }
 
     private void setupVirtualDisplay() {
-        DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-        int w = metrics.widthPixels;
-        int h = metrics.heightPixels;
-        int density = metrics.densityDpi;
+        int w = mPreviewSize.getWidth();
+        int h = mPreviewSize.getHeight();
         mImageReader = ImageReader.newInstance(w, h, PixelFormat.RGBA_8888, 10);
         mVirtualDisplay = mMediaProjection.createVirtualDisplay(
             "Android Host Screen",
             w,
             h,
-            density,
+            mDisplayDensityDpi,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             mImageReader.getSurface(),
             new VirtualDisplay.Callback() {
@@ -309,5 +331,25 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
         img.close();
 
         return bitmap;
+    }
+
+    @Override
+    public List<PictureSize> getSupportedPreviewSizes() {
+        return null; // TODO
+    }
+
+    @Override
+    public boolean supportsPreviewSize(final int width, final int height) {
+        return false; // TODO
+    }
+
+    @Override
+    public PictureSize getPreviewSize() {
+        return mPreviewSize;
+    }
+
+    @Override
+    public void setPreviewSize(final PictureSize size) {
+        // TODO for Preview API PUT's width and height parameters.
     }
 }

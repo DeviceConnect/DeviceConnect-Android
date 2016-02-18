@@ -9,7 +9,6 @@ package org.deviceconnect.android.deviceplugin.host.profile;
 
 import android.Manifest;
 import android.content.Intent;
-import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -22,7 +21,7 @@ import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorderManager;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceStreamRecorder;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay.OnTakePhotoListener;
-import org.deviceconnect.android.deviceplugin.host.video.HostDeviceVideoRecorder;
+import org.deviceconnect.android.deviceplugin.host.camera.HostDeviceCameraRecorder;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -31,15 +30,15 @@ import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.android.provider.FileManager;
 import org.deviceconnect.message.DConnectMessage;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import static org.deviceconnect.android.deviceplugin.host.profile.RequestParam.Range;
+import static org.deviceconnect.android.deviceplugin.host.profile.RequestParam.Type;
 
 /**
  * MediaStream Recording Profile.
@@ -54,6 +53,39 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     private final Handler mHandler;
+
+    private final RequestParam[] mOptionApiPutParams = {
+        new RequestParam(PARAM_IMAGE_WIDTH, Type.INT, new Range() {
+            @Override
+            boolean checkInt(final int imageWidth) {
+                return imageWidth > 0;
+            }
+        }),
+        new RequestParam(PARAM_IMAGE_HEIGHT, Type.INT, new Range() {
+            @Override
+            boolean checkInt(final int imageHeight) {
+                return imageHeight > 0;
+            }
+        }),
+        new RequestParam(PARAM_PREVIEW_WIDTH, Type.INT, new Range() {
+            @Override
+            boolean checkInt(final int previewWidth) {
+                return previewWidth > 0;
+            }
+        }),
+        new RequestParam(PARAM_IMAGE_HEIGHT, Type.INT, new Range() {
+            @Override
+            boolean checkInt(final int previewHeight) {
+                return previewHeight > 0;
+            }
+        }),
+        new RequestParam(PARAM_PREVIEW_MAX_FRAME_RATE, Type.DOUBLE, new Range() {
+            @Override
+            boolean checkDouble(final double maxFrameRate) {
+                return maxFrameRate > 0.0;
+            }
+        })
+    };
 
     public HostMediaStreamingRecordingProfile(final HostDeviceRecorderManager mgr) {
         mRecorderMgr = mgr;
@@ -94,14 +126,16 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                             setRecorderState(info, RecorderState.INACTIVE);
                             break;
                     }
-                    if (recorder instanceof HostDevicePhotoRecorder) {
-                        HostDeviceRecorder.PictureSize size = ((HostDevicePhotoRecorder) recorder).getInputPictureSize();
+                    if (recorder instanceof HostDeviceCameraRecorder) {
+                        HostDeviceRecorder.PictureSize size = ((HostDeviceCameraRecorder) recorder).getPictureSize();
                         setRecorderImageWidth(info, size.getWidth());
                         setRecorderImageHeight(info, size.getHeight());
-                    } else if (recorder instanceof HostDeviceVideoRecorder) {
-                        HostDeviceRecorder.PictureSize size = ((HostDeviceVideoRecorder) recorder).getInputPictureSize();
-                        setRecorderImageWidth(info, size.getWidth());
-                        setRecorderImageHeight(info, size.getHeight());
+                    }
+                    if (recorder instanceof HostDevicePreviewServer) {
+                        HostDeviceRecorder.PictureSize size = ((HostDevicePreviewServer) recorder).getPreviewSize();
+                        setRecorderPreviewWidth(info, size.getWidth());
+                        setRecorderPreviewHeight(info, size.getHeight());
+                        // TODO: setRecorderPreviewMaxFrameRate(info);
                     }
                     setRecorderConfig(info, "");
                     recorders.add(info);
@@ -126,9 +160,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
 
         for (HostDeviceRecorder recorder : mRecorderMgr.getRecorders()) {
-            if (recorder.usesCamera()) {
-                recorder.setInputPictureSize(getCurrentSize(recorder.getCameraId()));
-            }
+            recorder.initialize();
         }
         return true;
     }
@@ -156,13 +188,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         return isPermitted[0];
     }
 
-    private HostDeviceRecorder.PictureSize getCurrentSize(final int cameraId) {
-        Camera camera = Camera.open(cameraId);
-        Camera.Parameters params = camera.getParameters();
-        Camera.Size size = params.getPictureSize();
-        return new HostDeviceRecorder.PictureSize(size.width, size.height);
-    }
-
     @Override
     protected boolean onGetOptions(final Intent request, final Intent response,
                                    final String serviceId, final String target) {
@@ -182,52 +207,42 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
 
         setMIMEType(response, recorder.getSupportedMimeTypes());
-        if (recorder.mutableInputPictureSize() && recorder.usesCamera()) {
-            List<HostDeviceRecorder.PictureSize> sizes = getSupportedSizes(recorder.getCameraId());
-            if (sizes.size() > 0) {
-                sortByWidth(sizes);
-                int minWidth = sizes.get(0).getWidth();
-                int maxWidth = sizes.get(sizes.size() - 1).getWidth();
-                sortByHeight(sizes);
-                int minHeight = sizes.get(0).getHeight();
-                int maxHeight = sizes.get(sizes.size() - 1).getHeight();
-                setImageWidth(response, minWidth, maxWidth);
-                setImageHeight(response, minHeight, maxHeight);
-            }
+        if (recorder instanceof HostDeviceCameraRecorder) {
+            HostDeviceCameraRecorder camera = (HostDeviceCameraRecorder) recorder;
+            setSupportedImageSizes(response, camera.getSupportedPictureSizes());
+        }
+        if (recorder instanceof HostDevicePreviewServer) {
+            HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
+            setSupportedPreviewSizes(response, server.getSupportedPreviewSizes());
         }
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }
 
-    private void sortByWidth(List<HostDeviceRecorder.PictureSize> sizes) {
-        Collections.sort(sizes, new Comparator<HostDeviceRecorder.PictureSize>() {
-            @Override
-            public int compare(final HostDeviceRecorder.PictureSize lhs,
-                               final HostDeviceRecorder.PictureSize rhs) {
-                return lhs.getWidth() - rhs.getWidth();
-            }
-        });
-    }
-
-    private void sortByHeight(List<HostDeviceRecorder.PictureSize> sizes) {
-        Collections.sort(sizes, new Comparator<HostDeviceRecorder.PictureSize>() {
-            @Override
-            public int compare(final HostDeviceRecorder.PictureSize lhs,
-                               final HostDeviceRecorder.PictureSize rhs) {
-                return lhs.getHeight() - rhs.getHeight();
-            }
-        });
-    }
-
-    private List<HostDeviceRecorder.PictureSize> getSupportedSizes(final int cameraId) {
-        Camera camera = Camera.open(cameraId);
-        List<Camera.Size> sizes = camera.getParameters().getSupportedPictureSizes();
-        List<HostDeviceRecorder.PictureSize> result = new ArrayList<HostDeviceRecorder.PictureSize>();
-        for (Camera.Size size : sizes) {
-            result.add(new HostDeviceRecorder.PictureSize(size.width, size.height));
+    private static void setSupportedImageSizes(final Intent response,
+                                               final List<HostDeviceRecorder.PictureSize> sizes) {
+        Bundle[] array = new Bundle[sizes.size()];
+        int i = 0;
+        for (HostDeviceRecorder.PictureSize size : sizes) {
+            Bundle info = new Bundle();
+            setWidth(info, size.getWidth());
+            setHeight(info, size.getHeight());
+            array[i++] = info;
         }
-        camera.release();
-        return result;
+        setImageSizes(response, array);
+    }
+
+    private static void setSupportedPreviewSizes(final Intent response,
+                                                 final List<HostDeviceRecorder.PictureSize> sizes) {
+        Bundle[] array = new Bundle[sizes.size()];
+        int i = 0;
+        for (HostDeviceRecorder.PictureSize size : sizes) {
+            Bundle info = new Bundle();
+            setWidth(info, size.getWidth());
+            setHeight(info, size.getHeight());
+            array[i++] = info;
+        }
+        setPreviewSizes(response, array);
     }
 
     @Override
@@ -259,52 +274,56 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 "MIME-Type " + mimeType + " is unsupported.");
             return true;
         }
-        if (recorder.mutableInputPictureSize()) {
-            if (imageWidth == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "imageWidth is null.");
-                return true;
-            }
-            if (imageHeight == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "imageHeight is null.");
-                return true;
-            }
-
-            HostDeviceRecorder.PictureSize newSize;
-            if (recorder.usesCamera()) {
-                newSize = getOptimalSize(recorder.getCameraId(), imageWidth, imageHeight);
-            } else {
-                newSize = new HostDeviceRecorder.PictureSize(imageWidth, imageHeight);
-            }
-            recorder.setInputPictureSize(newSize);
-            setResult(response, DConnectMessage.RESULT_OK);
-        } else {
-            MessageUtils.setInvalidRequestParameterError(response,
-                "target=" + target + " does not support to set imageWidth and imageHeight.");
+        if (!checkOptionsParam(request, response)) {
+            return true;
         }
+
+        if (imageWidth != null && imageHeight != null) {
+            if (!recorder.supportsPictureSize(imageWidth, imageHeight)) {
+                MessageUtils.setInvalidRequestParameterError(response, "Unsupported image size: imageWidth = "
+                    + imageWidth + ", imageHeight = " + imageHeight);
+                return true;
+            }
+            HostDeviceRecorder.PictureSize newSize = new HostDeviceRecorder.PictureSize(imageWidth, imageHeight);
+            recorder.setPictureSize(newSize);
+        }
+
+        Integer previewWidth = getPreviewWidth(request);
+        Integer previewHeight = getPreviewHeight(request);
+        if (previewWidth != null && previewHeight != null && recorder instanceof HostDevicePreviewServer) {
+            HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
+            if (!server.supportsPreviewSize(previewWidth, previewHeight)) {
+                MessageUtils.setInvalidRequestParameterError(response, "Unsupported preview size: previewWidth = "
+                    + previewWidth + ", previewHeight = " + previewHeight);
+                return true;
+            }
+            HostDeviceRecorder.PictureSize newSize = new HostDeviceRecorder.PictureSize(previewWidth, previewHeight);
+            server.setPreviewSize(newSize);
+        }
+
+        setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }
 
-    private HostDeviceRecorder.PictureSize getOptimalSize(final int cameraId,
-                                                          final int width, final int height) {
-        Camera camera = Camera.open(cameraId);
-        Camera.Parameters params = camera.getParameters();
-        List<Camera.Size> sizes = params.getSupportedPictureSizes();
-        if (sizes.size() > 0) {
-            Collections.sort(sizes, new Comparator<Camera.Size>() {
-                @Override
-                public int compare(final Camera.Size s1, final Camera.Size s2) {
-                    int a = width * height;
-                    int d1 = a - (s1.width * s1.height);
-                    int d2 = a - (s2.width * s2.height);
-                    return Math.abs(d1) - Math.abs(d2);
-                }
-            });
-            Camera.Size size = sizes.get(0);
-            camera.release();
-            return new HostDeviceRecorder.PictureSize(size.width, size.height);
+    private boolean checkOptionsParam(final Intent request, final Intent response) {
+        for (RequestParam param : mOptionApiPutParams) {
+            if (!param.check(request, response)) {
+                return false;
+            }
         }
-        camera.release();
-        return null;
+        Integer imageWidth = getImageWidth(request);
+        Integer imageHeight = getImageHeight(request);
+        if ((imageWidth != null && imageHeight == null)
+            || (imageWidth == null && imageHeight != null)) {
+            return false;
+        }
+        Integer previewWidth = getPreviewWidth(request);
+        Integer previewHeight = getPreviewHeight(request);
+        if ((previewWidth != null && previewHeight == null)
+            || (previewWidth == null && previewHeight != null)) {
+            return false;
+        }
+        return true;
     }
 
     private boolean supportsMimeType(final HostDeviceRecorder recorder, final String mimeType) {
@@ -606,4 +625,95 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         MessageUtils.setEmptyServiceIdError(response);
     }
 
+    private static final String PARAM_PREVIEW_WIDTH = "previewWidth";
+
+    private static final String PARAM_PREVIEW_HEIGHT = "previewHeight";
+
+    private static final String PARAM_PREVIEW_MAX_FRAME_RATE = "previewMaxFrameRate";
+
+    private static final String PARAM_AUDIO = "audio";
+
+    private static final String PARAM_CHANNELS = "channels";
+
+    private static final String PARAM_SAMPLE_RATE = "sampleRate";
+
+    private static final String PARAM_SAMPLE_SIZE = "sampleSize";
+
+    private static final String PARAM_BLOCK_SIZE = "blockSize";
+
+    private static final String PARAM_IMAGE_SIZES = "imageSizes";
+
+    private static final String PARAM_PREVIEW_SIZES = "previewSizes";
+
+    private static final String PARAM_WIDTH = "width";
+
+    private static final String PARAM_HEIGHT = "height";
+
+    public static Integer getPreviewWidth(final Intent request) {
+        return parseInteger(request, PARAM_PREVIEW_WIDTH);
+    }
+
+    public static Integer getPreviewHeight(final Intent request) {
+        return parseInteger(request, PARAM_PREVIEW_HEIGHT);
+    }
+
+    public static Double getPreviewMaxFrameRate(final Intent request) {
+        return parseDouble(request, PARAM_PREVIEW_MAX_FRAME_RATE);
+    }
+
+    public static void setImageSizes(final Intent response, final Bundle[] imageSizes) {
+        response.putExtra(PARAM_IMAGE_SIZES, imageSizes);
+    }
+
+    public static void setPreviewSizes(final Intent response, final Bundle[] previewSizes) {
+        response.putExtra(PARAM_PREVIEW_SIZES, previewSizes);
+    }
+
+    public static void setWidth(final Bundle size, final int width) {
+        size.putInt(PARAM_WIDTH, width);
+    }
+
+    public static void setHeight(final Bundle size, final int height) {
+        size.putInt(PARAM_HEIGHT, height);
+    }
+
+    public static void setRecorderPreviewWidth(final Bundle recorder, final int imageWidth) {
+        recorder.putInt(PARAM_PREVIEW_WIDTH, imageWidth);
+    }
+
+    public static void setRecorderPreviewHeight(final Bundle recorder, final int imageHeight) {
+        recorder.putInt(PARAM_PREVIEW_HEIGHT, imageHeight);
+    }
+
+    public static void setRecorderPreviewMaxFrameRate(final Bundle recorder, final double maxFrameRate) {
+        recorder.putDouble(PARAM_PREVIEW_MAX_FRAME_RATE, maxFrameRate);
+    }
+
+    public static void setRecorderAudio(final Bundle recorder, final Bundle audio) {
+        recorder.putBundle(PARAM_AUDIO, audio);
+    }
+
+    public static void setAudioChannels(final Bundle audio, final int channels) {
+        audio.putInt(PARAM_CHANNELS, channels);
+    }
+
+    public static void setAudioSampleRate(final Bundle audio, final int sampleRate) {
+        audio.putInt(PARAM_SAMPLE_RATE, sampleRate);
+    }
+
+    public static void setAudioSampleSize(final Bundle audio, final int sampleSize) {
+        audio.putInt(PARAM_SAMPLE_SIZE, sampleSize);
+    }
+
+    public static void setAudioBlockSize(final Bundle audio, final int blockSize) {
+        audio.putInt(PARAM_BLOCK_SIZE, blockSize);
+    }
+
+    public static void setAudio(final Intent response, final Bundle audio) {
+        response.putExtra(PARAM_AUDIO, audio);
+    }
+
+    public static void setAudioUri(final Bundle audio, final String uri) {
+        audio.putString(PARAM_URI, uri);
+    }
 }

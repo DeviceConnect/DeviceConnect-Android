@@ -176,10 +176,7 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
         final int cameraId = mIntent.getIntExtra(VideoConst.EXTRA_CAMERA_ID, -1);
         mPictureSize = mIntent.getParcelableExtra(VideoConst.EXTRA_PICTURE_SIZE);
         mCamera = getCameraInstance(cameraId);
-        Camera.Parameters params = findSupportedSizedParameter();
-        if (params != null) {
-            mCamera.setParameters(params);
-        }
+        setRequestedPictureSize(mCamera);
         mCamera.unlock();
 
         mFileName = mIntent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
@@ -203,20 +200,13 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
         mIsInitialized = true;
     }
 
-    private Camera.Parameters findSupportedSizedParameter() {
-        Camera camera = mCamera;
+    private void setRequestedPictureSize(final Camera camera) {
         HostDeviceRecorder.PictureSize currentSize = mPictureSize;
         if (camera != null && currentSize != null) {
             Camera.Parameters params = camera.getParameters();
-            for (Camera.Size s : params.getSupportedPictureSizes()) {
-                if (s.width == currentSize.getWidth()
-                    && s.height == currentSize.getHeight()) {
-                    params.setPictureSize(s.width, s.height);
-                    return params;
-                }
-            }
+            params.setPictureSize(currentSize.getWidth(), currentSize.getHeight());
+            camera.setParameters(params);
         }
-        return null;
     }
 
     @Override

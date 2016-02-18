@@ -22,6 +22,7 @@ import org.deviceconnect.android.deviceplugin.host.video.VideoConst;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -81,7 +82,12 @@ public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
-    public boolean mutableInputPictureSize() {
+    public void initialize() {
+        // Nothing to do.
+    }
+
+    @Override
+    public boolean mutablePictureSize() {
         return false;
     }
 
@@ -96,12 +102,22 @@ public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
-    public PictureSize getInputPictureSize() {
+    public List<PictureSize> getSupportedPictureSizes() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setInputPictureSize(final PictureSize size) {
+    public boolean supportsPictureSize(final int width, final int height) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PictureSize getPictureSize() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setPictureSize(final PictureSize size) {
         throw new UnsupportedOperationException();
     }
 

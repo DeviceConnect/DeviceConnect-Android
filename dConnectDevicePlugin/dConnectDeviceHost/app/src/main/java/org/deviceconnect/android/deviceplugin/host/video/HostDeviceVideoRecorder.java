@@ -18,6 +18,8 @@ import android.os.Looper;
 import android.os.ResultReceiver;
 
 import org.deviceconnect.android.deviceplugin.host.HostDeviceStreamRecorder;
+import org.deviceconnect.android.deviceplugin.host.camera.HostDeviceCameraRecorder;
+import org.deviceconnect.android.provider.FileManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -28,7 +30,8 @@ import java.util.Locale;
  *
  * @author NTT DOCOMO, INC.
  */
-public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
+public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
+    implements HostDeviceStreamRecorder {
 
     private static final String ID_BASE = "video";
 
@@ -38,32 +41,19 @@ public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
 
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
-    private final Context mContext;
-
-    private final int mCameraId;
-
-    private final String mId;
-
-    private final String mName;
-
     private PictureSize mPictureSize;
 
     public HostDeviceVideoRecorder(final Context context, final int cameraId,
-                                   final CameraFacing facing) {
-        mContext = context;
-        mCameraId = cameraId;
-        mId = ID_BASE + "_" + cameraId;
-        mName = NAME_BASE + " - " + facing.getName();
+                                   final CameraFacing facing, final FileManager fileMgr) {
+        super(context, createId(cameraId), createName(facing), cameraId, fileMgr);
     }
 
-    @Override
-    public String getId() {
-        return mId;
+    private static String createId(final int cameraId) {
+        return ID_BASE + "_" + cameraId;
     }
 
-    @Override
-    public String getName() {
-        return mName;
+    private static String createName(final CameraFacing facing) {
+        return NAME_BASE + " - " + facing.getName();
     }
 
     @Override
@@ -92,28 +82,8 @@ public class HostDeviceVideoRecorder implements HostDeviceStreamRecorder {
     }
 
     @Override
-    public boolean mutableInputPictureSize() {
+    public boolean mutablePictureSize() {
         return true;
-    }
-
-    @Override
-    public boolean usesCamera() {
-        return true;
-    }
-
-    @Override
-    public int getCameraId() {
-        return mCameraId;
-    }
-
-    @Override
-    public PictureSize getInputPictureSize() {
-        return mPictureSize;
-    }
-
-    @Override
-    public void setInputPictureSize(final PictureSize size) {
-        mPictureSize = size;
     }
 
     @Override

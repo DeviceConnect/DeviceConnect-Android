@@ -9,16 +9,26 @@ package org.deviceconnect.android.deviceplugin.host;
 
 import android.support.annotation.NonNull;
 
+import java.util.List;
+
 /**
  * Host Device Preview Server.
  *
  * @author NTT DOCOMO, INC.
  */
-public interface HostDevicePreviewServer {
+public interface HostDevicePreviewServer extends HostDeviceRecorder {
 
     void startWebServer(OnWebServerStartCallback callback);
 
     void stopWebServer();
+
+    List<PictureSize> getSupportedPreviewSizes();
+
+    boolean supportsPreviewSize(int width, int height);
+
+    PictureSize getPreviewSize();
+
+    void setPreviewSize(PictureSize size);
 
     /**
      * Callback interface used to receive the result of starting a web server.

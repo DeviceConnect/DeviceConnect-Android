@@ -7,6 +7,8 @@
 package org.deviceconnect.android.deviceplugin.host;
 
 
+import org.deviceconnect.android.deviceplugin.host.camera.HostDevicePhotoRecorder;
+
 /**
  * Host Device Recorder Manager.
  *

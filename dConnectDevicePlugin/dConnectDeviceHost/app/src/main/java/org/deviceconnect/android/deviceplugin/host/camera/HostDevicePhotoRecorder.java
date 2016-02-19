@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.host;
+package org.deviceconnect.android.deviceplugin.host.camera;
 
 
 import android.Manifest;
@@ -14,8 +14,6 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay;
-import org.deviceconnect.android.deviceplugin.host.camera.HostDeviceCameraRecorder;
 import org.deviceconnect.android.provider.FileManager;
 
 /**
@@ -76,7 +74,6 @@ public class HostDevicePhotoRecorder extends HostDeviceCameraRecorder {
                 @Override
                 public void onSuccess() {
                     if (!mCameraOverlay.isShow()) {
-                        mCameraOverlay.setPictureSize(mPreviewSize);
                         mCameraOverlay.show(new CameraOverlay.Callback() {
                             @Override
                             public void onSuccess() {

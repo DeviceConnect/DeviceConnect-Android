@@ -30,6 +30,7 @@ import android.webkit.MimeTypeMap;
 
 import org.deviceconnect.android.deviceplugin.host.audio.HostDeviceAudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay;
+import org.deviceconnect.android.deviceplugin.host.camera.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.manager.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;

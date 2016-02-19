@@ -1,3 +1,9 @@
+/*
+ HostDeviceCameraRecorder.java
+ Copyright (c) 2014 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.host.camera;
 
 
@@ -10,6 +16,11 @@ import org.deviceconnect.android.provider.FileManager;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Host Device Camera Recorder.
+ *
+ * @author NTT DOCOMO, INC.
+ */
 @SuppressWarnings("deprecation")
 public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServer {
 
@@ -24,10 +35,6 @@ public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServe
     protected final int mCameraId;
 
     protected boolean mIsInitialized;
-
-    protected PictureSize mPictureSize;
-
-    protected PictureSize mPreviewSize;
 
     protected final List<PictureSize> mSupportedPictureSizes = new ArrayList<PictureSize>();
 
@@ -108,7 +115,6 @@ public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServe
                 final String ip = mServer.start();
 
                 if (!mCameraOverlay.isShow()) {
-                    mCameraOverlay.setPreviewSize(mPreviewSize);
                     mCameraOverlay.show(new CameraOverlay.Callback() {
                         @Override
                         public void onSuccess() {
@@ -168,12 +174,22 @@ public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServe
 
     @Override
     public PictureSize getPreviewSize() {
-        return mPreviewSize;
+        return mCameraOverlay.getPreviewSize();
     }
 
     @Override
     public void setPreviewSize(final PictureSize size) {
-        mPreviewSize = size;
+        mCameraOverlay.setPreviewSize(size);
+    }
+
+    @Override
+    public double getPreviewMaxFrameRate() {
+        return mCameraOverlay.getPreviewMaxFrameRate();
+    }
+
+    @Override
+    public void setPreviewFrameRate(final double max) {
+        mCameraOverlay.setPreviewFrameRate(max);
     }
 
     @Override
@@ -195,12 +211,12 @@ public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServe
 
     @Override
     public PictureSize getPictureSize() {
-        return mPictureSize;
+        return mCameraOverlay.getPictureSize();
     }
 
     @Override
     public void setPictureSize(final PictureSize size) {
-        mPictureSize = size;
+        mCameraOverlay.setPictureSize(size);
     }
 
 }

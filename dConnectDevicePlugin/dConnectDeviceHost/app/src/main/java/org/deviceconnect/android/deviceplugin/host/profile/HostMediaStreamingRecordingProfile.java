@@ -14,7 +14,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.HostDevicePhotoRecorder;
+import org.deviceconnect.android.deviceplugin.host.camera.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.HostDevicePreviewServer;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorderManager;
@@ -132,10 +132,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                         setRecorderImageHeight(info, size.getHeight());
                     }
                     if (recorder instanceof HostDevicePreviewServer) {
-                        HostDeviceRecorder.PictureSize size = ((HostDevicePreviewServer) recorder).getPreviewSize();
+                        HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
+                        HostDeviceRecorder.PictureSize size = server.getPreviewSize();
                         setRecorderPreviewWidth(info, size.getWidth());
                         setRecorderPreviewHeight(info, size.getHeight());
-                        // TODO: setRecorderPreviewMaxFrameRate(info);
+                        setRecorderPreviewMaxFrameRate(info, server.getPreviewMaxFrameRate());
                     }
                     setRecorderConfig(info, "");
                     recorders.add(info);
@@ -277,6 +278,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         if (!checkOptionsParam(request, response)) {
             return true;
         }
+        if (recorder.getState() != HostDeviceRecorder.RecorderState.INACTTIVE) {
+            MessageUtils.setInvalidRequestParameterError(response, "settings of active target cannot be changed.");
+            return true;
+        }
 
         if (imageWidth != null && imageHeight != null) {
             if (!recorder.supportsPictureSize(imageWidth, imageHeight)) {
@@ -290,7 +295,11 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
 
         Integer previewWidth = getPreviewWidth(request);
         Integer previewHeight = getPreviewHeight(request);
-        if (previewWidth != null && previewHeight != null && recorder instanceof HostDevicePreviewServer) {
+        if (previewWidth != null && previewHeight != null) {
+            if (!(recorder instanceof HostDevicePreviewServer)) {
+                MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
+                return true;
+            }
             HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
             if (!server.supportsPreviewSize(previewWidth, previewHeight)) {
                 MessageUtils.setInvalidRequestParameterError(response, "Unsupported preview size: previewWidth = "
@@ -299,6 +308,15 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             }
             HostDeviceRecorder.PictureSize newSize = new HostDeviceRecorder.PictureSize(previewWidth, previewHeight);
             server.setPreviewSize(newSize);
+        }
+        Double previewMaxFrameRate = getPreviewMaxFrameRate(request);
+        if (previewMaxFrameRate != null) {
+            if (!(recorder instanceof HostDevicePreviewServer)) {
+                MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
+                return true;
+            }
+            HostDevicePreviewServer server = (HostDevicePreviewServer) recorder;
+            server.setPreviewFrameRate(previewMaxFrameRate);
         }
 
         setResult(response, DConnectMessage.RESULT_OK);

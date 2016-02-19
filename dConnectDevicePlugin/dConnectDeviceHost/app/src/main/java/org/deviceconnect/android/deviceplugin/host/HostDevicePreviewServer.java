@@ -30,6 +30,10 @@ public interface HostDevicePreviewServer extends HostDeviceRecorder {
 
     void setPreviewSize(PictureSize size);
 
+    double getPreviewMaxFrameRate();
+
+    void setPreviewFrameRate(double max);
+
     /**
      * Callback interface used to receive the result of starting a web server.
      */

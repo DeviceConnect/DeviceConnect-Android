@@ -54,6 +54,8 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     private static final String MIME_TYPE = "video/x-mjpeg";
 
+    private static final double DEFAULT_MAX_FPS = 10.0d;
+
     private final Context mContext;
 
     private final int mDisplayDensityDpi;
@@ -82,6 +84,10 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     private BroadcastReceiver mPermissionReceiver;
 
+    private long mFrameInterval;
+
+    private double mMaxFps;
+
     public HostDeviceScreenCast(final Context context) {
         mContext = context;
         mManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
@@ -90,6 +96,9 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
         mPreviewSize = new PictureSize(metrics.widthPixels, metrics.heightPixels);
         mDisplayDensityDpi = metrics.densityDpi;
         initSupportedPreviewSizes(mPreviewSize);
+
+        mMaxFps = DEFAULT_MAX_FPS;
+        setPreviewFrameRate(mMaxFps);
     }
 
     private void initSupportedPreviewSizes(final PictureSize originalSize) {
@@ -217,11 +226,11 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
                 mContext.unregisterReceiver(mPermissionReceiver);
                 mPermissionReceiver = null;
             }
+            stopScreenCast();
             if (mServer != null) {
                 mServer.stop();
                 mServer = null;
             }
-            stopScreenCast();
         }
         mLogger.info("Stopped web server.");
     }
@@ -278,9 +287,9 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
             @Override
             public void run() {
                 mLogger.info("Server URL: " + mServer.getUrl());
-                try {
-                    while (mIsCasting) {
-                        Thread.sleep(100);
+                while (mIsCasting) {
+                    try {
+                        long start = System.currentTimeMillis();
 
                         Bitmap bitmap = getScreenshot();
                         if (bitmap == null) {
@@ -290,9 +299,15 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                         byte[] media = baos.toByteArray();
                         mServer.offerMedia(media);
+
+                        long end = System.currentTimeMillis();
+                        long interval = mFrameInterval - (end - start);
+                        if (interval > 0) {
+                            Thread.sleep(interval);
+                        }
+                    } catch (InterruptedException e) {
+                        break;
                     }
-                } catch (InterruptedException e) {
-                    // Nothing to do.
                 }
             }
         });
@@ -303,14 +318,19 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
         if (!mIsCasting) {
             return;
         }
+        mIsCasting = false;
         if (mThread != null) {
-            mThread.interrupt();
+            try {
+                mThread.interrupt();
+                mThread.join();
+            } catch (InterruptedException e) {
+                // NOP
+            }
             mThread = null;
         }
         if (mVirtualDisplay != null) {
             mVirtualDisplay.release();
         }
-        mIsCasting = false;
     }
 
     private void restartScreenCast() {
@@ -381,12 +401,21 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
     }
 
     @Override
-    public void setPreviewSize(final PictureSize size) {
-        synchronized (this) {
-            mPreviewSize = size;
-            if (mIsCasting) {
-                restartScreenCast();
-            }
+    public synchronized void setPreviewSize(final PictureSize size) {
+        mPreviewSize = size;
+        if (mIsCasting) {
+            restartScreenCast();
         }
+    }
+
+    @Override
+    public double getPreviewMaxFrameRate() {
+        return mMaxFps;
+    }
+
+    @Override
+    public void setPreviewFrameRate(final double max) {
+        mMaxFps = max;
+        mFrameInterval = (long) (1 / max) * 1000L;
     }
 }

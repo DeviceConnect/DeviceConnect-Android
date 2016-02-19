@@ -52,9 +52,7 @@ import org.deviceconnect.android.provider.FileManager;
 
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 
@@ -91,6 +89,9 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     /** ファイルの拡張子. */
     private static final String FILE_EXTENSION = ".png";
 
+    /** Default Maximum Frame Rate. */
+    private static final double DEFAULT_MAX_FPS = 10.0d;
+
     /** 日付のフォーマット. */
     private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
@@ -123,12 +124,15 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     /** 画像を送るサーバ. */
     private MixedReplaceMediaServer mServer;
 
-    private final List<HostDeviceRecorder.PictureSize> mSupportedPreviewSizes
-        = new ArrayList<HostDeviceRecorder.PictureSize>();
-
     private HostDeviceRecorder.PictureSize mPreviewSize;
 
     private HostDeviceRecorder.PictureSize mPictureSize;
+
+    private long mLastFrameTime;
+
+    private long mFrameInterval;
+
+    private double mMaxFps;
 
     /**
      * 終了フラグ.
@@ -166,14 +170,34 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
         mWorkerThread.start();
         mHandler = new Handler(mWorkerThread.getLooper());
         mCameraId = cameraId;
+
+        mMaxFps = DEFAULT_MAX_FPS;
+        setPreviewFrameRate(mMaxFps);
+    }
+
+    public HostDeviceRecorder.PictureSize getPictureSize() {
+        return mPictureSize;
     }
 
     public void setPictureSize(final HostDeviceRecorder.PictureSize size) {
         mPictureSize = size;
     }
 
+    public HostDeviceRecorder.PictureSize getPreviewSize() {
+        return mPreviewSize;
+    }
+
     public void setPreviewSize(final HostDeviceRecorder.PictureSize size) {
         mPreviewSize = size;
+    }
+
+    public void setPreviewFrameRate(final double max) {
+        mMaxFps = max;
+        mFrameInterval = (long) (1 / max) * 1000L;
+    }
+
+    public double getPreviewMaxFrameRate() {
+        return mMaxFps;
     }
 
     @Override
@@ -601,6 +625,14 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
         synchronized (mCameraLock) {
+            final long currentTime = System.currentTimeMillis();
+            if (mLastFrameTime != 0) {
+                if ((currentTime - mLastFrameTime) < mFrameInterval) {
+                    mLastFrameTime = currentTime;
+                    return;
+                }
+            }
+
             if (mCamera != null && mCamera.equals(camera)) {
                 mCamera.setPreviewCallback(null);
 
@@ -642,6 +674,8 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
                 mCamera.setPreviewCallback(this);
             }
+
+            mLastFrameTime = currentTime;
         }
     }
 

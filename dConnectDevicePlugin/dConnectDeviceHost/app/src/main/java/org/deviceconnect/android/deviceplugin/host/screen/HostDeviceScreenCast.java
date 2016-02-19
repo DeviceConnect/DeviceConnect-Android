@@ -29,6 +29,7 @@ import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServe
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -75,7 +76,11 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     private Thread mThread;
 
+    private final List<PictureSize> mSupportedPreviewSizes = new ArrayList<PictureSize>();
+
     private PictureSize mPreviewSize;
+
+    private BroadcastReceiver mPermissionReceiver;
 
     public HostDeviceScreenCast(final Context context) {
         mContext = context;
@@ -84,9 +89,20 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         mPreviewSize = new PictureSize(metrics.widthPixels, metrics.heightPixels);
         mDisplayDensityDpi = metrics.densityDpi;
+        initSupportedPreviewSizes(mPreviewSize);
     }
 
-    private BroadcastReceiver mPermissionReceiver;
+    private void initSupportedPreviewSizes(final PictureSize originalSize) {
+        final int num = 4;
+        final int w = originalSize.getWidth();
+        final int h = originalSize.getHeight();
+        mSupportedPreviewSizes.clear();
+        for (int i = 1; i <= num; i++) {
+            float scale = i / ((float) num);
+            PictureSize previewSize = new PictureSize((int) (w * scale), (int) (h * scale));
+            mSupportedPreviewSizes.add(previewSize);
+        }
+    }
 
     @Override
     public String getId() {
@@ -155,6 +171,7 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     @Override
     public void startWebServer(final OnWebServerStartCallback callback) {
+        mLogger.info("Starting web server...");
         synchronized (mLockObj) {
             if (mServer == null) {
                 mServer = new MixedReplaceMediaServer();
@@ -173,7 +190,6 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
                             if (resultCode == Activity.RESULT_OK) {
                                 Intent data = intent.getParcelableExtra(RESULT_DATA);
                                 setupMediaProjection(resultCode, data);
-                                setupVirtualDisplay();
                                 startScreenCast();
                                 callback.onStart(ip);
                             } else {
@@ -190,13 +206,16 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
                 callback.onStart(mServer.getUrl());
             }
         }
+        mLogger.info("Started web server.");
     }
 
     @Override
     public void stopWebServer() {
+        mLogger.info("Stopping web server...");
         synchronized (mLockObj) {
             if (mPermissionReceiver != null) {
                 mContext.unregisterReceiver(mPermissionReceiver);
+                mPermissionReceiver = null;
             }
             if (mServer != null) {
                 mServer.stop();
@@ -204,6 +223,7 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
             }
             stopScreenCast();
         }
+        mLogger.info("Stopped web server.");
     }
 
     private void requestPermission() {
@@ -248,11 +268,12 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
             }, null);
     }
 
-    private synchronized void startScreenCast() {
+    private void startScreenCast() {
         if (mIsCasting) {
             return;
         }
         mIsCasting = true;
+        setupVirtualDisplay();
         mThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -278,7 +299,7 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
         mThread.start();
     }
 
-    private synchronized void stopScreenCast() {
+    private void stopScreenCast() {
         if (!mIsCasting) {
             return;
         }
@@ -290,6 +311,11 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
             mVirtualDisplay.release();
         }
         mIsCasting = false;
+    }
+
+    private void restartScreenCast() {
+        stopScreenCast();
+        startScreenCast();
     }
 
     private Bitmap getScreenshot() {
@@ -310,7 +336,6 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
         int pixelStride = planes[0].getPixelStride();
         int rowStride = planes[0].getRowStride();
         int rowPadding = rowStride - pixelStride * width;
-        //byte[] newData = new byte[width * height * 4];
 
         int offset = 0;
         DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
@@ -335,12 +360,19 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     @Override
     public List<PictureSize> getSupportedPreviewSizes() {
-        return null; // TODO
+        return mSupportedPreviewSizes;
     }
 
     @Override
     public boolean supportsPreviewSize(final int width, final int height) {
-        return false; // TODO
+        if (mSupportedPreviewSizes != null) {
+            for (PictureSize size : mSupportedPreviewSizes) {
+                if (width == size.getWidth() && height == size.getHeight()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -350,6 +382,11 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
 
     @Override
     public void setPreviewSize(final PictureSize size) {
-        // TODO for Preview API PUT's width and height parameters.
+        synchronized (this) {
+            mPreviewSize = size;
+            if (mIsCasting) {
+                restartScreenCast();
+            }
+        }
     }
 }

@@ -324,17 +324,28 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     }
 
     @Override
-    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId,
+                                   final String target) {
         try {
             ThetaDevice device = mClient.getConnectedDevice(serviceId);
             if (device.getModel() != ThetaDeviceModel.THETA_S) {
                 MessageUtils.setNotSupportAttributeError(response);
                 return true;
             }
-            if (!mPreviewParamSet.validateRequest(request, response)) {
+
+            ThetaDevice.Recorder recorder = device.getRecorder();
+            if (recorder == null) {
+                MessageUtils.setIllegalDeviceStateError(response, "device is not initialized.");
+                return true;
+            }
+            if (target != null && !target.equals(recorder.getId())) {
+                MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                 return true;
             }
 
+            if (!mPreviewParamSet.validateRequest(request, response)) {
+                return true;
+            }
             String uri = startLivePreview(device, getWidth(request), getHeight(request));
             setUri(response, uri);
             setResult(response, DConnectMessage.RESULT_OK);
@@ -353,14 +364,39 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     }
 
     @Override
-    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId) {
-        if (!mClient.hasDevice(serviceId)) {
-            MessageUtils.setNotFoundServiceError(response);
+    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId,
+                                      final String target) {
+        try {
+            ThetaDevice device = mClient.getConnectedDevice(serviceId);
+            if (device.getModel() != ThetaDeviceModel.THETA_S) {
+                MessageUtils.setNotSupportAttributeError(response);
+                return true;
+            }
+
+            ThetaDevice.Recorder recorder = device.getRecorder();
+            if (recorder == null) {
+                MessageUtils.setIllegalDeviceStateError(response, "device is not initialized.");
+                return true;
+            }
+            if (target != null && !target.equals(recorder.getId())) {
+                MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                return true;
+            }
+
+            stopLivePreview();
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        } catch (ThetaDeviceException cause) {
+            switch (cause.getReason()) {
+                case ThetaDeviceException.NOT_FOUND_THETA:
+                    MessageUtils.setNotFoundServiceError(response);
+                    break;
+                default:
+                    MessageUtils.setUnknownError(response, cause.getMessage());
+                    break;
+            }
             return true;
         }
-        stopLivePreview();
-        setResult(response, DConnectMessage.RESULT_OK);
-        return true;
     }
 
     private String startLivePreview(final LiveCamera liveCamera, final Integer width, final Integer height) {

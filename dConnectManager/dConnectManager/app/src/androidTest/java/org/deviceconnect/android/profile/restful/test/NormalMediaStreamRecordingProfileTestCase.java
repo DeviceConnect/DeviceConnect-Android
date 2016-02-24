@@ -89,7 +89,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
             assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
                 recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT));
             assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_MAX_FRAME_RATE,
-                recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_MAX_FRAME_RATE));
+                recorder.getDouble(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_MAX_FRAME_RATE));
             assertEquals(TestMediaStreamRecordingProfileConstants.CONFIG,
                 recorder.getString(MediaStreamRecordingProfileConstants.PARAM_CONFIG));
         } catch (JSONException e) {
@@ -528,7 +528,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
             // previewSizes
             JSONArray previewSizes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_SIZES);
             assertEquals(1, previewSizes.length());
-            JSONObject previewSize = imageSizes.getJSONObject(0);
+            JSONObject previewSize = previewSizes.getJSONObject(0);
             assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
                 previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH));
             assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
@@ -586,7 +586,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
             // previewSizes
             JSONArray previewSizes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_SIZES);
             assertEquals(1, previewSizes.length());
-            JSONObject previewSize = imageSizes.getJSONObject(0);
+            JSONObject previewSize = previewSizes.getJSONObject(0);
             assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
                 previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH));
             assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,

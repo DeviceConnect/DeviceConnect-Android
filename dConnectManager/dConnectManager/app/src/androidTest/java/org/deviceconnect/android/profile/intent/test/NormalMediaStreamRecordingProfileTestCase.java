@@ -80,7 +80,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
             recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT));
         assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_MAX_FRAME_RATE,
-            recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_MAX_FRAME_RATE));
+            recorder.getDouble(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_MAX_FRAME_RATE));
         assertEquals(TestMediaStreamRecordingProfileConstants.CONFIG,
                 recorder.getString(MediaStreamRecordingProfileConstants.PARAM_CONFIG));
     }
@@ -623,18 +623,18 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         assertEquals(1, imageSizes.length);
         Bundle imageSize = (Bundle) imageSizes[0];
         assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH,
-            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH, -1));
+            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH, -1));
         assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT,
-            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_HEIGHT, -1));
+            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT, -1));
 
         // previewSizes
-        Parcelable[] previewSizes = response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
+        Parcelable[] previewSizes = response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_SIZES);
         assertEquals(1, previewSizes.length);
         Bundle previewSize = (Bundle) previewSizes[0];
         assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
-            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_WIDTH, -1));
+            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH, -1));
         assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
-            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT, -1));
+            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT, -1));
 
         // mimeType
         assertEquals(TestMediaStreamRecordingProfileConstants.MIME_TYPE,
@@ -663,28 +663,28 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_OPTIONS);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_TARGET,
-                TestMediaStreamRecordingProfileConstants.ID);
+            TestMediaStreamRecordingProfileConstants.ID);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
 
         // imageSizes
-        Bundle[] imageSizes = (Bundle[]) response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
+        Parcelable[] imageSizes = response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
         assertEquals(1, imageSizes.length);
-        Bundle imageSize = imageSizes[0];
+        Bundle imageSize = (Bundle) imageSizes[0];
         assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH,
-            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH, -1));
+            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH, -1));
         assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT,
-            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_HEIGHT, -1));
+            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT, -1));
 
         // previewSizes
-        Bundle[] previewSizes = (Bundle[]) response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
+        Parcelable[] previewSizes = response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_SIZES);
         assertEquals(1, previewSizes.length);
-        Bundle previewSize = previewSizes[0];
+        Bundle previewSize = (Bundle) previewSizes[0];
         assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
-            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_WIDTH, -1));
+            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH, -1));
         assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
-            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT, -1));
+            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT, -1));
 
         // mimeType
         assertEquals(TestMediaStreamRecordingProfileConstants.MIME_TYPE,

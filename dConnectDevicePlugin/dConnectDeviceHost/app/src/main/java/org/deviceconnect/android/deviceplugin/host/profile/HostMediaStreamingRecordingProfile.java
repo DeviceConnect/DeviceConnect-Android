@@ -218,7 +218,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId,
+                                   final String target) {
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
@@ -245,7 +246,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId,
+                                      final String target) {
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;

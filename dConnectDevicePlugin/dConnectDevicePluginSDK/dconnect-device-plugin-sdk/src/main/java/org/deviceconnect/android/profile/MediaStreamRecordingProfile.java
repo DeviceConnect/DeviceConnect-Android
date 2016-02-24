@@ -963,6 +963,16 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
+     * レスポンスに撮影時の解像度一覧を設定する.
+     *
+     * @param response レスポンスパラメータ
+     * @param imageSizes 撮影時の解像度一覧
+     */
+    public static void setImageSizes(final Intent response, final List<Bundle> imageSizes) {
+        response.putExtra(PARAM_IMAGE_SIZES, imageSizes.toArray(new Bundle[imageSizes.size()]));
+    }
+
+    /**
      * レスポンスにプレビュー時の解像度一覧を設定する.
      *
      * @param response レスポンスパラメータ
@@ -970,6 +980,16 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      */
     public static void setPreviewSizes(final Intent response, final Bundle[] previewSizes) {
         response.putExtra(PARAM_PREVIEW_SIZES, previewSizes);
+    }
+
+    /**
+     * レスポンスにプレビュー時の解像度一覧を設定する.
+     *
+     * @param response レスポンスパラメータ
+     * @param previewSizes プレビュー時の解像度一覧
+     */
+    public static void setPreviewSizes(final Intent response, final List<Bundle> previewSizes) {
+        response.putExtra(PARAM_PREVIEW_SIZES, previewSizes.toArray(new Bundle[previewSizes.size()]));
     }
 
     /**

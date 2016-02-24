@@ -40,11 +40,14 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・recorderに長さ1のBundle配列が格納されていること。
+     * ・recordersに長さ1のBundle配列が格納されていること。
      * ・recorder[0].idが"test_camera_0"であること。
      * ・recorder[0].stateが"inactive"であること。
      * ・recorder[0].imageWidthが1920であること。
      * ・recorder[0].imageHeightが1080であること。
+     * ・recorder[0].previewWidthが640であること。
+     * ・recorder[0].previewHeightが480であること。
+     * ・recorder[0].previewMaxFrameRateが30.0であること。
      * ・recorder[0].mimeTypeが"video/mp4"であること。
      * ・recorder[0].configが"test_config"であること。
      * </pre>
@@ -60,8 +63,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
         assertEquals(IntentDConnectMessage.RESULT_OK, 
                 response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
-        Parcelable[] recorders =
-                (Parcelable[]) response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_RECORDERS);
+        Parcelable[] recorders = response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_RECORDERS);
         Bundle recorder = (Bundle) recorders[0];
         assertEquals(TestMediaStreamRecordingProfileConstants.ID,
                 recorder.getString(MediaStreamRecordingProfileConstants.PARAM_ID));
@@ -73,6 +75,12 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
                 recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH));
         assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT,
                 recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_HEIGHT));
+        assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
+            recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_WIDTH));
+        assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
+            recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT));
+        assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_MAX_FRAME_RATE,
+            recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_MAX_FRAME_RATE));
         assertEquals(TestMediaStreamRecordingProfileConstants.CONFIG,
                 recorder.getString(MediaStreamRecordingProfileConstants.PARAM_CONFIG));
     }
@@ -292,7 +300,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE, MediaStreamRecordingProfileConstants.ATTRIBUTE_PAUSE);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PATH,
-                TestMediaStreamRecordingProfileConstants.PATH);
+            TestMediaStreamRecordingProfileConstants.PATH);
         Intent response = sendRequest(request);
 
         assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
@@ -598,10 +606,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・settingsに長さ1のBundle配列が格納されていること。
-     * ・settings[0].imageWidthが1920であること。
-     * ・settings[0].imageHeightが1080であること。
-     * ・settings[0].mimeTypeが"video/mp4"であること。
      * </pre>
      */
     @Test
@@ -613,12 +617,26 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        Bundle imageWidth = response.getBundleExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH);
-        assertEquals(0, imageWidth.getInt(MediaStreamRecordingProfileConstants.PARAM_MAX));
-        assertEquals(0, imageWidth.getInt(MediaStreamRecordingProfileConstants.PARAM_MIN));
-        Bundle imageHeight = response.getBundleExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_HEIGHT);
-        assertEquals(0, imageHeight.getInt(MediaStreamRecordingProfileConstants.PARAM_MAX));
-        assertEquals(0, imageHeight.getInt(MediaStreamRecordingProfileConstants.PARAM_MIN));
+
+        // imageSizes
+        Parcelable[] imageSizes = response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
+        assertEquals(1, imageSizes.length);
+        Bundle imageSize = (Bundle) imageSizes[0];
+        assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH,
+            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH, -1));
+        assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT,
+            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_HEIGHT, -1));
+
+        // previewSizes
+        Parcelable[] previewSizes = response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
+        assertEquals(1, previewSizes.length);
+        Bundle previewSize = (Bundle) previewSizes[0];
+        assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
+            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_WIDTH, -1));
+        assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
+            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT, -1));
+
+        // mimeType
         assertEquals(TestMediaStreamRecordingProfileConstants.MIME_TYPE,
                 response.getStringArrayExtra(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE)[0]);
     }
@@ -636,10 +654,6 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・settingsに長さ1のBundle配列が格納されていること。
-     * ・settings[0].imageWidthが1920であること。
-     * ・settings[0].imageHeightが1080であること。
-     * ・settings[0].mimeTypeが"video/mp4"であること。
      * </pre>
      */
     @Test
@@ -653,14 +667,28 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         Intent response = sendRequest(request);
 
         assertResultOK(response);
-        Bundle imageWidth = response.getBundleExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH);
-        assertEquals(0, imageWidth.getInt(MediaStreamRecordingProfileConstants.PARAM_MAX));
-        assertEquals(0, imageWidth.getInt(MediaStreamRecordingProfileConstants.PARAM_MIN));
-        Bundle imageHeight = response.getBundleExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_HEIGHT);
-        assertEquals(0, imageHeight.getInt(MediaStreamRecordingProfileConstants.PARAM_MAX));
-        assertEquals(0, imageHeight.getInt(MediaStreamRecordingProfileConstants.PARAM_MIN));
+
+        // imageSizes
+        Bundle[] imageSizes = (Bundle[]) response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
+        assertEquals(1, imageSizes.length);
+        Bundle imageSize = imageSizes[0];
+        assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH,
+            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH, -1));
+        assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT,
+            imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_HEIGHT, -1));
+
+        // previewSizes
+        Bundle[] previewSizes = (Bundle[]) response.getParcelableArrayExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
+        assertEquals(1, previewSizes.length);
+        Bundle previewSize = previewSizes[0];
+        assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
+            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_WIDTH, -1));
+        assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
+            previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT, -1));
+
+        // mimeType
         assertEquals(TestMediaStreamRecordingProfileConstants.MIME_TYPE,
-                response.getStringArrayExtra(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE)[0]);
+            response.getStringArrayExtra(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE)[0]);
     }
 
     /**
@@ -689,11 +717,17 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_TARGET,
                 TestMediaStreamRecordingProfileConstants.ID);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH,
-                TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH);
+            TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_HEIGHT,
-                TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT);
+            TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT);
+        request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_WIDTH,
+            TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH);
+        request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT,
+            TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT);
+        request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_MAX_FRAME_RATE,
+            TestMediaStreamRecordingProfileConstants.PREVIEW_MAX_FRAME_RATE);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE,
-                TestMediaStreamRecordingProfileConstants.MIME_TYPE);
+            TestMediaStreamRecordingProfileConstants.MIME_TYPE);
         Intent response = sendRequest(request);
 
         assertResultOK(response);
@@ -729,13 +763,19 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
                 TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_IMAGE_HEIGHT,
                 TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT);
+        request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_WIDTH,
+            TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH);
+        request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT,
+            TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT);
+        request.putExtra(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_MAX_FRAME_RATE,
+            TestMediaStreamRecordingProfileConstants.PREVIEW_MAX_FRAME_RATE);
         request.putExtra(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE,
                 TestMediaStreamRecordingProfileConstants.MIME_TYPE);
         Intent response = sendRequest(request);
 
         assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
+        assertEquals(IntentDConnectMessage.RESULT_OK,
+            response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
     }
 
     /**
@@ -764,14 +804,14 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         Intent response = sendRequest(request);
 
         assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
+        assertEquals(IntentDConnectMessage.RESULT_OK,
+            response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
 
         Intent event = waitForEvent();
         assertNotNull(event);
         Bundle obj = event.getBundleExtra(MediaStreamRecordingProfileConstants.PARAM_PHOTO);
-        assertEquals(PATH, 
-                obj.getString(MediaStreamRecordingProfileConstants.PARAM_PATH));
+        assertEquals(PATH,
+            obj.getString(MediaStreamRecordingProfileConstants.PARAM_PATH));
         assertEquals(TestMediaStreamRecordingProfileConstants.MIME_TYPE, 
                 obj.getString(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE));
     }
@@ -832,14 +872,14 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         Intent response = sendRequest(request);
 
         assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
+        assertEquals(IntentDConnectMessage.RESULT_OK,
+            response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
 
         Intent event = waitForEvent();
         assertNotNull(event);
         Bundle obj = event.getBundleExtra(MediaStreamRecordingProfileConstants.PARAM_MEDIA);
-        assertEquals(PATH, 
-                obj.getString(MediaStreamRecordingProfileConstants.PARAM_PATH));
+        assertEquals(PATH,
+            obj.getString(MediaStreamRecordingProfileConstants.PARAM_PATH));
         assertEquals(TestMediaStreamRecordingProfileConstants.MIME_TYPE, 
                 obj.getString(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE));
     }
@@ -865,7 +905,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
+            MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_RECORDING_CHANGE);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         Intent response = sendRequest(request);
 
@@ -902,14 +942,14 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         Intent response = sendRequest(request);
 
         assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
-        assertEquals(IntentDConnectMessage.RESULT_OK, 
-                response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
+        assertEquals(IntentDConnectMessage.RESULT_OK,
+            response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
 
         Intent event = waitForEvent();
         assertNotNull(event);
         Bundle obj = event.getBundleExtra(MediaStreamRecordingProfileConstants.PARAM_MEDIA);
-        assertEquals(URI, 
-                obj.getString(MediaStreamRecordingProfileConstants.PARAM_URI));
+        assertEquals(URI,
+            obj.getString(MediaStreamRecordingProfileConstants.PARAM_URI));
         assertEquals(TestMediaStreamRecordingProfileConstants.MIME_TYPE, 
                 obj.getString(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE));
     }
@@ -936,12 +976,74 @@ public class NormalMediaStreamRecordingProfileTestCase extends IntentDConnectTes
         request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
         request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
         request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
-                MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
+            MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
         request.putExtra(DConnectMessage.EXTRA_SESSION_KEY, TEST_SESSION_KEY);
         Intent response = sendRequest(request);
 
         assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
         assertEquals(IntentDConnectMessage.RESULT_OK, 
                 response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
+    }
+
+    /**
+     * プレビュー開始テストを行う.
+     * <pre>
+     * 【Intent通信】
+     * Action: PUT
+     * Extra:
+     *     profile=mediastream_recording
+     *     attribute=preview
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに0が返ってくること。
+     * </pre>
+     */
+    @Test
+    public void testPutPreview() {
+        Intent request = new Intent(IntentDConnectMessage.ACTION_PUT);
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
+            MediaStreamRecordingProfileConstants.ATTRIBUTE_PREVIEW);
+        Intent response = sendRequest(request);
+
+        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
+        assertEquals(IntentDConnectMessage.RESULT_OK,
+            response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
+
+        String uri = response.getStringExtra(MediaStreamRecordingProfileConstants.PARAM_URI);
+        assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_URI, uri);
+        Bundle audio = response.getBundleExtra(MediaStreamRecordingProfileConstants.PARAM_AUDIO);
+        String audioUri = audio.getString(MediaStreamRecordingProfileConstants.PARAM_URI);
+        assertEquals(TestMediaStreamRecordingProfileConstants.AUDIO_URI, audioUri);
+    }
+
+    /**
+     * プレビュー停止テストを行う.
+     * <pre>
+     * 【Intent通信】
+     * Action: DELETE
+     * Extra:
+     *     profile=mediastream_recording
+     *     attribute=preview
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに0が返ってくること。
+     * </pre>
+     */
+    @Test
+    public void testDeletePreview() {
+        Intent request = new Intent(IntentDConnectMessage.ACTION_DELETE);
+        request.putExtra(DConnectMessage.EXTRA_SERVICE_ID, getServiceId());
+        request.putExtra(DConnectMessage.EXTRA_PROFILE, MediaStreamRecordingProfileConstants.PROFILE_NAME);
+        request.putExtra(DConnectMessage.EXTRA_ATTRIBUTE,
+            MediaStreamRecordingProfileConstants.ATTRIBUTE_PREVIEW);
+        Intent response = sendRequest(request);
+
+        assertTrue(response.hasExtra(IntentDConnectMessage.EXTRA_RESULT));
+        assertEquals(IntentDConnectMessage.RESULT_OK,
+            response.getIntExtra(IntentDConnectMessage.EXTRA_RESULT, -1));
     }
 }

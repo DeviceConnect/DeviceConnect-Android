@@ -37,16 +37,19 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/mediarecorder?deviceid=xxxx
+     * Path: /mediastream_recording/mediarecorder?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・recorderに長さ1のBundle配列が格納されていること。
+     * ・recordersに長さ1のBundle配列が格納されていること。
      * ・recorder[0].idが"test_camera_0"であること。
      * ・recorder[0].stateが"inactive"であること。
      * ・recorder[0].imageWidthが1920であること。
      * ・recorder[0].imageHeightが1080であること。
+     * ・recorder[0].previewWidthが640であること。
+     * ・recorder[0].previewHeightが480であること。
+     * ・recorder[0].previewMaxFrameRateが30.0であること。
      * ・recorder[0].mimeTypeが"video/mp4"であること。
      * ・recorder[0].configが"test_config"であること。
      * </pre>
@@ -66,7 +69,29 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
             JSONObject root = sendRequest(request);
             assertNotNull("root is null.", root);
             assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
+                root.getInt(DConnectMessage.EXTRA_RESULT));
+
+            JSONArray recorders = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_RECORDERS);
+            assertEquals(1, recorders.length());
+            JSONObject recorder = recorders.getJSONObject(0);
+            assertEquals(TestMediaStreamRecordingProfileConstants.ID,
+                recorder.getString(MediaStreamRecordingProfileConstants.PARAM_ID));
+            assertEquals(TestMediaStreamRecordingProfileConstants.NAME,
+                recorder.getString(MediaStreamRecordingProfileConstants.PARAM_NAME));
+            assertEquals(TestMediaStreamRecordingProfileConstants.STATE,
+                recorder.getString(MediaStreamRecordingProfileConstants.PARAM_STATE));
+            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH,
+                recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH));
+            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT,
+                recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_IMAGE_HEIGHT));
+            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
+                recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_WIDTH));
+            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
+                recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT));
+            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_MAX_FRAME_RATE,
+                recorder.getInt(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_MAX_FRAME_RATE));
+            assertEquals(TestMediaStreamRecordingProfileConstants.CONFIG,
+                recorder.getString(MediaStreamRecordingProfileConstants.PARAM_CONFIG));
         } catch (JSONException e) {
             fail("Exception in JSONObject." + e.getMessage());
         }
@@ -77,7 +102,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/takephoto?deviceid=xxxx
+     * Path: /mediastream_recording/takephoto?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -100,7 +125,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
             JSONObject root = sendRequest(request);
             assertNotNull("root is null.", root);
             assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
+                root.getInt(DConnectMessage.EXTRA_RESULT));
             assertEquals(getFileURI(TestMediaStreamRecordingProfileConstants.URI),
                     root.getString(MediaStreamRecordingProfileConstants.PARAM_URI));
         } catch (JSONException e) {
@@ -113,7 +138,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/takephoto?deviceid=xxxx&target=xxxx
+     * Path: /mediastream_recording/takephoto?serviceId=xxxx&target=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -152,7 +177,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?deviceid=xxxx
+     * Path: /mediastream_recording/record?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -188,7 +213,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?deviceid=xxxx&target=xxxx
+     * Path: /mediastream_recording/record?serviceId=xxxx&target=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -227,7 +252,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?deviceid=xxxx&timeslice=xxxx
+     * Path: /mediastream_recording/record?serviceId=xxxx&timeslice=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -265,7 +290,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: POST
-     * Path: /mediastream_recording/record?deviceid=xxxx&target=xxxx&timeslice=xxxx
+     * Path: /mediastream_recording/record?serviceId=xxxx&target=xxxx&timeslice=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -306,7 +331,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/pause?deviceid=xxxx&mediaid=xxxx
+     * Path: /mediastream_recording/pause?serviceId=xxxx&mediaid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -339,7 +364,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/resume?deviceid=xxxx&mediaid=xxxx
+     * Path: /mediastream_recording/resume?serviceId=xxxx&mediaid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -372,7 +397,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/stop?deviceid=xxxx&mediaid=xxxx
+     * Path: /mediastream_recording/stop?serviceId=xxxx&mediaid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -405,7 +430,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/mutetrack?deviceid=xxxx&mediaid=xxxx
+     * Path: /mediastream_recording/mutetrack?serviceId=xxxx&mediaid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -436,7 +461,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/unmutetrack?deviceid=xxxx&mediaid=xxxx
+     * Path: /mediastream_recording/unmutetrack?serviceId=xxxx&mediaid=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -467,15 +492,11 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/options?deviceid=xxxx
+     * Path: /mediastream_recording/options?serviceId=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・settingsに長さ1のBundle配列が格納されていること。
-     * ・settings[0].imageWidthが1920であること。
-     * ・settings[0].imageHeightが1080であること。
-     * ・settings[0].mimeTypeが"video/mp4"であること。
      * </pre>
      */
     @Test
@@ -493,18 +514,27 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
             JSONObject root = sendRequest(request);
             assertNotNull("root is null.", root);
             assertEquals(DConnectMessage.RESULT_OK,
-                    root.getInt(DConnectMessage.EXTRA_RESULT));
-            
-            JSONObject imageWidth = root.getJSONObject(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH);
-            assertEquals(0, 
-                    imageWidth.getInt(MediaStreamRecordingProfileConstants.PARAM_MAX));
-            assertEquals(0, 
-                    imageWidth.getInt(MediaStreamRecordingProfileConstants.PARAM_MIN));
-            JSONObject imageHeight = root.getJSONObject(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH);
-            assertEquals(0, 
-                    imageHeight.getInt(MediaStreamRecordingProfileConstants.PARAM_MAX));
-            assertEquals(0, 
-                    imageHeight.getInt(MediaStreamRecordingProfileConstants.PARAM_MIN));
+                root.getInt(DConnectMessage.EXTRA_RESULT));
+
+            // imageSizes
+            JSONArray imageSizes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
+            assertEquals(1, imageSizes.length());
+            JSONObject imageSize = imageSizes.getJSONObject(0);
+            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH,
+                imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH));
+            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT,
+                imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT));
+
+            // previewSizes
+            JSONArray previewSizes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_SIZES);
+            assertEquals(1, previewSizes.length());
+            JSONObject previewSize = imageSizes.getJSONObject(0);
+            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
+                previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH));
+            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
+                previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT));
+
+            // mimeType
             JSONArray mimeTypes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE);
             assertEquals("video/mp4", mimeTypes.get(0));
         } catch (JSONException e) {
@@ -517,15 +547,11 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: GET
-     * Path: /mediastream_recording/options?deviceid=xxxx&target=xxxx
+     * Path: /mediastream_recording/options?serviceId=xxxx&target=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
      * ・resultに0が返ってくること。
-     * ・settingsに長さ1のBundle配列が格納されていること。
-     * ・settings[0].imageWidthが1920であること。
-     * ・settings[0].imageHeightが1080であること。
-     * ・settings[0].mimeTypeが"video/mp4"であること。
      * </pre>
      */
     @Test
@@ -547,17 +573,26 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
             assertNotNull("root is null.", root);
             assertEquals(DConnectMessage.RESULT_OK,
                     root.getInt(DConnectMessage.EXTRA_RESULT));
-            
-            JSONObject imageWidth = root.getJSONObject(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH);
-            assertEquals(0, 
-                    imageWidth.getInt(MediaStreamRecordingProfileConstants.PARAM_MAX));
-            assertEquals(0, 
-                    imageWidth.getInt(MediaStreamRecordingProfileConstants.PARAM_MIN));
-            JSONObject imageHeight = root.getJSONObject(MediaStreamRecordingProfileConstants.PARAM_IMAGE_WIDTH);
-            assertEquals(0, 
-                    imageHeight.getInt(MediaStreamRecordingProfileConstants.PARAM_MAX));
-            assertEquals(0, 
-                    imageHeight.getInt(MediaStreamRecordingProfileConstants.PARAM_MIN));
+
+            // imageSizes
+            JSONArray imageSizes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_IMAGE_SIZES);
+            assertEquals(1, imageSizes.length());
+            JSONObject imageSize = imageSizes.getJSONObject(0);
+            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_WIDTH,
+                imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH));
+            assertEquals(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT,
+                imageSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT));
+
+            // previewSizes
+            JSONArray previewSizes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_SIZES);
+            assertEquals(1, previewSizes.length());
+            JSONObject previewSize = imageSizes.getJSONObject(0);
+            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH,
+                previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_WIDTH));
+            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT,
+                previewSize.getInt(MediaStreamRecordingProfileConstants.PARAM_HEIGHT));
+
+            // mimeType
             JSONArray mimeTypes = root.getJSONArray(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE);
             assertEquals("video/mp4", mimeTypes.get(0));
         } catch (JSONException e) {
@@ -570,7 +605,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/options?deviceid=xxxx&target=xxxx&imageWidth=xxxx&imageHeight=xxxx&mimeType=xxxx
+     * Path: /mediastream_recording/options?serviceId=xxxx&target=xxxx&imageWidth=xxxx&imageHeight=xxxx&mimeType=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -597,6 +632,18 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
         builder.append("=");
         builder.append(TestMediaStreamRecordingProfileConstants.IMAGE_HEIGHT);
         builder.append("&");
+        builder.append(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_WIDTH);
+        builder.append("=");
+        builder.append(TestMediaStreamRecordingProfileConstants.PREVIEW_WIDTH);
+        builder.append("&");
+        builder.append(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_HEIGHT);
+        builder.append("=");
+        builder.append(TestMediaStreamRecordingProfileConstants.PREVIEW_HEIGHT);
+        builder.append("&");
+        builder.append(MediaStreamRecordingProfileConstants.PARAM_PREVIEW_MAX_FRAME_RATE);
+        builder.append("=");
+        builder.append(TestMediaStreamRecordingProfileConstants.PREVIEW_MAX_FRAME_RATE);
+        builder.append("&");
         builder.append(MediaStreamRecordingProfileConstants.PARAM_MIME_TYPE + "="
                 + TestMediaStreamRecordingProfileConstants.MIME_TYPE);
         builder.append("&");
@@ -617,7 +664,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onphoto?deviceid=xxxx&session_key=xxxx
+     * Path: /mediastream_recording/onphoto?serviceId=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -644,7 +691,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onphoto?deviceid=xxxx&session_key=xxxx
+     * Path: /mediastream_recording/onphoto?serviceId=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -661,7 +708,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/onrecordingchange?deviceid=xxxx&session_key=xxxx
+     * Path: /mediastream_recording/onrecordingchange?serviceId=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -691,7 +738,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/onrecordingchange?deviceid=xxxx&session_key=xxxx
+     * Path: /mediastream_recording/onrecordingchange?serviceId=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -708,7 +755,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: PUT
-     * Path: /mediastream_recording/ondeviceavailable?deviceid=xxxx&session_key=xxxx
+     * Path: /mediastream_recording/ondeviceavailable?serviceId=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -737,7 +784,7 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
      * <pre>
      * 【HTTP通信】
      * Method: DELETE
-     * Path: /mediastream_recording/ondeviceavailable?deviceid=xxxx&session_key=xxxx
+     * Path: /mediastream_recording/ondeviceavailable?serviceId=xxxx&session_key=xxxx
      * </pre>
      * <pre>
      * 【期待する動作】
@@ -748,6 +795,85 @@ public class NormalMediaStreamRecordingProfileTestCase extends RESTfulDConnectTe
 	@Test
 	public void testOnDataAvailable02() {
         unregisterEventCallback(MediaStreamRecordingProfileConstants.ATTRIBUTE_ON_DATA_AVAILABLE);
+    }
+
+    /**
+     * プレビュー開始テストを行う.
+     * <pre>
+     * 【HTTP通信】
+     * Method: PUT
+     * Path: /mediastream_recording/preview?serviceId=xxxx
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに0が返ってくること。
+     * </pre>
+     */
+    @Test
+    public void testPutPreview() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(DCONNECT_MANAGER_URI);
+        builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
+        builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_PREVIEW);
+        builder.append("?");
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
+        builder.append("&");
+        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
+        try {
+            HttpUriRequest request = new HttpPut(builder.toString());
+            JSONObject root = sendRequest(request);
+            assertNotNull("root is null.", root);
+
+            assertEquals(DConnectMessage.RESULT_OK,
+                root.getInt(DConnectMessage.EXTRA_RESULT));
+
+            // uri
+            String uri = root.getString(MediaStreamRecordingProfileConstants.PARAM_URI);
+            assertEquals(TestMediaStreamRecordingProfileConstants.PREVIEW_URI, uri);
+
+            // audio
+            JSONObject audio = root.getJSONObject(MediaStreamRecordingProfileConstants.PARAM_AUDIO);
+
+            // audio.uri
+            String audioUri = audio.getString(MediaStreamRecordingProfileConstants.PARAM_URI);
+            assertEquals(TestMediaStreamRecordingProfileConstants.AUDIO_URI, audioUri);
+        } catch (JSONException e) {
+            fail("Exception in JSONObject." + e.getMessage());
+        }
+    }
+
+    /**
+     * プレビュー停止テストを行う.
+     * <pre>
+     * 【HTTP通信】
+     * Method: DELETE
+     * Path: /mediastream_recording/preview?serviceId=xxxx
+     * </pre>
+     * <pre>
+     * 【期待する動作】
+     * ・resultに0が返ってくること。
+     * </pre>
+     */
+    @Test
+    public void testDeletePreview() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(DCONNECT_MANAGER_URI);
+        builder.append("/" + MediaStreamRecordingProfileConstants.PROFILE_NAME);
+        builder.append("/" + MediaStreamRecordingProfileConstants.ATTRIBUTE_PREVIEW);
+        builder.append("?");
+        builder.append(DConnectProfileConstants.PARAM_SERVICE_ID + "=" + getServiceId());
+        builder.append("&");
+        builder.append(AuthorizationProfileConstants.PARAM_ACCESS_TOKEN + "=" + getAccessToken());
+        try {
+            HttpUriRequest request = new HttpDelete(builder.toString());
+            JSONObject root = sendRequest(request);
+            assertNotNull("root is null.", root);
+
+            assertEquals(DConnectMessage.RESULT_OK,
+                root.getInt(DConnectMessage.EXTRA_RESULT));
+        } catch (JSONException e) {
+            fail("Exception in JSONObject." + e.getMessage());
+        }
     }
 
     /**

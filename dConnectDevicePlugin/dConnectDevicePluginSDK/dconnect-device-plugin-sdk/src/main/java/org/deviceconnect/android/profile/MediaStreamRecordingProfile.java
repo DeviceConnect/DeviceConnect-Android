@@ -57,7 +57,13 @@ import java.util.List;
  * {@link MediaStreamRecordingProfile#onGetOptions(Intent, Intent, String, String)}
  * </li>
  * <li>MediaStreamRecording Options API [PUT] :
- * {@link MediaStreamRecordingProfile#onPutOptions(Intent, Intent, String, String, Integer, Integer, String)}
+ * {@link MediaStreamRecordingProfile#onPutOptions(Intent, Intent, String, String, Integer, Integer, Integer, Integer, Double, String)}
+ * </li>
+ * <li>MediaStreamRecording Preview API [PUT] :
+ * {@link MediaStreamRecordingProfile#onPutPreview(Intent, Intent, String, String)}
+ * </li>
+ * <li>MediaStreamRecording Preview API [DELETE] :
+ * {@link MediaStreamRecordingProfile#onPutPreview(Intent, Intent, String, String)}
  * </li>
  * <li>MediaStreamRecording Take a Picture Event API [Register] :
  * {@link MediaStreamRecordingProfile#onPutOnPhoto(Intent, Intent, String, String)}
@@ -163,8 +169,12 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             } else if (attribute.equals(ATTRIBUTE_OPTIONS)) {
                 Integer imageWidth = getImageWidth(request);
                 Integer imageHeight = getImageHeight(request);
+                Integer previewWidth = getPreviewWidth(request);
+                Integer previewHeight = getPreviewHeight(request);
+                Double previewMaxFrameRate = getPreviewMaxFrameRate(request);
                 String mimeType = getMIMEType(request);
-                result = onPutOptions(request, response, serviceId, target, imageWidth, imageHeight, mimeType);
+                result = onPutOptions(request, response, serviceId, target, imageWidth, imageHeight,
+                    previewWidth, previewHeight, previewMaxFrameRate, mimeType);
             } else if (attribute.equals(ATTRIBUTE_ON_PHOTO)) {
                 result = onPutOnPhoto(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_ON_RECORDING_CHANGE)) {
@@ -172,7 +182,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             } else if (attribute.equals(ATTRIBUTE_ON_DATA_AVAILABLE)) {
                 result = onPutOnDataAvailable(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_PREVIEW)) {
-                result = onPutPreview(request, response, serviceId);
+                result = onPutPreview(request, response, serviceId, target);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -192,6 +202,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
         } else {
 
             String serviceId = getServiceID(request);
+            String target = getTarget(request);
             String sessionKey = getSessionKey(request);
 
             if (attribute.equals(ATTRIBUTE_ON_PHOTO)) {
@@ -201,7 +212,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
             } else if (attribute.equals(ATTRIBUTE_ON_DATA_AVAILABLE)) {
                 result = onDeleteOnDataAvailable(request, response, serviceId, sessionKey);
             } else if (attribute.equals(ATTRIBUTE_PREVIEW)) {
-                result = onDeletePreview(request, response, serviceId);
+                result = onDeletePreview(request, response, serviceId, target);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
             }
@@ -387,13 +398,18 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * @param response レスポンスパラメータ
      * @param serviceId サービスID
      * @param target レコーダーの識別ID
-     * @param imageWidth 画像の横幅
-     * @param imageHeight 画像の縦幅
+     * @param imageWidth 撮影時の画像の横幅
+     * @param imageHeight 撮影時の画像の縦幅
+     * @param previewWidth プレビュー時の画像の横幅
+     * @param previewHeight プレビュー時の画像の縦幅
+     * @param previewMaxFrameRate プレビューの最大フレームレート
      * @param mimeType MIMEタイプ
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onPutOptions(final Intent request, final Intent response, final String serviceId,
-            final String target, final Integer imageWidth, final Integer imageHeight, final String mimeType) {
+            final String target, final Integer imageWidth, final Integer imageHeight,
+            final Integer previewWidth, final Integer previewHeight, final Double previewMaxFrameRate,
+            final String mimeType) {
         setUnsupportedError(response);
         return true;
     }
@@ -464,9 +480,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @param serviceId サービスID
+     * @param target レコーダーID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId,
+            final String target) {
         setUnsupportedError(response);
         return true;
     }
@@ -541,9 +559,11 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
      * @param serviceId サービスID
+     * @param target レコーダーID
      * @return レスポンスパラメータを送信するか否か
      */
-    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId,
+            final String target) {
         setUnsupportedError(response);
         return true;
     }

@@ -233,6 +233,10 @@ public class ThetaDeviceClient {
         return device;
     }
 
+    public void execute(final Runnable r) {
+        mExecutor.execute(r);
+    }
+
     public interface ResponseListener {
 
         void onModel(ThetaDeviceModel model);

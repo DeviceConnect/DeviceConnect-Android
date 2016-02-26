@@ -63,8 +63,11 @@ public class ThetaDeviceClient {
                 try {
                     ThetaDevice device = getConnectedDevice(id);
                     ThetaDevice.Recorder recorder = device.getRecorder();
-                    if (recorder == null || !recorder.getId().equals(target)) {
-                        throw new ThetaDeviceException(ThetaDeviceException.NOT_FOUND_RECORDER);
+                    if (recorder == null) {
+                        throw new ThetaDeviceException(ThetaDeviceException.NOT_FOUND_RECORDER, "THETA has no recorder");
+                    }
+                    if (target != null && !recorder.getId().equals(target)) {
+                        throw new ThetaDeviceException(ThetaDeviceException.NOT_FOUND_RECORDER, "Invalid recorder ID.");
                     }
                     ThetaDevice.RecorderState state = recorder.getState();
                     boolean hadStarted = false;

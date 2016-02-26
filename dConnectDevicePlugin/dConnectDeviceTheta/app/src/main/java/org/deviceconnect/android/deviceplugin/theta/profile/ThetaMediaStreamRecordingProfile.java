@@ -100,6 +100,11 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                     setRecorderName(r, recorder.getName());
                     setRecorderImageWidth(r, recorder.getImageWidth());
                     setRecorderImageHeight(r, recorder.getImageHeight());
+                    if (recorder.supportsPreview()) {
+                        setRecorderPreviewWidth(r, recorder.getPreviewWidth());
+                        setRecorderPreviewHeight(r, recorder.getPreviewHeight());
+                        setRecorderPreviewMaxFrameRate(r, recorder.getPreviewMaxFrameRate());
+                    }
                     setRecorderMIMEType(r, recorder.getMimeType());
                     setRecorderConfig(r, "");
                     try {

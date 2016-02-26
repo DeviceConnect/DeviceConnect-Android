@@ -673,5 +673,24 @@ class ThetaM15 extends AbstractThetaDevice {
             return mImageHeight;
         }
 
+        @Override
+        public int getPreviewWidth() {
+            return 0;
+        }
+
+        @Override
+        public int getPreviewHeight() {
+            return 0;
+        }
+
+        @Override
+        public double getPreviewMaxFrameRate() {
+            return 0;
+        }
+
+        @Override
+        public boolean supportsPreview() {
+            return false;
+        }
     }
 }

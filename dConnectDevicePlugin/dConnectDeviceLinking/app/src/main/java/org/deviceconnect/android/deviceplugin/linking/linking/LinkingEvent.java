@@ -112,6 +112,10 @@ abstract public class LinkingEvent {
         return mContext;
     }
 
+    protected LinkingDevice getDevice() {
+        return mDevice;
+    }
+
     private boolean hasSameExtra(Intent lhs, Intent rhs, String name) {
         String lhsExtra = lhs.getStringExtra(name);
         String rhsExtra = rhs.getStringExtra(name);

@@ -17,6 +17,7 @@ public class LinkingDevice {
     private Object vibration;
     private Object sensor;
     private boolean isConnected;
+    private int feature;
 
     public String getDisplayName() {
         return displayName;
@@ -89,4 +90,13 @@ public class LinkingDevice {
     public void setIsConnected(boolean isConnected) {
         this.isConnected = isConnected;
     }
+
+    public int getFeature() {
+        return feature;
+    }
+
+    public void setFeature(int feature) {
+        this.feature = feature;
+    }
+
 }

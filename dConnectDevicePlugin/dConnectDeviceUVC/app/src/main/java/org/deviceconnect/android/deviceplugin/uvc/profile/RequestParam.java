@@ -110,12 +110,12 @@ class RequestParam {
         throw new NumberFormatException();
     }
 
-    private int parseDouble(Object obj) {
-        if (obj instanceof Integer) {
-            return (Integer) obj;
+    private double parseDouble(Object obj) {
+        if (obj instanceof Double) {
+            return (Double) obj;
         }
         if (obj instanceof String) {
-            return Integer.parseInt((String) obj);
+            return Double.parseDouble((String) obj);
         }
         throw new NumberFormatException();
     }

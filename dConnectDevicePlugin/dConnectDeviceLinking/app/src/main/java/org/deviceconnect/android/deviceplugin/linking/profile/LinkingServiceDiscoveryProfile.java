@@ -8,7 +8,9 @@ package org.deviceconnect.android.deviceplugin.linking.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
@@ -36,6 +38,9 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
+        if (BuildConfig.DEBUG) {
+            Log.i("LinkingPlugIn", "ServiceDiscovery:onGetServices");
+        }
         List<LinkingDevice> list = LinkingManagerFactory.createManager(getContext().getApplicationContext()).getDevices();
         if (list.size() == 0) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -44,6 +49,9 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         Bundle[] services = new Bundle[list.size()];
         int index = 0;
         for (LinkingDevice device : list) {
+            if (BuildConfig.DEBUG) {
+                Log.i("LinkingPlugIn", "name:" + device.getDisplayName() + " feature:" + device.getFeature());
+            }
             Bundle service = new Bundle();
             ServiceDiscoveryProfile.setId(service, device.getBdAddress());
             ServiceDiscoveryProfile.setName(service, device.getDisplayName());

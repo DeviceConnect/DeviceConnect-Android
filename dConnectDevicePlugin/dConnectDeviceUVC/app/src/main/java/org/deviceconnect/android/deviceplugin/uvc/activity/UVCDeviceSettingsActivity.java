@@ -13,30 +13,24 @@ import com.serenegiant.usb.USBMonitor;
 
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceApplication;
 import org.deviceconnect.android.deviceplugin.uvc.UVCDeviceManager;
-import org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceConnectionFragment;
+import org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceInstructionFragment;
+import org.deviceconnect.android.deviceplugin.uvc.fragment.UVCDeviceListFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 
-public class UVCDeviceSettingsActivity extends DConnectSettingPageFragmentActivity
-    implements CameraDialog.CameraDialogParent {
+public class UVCDeviceSettingsActivity extends DConnectSettingPageFragmentActivity {
 
     @Override
     public int getPageCount() {
-        return 1;
+        return 2;
     }
 
     @Override
     public Fragment createPage(int position) {
-        return new UVCDeviceConnectionFragment();
-    }
-
-    public UVCDeviceManager getDeviceManager() {
-        UVCDeviceApplication app = (UVCDeviceApplication) getApplication();
-        return app.getDeviceManager();
-    }
-
-    @Override
-    public USBMonitor getUSBMonitor() {
-        return getDeviceManager().getUSBMonitor();
+        if (position == 0) {
+            return new UVCDeviceInstructionFragment();
+        } else {
+            return new UVCDeviceListFragment();
+        }
     }
 }

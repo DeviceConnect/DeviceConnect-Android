@@ -350,6 +350,11 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                         MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
                         return;
                     }
+                    if (!recorder.supportsPreview()) {
+                        MessageUtils.setNotSupportAttributeError(response,
+                            recorder.getName() + " does not support preview.");
+                        return;
+                    }
 
                     if (!mPreviewParamSet.validateRequest(request, response)) {
                         return;
@@ -394,6 +399,11 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                     }
                     if (target != null && !target.equals(recorder.getId())) {
                         MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+                        return;
+                    }
+                    if (!recorder.supportsPreview()) {
+                        MessageUtils.setNotSupportAttributeError(response,
+                            recorder.getName() + " does not support preview.");
                         return;
                     }
 

@@ -36,7 +36,7 @@ public interface LinkingManager {
 
     void setRangeListener(RangeListener listener);
 
-    void setSensorListener(SensorListener listener);
+    void setSensorListener(LinkingDevice device, SensorListener listener);
 
     void sendLEDCommand(LinkingDevice device, boolean on);
 

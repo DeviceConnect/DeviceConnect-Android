@@ -12,7 +12,13 @@
     <string name="on">ON</string>
     <string name="off">OFF</string>
     <string name="led">LED</string>
+    <string name="sensor">Sensor</string>
+    <string name="gyro">Gyro</string>
+    <string name="acceleration">Acceleration</string>
+    <string name="orientation">Orientation</string>
     <string name="not_selected">unselected</string>
+    <string name="register_sensor">Register</string>
+    <string name="unregister_sensor">Unregister</string>
     <string name="pattern_list">Pattern List</string>
     <string name="device_not_selected">Device not selected</string>
     <string name="device_not_connected">Device not connected</string>
@@ -35,5 +41,6 @@
     <string name="device_name">Linking Device Name : </string>
     <string name="light_off_pattern">LED Off Pattern</string>
     <string name="light_off_description">Specify pattern of led off</string>
+    <string name="title_activity_confirm">ConfirmActivity</string>
 
 </resources>

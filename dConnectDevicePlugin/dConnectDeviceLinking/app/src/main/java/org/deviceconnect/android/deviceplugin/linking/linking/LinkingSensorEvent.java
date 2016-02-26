@@ -31,12 +31,12 @@ public class LinkingSensorEvent extends LinkingEvent {
 
     @Override
     public void listen() {
-        mManager.setSensorListener(mListener);
+        mManager.setSensorListener(getDevice(), mListener);
     }
 
     @Override
     public void invalidate() {
-        mManager.setSensorListener(null);
+        mManager.setSensorListener(getDevice(), null);
     }
 
 }

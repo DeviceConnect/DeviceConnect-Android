@@ -7,20 +7,21 @@
 package org.deviceconnect.android.deviceplugin.linking.setting.fragment;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.nttdocomo.android.sdaiflib.ControlSensorData;
+
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.linking.IlluminationData;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
@@ -28,8 +29,6 @@ import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
 import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,10 +38,59 @@ import java.util.Map;
  */
 public class LinkingControllerFragment extends Fragment {
 
-    private ItemAdapter mAdapter;
-    private TextView mDeviceNameView;
     private LinkingDevice mDevice;
+    private ControlSensorData mController;
+    private TextView mDeviceNameView;
     private View mRoot;
+    private int mCurrentRequestType = 0;
+
+    private ControlSensorData.SensorDataInterface mSensorInterface = new ControlSensorData.SensorDataInterface() {
+        @Override
+        public void onStopSensor(String bd, int type, int reason) {
+            updateDataText(0, 0, 0, 0, 0);
+            updateDataText(1, 0, 0, 0, 0);
+            updateDataText(2, 0, 0, 0, 0);
+        }
+
+        @Override
+        public void onSensorData(String bd, int type, float x, float y, float z, byte[] originalData, long time) {
+            updateDataText(type, x, y, z, time);
+        }
+    };
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != 4) {
+            return;
+        }
+        //RESULT_OK, RESULT_SENSOR_UNSUPPORTED
+        if (resultCode != -1 && resultCode != 8) {
+            mCurrentRequestType = 0;
+            return;
+        }
+        if (mCurrentRequestType == 2) {
+            mCurrentRequestType = 0;
+            return;
+        }
+        if (mController == null) {
+            mCurrentRequestType = 0;
+            return;
+        }
+        mCurrentRequestType += 1;
+        mController.setType(mCurrentRequestType);
+        int result = mController.start();
+        printResult(result);
+    }
+
+    @Override
+    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+        mDevice = null;
+        View root = inflater.inflate(R.layout.control_linking, container, false);
+        mRoot = root;
+        setupUI(root);
+        return root;
+    }
 
     public void setTargetDevice(LinkingDevice device) {
         mDevice = device;
@@ -67,24 +115,16 @@ public class LinkingControllerFragment extends Fragment {
         }
     }
 
-    @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
-        mDevice = null;
-        final View root = inflater.inflate(R.layout.control_linking, container, false);
-        mRoot = root;
-        setupUI(root);
-        return root;
-    }
-
     private void setupUI(final View root) {
+        String deviceName = getString(R.string.device_name) + getString(R.string.not_selected);
         mDeviceNameView = (TextView) root.findViewById(R.id.device_name);
-        mDeviceNameView.setText(getString(R.string.device_name) + getString(R.string.not_selected));
-        setInitButton(root);
-        setListView(root);
+        mDeviceNameView.setText(deviceName);
+        setLightButton(root);
+        setSensorButton(root);
     }
 
-    private void setInitButton(final View root) {
-        root.findViewById(R.id.select_light_off).setOnClickListener(new View.OnClickListener() {
+    private void setLightButton(final View view) {
+        view.findViewById(R.id.select_light_off).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!checkDevice()) {
@@ -93,7 +133,6 @@ public class LinkingControllerFragment extends Fragment {
 
                 byte[] illumination = mDevice.getIllumination();
                 final IlluminationData data = new IlluminationData(illumination);
-                Log.i("LinkingSample", "illumination:" + data);
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                 final String[] items = new String[data.mPattern.children.length];
@@ -104,11 +143,38 @@ public class LinkingControllerFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         IlluminationData.Setting selectedPattern = data.mPattern.children[which];
-                        ((Button) root.findViewById(R.id.select_light_off)).setText(selectedPattern.names[0].name);
+                        ((Button) view.findViewById(R.id.select_light_off)).setText(selectedPattern.names[0].name);
                         updateLightOffSetting(selectedPattern.id & 0xFF);
                     }
                 });
                 builder.create().show();
+            }
+        });
+        view.findViewById(R.id.on).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickLED(true);
+            }
+        });
+        view.findViewById(R.id.off).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickLED(false);
+            }
+        });
+    }
+
+    private void setSensorButton(View view) {
+        view.findViewById(R.id.sensor_on).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onClickSensor(true);
+            }
+        });
+        view.findViewById(R.id.sensor_off).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onClickSensor(false);
             }
         });
     }
@@ -123,38 +189,22 @@ public class LinkingControllerFragment extends Fragment {
         util.setLightOffSetting(map);
     }
 
-    private void showDialog() {
-        new AlertDialog.Builder(getActivity())
-                .setTitle("タイトル")
-                .setMessage("メッセージ")
-                .setPositiveButton(getString(R.string.ok),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                .setNegativeButton(getString(R.string.cancel),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        }).show();
+    private void updateDataText(int type, float x, float y, float z, long time) {
+        switch (type) {
+            case 0:
+                ((TextView) mRoot.findViewById(R.id.gyro_text)).setText(makeParamText(x, y, z, time));
+                break;
+            case 1:
+                ((TextView) mRoot.findViewById(R.id.acceleration_text)).setText(makeParamText(x, y, z, time));
+                break;
+            case 2:
+                ((TextView) mRoot.findViewById(R.id.orientation_text)).setText(makeParamText(x, y, z, time));
+                break;
+        }
     }
 
-    private void setListView(final View root) {
-        ListView list = (ListView) root.findViewById(R.id.list);
-        ItemAdapter adapter = new ItemAdapter(getActivity(), createItems());
-        list.setAdapter(adapter);
-        list.setItemsCanFocus(true);
-        mAdapter = adapter;
-    }
-
-    private List<Item> createItems() {
-        List<Item> items = new ArrayList<>();
-        items.add(new Item(ITEM_TYPE.LED));
-        return items;
+    private String makeParamText(float x, float y, float z, long time) {
+        return "x:" + x + "\ny:" + y + "\nz:" + z + "\ntime:" + time;
     }
 
     private void onClickLED(boolean isOn) {
@@ -165,6 +215,38 @@ public class LinkingControllerFragment extends Fragment {
         manager.sendLEDCommand(mDevice, isOn);
     }
 
+    private void onClickSensor(boolean isOn) {
+        if (!checkDevice()) {
+            return;
+        }
+        if (isOn) {
+            if (mController == null) {
+                mController = new ControlSensorData(getActivity(), mSensorInterface);
+                mController.setInterval(100);
+                mController.setType(0);
+            } else {
+                int result = mController.stop();
+                printResult(result);
+                updateDataText(0, 0, 0, 0, 0);
+                updateDataText(1, 0, 0, 0, 0);
+                updateDataText(2, 0, 0, 0, 0);
+            }
+            mController.setBDaddress(mDevice.getBdAddress());
+            mCurrentRequestType = 0;
+            int result = mController.start();
+            printResult(result);
+        } else {
+            if (mController != null) {
+                int result = mController.stop();
+                printResult(result);
+                updateDataText(0, 0, 0, 0, 0);
+                updateDataText(1, 0, 0, 0, 0);
+                updateDataText(2, 0, 0, 0, 0);
+                mController = null;
+            }
+        }
+    }
+
     private boolean checkDevice() {
         if (mDevice == null) {
             Toast.makeText(getActivity(), getString(R.string.device_not_selected), Toast.LENGTH_SHORT).show();
@@ -173,46 +255,37 @@ public class LinkingControllerFragment extends Fragment {
         return true;
     }
 
-    private class ItemAdapter extends ArrayAdapter<Item> {
-        private LayoutInflater mInflater;
-
-        public ItemAdapter(final Context context, final List<Item> objects) {
-            super(context, 0, objects);
-            mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    private void printResult(int result) {
+        if (!BuildConfig.DEBUG) {
+            return;
         }
-
-        @Override
-        public View getView(final int position, View convertView, ViewGroup parent) {
-            final Item item = getItem(position);
-            if (item.type == ITEM_TYPE.LED) {
-                convertView = mInflater.inflate(R.layout.led_button_item, parent, false);
-                convertView.findViewById(R.id.on).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        onClickLED(true);
-                    }
-                });
-                convertView.findViewById(R.id.off).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        onClickLED(false);
-                    }
-                });
-            }
-            return convertView;
-        }
-
-    }
-
-    enum ITEM_TYPE {
-        LED
-    }
-
-    private class Item {
-        ITEM_TYPE type;
-
-        Item(ITEM_TYPE type) {
-            this.type = type;
+        switch (result) {
+            case -1:
+                Log.i("LinkingPlugIn", "RESULT_OK(-1)");
+                break;
+            case 1:
+                Log.i("LinkingPlugIn", "RESULT_CANCEL(1)");
+                break;
+            case 4:
+                Log.i("LinkingPlugIn", "RESULT_DEVICE_OFF(4)");
+                break;
+            case 5:
+                Log.i("LinkingPlugIn", "RESULT_CONNECT_FAILURE(5)");
+                break;
+            case 6:
+                Log.i("LinkingPlugIn", "RESULT_CONFLICT(6)");
+                break;
+            case 7:
+                Log.i("LinkingPlugIn", "RESULT_PARAM_ERROR(7)");
+                break;
+            case 8:
+                Log.i("LinkingPlugIn", "RESULT_SENSOR_UNSUPPORTED(8)");
+                break;
+            case 0:
+                Log.i("LinkingPlugIn", "RESULT_OTHER_ERROR(0)");
+                break;
+            default:
+                Log.i("LinkingPlugIn", "UNKNOWN_ERROR(" + result + ")");
         }
     }
 

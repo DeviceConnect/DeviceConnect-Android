@@ -6,29 +6,36 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.linking;
 
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.nttdocomo.android.sdaiflib.ControlSensorData;
 import com.nttdocomo.android.sdaiflib.Define;
 import com.nttdocomo.android.sdaiflib.DeviceInfo;
 import com.nttdocomo.android.sdaiflib.GetDeviceInformation;
 import com.nttdocomo.android.sdaiflib.NotifyRange;
 import com.nttdocomo.android.sdaiflib.SendNotification;
 
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.R;
-import org.deviceconnect.android.deviceplugin.linking.util.ByteUtil;
 import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class LinkingManagerImpl implements LinkingManager {
 
     private RangeListener mRangeListener;
+    private Map<String, SensorListener> mSensorListenerMap = new HashMap<>();
     private Context mContext;
     private NotifyRange mNotifyRange;
+    private NotifySensorData mNotifySensor;
 
     public LinkingManagerImpl(Context context) {
         mContext = context;
@@ -36,7 +43,6 @@ public class LinkingManagerImpl implements LinkingManager {
 
     @Override
     public List<LinkingDevice> getDevices() {
-        Log.i("Linking", "getDevices()");
         List<LinkingDevice> list = new ArrayList<>();
         for (DeviceInfo info : new GetDeviceInformation(mContext).getInformation()) {
             LinkingDevice device = new LinkingDevice();
@@ -51,6 +57,7 @@ public class LinkingManagerImpl implements LinkingManager {
                 device.setSensor(new Object());
             }
             device.setDisplayName("Linking:" + info.getBdaddress());
+            device.setFeature(info.getFeature());
             list.add(device);
         }
         return list;
@@ -128,8 +135,109 @@ public class LinkingManagerImpl implements LinkingManager {
     }
 
     @Override
-    public void setSensorListener(SensorListener listener) {
+    public void setSensorListener(LinkingDevice device, SensorListener listener) {
+        mSensorListenerMap.put(device.getBdAddress(), listener);
+        if (listener == null) {
+            stopSensors(device.getBdAddress());
 
+            boolean isEmpty = true;
+            for (Map.Entry<String, SensorListener> entry : mSensorListenerMap.entrySet()) {
+                if (entry.getValue() != null) {
+                    isEmpty = false;
+                    break;
+                }
+            }
+
+            if (isEmpty) {
+                if (mNotifySensor != null) {
+                    mNotifySensor.release();
+                }
+            }
+
+            return;
+        }
+        if (mNotifySensor == null) {
+            mNotifySensor = new NotifySensorData(mContext, new ControlSensorData.SensorDataInterface() {
+
+                @Override
+                public void onSensorData(String bd, int type, float x, float y, float z, byte[] originalData, long time) {
+                    LinkingDevice target = null;
+                    for (LinkingDevice device : getDevices()) {
+                        if (device.getBdAddress().equals(bd)) {
+                            target = device;
+                            break;
+                        }
+                    }
+                    if (target == null) {
+                        return;
+                    }
+                    LinkingSensorData data = new LinkingSensorData();
+                    data.setBdAddress(bd);
+                    data.setX(x);
+                    data.setY(y);
+                    data.setZ(z);
+                    data.setOriginalData(originalData);
+                    if (type == 0) {
+                        data.setType(LinkingSensorData.SensorType.GYRO);
+                    } else if (type == 1) {
+                        data.setType(LinkingSensorData.SensorType.ACCELERATION);
+                    } else if (type == 2) {
+                        data.setType(LinkingSensorData.SensorType.COMPASS);
+                    } else {
+                        data.setType(LinkingSensorData.SensorType.EXTENDS);
+                    }
+                    data.setTime(time);
+                    notifyOnChangeSensor(target, data);
+                }
+
+                @Override
+                public void onStopSensor(String bd, int type, int reason) {
+                    if (BuildConfig.DEBUG) {
+                        Log.i("LinkingPlugin", "onStopSensor");
+                        Log.i("LinkingPlugin", "bd:" + bd);
+                        Log.i("LinkingPlugin", "type:" + type);
+                        Log.i("LinkingPlugin", "reason:" + reason);
+                    }
+                }
+
+            });
+        }
+        startAllSensor(device.getBdAddress());
+    }
+
+    private void startAllSensor(final String address) {
+        startSensor(address, 0);
+    }
+
+    private void startSensor(String address, int type) {
+        Intent intent = new Intent(mContext, ConfirmActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.BD_ADDRESS", address);
+        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_TYPE", type);
+        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_INTERVAL", 100);
+        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_DURATION", -1);
+        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.X_THRESHOLD", 0.0F);
+        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.Y_THRESHOLD", 0.0F);
+        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.Z_THRESHOLD", 0.0F);
+        try {
+            this.mContext.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void stopSensors(String address) {
+        if (BuildConfig.DEBUG) {
+            Log.i("LinkingPlugIn", "Manager:stopSensors:address:" + address);
+        }
+        Intent intent = new Intent(mContext.getPackageName() + ".sda.action.STOP_SENSOR");
+        intent.setComponent(new ComponentName("com.nttdocomo.android.smartdeviceagent", "com.nttdocomo.android.smartdeviceagent.RequestReceiver"));
+        intent.putExtra(mContext.getPackageName() + ".sda.extra.BD_ADDRESS", address);
+        try {
+            mContext.sendBroadcast(intent);
+        } catch (ActivityNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -154,7 +262,6 @@ public class LinkingManagerImpl implements LinkingManager {
     }
 
     private void setIllumination(SendNotification notify, LinkingDevice device) {
-        Log.i("LinkingSample", "setIllumination");
         Map<String, Integer> map = PreferenceUtil.getInstance(mContext).getLightOffSetting();
         if (map == null) {
             return;
@@ -163,7 +270,6 @@ public class LinkingManagerImpl implements LinkingManager {
         if (patternId == null) {
             return;
         }
-        Log.i("LinkingSample", "patternId:" + patternId);
         byte pattern = (byte) (patternId & 0xFF);
         byte[] illumination = new byte[4];
         illumination[0] = 0x20;
@@ -171,7 +277,6 @@ public class LinkingManagerImpl implements LinkingManager {
         illumination[2] = 0x30;
         illumination[3] = 0x01;//default color id
         notify.setIllumination(illumination);
-        Log.i("LinkingSample", "illumination:" + ByteUtil.binaryToHex(illumination));
     }
 
     private boolean hasSensor(DeviceInfo deviceInfo) {
@@ -196,6 +301,13 @@ public class LinkingManagerImpl implements LinkingManager {
         int feature = deviceInfo.getFeature();
         final int LED = 1;
         return (feature & LED) == LED;
+    }
+
+    private synchronized void notifyOnChangeSensor(LinkingDevice device, LinkingSensorData data) {
+        if (mSensorListenerMap.get(device.getBdAddress()) == null) {
+            return;
+        }
+        mSensorListenerMap.get(device.getBdAddress()).onChangeSensor(device, data);
     }
 
     private synchronized void notifyOnChangeRange(LinkingDevice device, Range range) {

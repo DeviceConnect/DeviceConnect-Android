@@ -12,7 +12,13 @@
     <string name="on">ON</string>
     <string name="off">OFF</string>
     <string name="led">LED</string>
+    <string name="sensor">センサー</string>
+    <string name="gyro">ジャイロ</string>
+    <string name="acceleration">加速度</string>
+    <string name="orientation">方位</string>
     <string name="not_selected">未選択</string>
+    <string name="register_sensor">登録</string>
+    <string name="unregister_sensor">解除</string>
     <string name="pattern_list">パターンリスト</string>
     <string name="device_not_selected">デバイスが選択されていません。</string>
     <string name="device_not_connected">デバイスは接続されていません。</string>

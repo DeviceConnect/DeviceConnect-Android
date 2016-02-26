@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.setting;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
@@ -31,6 +32,14 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
             LinkingDeviceListFragment.class,
             LinkingControllerFragment.class
     };
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (mControllFragment != null) {
+            mControllFragment.onActivityResult(requestCode, resultCode, data);
+        }
+    }
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {

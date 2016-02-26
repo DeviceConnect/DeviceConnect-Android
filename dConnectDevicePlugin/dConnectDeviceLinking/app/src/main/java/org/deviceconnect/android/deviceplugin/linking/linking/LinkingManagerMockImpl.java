@@ -176,7 +176,7 @@ public class LinkingManagerMockImpl implements LinkingManager {
     }
 
     @Override
-    public synchronized void setSensorListener(SensorListener listener) {
+    public synchronized void setSensorListener(LinkingDevice device, SensorListener listener) {
         mSensorListener = listener;
         if (listener == null && mSensorService != null) {
             mSensorService.shutdownNow();

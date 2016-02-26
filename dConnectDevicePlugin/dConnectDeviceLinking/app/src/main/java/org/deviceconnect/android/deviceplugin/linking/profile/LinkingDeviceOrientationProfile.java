@@ -8,7 +8,9 @@ package org.deviceconnect.android.deviceplugin.linking.profile;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingEvent;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingEventListener;
@@ -39,16 +41,30 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         final LinkingEvent linkingEvent = new LinkingSensorEvent(getContext().getApplicationContext(), device);
         linkingEvent.setEventInfo(request);
         linkingEvent.setLinkingEventListener(new LinkingEventListener() {
+            boolean receivedFirstData = false;
+            Bundle orientation = new Bundle();
+
             @Override
             public void onReceiveEvent(Event event, Bundle parameters) {
-                linkingEvent.invalidate();
-                LinkingSensorData data = parameters.getParcelable(LinkingSensorEvent.EXTRA_SENSOR);
-                if (data == null) {
-                    throw new IllegalArgumentException("data must be specified");
+                if (receivedFirstData) {
+                    LinkingSensorData data = parameters.getParcelable(LinkingSensorEvent.EXTRA_SENSOR);
+                    if (data == null) {
+                        throw new IllegalArgumentException("data must be specified");
+                    }
+                    updateOrientation(orientation, data, 0);
+                } else {
+                    //wait 3 seconds for waiting to receive 3 types of values.
+                    mScheduleService.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            linkingEvent.invalidate();
+                            setOrientation(response, orientation);
+                            setResult(response, DConnectMessage.RESULT_OK);
+                            sendResponse(response);
+                        }
+                    }, 3, TimeUnit.SECONDS);
+                    receivedFirstData = true;
                 }
-                setOrientation(response, createOrientation(data, 0));
-                setResult(response, DConnectMessage.RESULT_OK);
-                sendResponse(response);
             }
         });
         linkingEvent.listen();
@@ -72,20 +88,37 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         final LinkingEvent linkingEvent = new LinkingSensorEvent(getContext().getApplicationContext(), device);
         linkingEvent.setEventInfo(request);
         linkingEvent.setLinkingEventListener(new LinkingEventListener() {
-            private long mReceiveSensorDataLastTime = 0;
+
+            boolean isKeep = false;
+            Bundle orientation;
+            int INTERVAL = 100;
 
             @Override
-            public void onReceiveEvent(Event event, Bundle parameters) {
+            public void onReceiveEvent(final Event event, Bundle parameters) {
                 LinkingSensorData data = parameters.getParcelable(LinkingSensorEvent.EXTRA_SENSOR);
                 if (data == null) {
                     throw new IllegalArgumentException("data must be specified");
                 }
-                long interval = mReceiveSensorDataLastTime == 0 ? 0 : System.currentTimeMillis() - mReceiveSensorDataLastTime;
+                if (BuildConfig.DEBUG) {
+                    Log.i("LinkingPlugin", "onReceiveEvent : bd:" + data.getBdAddress() + "type:" + data.getType() + " x:" + data.getX() + " y:" + data.getY() + " z:" + data.getZ());
+                }
 
-                Bundle orientation = new Bundle();
-                orientation.putBundle(PARAM_ORIENTATION, createOrientation(data, interval));
-                sendEvent(event, orientation);
-                mReceiveSensorDataLastTime = System.currentTimeMillis();
+                if (isKeep) {
+                    updateOrientation(orientation, data, INTERVAL);
+                } else {
+                    isKeep = true;
+                    orientation = new Bundle();
+                    updateOrientation(orientation, data, INTERVAL);
+                    mScheduleService.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            Bundle eventObj = new Bundle();
+                            eventObj.putBundle(PARAM_ORIENTATION, orientation);
+                            sendEvent(event, eventObj);
+                            isKeep = false;
+                        }
+                    }, INTERVAL, TimeUnit.MILLISECONDS);
+                }
             }
         });
 
@@ -108,36 +141,50 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
 
     private Bundle createOrientation(LinkingSensorData data, long interval) {
         Bundle orientation = new Bundle();
+        return updateOrientation(orientation, data, interval);
+    }
+
+    private Bundle updateOrientation(Bundle orientation, LinkingSensorData data, long interval) {
         switch (data.getType()) {
             case GYRO:
-                Bundle gyro = new Bundle();
-                setBeta(gyro, data.getX());
-                setGamma(gyro, data.getY());
-                setAlpha(gyro, data.getZ());
-                setRotationRate(orientation, gyro);
+                setGyroValuesToBundle(orientation, data);
                 break;
             case ACCELERATION:
-                Bundle acceleration = new Bundle();
-                setX(acceleration, data.getX());
-                setY(acceleration, data.getY());
-                setZ(acceleration, data.getZ());
-                setAcceleration(orientation, null);
+                setAccelerationValuesToBundle(orientation, data);
                 break;
             case COMPASS:
-                //TODO:undefined values on profile.
-                Bundle compass = new Bundle();
-                setX(compass, data.getX());
-                compass.putDouble("beta", data.getX());
-                compass.putDouble("gamma", data.getY());
-                compass.putDouble("alpha", data.getZ());
-                orientation.putBundle("compass", compass);
+                setCompassValuesToBundle(orientation, data);
                 break;
             default:
                 throw new IllegalArgumentException("unknown type");
         }
-//        setAccelerationIncludingGravity(orientation, null);TODO: The data can be taken from Linking Device?
         setInterval(orientation, interval);
         return orientation;
+    }
+
+    private void setGyroValuesToBundle(Bundle bundle, LinkingSensorData data) {
+        Bundle gyro = new Bundle();
+        setBeta(gyro, data.getX());
+        setGamma(gyro, data.getY());
+        setAlpha(gyro, data.getZ());
+        setRotationRate(bundle, gyro);
+    }
+
+    private void setAccelerationValuesToBundle(Bundle bundle, LinkingSensorData data) {
+        Bundle acceleration = new Bundle();
+        setX(acceleration, data.getX() * 10);
+        setY(acceleration, data.getY() * 10);
+        setZ(acceleration, data.getZ() * 10);
+        setAccelerationIncludingGravity(bundle, acceleration);
+    }
+
+    private void setCompassValuesToBundle(Bundle bundle, LinkingSensorData data) {
+        Bundle compass = new Bundle();
+        setX(compass, data.getX());
+        compass.putDouble("beta", data.getX());
+        compass.putDouble("gamma", data.getY());
+        compass.putDouble("alpha", data.getZ());
+        bundle.putBundle("compass", compass);
     }
 
     private LinkingDevice getDevice(String serviceId, Intent response) {

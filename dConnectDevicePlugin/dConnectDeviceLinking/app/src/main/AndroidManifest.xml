@@ -9,15 +9,12 @@
         android:icon="@mipmap/dconnect_icon"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
-
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.setting_activity"
             android:value="\#Intent;action=android.intent.action.MAIN;component=org.deviceconnect.android.deviceplugin.linking/.setting.SettingActivity;end"/>
-
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.support"
             android:value="true"/>
-
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.notify_distance"
             android:value="true"/>
@@ -69,6 +66,15 @@
                 <action android:name="org.deviceconnect.android.localoauth.LocalOAuth2Service"/>
             </intent-filter>
         </service>
+
+        <activity
+            android:name=".linking.ConfirmActivity"
+            android:excludeFromRecents="true"
+            android:finishOnCloseSystemDialogs="true"
+            android:label="@string/title_activity_confirm"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+        </activity>
     </application>
 
 </manifest>

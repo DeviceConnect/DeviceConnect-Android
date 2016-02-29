@@ -33,7 +33,7 @@ public class ThetaDeviceClient {
         });
     }
 
-    public void takePicture(final String deviceId, final String recorderId,
+    public void takePicture(final String deviceId, final String target,
                             final ResponseListener listener) {
         mExecutor.execute(new Runnable() {
             @Override
@@ -41,14 +41,18 @@ public class ThetaDeviceClient {
                 try {
                     ThetaDevice device = getConnectedDevice(deviceId);
                     ThetaDevice.Recorder recorder = device.getRecorder();
-                    if (recorderId == null || recorder.getId().equals(recorderId)) {
-                        listener.onTakenPicture(device.takePicture());
-                    } else {
-                        listener.onFailed(
-                            new ThetaDeviceException(
-                                ThetaDeviceException.NOT_FOUND_RECORDER,
-                                "recorder is not found."));
+                    if (recorder == null) {
+                        throw new ThetaDeviceException(ThetaDeviceException.NOT_FOUND_RECORDER, "THETA has no recorder");
                     }
+                    if (target != null && !recorder.getId().equals(target)) {
+                        throw new ThetaDeviceException(ThetaDeviceException.NOT_FOUND_RECORDER, "Invalid recorder ID.");
+                    }
+                    if (!recorder.supportsPhoto()) {
+                        throw new ThetaDeviceException(ThetaDeviceException.NOT_SUPPORTED_FEATURE,
+                            recorder.getName() + " does not support to take a photo.");
+                    }
+                    ThetaObject obj = device.takePicture();
+                    listener.onTakenPicture(obj);
                 } catch (ThetaDeviceException e) {
                     listener.onFailed(e);
                 }
@@ -68,6 +72,10 @@ public class ThetaDeviceClient {
                     }
                     if (target != null && !recorder.getId().equals(target)) {
                         throw new ThetaDeviceException(ThetaDeviceException.NOT_FOUND_RECORDER, "Invalid recorder ID.");
+                    }
+                    if (!recorder.supportsVideoRecording()) {
+                        throw new ThetaDeviceException(ThetaDeviceException.NOT_SUPPORTED_FEATURE,
+                            recorder.getName() + " does not support video recording.");
                     }
                     ThetaDevice.RecorderState state = recorder.getState();
                     boolean hadStarted = false;
@@ -101,6 +109,10 @@ public class ThetaDeviceClient {
                     }
                     if (target != null && !recorder.getId().equals(target)) {
                         throw new ThetaDeviceException(ThetaDeviceException.NOT_FOUND_RECORDER, "Invalid recorder ID.");
+                    }
+                    if (!recorder.supportsVideoRecording()) {
+                        throw new ThetaDeviceException(ThetaDeviceException.NOT_SUPPORTED_FEATURE,
+                            recorder.getName() + " does not support video recording.");
                     }
                     ThetaDevice.RecorderState state = recorder.getState();
                     boolean hadStopped = false;

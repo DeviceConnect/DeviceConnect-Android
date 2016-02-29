@@ -200,6 +200,10 @@ public interface ThetaDevice extends LiveCamera {
 
         boolean supportsPreview();
 
+        boolean supportsVideoRecording();
+
+        boolean supportsPhoto();
+
         RecorderState getState() throws ThetaDeviceException;
 
     }

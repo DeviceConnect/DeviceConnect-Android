@@ -558,6 +558,16 @@ class ThetaS extends AbstractThetaDevice {
         }
 
         @Override
+        public boolean supportsVideoRecording() {
+            return false;
+        }
+
+        @Override
+        public boolean supportsPhoto() {
+            return true;
+        }
+
+        @Override
         public RecorderState getState() throws ThetaDeviceException {
             return RecorderState.INACTIVE;
         }
@@ -589,6 +599,16 @@ class ThetaS extends AbstractThetaDevice {
 
         @Override
         public boolean supportsPreview() {
+            return false;
+        }
+
+        @Override
+        public boolean supportsVideoRecording() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsPhoto() {
             return false;
         }
 

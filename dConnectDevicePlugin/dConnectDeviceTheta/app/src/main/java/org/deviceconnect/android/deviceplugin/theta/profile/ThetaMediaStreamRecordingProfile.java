@@ -208,23 +208,11 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     @Override
     protected boolean onPutOnPhoto(final Intent request, final Intent response,
                                    final String serviceId, final String sessionKey) {
-        try {
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
-                return true;
-            }
-            ThetaDevice device = mClient.getConnectedDevice(serviceId);
-            ThetaDevice.Recorder recorder = device.getRecorder();
-            if (recorder == null) {
-                MessageUtils.setIllegalDeviceStateError(response, "device is not initialized.");
-                return true;
-            }
-            if (!recorder.supportsPhoto()) {
-                MessageUtils.setNotSupportAttributeError(response,
-                    recorder.getName() + " does not support preview.");
-                return true;
-            }
-
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else if (sessionKey == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+        } else {
             EventError error = EventManager.INSTANCE.addEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -233,18 +221,6 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
             } else {
                 MessageUtils.setUnknownError(response);
             }
-        } catch (ThetaDeviceException cause) {
-            switch (cause.getReason()) {
-                case ThetaDeviceException.NOT_FOUND_THETA:
-                    MessageUtils.setNotFoundServiceError(response);
-                    break;
-                case ThetaDeviceException.NOT_FOUND_RECORDER:
-                    MessageUtils.setInvalidRequestParameterError(response, "recorder is not found.");
-                    break;
-                default:
-                    MessageUtils.setUnknownError(response, cause.getMessage());
-                    break;
-            }
         }
         return true;
     }
@@ -252,23 +228,11 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
     @Override
     protected boolean onDeleteOnPhoto(final Intent request, final Intent response,
                                       final String serviceId, final String sessionKey) {
-        try {
-            if (sessionKey == null) {
-                MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
-                return true;
-            }
-            ThetaDevice device = mClient.getConnectedDevice(serviceId);
-            ThetaDevice.Recorder recorder = device.getRecorder();
-            if (recorder == null) {
-                MessageUtils.setIllegalDeviceStateError(response, "device is not initialized.");
-                return true;
-            }
-            if (!recorder.supportsPhoto()) {
-                MessageUtils.setNotSupportAttributeError(response,
-                    recorder.getName() + " does not support preview.");
-                return true;
-            }
-
+        if (!mClient.hasDevice(serviceId)) {
+            MessageUtils.setNotFoundServiceError(response);
+        } else if (sessionKey == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
+        } else {
             EventError error = EventManager.INSTANCE.removeEvent(request);
             if (error == EventError.NONE) {
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -280,18 +244,6 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                 MessageUtils.setUnknownError(response, "Not found event.");
             } else {
                 MessageUtils.setUnknownError(response);
-            }
-        } catch (ThetaDeviceException cause) {
-            switch (cause.getReason()) {
-                case ThetaDeviceException.NOT_FOUND_THETA:
-                    MessageUtils.setNotFoundServiceError(response);
-                    break;
-                case ThetaDeviceException.NOT_FOUND_RECORDER:
-                    MessageUtils.setInvalidRequestParameterError(response, "recorder is not found.");
-                    break;
-                default:
-                    MessageUtils.setUnknownError(response, cause.getMessage());
-                    break;
             }
         }
         return true;
@@ -328,6 +280,9 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                         break;
                     case ThetaDeviceException.NOT_FOUND_RECORDER:
                         MessageUtils.setInvalidRequestParameterError(response, "recorder is not found.");
+                        break;
+                    case ThetaDeviceException.NOT_SUPPORTED_FEATURE:
+                        MessageUtils.setNotSupportAttributeError(response, cause.getMessage());
                         break;
                     default:
                         MessageUtils.setUnknownError(response, cause.getMessage());
@@ -366,6 +321,9 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                         break;
                     case ThetaDeviceException.NOT_FOUND_RECORDER:
                         MessageUtils.setInvalidRequestParameterError(response, "recorder is not found.");
+                        break;
+                    case ThetaDeviceException.NOT_SUPPORTED_FEATURE:
+                        MessageUtils.setNotSupportAttributeError(response, cause.getMessage());
                         break;
                     default:
                         MessageUtils.setUnknownError(response, cause.getMessage());

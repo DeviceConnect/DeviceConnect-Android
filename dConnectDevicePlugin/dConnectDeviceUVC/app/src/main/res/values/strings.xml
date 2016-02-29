@@ -3,6 +3,19 @@
     <string name="uvc_error_dialog_default_title">エラー</string>
     <string name="uvc_error_message_device_not_supported">USBカメラ {NAME} は下記のフォーマットをサポートしないため利用できません。\n\n - MotionJPEG</string>
 
-    <string name="uvc_settings_title_uvc_device_connection">[1/1] USBカメラとの接続</string>
-    <string name="uvc_settings_description_uvc_device_connection">端末のUSB端子にUSBカメラを接続してください。\n\n端末からUSBカメラへ電力を充分に供給できない場合には、セルフパワー付USBハブ経由で接続する必要があります。</string>
+    <string name="uvc_settings_title_uvc_device_instruction">[1/2] USBカメラとの接続方法</string>
+    <string name="uvc_settings_instruction_uvc_device_connection">端末のUSB端子にUSBカメラを接続してください。\n\n端末からUSBカメラへ電力を充分に供給できない場合には、セルフパワー付USBハブ経由で接続する必要があります。</string>
+    <string name="uvc_settings_title_uvc_device_list">[2/2] USBカメラ一覧</string>
+    <string name="uvc_settings_searching">デバイス検索中</string>
+    <string name="uvc_settings_connect">接続</string>
+    <string name="uvc_settings_disconnect">解除</string>
+    <string name="uvc_settings_default_name">Unknown</string>
+    <string name="uvc_settings_connecting_title">USB接続</string>
+    <string name="uvc_settings_connecting_message">%1$sと接続中</string>
+    <string name="uvc_settings_dialog_positive">OK</string>
+    <string name="uvc_settings_dialog_error_title">USB接続エラー</string>
+    <string name="uvc_settings_dialog_error_message">%1$sとの接続に失敗しました</string>
+    <string name="uvc_settings_online">[ONLINE]</string>
+    <string name="uvc_settings_offline">[OFFLINE]</string>
+    <string name="uvc_settings_no_device_found">USBカメラが接続されていません。</string>
 </resources>

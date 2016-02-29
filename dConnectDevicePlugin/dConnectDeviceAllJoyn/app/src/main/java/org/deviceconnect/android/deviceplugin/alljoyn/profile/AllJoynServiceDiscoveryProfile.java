@@ -8,7 +8,6 @@ import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynServiceEntity;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,13 +31,15 @@ public class AllJoynServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         app.performDiscovery();
         List<Bundle> services = new LinkedList<>();
         for (AllJoynServiceEntity serviceEntity : app.getDiscoveredAlljoynServices().values()) {
+            if (serviceEntity.serviceName.indexOf("LuminaireC") != -1) {
+                continue;
+            }
             Bundle service = new Bundle();
             ServiceDiscoveryProfile.setId(service, serviceEntity.appId);
             ServiceDiscoveryProfile.setName(service, serviceEntity.serviceName);
             ServiceDiscoveryProfile.setScopes(service, getProfileProvider());
             ServiceDiscoveryProfile.setOnline(service, true);
-            // TODO: AllJoynリモートオブジェクトのトランスポート情報を取得できるか調査。
-            //ServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
+            ServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
             services.add(service);
         }
         setServices(response, services);

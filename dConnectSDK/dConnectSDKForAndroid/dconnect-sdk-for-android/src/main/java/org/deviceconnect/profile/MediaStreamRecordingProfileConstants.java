@@ -187,12 +187,72 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
     /**
      * パラメータ: {@value} .
      */
+    String PARAM_PREVIEW_WIDTH = "previewWidth";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_PREVIEW_HEIGHT = "previewHeight";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_PREVIEW_MAX_FRAME_RATE = "previewMaxFrameRate";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_AUDIO = "audio";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_CHANNELS = "channels";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_SAMPLE_RATE = "sampleRate";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_SAMPLE_SIZE = "sampleSize";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_BLOCK_SIZE = "blockSize";
+
+    /**
+     * パラメータ: {@value} .
+     */
     String PARAM_MIME_TYPE = "mimeType";
 
     /**
      * パラメータ: {@value} .
      */
     String PARAM_CONFIG = "config";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_IMAGE_SIZES = "imageSizes";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_PREVIEW_SIZES = "previewSizes";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_WIDTH = "width";
+
+    /**
+     * パラメータ: {@value} .
+     */
+    String PARAM_HEIGHT = "height";
 
     /**
      * パラメータ: {@value} .
@@ -231,11 +291,13 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
     
     /** 
      * パラメータ: {@value} .
+     * @deprecated
      */
     String PARAM_MIN = "min";
     
     /** 
      * パラメータ: {@value} .
+     * @deprecated 
      */
     String PARAM_MAX = "max";
 

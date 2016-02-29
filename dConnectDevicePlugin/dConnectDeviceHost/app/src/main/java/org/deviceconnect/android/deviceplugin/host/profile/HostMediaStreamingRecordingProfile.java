@@ -250,7 +250,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     protected boolean onPutOptions(final Intent request, final Intent response,
                                    final String serviceId, final String target,
                                    final Integer imageWidth, final Integer imageHeight,
-                                   final String mimeType) {
+                                   final Integer previewWidth, final Integer previewHeight,
+                                   final Double previewMaxFrameRate, final String mimeType) {
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
@@ -292,9 +293,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             HostDeviceRecorder.PictureSize newSize = new HostDeviceRecorder.PictureSize(imageWidth, imageHeight);
             recorder.setPictureSize(newSize);
         }
-
-        Integer previewWidth = getPreviewWidth(request);
-        Integer previewHeight = getPreviewHeight(request);
         if (previewWidth != null && previewHeight != null) {
             if (!(recorder instanceof HostDevicePreviewServer)) {
                 MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
@@ -309,7 +307,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             HostDeviceRecorder.PictureSize newSize = new HostDeviceRecorder.PictureSize(previewWidth, previewHeight);
             server.setPreviewSize(newSize);
         }
-        Double previewMaxFrameRate = getPreviewMaxFrameRate(request);
         if (previewMaxFrameRate != null) {
             if (!(recorder instanceof HostDevicePreviewServer)) {
                 MessageUtils.setInvalidRequestParameterError(response, "preview is unsupported.");
@@ -435,7 +432,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId,
+                                   final String target) {
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
@@ -444,7 +442,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundService(response);
             return true;
         }
-        String target = getTarget(request);
         HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
         if (server == null) {
             MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
@@ -469,7 +466,8 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
     }
 
     @Override
-    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId) {
+    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId,
+                                      final String target) {
         if (serviceId == null) {
             createEmptyServiceId(response);
             return true;
@@ -478,7 +476,6 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             createNotFoundService(response);
             return true;
         }
-        String target = getTarget(request);
         HostDevicePreviewServer server = mRecorderMgr.getPreviewServer(target);
         if (server == null) {
             MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
@@ -641,97 +638,5 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
      */
     private void createEmptyServiceId(final Intent response) {
         MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    private static final String PARAM_PREVIEW_WIDTH = "previewWidth";
-
-    private static final String PARAM_PREVIEW_HEIGHT = "previewHeight";
-
-    private static final String PARAM_PREVIEW_MAX_FRAME_RATE = "previewMaxFrameRate";
-
-    private static final String PARAM_AUDIO = "audio";
-
-    private static final String PARAM_CHANNELS = "channels";
-
-    private static final String PARAM_SAMPLE_RATE = "sampleRate";
-
-    private static final String PARAM_SAMPLE_SIZE = "sampleSize";
-
-    private static final String PARAM_BLOCK_SIZE = "blockSize";
-
-    private static final String PARAM_IMAGE_SIZES = "imageSizes";
-
-    private static final String PARAM_PREVIEW_SIZES = "previewSizes";
-
-    private static final String PARAM_WIDTH = "width";
-
-    private static final String PARAM_HEIGHT = "height";
-
-    public static Integer getPreviewWidth(final Intent request) {
-        return parseInteger(request, PARAM_PREVIEW_WIDTH);
-    }
-
-    public static Integer getPreviewHeight(final Intent request) {
-        return parseInteger(request, PARAM_PREVIEW_HEIGHT);
-    }
-
-    public static Double getPreviewMaxFrameRate(final Intent request) {
-        return parseDouble(request, PARAM_PREVIEW_MAX_FRAME_RATE);
-    }
-
-    public static void setImageSizes(final Intent response, final Bundle[] imageSizes) {
-        response.putExtra(PARAM_IMAGE_SIZES, imageSizes);
-    }
-
-    public static void setPreviewSizes(final Intent response, final Bundle[] previewSizes) {
-        response.putExtra(PARAM_PREVIEW_SIZES, previewSizes);
-    }
-
-    public static void setWidth(final Bundle size, final int width) {
-        size.putInt(PARAM_WIDTH, width);
-    }
-
-    public static void setHeight(final Bundle size, final int height) {
-        size.putInt(PARAM_HEIGHT, height);
-    }
-
-    public static void setRecorderPreviewWidth(final Bundle recorder, final int imageWidth) {
-        recorder.putInt(PARAM_PREVIEW_WIDTH, imageWidth);
-    }
-
-    public static void setRecorderPreviewHeight(final Bundle recorder, final int imageHeight) {
-        recorder.putInt(PARAM_PREVIEW_HEIGHT, imageHeight);
-    }
-
-    public static void setRecorderPreviewMaxFrameRate(final Bundle recorder, final double maxFrameRate) {
-        recorder.putDouble(PARAM_PREVIEW_MAX_FRAME_RATE, maxFrameRate);
-    }
-
-    public static void setRecorderAudio(final Bundle recorder, final Bundle audio) {
-        recorder.putBundle(PARAM_AUDIO, audio);
-    }
-
-    public static void setAudioChannels(final Bundle audio, final int channels) {
-        audio.putInt(PARAM_CHANNELS, channels);
-    }
-
-    public static void setAudioSampleRate(final Bundle audio, final int sampleRate) {
-        audio.putInt(PARAM_SAMPLE_RATE, sampleRate);
-    }
-
-    public static void setAudioSampleSize(final Bundle audio, final int sampleSize) {
-        audio.putInt(PARAM_SAMPLE_SIZE, sampleSize);
-    }
-
-    public static void setAudioBlockSize(final Bundle audio, final int blockSize) {
-        audio.putInt(PARAM_BLOCK_SIZE, blockSize);
-    }
-
-    public static void setAudio(final Intent response, final Bundle audio) {
-        response.putExtra(PARAM_AUDIO, audio);
-    }
-
-    public static void setAudioUri(final Bundle audio, final String uri) {
-        audio.putString(PARAM_URI, uri);
     }
 }

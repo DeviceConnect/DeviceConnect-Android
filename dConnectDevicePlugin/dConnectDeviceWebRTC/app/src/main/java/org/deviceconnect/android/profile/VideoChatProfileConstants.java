@@ -83,6 +83,11 @@ public interface VideoChatProfileConstants extends DConnectProfileConstants {
     /**
      * parameter : {@value} .
      */
+    String PARAM_OUTPUTS = "outputs";
+
+    /**
+     * parameter : {@value} .
+     */
     String PARAM_ADDRESSES = "addresses";
 
     /**
@@ -99,6 +104,66 @@ public interface VideoChatProfileConstants extends DConnectProfileConstants {
      * parameter : {@value} .
      */
     String PARAM_HANGUP = "hangup";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_APP = "app";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_HOST = "host";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_LOCAL = "local";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_REMOTE = "remote";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_MIMETYPE = "mimeType";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_FRAMERATE = "frameRate";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_WIDTH = "width";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_HEIGHT = "height";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_SAMPLERATE = "sampleRate";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_CHANNELS = "channels";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_SAMPLESIZE = "sampleSize";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_BLOCKSIZE = "blockSize";
 
     /**
      * Video Chat状態を定義します.

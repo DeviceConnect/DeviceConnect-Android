@@ -29,6 +29,9 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
     private ByteBuffer mByteBuffer;
     private MixedReplaceMediaServer mServer;
 
+    private int mFrameHeight = 0;
+    private int mFrameWidth = 0;
+
     private boolean mReleased;
 
     public MySurfaceViewRenderer(Context context) {
@@ -72,6 +75,18 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         return mServer.getUrl();
     }
 
+    public int getFrameHeight() {
+        return mFrameHeight;
+    }
+
+    public int getFrameWidth() {
+        return mFrameWidth;
+    }
+
+    public String getMimeType() {
+        return mServer.getMimeType();
+    }
+
     @Override
     public void renderFrame(VideoRenderer.I420Frame frame) {
         if (mReleased) {
@@ -103,6 +118,8 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         YuvImage remoteImage = mYuvConverter.convertToYuvImage(frame.width, frame.height, frame.yuvStrides, frame.yuvPlanes);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         remoteImage.compressToJpeg(new Rect(0, 0, frame.width, frame.height), 50, out);
+        mFrameHeight = frame.height;
+        mFrameWidth = frame.width;
         mServer.offerMedia(out.toByteArray());
 
         if (frame.yuvPlanes[0] != null) {
@@ -131,6 +148,8 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
             if (bitmap != null) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
+                mFrameHeight = frame.height;
+                mFrameWidth = frame.width;
                 mServer.offerMedia(out.toByteArray());
             }
         }

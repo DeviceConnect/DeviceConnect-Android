@@ -44,6 +44,7 @@ public class VideoChatProfile extends DConnectProfile implements VideoChatProfil
             String addressId = request.getStringExtra(PARAM_ADDRESSID);
             String video = request.getStringExtra(PARAM_VIDEO);
             String audio = request.getStringExtra(PARAM_AUDIO);
+            String outputs = request.getStringExtra(PARAM_OUTPUTS);
             String config = request.getStringExtra(PARAM_CONFIG);
             result = onPostCall(request, response);
         } else {

@@ -198,9 +198,6 @@ public class VideoChatActivity extends Activity {
             args[0] = new Bundle();
             args[0].putString(VideoChatProfile.PARAM_NAME, mWebRTCController.getAddressId());
             args[0].putString(VideoChatProfile.PARAM_ADDRESSID, mWebRTCController.getAddressId());
-            // TODO: 出力先のURIを指定
-//            args[0].putString(VideoChatProfile.PARAM_VIDEO, "XXX");
-//            args[0].putString(VideoChatProfile.PARAM_AUDIO, "XXX");
             for (Event e : events) {
                 Intent event = EventManager.createEventMessage(e);
                 event.putExtra(VideoChatProfile.PARAM_ONCALL, args);

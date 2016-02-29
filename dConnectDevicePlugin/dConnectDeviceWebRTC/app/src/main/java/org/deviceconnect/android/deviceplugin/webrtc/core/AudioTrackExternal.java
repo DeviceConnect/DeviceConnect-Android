@@ -15,7 +15,10 @@ import fi.iki.elonen.WebSocket;
 public class AudioTrackExternal extends WebRtcAudioTrackModule {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "WebAudioTrack";
+    private static final String MIME_TYPE = "audio/wav";
     private final AudioManager mAudioManager;
+    private int mSampleRate = 0;
+    private int mChannels = 0;
 
     // Default audio data format is PCM 16 bit per sample.
     // Guaranteed to be supported by all devices.
@@ -83,6 +86,35 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
         int bytesSize = bytesPerFrame * (sampleRate / BUFFERS_PER_SECOND);
         mByteBuffer = ByteBuffer.allocateDirect(bytesSize);
         cacheDirectBufferAddress(mByteBuffer);
+        mSampleRate = sampleRate;
+        mChannels = channels;
+    }
+
+    public String getUrl() {
+        if (mWebSocketServer != null) {
+            return mWebSocketServer.getUrl();
+        } else {
+            return null;
+        }
+    }
+    public String getMimeType() {
+        return MIME_TYPE;
+    }
+
+    public int getSampleRate() {
+        return mSampleRate;
+    }
+
+    public int getChannels() {
+        return mChannels;
+    }
+
+    public int getSampleSize() {
+        return BITS_PER_SAMPLE;
+    }
+
+    public int getBlockSize() {
+        return (mChannels * (BITS_PER_SAMPLE / 8)) * (mSampleRate / BUFFERS_PER_SECOND);
     }
 
     @Override

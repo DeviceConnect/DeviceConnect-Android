@@ -834,6 +834,17 @@ public class WebSocketServer {
     }
 
     /**
+     * Get URI.
+     * @return URI.
+     */
+    public String getUrl() {
+        if (mServer == null) {
+            return null;
+        }
+        return "http://localhost:" + mServer.getListeningPort();
+    }
+
+    /**
      * WebSocketServerの設定.
      *
      * @author NTT DOCOMO, INC.

@@ -189,6 +189,14 @@ public class MixedReplaceMediaServer {
         }
         return "http://localhost:" + mServerSocket.getLocalPort() + "/" + mPath;
     }
+
+    /**
+     * Get a MIME type.
+     * @return MIME type.
+     */
+    public String getMimeType() {
+        return mContentType;
+    }
     
     /**
      * Get a server running status.
@@ -327,7 +335,7 @@ public class MixedReplaceMediaServer {
          * Queue that holds the media.
          */
         private final BlockingQueue<byte[]> mMediaQueue = new ArrayBlockingQueue<byte[]>(MAX_MEDIA_CACHE);
-        
+
         /**
          * Constructor.
          * @param socket socket
@@ -359,9 +367,18 @@ public class MixedReplaceMediaServer {
                     mStream.flush();
 
                     while (!mStopFlag) {
+                        long startTime = System.currentTimeMillis();
                         byte[] media = mMediaQueue.take();
                         if (media.length > 0) {
                             sendMedia(media);
+                        }
+                        long diffTime = System.currentTimeMillis() - startTime;
+                        if (diffTime < 33) {
+                            try {
+                                Thread.sleep(33 - diffTime);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }

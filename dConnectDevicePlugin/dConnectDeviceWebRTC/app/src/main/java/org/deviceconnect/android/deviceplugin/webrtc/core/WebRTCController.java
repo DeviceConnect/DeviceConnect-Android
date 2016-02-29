@@ -1,7 +1,10 @@
 package org.deviceconnect.android.deviceplugin.webrtc.core;
 
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Camera;
+import android.net.wifi.WifiManager;
+import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
@@ -9,8 +12,12 @@ import org.deviceconnect.android.deviceplugin.webrtc.WebRTCApplication;
 import org.deviceconnect.android.deviceplugin.webrtc.setting.SettingUtil;
 import org.deviceconnect.android.deviceplugin.webrtc.util.AudioUtils;
 import org.deviceconnect.android.deviceplugin.webrtc.util.CameraUtils;
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.profile.VideoChatProfile;
 import org.webrtc.EglBase;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,12 +34,17 @@ public class WebRTCController {
 
     private MySurfaceViewRenderer mLocalRender;
     private MySurfaceViewRenderer mRemoteRender;
+    private AudioTrackExternal mAudioTrackExternal;
 
     private WebRTCApplication mApplication;
 
     private PeerConfig mConfig;
     private PeerOption mOption;
     private Peer mPeer;
+
+    private static final int DEFAULT_WIDTH = 480;
+    private static final int DEFAULT_HEIGHT = 640;
+    private static final int DEFAULT_FPS = 30;
 
     /**
      * Connection of WebRTC.
@@ -80,6 +92,10 @@ public class WebRTCController {
 
     private void setRemoteRender(MySurfaceViewRenderer remoteRender) {
         mRemoteRender = remoteRender;
+    }
+
+    private void setAudioTrackExternal(AudioTrackExternal audioTrackExternal) {
+        mAudioTrackExternal = audioTrackExternal;
     }
 
     private void setOption(PeerOption option) {
@@ -244,6 +260,75 @@ public class WebRTCController {
      * Notifies call event.
      */
     private void sendCallEvent() {
+        final String LOCALHOST = "localhost";
+        List<Event> events = EventManager.INSTANCE.getEventList(
+                PeerUtil.getServiceId(getPeer()),
+                VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_ONCALL);
+        if (events.size() != 0) {
+            Bundle local = new Bundle();
+            Bundle remote = new Bundle();
+            Bundle videoParam = new Bundle();
+            Bundle audioParam = new Bundle();
+            String ipAddr = getIPAddress(mApplication.getApplicationContext());
+
+            // Set local parameter
+            String uri = mLocalRender.getUrl();
+            if (uri == null) {
+                uri = "";
+            } else if (uri.contains(LOCALHOST)) {
+                uri = uri.replaceAll(LOCALHOST, ipAddr);
+            }
+            videoParam.putString(VideoChatProfile.PARAM_URI, uri);
+            videoParam.putString(VideoChatProfile.PARAM_MIMETYPE, mLocalRender.getMimeType());
+            videoParam.putInt(VideoChatProfile.PARAM_FRAMERATE, DEFAULT_FPS);
+            videoParam.putInt(VideoChatProfile.PARAM_WIDTH, mLocalRender.getFrameWidth());
+            videoParam.putInt(VideoChatProfile.PARAM_HEIGHT, mLocalRender.getFrameHeight());
+
+            local.putBundle(VideoChatProfile.PARAM_VIDEO, (Bundle) videoParam.clone());
+
+            // Set remote parameter
+            uri = mRemoteRender.getUrl();
+            if (uri == null) {
+                uri = "";
+            } else if (uri.contains(LOCALHOST)) {
+                uri = uri.replaceAll(LOCALHOST, ipAddr);
+            }
+            videoParam.putString(VideoChatProfile.PARAM_URI, uri);
+            videoParam.putString(VideoChatProfile.PARAM_MIMETYPE, mRemoteRender.getMimeType());
+            videoParam.putInt(VideoChatProfile.PARAM_FRAMERATE, 30);
+            videoParam.putInt(VideoChatProfile.PARAM_WIDTH, mRemoteRender.getFrameWidth());
+            videoParam.putInt(VideoChatProfile.PARAM_HEIGHT, mRemoteRender.getFrameHeight());
+
+            uri = mAudioTrackExternal.getUrl();
+            if (uri == null) {
+                uri = "";
+            } else if (uri.contains(LOCALHOST)) {
+                uri = uri.replaceAll(LOCALHOST, ipAddr);
+            }
+            audioParam.putString(VideoChatProfile.PARAM_URI, uri);
+            audioParam.putString(VideoChatProfile.PARAM_MIMETYPE, mAudioTrackExternal.getMimeType());
+            audioParam.putInt(VideoChatProfile.PARAM_SAMPLERATE, mAudioTrackExternal.getSampleRate());
+            audioParam.putInt(VideoChatProfile.PARAM_CHANNELS, mAudioTrackExternal.getChannels());
+            audioParam.putInt(VideoChatProfile.PARAM_SAMPLESIZE, mAudioTrackExternal.getSampleSize());
+            audioParam.putInt(VideoChatProfile.PARAM_BLOCKSIZE, mAudioTrackExternal.getBlockSize());
+
+            remote.putBundle(VideoChatProfile.PARAM_VIDEO, (Bundle) videoParam.clone());
+            remote.putBundle(VideoChatProfile.PARAM_AUDIO, (Bundle) audioParam.clone());
+
+            Bundle[] args = new Bundle[1];
+            args[0] = new Bundle();
+            args[0].putString(VideoChatProfile.PARAM_NAME, getAddressId());
+            args[0].putString(VideoChatProfile.PARAM_ADDRESSID, getAddressId());
+            args[0].putBundle(VideoChatProfile.PARAM_REMOTE, remote);
+            args[0].putBundle(VideoChatProfile.PARAM_LOCAL, local);
+
+            for (Event e : events) {
+                Intent event = EventManager.createEventMessage(e);
+                event.putExtra(VideoChatProfile.PARAM_ONCALL, args);
+                mApplication.sendBroadcast(event);
+            }
+        }
+
         if (mWebRTCEventListener != null) {
             mWebRTCEventListener.onConnected(WebRTCController.this);
         }
@@ -253,6 +338,20 @@ public class WebRTCController {
      * Notifies hang up event.
      */
     private void sendHangupEvent() {
+        List<Event> events = EventManager.INSTANCE.getEventList(
+                PeerUtil.getServiceId(getPeer()),
+                VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_HANGUP);
+        if (events.size() != 0) {
+            Bundle arg = new Bundle();
+            arg.putString(VideoChatProfile.PARAM_NAME, getAddressId());
+            arg.putString(VideoChatProfile.PARAM_ADDRESSID, getAddressId());
+            for (Event e : events) {
+                Intent event = EventManager.createEventMessage(e);
+                event.putExtra(VideoChatProfile.PARAM_HANGUP, arg);
+                mApplication.sendBroadcast(event);
+            }
+        }
+
         if (mWebRTCEventListener != null) {
             mWebRTCEventListener.onDisconnected(WebRTCController.this);
         }
@@ -270,10 +369,17 @@ public class WebRTCController {
         void onError(WebRTCController controller);
     }
 
+    public static String getIPAddress(final Context context) {
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
+        return String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+                (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+    }
+
     public static class Builder {
-        private int mVideoWidth = 480;
-        private int mVideoHeight = 640;
-        private int mVideoFps = 30;
+        private int mVideoWidth = DEFAULT_WIDTH;
+        private int mVideoHeight = DEFAULT_HEIGHT;
+        private int mVideoFps = DEFAULT_FPS;
         private int mVideoFacing = Camera.CameraInfo.CAMERA_FACING_FRONT;
 
         private PeerOption.VideoType mVideoType = PeerOption.VideoType.CAMERA;
@@ -286,6 +392,7 @@ public class WebRTCController {
 
         private MySurfaceViewRenderer mLocalRender;
         private MySurfaceViewRenderer mRemoteRender;
+        private AudioTrackExternal mAudioTrackExternal;
 
         private PeerConfig mConfig;
 
@@ -354,6 +461,11 @@ public class WebRTCController {
 
         public Builder setRemoteRender(MySurfaceViewRenderer render) {
             mRemoteRender = render;
+            return this;
+        }
+
+        public Builder setAudioTrackExternal(AudioTrackExternal audioTrackExternal) {
+            mAudioTrackExternal = audioTrackExternal;
             return this;
         }
 
@@ -454,6 +566,7 @@ public class WebRTCController {
             WebRTCController ctl = new WebRTCController(mApplication, mConfig, mAddressId, mOffer, mWebRTCEventListener);
             ctl.setLocalRender(mLocalRender);
             ctl.setRemoteRender(mRemoteRender);
+            ctl.setAudioTrackExternal(mAudioTrackExternal);
             ctl.setOption(option);
 
             return ctl;

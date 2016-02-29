@@ -179,13 +179,12 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                             String addressId = request.getStringExtra(PARAM_ADDRESSID);
                             String video = request.getStringExtra(PARAM_VIDEO);
                             String audio = request.getStringExtra(PARAM_AUDIO);
-                            // TODO defined parameter name
-                            String outputs = request.getStringExtra("outputs");
+                            String outputs = request.getStringExtra(PARAM_OUTPUTS);
 
                             // if value is null, sets "true" as default
                             video = (video == null || video.isEmpty()) ? "true" : video;
                             audio = (audio == null || audio.isEmpty()) ? "true" : audio;
-                            outputs = (outputs == null || outputs.isEmpty()) ? "host" : outputs;
+                            outputs = (outputs == null || outputs.isEmpty()) ? PARAM_HOST : outputs;
 
                             if (addressId == null || addressId.length() == 0) {
                                 MessageUtils.setInvalidRequestParameterError(response, "addressId is invalid.");
@@ -205,7 +204,7 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                                 intent.putExtra(VideoChatActivity.EXTRA_CONFIG, peer.getConfig());
                                 intent.putExtra(VideoChatActivity.EXTRA_OFFER, offer);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                if (outputs.equals("host")) {
+                                if (outputs.equals(PARAM_HOST)) {
                                     getContext().startActivity(intent);
                                 } else {
                                     WebRTCManager mgr = getWebRTCService().getWebRTCManager();
@@ -478,46 +477,12 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
             if (BuildConfig.DEBUG) {
                 Log.i(TAG, "@@@ run onDisconnected event");
             }
-
-            List<Event> events = EventManager.INSTANCE.getEventList(
-                    PeerUtil.getServiceId(peer),
-                    PROFILE_NAME, null, ATTR_HANGUP);
-            if (events.size() != 0) {
-                Bundle arg = new Bundle();
-                arg.putString(PARAM_NAME, address.getName());
-                arg.putString(PARAM_ADDRESSID, address.getAddressId());
-                for (Event e : events) {
-                    Intent event = EventManager.createEventMessage(e);
-                    event.putExtra(PARAM_HANGUP, arg);
-                    DConnectMessageService s = (DConnectMessageService) getContext();
-                    s.sendEvent(event, e.getAccessToken());
-                }
-            }
         }
 
         @Override
         public void onCalling(final Peer peer, final Address address) {
             if (BuildConfig.DEBUG) {
                 Log.i(TAG, "@@@ run onCalling event");
-            }
-
-            List<Event> events = EventManager.INSTANCE.getEventList(
-                    PeerUtil.getServiceId(peer),
-                    PROFILE_NAME, null, ATTR_ONCALL);
-            if (events.size() != 0) {
-                Bundle[] args = new Bundle[1];
-                args[0] = new Bundle();
-                args[0].putString(PARAM_NAME, address.getName());
-                args[0].putString(PARAM_ADDRESSID, address.getAddressId());
-                // TODO video and audio
-//                args[0].putString(PARAM_VIDEO, "XXX");
-//                args[0].putString(PARAM_AUDIO, "XXX");
-                for (Event e : events) {
-                    Intent event = EventManager.createEventMessage(e);
-                    event.putExtra(PARAM_ONCALL, args);
-                    DConnectMessageService s = (DConnectMessageService) getContext();
-                    s.sendEvent(event, e.getAccessToken());
-                }
             }
         }
     };

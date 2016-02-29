@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
-import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.view.Display;
@@ -20,12 +19,8 @@ import org.deviceconnect.android.deviceplugin.webrtc.core.AudioTrackExternal;
 import org.deviceconnect.android.deviceplugin.webrtc.core.MySurfaceViewRenderer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.Peer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
-import org.deviceconnect.android.deviceplugin.webrtc.core.PeerUtil;
 import org.deviceconnect.android.deviceplugin.webrtc.core.WebRTCController;
 import org.deviceconnect.android.deviceplugin.webrtc.fragment.PercentFrameLayout;
-import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.profile.VideoChatProfile;
 import org.webrtc.EglBase;
 import org.webrtc.RendererCommon;
 import org.webrtc.voiceengine.WebRtcAudioTrack;
@@ -33,16 +28,21 @@ import org.webrtc.voiceengine.WebRtcAudioTrackModule;
 import org.webrtc.voiceengine.WebRtcAudioTrackModuleFactory;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class WebRTCManager {
+
+    private static final int REMOTE_VIDEO_PORT = 12345;
+    private static final int REMOTE_AUDIO_PORT = 11111;
+    private static final int LOCAL_VIDEO_PORT = 12346;
 
     private WebRTCApplication mApplication;
     private Handler mHandler = new Handler();
 
     private Map<Peer, WebRTCController> mMap = new HashMap<>();
     private WindowManager mWinMgr;
+
+    private AudioTrackExternal mAudioTrackExternal;
 
     public WebRTCManager(WebRTCApplication application) {
         mApplication = application;
@@ -70,10 +70,10 @@ public class WebRTCManager {
 
         EglBase eglBase = EglBase.create();
         remoteRender.init(eglBase.getEglBaseContext(), null);
-        remoteRender.createYuvConverter(eglBase.getEglBaseContext(), 12345);
+        remoteRender.createYuvConverter(eglBase.getEglBaseContext(), REMOTE_VIDEO_PORT);
 
         localRender.init(eglBase.getEglBaseContext(), null);
-        localRender.createYuvConverter(eglBase.getEglBaseContext(), 12346);
+        localRender.createYuvConverter(eglBase.getEglBaseContext(), LOCAL_VIDEO_PORT);
         localRender.setZOrderMediaOverlay(true);
 
         PeerConfig config = intent.getParcelableExtra(VideoChatActivity.EXTRA_CONFIG);
@@ -85,7 +85,7 @@ public class WebRTCManager {
         WebRtcAudioTrack.setAudioTrackModuleFactory(new WebRtcAudioTrackModuleFactory() {
             @Override
             public WebRtcAudioTrackModule create(Context context) {
-                return new AudioTrackExternal(context, 11111);
+                return mAudioTrackExternal;
             }
         });
 
@@ -97,6 +97,8 @@ public class WebRTCManager {
         builder.setConfig(config);
         builder.setRemoteRender(remoteRender);
         builder.setLocalRender(localRender);
+        mAudioTrackExternal = new AudioTrackExternal(mApplication.getApplicationContext(), REMOTE_AUDIO_PORT);
+        builder.setAudioTrackExternal(mAudioTrackExternal);
         builder.setVideoUri(videoUri);
         builder.setAudioUri(audioUri);
         builder.setAddressId(addressId);
@@ -171,49 +173,6 @@ public class WebRTCManager {
         return size;
     }
 
-    /**
-     * Notifies call event.
-     */
-    private void sendCallEvent(WebRTCController controller) {
-        List<Event> events = EventManager.INSTANCE.getEventList(
-                PeerUtil.getServiceId(controller.getPeer()),
-                VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_ONCALL);
-        if (events.size() != 0) {
-            Bundle[] args = new Bundle[1];
-            args[0] = new Bundle();
-            args[0].putString(VideoChatProfile.PARAM_NAME, controller.getAddressId());
-            args[0].putString(VideoChatProfile.PARAM_ADDRESSID, controller.getAddressId());
-            // TODO: 出力先のURIを指定
-//            args[0].putString(VideoChatProfile.PARAM_VIDEO, "XXX");
-//            args[0].putString(VideoChatProfile.PARAM_AUDIO, "XXX");
-            for (Event e : events) {
-                Intent event = EventManager.createEventMessage(e);
-                event.putExtra(VideoChatProfile.PARAM_ONCALL, args);
-                mApplication.sendBroadcast(event);
-            }
-        }
-    }
-
-    /**
-     * Notifies hang up event.
-     */
-    private void sendHangupEvent(WebRTCController controller) {
-        List<Event> events = EventManager.INSTANCE.getEventList(
-                PeerUtil.getServiceId(controller.getPeer()),
-                VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_HANGUP);
-        if (events.size() != 0) {
-            Bundle arg = new Bundle();
-            arg.putString(VideoChatProfile.PARAM_NAME, controller.getAddressId());
-            arg.putString(VideoChatProfile.PARAM_ADDRESSID, controller.getAddressId());
-            for (Event e : events) {
-                Intent event = EventManager.createEventMessage(e);
-                event.putExtra(VideoChatProfile.PARAM_HANGUP, arg);
-                mApplication.sendBroadcast(event);
-            }
-        }
-    }
-
-
     private WebRTCController.WebRTCEventListener mListener = new WebRTCController.WebRTCEventListener() {
         @Override
         public void onFoundPeer(WebRTCController controller) {
@@ -234,12 +193,10 @@ public class WebRTCManager {
 
         @Override
         public void onConnected(WebRTCController controller) {
-            sendCallEvent(controller);
         }
 
         @Override
         public void onDisconnected(WebRTCController controller) {
-            sendHangupEvent(controller);
             disconnect(controller.getPeer());
         }
 

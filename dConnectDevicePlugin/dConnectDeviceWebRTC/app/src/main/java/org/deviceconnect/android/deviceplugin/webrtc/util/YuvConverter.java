@@ -9,7 +9,6 @@ import android.graphics.ImageFormat;
 import android.graphics.YuvImage;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
-import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -159,7 +158,6 @@ public class YuvConverter {
         int total_height = height + uv_height;
         int size = stride * total_height;
 
-        Log.d("ABC", "stride: " + stride + "width: " + width + ", height: " + height + ", y_Width: " + y_width + ", uv_width: " + uv_width + ", uv_height: " + uv_height + ", total_height: " + total_height + ", size: " + size);
 
         if (buf.capacity() < size) {
             throw new IllegalArgumentException("YuvConverter.convert called with too small buffer");
@@ -200,7 +198,6 @@ public class YuvConverter {
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
         // Draw U
-//        GLES20.glViewport(0, height, uv_width, uv_height);
         GLES20.glViewport(0, height, uv_width, uv_height);
         // Matrix * (1;0;0;0) / (2*width). Note that opengl uses column major order.
         GLES20.glUniform2f(xUnitLoc,
@@ -210,7 +207,6 @@ public class YuvConverter {
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
         // Draw V
-//        GLES20.glViewport(stride/8, height, uv_width, uv_height);
         GLES20.glViewport(stride/8, height, uv_width, uv_height);
         GLES20.glUniform4f(coeffsLoc, 0.499f, -0.418f, -0.0813f, 0.5f);
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);

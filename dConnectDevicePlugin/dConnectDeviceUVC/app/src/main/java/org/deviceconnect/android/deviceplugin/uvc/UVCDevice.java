@@ -125,11 +125,13 @@ public class UVCDevice {
                 mLockPermission.wait(100);
             }
             mIsPermitted = mPermissionRequest.isPermitted();
+            mLogger.info("requestPermission: isPermitted = " + mIsPermitted);
             mPermissionRequest = null;
         }
     }
 
     void notifyPermission(final USBMonitor.UsbControlBlock ctrlBlock) {
+        mLogger.info("notifyPermission: ctrlBlock = " + ctrlBlock);
         synchronized (mLockPermission) {
             if (mPermissionRequest != null) {
                 mPermissionRequest.setResult(ctrlBlock != null);
@@ -139,7 +141,7 @@ public class UVCDevice {
         }
     }
 
-    synchronized boolean initialize() {
+    synchronized boolean connect() {
         if (mIsInitialized) {
             return true;
         }
@@ -160,7 +162,7 @@ public class UVCDevice {
         return true;
     }
 
-    synchronized boolean open() {
+    private boolean open() {
         if (mIsOpen) {
             return true;
         }
@@ -275,19 +277,23 @@ public class UVCDevice {
         }
     }
 
-    synchronized boolean close() {
+    synchronized boolean disconnect() {
+        if (!mIsInitialized) {
+            return false;
+        }
         if (!mIsOpen) {
             return false;
         }
-        if (hasStartedPreview()) {
-            mCamera.stopPreview();
-        }
-        mIsOpen = false;
-
+        stopPreview();
         mCamera.close();
         mCamera.destroy();
         mCamera = null;
-
+        mCtrlBlock.close();
+        mCtrlBlock = null;
+        mCurrentOption = null;
+        mIsOpen = false;
+        mIsPermitted = false;
+        mIsInitialized = false;
         return true;
     }
 

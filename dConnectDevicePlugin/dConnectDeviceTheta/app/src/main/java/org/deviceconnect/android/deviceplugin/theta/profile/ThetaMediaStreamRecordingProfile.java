@@ -265,6 +265,7 @@ public class ThetaMediaStreamRecordingProfile extends MediaStreamRecordingProfil
                                                 final boolean hasStarted) {
                 if (hasStarted) {
                     MessageUtils.setIllegalDeviceStateError(response, "Video recording has started already.");
+                    sendResponse(response);
                 } else {
                     setResult(response, DConnectMessage.RESULT_OK);
                     sendResponse(response);

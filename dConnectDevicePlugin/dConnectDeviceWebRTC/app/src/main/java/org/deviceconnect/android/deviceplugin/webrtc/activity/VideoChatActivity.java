@@ -89,7 +89,9 @@ public class VideoChatActivity extends Activity {
         mRemoteLayout = (PercentFrameLayout) findViewById(R.id.remote_video_layout);
 
         mLocalRender = (MySurfaceViewRenderer) findViewById(R.id.local_video_view);
+        mLocalRender.setType(MySurfaceViewRenderer.TYPE_LOCAL);
         mRemoteRender = (MySurfaceViewRenderer) findViewById(R.id.remote_video_view);
+        mRemoteRender.setType(MySurfaceViewRenderer.TYPE_REMOTE);
 
         EglBase eglBase = EglBase.create();
         mRemoteRender.init(eglBase.getEglBaseContext(), null);

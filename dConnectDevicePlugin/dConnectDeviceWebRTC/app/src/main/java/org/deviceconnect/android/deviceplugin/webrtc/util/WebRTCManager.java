@@ -32,9 +32,8 @@ import java.util.Map;
 
 public class WebRTCManager {
 
-    private static final int REMOTE_VIDEO_PORT = 12345;
-    private static final int REMOTE_AUDIO_PORT = 11111;
-    private static final int LOCAL_VIDEO_PORT = 12346;
+    private static final int VIDEO_PORT = 12345;
+    private static final int AUDIO_PORT = 11111;
 
     private WebRTCApplication mApplication;
     private Handler mHandler = new Handler();
@@ -43,6 +42,8 @@ public class WebRTCManager {
     private WindowManager mWinMgr;
 
     private AudioTrackExternal mAudioTrackExternal;
+
+    private MixedReplaceMediaServer mServer;
 
     public WebRTCManager(WebRTCApplication application) {
         mApplication = application;
@@ -59,6 +60,10 @@ public class WebRTCManager {
     }
 
     public void connect(Intent intent) {
+        mServer = new MixedReplaceMediaServer();
+        mServer.setPort(VIDEO_PORT);
+        mServer.start();
+
         LayoutInflater inflater = (LayoutInflater) mApplication.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         RelativeLayout root = (RelativeLayout) inflater.inflate(R.layout.activity_main, null);
 
@@ -66,14 +71,18 @@ public class WebRTCManager {
         PercentFrameLayout remoteLayout = (PercentFrameLayout) root.findViewById(R.id.remote_video_layout);
 
         MySurfaceViewRenderer localRender = (MySurfaceViewRenderer) root.findViewById(R.id.local_video_view);
+        localRender.setType(MySurfaceViewRenderer.TYPE_LOCAL);
+        localRender.setWebServer(mServer);
         MySurfaceViewRenderer remoteRender = (MySurfaceViewRenderer) root.findViewById(R.id.remote_video_view);
+        remoteRender.setType(MySurfaceViewRenderer.TYPE_REMOTE);
+        remoteRender.setWebServer(mServer);
 
         EglBase eglBase = EglBase.create();
         remoteRender.init(eglBase.getEglBaseContext(), null);
-        remoteRender.createYuvConverter(eglBase.getEglBaseContext(), REMOTE_VIDEO_PORT);
+        remoteRender.createYuvConverter(eglBase.getEglBaseContext());
 
         localRender.init(eglBase.getEglBaseContext(), null);
-        localRender.createYuvConverter(eglBase.getEglBaseContext(), LOCAL_VIDEO_PORT);
+        localRender.createYuvConverter(eglBase.getEglBaseContext());
         localRender.setZOrderMediaOverlay(true);
 
         PeerConfig config = intent.getParcelableExtra(VideoChatActivity.EXTRA_CONFIG);
@@ -97,7 +106,7 @@ public class WebRTCManager {
         builder.setConfig(config);
         builder.setRemoteRender(remoteRender);
         builder.setLocalRender(localRender);
-        mAudioTrackExternal = new AudioTrackExternal(mApplication.getApplicationContext(), REMOTE_AUDIO_PORT);
+        mAudioTrackExternal = new AudioTrackExternal(mApplication.getApplicationContext(), AUDIO_PORT);
         builder.setAudioTrackExternal(mAudioTrackExternal);
         builder.setVideoUri(videoUri);
         builder.setAudioUri(audioUri);
@@ -138,6 +147,10 @@ public class WebRTCManager {
     public void disconnect(Peer peer) {
         WebRTCController ctl = mMap.remove(peer);
         if (ctl != null) {
+            if (mServer != null) {
+                mServer.stop();
+                mServer = null;
+            }
             ctl.hangup();
             mWinMgr.removeView((View) ctl.getLocalRender().getParent().getParent());
         }
@@ -145,6 +158,10 @@ public class WebRTCManager {
 
     public  void destroy() {
         for (Map.Entry<Peer, WebRTCController> e : mMap.entrySet()) {
+            if (mServer != null) {
+                mServer.stop();
+                mServer = null;
+            }
             e.getValue().hangup();
         }
         mMap.clear();

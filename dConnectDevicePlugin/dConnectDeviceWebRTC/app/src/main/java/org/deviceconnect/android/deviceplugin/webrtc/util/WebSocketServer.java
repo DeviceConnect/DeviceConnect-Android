@@ -871,7 +871,7 @@ public class WebSocketServer {
         private boolean mIsSsl;
 
         /**
-         * ほーと番号.
+         * ポート番号.
          */
         private int mPort;
 

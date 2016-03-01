@@ -24,10 +24,15 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
     private static final boolean DEBUG = BuildConfig.DEBUG;
     private static final String TAG = "WebRTC";
 
+    public static final String TYPE_LOCAL = "local";
+    public static final String TYPE_REMOTE = "remote";
+
+    private String mType = null;
+
     private YuvConverter mYuvConverter;
 
     private ByteBuffer mByteBuffer;
-    private MixedReplaceMediaServer mServer;
+    private MixedReplaceMediaServer mServer = null;
 
     private int mFrameHeight = 0;
     private int mFrameWidth = 0;
@@ -50,29 +55,18 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         mReleased = true;
         mByteBuffer = null;
 
-        if (mServer != null) {
-            mServer.stop();
-            mServer = null;
-        }
-
         if (mYuvConverter != null) {
             mYuvConverter.release();
             mYuvConverter = null;
         }
     }
 
-    public void createYuvConverter(EglBase.Context context, int port) {
+    public void createYuvConverter(EglBase.Context context) {
         mYuvConverter = new YuvConverter(context);
-        mServer = new MixedReplaceMediaServer();
-        mServer.setPort(port);
-        String url = mServer.start();
-        if (DEBUG) {
-            Log.i(TAG, "url is " + url);
-        }
     }
 
     public String getUrl() {
-        return mServer.getUrl();
+        return mServer.getUrl(mType);
     }
 
     public int getFrameHeight() {
@@ -85,6 +79,14 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
 
     public String getMimeType() {
         return mServer.getMimeType();
+    }
+
+    public void setType(final String type) {
+        mType = type;
+    }
+
+    public void setWebServer(final MixedReplaceMediaServer server) {
+        mServer = server;
     }
 
     @Override
@@ -120,7 +122,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         remoteImage.compressToJpeg(new Rect(0, 0, frame.width, frame.height), 50, out);
         mFrameHeight = frame.height;
         mFrameWidth = frame.width;
-        mServer.offerMedia(out.toByteArray());
+        mServer.offerMedia(mType, out.toByteArray());
 
         if (frame.yuvPlanes[0] != null) {
             frame.yuvPlanes[0].rewind();
@@ -150,7 +152,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
                 mFrameHeight = frame.height;
                 mFrameWidth = frame.width;
-                mServer.offerMedia(out.toByteArray());
+                mServer.offerMedia(mType, out.toByteArray());
             }
         }
     }

@@ -6,8 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.webrtc.util;
 
-import android.net.Uri;
-
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
 
 import java.io.BufferedReader;
@@ -83,7 +81,22 @@ public class MixedReplaceMediaServer {
      * Name of web server.
      */
     private String mServerName = "DevicePlugin Server";
-    
+
+    /**
+     * Type select : local.
+     */
+    private final String LOCAL = "local";
+
+    /**
+     * Type select : remote.
+     */
+    private final String REMOTE = "remote";
+
+    /**
+     * Video select : video.
+     */
+    private final String VIDEO = "video";
+
     /**
      * Server Socket.
      */
@@ -99,7 +112,7 @@ public class MixedReplaceMediaServer {
      */
     private final List<ServerRunnable> mRunnables = Collections.synchronizedList(
             new ArrayList<ServerRunnable>());
-    
+
     /**
      * Set a boundary.
      * @param boundary boundary of a multipart
@@ -181,13 +194,21 @@ public class MixedReplaceMediaServer {
     
     /**
      * Get a url of server.
+     * @param type Select local uri or remote uri.
      * @return url
      */
-    public String getUrl() {
-        if (mServerSocket == null || mPath == null) {
+    public String getUrl(final String type) {
+        if (mServerSocket == null || mPath == null || type == null || (!type.equals(LOCAL) && !type.equals(REMOTE))) {
             return null;
         }
-        return "http://localhost:" + mServerSocket.getLocalPort() + "/" + mPath;
+        switch (type) {
+            case LOCAL:
+                return "http://localhost:" + mServerSocket.getLocalPort() + "/" + LOCAL + "/" + VIDEO + "/" + mPath;
+            case REMOTE:
+                return "http://localhost:" + mServerSocket.getLocalPort() + "/" + REMOTE + "/" + VIDEO + "/" + mPath;
+            default:
+                return null;
+        }
     }
 
     /**
@@ -210,14 +231,23 @@ public class MixedReplaceMediaServer {
      * Inserts the media data into queue.
      * @param media media data
      */
-    public synchronized void offerMedia(final byte[] media) {
-        if (media == null) {
+    public synchronized void offerMedia(final String type, final byte[] media) {
+        if (type == null || media == null) {
             return;
         }
         if (!mStopFlag) {
             synchronized (mRunnables) {
                 for (ServerRunnable run : mRunnables) {
-                    run.offerMedia(media);
+                    switch (type) {
+                        case LOCAL:
+                            run.offerMedia(LOCAL, media);
+                            break;
+                        case REMOTE:
+                            run.offerMedia(REMOTE, media);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
@@ -228,16 +258,16 @@ public class MixedReplaceMediaServer {
      * <p>
      * If a port is not set, looking for a port that is not used between 9000 to 10000, set to server.
      * </p>
-     * @return the local IP address of this server or {@code null} if this server cannot start.
+     * @return {@code true} if this server can start or {@code false} if this server cannot start.
      */
-    public synchronized String start() {
+    public synchronized Boolean start() {
         try {
             mServerSocket = openServerSocket();
             mLogger.fine("Open a server socket.");
         } catch (IOException e) {
             // Failed to open server socket
             mStopFlag = true;
-            return null;
+            return false;
         }
 
         //mPath = UUID.randomUUID().toString();
@@ -261,7 +291,7 @@ public class MixedReplaceMediaServer {
                 }
             }
         }).start();
-        return getUrl();
+        return true;
     }
     
     /**
@@ -295,7 +325,7 @@ public class MixedReplaceMediaServer {
         mExecutor.shutdown();
         synchronized (mRunnables) {
             for (ServerRunnable run : mRunnables) {
-                run.offerMedia(new byte[0]);
+                run.offerMedia(LOCAL, new byte[0]);
             }
         }
         if (mServerSocket != null) {
@@ -332,9 +362,14 @@ public class MixedReplaceMediaServer {
         private OutputStream mStream;
         
         /**
-         * Queue that holds the media.
+         * Queue that holds the media (local).
          */
-        private final BlockingQueue<byte[]> mMediaQueue = new ArrayBlockingQueue<byte[]>(MAX_MEDIA_CACHE);
+        private final BlockingQueue<byte[]> mLocalMediaQueue = new ArrayBlockingQueue<>(MAX_MEDIA_CACHE);
+
+        /**
+         * Queue that holds the media (remote).
+         */
+        private final BlockingQueue<byte[]> mRemoteMediaQueue = new ArrayBlockingQueue<>(MAX_MEDIA_CACHE);
 
         /**
          * Constructor.
@@ -357,7 +392,7 @@ public class MixedReplaceMediaServer {
                 if (len == -1) {
                     return;
                 }
-                decodeHeader(buf, len);
+                String type = decodeHeader(buf, len);
 
                 if (mRunnables.size() > MAX_CLIENT_SIZE) {
                     mStream.write(generateServiceUnavailable().getBytes());
@@ -368,7 +403,12 @@ public class MixedReplaceMediaServer {
 
                     while (!mStopFlag) {
                         long startTime = System.currentTimeMillis();
-                        byte[] media = mMediaQueue.take();
+                        byte [] media;
+                        if (type.equals(LOCAL)) {
+                            media = mLocalMediaQueue.take();
+                        } else {
+                            media = mRemoteMediaQueue.take();
+                        }
                         if (media.length > 0) {
                             sendMedia(media);
                         }
@@ -428,11 +468,21 @@ public class MixedReplaceMediaServer {
          * @param media the media to add
          * @return true if the media data was added to this queue, else false
          */
-        private boolean offerMedia(final byte[] media) {
-            if (mMediaQueue.size() == MAX_MEDIA_CACHE) {
-                mMediaQueue.remove();
+        private boolean offerMedia(final String type, final byte[] media) {
+            switch (type) {
+                case LOCAL:
+                    if (mLocalMediaQueue.size() == MAX_MEDIA_CACHE) {
+                        mLocalMediaQueue.remove();
+                    }
+                    return mLocalMediaQueue.offer(media);
+                case REMOTE:
+                    if (mRemoteMediaQueue.size() == MAX_MEDIA_CACHE) {
+                        mRemoteMediaQueue.remove();
+                    }
+                    return mRemoteMediaQueue.offer(media);
+                default:
+                    return false;
             }
-            return mMediaQueue.offer(media);
         }
         
         /**
@@ -456,7 +506,7 @@ public class MixedReplaceMediaServer {
          * @param len buffer size
          * @throws IOException if this http header is invalid.
          */
-        private void decodeHeader(final byte[] buf, final int len) throws IOException {
+        private String decodeHeader(final byte[] buf, final int len) throws IOException {
             HashMap<String, String> pre = new HashMap<String, String>();
             HashMap<String, String> headers = new HashMap<String, String>();
             HashMap<String, String> params = new HashMap<String, String>();
@@ -512,10 +562,14 @@ public class MixedReplaceMediaServer {
                 }
             }
 
-            String segment = Uri.parse(uri).getLastPathSegment();
-            if (segment == null || !segment.equals(mPath)) {
-                throw new IOException("Header is invalid format.");
+            if (uri != null) {
+                if (uri.contains("/" + LOCAL + "/" + VIDEO + "/" + mPath)) {
+                    return LOCAL;
+                } else if (uri.contains("/" + REMOTE + "/" + VIDEO + "/" + mPath)) {
+                    return REMOTE;
+                }
             }
+            throw new IOException("Header is invalid format.");
         }
         
         /**
@@ -559,18 +613,16 @@ public class MixedReplaceMediaServer {
      * @return http header
      */
     private String generateHttpHeader() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("HTTP/1.0 200 OK\r\n");
-        sb.append("Server: " + mServerName + "\r\n");
-        sb.append("Connection: close\r\n");
-        sb.append("Max-Age: 0\r\n");
-        sb.append("Expires: 0\r\n");
-        sb.append("Cache-Control: no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0\r\n");
-        sb.append("Pragma: no-cache\r\n");
-        sb.append("Content-Type: multipart/x-mixed-replace; ");
-        sb.append("boundary=" + mBoundary + "\r\n");
-        sb.append("\r\n");
-        return sb.toString();
+        final String s1 = "HTTP/1.0 200 OK\r\n";
+        final String s2 = "Server: " + mServerName + "\r\n";
+        final String s3 = "Connection: close\r\n";
+        final String s4 = "Max-Age: 0\r\n";
+        final String s5 = "Expires: 0\r\n";
+        final String s6 = "Cache-Control: no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0\r\n";
+        final String s7 = "Pragma: no-cache\r\n";
+        final String s8 = "Content-Type: multipart/x-mixed-replace; " + "boundary=" + mBoundary + "\r\n";
+        final String s9 = "\r\n";
+        return s1 + s2 + s3 + s4 + s5 + s6 + s7 + s8 + s9;
     }
     
     /**
@@ -603,11 +655,9 @@ public class MixedReplaceMediaServer {
      * @return http header
      */
     private String generateErrorHeader(final String status) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("HTTP/1.0 " + status + " OK\r\n");
-        sb.append("Server: " + mServerName + "\r\n");
-        sb.append("Connection: close\r\n");
-        sb.append("\r\n");
-        return sb.toString();
+        final String s1 = "HTTP/1.0 " + status + " OK\r\n";
+        final String s2 = "Server: " + mServerName + "\r\n";
+        final String s3 = "Connection: close\r\n" + "\r\n";
+        return s1 + s2 + s3;
     }
 }

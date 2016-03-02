@@ -24,6 +24,9 @@
     <string name="device_not_connected">デバイスは接続されていません。</string>
     <string name="device_not_found">デバイスが見つかりません。</string>
 
+    <string name="device_not_support_led">このデバイスはLEDをサポートしていません。</string>
+    <string name="device_not_support_vibration">このデバイスはバイブレーションをサポートしていません。</string>
+
     <string name="setting_title1">[1/3]Linkingアプリでの設定</string>
     <string name="install_and_launch">Linkingアプリのダウンロードとインストール、実行をおこないます。</string>
     <string name="introduction1">1) Google PlayからLinkingアプリをインストールして、アプリの指示に従い対応デバイスと端末を接続してください。</string>
@@ -41,5 +44,7 @@
     <string name="device_name">Linkingデバイス名 : </string>
     <string name="light_off_pattern">LED Off Pattern</string>
     <string name="light_off_description">LEDがOFFになるパターンを指定してください。</string>
+    <string name="vibration_off_pattern">Vibration Off Pattern</string>
+    <string name="vibration_off_description">Light API呼び出し時に行う通知時のバイブレーションパターンを指定してください。(OFF推奨)</string>
 
 </resources>

@@ -27,6 +27,7 @@ import org.deviceconnect.android.deviceplugin.linking.linking.IlluminationData;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
+import org.deviceconnect.android.deviceplugin.linking.linking.VibrationData;
 import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 
 import java.util.Map;
@@ -95,10 +96,17 @@ public class LinkingControllerFragment extends Fragment {
     public void setTargetDevice(LinkingDevice device) {
         mDevice = device;
         mDeviceNameView.setText(mDevice.getDisplayName());
+        setupLightOffSetting();
+        setupVibrationOffSetting();
+    }
 
+    private void setupLightOffSetting() {
         byte[] illumination = mDevice.getIllumination();
-        final IlluminationData data = new IlluminationData(illumination);
-
+        if (illumination == null) {
+            ((Button) mRoot.findViewById(R.id.select_light_off)).setText(getString(R.string.not_selected));
+            return;
+        }
+        IlluminationData data = new IlluminationData(illumination);
         Map<String, Integer> map = PreferenceUtil.getInstance(getActivity().getApplicationContext()).getLightOffSetting();
         if (map == null) {
             return;
@@ -115,11 +123,35 @@ public class LinkingControllerFragment extends Fragment {
         }
     }
 
+    private void setupVibrationOffSetting() {
+        byte[] vibration = mDevice.getVibration();
+        if (vibration == null) {
+            ((Button) mRoot.findViewById(R.id.select_vibration_off)).setText(getString(R.string.not_selected));
+            return;
+        }
+        VibrationData data = new VibrationData(vibration);
+        Map<String, Integer> map = PreferenceUtil.getInstance(getActivity().getApplicationContext()).getVibrationOffSetting();
+        if (map == null) {
+            return;
+        }
+        Integer patternId = map.get(mDevice.getBdAddress());
+        if (patternId == null) {
+            ((Button) mRoot.findViewById(R.id.select_vibration_off)).setText(getString(R.string.not_selected));
+            return;
+        }
+        for (VibrationData.Setting setting : data.mPattern.children) {
+            if ((setting.id & 0xFF) == patternId) {
+                ((Button) mRoot.findViewById(R.id.select_vibration_off)).setText(setting.names[0].name);
+            }
+        }
+    }
+
     private void setupUI(final View root) {
         String deviceName = getString(R.string.device_name) + getString(R.string.not_selected);
         mDeviceNameView = (TextView) root.findViewById(R.id.device_name);
         mDeviceNameView.setText(deviceName);
         setLightButton(root);
+        setVibrationButton(root);
         setSensorButton(root);
     }
 
@@ -132,6 +164,11 @@ public class LinkingControllerFragment extends Fragment {
                 }
 
                 byte[] illumination = mDevice.getIllumination();
+                if (illumination == null) {
+                    Toast.makeText(getContext(), getString(R.string.device_not_support_led), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 final IlluminationData data = new IlluminationData(illumination);
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -164,6 +201,40 @@ public class LinkingControllerFragment extends Fragment {
         });
     }
 
+    private void setVibrationButton(final View view) {
+        view.findViewById(R.id.select_vibration_off).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!checkDevice()) {
+                    return;
+                }
+
+                byte[] vibration = mDevice.getVibration();
+                if (vibration == null) {
+                    Toast.makeText(getContext(), getString(R.string.device_not_support_vibration), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                final VibrationData data = new VibrationData(vibration);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                final String[] items = new String[data.mPattern.children.length];
+                for (int i = 0; i < data.mPattern.children.length; i++) {
+                    items[i] = data.mPattern.children[i].names[0].name;
+                }
+                builder.setTitle(getString(R.string.pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        VibrationData.Setting selectedPattern = data.mPattern.children[which];
+                        ((Button) view.findViewById(R.id.select_vibration_off)).setText(selectedPattern.names[0].name);
+                        updateVibrationOffSetting(selectedPattern.id & 0xFF);
+                    }
+                });
+                builder.create().show();
+            }
+        });
+    }
+
     private void setSensorButton(View view) {
         view.findViewById(R.id.sensor_on).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -189,6 +260,17 @@ public class LinkingControllerFragment extends Fragment {
         util.setLightOffSetting(map);
     }
 
+    private void updateVibrationOffSetting(Integer id) {
+        PreferenceUtil util = PreferenceUtil.getInstance(getActivity().getApplicationContext());
+        Map<String, Integer> map = util.getVibrationOffSetting();
+        if (map == null) {
+            return;
+        }
+        map.put(mDevice.getBdAddress(), id);
+        util.setVibrationOffSetting(map);
+    }
+
+
     private void updateDataText(int type, float x, float y, float z, long time) {
         switch (type) {
             case 0:
@@ -211,6 +293,10 @@ public class LinkingControllerFragment extends Fragment {
         if (!checkDevice()) {
             return;
         }
+        if (mDevice.getIllumination() == null) {
+            Toast.makeText(getContext(), getString(R.string.device_not_support_led), Toast.LENGTH_SHORT).show();
+            return;
+        }
         LinkingManager manager = LinkingManagerFactory.createManager(getContext().getApplicationContext());
         manager.sendLEDCommand(mDevice, isOn);
     }
@@ -219,6 +305,9 @@ public class LinkingControllerFragment extends Fragment {
         if (!checkDevice()) {
             return;
         }
+
+        //TODO:check device's feature
+
         if (isOn) {
             if (mController == null) {
                 mController = new ControlSensorData(getActivity(), mSensorInterface);

@@ -51,7 +51,7 @@ public class LinkingManagerMockImpl implements LinkingManager {
         LinkingDevice device4 = new LinkingDevice();
         device4.setDisplayName("hasVibration");
         device4.setName("device4");
-        device4.setVibration(new Object());
+        device4.setVibration(new byte[4]);
         device4.setBdAddress("FF:FF:FF:FF:FF:FC");
         device4.setIsConnected(true);
         put("device4", device4);
@@ -60,7 +60,7 @@ public class LinkingManagerMockImpl implements LinkingManager {
         device5.setDisplayName("hasAll");
         device5.setName("device5");
         device5.setIllumination(new byte[4]);
-        device5.setVibration(new Object());
+        device5.setVibration(new byte[4]);
         device5.setSensor(new Object());
         device5.setBdAddress("FF:FF:FF:FF:FF:FB");
         device5.setIsConnected(true);

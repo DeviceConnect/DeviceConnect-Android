@@ -250,6 +250,7 @@ public class LinkingManagerImpl implements LinkingManager {
         notify.setText("test");
         notify.setDeviceID(device.getModelId());
         notify.setDeviceUID(device.getUniqueId());
+        setVibration(notify, device);
         if (!on) {
             setIllumination(notify, device);
         }
@@ -259,6 +260,25 @@ public class LinkingManagerImpl implements LinkingManager {
     @Override
     public void sendVibrationCommand(LinkingDevice device, boolean on) {
 
+    }
+
+    private void setVibration(SendNotification notify, LinkingDevice device) {
+        if (device.getVibration() == null) {
+            return;
+        }
+        Map<String, Integer> map = PreferenceUtil.getInstance(mContext).getVibrationOffSetting();
+        if (map == null) {
+            return;
+        }
+        Integer patternId = map.get(device.getBdAddress());
+        if (patternId == null) {
+            return;
+        }
+        byte pattern = (byte) (patternId & 0xFF);
+        byte[] vibration = new byte[2];
+        vibration[0] = 0x10;
+        vibration[1] = pattern;
+        notify.setVibration(vibration);
     }
 
     private void setIllumination(SendNotification notify, LinkingDevice device) {

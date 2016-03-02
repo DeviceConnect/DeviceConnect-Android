@@ -14,7 +14,7 @@ public class LinkingDevice {
     private Integer modelId;
     private Integer uniqueId;
     private byte[] illumination;
-    private Object vibration;
+    private byte[] vibration;
     private Object sensor;
     private boolean isConnected;
     private int feature;
@@ -67,11 +67,11 @@ public class LinkingDevice {
         this.illumination = illumination;
     }
 
-    public Object getVibration() {
+    public byte[] getVibration() {
         return vibration;
     }
 
-    public void setVibration(Object vibration) {
+    public void setVibration(byte[] vibration) {
         this.vibration = vibration;
     }
 

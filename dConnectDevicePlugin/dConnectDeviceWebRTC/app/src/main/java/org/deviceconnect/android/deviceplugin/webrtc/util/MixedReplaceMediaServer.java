@@ -31,6 +31,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Mixed Replace Media Server.
@@ -563,9 +564,11 @@ public class MixedReplaceMediaServer {
             }
 
             if (uri != null) {
-                if (uri.contains("/" + LOCAL + "/" + VIDEO + "/" + mPath)) {
+                String localPath = "/" + LOCAL + "/" + VIDEO + "/" + mPath;
+                String remotePath = "/" + REMOTE + "/" + VIDEO + "/" + mPath;
+                if (Pattern.compile(uri).matcher(localPath).matches()) {
                     return LOCAL;
-                } else if (uri.contains("/" + REMOTE + "/" + VIDEO + "/" + mPath)) {
+                } else if (Pattern.compile(uri).matcher(remotePath).matches()) {
                     return REMOTE;
                 }
             }

@@ -40,7 +40,6 @@ public class FlashingExecutor {
 
     public synchronized void setLightControllable(LightControllable controllable) {
         mListener = controllable;
-        Object o = null;
     }
 
     public synchronized void start(long[] flashing) {

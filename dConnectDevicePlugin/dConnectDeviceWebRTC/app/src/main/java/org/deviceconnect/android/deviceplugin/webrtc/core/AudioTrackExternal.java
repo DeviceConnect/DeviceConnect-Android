@@ -92,7 +92,7 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
 
     public String getUrl() {
         if (mWebSocketServer != null) {
-            return mWebSocketServer.getUrl();
+            return mWebSocketServer.getUrl(WebSocketServer.REMOTE);
         } else {
             return null;
         }

@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLServerSocketFactory;
 
@@ -96,6 +97,26 @@ public class WebSocketServer {
     }
 
     /**
+     * Type select : local.
+     */
+    public static final String LOCAL = "local";
+
+    /**
+     * Type select : remote.
+     */
+    public static final String REMOTE = "remote";
+
+    /**
+     * Video select : audio.
+     */
+    private final String AUDIO = "audio";
+
+    /**
+     * path.
+     */
+    private String mPath = null;
+
+    /**
      * 設定値を元にサーバーを構築します.
      *
      * @param context コンテキストオブジェクト。
@@ -139,6 +160,9 @@ public class WebSocketServer {
         }
 
         mServer = new NanoServer(mConfig.getHost(), mConfig.getPort());
+
+//        mPath = UUID.randomUUID().toString();
+        mPath = "ABC";
 
         if (mConfig.isSsl()) {
             SSLServerSocketFactory factory = createServerSocketFactory();
@@ -207,6 +231,7 @@ public class WebSocketServer {
         if (mServer != null) {
             mServer.stop();
             mServer = null;
+            mPath = null;
         }
     }
 
@@ -283,23 +308,28 @@ public class WebSocketServer {
         @Override
         public Response serve(final IHTTPSession session) {
             NanoHTTPD.Response nanoRes = null;
+            String path = "/" + REMOTE + "/" + AUDIO + "/" + mPath;
 
             do {
-                if (isWebsocketRequested(session)) {
-                    if (!countUpWebSocket()) {
-                        nanoRes = new Response(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
-                                "Server can't create more connections.");
-                        break;
+                String uri = session.getUri();
+                if (uri != null) {
+                    if (Pattern.compile(uri).matcher(path).matches()) {
+                        if (isWebsocketRequested(session)) {
+                            if (!countUpWebSocket()) {
+                                nanoRes = new Response(Response.Status.INTERNAL_ERROR, NanoHTTPD.MIME_PLAINTEXT,
+                                        "Server can't create more connections.");
+                                break;
+                            }
+                            // WebSocketを開く処理&レスポンスはNanoWSDに任せ、セッションキーが送られてから
+                            // 独自のセッション管理を行う。
+                            nanoRes = parseWebSocketRequest(session);
+                            if (nanoRes.getStatus() != Response.Status.SWITCH_PROTOCOL) {
+                                // 不正なWebSocketのリクエストの場合はカウントを取り消す
+                                countDownWebSocket();
+                            }
+                            break;
+                        }
                     }
-                    // WebSocketを開く処理&レスポンスはNanoWSDに任せ、セッションキーが送られてから
-                    // 独自のセッション管理を行う。
-                    nanoRes = parseWebSocketRequest(session);
-                    if (nanoRes.getStatus() != Response.Status.SWITCH_PROTOCOL) {
-                        // 不正なWebSocketのリクエストの場合はカウントを取り消す
-                        countDownWebSocket();
-                    }
-
-                    break;
                 }
 
                 if (session.getMethod() == Method.GET) {
@@ -835,13 +865,22 @@ public class WebSocketServer {
 
     /**
      * Get URI.
+     * @param type Select local uri or remote uri.
      * @return URI.
      */
-    public String getUrl() {
-        if (mServer == null) {
+    public String getUrl(final String type) {
+        if (mServer == null || mPath == null || type == null || (!type.equals(LOCAL) && !type.equals(REMOTE))) {
             return null;
         }
-        return "http://localhost:" + mServer.getListeningPort();
+        switch (type) {
+            case LOCAL:
+//                return "http://localhost:" + mServer.getListeningPort() + "/" + LOCAL + "/" + AUDIO + "/" + mPath;
+                return null;    // Local audio not support.
+            case REMOTE:
+                return "http://localhost:" + mServer.getListeningPort() + "/" + REMOTE + "/" + AUDIO + "/" + mPath;
+            default:
+                return null;
+        }
     }
 
     /**

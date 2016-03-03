@@ -26,4 +26,8 @@ public interface HostDeviceRecorderManager {
 
     HostDevicePreviewServer getPreviewServer(String id);
 
+    void start();
+
+    void stop();
+
 }

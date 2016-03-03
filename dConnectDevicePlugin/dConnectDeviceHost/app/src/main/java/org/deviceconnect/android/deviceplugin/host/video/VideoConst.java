@@ -49,11 +49,11 @@ public final class VideoConst {
     /** 録画停止. */
     public static final String EXTRA_VALUE_VIDEO_RECORD_STOP = "stop";
 
-    /** 録画撮影一時停止. */
-    public static final String EXTRA_VALUE_VIDEO_RECORD_PAUSE = "pause";
+    /** 現在の録画状態. */
+    public static final String EXTRA_VIDEO_RECORDER_STATE = "state";
 
-    /** 録画撮影再開. */
-    public static final String EXTRA_VALUE_VIDEO_RECORD_RESUME = "resume";
+    /** 使用するレコーダーのID. */
+    public static final String EXTRA_RECORDER_ID = "recorderId";
 
     /** Camera ID. */
     public static final String EXTRA_CAMERA_ID = "cameraId";

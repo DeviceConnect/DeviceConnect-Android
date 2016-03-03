@@ -41,6 +41,7 @@ import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.provider.FileManager;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 /**
  * Video Recorder.
@@ -49,6 +50,9 @@ import java.io.File;
  */
 @SuppressWarnings("deprecation")
 public class VideoRecorderActivity extends Activity implements SurfaceHolder.Callback {
+
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("host.dplugin");
 
     /** MediaRecorder. */
     private MediaRecorder mMediaRecorder;
@@ -80,6 +84,9 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
 
     /** コールバック。 */
     private ResultReceiver mCallback;
+
+    /** 本アクティビティを起動したレコーダーID. */
+    private String mRecorderId;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -120,6 +127,12 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
             finish();
             return;
         }
+        mRecorderId = mIntent.getStringExtra(VideoConst.EXTRA_RECORDER_ID);
+        if (mRecorderId == null) {
+            finish();
+            return;
+        }
+        sendRecordingEvent();
 
         if (!mIsInitialized) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -162,10 +175,26 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
                             e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
                     mCallback.send(Activity.RESULT_CANCELED, data);
                     finish();
-                    return;
                 }
             }
         }
+    }
+
+    private void sendRecordingEvent() {
+        sendRecorderStateEvent(HostDeviceRecorder.RecorderState.RECORDING);
+    }
+
+    private void sendInactiveEvent() {
+        sendRecorderStateEvent(HostDeviceRecorder.RecorderState.INACTTIVE);
+    }
+
+    private void sendRecorderStateEvent(final HostDeviceRecorder.RecorderState state) {
+        mLogger.info("sendRecorderStateEvent: recorderId = " + mRecorderId
+            + ", state = " + state.name());
+        Intent intent = new Intent(VideoConst.SEND_VIDEO_TO_HOSTDP);
+        intent.putExtra(VideoConst.EXTRA_RECORDER_ID, mRecorderId);
+        intent.putExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE, state);
+        sendBroadcast(intent);
     }
 
     private void initVideoContext() {
@@ -237,6 +266,8 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
             values.put(Video.Media.DATA, mFile.toString());
             resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
         }
+
+        sendInactiveEvent();
     }
 
     /**

@@ -328,14 +328,22 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
         }
         Integer imageWidth = getImageWidth(request);
         Integer imageHeight = getImageHeight(request);
-        if ((imageWidth != null && imageHeight == null)
-            || (imageWidth == null && imageHeight != null)) {
+        if (imageWidth != null && imageHeight == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "imageHeight is null.");
+            return false;
+        }
+        if (imageWidth == null && imageHeight != null) {
+            MessageUtils.setInvalidRequestParameterError(response, "imageWidth is null.");
             return false;
         }
         Integer previewWidth = getPreviewWidth(request);
         Integer previewHeight = getPreviewHeight(request);
-        if ((previewWidth != null && previewHeight == null)
-            || (previewWidth == null && previewHeight != null)) {
+        if (previewWidth != null && previewHeight == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "previewHeight is null.");
+            return false;
+        }
+        if (previewWidth == null && previewHeight != null) {
+            MessageUtils.setInvalidRequestParameterError(response, "previewWidth is null.");
             return false;
         }
         return true;

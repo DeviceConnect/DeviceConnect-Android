@@ -78,7 +78,11 @@ public class HostDeviceAudioRecorder implements HostDeviceStreamRecorder {
 
     private String getClassnameOfTopActivity() {
         ActivityManager activityMgr = (ActivityManager) mContext.getSystemService(Service.ACTIVITY_SERVICE);
-        return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
+        List<ActivityManager.RunningTaskInfo> tasks = activityMgr.getRunningTasks(1);
+        if (tasks != null && tasks.size() > 0) {
+            return tasks.get(0).topActivity.getClassName();
+        }
+        return null;
     }
 
     @Override

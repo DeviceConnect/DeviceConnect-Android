@@ -8,8 +8,6 @@ package org.deviceconnect.android.deviceplugin.host.video;
 
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -41,6 +39,8 @@ public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
 
     private final SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
+    private RecorderState mState = RecorderState.INACTTIVE;
+
     private PictureSize mPictureSize;
 
     public HostDeviceVideoRecorder(final Context context, final int cameraId,
@@ -66,19 +66,13 @@ public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
         return new String[] {MIME_TYPE};
     }
 
-    @Override
-    public RecorderState getState() {
-        String className = getClassnameOfTopActivity();
-        if (VideoRecorderActivity.class.getName().equals(className)) {
-            return RecorderState.RECORDING;
-        } else {
-            return RecorderState.INACTTIVE;
-        }
+    public void setState(final RecorderState state) {
+        mState = state;
     }
 
-    private String getClassnameOfTopActivity() {
-        ActivityManager activityMgr = (ActivityManager) mContext.getSystemService(Service.ACTIVITY_SERVICE);
-        return activityMgr.getRunningTasks(1).get(0).topActivity.getClassName();
+    @Override
+    public RecorderState getState() {
+        return mState;
     }
 
     @Override
@@ -101,6 +95,7 @@ public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
         Intent intent = new Intent();
         intent.setClass(mContext, VideoRecorderActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra(VideoConst.EXTRA_RECORDER_ID, getId());
         intent.putExtra(VideoConst.EXTRA_CAMERA_ID, mCameraId);
         intent.putExtra(VideoConst.EXTRA_PICTURE_SIZE, mPictureSize);
         intent.putExtra(VideoConst.EXTRA_FILE_NAME, filename);

@@ -75,6 +75,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Logger;
 
 /**
  * Host Device Service.
@@ -82,7 +83,11 @@ import java.util.Locale;
  * @author NTT DOCOMO, INC.
  */
 @SuppressWarnings("deprecation")
-public class HostDeviceService extends DConnectMessageService implements HostDeviceRecorderManager {
+public class HostDeviceService extends DConnectMessageService {
+
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("host.dplugin");
+
     /** Application class instance. */
     private HostDeviceApplication mApp;
 
@@ -147,7 +152,7 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
         addProfile(new HostNotificationProfile());
         addProfile(new HostDeviceOrientationProfile());
         addProfile(new HostBatteryProfile());
-        addProfile(new HostMediaStreamingRecordingProfile(this));
+        addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
         addProfile(new HostPhoneProfile());
         addProfile(new HostSettingsProfile());
         addProfile(new HostMediaPlayerProfile());
@@ -175,6 +180,8 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
         // MediaPlayer (Video) IntentFilter.
         mIfMediaPlayerVideo = new IntentFilter();
         mIfMediaPlayerVideo.addAction(VideoConst.SEND_VIDEOPLAYER_TO_HOSTDP);
+
+        mRecorderMgr.start();
     }
 
     private void createRecorders(final FileManager fileMgr) {
@@ -286,65 +293,112 @@ public class HostDeviceService extends DConnectMessageService implements HostDev
     public void onDestroy() {
         super.onDestroy();
 
+        mRecorderMgr.stop();
         mFileDataManager.stopTimer();
     }
 
-    @Override
-    public HostDeviceRecorder[] getRecorders() {
-        return mRecorders;
-    }
+    /** HostDeviceRecorderManager. */
+    private final HostDeviceRecorderManager mRecorderMgr = new HostDeviceRecorderManager() {
 
-    @Override
-    public HostDeviceRecorder getRecorder(final String id) {
-        if (id == null) {
-            return mDefaultVideoRecorder;
-        }
-        for (HostDeviceRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId())) {
-                return recorder;
+        private final BroadcastReceiver mRecorderStateReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(final Context context, final Intent intent) {
+                mLogger.info("RecorderStateReceiver.onReceive: action = " + intent.getAction());
+                if (VideoConst.SEND_VIDEO_TO_HOSTDP.equals(intent.getAction())) {
+                    String target = intent.getStringExtra(VideoConst.EXTRA_RECORDER_ID);
+                    HostDeviceRecorder.RecorderState state =
+                        (HostDeviceRecorder.RecorderState) intent.getSerializableExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE);
+                    mLogger.info("RecorderStateReceiver.onReceive: target = " + target
+                        + ", state = " + state.name());
+                    if (target != null && state != null) {
+                        HostDeviceVideoRecorder videoRecorder = getVideoRecorder(target);
+                        mLogger.info("RecorderStateReceiver.onReceive: recorder = " + videoRecorder);
+                        if (videoRecorder != null) {
+                            videoRecorder.setState(state);
+                            mLogger.info("Changed video recorder state = " + videoRecorder.getState());
+                        }
+                    }
+                }
             }
-        }
-        return null;
-    }
+        };
 
-    @Override
-    public HostDevicePhotoRecorder getPhotoRecorder(final String id) {
-        if (id == null) {
-            return mDefaultPhotoRecorder;
+        @Override
+        public HostDeviceRecorder[] getRecorders() {
+            return mRecorders;
         }
-        for (HostDeviceRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId()) && recorder instanceof HostDevicePhotoRecorder) {
-                return (HostDevicePhotoRecorder) recorder;
-            }
-        }
-        return null;
-    }
 
-    @Override
-    public HostDeviceStreamRecorder getStreamRecorder(final String id) {
-        if (id == null) {
-            return mDefaultVideoRecorder;
-        }
-        for (HostDeviceRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId()) && recorder instanceof HostDeviceStreamRecorder) {
-                return (HostDeviceStreamRecorder) recorder;
+        @Override
+        public HostDeviceRecorder getRecorder(final String id) {
+            if (id == null) {
+                return mDefaultVideoRecorder;
             }
+            for (HostDeviceRecorder recorder : mRecorders) {
+                if (id.equals(recorder.getId())) {
+                    return recorder;
+                }
+            }
+            return null;
         }
-        return null;
-    }
 
-    @Override
-    public HostDevicePreviewServer getPreviewServer(final String id) {
-        if (id == null) {
-            return mDefaultPhotoRecorder;
-        }
-        for (HostDeviceRecorder recorder : mRecorders) {
-            if (id.equals(recorder.getId()) && recorder instanceof HostDevicePreviewServer) {
-                return (HostDevicePreviewServer) recorder;
+        @Override
+        public HostDevicePhotoRecorder getPhotoRecorder(final String id) {
+            if (id == null) {
+                return mDefaultPhotoRecorder;
             }
+            for (HostDeviceRecorder recorder : mRecorders) {
+                if (id.equals(recorder.getId()) && recorder instanceof HostDevicePhotoRecorder) {
+                    return (HostDevicePhotoRecorder) recorder;
+                }
+            }
+            return null;
         }
-        return null;
-    }
+
+        @Override
+        public HostDeviceStreamRecorder getStreamRecorder(final String id) {
+            if (id == null) {
+                return mDefaultVideoRecorder;
+            }
+            for (HostDeviceRecorder recorder : mRecorders) {
+                if (id.equals(recorder.getId()) && recorder instanceof HostDeviceStreamRecorder) {
+                    return (HostDeviceStreamRecorder) recorder;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public HostDevicePreviewServer getPreviewServer(final String id) {
+            if (id == null) {
+                return mDefaultPhotoRecorder;
+            }
+            for (HostDeviceRecorder recorder : mRecorders) {
+                if (id.equals(recorder.getId()) && recorder instanceof HostDevicePreviewServer) {
+                    return (HostDevicePreviewServer) recorder;
+                }
+            }
+            return null;
+        }
+
+        private HostDeviceVideoRecorder getVideoRecorder(final String id) {
+            for (HostDeviceRecorder recorder : mRecorders) {
+                if (id.equals(recorder.getId()) && recorder instanceof HostDeviceVideoRecorder) {
+                    return (HostDeviceVideoRecorder) recorder;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public void start() {
+            IntentFilter filter = new IntentFilter(VideoConst.SEND_VIDEO_TO_HOSTDP);
+            registerReceiver(mRecorderStateReceiver, filter);
+        }
+
+        @Override
+        public void stop() {
+            unregisterReceiver(mRecorderStateReceiver);
+        }
+    };
 
     /**
      * Get a instance of FileManager.

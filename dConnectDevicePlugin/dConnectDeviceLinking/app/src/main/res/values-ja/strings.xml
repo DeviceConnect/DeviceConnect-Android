@@ -45,6 +45,6 @@
     <string name="light_off_pattern">LED Off Pattern</string>
     <string name="light_off_description">LEDがOFFになるパターンを指定してください。</string>
     <string name="vibration_off_pattern">Vibration Off Pattern</string>
-    <string name="vibration_off_description">Light API呼び出し時に行う通知時のバイブレーションパターンを指定してください。(OFF推奨)</string>
+    <string name="vibration_off_description">バイブレーションがOFFになるパターンを指定してください。</string>
 
 </resources>

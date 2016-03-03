@@ -50,7 +50,8 @@ public class LinkingManagerImpl implements LinkingManager {
             if (hasSensor(info)) {
                 device.setSensor(new Object());
             }
-            device.setDisplayName("Linking:" + info.getBdaddress());
+            device.setDisplayName("Linking:" + info.getName() + "(" + info.getBdaddress() + ")");
+            device.setFeature(info.getFeature());
             list.add(device);
         }
         return list;

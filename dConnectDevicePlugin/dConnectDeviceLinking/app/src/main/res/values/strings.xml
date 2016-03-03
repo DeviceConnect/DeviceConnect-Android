@@ -12,6 +12,7 @@
     <string name="on">ON</string>
     <string name="off">OFF</string>
     <string name="led">LED</string>
+    <string name="vibration">Vibration</string>
     <string name="sensor">Sensor</string>
     <string name="gyro">Gyro</string>
     <string name="acceleration">Acceleration</string>

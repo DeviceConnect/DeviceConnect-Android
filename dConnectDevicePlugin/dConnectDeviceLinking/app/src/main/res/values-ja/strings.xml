@@ -12,6 +12,7 @@
     <string name="on">ON</string>
     <string name="off">OFF</string>
     <string name="led">LED</string>
+    <string name="vibration">バイブレーション</string>
     <string name="sensor">センサー</string>
     <string name="gyro">ジャイロ</string>
     <string name="acceleration">加速度</string>

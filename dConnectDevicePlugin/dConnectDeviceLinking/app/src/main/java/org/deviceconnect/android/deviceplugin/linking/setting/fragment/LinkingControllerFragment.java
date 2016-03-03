@@ -233,6 +233,18 @@ public class LinkingControllerFragment extends Fragment {
                 builder.create().show();
             }
         });
+        view.findViewById(R.id.vibration_on).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickVibration(true);
+            }
+        });
+        view.findViewById(R.id.vibration_off).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickVibration(false);
+            }
+        });
     }
 
     private void setSensorButton(View view) {
@@ -299,6 +311,18 @@ public class LinkingControllerFragment extends Fragment {
         }
         LinkingManager manager = LinkingManagerFactory.createManager(getContext().getApplicationContext());
         manager.sendLEDCommand(mDevice, isOn);
+    }
+
+    private void onClickVibration(boolean isOn) {
+        if (!checkDevice()) {
+            return;
+        }
+        if (mDevice.getVibration() == null) {
+            Toast.makeText(getContext(), getString(R.string.device_not_support_vibration), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        LinkingManager manager = LinkingManagerFactory.createManager(getContext().getApplicationContext());
+        manager.sendVibrationCommand(mDevice, isOn);
     }
 
     private void onClickSensor(boolean isOn) {

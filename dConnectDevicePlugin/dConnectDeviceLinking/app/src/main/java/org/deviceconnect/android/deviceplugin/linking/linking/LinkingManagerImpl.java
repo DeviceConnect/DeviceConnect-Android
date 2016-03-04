@@ -86,8 +86,8 @@ public class LinkingManagerImpl implements LinkingManager {
                 public void onRangeChange() {
                     SharedPreferences preference = mContext.getSharedPreferences(Define.RangeInfo, Context.MODE_PRIVATE);
                     String bdAddress = preference.getString("BD_ADDRESS", "");
-                    int range = Integer.parseInt(preference.getString("RANGE", "-1"));//0:in,1:out
-                    int rangeSetting = Integer.parseInt(preference.getString("RANGE_SETTING", "-1"));//1:immidiate(3m),2:near(10m),3:far(20m)
+                    int range = preference.getInt("RANGE", -1);//0:in,1:out
+                    int rangeSetting = preference.getInt("RANGE_SETTING", -1);//1:immidiate(3m),2:near(10m),3:far(20m)
                     for (LinkingDevice device : getDevices()) {
                         if (device.getBdAddress().equals(bdAddress)) {
                             Range r = Range.UNKNOWN;

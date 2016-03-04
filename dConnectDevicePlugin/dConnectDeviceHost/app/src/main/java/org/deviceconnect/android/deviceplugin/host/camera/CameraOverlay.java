@@ -45,6 +45,7 @@ import android.view.WindowManager;
 import org.deviceconnect.android.activity.IntentHandlerActivity;
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.HostDeviceService;
 import org.deviceconnect.android.deviceplugin.host.R;
 import org.deviceconnect.android.provider.FileManager;
@@ -88,20 +89,26 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     /** ファイルの拡張子. */
     private static final String FILE_EXTENSION = ".png";
 
+    /** Default Maximum Frame Rate. */
+    private static final double DEFAULT_MAX_FPS = 10.0d;
+
     /** 日付のフォーマット. */
     private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyyMMdd_kkmmss", Locale.JAPAN);
 
     /** コンテキスト. */
-    private Context mContext;
+    private final Context mContext;
 
     /** ウィンドウ管理クラス. */
-    private WindowManager mWinMgr;
+    private final WindowManager mWinMgr;
 
     /** 作業用スレッド。 */
-    private HandlerThread mWorkerThread;
+    private final HandlerThread mWorkerThread;
 
     /** ハンドラ. */
-    private Handler mHandler;
+    private final Handler mHandler;
+
+    /** Camera ID. */
+    private final int mCameraId;
 
     /** ファイル管理クラス. */
     private FileManager mFileMgr;
@@ -116,6 +123,18 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
     /** 画像を送るサーバ. */
     private MixedReplaceMediaServer mServer;
+
+    private HostDeviceRecorder.PictureSize mPreviewSize;
+
+    private HostDeviceRecorder.PictureSize mPictureSize;
+
+    private long mLastFrameTime;
+
+    private long mFrameInterval;
+
+    private double mMaxFps;
+
+    private int mFacingDirection = 1;
 
     /**
      * 終了フラグ.
@@ -144,13 +163,47 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      * コンストラクタ.
      *
      * @param context コンテキスト
+     * @param cameraId Camera ID.
      */
-    public CameraOverlay(final Context context) {
+    public CameraOverlay(final Context context, final int cameraId) {
         mContext = context;
         mWinMgr = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         mWorkerThread = new HandlerThread(getClass().getSimpleName());
         mWorkerThread.start();
         mHandler = new Handler(mWorkerThread.getLooper());
+        mCameraId = cameraId;
+
+        mMaxFps = DEFAULT_MAX_FPS;
+        setPreviewFrameRate(mMaxFps);
+    }
+
+    public void setFacingDirection(final int dir) {
+        mFacingDirection = dir;
+    }
+
+    public HostDeviceRecorder.PictureSize getPictureSize() {
+        return mPictureSize;
+    }
+
+    public void setPictureSize(final HostDeviceRecorder.PictureSize size) {
+        mPictureSize = size;
+    }
+
+    public HostDeviceRecorder.PictureSize getPreviewSize() {
+        return mPreviewSize;
+    }
+
+    public void setPreviewSize(final HostDeviceRecorder.PictureSize size) {
+        mPreviewSize = size;
+    }
+
+    public void setPreviewFrameRate(final double max) {
+        mMaxFps = max;
+        mFrameInterval = (long) (1 / max) * 1000L;
+    }
+
+    public double getPreviewMaxFrameRate() {
+        return mMaxFps;
     }
 
     @Override
@@ -251,18 +304,20 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     Point size = getDisplaySize();
                     int pt = (int) (5 * getScaledDensity());
                     WindowManager.LayoutParams l = new WindowManager.LayoutParams(pt, pt,
-                            WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                                    | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                                    | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-                                    | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                            PixelFormat.TRANSLUCENT);
+                        WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                            | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                            | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                            | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                        PixelFormat.TRANSLUCENT);
                     l.x = -size.x / 2;
                     l.y = -size.y / 2;
                     mWinMgr.addView(mPreview, l);
 
-                    mCamera = Camera.open();
-                    mPreview.switchCamera(mCamera);
+                    mCamera = Camera.open(mCameraId);
+                    setRequestedPictureSize(mCamera);
+                    setRequestedPreviewSize(mCamera);
+                    mPreview.switchCamera(mCameraId, mCamera);
                     mCamera.setPreviewCallback(CameraOverlay.this);
                     mCamera.setErrorCallback(CameraOverlay.this);
 
@@ -281,6 +336,24 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                 }
             }
         });
+    }
+
+    private void setRequestedPictureSize(final Camera camera) {
+        HostDeviceRecorder.PictureSize currentSize = mPictureSize;
+        if (camera != null && currentSize != null) {
+            Camera.Parameters params = camera.getParameters();
+            params.setPictureSize(currentSize.getWidth(), currentSize.getHeight());
+            camera.setParameters(params);
+        }
+    }
+
+    private void setRequestedPreviewSize(final Camera camera) {
+        HostDeviceRecorder.PictureSize currentSize = mPreviewSize;
+        if (camera != null && currentSize != null) {
+            Camera.Parameters params = camera.getParameters();
+            params.setPreviewSize(currentSize.getWidth(), currentSize.getHeight());
+            camera.setParameters(params);
+        }
     }
 
     /**
@@ -339,7 +412,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         hideNotification();
 
                         if (mCamera != null) {
-                            mPreview.setCamera(null);
+                            mPreview.setCamera(0, null);
                             mCamera.stopPreview();
                             mCamera.setPreviewCallback(null);
                             mCamera.release();
@@ -444,7 +517,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
             if (mFinishFlag) {
                 hide();
             } else if (mCamera != null) {
-                mCamera.startPreview();
+                mCamera.stopPreview();
             }
         }
     }
@@ -558,6 +631,14 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     @Override
     public void onPreviewFrame(final byte[] data, final Camera camera) {
         synchronized (mCameraLock) {
+            final long currentTime = System.currentTimeMillis();
+            if (mLastFrameTime != 0) {
+                if ((currentTime - mLastFrameTime) < mFrameInterval) {
+                    mLastFrameTime = currentTime;
+                    return;
+                }
+            }
+
             if (mCamera != null && mCamera.equals(camera)) {
                 mCamera.setPreviewCallback(null);
 
@@ -581,7 +662,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                             Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFactoryOptions);
                             if (bmp != null) {
                                 Matrix m = new Matrix();
-                                m.setRotate(degree);
+                                m.setRotate(degree * mFacingDirection);
 
                                 Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
                                 if (rotatedBmp != null) {
@@ -599,6 +680,8 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
                 mCamera.setPreviewCallback(this);
             }
+
+            mLastFrameTime = currentTime;
         }
     }
 

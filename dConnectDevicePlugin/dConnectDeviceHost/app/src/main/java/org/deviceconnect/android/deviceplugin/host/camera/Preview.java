@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.host.camera;
 
 import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
@@ -22,6 +21,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
 import org.deviceconnect.android.deviceplugin.host.R;
 
 import java.io.IOException;
@@ -58,7 +58,7 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
     private SurfaceHolder mHolder;
 
     /** プレビューのサイズ. */
-    private Size mPreviewSize;
+    private HostDeviceRecorder.PictureSize mPreviewSize;
 
     /**
      * プレビューのフォーマット.
@@ -67,6 +67,9 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
 
     /** カメラのインスタンス. */
     private Camera mCamera;
+
+    /** カメラID. */
+    private int mCameraId;
 
     /**
      * ホストデバイスプラグインから渡されたリクエストID.
@@ -113,26 +116,26 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
 
     /**
      * カメラのインスタンスを設定する.
-     * 
+     *
+     * @param cameraId カメラID
      * @param camera カメラのインスタンス
      */
-    public void setCamera(final Camera camera) {
+    public void setCamera(final int cameraId, final Camera camera) {
+        mCameraId = cameraId;
         mCamera = camera;
         if (mCamera != null) {
-            List<Size> sizes = mCamera.getParameters().getSupportedPreviewSizes();
-            Point size = getDisplaySize(getContext());
-            mPreviewSize = getOptimalSize(sizes, size.x, size.y);
             requestLayout();
         }
     }
 
     /**
      * カメラのインスタンスを切り替えます.
-     * 
+     *
+     * @param cameraId カメラID
      * @param camera 切り替えるカメラのインスタンス
      */
-    public void switchCamera(final Camera camera) {
-        setCamera(camera);
+    public void switchCamera(final int cameraId, final Camera camera) {
+        setCamera(cameraId, camera);
         try {
             camera.setPreviewDisplay(mHolder);
         } catch (IOException exception) {
@@ -141,7 +144,12 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
             }
         }
         Camera.Parameters parameters = camera.getParameters();
-        parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+        if (mPreviewSize != null) {
+            parameters.setPreviewSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+        } else {
+            Size size = parameters.getPreviewSize();
+            mPreviewSize = new HostDeviceRecorder.PictureSize(size.width, size.height);
+        }
         requestLayout();
 
         camera.setParameters(parameters);
@@ -155,11 +163,6 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
         final int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
         final int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
         setMeasuredDimension(width, height);
-        List<Size> sizes = mCamera.getParameters().getSupportedPreviewSizes();
-        if (sizes != null) {
-            Point size = getDisplaySize(getContext());
-            mPreviewSize = getOptimalSize(sizes, size.x, size.y);
-        }
     }
 
     @Override
@@ -173,8 +176,8 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
             int previewWidth = width;
             int previewHeight = height;
             if (mPreviewSize != null) {
-                previewWidth = mPreviewSize.width;
-                previewHeight = mPreviewSize.height;
+                previewWidth = mPreviewSize.getWidth();
+                previewHeight = mPreviewSize.getHeight();
             }
 
             // Center the child SurfaceView within the parent.
@@ -219,20 +222,11 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
             int rot = getCameraDisplayOrientation(getContext());
 
             if (BuildConfig.DEBUG) {
-                Log.i(LOG_TAG, "PreViewSize: " + mPreviewSize.width + ", " + mPreviewSize.height);
+                Log.i(LOG_TAG, "PreViewSize: " + mPreviewSize.getWidth() + ", "
+                    + mPreviewSize.getHeight());
             }
 
             Camera.Parameters parameters = mCamera.getParameters();
-            Size prevSize = parameters.getPreviewSize();
-            parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
-            try {
-                mCamera.setParameters(parameters);
-            } catch (Exception e) {
-                Log.e(LOG_TAG, "This preview size not support. (" + mPreviewSize.width + ", "
-                        + mPreviewSize.height + ")");
-                parameters.setPreviewSize(prevSize.width, prevSize.height);
-            }
-
             String focusMode = parameters.getFocusMode();
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
             try {
@@ -276,7 +270,7 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
      * @return 横幅
      */
     public int getPreviewWidth() {
-        return mPreviewSize.width;
+        return mPreviewSize.getWidth();
     }
 
     /**
@@ -284,7 +278,7 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
      * @return 縦幅
      */
     public int getPreviewHeight() {
-        return mPreviewSize.height;
+        return mPreviewSize.getHeight();
     }
 
     /**
@@ -354,7 +348,7 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
      */
     private Point getDisplaySize(final Context context) {
         WindowManager mgr = (WindowManager) context
-                .getSystemService(Context.WINDOW_SERVICE);
+            .getSystemService(Context.WINDOW_SERVICE);
         Point size = new Point();
         mgr.getDefaultDisplay().getSize(size);
         if (size.x > THRESHOLD_WIDTH) {
@@ -372,34 +366,34 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
      * @return カメラの向き
      */
     public int getCameraDisplayOrientation(final Context context) {
-        WindowManager mgr = (WindowManager) context
-                .getSystemService(Context.WINDOW_SERVICE);
-        int rot = mgr.getDefaultDisplay().getRotation();
-        int base = 90;
-
-        Configuration config = getContext().getResources().getConfiguration();
-        if (config.orientation == Configuration.ORIENTATION_LANDSCAPE 
-                && (rot == Surface.ROTATION_0 || rot == Surface.ROTATION_180)) {
-            base = 0;
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        Camera.getCameraInfo(mCameraId, info);
+        WindowManager windowMgr = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        int rotation = windowMgr.getDefaultDisplay().getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break;
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break;
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;
         }
 
-        int degree;
-        switch (rot) {
-        default:
-        case Surface.ROTATION_0:
-            degree = 0;
-            break;
-        case Surface.ROTATION_90:
-            degree = 90;
-            break;
-        case Surface.ROTATION_180:
-            degree = 180;
-            break;
-        case Surface.ROTATION_270:
-            degree = 270;
-            break;
+        int result;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360;
+        } else {
+            result = (info.orientation - degrees + 360) % 360;
         }
-        return (base + 360 - degree) % 360;
+        return result;
     }
 
     /**
@@ -411,60 +405,6 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
         if (mCamera != null) {
             mCamera.takePicture(mShutterCallback, null, callback);
             Toast.makeText(getContext(), R.string.shutter, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
-     * ズームイン処理を行う.
-     * 
-     * @param requestId リクエストID(Broadcastで指示された場合は設定する。アプリ内ならの指示ならnullを設定する)
-     */
-    public void zoomIn(final String requestId) {
-        if (BuildConfig.DEBUG) {
-            Log.d(LOG_TAG, "zoomIn() start - requestId:" + requestId);
-        }
-
-        mRequestId = requestId;
-
-        // ズームイン処理
-        Camera.Parameters parameters = mCamera.getParameters();
-        int nowZoom = parameters.getZoom();
-        if (nowZoom < parameters.getMaxZoom()) {
-            parameters.setZoom(nowZoom + 1);
-        }
-        mCamera.setParameters(parameters);
-
-        if (BuildConfig.DEBUG) {
-            String debugToast = getResources().getString(R.string.zoomin) + " requestId:" + mRequestId;
-            Toast.makeText(getContext(), debugToast, Toast.LENGTH_SHORT).show();
-            Log.d(LOG_TAG, "zoomIn() end");
-        }
-    }
-
-    /**
-     * ズームアウト処理を行う.
-     * 
-     * @param requestId リクエストID(Broadcastで指示された場合は設定する。アプリ内ならの指示ならnullを設定する)
-     */
-    public void zoomOut(final String requestId) {
-        if (BuildConfig.DEBUG) {
-            Log.d(LOG_TAG, "zoomOut() start - requestId:" + requestId);
-        }
-
-        mRequestId = requestId;
-
-        // ズームアウト処理
-        Camera.Parameters parameters = mCamera.getParameters();
-        int nowZoom = parameters.getZoom();
-        if (nowZoom > 0) {
-            parameters.setZoom(nowZoom - 1);
-        }
-        mCamera.setParameters(parameters);
-
-        if (BuildConfig.DEBUG) {
-            String debugToast = getResources().getString(R.string.zoomout) + " requestId:" + mRequestId;
-            Toast.makeText(getContext(), debugToast, Toast.LENGTH_SHORT).show();
-            Log.d(LOG_TAG, "zoomOut() end");
         }
     }
 

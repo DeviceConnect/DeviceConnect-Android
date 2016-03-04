@@ -134,6 +134,8 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
     private double mMaxFps;
 
+    private int mFacingDirection = 1;
+
     /**
      * 終了フラグ.
      * <p/>
@@ -173,6 +175,10 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
 
         mMaxFps = DEFAULT_MAX_FPS;
         setPreviewFrameRate(mMaxFps);
+    }
+
+    public void setFacingDirection(final int dir) {
+        mFacingDirection = dir;
     }
 
     public HostDeviceRecorder.PictureSize getPictureSize() {
@@ -656,7 +662,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                             Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFactoryOptions);
                             if (bmp != null) {
                                 Matrix m = new Matrix();
-                                m.setRotate(degree);
+                                m.setRotate(degree * mFacingDirection);
 
                                 Bitmap rotatedBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
                                 if (rotatedBmp != null) {

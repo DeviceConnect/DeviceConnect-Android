@@ -45,7 +45,7 @@ public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
 
     public HostDeviceVideoRecorder(final Context context, final int cameraId,
                                    final CameraFacing facing, final FileManager fileMgr) {
-        super(context, createId(cameraId), createName(facing), cameraId, fileMgr);
+        super(context, createId(cameraId), createName(facing), facing, cameraId, fileMgr);
     }
 
     private static String createId(final int cameraId) {

@@ -45,7 +45,8 @@ public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServe
     private MixedReplaceMediaServer mServer;
 
     public HostDeviceCameraRecorder(final Context context, final String id, final String name,
-                                    final int cameraId, final FileManager fileMgr) {
+                                    final CameraFacing facing, final int cameraId,
+                                    final FileManager fileMgr) {
         mContext = context;
         mId = id;
         mName = name;
@@ -53,6 +54,9 @@ public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServe
 
         mCameraOverlay = new CameraOverlay(context, cameraId);
         mCameraOverlay.setFileManager(fileMgr);
+        if (facing == CameraFacing.FRONT) {
+            mCameraOverlay.setFacingDirection(-1);
+        }
     }
 
     protected boolean isShowCamera() {

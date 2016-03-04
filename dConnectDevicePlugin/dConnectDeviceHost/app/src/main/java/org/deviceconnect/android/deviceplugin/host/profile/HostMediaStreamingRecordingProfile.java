@@ -512,9 +512,14 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         }
 
+        if (mRecorderMgr.getRecorder(target) == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            return true;
+        }
         HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
         if (recorder == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
+            MessageUtils.setNotSupportAttributeError(response,
+                "target does not support stream recording.");
             return true;
         }
 
@@ -554,11 +559,17 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         }
 
-        HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
-        if (recorder == null) {
+        if (mRecorderMgr.getRecorder(target) == null) {
             MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
             return true;
         }
+        HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+        if (recorder == null) {
+            MessageUtils.setNotSupportAttributeError(response,
+                "target does not support stream recording.");
+            return true;
+        }
+
         recorder.stop();
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
@@ -576,11 +587,17 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         }
 
-        HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
-        if (recorder == null) {
+        if (mRecorderMgr.getRecorder(target) == null) {
             MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
             return true;
         }
+        HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+        if (recorder == null) {
+            MessageUtils.setNotSupportAttributeError(response,
+                "target does not support stream recording.");
+            return true;
+        }
+
         if (!recorder.canPause()) {
             MessageUtils.setNotSupportAttributeError(response);
             return true;
@@ -606,11 +623,17 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         }
 
-        HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
-        if (recorder == null) {
+        if (mRecorderMgr.getRecorder(target) == null) {
             MessageUtils.setInvalidRequestParameterError(response, "target is invalid.");
             return true;
         }
+        HostDeviceStreamRecorder recorder = mRecorderMgr.getStreamRecorder(target);
+        if (recorder == null) {
+            MessageUtils.setNotSupportAttributeError(response,
+                "target does not support stream recording.");
+            return true;
+        }
+
         if (!recorder.canPause()) {
             MessageUtils.setNotSupportAttributeError(response);
             return true;

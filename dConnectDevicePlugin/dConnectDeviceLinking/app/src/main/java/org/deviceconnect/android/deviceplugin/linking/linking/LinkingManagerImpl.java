@@ -73,8 +73,6 @@ public class LinkingManagerImpl implements LinkingManager {
         notify.setText(notification.getDetail());
         notify.setDeviceID(device.getModelId());
         notify.setDeviceUID(device.getUniqueId());
-        setIllumination(notify, device);
-        setVibration(notify, device);
         notify.send();
     }
 

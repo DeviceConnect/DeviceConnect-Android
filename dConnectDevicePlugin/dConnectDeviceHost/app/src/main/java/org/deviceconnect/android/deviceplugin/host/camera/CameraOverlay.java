@@ -317,7 +317,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                     mCamera = Camera.open(mCameraId);
                     setRequestedPictureSize(mCamera);
                     setRequestedPreviewSize(mCamera);
-                    mPreview.switchCamera(mCamera);
+                    mPreview.switchCamera(mCameraId, mCamera);
                     mCamera.setPreviewCallback(CameraOverlay.this);
                     mCamera.setErrorCallback(CameraOverlay.this);
 
@@ -412,7 +412,7 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         hideNotification();
 
                         if (mCamera != null) {
-                            mPreview.setCamera(null);
+                            mPreview.setCamera(0, null);
                             mCamera.stopPreview();
                             mCamera.setPreviewCallback(null);
                             mCamera.release();

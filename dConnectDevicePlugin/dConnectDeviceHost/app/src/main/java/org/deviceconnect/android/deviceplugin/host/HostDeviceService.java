@@ -6,7 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.host;
 
-import android.Manifest;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -16,6 +15,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -24,16 +24,13 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.webkit.MimeTypeMap;
 
-import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.audio.HostDeviceAudioRecorder;
 import org.deviceconnect.android.deviceplugin.host.camera.CameraOverlay;
-import org.deviceconnect.android.deviceplugin.host.camera.MixedReplaceMediaServer;
+import org.deviceconnect.android.deviceplugin.host.camera.HostDevicePhotoRecorder;
 import org.deviceconnect.android.deviceplugin.host.file.FileDataManager;
 import org.deviceconnect.android.deviceplugin.host.manager.HostBatteryManager;
 import org.deviceconnect.android.deviceplugin.host.profile.HostBatteryProfile;
@@ -53,6 +50,8 @@ import org.deviceconnect.android.deviceplugin.host.profile.HostSettingsProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostSystemProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostTouchProfile;
 import org.deviceconnect.android.deviceplugin.host.profile.HostVibrationProfile;
+import org.deviceconnect.android.deviceplugin.host.screen.HostDeviceScreenCast;
+import org.deviceconnect.android.deviceplugin.host.video.HostDeviceVideoRecorder;
 import org.deviceconnect.android.deviceplugin.host.video.VideoConst;
 import org.deviceconnect.android.deviceplugin.host.video.VideoPlayer;
 import org.deviceconnect.android.event.Event;
@@ -72,16 +71,23 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Logger;
 
 /**
  * Host Device Service.
  *
  * @author NTT DOCOMO, INC.
  */
+@SuppressWarnings("deprecation")
 public class HostDeviceService extends DConnectMessageService {
+
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("host.dplugin");
+
     /** Application class instance. */
     private HostDeviceApplication mApp;
 
@@ -115,6 +121,15 @@ public class HostDeviceService extends DConnectMessageService {
     /** ファイルデータ管理クラス. */
     private FileDataManager mFileDataManager;
 
+    /** List of HostDeviceRecorder. */
+    private HostDeviceRecorder[] mRecorders;
+
+    /** HostDevicePhotoRecorder. */
+    private HostDevicePhotoRecorder mDefaultPhotoRecorder;
+
+    /** HostDeviceAudioRecorder. */
+    private HostDeviceVideoRecorder mDefaultVideoRecorder;
+
     @Override
     public void onCreate() {
 
@@ -130,12 +145,14 @@ public class HostDeviceService extends DConnectMessageService {
         mFileMgr = new FileManager(this);
         mFileDataManager = new FileDataManager(mFileMgr);
 
+        createRecorders(mFileMgr);
+
         // add supported profiles
         addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
         addProfile(new HostNotificationProfile());
         addProfile(new HostDeviceOrientationProfile());
         addProfile(new HostBatteryProfile());
-        addProfile(new HostMediaStreamingRecordingProfile());
+        addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
         addProfile(new HostPhoneProfile());
         addProfile(new HostSettingsProfile());
         addProfile(new HostMediaPlayerProfile());
@@ -160,13 +177,54 @@ public class HostDeviceService extends DConnectMessageService {
         mIfBatteryConnect.addAction(Intent.ACTION_POWER_CONNECTED);
         mIfBatteryConnect.addAction(Intent.ACTION_POWER_DISCONNECTED);
 
-        // オーバーレイ
-        mCameraOverlay = new CameraOverlay(this);
-        mCameraOverlay.setFileManager(mFileMgr);
-
         // MediaPlayer (Video) IntentFilter.
         mIfMediaPlayerVideo = new IntentFilter();
         mIfMediaPlayerVideo.addAction(VideoConst.SEND_VIDEOPLAYER_TO_HOSTDP);
+
+        mRecorderMgr.start();
+    }
+
+    private void createRecorders(final FileManager fileMgr) {
+        List<HostDevicePhotoRecorder> photoRecorders = new ArrayList<HostDevicePhotoRecorder>();
+        List<HostDeviceVideoRecorder> videoRecorders = new ArrayList<HostDeviceVideoRecorder>();
+        for (int cameraId = 0; cameraId < Camera.getNumberOfCameras(); cameraId++) {
+            Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+            Camera.getCameraInfo(cameraId, cameraInfo);
+            HostDeviceRecorder.CameraFacing facing;
+            switch (cameraInfo.facing) {
+                case Camera.CameraInfo.CAMERA_FACING_BACK:
+                    facing = HostDeviceRecorder.CameraFacing.BACK;
+                    break;
+                case Camera.CameraInfo.CAMERA_FACING_FRONT:
+                    facing = HostDeviceRecorder.CameraFacing.FRONT;
+                    break;
+                default:
+                    facing = HostDeviceRecorder.CameraFacing.UNKNOWN;
+                    break;
+            }
+            photoRecorders.add(new HostDevicePhotoRecorder(this, cameraId, facing, fileMgr));
+            videoRecorders.add(new HostDeviceVideoRecorder(this, cameraId, facing, fileMgr));
+        }
+
+        if (photoRecorders.size() > 0) {
+            mDefaultPhotoRecorder = photoRecorders.get(0);
+        }
+        if (videoRecorders.size() > 0) {
+            mDefaultVideoRecorder = videoRecorders.get(0);
+        }
+
+        List<HostDeviceRecorder> recorders = new ArrayList<HostDeviceRecorder>();
+        recorders.addAll(photoRecorders);
+        recorders.addAll(videoRecorders);
+        recorders.add(new HostDeviceAudioRecorder(this));
+        if (isSupportedMediaProjection()) {
+            recorders.add(new HostDeviceScreenCast(this));
+        }
+        mRecorders = recorders.toArray(new HostDeviceRecorder[recorders.size()]);
+    }
+
+    private boolean isSupportedMediaProjection() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     }
 
     @Override
@@ -177,9 +235,7 @@ public class HostDeviceService extends DConnectMessageService {
 
         String action = intent.getAction();
         if (CameraOverlay.DELETE_PREVIEW_ACTION.equals(action)) {
-            if (mCameraOverlay.isShow()) {
-                stopWebServer();
-            }
+            mDefaultPhotoRecorder.stopWebServer();
             return START_STICKY;
         } else if ("android.intent.action.NEW_OUTGOING_CALL".equals(action)) {
             // Phone
@@ -237,8 +293,112 @@ public class HostDeviceService extends DConnectMessageService {
     public void onDestroy() {
         super.onDestroy();
 
+        mRecorderMgr.stop();
         mFileDataManager.stopTimer();
     }
+
+    /** HostDeviceRecorderManager. */
+    private final HostDeviceRecorderManager mRecorderMgr = new HostDeviceRecorderManager() {
+
+        private final BroadcastReceiver mRecorderStateReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(final Context context, final Intent intent) {
+                mLogger.info("RecorderStateReceiver.onReceive: action = " + intent.getAction());
+                if (VideoConst.SEND_VIDEO_TO_HOSTDP.equals(intent.getAction())) {
+                    String target = intent.getStringExtra(VideoConst.EXTRA_RECORDER_ID);
+                    HostDeviceRecorder.RecorderState state =
+                        (HostDeviceRecorder.RecorderState) intent.getSerializableExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE);
+                    mLogger.info("RecorderStateReceiver.onReceive: target = " + target
+                        + ", state = " + state.name());
+                    if (target != null && state != null) {
+                        HostDeviceVideoRecorder videoRecorder = getVideoRecorder(target);
+                        mLogger.info("RecorderStateReceiver.onReceive: recorder = " + videoRecorder);
+                        if (videoRecorder != null) {
+                            videoRecorder.setState(state);
+                            mLogger.info("Changed video recorder state = " + videoRecorder.getState());
+                        }
+                    }
+                }
+            }
+        };
+
+        @Override
+        public HostDeviceRecorder[] getRecorders() {
+            return mRecorders;
+        }
+
+        @Override
+        public HostDeviceRecorder getRecorder(final String id) {
+            if (id == null) {
+                return mDefaultVideoRecorder;
+            }
+            for (HostDeviceRecorder recorder : mRecorders) {
+                if (id.equals(recorder.getId())) {
+                    return recorder;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public HostDevicePhotoRecorder getPhotoRecorder(final String id) {
+            if (id == null) {
+                return mDefaultPhotoRecorder;
+            }
+            for (HostDeviceRecorder recorder : mRecorders) {
+                if (id.equals(recorder.getId()) && recorder instanceof HostDevicePhotoRecorder) {
+                    return (HostDevicePhotoRecorder) recorder;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public HostDeviceStreamRecorder getStreamRecorder(final String id) {
+            if (id == null) {
+                return mDefaultVideoRecorder;
+            }
+            for (HostDeviceRecorder recorder : mRecorders) {
+                if (id.equals(recorder.getId()) && recorder instanceof HostDeviceStreamRecorder) {
+                    return (HostDeviceStreamRecorder) recorder;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public HostDevicePreviewServer getPreviewServer(final String id) {
+            if (id == null) {
+                return mDefaultPhotoRecorder;
+            }
+            for (HostDeviceRecorder recorder : mRecorders) {
+                if (id.equals(recorder.getId()) && recorder instanceof HostDevicePreviewServer) {
+                    return (HostDevicePreviewServer) recorder;
+                }
+            }
+            return null;
+        }
+
+        private HostDeviceVideoRecorder getVideoRecorder(final String id) {
+            for (HostDeviceRecorder recorder : mRecorders) {
+                if (id.equals(recorder.getId()) && recorder instanceof HostDeviceVideoRecorder) {
+                    return (HostDeviceVideoRecorder) recorder;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public void start() {
+            IntentFilter filter = new IntentFilter(VideoConst.SEND_VIDEO_TO_HOSTDP);
+            registerReceiver(mRecorderStateReceiver, filter);
+        }
+
+        @Override
+        public void stop() {
+            unregisterReceiver(mRecorderStateReceiver);
+        }
+    };
 
     /**
      * Get a instance of FileManager.
@@ -965,115 +1125,6 @@ public class HostDeviceService extends DConnectMessageService {
         }
     }
 
-    // ================================
-    // MediaStream_Recording
-    // ================================
-
-    /** Lock object. */
-    private final Object mLockObj = new Object();
-
-    /** Server for MotionJPEG. */
-    private MixedReplaceMediaServer mServer;
-
-    /** カメラを表示するためのオーバーレイ. */
-    private CameraOverlay mCameraOverlay;
-
-    /**
-     * カメラが使用されているか確認する.
-     *
-     * @return カメラが使用されている場合はtrue、それ以外はfalse
-     */
-    public boolean isShowCamera() {
-        return mCameraOverlay != null && mCameraOverlay.isShow();
-    }
-
-    /**
-     * Start a web server.
-     *
-     * @param callback a callback to return the result.
-     */
-    public void startWebServer(final OnWebServerStartCallback callback) {
-        synchronized (mLockObj) {
-            if (mServer == null) {
-                mServer = new MixedReplaceMediaServer();
-                mServer.setServerName("HostDevicePlugin Server");
-                mServer.setContentType("image/jpg");
-                final String ip = mServer.start();
-
-                if (!mCameraOverlay.isShow()) {
-                    mCameraOverlay.show(new CameraOverlay.Callback() {
-                        @Override
-                        public void onSuccess() {
-                            mCameraOverlay.setFinishFlag(false);
-                            mCameraOverlay.setServer(mServer);
-                            callback.onStart(ip);
-                        }
-
-                        @Override
-                        public void onFail() {
-                            callback.onFail();
-                        }
-                    });
-                } else {
-                    mCameraOverlay.setFinishFlag(false);
-                    mCameraOverlay.setServer(mServer);
-                    callback.onStart(ip);
-                }
-            } else {
-                callback.onStart(mServer.getUrl());
-            }
-        }
-    }
-
-    /**
-     * Stop a web server.
-     */
-    public void stopWebServer() {
-        synchronized (mLockObj) {
-            if (mServer != null) {
-                mServer.stop();
-                mServer = null;
-            }
-            mCameraOverlay.hide();
-        }
-    }
-
-    /**
-     * 写真撮影を行う.
-     *
-     * @param listener 写真撮影の結果を通知するリスナー
-     */
-    public void takePicture(final CameraOverlay.OnTakePhotoListener listener) {
-        PermissionUtility.requestPermissions(this, new Handler(Looper.getMainLooper()),
-                new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                new PermissionUtility.PermissionRequestCallback() {
-                    @Override
-                    public void onSuccess() {
-                        if (!mCameraOverlay.isShow()) {
-                            mCameraOverlay.show(new CameraOverlay.Callback() {
-                                @Override
-                                public void onSuccess() {
-                                    mCameraOverlay.setFinishFlag(true);
-                                    mCameraOverlay.takePicture(listener);
-                                }
-
-                                @Override
-                                public void onFail() {
-                                    listener.onFailedTakePhoto();
-                                }
-                            });
-                        } else {
-                            mCameraOverlay.takePicture(listener);
-                        }
-                    }
-
-                    @Override
-                    public void onFail(@NonNull String deniedPermission) {
-                        listener.onFailedTakePhoto();
-                    }
-                });
-    }
-
     /**
      * mDNSで端末検索.
      */
@@ -1193,20 +1244,4 @@ public class HostDeviceService extends DConnectMessageService {
         return mApp.getKeyEventCache(attr);
     }
 
-    /**
-     * Callback interface used to receive the result of starting a web server.
-     */
-    public interface OnWebServerStartCallback {
-        /**
-         * Called when a web server successfully started.
-         *
-         * @param uri An ever-updating, static image URI.
-         */
-        void onStart(@NonNull String uri);
-
-        /**
-         * Called when a web server failed to start.
-         */
-        void onFail();
-    }
 }

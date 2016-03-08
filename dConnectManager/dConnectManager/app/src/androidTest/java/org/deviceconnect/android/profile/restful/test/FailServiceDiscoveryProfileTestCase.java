@@ -152,11 +152,11 @@ public class FailServiceDiscoveryProfileTestCase extends RESTfulDConnectTestCase
                 String id = service.getString(ServiceDiscoveryProfileConstants.PARAM_ID);
                 String type = service.getString(ServiceDiscoveryProfileConstants.PARAM_TYPE);
                 assertNotNull("service.name is null", name);
-                assertNotNull("service.id is null", id);
-                assertNotNull("service.type is null", type);
                 if (name.equals(TestServiceDiscoveryProfileConstants.DEVICE_NAME)) {
                     isFoundName = true;
                 }
+                assertNotNull("service.id is null", id);
+                assertNotNull("service.type is null", type);
             }
             if (!isFoundName) {
                 fail("Not found Test DevicePlugin.");

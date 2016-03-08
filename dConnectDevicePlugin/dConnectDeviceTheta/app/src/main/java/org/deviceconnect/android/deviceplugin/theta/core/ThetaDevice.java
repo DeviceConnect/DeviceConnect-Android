@@ -192,6 +192,18 @@ public interface ThetaDevice extends LiveCamera {
 
         int getImageHeight();
 
+        int getPreviewWidth();
+
+        int getPreviewHeight();
+
+        double getPreviewMaxFrameRate();
+
+        boolean supportsPreview();
+
+        boolean supportsVideoRecording();
+
+        boolean supportsPhoto();
+
         RecorderState getState() throws ThetaDeviceException;
 
     }

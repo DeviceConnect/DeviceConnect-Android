@@ -529,9 +529,42 @@ class ThetaS extends AbstractThetaDevice {
 
         private static final String NAME = "THETA S - photo";
         private static final String MIME_TYPE = "image/jpeg";
+        private static final int PREVIEW_WIDTH = 640;
+        private static final int PREVIEW_HEIGHT = 320;
+        private static final double PREVIEW_MAX_FRAME_RATE = 10.0d;
 
         public ThetaImageRecorderS(final String id, final int imageWidth, final int imageHeight) {
             super(id, NAME, MIME_TYPE, imageWidth, imageHeight);
+        }
+
+        @Override
+        public int getPreviewWidth() {
+            return PREVIEW_WIDTH;
+        }
+
+        @Override
+        public int getPreviewHeight() {
+            return PREVIEW_HEIGHT;
+        }
+
+        @Override
+        public double getPreviewMaxFrameRate() {
+            return PREVIEW_MAX_FRAME_RATE;
+        }
+
+        @Override
+        public boolean supportsPreview() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsVideoRecording() {
+            return false;
+        }
+
+        @Override
+        public boolean supportsPhoto() {
+            return true;
         }
 
         @Override
@@ -547,6 +580,36 @@ class ThetaS extends AbstractThetaDevice {
 
         public ThetaVideoRecorderS(final String id, final int imageWidth, final int imageHeight) {
             super(id, NAME, MIME_TYPE, imageWidth, imageHeight);
+        }
+
+        @Override
+        public int getPreviewWidth() {
+            return 0;
+        }
+
+        @Override
+        public int getPreviewHeight() {
+            return 0;
+        }
+
+        @Override
+        public double getPreviewMaxFrameRate() {
+            return 0;
+        }
+
+        @Override
+        public boolean supportsPreview() {
+            return false;
+        }
+
+        @Override
+        public boolean supportsVideoRecording() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsPhoto() {
+            return false;
         }
 
         @Override

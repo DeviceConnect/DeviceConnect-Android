@@ -27,6 +27,8 @@ import java.util.logging.Logger;
 
 public class UVCDevice {
 
+    private static final double DEFAULT_MAX_FPS = 30.0d;
+
     private static final int VS_FORMAT_MJPEG = 0x06;
 
     private static final int[] SUPPORTED_PAYLOAD_FORMATS = {
@@ -61,7 +63,9 @@ public class UVCDevice {
 
     private PreviewOption mCurrentOption;
 
-    private Long mMinFrameInterval;
+    private long mMinFrameInterval;
+
+    private double mMaxFps;
 
     private long mLastFrameTime = -1;
 
@@ -71,6 +75,7 @@ public class UVCDevice {
         mDevice = device;
         mId = Integer.toString(device.getDeviceId());
         mDeviceMgr = deviceMgr;
+        setPreviewFrameRate(DEFAULT_MAX_FPS);
     }
 
     public String getId() {
@@ -246,8 +251,7 @@ public class UVCDevice {
     }
 
     private boolean checkFrameInterval() {
-        if (mMinFrameInterval == null) {
-            mLogger.info("checkFrameInterval: Use default interval.");
+        if (mMinFrameInterval <= 0) {
             return false;
         }
         long currentFrameTime = System.currentTimeMillis();
@@ -305,19 +309,27 @@ public class UVCDevice {
     }
 
     public boolean setPreviewSize(final int width, final int height) {
-        mCurrentOption = new PreviewOption(width, height);
+        if (!isSupportedPreviewSize(width, height)) {
+            return false;
+        }
         try {
             if (mIsOpen) {
                 mCamera.setPreviewSize(width, height, UVCCamera.FRAME_FORMAT_MJPEG);
             }
+            mCurrentOption = new PreviewOption(width, height);
             return true;
         } catch (IllegalArgumentException e) {
             return false;
         }
     }
 
-    public void setPreviewFrameRate(final Float maxFrameRate) {
-        mMinFrameInterval = maxFrameRate == null ? null : (long) (1000 / maxFrameRate);
+    public double getFrameRate() {
+        return mMaxFps;
+    }
+
+    public void setPreviewFrameRate(final double maxFrameRate) {
+        mMaxFps = maxFrameRate;
+        mMinFrameInterval = (long) (1000 / maxFrameRate);
     }
 
     public boolean setNearestPreviewSize(final int requestedWidth,
@@ -416,6 +428,16 @@ public class UVCDevice {
             options.add(new PreviewOption(size));
         }
         return options;
+    }
+
+    private boolean isSupportedPreviewSize(final int width, final int height) {
+        List<Size> sizes = mCamera.getSupportedSizeListAll();
+        for (Size size : sizes) {
+            if (width == size.width && height == size.height) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static class PendingPermissionRequest {

@@ -595,6 +595,16 @@ class ThetaM15 extends AbstractThetaDevice {
         }
 
         @Override
+        public boolean supportsVideoRecording() {
+            return false;
+        }
+
+        @Override
+        public boolean supportsPhoto() {
+            return true;
+        }
+
+        @Override
         public RecorderState getState() throws ThetaDeviceException {
             return RecorderState.INACTIVE;
         }
@@ -609,6 +619,16 @@ class ThetaM15 extends AbstractThetaDevice {
 
         public ThetaVideoRecorderM15(final String id) {
             super(id, NAME, MIME_TYPE, IMAGE_WIDTH, IMAGE_HEIGHT);
+        }
+
+        @Override
+        public boolean supportsVideoRecording() {
+            return true;
+        }
+
+        @Override
+        public boolean supportsPhoto() {
+            return false;
         }
 
         @Override
@@ -673,5 +693,24 @@ class ThetaM15 extends AbstractThetaDevice {
             return mImageHeight;
         }
 
+        @Override
+        public int getPreviewWidth() {
+            return 0;
+        }
+
+        @Override
+        public int getPreviewHeight() {
+            return 0;
+        }
+
+        @Override
+        public double getPreviewMaxFrameRate() {
+            return 0;
+        }
+
+        @Override
+        public boolean supportsPreview() {
+            return false;
+        }
     }
 }

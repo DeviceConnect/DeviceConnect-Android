@@ -81,11 +81,30 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
         }
     };
 
+    private final UVCDeviceManager.ConnectionListener mConnectionListener
+        = new UVCDeviceManager.ConnectionListener() {
+        @Override
+        public void onConnect(final UVCDevice device) {
+            // Nothing to do.
+        }
+
+        @Override
+        public void onConnectionFailed(final UVCDevice device) {
+            // Nothing to do.
+        }
+
+        @Override
+        public void onDisconnect(final UVCDevice device) {
+            stopMediaServer(device.getId());
+        }
+    };
+
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
     public UVCMediaStreamRecordingProfile(final UVCDeviceManager deviceMgr) {
         mDeviceMgr = deviceMgr;
         mDeviceMgr.addPreviewListener(mPreviewListener);
+        mDeviceMgr.addConnectionListener(mConnectionListener);
     }
 
     @Override
@@ -153,7 +172,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return;
                 }
                 if (!device.isOpen()) {
-                    if (!mDeviceMgr.openDevice(device)) {
+                    if (!mDeviceMgr.connectDevice(device)) {
                         MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
                         sendResponse(response);
                         return;
@@ -228,7 +247,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return;
                 }
                 if (!device.isOpen()) {
-                    if (!mDeviceMgr.openDevice(device)) {
+                    if (!mDeviceMgr.connectDevice(device)) {
                         MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
                         sendResponse(response);
                         return;
@@ -315,7 +334,7 @@ public class UVCMediaStreamRecordingProfile extends MediaStreamRecordingProfile 
                     return;
                 }
                 if (!device.isOpen()) {
-                    if (!mDeviceMgr.openDevice(device)) {
+                    if (!mDeviceMgr.connectDevice(device)) {
                         MessageUtils.setIllegalDeviceStateError(response, "Failed to open UVC device: " + device.getId());
                         sendResponse(response);
                         return;

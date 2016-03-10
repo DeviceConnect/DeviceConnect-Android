@@ -20,9 +20,11 @@ import org.deviceconnect.android.deviceplugin.webrtc.R;
 import org.deviceconnect.android.deviceplugin.webrtc.WebRTCApplication;
 import org.deviceconnect.android.deviceplugin.webrtc.core.MySurfaceViewRenderer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
+import org.deviceconnect.android.deviceplugin.webrtc.core.PeerOption;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerUtil;
 import org.deviceconnect.android.deviceplugin.webrtc.core.WebRTCController;
 import org.deviceconnect.android.deviceplugin.webrtc.fragment.PercentFrameLayout;
+import org.deviceconnect.android.deviceplugin.webrtc.profile.WebRTCVideoChatProfile;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.profile.VideoChatProfile;
@@ -71,6 +73,24 @@ public class VideoChatActivity extends Activity {
      */
     public static final String EXTRA_OFFER = "offer";
 
+    /**
+     * Defined a extra audioSampleRate.
+     * Constant Value: {@value}
+     */
+    public static final String EXTRA_AUDIOSAMPLERATE = "audioSampleRate";
+
+    /**
+     * Defined a extra audioBitDepth.
+     * Constant Value: {@value}
+     */
+    public static final String EXTRA_AUDIOBITDEPTH = "audioBitDepth";
+
+    /**
+     * Defined a extra audioChannel.
+     * Constant Value: {@value}
+     */
+    public static final String EXTRA_AUDIOCHANNEL = "audioChannel";
+
     private PercentFrameLayout mLocalLayout;
     private PercentFrameLayout mRemoteLayout;
 
@@ -105,6 +125,15 @@ public class VideoChatActivity extends Activity {
             String audioUri = intent.getStringExtra(EXTRA_AUDIO_URI);
             String addressId = intent.getStringExtra(EXTRA_ADDRESS_ID);
             boolean offer = intent.getBooleanExtra(EXTRA_OFFER, false);
+            String audioSampleRate = intent.getStringExtra(EXTRA_AUDIOSAMPLERATE);
+            int audioSampleRateValue;
+            if (audioSampleRate == null) {
+                audioSampleRateValue = WebRTCVideoChatProfile.PARAM_RATE_48000;
+            } else {
+                audioSampleRateValue = Integer.valueOf(audioSampleRate);
+            }
+            String audioBitDepth = intent.getStringExtra(EXTRA_AUDIOBITDEPTH);
+            String audioChannel = intent.getStringExtra(EXTRA_AUDIOCHANNEL);
 
             WebRTCController.Builder builder = new WebRTCController.Builder();
             builder.setApplication((WebRTCApplication) getApplication());
@@ -118,6 +147,9 @@ public class VideoChatActivity extends Activity {
             builder.setAudioUri(audioUri);
             builder.setAddressId(addressId);
             builder.setOffer(offer);
+            builder.setAudioSampleRate(audioSampleRateValue);
+            builder.setAudioBitDepth(audioBitDepth);
+            builder.setAudioChannel(audioChannel);
             mWebRTCController = builder.create();
             updateVideoView();
         } else {

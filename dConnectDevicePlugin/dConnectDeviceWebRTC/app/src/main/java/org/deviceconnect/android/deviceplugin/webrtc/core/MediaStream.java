@@ -335,6 +335,9 @@ public class MediaStream {
                 public WebRtcAudioRecordModule create() {
                     AudioCapturerExternalResource module = new AudioCapturerExternalResource();
                     module.setUri(mOption.getAudioUri());
+                    module.setSampleRate(mOption.getAudioSampleRate());
+                    module.setBitDepth(mOption.getAudioBitDepth());
+                    module.setChannel(mOption.getAudioChannel());
                     return module;
                 }
             });

@@ -180,6 +180,21 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                             String video = request.getStringExtra(PARAM_VIDEO);
                             String audio = request.getStringExtra(PARAM_AUDIO);
                             String outputs = request.getStringExtra(PARAM_OUTPUTS);
+                            String audioSampleRate = request.getStringExtra(PARAM_AUDIOSAMPLERATE);
+                            int audioSampleRateValue;
+                            if (audioSampleRate == null) {
+                                audioSampleRateValue = PARAM_RATE_48000;
+                            } else {
+                                audioSampleRateValue = Integer.valueOf(audioSampleRate);
+                            }
+                            String audioBitDepth = request.getStringExtra(PARAM_AUDIOBITDEPTH);
+                            if (audioBitDepth == null) {
+                                audioBitDepth = PARAM_PCM_FLOAT;
+                            }
+                            String audioChannel = request.getStringExtra(PARAM_AUDIOCHANNEL);
+                            if (audioChannel == null) {
+                                audioChannel = PARAM_MONAURAL;
+                            }
 
                             // if value is null, sets "true" as default
                             video = (video == null || video.isEmpty()) ? "true" : video;
@@ -194,6 +209,12 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                                 MessageUtils.setInvalidRequestParameterError(response, "video is invalid.");
                             } else if (!checkUri(audio)) {
                                 MessageUtils.setInvalidRequestParameterError(response, "audio is invalid.");
+                            } else if (!checkAudioSampleRate(audioSampleRateValue)) {
+                                MessageUtils.setInvalidRequestParameterError(response, "audioSampleRate is invalid.");
+                            } else if (!checkAudioBitDepth(audioBitDepth)) {
+                                MessageUtils.setInvalidRequestParameterError(response, "audioBitDepth is invalid.");
+                            } else if (!checkAudioChannel(audioChannel)) {
+                                MessageUtils.setInvalidRequestParameterError(response, "audioChannel is invalid.");
                             } else {
                                 boolean offer = peer.hasOffer(addressId);
                                 final Intent intent = new Intent();
@@ -203,6 +224,9 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                                 intent.putExtra(VideoChatActivity.EXTRA_AUDIO_URI, audio);
                                 intent.putExtra(VideoChatActivity.EXTRA_CONFIG, peer.getConfig());
                                 intent.putExtra(VideoChatActivity.EXTRA_OFFER, offer);
+                                intent.putExtra(VideoChatActivity.EXTRA_AUDIOSAMPLERATE, audioSampleRate);
+                                intent.putExtra(VideoChatActivity.EXTRA_AUDIOBITDEPTH, audioBitDepth);
+                                intent.putExtra(VideoChatActivity.EXTRA_AUDIOCHANNEL, audioChannel);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 if (outputs.equals(PARAM_HOST)) {
                                     getContext().startActivity(intent);
@@ -445,7 +469,63 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
             return URLUtil.isValidUrl(uri);
         }
     }
-    
+
+    /**
+     * Check sample rate.
+     * @param sampleRate sampleRate.
+     * @return {@code true} if this samplerate is valid, {@code false} otherwise.
+     */
+    private boolean checkAudioSampleRate(final int sampleRate) {
+        switch (sampleRate) {
+            case PARAM_RATE_22050:
+            case PARAM_RATE_32000:
+            case PARAM_RATE_44100:
+            case PARAM_RATE_48000:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check bit depth.
+     * @param bitDepth bitDepth.
+     * @return {@code true} if this bitdepth is valid, {@code false} otherwise.
+     */
+    private boolean checkAudioBitDepth(final String bitDepth) {
+        if (bitDepth == null) {
+            // Parameters not set.
+            return true;
+        }
+        switch (bitDepth) {
+            case PARAM_PCM_8BIT:
+            case PARAM_PCM_16BIT:
+            case PARAM_PCM_FLOAT:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check channel.
+     * @param channel channel.
+     * @return {@code true} if this bitdepth is valid, {@code false} otherwise.
+     */
+    private boolean checkAudioChannel(final String channel) {
+        if (channel == null) {
+            // Parameters not set.
+            return true;
+        }
+        switch (channel) {
+            case PARAM_MONAURAL:
+            case PARAM_STEREO:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     /**
      * This listener that receive events from Peer.
      */

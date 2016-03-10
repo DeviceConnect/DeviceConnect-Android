@@ -2,14 +2,11 @@ package org.deviceconnect.android.deviceplugin.webrtc.core;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.util.AttributeSet;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
+import org.deviceconnect.android.deviceplugin.webrtc.util.ImageUtils;
 import org.deviceconnect.android.deviceplugin.webrtc.util.MixedReplaceMediaServer;
 import org.deviceconnect.android.deviceplugin.webrtc.util.YuvConverter;
 import org.webrtc.EglBase;
@@ -18,6 +15,7 @@ import org.webrtc.VideoRenderer;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class MySurfaceViewRenderer extends SurfaceViewRenderer {
 
@@ -66,6 +64,9 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
     }
 
     public String getUrl() {
+        if (mServer == null) {
+            return null;
+        }
         return mServer.getUrl(mType);
     }
 
@@ -117,22 +118,17 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
             return;
         }
 
-        YuvImage remoteImage = mYuvConverter.convertToYuvImage(frame.width, frame.height, frame.yuvStrides, frame.yuvPlanes);
+        if (mBitmap == null || mBitmap.getWidth() != frame.width || mBitmap.getHeight() != frame.height) {
+            mBitmap = Bitmap.createBitmap(frame.width, frame.height, Bitmap.Config.ARGB_8888);
+        }
+
+        ImageUtils.decodeYUV420SP3(mBitmap, frame.yuvPlanes, frame.width, frame.height, frame.yuvStrides);
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        remoteImage.compressToJpeg(new Rect(0, 0, frame.width, frame.height), 50, out);
+        mBitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
         mFrameHeight = frame.height;
         mFrameWidth = frame.width;
         mServer.offerMedia(mType, out.toByteArray());
-
-        if (frame.yuvPlanes[0] != null) {
-            frame.yuvPlanes[0].rewind();
-        }
-        if (frame.yuvPlanes[1] != null) {
-            frame.yuvPlanes[1].rewind();
-        }
-        if (frame.yuvPlanes[2] != null) {
-            frame.yuvPlanes[2].rewind();
-        }
     }
 
     private void convertTextureToYUV(VideoRenderer.I420Frame frame) {
@@ -141,12 +137,13 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
                 int uv_height = (frame.height + 1) / 2;
                 int total_height = frame.height + uv_height;
                 int size = frame.width * total_height;
-                mByteBuffer = ByteBuffer.allocate(size);
+                mByteBuffer = ByteBuffer.allocateDirect(size);
+                mByteBuffer.order(ByteOrder.nativeOrder());
             }
 
             mYuvConverter.convert(mByteBuffer, frame.width, frame.height, frame.width, frame.textureId, frame.samplingMatrix);
 
-            Bitmap bitmap = getBitmapImageFromYUV(mByteBuffer.array(), frame.width, frame.height);
+            Bitmap bitmap = getBitmapImageFromYUV(mByteBuffer, frame.width, frame.height);
             if (bitmap != null) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
@@ -157,14 +154,14 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         }
     }
 
-    public Bitmap getBitmapImageFromYUV(byte[] data, int width, int height) {
-        YuvImage yuvimage = new YuvImage(data, ImageFormat.NV21, width, height, null);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        yuvimage.compressToJpeg(new Rect(0, 0, width, height), 50, baos);
-        byte[] jdata = baos.toByteArray();
-        BitmapFactory.Options bitmapFatoryOptions = new BitmapFactory.Options();
-        bitmapFatoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
-        return BitmapFactory.decodeByteArray(jdata, 0, jdata.length, bitmapFatoryOptions);
+    private Bitmap mBitmap;
+
+    public Bitmap getBitmapImageFromYUV(ByteBuffer data, int width, int height) {
+        if (mBitmap == null || mBitmap.getWidth() != width || mBitmap.getHeight() != height) {
+            mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        }
+        ImageUtils.decodeYUV420SP2(mBitmap, data, width, height);
+        return mBitmap;
     }
 
 }

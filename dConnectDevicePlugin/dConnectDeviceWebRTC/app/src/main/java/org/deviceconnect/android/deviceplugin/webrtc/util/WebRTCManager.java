@@ -21,6 +21,8 @@ import org.deviceconnect.android.deviceplugin.webrtc.core.Peer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.core.WebRTCController;
 import org.deviceconnect.android.deviceplugin.webrtc.fragment.PercentFrameLayout;
+import org.deviceconnect.android.deviceplugin.webrtc.profile.WebRTCVideoChatProfile;
+import org.deviceconnect.android.profile.VideoChatProfile;
 import org.webrtc.EglBase;
 import org.webrtc.RendererCommon;
 import org.webrtc.voiceengine.WebRtcAudioTrack;
@@ -90,6 +92,15 @@ public class WebRTCManager {
         String audioUri = intent.getStringExtra(VideoChatActivity.EXTRA_AUDIO_URI);
         String addressId = intent.getStringExtra(VideoChatActivity.EXTRA_ADDRESS_ID);
         boolean offer = intent.getBooleanExtra(VideoChatActivity.EXTRA_OFFER, false);
+        String audioSampleRate = intent.getStringExtra(VideoChatActivity.EXTRA_AUDIOSAMPLERATE);
+        int audioSampleRateValue;
+        if (audioSampleRate == null) {
+            audioSampleRateValue = VideoChatProfile.PARAM_RATE_48000;
+        } else {
+            audioSampleRateValue = Integer.valueOf(audioSampleRate);
+        }
+        String audioBitDepth = intent.getStringExtra(VideoChatActivity.EXTRA_AUDIOBITDEPTH);
+        String audioChannel = intent.getStringExtra(VideoChatActivity.EXTRA_AUDIOCHANNEL);
 
         WebRtcAudioTrack.setAudioTrackModuleFactory(new WebRtcAudioTrackModuleFactory() {
             @Override
@@ -112,6 +123,9 @@ public class WebRTCManager {
         builder.setAudioUri(audioUri);
         builder.setAddressId(addressId);
         builder.setOffer(offer);
+        builder.setAudioSampleRate(audioSampleRateValue);
+        builder.setAudioBitDepth(audioBitDepth);
+        builder.setAudioChannel(audioChannel);
         builder.create();
 
         Point size = getDisplaySize();

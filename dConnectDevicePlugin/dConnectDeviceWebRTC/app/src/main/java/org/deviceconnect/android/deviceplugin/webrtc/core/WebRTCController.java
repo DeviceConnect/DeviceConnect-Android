@@ -42,8 +42,8 @@ public class WebRTCController {
     private PeerOption mOption;
     private Peer mPeer;
 
-    private static final int DEFAULT_WIDTH = 480;
-    private static final int DEFAULT_HEIGHT = 640;
+    private static final int DEFAULT_WIDTH = 240;
+    private static final int DEFAULT_HEIGHT = 320;
     private static final int DEFAULT_FPS = 30;
 
     /**
@@ -401,6 +401,9 @@ public class WebRTCController {
 
         private String mAddressId;
         private boolean mOffer;
+        private PeerOption.AudioSampleRate mAudioSampleRate = PeerOption.AudioSampleRate.RATE_48000;
+        private PeerOption.AudioBitDepth mAudioBitDepth = PeerOption.AudioBitDepth.PCM_FLOAT;
+        private PeerOption.AudioChannel mAudioChannel = PeerOption.AudioChannel.MONAURAL;
 
         public Builder setVideoWidth(int width) {
             mVideoWidth = width;
@@ -428,6 +431,39 @@ public class WebRTCController {
 
         public void setOffer(boolean offer) {
             mOffer = offer;
+        }
+
+        public void setAudioSampleRate(int audioSampleRate)
+        {
+            mAudioSampleRate = PeerOption.AudioSampleRate.valueOf(audioSampleRate);
+        }
+
+        public void setAudioBitDepth(String audioBitDepth)
+        {
+            switch (audioBitDepth) {
+                case VideoChatProfile.PARAM_PCM_8BIT:
+                    mAudioBitDepth = PeerOption.AudioBitDepth.PCM_8BIT;
+                    break;
+                case VideoChatProfile.PARAM_PCM_16BIT:
+                    mAudioBitDepth = PeerOption.AudioBitDepth.PCM_16BIT;
+                    break;
+                case VideoChatProfile.PARAM_PCM_FLOAT:
+                default:
+                    mAudioBitDepth = PeerOption.AudioBitDepth.PCM_FLOAT;
+                    break;
+            }
+        }
+
+        public void setAudioChannel(String audioChannel) {
+            switch (audioChannel) {
+                case VideoChatProfile.PARAM_STEREO:
+                    mAudioChannel = PeerOption.AudioChannel.STEREO;
+                    break;
+                case VideoChatProfile.PARAM_MONAURAL:
+                default:
+                    mAudioChannel = PeerOption.AudioChannel.MONAURAL;
+                    break;
+            }
         }
 
         public Builder setVideoUri(String uri) {
@@ -561,7 +597,9 @@ public class WebRTCController {
             option.addIceServer(STUN_SERVER);
             option.setContext(mContext);
             option.setEglBase(mEglBase);
-
+            option.setAudioSampleRate(mAudioSampleRate);
+            option.setAudioBitDepth(mAudioBitDepth);
+            option.setAudioChannel(mAudioChannel);
 
             WebRTCController ctl = new WebRTCController(mApplication, mConfig, mAddressId, mOffer, mWebRTCEventListener);
             ctl.setLocalRender(mLocalRender);

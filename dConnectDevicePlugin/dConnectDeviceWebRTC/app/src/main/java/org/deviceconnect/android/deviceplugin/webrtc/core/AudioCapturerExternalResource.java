@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.webrtc.core;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
+import org.deviceconnect.android.deviceplugin.webrtc.util.Resampler;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.webrtc.voiceengine.WebRtcAudioRecordModule;
@@ -61,6 +62,21 @@ public class AudioCapturerExternalResource extends WebRtcAudioRecordModule {
     private String mUri;
 
     /**
+     * Sample rate.
+     */
+    private PeerOption.AudioSampleRate mSampleRate = PeerOption.AudioSampleRate.RATE_48000;
+
+    /**
+     * Bit depth.
+     */
+    private PeerOption.AudioBitDepth mBitDepth = PeerOption.AudioBitDepth.PCM_FLOAT;
+
+    /**
+     * Channel.
+     */
+    private PeerOption.AudioChannel mChannel = PeerOption.AudioChannel.MONAURAL;
+
+    /**
      * Client gets the audio data from server.
      */
     private AudioWebSocketClient mWebSocketClient;
@@ -94,6 +110,30 @@ public class AudioCapturerExternalResource extends WebRtcAudioRecordModule {
      */
     public void setUri(final String uri) {
         mUri = uri;
+    }
+
+    /**
+     * Sets a sample rate.
+     * @param sampleRate Sample rate.
+     */
+    public void setSampleRate(final PeerOption.AudioSampleRate sampleRate) {
+        mSampleRate = sampleRate;
+    }
+
+    /**
+     * Sets a bit depth.
+     * @param bitDepth Bit depth.
+     */
+    public void setBitDepth(final PeerOption.AudioBitDepth bitDepth) {
+        mBitDepth = bitDepth;
+    }
+
+    /**
+     * Sets a channel.
+     * @param channel Channel.
+     */
+    public void setChannel(final PeerOption.AudioChannel channel) {
+        mChannel = channel;
     }
 
     @Override
@@ -182,15 +222,70 @@ public class AudioCapturerExternalResource extends WebRtcAudioRecordModule {
 
         if (true) {
             try {
-                // convert from float to short
-                int capacity = bytes.capacity() / 4;
-                float[] floatPCM = new float[capacity];
-                short[] shortPCM = new short[capacity];
-                bytes.order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer().get(floatPCM);
-                for (int i = 0; i < floatPCM.length; i++) {
-                    shortPCM[i] = (short) (floatPCM[i] * 32768);
+                int capacity;
+                short[] shortPCM;
+                switch (mBitDepth) {
+                    case PCM_8BIT:
+                        capacity = bytes.capacity();
+                        shortPCM = new short[capacity];
+                        for (int i = 0, count = 0; i < capacity; i++) {
+                            switch (mChannel) {
+                                case STEREO:
+                                    if (i % 2 == 0) {
+                                        shortPCM[count++] = (short) bytes.get(i);
+                                    }
+                                    break;
+                                case MONAURAL:
+                                default:
+                                    shortPCM[i] = (short) bytes.get(i);
+                                    break;
+                            }
+                        }
+                        break;
+                    case PCM_16BIT:
+                        capacity = bytes.capacity() / 2;
+                        switch (mChannel) {
+                            case STEREO:
+                                shortPCM = new short[capacity/2];
+                                short[] stereoPCM = new short[capacity];
+                                bytes.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(stereoPCM);
+                                for (int i = 0, count = 0; i < capacity; i++) {
+                                    if (i % 2 == 0) {
+                                        shortPCM[count++] = stereoPCM[i];
+                                    }
+                                }
+                                break;
+                            case MONAURAL:
+                            default:
+                                shortPCM = new short[capacity];
+                                bytes.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shortPCM);
+                                break;
+                        }
+                        break;
+                    case PCM_FLOAT:
+                    default:
+                        // convert from float to short
+                        capacity = bytes.capacity() / 4;
+                        float[] floatPCM = new float[capacity];
+                        shortPCM = new short[capacity];
+                        bytes.order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer().get(floatPCM);
+                        for (int i = 0, count = 0; i < floatPCM.length; i++) {
+                            switch (mChannel) {
+                                case STEREO:
+                                    if (i % 2 == 0) {
+                                        shortPCM[count++] = (short) (floatPCM[i] * 32768);
+                                    }
+                                    break;
+                                case MONAURAL:
+                                default:
+                                    shortPCM[i] = (short) (floatPCM[i] * 32768);
+                                    break;
+                            }
+                        }
+                        break;
                 }
-                mAudioThread.offerAudioData(shortToByte(shortPCM));
+                Resampler resampler = new Resampler();
+                mAudioThread.offerAudioData(resampler.reSample(shortToByte(shortPCM), 16, mSampleRate.getSampleRate(), 48000));
             } catch (Exception e) {
                 if (BuildConfig.DEBUG) {
                     Log.e(TAG, "", e);

@@ -312,12 +312,27 @@ public class LocalOAuthRequest extends DConnectRequest {
     }
 
     /**
+     * プラグインからアクセストークンを求められないプロファイルであるかどうかを判定する.
+     * @param profile プロファイル名
+     * @return アクセストークンを求めない場合は<code>true</code>、そうでなければ<code>false</code>
+     */
+    private boolean isIgnoredPluginProfile(final String profile) {
+        for (String ignored : DConnectLocalOAuth.IGNORE_PLUGIN_PROFILES) {
+            if (ignored.equals(profile)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Local OAuthの有効期限切れの場合にリトライを行う.
      */
     protected void executeRequest() {
+        String profile = mRequest.getStringExtra(DConnectMessage.EXTRA_PROFILE);
         String serviceId = mRequest.getStringExtra(DConnectMessage.EXTRA_SERVICE_ID);
 
-        if (mUseAccessToken) {
+        if (mUseAccessToken && !isIgnoredPluginProfile(profile)) {
             String accessToken = getAccessToken(serviceId);
             if (accessToken != null) {
                 executeRequest(accessToken);

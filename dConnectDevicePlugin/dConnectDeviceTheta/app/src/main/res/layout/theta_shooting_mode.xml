@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <!-- THETA m15 写真撮影 -->
+    <FrameLayout
+        android:id="@+id/theta_shooting_layout_0"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"
+        android:visibility="gone">
+        <Button
+            android:id="@+id/theta_shutter_0"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:background="@drawable/shooting_big_button"
+            android:layout_gravity="center"/>
+    </FrameLayout>
+    <!-- THETA S 写真撮影 -->
+    <FrameLayout
+        android:id="@+id/theta_shooting_layout_1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"
+        android:visibility="gone">
+        <org.deviceconnect.android.deviceplugin.theta.core.SphericalImageLiveView
+            android:id="@+id/shooting_preview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+        <Button
+            android:id="@+id/theta_shutter_1"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@drawable/shooting_big_button"
+            android:layout_gravity="center|bottom"
+            android:layout_margin="16dp"/>
+    </FrameLayout>
+
+    <!-- THETA 動画撮影 -->
+    <FrameLayout
+        android:id="@+id/theta_shooting_layout_2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/shooting_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="80sp"
+            android:gravity="left"
+            android:layout_gravity="center"
+            android:textColor="@color/action_bar_background"
+            android:text="00:00"/>
+        <ToggleButton
+            android:id="@+id/theta_shutter_2"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:textOff=""
+            android:textOn=""
+            android:background="@drawable/rec_big_button"
+            android:layout_gravity="center|bottom"
+            android:layout_margin="16dp"/>
+    </FrameLayout>
+    <!-- 共通 -->
+    <Spinner
+        android:id="@+id/theta_shooting_mode"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:layout_margin="16dp"
+        android:layout_gravity="top|left"
+        android:padding="5dp"
+        android:gravity="center"
+        android:background="@drawable/button_white"
+        />
+</FrameLayout>

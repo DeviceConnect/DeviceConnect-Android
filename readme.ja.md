@@ -21,7 +21,9 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 |dConnectDeviceHeartRate|Mio AlphaなどのHeartRateのデバイスプラグイン。|
 |dConnectDeviceHost|Androidのデバイスプラグイン。|
 |dConnectDeviceHue|Hueのデバイスプラグイン。|
-|dConnectDeviceHVC|HVCのデバイスプラグイン。|
+|dConnectDeviceHVC|HVC-Cのデバイスプラグイン。|
+|dConnectDeviceHVCC2W|HVC-C2Wのデバイスプラグイン。|
+|dConnectDeviceHVCP|HVC-Pのデバイスプラグイン。|
 |dConnectDeviceIRKit|IRKitのデバイスプラグイン。|
 |dConnectDeviceKadecot|Kadecotのデバイスプラグイン。|
 |dConnectDevicePebble|Pebbleのデバイスプラグイン。|
@@ -29,7 +31,9 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 |dConnectDeviceSonySW|SonySmartWatchデバイスプラグイン。<br>※SmartWatch3は未対応。|
 |dConnectDeviceSphero|Spheroのデバイスプラグイン。|
 |dConnectDeviceTheta|THETAのデバイスプラグイン。|
+|dConnectDeviceUVC|UVCカメラのデバイスプラグイン。|
 |dConnectDeviceWear|AndroidWearのデバイスプラグイン。|
+|dConnectDeviceWebRTC|WebRTCのデバイスプラグイン。|
 |dConnectDeviceTest|DeviceConnectのテスト用のデバイスプラグイン。|
 |dConnectDevicePluginSDK|DevicePluginを作成するためのSDK。dConnectSDKForAndroidが必要。|
 
@@ -58,6 +62,8 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
 * [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCDevice-Build)
+* [HVC-C2W](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCC2WDevice-Build)
+* [HVC-P](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCPDevice-Build)
 * [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
 * [Kadecot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Kadecot-Build)
 * [Pebble](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Pebble-Build)
@@ -65,7 +71,9 @@ Device Connect AndroidはAndroid版のDeviceConnectのプラットフォーム�
 * [SonySW](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonySW-Build)
 * [Sphero](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Sphero-Build)
 * [Theta](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Theta-Build)
+* [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)
+* [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/WebRTC-Build)
 
 　なお、[こちら](https://github.com/DeviceConnect/DeviceConnect-Docs/tree/master/Bin/Android)からもapkを取得することができます。
 　インストール方法につきましては、以下のようにコマンドラインからコマンドの実行することができます。<br>
@@ -83,13 +91,13 @@ adbコマンドにつきましては、Android SDKを確認してください。
  DeviceConnectManagerのアイコンをタップしてください。
  <center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image35.png" target="_blank">
 <img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image35.png" border="0"
-  width="151" height="212" alt="" /></a><br></center>
+  width="200" height="200" alt="" /></a><br></center>
 
 DeviceConnectManagerの欄をONにすることによって、起動することができます。
 
 <center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image39.png" target="_blank">
 <img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image39.png" border="0"
- width="320" height="550" alt="" /></a></center>
+ width="410" height="146" alt="" /></a></center>
 
 # <a name="section4">動作確認</a>
 

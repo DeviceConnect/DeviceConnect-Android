@@ -4,7 +4,7 @@
     <string name="summary_title">[1/4] 概要</string>
     <string name="summary_body">Kadecot プラグインを動作させるために、以下の手順でKadecotの設定を行います。\n\n・Kadecotインストール\n\n・Kadecotサーバー起動確認</string>
     <string name="install_kadecot_title">[2/4] Kadecotインストール</string>
-    <string name="install_kadecot_body">本デバイスプラグインは家電連携のコンセプトを実証する目的で作成しております。\n\n動作させるためには専用のkadecotアプリがスマートデバイスにインストールされていることが必須となります。\n\nインストールされていない場合はGitHub上のDeviceConnect-Experiments/HomeElectronics/APK/kadecot.apkをインストールしてください。</string>
+    <string name="install_kadecot_body">本デバイスプラグインは家電連携のコンセプトを実証する目的で作成しております。\n\n動作させるためには最新のkadecotアプリがスマートデバイスにインストールされていることが必須となります。\n\nインストールされていない場合はGoogle Playよりインストールしてください。</string>
     <string name="not_install_kadecot_body">Kadecotがインストールされていません。</string>
     <string name="installed_kadecot_body">Kadecotはインストール済みです。</string>
     <string name="check_kadecot_server_title">[3/4] Kadecotサーバー起動確認</string>

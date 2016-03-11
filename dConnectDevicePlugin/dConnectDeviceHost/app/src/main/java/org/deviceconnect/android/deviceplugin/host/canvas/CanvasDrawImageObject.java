@@ -6,12 +6,13 @@
  */
 package org.deviceconnect.android.deviceplugin.host.canvas;
 
-import org.deviceconnect.profile.CanvasProfileConstants;
-
 import android.content.Intent;
+
+import org.deviceconnect.profile.CanvasProfileConstants;
 
 /**
  * Canvas Draw Image Object.
+ *
  * @author NTT DOCOMO, INC.
  */
 public class CanvasDrawImageObject {
@@ -31,7 +32,9 @@ public class CanvasDrawImageObject {
          * fill mode.
          */
         FILL_MODE,
-    };
+    }
+
+    ;
 
     /**
      * Draw Canvas Action.
@@ -75,7 +78,7 @@ public class CanvasDrawImageObject {
     /**
      * data.
      */
-    private String mUri;
+    private byte[] mData;
 
     /**
      * mode.
@@ -96,7 +99,7 @@ public class CanvasDrawImageObject {
      * Constructor.
      */
     public CanvasDrawImageObject() {
-        mUri = null;
+        mData = null;
         mMode = null;
         mX = 0.0;
         mY = 0.0;
@@ -104,29 +107,32 @@ public class CanvasDrawImageObject {
 
     /**
      * Constructor.
-     * @param uri uri
+     *
+     * @param data data
      * @param mode mode
-     * @param x x
-     * @param y y
+     * @param x    x
+     * @param y    y
      */
-    public CanvasDrawImageObject(final String uri, final Mode mode, 
-            final double x, final double y) {
-        mUri = uri;
+    public CanvasDrawImageObject(final byte[] data, final Mode mode,
+                                 final double x, final double y) {
+        mData = data;
         mMode = mode;
         mX = x;
         mY = y;
     }
 
     /**
-     * Gets a uri of image.
-     * @return uri
+     * Gets a data of image.
+     *
+     * @return data
      */
-    public String getUri() {
-        return mUri;
+    public byte[] getData() {
+        return mData;
     }
 
     /**
      * Gets a mode of rendering.
+     *
      * @return mode
      */
     public Mode getMode() {
@@ -135,6 +141,7 @@ public class CanvasDrawImageObject {
 
     /**
      * Gets a x position.
+     *
      * @return x position
      */
     public double getX() {
@@ -143,6 +150,7 @@ public class CanvasDrawImageObject {
 
     /**
      * Gets a y position.
+     *
      * @return y position
      */
     public double getY() {
@@ -151,11 +159,12 @@ public class CanvasDrawImageObject {
 
     /**
      * Sets a CanvasDrawImageObject's data to intent.
+     *
      * @param intent intent
      */
     public void setValueToIntent(final Intent intent) {
         intent.putExtra(EXTRA_DATAKIND, DATAKIND);
-        intent.putExtra(EXTRA_DATA, mUri);
+        intent.putExtra(EXTRA_DATA, mData);
         intent.putExtra(EXTRA_MODE, mMode.ordinal());
         intent.putExtra(EXTRA_X, mX);
         intent.putExtra(EXTRA_Y, mY);
@@ -163,6 +172,7 @@ public class CanvasDrawImageObject {
 
     /**
      * Create a CanvasDrawImageObject from intent.
+     *
      * @param intent intent
      * @return CanvasDrawImageObject or null on error
      */
@@ -177,7 +187,7 @@ public class CanvasDrawImageObject {
         }
 
         CanvasDrawImageObject obj = new CanvasDrawImageObject();
-        obj.mUri = intent.getStringExtra(EXTRA_DATA);
+        obj.mData = intent.getByteArrayExtra(EXTRA_DATA);
         int modeOrdinal = intent.getIntExtra(EXTRA_MODE, Mode.NONSCALE_MODE.ordinal());
         if (0 <= modeOrdinal && modeOrdinal < Mode.values().length) {
             obj.mMode = Mode.values()[modeOrdinal];
@@ -191,6 +201,7 @@ public class CanvasDrawImageObject {
 
     /**
      * string mode convert to enum mode.
+     *
      * @param mode string mode.
      * @return enum mode.
      */
@@ -199,7 +210,7 @@ public class CanvasDrawImageObject {
             return Mode.NONSCALE_MODE;
         } else if (mode.equals(CanvasProfileConstants.Mode.SCALES.getValue())) {
             return Mode.SCALE_MODE;
-        } else if (mode .equals(CanvasProfileConstants.Mode.FILLS.getValue())) {
+        } else if (mode.equals(CanvasProfileConstants.Mode.FILLS.getValue())) {
             return Mode.FILL_MODE;
         }
         return null;

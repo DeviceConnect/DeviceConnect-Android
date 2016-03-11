@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="false" android:state_checked="false"
+        android:drawable="@drawable/rec_big_press_false" >
+    </item>
+    <item android:state_pressed="true" android:state_checked="true"
+        android:drawable="@drawable/rec_big_press_true" >
+    </item>
+    <item android:state_pressed="false" android:state_checked="true"
+        android:drawable="@drawable/stop_big_press_false" >
+    </item>
+    <item android:state_pressed="true" android:state_checked="false"
+        android:drawable="@drawable/stop_big_press_true" >
+    </item>
+</selector>

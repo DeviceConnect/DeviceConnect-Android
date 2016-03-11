@@ -21,13 +21,13 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 import java.util.StringTokenizer;
 import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -113,6 +113,11 @@ public class MixedReplaceMediaServer {
      */
     private final List<ServerRunnable> mRunnables = Collections.synchronizedList(
             new ArrayList<ServerRunnable>());
+
+    /**
+     * FPS.
+     */
+    private int mFPS = 30;
 
     /**
      * Set a boundary.
@@ -365,12 +370,12 @@ public class MixedReplaceMediaServer {
         /**
          * Queue that holds the media (local).
          */
-        private final BlockingQueue<byte[]> mLocalMediaQueue = new ArrayBlockingQueue<>(MAX_MEDIA_CACHE);
+        private final Queue<byte[]> mLocalMediaQueue = new LinkedList<>();
 
         /**
          * Queue that holds the media (remote).
          */
-        private final BlockingQueue<byte[]> mRemoteMediaQueue = new ArrayBlockingQueue<>(MAX_MEDIA_CACHE);
+        private final Queue<byte[]> mRemoteMediaQueue = new LinkedList<>();
 
         /**
          * Constructor.
@@ -394,6 +399,7 @@ public class MixedReplaceMediaServer {
                     return;
                 }
                 String type = decodeHeader(buf, len);
+                int fps = 1000 / mFPS;
 
                 if (mRunnables.size() > MAX_CLIENT_SIZE) {
                     mStream.write(generateServiceUnavailable().getBytes());
@@ -404,36 +410,26 @@ public class MixedReplaceMediaServer {
 
                     while (!mStopFlag) {
                         long startTime = System.currentTimeMillis();
-                        byte [] media;
+                        byte[] media;
                         if (type.equals(LOCAL)) {
-                            media = mLocalMediaQueue.take();
+                            media = mLocalMediaQueue.poll();
                         } else {
-                            media = mRemoteMediaQueue.take();
+                            media = mRemoteMediaQueue.poll();
                         }
-                        if (media.length > 0) {
+                        if (media != null) {
                             sendMedia(media);
                         }
                         long diffTime = System.currentTimeMillis() - startTime;
-                        if (diffTime < 33) {
+                        if (diffTime < fps) {
                             try {
-                                Thread.sleep(33 - diffTime);
-                            } catch (Exception e) {
+                                Thread.sleep(fps - diffTime);
+                            } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
                     }
                 }
-            } catch (InterruptedException e) {
-                if (mStream != null) {
-                    try {
-                        mStream.write(generateInternalServerError().getBytes());
-                        mStream.flush();
-                    } catch (IOException e1) {
-                        mLogger.warning("Error server socket[" + mServerName + "]");
-                    }
-                }
-                Thread.currentThread().interrupt();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 if (mStream != null) {
                     try {
                         mStream.write(generateBadRequest().getBytes());

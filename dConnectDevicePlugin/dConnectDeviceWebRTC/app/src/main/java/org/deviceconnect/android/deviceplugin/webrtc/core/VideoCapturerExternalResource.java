@@ -78,6 +78,8 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
     private SurfaceTextureHelper mSurfaceHelper;
     private Handler mCameraThreadHandler;
     private Surface mSurface;
+    private final float[] mTransformMatrix = new float[16];
+    private Paint mPaint = new Paint();
 
     /**
      * Constructor.
@@ -222,10 +224,9 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
     }
 
     private void deliverTextureFrame() {
-        final float[] transformMatrix = new float[16];
-        mSurfaceHelper.getSurfaceTexture().getTransformMatrix(transformMatrix);
+        mSurfaceHelper.getSurfaceTexture().getTransformMatrix(mTransformMatrix);
         long timestampNs = TimeUnit.MILLISECONDS.toNanos(SystemClock.elapsedRealtime());
-        onTextureFrameAvailable(mSurfaceHelper.getOesTextureId(), transformMatrix, timestampNs);
+        onTextureFrameAvailable(mSurfaceHelper.getOesTextureId(), mTransformMatrix, timestampNs);
     }
 
     /**
@@ -253,7 +254,7 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
                     }
 
                     Canvas canvas = mSurface.lockCanvas(null);
-                    canvas.drawBitmap(bitmap, 0, 0, new Paint());
+                    canvas.drawBitmap(bitmap, 0, 0, mPaint);
                     mSurface.unlockCanvasAndPost(canvas);
 
                     mCameraThreadHandler.post(new Runnable() {

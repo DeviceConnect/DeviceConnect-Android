@@ -37,6 +37,9 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
 
     private boolean mReleased;
 
+    private Bitmap mBitmap;
+    private ByteArrayOutputStream mOutputStream = new ByteArrayOutputStream();
+
     public MySurfaceViewRenderer(Context context) {
         super(context);
     }
@@ -52,6 +55,11 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
 
         mReleased = true;
         mByteBuffer = null;
+
+        if (mBitmap != null) {
+            mBitmap.recycle();
+            mBitmap = null;
+        }
 
         if (mYuvConverter != null) {
             mYuvConverter.release();
@@ -124,44 +132,34 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
 
         ImageUtils.decodeYUV420SP3(mBitmap, frame.yuvPlanes, frame.width, frame.height, frame.yuvStrides);
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        mBitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
+        mOutputStream.reset();
+        mBitmap.compress(Bitmap.CompressFormat.JPEG, 50, mOutputStream);
         mFrameHeight = frame.height;
         mFrameWidth = frame.width;
-        mServer.offerMedia(mType, out.toByteArray());
+        mServer.offerMedia(mType, mOutputStream.toByteArray());
     }
 
     private void convertTextureToYUV(VideoRenderer.I420Frame frame) {
-        if (mYuvConverter != null) {
-            if (mByteBuffer == null) {
-                int uv_height = (frame.height + 1) / 2;
-                int total_height = frame.height + uv_height;
-                int size = frame.width * total_height;
-                mByteBuffer = ByteBuffer.allocateDirect(size);
-                mByteBuffer.order(ByteOrder.nativeOrder());
-            }
-
-            mYuvConverter.convert(mByteBuffer, frame.width, frame.height, frame.width, frame.textureId, frame.samplingMatrix);
-
-            Bitmap bitmap = getBitmapImageFromYUV(mByteBuffer, frame.width, frame.height);
-            if (bitmap != null) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
-                mFrameHeight = frame.height;
-                mFrameWidth = frame.width;
-                mServer.offerMedia(mType, out.toByteArray());
-            }
+        if (mByteBuffer == null) {
+            int uv_height = (frame.height + 1) / 2;
+            int total_height = frame.height + uv_height;
+            int size = frame.width * total_height;
+            mByteBuffer = ByteBuffer.allocateDirect(size);
+            mByteBuffer.order(ByteOrder.nativeOrder());
         }
-    }
 
-    private Bitmap mBitmap;
-
-    public Bitmap getBitmapImageFromYUV(ByteBuffer data, int width, int height) {
-        if (mBitmap == null || mBitmap.getWidth() != width || mBitmap.getHeight() != height) {
-            mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        if (mBitmap == null || mBitmap.getWidth() != frame.width || mBitmap.getHeight() != frame.height) {
+            mBitmap = Bitmap.createBitmap(frame.width, frame.height, Bitmap.Config.ARGB_8888);
         }
-        ImageUtils.decodeYUV420SP2(mBitmap, data, width, height);
-        return mBitmap;
-    }
 
+        mYuvConverter.convert(mByteBuffer, frame.width, frame.height, frame.width, frame.textureId, frame.samplingMatrix);
+
+        ImageUtils.decodeYUV420SP2(mBitmap, mByteBuffer, frame.width, frame.height);
+
+        mOutputStream.reset();
+        mBitmap.compress(Bitmap.CompressFormat.JPEG, 50, mOutputStream);
+        mFrameHeight = frame.height;
+        mFrameWidth = frame.width;
+        mServer.offerMedia(mType, mOutputStream.toByteArray());
+    }
 }

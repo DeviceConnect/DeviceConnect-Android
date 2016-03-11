@@ -63,8 +63,8 @@ public class LinkingManagerImpl implements LinkingManager {
         notify.setDispNameEn("Linking Device Plug-in");
         notify.setDispNameJa("Linking Device Plug-in");
         notify.setIcon(R.mipmap.dconnect_icon);
-        notify.setTitle("title");
-        notify.setText("test");
+        notify.setTitle(notification.getTitle());
+        notify.setText(notification.getDetail());
         notify.setDeviceID(device.getModelId());
         notify.setDeviceUID(device.getUniqueId());
         notify.send();

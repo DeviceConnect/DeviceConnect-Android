@@ -465,6 +465,8 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
             return false;
         } else if ("true".equals(uri) || "false".equals(uri)) {
             return true;
+        } else if (uri.startsWith("ws://") || uri.startsWith("wss://")) {
+            return true;
         } else {
             return URLUtil.isValidUrl(uri);
         }

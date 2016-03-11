@@ -1,6 +1,8 @@
 package org.deviceconnect.android.deviceplugin.webrtc.util;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -21,7 +23,6 @@ import org.deviceconnect.android.deviceplugin.webrtc.core.Peer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.core.WebRTCController;
 import org.deviceconnect.android.deviceplugin.webrtc.fragment.PercentFrameLayout;
-import org.deviceconnect.android.deviceplugin.webrtc.profile.WebRTCVideoChatProfile;
 import org.deviceconnect.android.profile.VideoChatProfile;
 import org.webrtc.EglBase;
 import org.webrtc.RendererCommon;
@@ -161,6 +162,7 @@ public class WebRTCManager {
     public void disconnect(Peer peer) {
         WebRTCController ctl = mMap.remove(peer);
         if (ctl != null) {
+            ctl.onPause();
             if (mServer != null) {
                 mServer.stop();
                 mServer = null;
@@ -204,6 +206,44 @@ public class WebRTCManager {
         return size;
     }
 
+    /**
+     * Open a error dialog of WebRTC.
+     */
+    private void openWebRTCErrorDialog(WebRTCController controller) {
+        openErrorDialog(controller, R.string.error_failed_to_connect_p2p_msg);
+    }
+
+    /**
+     * Open a error dialog.
+     *
+     * @param resId resource id
+     */
+    private void openErrorDialog(final WebRTCController controller, final int resId) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mApplication);
+                builder.setTitle(R.string.error_failed_to_connect_p2p_title);
+                builder.setMessage(resId);
+                builder.setPositiveButton(R.string.error_failed_to_connect_p2p_btn,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+
+                AlertDialog dialog = builder.create();
+                dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        disconnect(controller.getPeer());
+                    }
+                });
+                dialog.show();
+            }
+        });
+    }
+
     private WebRTCController.WebRTCEventListener mListener = new WebRTCController.WebRTCEventListener() {
         @Override
         public void onFoundPeer(WebRTCController controller) {
@@ -224,6 +264,7 @@ public class WebRTCManager {
 
         @Override
         public void onConnected(WebRTCController controller) {
+            controller.onResume();
         }
 
         @Override
@@ -233,6 +274,7 @@ public class WebRTCManager {
 
         @Override
         public void onError(WebRTCController controller) {
+            openWebRTCErrorDialog(controller);
         }
     };
 }

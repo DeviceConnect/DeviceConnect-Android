@@ -20,18 +20,12 @@ import org.deviceconnect.android.deviceplugin.webrtc.R;
 import org.deviceconnect.android.deviceplugin.webrtc.WebRTCApplication;
 import org.deviceconnect.android.deviceplugin.webrtc.core.MySurfaceViewRenderer;
 import org.deviceconnect.android.deviceplugin.webrtc.core.PeerConfig;
-import org.deviceconnect.android.deviceplugin.webrtc.core.PeerOption;
-import org.deviceconnect.android.deviceplugin.webrtc.core.PeerUtil;
 import org.deviceconnect.android.deviceplugin.webrtc.core.WebRTCController;
 import org.deviceconnect.android.deviceplugin.webrtc.fragment.PercentFrameLayout;
 import org.deviceconnect.android.deviceplugin.webrtc.profile.WebRTCVideoChatProfile;
-import org.deviceconnect.android.event.Event;
-import org.deviceconnect.android.event.EventManager;
-import org.deviceconnect.android.profile.VideoChatProfile;
 import org.webrtc.EglBase;
 import org.webrtc.RendererCommon;
-
-import java.util.List;
+import org.webrtc.voiceengine.WebRtcAudioTrack;
 
 /**
  * VideoChatActivity.
@@ -118,6 +112,8 @@ public class VideoChatActivity extends Activity {
         mLocalRender.init(eglBase.getEglBaseContext(), null);
         mLocalRender.setZOrderMediaOverlay(true);
 
+        WebRtcAudioTrack.setAudioTrackModuleFactory(null);
+
         Intent intent = getIntent();
         if (intent != null) {
             PeerConfig config = intent.getParcelableExtra(EXTRA_CONFIG);
@@ -154,7 +150,7 @@ public class VideoChatActivity extends Activity {
             updateVideoView();
         } else {
             openWebRTCErrorDialog();
-            }
+        }
     }
 
     @Override
@@ -186,7 +182,7 @@ public class VideoChatActivity extends Activity {
         if (keyCode != KeyEvent.KEYCODE_BACK) {
             return super.onKeyDown(keyCode, event);
         } else {
-            finish();
+            hangup();
             return false;
         }
     }
@@ -217,45 +213,7 @@ public class VideoChatActivity extends Activity {
 
         if (mWebRTCController != null) {
             mWebRTCController.hangup();
-        }
-    }
-
-    /**
-     * Notifies call event.
-     */
-    private void sendCallEvent() {
-        List<Event> events = EventManager.INSTANCE.getEventList(
-                PeerUtil.getServiceId(mWebRTCController.getPeer()),
-                VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_ONCALL);
-        if (events.size() != 0) {
-            Bundle[] args = new Bundle[1];
-            args[0] = new Bundle();
-            args[0].putString(VideoChatProfile.PARAM_NAME, mWebRTCController.getAddressId());
-            args[0].putString(VideoChatProfile.PARAM_ADDRESSID, mWebRTCController.getAddressId());
-            for (Event e : events) {
-                Intent event = EventManager.createEventMessage(e);
-                event.putExtra(VideoChatProfile.PARAM_ONCALL, args);
-                sendBroadcast(event);
-            }
-        }
-    }
-
-    /**
-     * Notifies hang up event.
-     */
-    private void sendHangupEvent() {
-        List<Event> events = EventManager.INSTANCE.getEventList(
-                PeerUtil.getServiceId(mWebRTCController.getPeer()),
-                VideoChatProfile.PROFILE_NAME, null, VideoChatProfile.ATTR_HANGUP);
-        if (events.size() != 0) {
-            Bundle arg = new Bundle();
-            arg.putString(VideoChatProfile.PARAM_NAME, mWebRTCController.getAddressId());
-            arg.putString(VideoChatProfile.PARAM_ADDRESSID, mWebRTCController.getAddressId());
-            for (Event e : events) {
-                Intent event = EventManager.createEventMessage(e);
-                event.putExtra(VideoChatProfile.PARAM_HANGUP, arg);
-                sendBroadcast(event);
-            }
+            mWebRTCController = null;
         }
     }
 
@@ -322,12 +280,11 @@ public class VideoChatActivity extends Activity {
 
         @Override
         public void onConnected(WebRTCController controller) {
-            sendCallEvent();
         }
 
         @Override
         public void onDisconnected(WebRTCController controller) {
-            sendHangupEvent();
+            finish();
         }
 
         @Override

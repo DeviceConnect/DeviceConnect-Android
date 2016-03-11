@@ -166,6 +166,7 @@ public class MediaStream {
         }
 
         if (mVideoSource != null) {
+            mVideoSource.stop();
             mVideoSource.dispose();
             mVideoSource = null;
         }

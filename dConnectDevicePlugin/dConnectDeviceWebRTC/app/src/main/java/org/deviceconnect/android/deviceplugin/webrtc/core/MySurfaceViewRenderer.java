@@ -3,7 +3,6 @@ package org.deviceconnect.android.deviceplugin.webrtc.core;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.AttributeSet;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
 import org.deviceconnect.android.deviceplugin.webrtc.util.ImageUtils;
@@ -87,6 +86,9 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
     }
 
     public String getMimeType() {
+        if (mServer == null) {
+            return null;
+        }
         return mServer.getMimeType();
     }
 
@@ -105,16 +107,10 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         }
 
         if (mServer != null && mYuvConverter != null) {
-            if (frame != null) {
-                if (!frame.yuvFrame) {
-                    convertTextureToYUV(frame);
-                } else {
-                    convertYuvToRGB(frame);
-                }
+            if (!frame.yuvFrame) {
+                convertTextureToYUV(frame);
             } else {
-                if (DEBUG) {
-                    Log.e(TAG, "renderFrame: frame is null.");
-                }
+                convertYuvToRGB(frame);
             }
         }
 

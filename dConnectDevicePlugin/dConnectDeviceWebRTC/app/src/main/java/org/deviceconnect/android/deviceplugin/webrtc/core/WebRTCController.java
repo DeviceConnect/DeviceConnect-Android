@@ -201,6 +201,11 @@ public class WebRTCController {
 
         mRemoteRender.release();
         mLocalRender.release();
+
+        EglBase eglBase = mOption.getEglBase();
+        if (eglBase != null) {
+            eglBase.release();
+        }
     }
 
     private MediaConnection.OnMediaEventListener mOnMediaEventListener
@@ -279,7 +284,11 @@ public class WebRTCController {
                 uri = uri.replaceAll(LOCALHOST, ipAddr);
             }
             videoParam.putString(VideoChatProfile.PARAM_URI, uri);
-            videoParam.putString(VideoChatProfile.PARAM_MIMETYPE, mLocalRender.getMimeType());
+            String mimeType = mLocalRender.getMimeType();
+            if (mimeType == null) {
+                mimeType = "";
+            }
+            videoParam.putString(VideoChatProfile.PARAM_MIMETYPE, mimeType);
             videoParam.putInt(VideoChatProfile.PARAM_FRAMERATE, DEFAULT_FPS);
             videoParam.putInt(VideoChatProfile.PARAM_WIDTH, mLocalRender.getFrameWidth());
             videoParam.putInt(VideoChatProfile.PARAM_HEIGHT, mLocalRender.getFrameHeight());
@@ -294,26 +303,31 @@ public class WebRTCController {
                 uri = uri.replaceAll(LOCALHOST, ipAddr);
             }
             videoParam.putString(VideoChatProfile.PARAM_URI, uri);
-            videoParam.putString(VideoChatProfile.PARAM_MIMETYPE, mRemoteRender.getMimeType());
+            mimeType = mLocalRender.getMimeType();
+            if (mimeType == null) {
+                mimeType = "";
+            }
+            videoParam.putString(VideoChatProfile.PARAM_MIMETYPE, mimeType);
             videoParam.putInt(VideoChatProfile.PARAM_FRAMERATE, 30);
             videoParam.putInt(VideoChatProfile.PARAM_WIDTH, mRemoteRender.getFrameWidth());
             videoParam.putInt(VideoChatProfile.PARAM_HEIGHT, mRemoteRender.getFrameHeight());
-
-            uri = mAudioTrackExternal.getUrl();
-            if (uri == null) {
-                uri = "";
-            } else if (uri.contains(LOCALHOST)) {
-                uri = uri.replaceAll(LOCALHOST, ipAddr);
-            }
-            audioParam.putString(VideoChatProfile.PARAM_URI, uri);
-            audioParam.putString(VideoChatProfile.PARAM_MIMETYPE, mAudioTrackExternal.getMimeType());
-            audioParam.putInt(VideoChatProfile.PARAM_SAMPLERATE, mAudioTrackExternal.getSampleRate());
-            audioParam.putInt(VideoChatProfile.PARAM_CHANNELS, mAudioTrackExternal.getChannels());
-            audioParam.putInt(VideoChatProfile.PARAM_SAMPLESIZE, mAudioTrackExternal.getSampleSize());
-            audioParam.putInt(VideoChatProfile.PARAM_BLOCKSIZE, mAudioTrackExternal.getBlockSize());
-
             remote.putBundle(VideoChatProfile.PARAM_VIDEO, (Bundle) videoParam.clone());
-            remote.putBundle(VideoChatProfile.PARAM_AUDIO, (Bundle) audioParam.clone());
+
+            if (mAudioTrackExternal != null) {
+                uri = mAudioTrackExternal.getUrl();
+                if (uri == null) {
+                    uri = "";
+                } else if (uri.contains(LOCALHOST)) {
+                    uri = uri.replaceAll(LOCALHOST, ipAddr);
+                }
+                audioParam.putString(VideoChatProfile.PARAM_URI, uri);
+                audioParam.putString(VideoChatProfile.PARAM_MIMETYPE, mAudioTrackExternal.getMimeType());
+                audioParam.putInt(VideoChatProfile.PARAM_SAMPLERATE, mAudioTrackExternal.getSampleRate());
+                audioParam.putInt(VideoChatProfile.PARAM_CHANNELS, mAudioTrackExternal.getChannels());
+                audioParam.putInt(VideoChatProfile.PARAM_SAMPLESIZE, mAudioTrackExternal.getSampleSize());
+                audioParam.putInt(VideoChatProfile.PARAM_BLOCKSIZE, mAudioTrackExternal.getBlockSize());
+                remote.putBundle(VideoChatProfile.PARAM_AUDIO, (Bundle) audioParam.clone());
+            }
 
             Bundle[] args = new Bundle[1];
             args[0] = new Bundle();
@@ -565,7 +579,7 @@ public class WebRTCController {
                     String cameraText = SettingUtil.getCameraParam(mContext);
                     CameraUtils.CameraFormat cameraFormat = CameraUtils.textToFormat(cameraText);
                     if (cameraFormat == null) {
-                        cameraFormat = CameraUtils.getDefaultFormat();
+                        cameraFormat = CameraUtils.getDefaultFormat(mVideoWidth, mVideoHeight);
                     }
                     mVideoWidth = cameraFormat.getWidth();
                     mVideoHeight = cameraFormat.getHeight();

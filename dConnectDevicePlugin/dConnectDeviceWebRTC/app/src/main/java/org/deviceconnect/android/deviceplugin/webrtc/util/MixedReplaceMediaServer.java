@@ -488,9 +488,15 @@ public class MixedReplaceMediaServer {
          * @throws IOException if an error occurs while sending media data.
          */
         private void sendMedia(final byte[] media) throws IOException {
-            mStream.write(("--" + mBoundary + "\r\n").getBytes());
-            mStream.write(("Content-Type: " + mContentType + "\r\n").getBytes());
-            mStream.write(("Content-Length: " + media.length + "\r\n").getBytes());
+            mStream.write("--".getBytes());
+            mStream.write(mBoundary.getBytes());
+            mStream.write("\r\n".getBytes());
+            mStream.write("Content-Type: ".getBytes());
+            mStream.write(mContentType.getBytes());
+            mStream.write("\r\n".getBytes());
+            mStream.write("Content-Length: ".getBytes());
+            mStream.write(String.valueOf(media.length).getBytes());
+            mStream.write("\r\n".getBytes());
             mStream.write("\r\n".getBytes());
             mStream.write(media);
             mStream.write("\r\n\r\n".getBytes());

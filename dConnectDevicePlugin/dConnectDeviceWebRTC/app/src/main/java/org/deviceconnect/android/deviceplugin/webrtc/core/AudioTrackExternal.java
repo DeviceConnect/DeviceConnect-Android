@@ -88,6 +88,11 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
         cacheDirectBufferAddress(mByteBuffer);
         mSampleRate = sampleRate;
         mChannels = channels;
+
+        if (DEBUG) {
+            Log.i(TAG, "bytesPerFrame=" + bytesPerFrame);
+            Log.i(TAG, "bytesSize=" + bytesSize);
+        }
     }
 
     public String getUrl() {
@@ -97,6 +102,7 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
             return null;
         }
     }
+
     public String getMimeType() {
         return MIME_TYPE;
     }
@@ -127,7 +133,7 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
             mTrackThread.joinThread();
             mTrackThread = null;
         }
-        mTrackThread = new AudioTrackThread("Audio");
+        mTrackThread = new AudioTrackThread("WebRtcAudio-AudioTrackExternal");
         mTrackThread.start();
         return true;
     }
@@ -188,25 +194,31 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
             android.os.Process.setThreadPriority(
                     android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
-            long time;
+            final int T = 4;
             final int sizeInBytes = mByteBuffer.capacity();
-            final byte[] buf = new byte[sizeInBytes];
+            final byte[] buf = new byte[sizeInBytes * T];
+            final int delayTime = T * CALLBACK_BUFFER_SIZE_MS - CALLBACK_BUFFER_SIZE_MS;
+            int count = 0;
             while (keepAlive) {
-                time = System.currentTimeMillis();
                 getPlayoutData(sizeInBytes);
 
-                mByteBuffer.get(buf);
-                mWebSocketServer.send(buf);
-                mByteBuffer.rewind();
+                System.arraycopy(mByteBuffer.array(), mByteBuffer.arrayOffset(), buf, count * sizeInBytes, sizeInBytes);
 
-                long dt = System.currentTimeMillis() - time;
-                if (dt < CALLBACK_BUFFER_SIZE_MS) {
-                    try {
-                        Thread.sleep(CALLBACK_BUFFER_SIZE_MS - dt - 1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                count++;
+                if (count == T) {
+                    mWebSocketServer.send(buf);
+
+                    long time = System.currentTimeMillis();
+                    while ((System.currentTimeMillis() - time) < delayTime) {
+                        try {
+                            Thread.sleep(0, 1000);
+                        } catch (InterruptedException e) {
+                            return;
+                        }
                     }
+                    count = 0;
                 }
+                mByteBuffer.rewind();
             }
         }
 

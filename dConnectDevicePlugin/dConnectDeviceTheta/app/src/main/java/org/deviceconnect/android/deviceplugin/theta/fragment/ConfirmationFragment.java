@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 /**
  * The page for confirmation of the connection between THETA and Android device.
@@ -69,7 +70,26 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
     private UserSettings mSettings;
     /** Search in dialog. */
     private ThetaDialogFragment mDialog;
-
+    /** Logger. */
+    private final Logger mLogger = Logger.getLogger("theta.dplugin");
+    /** Wi-Fi State Receiver. */
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            mLogger.info("ConfirmationFragment: action = " + action);
+            if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
+                int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
+                switch (state) {
+                    case WifiManager.WIFI_STATE_ENABLED:
+                        connectTheta();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    };
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -127,6 +147,8 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
             ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
             ThetaDeviceManager deviceManager = app.getDeviceManager();
             deviceManager.unregisterDeviceEventListener(this);
+
+            activity.unregisterReceiver(mReceiver);
         }
     }
 
@@ -138,8 +160,10 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
             ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
             ThetaDeviceManager deviceManager = app.getDeviceManager();
             deviceManager.registerDeviceEventListener(this);
-        }
 
+            activity.registerReceiver(mReceiver,
+                new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+        }
     }
 
 

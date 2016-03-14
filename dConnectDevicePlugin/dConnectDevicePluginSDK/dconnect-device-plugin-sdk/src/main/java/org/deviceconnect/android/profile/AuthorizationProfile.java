@@ -34,7 +34,7 @@ import java.util.List;
  * Authorization プロファイル.
  * 
  * <p>
- * Local OAuthの認可機能を提供するAPI.<br/>
+ * Local OAuthの認可機能を提供するAPI.<br>
  * Local OAuthの認可機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。
  * </p>
  * @author NTT DOCOMO, INC.

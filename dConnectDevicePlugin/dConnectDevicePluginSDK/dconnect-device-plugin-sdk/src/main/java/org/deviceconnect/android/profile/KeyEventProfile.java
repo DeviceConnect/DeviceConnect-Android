@@ -16,17 +16,17 @@ import android.os.Bundle;
  * Key Event Profile.
  * 
  * <p>
- * API that provides a smart device key event operation function.<br/>
+ * API that provides a smart device key event operation function.<br>
  * Device plug-in that provides a button operation function by extending this
- * class, and implements the corresponding API that.<br/>
+ * class, and implements the corresponding API that.<br>
  * </p>
  * 
  * <h1>API provides methods</h1>
  * <p>
  * The request to each API of Key Event Profile, following callback method group
- * is automatically invoked.<br/>
+ * is automatically invoked.<br>
  * Subclass is to implement the functionality by overriding the method for the
- * API provided by the device plug-in from the following methods group.<br/>
+ * API provided by the device plug-in from the following methods group.<br>
  * Features that are not overridden automatically return the response as
  * non-compliant API.
  * </p>
@@ -106,7 +106,7 @@ public class KeyEventProfile extends DConnectProfile implements KeyEventProfileC
     // GET
     // ------------------------------------
     /**
-     * ondown get request handler.<br/>
+     * ondown get request handler.<br>
      * Get the ondown result and store in the response parameter. If you have
      * ready to transmit the response parameter that you specify the true return
      * value. If you are not ready to be submitted response parameters, be false
@@ -124,7 +124,7 @@ public class KeyEventProfile extends DConnectProfile implements KeyEventProfileC
     }
 
     /**
-     * onup get request handler.<br/>
+     * onup get request handler.<br>
      * Get the onup result and store in the response parameter. If you have
      * ready to transmit the response parameter that you specify the true return
      * value. If you are not ready to be submitted response parameters, be false
@@ -146,7 +146,7 @@ public class KeyEventProfile extends DConnectProfile implements KeyEventProfileC
     // ------------------------------------
 
     /**
-     * ondown callback registration request handler.<br/>
+     * ondown callback registration request handler.<br>
      * Register the ondown call back, and the result is stored in the response
      * parameters. If you have ready to transmit the response parameter that you
      * specify the true return value. If you are not ready to be submitted
@@ -167,7 +167,7 @@ public class KeyEventProfile extends DConnectProfile implements KeyEventProfileC
     }
 
     /**
-     * onup callback registration request handler.<br/>
+     * onup callback registration request handler.<br>
      * Register the onup call back, and the result is stored in the response
      * parameters. If you have ready to transmit the response parameter that you
      * specify the true return value. If you are not ready to be submitted
@@ -192,7 +192,7 @@ public class KeyEventProfile extends DConnectProfile implements KeyEventProfileC
     // ------------------------------------
 
     /**
-     * ondown callback release request handler.<br/>
+     * ondown callback release request handler.<br>
      * Release the ondown call back, and the result is stored in the response
      * parameters. If you have ready to transmit the response parameter that you
      * specify the true return value. If you are not ready to be submitted
@@ -213,7 +213,7 @@ public class KeyEventProfile extends DConnectProfile implements KeyEventProfileC
     }
 
     /**
-     * onup callback release request handler.<br/>
+     * onup callback release request handler.<br>
      * Release the onup call back, and the result is stored in the response
      * parameters. If you have ready to transmit the response parameter that you
      * specify the true return value. If you are not ready to be submitted

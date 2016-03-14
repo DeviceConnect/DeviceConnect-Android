@@ -17,14 +17,14 @@ import android.content.Intent;
  * Notification プロファイル.
  * 
  * <p>
- * スマートデバイスのノーティフィケーションの操作機能を提供するAPI.<br/>
- * スマートデバイスのノーティフィケーションの操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br/>
+ * スマートデバイスのノーティフィケーションの操作機能を提供するAPI.<br>
+ * スマートデバイスのノーティフィケーションの操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
  * 
  * <h1>各API提供メソッド</h1>
  * <p>
- * Notification Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>
+ * Notification Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
+ * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
  * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
  * </p>
  * <ul>
@@ -146,7 +146,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
     // ------------------------------------
 
     /**
-     * onclickコールバック登録リクエストハンドラー.<br/>
+     * onclickコールバック登録リクエストハンドラー.<br>
      * onclickコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -164,7 +164,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
     }
 
     /**
-     * onshowコールバック登録リクエストハンドラー.<br/>
+     * onshowコールバック登録リクエストハンドラー.<br>
      * onshowコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -182,7 +182,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
     }
 
     /**
-     * oncloseコールバック登録リクエストハンドラー.<br/>
+     * oncloseコールバック登録リクエストハンドラー.<br>
      * oncloseコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -200,7 +200,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
     }
 
     /**
-     * onerrorコールバック登録リクエストハンドラー.<br/>
+     * onerrorコールバック登録リクエストハンドラー.<br>
      * onerrorコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -222,7 +222,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
     // ------------------------------------
 
     /**
-     * デバイスへのノーティフィケーション表示リクエストハンドラー.<br/>
+     * デバイスへのノーティフィケーション表示リクエストハンドラー.<br>
      * ノーティフィケーションを表示し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -250,7 +250,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
     // ------------------------------------
 
     /**
-     * デバイスへのノーティフィケーション消去リクエストハンドラー.<br/>
+     * デバイスへのノーティフィケーション消去リクエストハンドラー.<br>
      * ノーティフィケーションを消去し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -268,7 +268,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
     }
 
     /**
-     * onclickコールバック解除リクエストハンドラー.<br/>
+     * onclickコールバック解除リクエストハンドラー.<br>
      * onclickコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -286,7 +286,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
     }
 
     /**
-     * onshowコールバック解除リクエストハンドラー.<br/>
+     * onshowコールバック解除リクエストハンドラー.<br>
      * onshowコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -304,7 +304,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
     }
 
     /**
-     * oncloseコールバック解除リクエストハンドラー.<br/>
+     * oncloseコールバック解除リクエストハンドラー.<br>
      * oncloseコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -322,7 +322,7 @@ public class NotificationProfile extends DConnectProfile implements Notification
     }
 
     /**
-     * onerrorコールバック解除リクエストハンドラー.<br/>
+     * onerrorコールバック解除リクエストハンドラー.<br>
      * onerrorコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。

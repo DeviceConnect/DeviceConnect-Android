@@ -7,7 +7,7 @@
 package org.deviceconnect.profile;
 
 /**
- * Vibration Profile API 定数群.<br/>
+ * Vibration Profile API 定数群.<br>
  * Vibration Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * @author NTT DOCOMO, INC.
  */

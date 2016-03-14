@@ -8,7 +8,7 @@ package org.deviceconnect.profile;
 
 
 /**
- * Phone Profile API 定数群.<br/>
+ * Phone Profile API 定数群.<br>
  * Phone Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * @author NTT DOCOMO, INC.
  */
@@ -73,7 +73,7 @@ public interface PhoneProfileConstants extends DConnectProfileConstants {
      * パラメータ: {@value} .
      */
     String PARAM_STATE = "state";
-    
+
     /**
      * 電話のモード定数.
      */
@@ -92,7 +92,7 @@ public interface PhoneProfileConstants extends DConnectProfileConstants {
 
         /**
          * 指定さてた定数値を持つ定数を定義する.
-         * 
+         *
          * @param value 定数値
          */
         private PhoneMode(final int value) {
@@ -101,7 +101,7 @@ public interface PhoneProfileConstants extends DConnectProfileConstants {
 
         /**
          * 値を取得する.
-         * 
+         *
          * @return モードの値
          */
         public int getValue() {
@@ -110,7 +110,7 @@ public interface PhoneProfileConstants extends DConnectProfileConstants {
 
         /**
          * 電話のモードのコード値からオブジェクトを取得する.
-         * 
+         *
          * @param value
          *            コード
          * @return 電話のモード
@@ -144,7 +144,7 @@ public interface PhoneProfileConstants extends DConnectProfileConstants {
 
         /**
          * 指定された数値を定数値に持つ定数を定義する.
-         * 
+         *
          * @param value 定数値
          */
         private CallState(final int value) {
@@ -153,7 +153,7 @@ public interface PhoneProfileConstants extends DConnectProfileConstants {
 
         /**
          * 通話状態のコード値からオブジェクトを取得する.
-         * 
+         *
          * @param value
          *            数値
          * @return 通話状態
@@ -169,7 +169,7 @@ public interface PhoneProfileConstants extends DConnectProfileConstants {
 
         /**
          * 値を取得する.
-         * 
+         *
          * @return モードの値
          */
         public int getValue() {

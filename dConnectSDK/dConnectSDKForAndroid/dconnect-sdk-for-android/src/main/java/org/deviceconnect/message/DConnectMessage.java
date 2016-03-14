@@ -162,7 +162,7 @@ public interface DConnectMessage extends Map<String, Object> {
 
     /**
      * Stringを取得する.
-     * 
+     *
      * @param key キー
      * @return 値
      */
@@ -170,7 +170,7 @@ public interface DConnectMessage extends Map<String, Object> {
 
     /**
      * intを取得する.
-     * 
+     *
      * @param key キー
      * @return 値
      */
@@ -178,7 +178,7 @@ public interface DConnectMessage extends Map<String, Object> {
 
     /**
      * booleanを取得する.
-     * 
+     *
      * @param key キー
      * @return 値
      */
@@ -186,15 +186,15 @@ public interface DConnectMessage extends Map<String, Object> {
 
     /**
      * doubleを取得する.
-     * 
+     *
      * @param key キー
      * @return 値
      */
     float getFloat(String key);
 
     /**
-     * List<Object>を取得する.
-     * 
+     * {@code List<Object>}を取得する.
+     *
      * @param key キー
      * @return 値
      */
@@ -202,7 +202,7 @@ public interface DConnectMessage extends Map<String, Object> {
 
     /**
      * メッセージを文字列にして返却する.
-     * 
+     *
      * @param indent インデント
      * @return メッセージを表す文字列
      */
@@ -269,12 +269,12 @@ public interface DConnectMessage extends Map<String, Object> {
          * スコープ外にアクセス要求がなされた.
          */
         SCOPE(14, "Request is out of scope."),
-        
+
         /**
          * 認証時にclientIdが発見できなかった.
          */
         NOT_FOUND_CLIENT_ID(15, "clientId was not found."),
-        
+
         /**
          * デバイスの状態異常エラー.
          */
@@ -300,7 +300,7 @@ public interface DConnectMessage extends Map<String, Object> {
 
         /**
          * エラーコードとデフォルトエラーメッセージを設定する.
-         * 
+         *
          * @param code エラーコード
          * @param message エラーメッセージ
          */
@@ -316,27 +316,27 @@ public interface DConnectMessage extends Map<String, Object> {
 
         /**
          * エラーコードを取得する.
-         * 
+         *
          * @return エラーコード
          */
         public int getCode() {
             return mCode;
         }
-        
+
         /**
          * 指定されたエラーコードからErrorCodeオブジェクトを取得する.
-         * 
+         *
          * @param code エラーコード
          * @return ErrorCodeのインスタンス
          */
         public static ErrorCode getInstance(final int code) {
-            
+
             for (ErrorCode eCode : values()) {
                 if (eCode.mCode == code) {
                     return eCode;
                 }
             }
-            
+
             return UNKNOWN;
         }
     }

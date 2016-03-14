@@ -70,7 +70,7 @@ project.androidVariants.all { variant ->
         classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
 
         options {
-            links("http://docs.oracle.com/javase/jp/7/api/");
+            links("http://docs.oracle.com/javase/jp/8/docs/api/");
             linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")
             setMemberLevel(JavadocMemberLevel.PUBLIC)
             docEncoding = 'UTF-8'

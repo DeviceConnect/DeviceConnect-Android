@@ -46,7 +46,7 @@ public class WebRTCManager {
 
     private AudioTrackExternal mAudioTrackExternal;
 
-    private MixedReplaceMediaServer mServer;
+    private MixedReplaceMediaServer mServer = null;
 
     public WebRTCManager(WebRTCApplication application) {
         mApplication = application;
@@ -62,7 +62,13 @@ public class WebRTCManager {
         });
     }
 
+    public boolean isConnect() {
+        return mServer != null;
+    }
     public void connect(Intent intent) {
+        if (mServer != null) {
+            return; // Error : Already the server is running.
+        }
         mServer = new MixedReplaceMediaServer();
         mServer.setPort(VIDEO_PORT);
         mServer.start();
@@ -174,13 +180,13 @@ public class WebRTCManager {
 
     public  void destroy() {
         for (Map.Entry<Peer, WebRTCController> e : mMap.entrySet()) {
-            if (mServer != null) {
-                mServer.stop();
-                mServer = null;
-            }
             e.getValue().hangup();
         }
         mMap.clear();
+        if (mServer != null) {
+            mServer.stop();
+            mServer = null;
+        }
     }
 
     /**

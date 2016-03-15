@@ -230,11 +230,16 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 if (outputs.equals(PARAM_HOST)) {
                                     getContext().startActivity(intent);
+                                    setResult(response, DConnectMessage.RESULT_OK);
                                 } else {
                                     WebRTCManager mgr = getWebRTCService().getWebRTCManager();
-                                    mgr.connectOnUiThread(intent);
+                                    if (mgr.isConnect()) {
+                                        MessageUtils.setIllegalServerStateError(response, "Already the http server is running.");
+                                    } else {
+                                        mgr.connectOnUiThread(intent);
+                                        setResult(response, DConnectMessage.RESULT_OK);
+                                    }
                                 }
-                                setResult(response, DConnectMessage.RESULT_OK);
                             }
                             getWebRTCService().sendResponse(response);
                         }

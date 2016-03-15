@@ -17,6 +17,9 @@ import org.webrtc.voiceengine.WebRtcAudioRecordModule;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -210,6 +213,12 @@ public class AudioCapturerExternalResource extends WebRtcAudioRecordModule {
         }
     }
 
+    short[] shortPCM = new short[64*1024];
+    short[] stereoPCM = new short[64*1024];
+    float[] floatPCM = new float[64*1024];
+    short[] defaultPCM;
+
+    Resampler resampler = new Resampler();
     /**
      * Received an audio data from WebSocket server.
      * @param bytes audio data
@@ -220,86 +229,84 @@ public class AudioCapturerExternalResource extends WebRtcAudioRecordModule {
             return;
         }
 
-        if (true) {
-            try {
-                int capacity;
-                short[] shortPCM;
-                switch (mBitDepth) {
-                    case PCM_8BIT:
-                        capacity = bytes.capacity();
-                        shortPCM = new short[capacity];
-                        for (int i = 0, count = 0; i < capacity; i++) {
-                            switch (mChannel) {
-                                case STEREO:
-                                    if (i % 2 == 0) {
-                                        shortPCM[count++] = (short) bytes.get(i);
-                                    }
-                                    break;
-                                case MONAURAL:
-                                default:
-                                    shortPCM[i] = (short) bytes.get(i);
-                                    break;
-                            }
-                        }
-                        break;
-                    case PCM_16BIT:
-                        capacity = bytes.capacity() / 2;
+        int count = 0;
+        int capacity;
+        try {
+            switch (mBitDepth) {
+                case PCM_8BIT:
+                    capacity = bytes.capacity();
+                    for (int i = 0; i < capacity; i++) {
                         switch (mChannel) {
                             case STEREO:
-                                shortPCM = new short[capacity/2];
-                                short[] stereoPCM = new short[capacity];
-                                bytes.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(stereoPCM);
-                                for (int i = 0, count = 0; i < capacity; i++) {
-                                    if (i % 2 == 0) {
-                                        shortPCM[count++] = stereoPCM[i];
-                                    }
+                                if (i % 2 == 0) {
+                                    shortPCM[count++] = (short) bytes.get(i);
                                 }
                                 break;
                             case MONAURAL:
                             default:
-                                shortPCM = new short[capacity];
-                                bytes.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shortPCM);
+                                shortPCM[i] = (short) bytes.get(i);
                                 break;
                         }
-                        break;
-                    case PCM_FLOAT:
-                    default:
-                        // convert from float to short
-                        capacity = bytes.capacity() / 4;
-                        float[] floatPCM = new float[capacity];
-                        shortPCM = new short[capacity];
-                        bytes.order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer().get(floatPCM);
-                        for (int i = 0, count = 0; i < floatPCM.length; i++) {
-                            switch (mChannel) {
-                                case STEREO:
-                                    if (i % 2 == 0) {
-                                        shortPCM[count++] = (short) (floatPCM[i] * 32768);
-                                    }
-                                    break;
-                                case MONAURAL:
-                                default:
-                                    shortPCM[i] = (short) (floatPCM[i] * 32768);
-                                    break;
+                    }
+                    if (mChannel == PeerOption.AudioChannel.STEREO) {
+                        capacity = count;
+                    }
+                    break;
+                case PCM_16BIT:
+                    capacity = bytes.capacity() / 2;
+                    switch (mChannel) {
+                        case STEREO:
+                            bytes.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(stereoPCM);
+                            for (int i = 0; i < capacity; i++) {
+                                if (i % 2 == 0) {
+                                    shortPCM[count++] = stereoPCM[i];
+                                }
                             }
+                            break;
+                        case MONAURAL:
+                        default:
+                            bytes.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shortPCM);
+                            defaultPCM = new short[capacity];
+                            System.arraycopy(shortPCM, 0, defaultPCM, 0, capacity);
+                            break;
+                    }
+                    if (mChannel == PeerOption.AudioChannel.STEREO) {
+                        capacity = count;
+                    }
+                    break;
+                case PCM_FLOAT:
+                default:
+                    // convert from float to short
+                    capacity = bytes.capacity() / 4;
+                    bytes.order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer().get(floatPCM);
+                    for (int i = 0; i < capacity; i++) {
+                        switch (mChannel) {
+                            case STEREO:
+                                if (i % 2 == 0) {
+                                    shortPCM[count++] = (short) (floatPCM[i] * 32768);
+                                }
+                                break;
+                            case MONAURAL:
+                            default:
+                                shortPCM[i] = (short) (floatPCM[i] * 32768);
+                                break;
                         }
-                        break;
-                }
-                Resampler resampler = new Resampler();
-                mAudioThread.offerAudioData(resampler.reSample(shortToByte(shortPCM), 16, mSampleRate.getSampleRate(), 48000));
-            } catch (Exception e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, "", e);
-                }
+                    }
+                    if (mChannel == PeerOption.AudioChannel.STEREO) {
+                        capacity = count;
+                    }
+                    break;
             }
-        } else {
-            try {
-                byte[] buf = new byte[bytes.capacity()];
-                bytes.get(buf);
-                mAudioThread.offerAudioData(buf);
-            } catch (Exception e) {
-                if (BuildConfig.DEBUG) {
-                    Log.e(TAG, "", e);
-                }
+            if (mBitDepth == PeerOption.AudioBitDepth.PCM_16BIT
+                    && mChannel == PeerOption.AudioChannel.MONAURAL
+                    && mSampleRate == PeerOption.AudioSampleRate.RATE_48000) {
+                mAudioThread.offerAudioData(shortToByte(defaultPCM));
+            } else {
+                mAudioThread.offerAudioData(resampler.reSample(shortToByte(shortPCM), capacity, 16, mSampleRate.getSampleRate(), 48000));
+            }
+        } catch (Exception e) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "", e);
             }
         }
     }
@@ -322,7 +329,7 @@ public class AudioCapturerExternalResource extends WebRtcAudioRecordModule {
         /**
          * Queues for storing data that received from the server.
          */
-        private final BlockingQueue<byte[]> mQueue = new ArrayBlockingQueue<>(8);
+        private final Queue<byte[]> mQueue = new LinkedList<>();
 
         /**
          * Keep alive flag.
@@ -337,9 +344,9 @@ public class AudioCapturerExternalResource extends WebRtcAudioRecordModule {
 
             try {
                 while (mKeepAlive) {
-                    sendAudioData(mQueue.take());
+                    sendAudioData(mQueue.poll());
                 }
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 // do nothing.
             }
 

@@ -20,18 +20,18 @@ import java.util.Locale;
  * Human Detect Profile.
  * 
  * <p>
- * API that provides Setting, the Detection feature for Human Detect Device.<br/>
+ * API that provides Setting, the Detection feature for Human Detect Device.<br>
  * 
  * DevicePlugin that provides a HumanDetect operation function of for smart device inherits an
- * equivalent class, and implements the corresponding API thing. <br/>
+ * equivalent class, and implements the corresponding API thing. <br>
  * </p>
  * 
  * <h1>API provides methods</h1>
  * <p>
  * For requests to each API of HumanDetectProfile, following callback method group is automatically
- * invoked.<br/>
+ * invoked.<br>
  * Subclasses override the methods for API provided by the DevicePlugin from the following methods
- * group, to implement the functionality that.<br/>
+ * group, to implement the functionality that.<br>
  * Features that are not overridden automatically return the response as non-compliant API.
  * </p>
  * @author NTT DOCOMO, INC.
@@ -136,7 +136,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     // ------------------------------------
 
     /**
-     * onbodydetectionコールバック登録リクエストハンドラー.<br/>
+     * onbodydetectionコールバック登録リクエストハンドラー.<br>
      * onbodydetectionコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -154,7 +154,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     }
 
     /**
-     * onhanddetectionコールバック登録リクエストハンドラー.<br/>
+     * onhanddetectionコールバック登録リクエストハンドラー.<br>
      * onhanddetectionコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -172,7 +172,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     }
 
     /**
-     * onfacedetectionコールバック登録リクエストハンドラー.<br/>
+     * onfacedetectionコールバック登録リクエストハンドラー.<br>
      * onfacedetectionコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -194,7 +194,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     // ------------------------------------
 
     /**
-     * onbodydetectionコールバック解除リクエストハンドラー.<br/>
+     * onbodydetectionコールバック解除リクエストハンドラー.<br>
      * onbodydetectionコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -212,7 +212,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     }
 
     /**
-     * onhanddetectionコールバック解除リクエストハンドラー.<br/>
+     * onhanddetectionコールバック解除リクエストハンドラー.<br>
      * onhanddetectionコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -230,7 +230,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     }
 
     /**
-     * onfacedetectionコールバック解除リクエストハンドラー.<br/>
+     * onfacedetectionコールバック解除リクエストハンドラー.<br>
      * onfacedetectionコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -252,7 +252,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     // ------------------------------------
 
     /**
-     * body detection attribute request handler.<br/>
+     * body detection attribute request handler.<br>
      * And ask the human body detection, and the result is stored in the response parameters.
      * If the response parameter is ready, please return true.
      * If you are not ready, please return false to start the process in the thread.
@@ -270,7 +270,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     }
 
     /**
-     * hand detection attribute request handler.<br/>
+     * hand detection attribute request handler.<br>
      * And ask the human hand detection, and the result is stored in the response parameters.
      * If the response parameter is ready, please return true.
      * If you are not ready, please return false to start the process in the thread.
@@ -288,7 +288,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     }
 
     /**
-     * face detection attribute request handler.<br/>
+     * face detection attribute request handler.<br>
      * And ask the human face detection, and the result is stored in the response parameters.
      * If the response parameter is ready, please return true.
      * If you are not ready, please return false to start the process in the thread.
@@ -310,7 +310,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     // ------------------------------------
 
     /**
-     * body detection attribute request handler.<br/>
+     * body detection attribute request handler.<br>
      * And ask the human body detection, and the result is stored in the response parameters.
      * If the response parameter is ready, please return true.
      * If you are not ready, please return false to start the process in the thread.
@@ -328,7 +328,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     }
 
     /**
-     * hand detection attribute request handler.<br/>
+     * hand detection attribute request handler.<br>
      * And ask the human hand detection, and the result is stored in the response parameters.
      * If the response parameter is ready, please return true.
      * If you are not ready, please return false to start the process in the thread.
@@ -346,7 +346,7 @@ public abstract class HumanDetectProfile extends DConnectProfile implements Huma
     }
 
     /**
-     * face detection attribute request handler.<br/>
+     * face detection attribute request handler.<br>
      * And ask the human face detection, and the result is stored in the response parameters.
      * If the response parameter is ready, please return true.
      * If you are not ready, please return false to start the process in the thread.

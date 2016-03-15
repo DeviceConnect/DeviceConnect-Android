@@ -7,9 +7,9 @@
 package org.deviceconnect.profile;
 
 /**
- * Media Stream Recording Profile API 定数群.<br/>
+ * Media Stream Recording Profile API 定数群.<br>
  * Media Stream Recording Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public interface MediaStreamRecordingProfileConstants extends DConnectProfileConstants {
@@ -273,31 +273,31 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
      * パラメータ: {@value} .
      */
     String PARAM_MEDIA = "media";
-    
+
     /**
      * パラメータ: {@value} .
      */
     String PARAM_STATUS = "status";
-    
+
     /**
      * パラメータ: {@value} .
      */
     String PARAM_ERROR_MESSAGE = "errorMessage";
-    
-    /** 
+
+    /**
      * パラメータ: {@value} .
      */
     String PARAM_PATH = "path";
-    
-    /** 
+
+    /**
      * パラメータ: {@value} .
      * @deprecated
      */
     String PARAM_MIN = "min";
-    
-    /** 
+
+    /**
      * パラメータ: {@value} .
-     * @deprecated 
+     * @deprecated
      */
     String PARAM_MAX = "max";
 
@@ -321,7 +321,7 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
 
         /**
          * 指定された文字列を定義値に持つカメラの状態を定義します.
-         * 
+         *
          * @param value 定義値
          */
         private RecorderState(final String value) {
@@ -330,7 +330,7 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
 
         /**
          * 定義値を取得する.
-         * 
+         *
          * @return 定義値
          */
         public String getValue() {
@@ -339,7 +339,7 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
 
         /**
          * 定義値から定数を取得する.
-         * 
+         *
          * @param value 定義値
          * @return 定数オブジェクト
          */
@@ -354,7 +354,7 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
             return UNKNOWN;
         }
     }
-    
+
     /**
      * 動画撮影、音声録音の状態定数.
      */
@@ -384,7 +384,7 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
 
         /**
          * 指定された文字列を定義値に持つ動画撮影または音声録音の状態を定義します.
-         * 
+         *
          * @param value 定義値
          */
         private RecordingState(final String value) {
@@ -393,7 +393,7 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
 
         /**
          * 定義値を取得する.
-         * 
+         *
          * @return 定義値
          */
         public String getValue() {
@@ -402,7 +402,7 @@ public interface MediaStreamRecordingProfileConstants extends DConnectProfileCon
 
         /**
          * 定義値から定数を取得する.
-         * 
+         *
          * @param value 定義値
          * @return 定数オブジェクト
          */

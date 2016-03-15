@@ -7,7 +7,7 @@
 package org.deviceconnect.profile;
 
 /**
- * Service Discovery Profile API 定数群.<br/>
+ * Service Discovery Profile API 定数群.<br>
  * Service Discovery Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * @author NTT DOCOMO, INC.
  */
@@ -47,7 +47,7 @@ public interface ServiceDiscoveryProfileConstants extends DConnectProfileConstan
      * パラメータ: {@value} .
      */
     String PARAM_STATE = "state";
-    
+
     /**
      * パラメータ: {@value} .
      */
@@ -105,7 +105,7 @@ public interface ServiceDiscoveryProfileConstants extends DConnectProfileConstan
 
         /**
          * 指定された文字列を定義値に持つ定数を定義する.
-         * 
+         *
          * @param value 定義値
          */
         private NetworkType(final String value) {
@@ -114,7 +114,7 @@ public interface ServiceDiscoveryProfileConstants extends DConnectProfileConstan
 
         /**
          * 定義値を取得する.
-         * 
+         *
          * @return 定義値
          */
         public String getValue() {
@@ -123,7 +123,7 @@ public interface ServiceDiscoveryProfileConstants extends DConnectProfileConstan
 
         /**
          * 定義値からネットワークタイプを取得する.
-         * 
+         *
          * @param value 定義値
          * @return ネットワークタイプ
          */

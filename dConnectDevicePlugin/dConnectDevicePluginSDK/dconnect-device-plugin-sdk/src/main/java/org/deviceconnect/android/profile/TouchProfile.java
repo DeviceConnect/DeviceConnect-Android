@@ -16,17 +16,17 @@ import android.os.Bundle;
  * Touch Profile.
  * 
  * <p>
- * API that provides a smart device touch operation function.<br/>
+ * API that provides a smart device touch operation function.<br>
  * Device plug-in that provides a touch operation function by extending this
- * class, and implements the corresponding API that.<br/>
+ * class, and implements the corresponding API that.<br>
  * </p>
  * 
  * <h1>API provides methods</h1>
  * <p>
  * The request to each API of Touch Profile, following callback method group is
- * automatically invoked.<br/>
+ * automatically invoked.<br>
  * Subclass is to implement the functionality by overriding the method for the
- * API provided by the device plug-in from the following methods group.<br/>
+ * API provided by the device plug-in from the following methods group.<br>
  * Features that are not overridden automatically return the response as
  * non-compliant API.
  * </p>
@@ -154,7 +154,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     // GET
     // ------------------------------------
     /**
-     * ontouch get request handler.<br/>
+     * ontouch get request handler.<br>
      * Get the ontouch result and store in the response parameter.
      * If you have ready to transmit the response parameter that you
      * specify the true return value. If you are not ready to be submitted
@@ -173,7 +173,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchstart get request handler.<br/>
+     * ontouchstart get request handler.<br>
      * Get the ontouchstart result and store in the response parameter.
      * If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -192,7 +192,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchend get request handler.<br/>
+     * ontouchend get request handler.<br>
      * Get the ontouchend result and store in the response parameter.
      * If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -211,7 +211,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ondoubletap get request handler.<br/>
+     * ondoubletap get request handler.<br>
      * Get the ondoubletap result and store in the response parameter.
      * If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -230,7 +230,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchmove get request handler.<br/>
+     * ontouchmove get request handler.<br>
      * Get the ontouchmove result and store in the response parameter.
      * If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -249,7 +249,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchcancel get request handler.<br/>
+     * ontouchcancel get request handler.<br>
      * Get the ontouchcancel result and store in the response parameter.
      * If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -272,7 +272,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     // ------------------------------------
 
     /**
-     * ontouch callback registration request handler.<br/>
+     * ontouch callback registration request handler.<br>
      * Register the ontouch call back, and the result is stored in the response
      * parameters. If you have ready to transmit the response parameter that you
      * specify the true return value. If you are not ready to be submitted
@@ -293,7 +293,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchstart callback registration request handler.<br/>
+     * ontouchstart callback registration request handler.<br>
      * Register the ontouchstart call back, and the result is stored in the
      * response parameters. If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -314,7 +314,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchend callback registration request handler.<br/>
+     * ontouchend callback registration request handler.<br>
      * Register the ontouchend call back, and the result is stored in the
      * response parameters. If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -335,7 +335,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ondoubletap callback registration request handler.<br/>
+     * ondoubletap callback registration request handler.<br>
      * Register the ondoubletap call back, and the result is stored in the
      * response parameters. If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -356,7 +356,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchmove callback registration request handler.<br/>
+     * ontouchmove callback registration request handler.<br>
      * Register the ontouchmove call back, and the result is stored in the
      * response parameters. If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -377,7 +377,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchcancel callback registration request handler.<br/>
+     * ontouchcancel callback registration request handler.<br>
      * Register the ontouchcancel call back, and the result is stored in the
      * response parameters. If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -402,7 +402,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     // ------------------------------------
 
     /**
-     * ontouch callback release request handler.<br/>
+     * ontouch callback release request handler.<br>
      * Release the ontouch call back, and the result is stored in the response
      * parameters. If you have ready to transmit the response parameter that you
      * specify the true return value. If you are not ready to be submitted
@@ -423,7 +423,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchstart callback release request handler.<br/>
+     * ontouchstart callback release request handler.<br>
      * Release the ontouchstart call back, and the result is stored in the
      * response parameters. If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -444,7 +444,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchend callback release request handler.<br/>
+     * ontouchend callback release request handler.<br>
      * Release the ontouchend call back, and the result is stored in the
      * response parameters. If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -465,7 +465,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ondoubletap callback release request handler.<br/>
+     * ondoubletap callback release request handler.<br>
      * Release the ondoubletap call back, and the result is stored in the
      * response parameters. If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -486,7 +486,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchmove callback release request handler.<br/>
+     * ontouchmove callback release request handler.<br>
      * Release the ontouchmove call back, and the result is stored in the
      * response parameters. If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be
@@ -507,7 +507,7 @@ public class TouchProfile extends DConnectProfile implements TouchProfileConstan
     }
 
     /**
-     * ontouchcancel callback release request handler.<br/>
+     * ontouchcancel callback release request handler.<br>
      * Release the ontouchcancel call back, and the result is stored in the
      * response parameters. If you have ready to transmit the response parameter
      * that you specify the true return value. If you are not ready to be

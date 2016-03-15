@@ -7,10 +7,10 @@
 package org.deviceconnect.profile;
 
 /**
- * Constants for Key Event Profile API.<br/>
+ * Constants for Key Event Profile API.<br>
  * Define parameter name, interface name, attribute and profile name for key
  * event profile API.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public interface KeyEventProfileConstants extends DConnectProfileConstants {

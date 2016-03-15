@@ -7,7 +7,7 @@
 package org.deviceconnect.profile;
 
 /**
- * Proximity Profile API 定数群.<br/>
+ * Proximity Profile API 定数群.<br>
  * Proximity Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * @author NTT DOCOMO, INC.
  */
@@ -63,8 +63,8 @@ public interface ProximityProfileConstants extends DConnectProfileConstants {
      * パラメータ: {@value} .
      */
     String PARAM_THRESHOLD = "threshold";
-    
-    /** 
+
+    /**
      * パラメータ: {@value} .
      */
     String PARAM_PROXIMITY = "proximity";

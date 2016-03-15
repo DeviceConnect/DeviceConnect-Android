@@ -24,7 +24,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-    
+
     productFlavors {
     }
 }
@@ -45,9 +45,9 @@ project.androidVariants.all { variant ->
         source = variant.javaCompile.source
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
         classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
-
+        System.out.println(variant)
         options {
-            links("http://docs.oracle.com/javase/jp/7/api/");
+            links("http://docs.oracle.com/javase/jp/8/docs/api/");
             linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")
             setMemberLevel(JavadocMemberLevel.PROTECTED)
             docEncoding = 'UTF-8'
@@ -91,4 +91,12 @@ uploadArchives {
             pom.artifactId = 'dconnect-device-plugin-sdk'
         }
     }
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+  allprojects {
+    tasks.withType(Javadoc) {
+      options.addStringOption('Xdoclint:none', '-quiet')
+    }
+  }
 }

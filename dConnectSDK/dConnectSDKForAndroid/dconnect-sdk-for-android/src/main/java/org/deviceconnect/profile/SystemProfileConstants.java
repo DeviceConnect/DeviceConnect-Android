@@ -7,7 +7,7 @@
 package org.deviceconnect.profile;
 
 /**
- * System Profile API 定数群.<br/>
+ * System Profile API 定数群.<br>
  * System Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * @author NTT DOCOMO, INC.
  */
@@ -22,12 +22,12 @@ public interface SystemProfileConstants extends DConnectProfileConstants {
      * インターフェース: {@value} .
      */
     String INTERFACE_DEVICE = "device";
-    
+
     /**
      * 属性: {@value} .
      */
     String ATTRIBUTE_EVENTS = "events";
-    
+
     /**
      * 属性: {@value} .
      */
@@ -52,7 +52,7 @@ public interface SystemProfileConstants extends DConnectProfileConstants {
      * パス: {@value} .
      */
     String PATH_EVENTS = PATH_PROFILE + SEPARATOR + ATTRIBUTE_EVENTS;
-    
+
     /**
      * パス: {@value} .
      */
@@ -61,7 +61,7 @@ public interface SystemProfileConstants extends DConnectProfileConstants {
     /**
      * パス: {@value} .
      */
-    String PATH_WAKEUP = PATH_PROFILE + SEPARATOR 
+    String PATH_WAKEUP = PATH_PROFILE + SEPARATOR
             + INTERFACE_DEVICE + SEPARATOR + "wakeup";
 
     /**

@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 /**
  * The page for confirmation of the connection between THETA and Android device.
@@ -69,7 +70,33 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
     private UserSettings mSettings;
     /** Search in dialog. */
     private ThetaDialogFragment mDialog;
+    /** Logger. */
+    private final Logger mLogger = Logger.getLogger("theta.dplugin");
+    /** Wi-Fi State Receiver. */
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            String action = intent.getAction();
+            mLogger.info("ConfirmationFragment: action = " + action
+                + ", isWaitingWiFiEnabled = " + mIsWaitingWifiEnabled);
+            if (!mIsWaitingWifiEnabled) {
+                return;
+            }
+            if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(action)) {
+                int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN);
+                switch (state) {
+                    case WifiManager.WIFI_STATE_ENABLED:
+                        mIsWaitingWifiEnabled = false;
+                        connectTheta();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    };
 
+    private boolean mIsWaitingWifiEnabled;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -83,7 +110,9 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
         btnCameraSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                if (WiFiUtil.checkSSID(mWifiMgr.getConnectionInfo().getSSID())) {
+                String ssId = mWifiMgr.getConnectionInfo().getSSID();
+                mLogger.info("Current Wi-Fi SSID: " + ssId);
+                if (WiFiUtil.checkSSID(ssId)) {
                     mServiceIdView.setText(getThetaName());
                 } else {
                     connectTheta();
@@ -127,6 +156,8 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
             ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
             ThetaDeviceManager deviceManager = app.getDeviceManager();
             deviceManager.unregisterDeviceEventListener(this);
+
+            activity.unregisterReceiver(mReceiver);
         }
     }
 
@@ -138,8 +169,10 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
             ThetaDeviceApplication app = (ThetaDeviceApplication) activity.getApplication();
             ThetaDeviceManager deviceManager = app.getDeviceManager();
             deviceManager.registerDeviceEventListener(this);
-        }
 
+            activity.registerReceiver(mReceiver,
+                new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+        }
     }
 
 
@@ -192,15 +225,15 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
     private void connectTheta() {
         if (!mWifiMgr.isWifiEnabled()) {
             ThetaDialogFragment.showConfirmAlert(getActivity(),
-                    getString(R.string.theta_confirm_wifi),
-                    getString(R.string.theta_confirm_wifi_enable),
-                    getString(R.string.ok),
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(final DialogInterface dialog, final int whichButton) {
-                            turnOnWifi();
-                        }
-                    });
+                getString(R.string.theta_confirm_wifi),
+                getString(R.string.theta_confirm_wifi_enable),
+                getString(R.string.ok),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(final DialogInterface dialog, final int whichButton) {
+                        turnOnWifi();
+                    }
+                });
         } else {
             WifiInfo wifiInfo = mWifiMgr.getConnectionInfo();
             Activity activity = getActivity();
@@ -301,13 +334,23 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
                                 public void onClick(final DialogInterface dialog, final int whichButton) {
                                     ScanResult result = scanList.get(pos[0]);
                                     List<WifiConfiguration> list = mWifiMgr.getConfiguredNetworks();
+                                    mLogger.info("Selected Wi-Fi: SSID = " + result.SSID);
+                                    mLogger.info("Configured Networks: size = " + list.size());
+                                    boolean isEnabled = false;
                                     for (WifiConfiguration i : list) {
+                                        mLogger.info("Found Wi-Fi SSID = " + i.SSID);
                                         if (i.SSID != null && i.SSID.indexOf(result.SSID) > 0) {
-                                            mWifiMgr.removeNetwork(i.networkId);
+                                            isEnabled = mWifiMgr.enableNetwork(i.networkId, true);
                                             break;
                                         }
                                     }
-                                    connectWifi(result);
+                                    if (!isEnabled) {
+                                        mLogger.info("Need to create new Wi-Fi configuration: SSID = " + result.SSID);
+                                        connectWifi(result);
+                                    } else {
+                                        mLogger.info("Enable other network: isEnabled = " + isEnabled + ", SSID = " + result.SSID);
+                                        showConnectionProgress();
+                                    }
                                 }
                             },
                             new DialogInterface.OnClickListener() {
@@ -470,33 +513,10 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
      * @param password pasword
      */
     private void testConnectWifi(final WifiConfiguration wifiConfig, final String password) {
-        Activity activity = getActivity();
-        if (activity != null) {
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (mDialog == null) {
-                        mDialog = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.connecting));
-                        mDialog.show(getActivity().getFragmentManager(),
-                                "fragment_dialog");
-                    }
-                    new Handler().postDelayed(new Runnable() {  //Timeout Handler
-                        @Override
-                        public void run() {
-                            if (mDialog != null) {
-                                mDialog.dismiss();
-                                mDialog = null;
-                                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_confirm_wifi),
-                                        getString(R.string.theta_error_wrong_password), null);
-                                mServiceIdView.setText(R.string.camera_search_message_not_found);
+        showConnectionProgress();
 
-                            }
-                        }
-                    }, 30000);
-                }
-            });
-        }
         final int networkId = mWifiMgr.addNetwork(wifiConfig);
+        mLogger.info("addNetwork: networkId = " + networkId);
         if (networkId != -1) {
             mWifiMgr.saveConfiguration();
             mWifiMgr.updateNetwork(wifiConfig);
@@ -527,15 +547,45 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
         }
     }
 
+    private void showConnectionProgress() {
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mDialog == null) {
+                        mDialog = ThetaDialogFragment.newInstance(getString(R.string.theta_ssid_prefix), getString(R.string.connecting));
+                        mDialog.show(getActivity().getFragmentManager(),
+                            "fragment_dialog");
+                    }
+                    new Handler().postDelayed(new Runnable() {  //Timeout Handler
+                        @Override
+                        public void run() {
+                            if (mDialog != null) {
+                                mDialog.dismiss();
+                                mDialog = null;
+                                ThetaDialogFragment.showAlert(getActivity(), getString(R.string.theta_confirm_wifi),
+                                    getString(R.string.theta_error_wrong_password), null);
+                                mServiceIdView.setText(R.string.camera_search_message_not_found);
+
+                            }
+                        }
+                    }, 30000);
+                }
+            });
+        }
+    }
+
     /**
      * Enable the Wifi function.
      */
     private void turnOnWifi() {
+        mIsWaitingWifiEnabled = true;
         mWifiMgr.setWifiEnabled(true);
     }
 
     @Override
-    public void onConnected(ThetaDevice device) {
+    public void onConnected(final ThetaDevice device) {
         if (mDialog != null) {
             mDialog.dismiss();
             mDialog = null;
@@ -553,7 +603,7 @@ public class ConfirmationFragment extends SettingsFragment implements ThetaDevic
     }
 
     @Override
-    public void onDisconnected(ThetaDevice device) {
+    public void onDisconnected(final ThetaDevice device) {
         this.onConnected(device);
     }
 

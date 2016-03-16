@@ -194,36 +194,48 @@ public class AudioTrackExternal extends WebRtcAudioTrackModule {
             android.os.Process.setThreadPriority(
                     android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
 
+            if (DEBUG) {
+                Log.i(TAG, "AudioTrackExternal server is started.");
+            }
+
             final int T = 4;
             final int sizeInBytes = mByteBuffer.capacity();
             final byte[] buf = new byte[sizeInBytes * T];
-            final int delayTime = T * CALLBACK_BUFFER_SIZE_MS - CALLBACK_BUFFER_SIZE_MS;
+            final int delayTime = T * CALLBACK_BUFFER_SIZE_MS;
             int count = 0;
             while (keepAlive) {
+                long time = System.currentTimeMillis();
+
                 getPlayoutData(sizeInBytes);
 
                 System.arraycopy(mByteBuffer.array(), mByteBuffer.arrayOffset(), buf, count * sizeInBytes, sizeInBytes);
 
                 count++;
                 if (count == T) {
-                    mWebSocketServer.send(buf);
+                    if (mWebSocketServer != null) {
+                        mWebSocketServer.send(buf);
+                    }
 
-                    long time = System.currentTimeMillis();
-                    while ((System.currentTimeMillis() - time) < delayTime) {
+                    if ((System.currentTimeMillis() - time) < delayTime) {
                         try {
-                            Thread.sleep(0, 1000);
+                            Thread.sleep(System.currentTimeMillis() - time);
                         } catch (InterruptedException e) {
-                            return;
+                            break;
                         }
                     }
                     count = 0;
                 }
                 mByteBuffer.rewind();
             }
+
+            if (DEBUG) {
+                Log.i(TAG, "AudioTrackExternal server is stopped.");
+            }
         }
 
         public void joinThread() {
             keepAlive = false;
+            interrupt();
             while (isAlive()) {
                 try {
                     join();

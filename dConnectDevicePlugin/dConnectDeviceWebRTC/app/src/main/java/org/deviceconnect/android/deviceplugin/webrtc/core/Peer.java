@@ -17,6 +17,7 @@ import org.json.JSONObject;
 import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SessionDescription;
+import org.webrtc.voiceengine.WebRtcAudioManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,11 @@ public class Peer {
      * Tag for debugging.
      */
     private static final String TAG = "WebRTC";
+
+    /**
+     * Define the parameter of WebRTC.
+     */
+    private static final String FIELD_TRIAL_AUTOMATIC_RESIZE = "WebRTC-MediaCodecVideoEncoder-AutomaticResize/Enabled/";
 
     /**
      * Config of a Peer.
@@ -447,10 +453,13 @@ public class Peer {
                 enableHWCodec = PeerUtil.validateHWCodec();
             }
 
-//            EGLContext rendererEGLContext = VideoRendererGui.getEGLContext();
-            PeerConnectionFactory.initializeFieldTrials("WebRTC-SupportVP9/Enabled/");
-//            boolean result = PeerConnectionFactory.initializeAndroidGlobals(mContext,
-//                    enableAudio, enableVideo, enableHWCodec, rendererEGLContext);
+            if (BuildConfig.DEBUG) {
+                Log.i(TAG, "initPeerConnectionFactory(enableAudio=" + enableAudio + " enableVideo="
+                        + enableVideo + " enableHWCodec=" + enableHWCodec + ")");
+            }
+
+            PeerConnectionFactory.initializeFieldTrials(FIELD_TRIAL_AUTOMATIC_RESIZE);
+            WebRtcAudioManager.setBlacklistDeviceForOpenSLESUsage(true);
             boolean result = PeerConnectionFactory.initializeAndroidGlobals(mContext,
                     enableAudio, enableVideo, enableHWCodec);
             if (!result) {

@@ -1,7 +1,6 @@
 package org.deviceconnect.android.deviceplugin.webrtc.util;
 
 import android.content.Context;
-import android.util.Log;
 
 import org.deviceconnect.server.http.HttpRequest;
 import org.deviceconnect.server.http.HttpResponse;
@@ -25,6 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLServerSocketFactory;
@@ -161,8 +161,7 @@ public class WebSocketServer {
 
         mServer = new NanoServer(mConfig.getHost(), mConfig.getPort());
 
-//        mPath = UUID.randomUUID().toString();
-        mPath = "ABC";
+        mPath = UUID.randomUUID().toString();
 
         if (mConfig.isSsl()) {
             SSLServerSocketFactory factory = createServerSocketFactory();
@@ -187,7 +186,6 @@ public class WebSocketServer {
                         mListener.onLaunched();
                     }
                 } catch (IOException e) {
-                    Log.e("ABC", "", e);
                     if (mListener != null) {
                         mListener.onError(new RuntimeException(""));
                     }

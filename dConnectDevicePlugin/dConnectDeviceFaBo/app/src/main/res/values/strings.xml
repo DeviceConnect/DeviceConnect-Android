@@ -13,6 +13,6 @@
     <string name="open_usb">USBをオープンしました。</string>
     <string name="not_connect">未接続。</string>
     <string name="failed_open_usb">USBデバイスの接続に失敗。</string>
-    <string name="failed_connect_arduino">Arduinoの接続に失敗。</string>
-    <string name="success_connect_arduino">Arduinoの接続に成功。</string>
+    <string name="failed_connect_arduino">Arduinoに接続に失敗。</string>
+    <string name="success_connect_arduino">Arduinoに接続に成功。</string>
 </resources>

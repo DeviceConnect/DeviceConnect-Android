@@ -129,7 +129,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         ImageUtils.decodeYUV420SP3(mBitmap, frame.yuvPlanes, frame.width, frame.height, frame.yuvStrides);
 
         mOutputStream.reset();
-        mBitmap.compress(Bitmap.CompressFormat.JPEG, 50, mOutputStream);
+        mBitmap.compress(Bitmap.CompressFormat.JPEG, 20, mOutputStream);
         mFrameHeight = frame.height;
         mFrameWidth = frame.width;
         mServer.offerMedia(mType, mOutputStream.toByteArray());
@@ -153,7 +153,7 @@ public class MySurfaceViewRenderer extends SurfaceViewRenderer {
         ImageUtils.decodeYUV420SP2(mBitmap, mByteBuffer, frame.width, frame.height);
 
         mOutputStream.reset();
-        mBitmap.compress(Bitmap.CompressFormat.JPEG, 50, mOutputStream);
+        mBitmap.compress(Bitmap.CompressFormat.JPEG, 20, mOutputStream);
         mFrameHeight = frame.height;
         mFrameWidth = frame.width;
         mServer.offerMedia(mType, mOutputStream.toByteArray());

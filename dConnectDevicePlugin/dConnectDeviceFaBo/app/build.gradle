@@ -28,8 +28,6 @@ android {
 }
 
 repositories {
-    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectSDK/dConnectSDKForAndroid/repository/' }
-    maven { url 'https://raw.githubusercontent.com/DeviceConnect/DeviceConnect-Android/master/dConnectDevicePlugin/dConnectDevicePluginSDK/repository/' }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
     maven { url 'https://raw.githubusercontent.com/FaBoPlatform/STK500-Android/master/stk500/repository/' }
 }
@@ -37,7 +35,7 @@ repositories {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
-    compile 'org.deviceconnect:dconnect-device-plugin-sdk:1.0.1'
+    compile project(':dconnect-device-plugin-sdk')
     compile 'com.hoho.android:usb-serial-for-android:0.2.0-SNAPSHOT@aar'
     compile 'io.fabo.android.stk500:stk500-aar:1.0.2'
 }

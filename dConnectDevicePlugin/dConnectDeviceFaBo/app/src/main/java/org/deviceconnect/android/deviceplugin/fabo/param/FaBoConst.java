@@ -26,10 +26,10 @@ public class FaBoConst {
     public static final int FAILED_OPEN_USB = 2;
 
     /** Arduinoに接続成功. */
-    public static final int SUCCESS_CONNECT_ARDUINO = 2;
+    public static final int SUCCESS_CONNECT_ARDUINO = 3;
 
     /** Arduinoに接続失敗. */
-    public static final int FAILED_CONNECT_ARDUINO = 3;
+    public static final int FAILED_CONNECT_ARDUINO = 4;
 
     /** Firmataに接続成功. */
     public static final int SUCCESS_CONNECT_FIRMATA = 5;

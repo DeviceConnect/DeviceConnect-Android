@@ -15,6 +15,8 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +26,7 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
+import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoSettingActivity;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -50,6 +53,9 @@ public class FaBoConnectFragment extends Fragment {
     /** Button. */
     private Button mOutputButton;
 
+    private FaBoSettingActivity parent;
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -60,6 +66,8 @@ public class FaBoConnectFragment extends Fragment {
         // Get context.
         mContext = getActivity().getBaseContext();
         mActivity = getActivity();
+
+
 
         // Textview.
         mTextViewCommment = (TextView) root.findViewById(R.id.textViewComment);
@@ -148,9 +156,12 @@ public class FaBoConnectFragment extends Fragment {
                 } else if (resultId == FaBoConst.SUCCESS_CONNECT_ARDUINO){
                     mTextViewCommment.setText(R.string.success_connect_arduino);
                 } else if (resultId == FaBoConst.SUCCESS_CONNECT_FIRMATA){
-                    mTextViewCommment.setText(R.string.success_connect_arduino);
+                    mTextViewCommment.setText(R.string.success_connect_firmata);
+                } else if (resultId == FaBoConst.FAILED_CONNECT_FIRMATA){
+
                 }
             }
         }
     };
+
 }

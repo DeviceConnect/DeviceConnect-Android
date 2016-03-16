@@ -86,11 +86,25 @@ public class FaBoDeviceService extends DConnectMessageService {
             ArduinoUno.BIT_D12, ArduinoUno.BIT_D13};
 
     /** ServiceIDを保持する. */
-    List<String> mServiceIdStore = new ArrayList<String>();
+    private List<String> mServiceIdStore = new ArrayList<String>();
+
+    /** Statusを保持. */
+    private static int mStatus;
+
+    /** 初期化. */
+    private static final int STATUS_INIT = 1;
+
+    /** Firmata Versionチェック. */
+    private static final int STATUS_CHECK_FIRMATA = 2;
+
+    /** Arduinoと通信中. */
+    private static final int STATUS_RUNNING = 3;
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        mStatus = STATUS_INIT;
 
         //ここで、DConnectMessageServiceProviderにプロファイルを追加.
         addProfile(new FaBoServiceDiscoveryProfile(this));
@@ -241,21 +255,13 @@ public class FaBoDeviceService extends DConnectMessageService {
         digitalPortStatus[1] = 0; // 0000 0000
         digitalPortStatus[2] = 0; // 0000 0000
 
-        byte[] command = new byte[2];
+        mStatus = STATUS_CHECK_FIRMATA;
+        byte command[] = {(byte)0xF9};
+        SendMessage(command);
 
-        // AnalogPin A0-A5の値に変化があったら通知する設定をおこなう(Firmata)
-        for(int analogPin = 0; analogPin < 7; analogPin++) {
-            command[0] = (byte) (FirmataV32.REPORT_ANALOG + analogPin);
-            command[1] = (byte) FirmataV32.ENABLE;
-            SendMessage(command);
-        }
+        /*
 
-        // Portのデジタル値に変化があったら通知する設定をおこなう(Firmata)
-        for(int digitalPort = 0; digitalPort < 3; digitalPort++) {
-            command[0] = (byte) (FirmataV32.REPORT_DIGITAL + digitalPort);
-            command[1] = (byte) FirmataV32.ENABLE;
-            SendMessage(command);
-        }
+        */
 
         Toast.makeText(this, R.string.open_usb, Toast.LENGTH_SHORT).show();
     }
@@ -283,6 +289,27 @@ public class FaBoDeviceService extends DConnectMessageService {
     }
 
     /**
+     * Firmataの初期設定.
+     */
+    private void intFirmata(){
+        byte[] command = new byte[2];
+
+        // AnalogPin A0-A5の値に変化があったら通知する設定をおこなう(Firmata)
+        for(int analogPin = 0; analogPin < 7; analogPin++) {
+            command[0] = (byte) (FirmataV32.REPORT_ANALOG + analogPin);
+            command[1] = (byte) FirmataV32.ENABLE;
+            SendMessage(command);
+        }
+
+        // Portのデジタル値に変化があったら通知する設定をおこなう(Firmata)
+        for(int digitalPort = 0; digitalPort < 3; digitalPort++) {
+            command[0] = (byte) (FirmataV32.REPORT_DIGITAL + digitalPort);
+            command[1] = (byte) FirmataV32.ENABLE;
+            SendMessage(command);
+        }
+    }
+
+    /**
      * Arduino側から返答のあるメッセージを受信するLisener.
      */
     private final SerialInputOutputManager.Listener mListener =
@@ -298,30 +325,47 @@ public class FaBoDeviceService extends DConnectMessageService {
 
                     for(int i = 0; i < data.length; i++) {
 
-                        // 7bit目が1の場合は、コマンド.
-                        if ((data[i] & 0x80) == 0x80) {
-                            if((byte)(data[i] & 0xf0) == FirmataV32.ANALOG_MESSAGE) {
-                                if ((i + 2) < data.length) {
-                                    int pin = (data[i] & 0x0f);
-                                    if (pin < 7) {
-                                        int value = ((data[i + 2] & 0xff) << 7) + (data[i + 1] & 0xff);
-                                        analogPinValues[pin + 14] = value;
-                                    }
+                        if (mStatus == STATUS_CHECK_FIRMATA) {
+                            if ((i + 2) < data.length) {
+                                if((byte)(data[i] & 0xff) == (byte)0xf9 &&
+                                        (byte)(data[i + 1] & 0xff) == (byte)0x02 &&
+                                        (byte)(data[i + 2] & 0xff) == (byte)0x04) {
+
+                                    sendResult(FaBoConst.SUCCESS_CONNECT_FIRMATA);
+                                    intFirmata();
+                                    mStatus = STATUS_RUNNING;
                                 }
+                                else {
+                                    sendResult(FaBoConst.FAILED_CONNECT_FIRMATA);
+                                }
+                            } else{
+                                sendResult(FaBoConst.FAILED_CONNECT_FIRMATA);
                             }
-                            else if ((byte)(data[i] & 0xf0) == FirmataV32.DIGITAL_MESSAGE) {
-                                if((i + 2) < data.length) {
-                                    int port = (data[i] & 0x0f);
-                                    int value = ((data[i + 2] & 0xff) << 8) + (data[i + 1] & 0xff);
+                        } else {
+                            // 7bit目が1の場合は、コマンド.
+                            if ((data[i] & 0x80) == 0x80) {
+                                if ((byte) (data[i] & 0xf0) == FirmataV32.ANALOG_MESSAGE) {
+                                    if ((i + 2) < data.length) {
+                                        int pin = (data[i] & 0x0f);
+                                        if (pin < 7) {
+                                            int value = ((data[i + 2] & 0xff) << 7) + (data[i + 1] & 0xff);
+                                            analogPinValues[pin + 14] = value;
+                                        }
+                                    }
+                                } else if ((byte) (data[i] & 0xf0) == FirmataV32.DIGITAL_MESSAGE) {
+                                    if ((i + 2) < data.length) {
+                                        int port = (data[i] & 0x0f);
+                                        int value = ((data[i + 2] & 0xff) << 8) + (data[i + 1] & 0xff);
 
-                                    // Arduino UNOは3Portまで.
-                                    if (port < 3) {
+                                        // Arduino UNOは3Portまで.
+                                        if (port < 3) {
 
-                                        // 1つ前の値を取得する.
-                                        int lastValue =  digitalPortStatus[port];
+                                            // 1つ前の値を取得する.
+                                            int lastValue = digitalPortStatus[port];
 
-                                        // 取得した値は保存する.
-                                        digitalPortStatus[port] = value;
+                                            // 取得した値は保存する.
+                                            digitalPortStatus[port] = value;
+                                        }
                                     }
                                 }
                             }

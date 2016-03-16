@@ -12,7 +12,9 @@
     <string name="arduino_sendfirmata_button">Firmataファームウェアを転送</string>
     <string name="open_usb">USBをオープンしました。</string>
     <string name="not_connect">未接続。</string>
-    <string name="failed_open_usb">USBデバイスの接続に失敗。</string>
-    <string name="failed_connect_arduino">Arduinoに接続に失敗。</string>
-    <string name="success_connect_arduino">Arduinoに接続に成功。</string>
+    <string name="failed_open_usb">USBデバイスの接続に失敗しました。</string>
+    <string name="failed_connect_arduino">Arduinoに接続に失敗しました。</string>
+    <string name="success_connect_arduino">Arduinoへの接続に成功しました。</string>
+    <string name="success_connect_firmata">Firmataへの接続に成功しました。</string>
+    <string name="failed_connect_firmata">Firmataへの接続に失敗しました。</string>
 </resources>

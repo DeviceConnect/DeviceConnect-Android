@@ -79,7 +79,7 @@ public class FaBoFirmataFragment extends Fragment {
         mButtonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mStk500v1.setData(R.raw.standardfirmata);
+                mStk500v1.setData(R.raw.standardfirmata_hex);
                 mStk500v1.sendFirmware();
             }
         });

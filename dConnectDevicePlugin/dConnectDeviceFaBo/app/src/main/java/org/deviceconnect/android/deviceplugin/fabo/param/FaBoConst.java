@@ -22,22 +22,19 @@ public class FaBoConst {
     /** USBが未接続. */
     public static final int CAN_NOT_FIND_USB = 1;
 
-    /** USBに接続成功. */
-    public static final int SUCCESS_CONNECT_USB = 2;
-
     /** USBに接続失敗. */
-    public static final int FAILED_CONNECT_USB = 3;
+    public static final int FAILED_OPEN_USB = 2;
 
     /** Arduinoに接続成功. */
-    public static final int SUCCESS_CONNECT_ARDUINO = 4;
+    public static final int SUCCESS_CONNECT_ARDUINO = 2;
 
     /** Arduinoに接続失敗. */
-    public static final int FAILED_CONNECT_ARDUINO = 5;
+    public static final int FAILED_CONNECT_ARDUINO = 3;
 
     /** Firmataに接続成功. */
-    public static final int SUCCESS_CONNECT_FIRMATA = 6;
+    public static final int SUCCESS_CONNECT_FIRMATA = 5;
 
     /** Firmataに接続失敗. */
-    public static final int FAILED_CONNECT_FIRMATA = 7;
+    public static final int FAILED_CONNECT_FIRMATA = 6;
 
 }

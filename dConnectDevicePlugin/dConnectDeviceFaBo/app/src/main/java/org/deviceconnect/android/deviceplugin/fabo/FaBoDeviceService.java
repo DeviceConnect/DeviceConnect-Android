@@ -204,8 +204,7 @@ public class FaBoDeviceService extends DConnectMessageService {
             UsbDeviceConnection connection = mUsbManager.openDevice(mSerialPort.getDriver().getDevice());
 
             if (connection == null) {
-                sendResult(FaBoConst.FAILED_CONNECT_USB);
-                Toast.makeText(this, R.string.can_not_open_usb, Toast.LENGTH_SHORT).show();
+                sendResult(FaBoConst.FAILED_OPEN_USB);
                 return;
             }
 

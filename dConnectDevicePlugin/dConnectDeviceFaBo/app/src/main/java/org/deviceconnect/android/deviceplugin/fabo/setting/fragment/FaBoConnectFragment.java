@@ -93,17 +93,20 @@ public class FaBoConnectFragment extends Fragment {
         mIntentFilter.addAction(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB_RESULT);
         mContext.registerReceiver(mUSBResultEvent, mIntentFilter);
 
-        /*
-        // Check USB.
-        UsbDevice device = (UsbDevice) getActivity().getIntent().getParcelableExtra(UsbManager.EXTRA_DEVICE);
+        // USBデバイスのチェック.
+        UsbManager manager = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
+        HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
+        Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
 
-        if(device != null) {
-            Log.i(TAG, "devceId" + device.getVendorId());
+        while(deviceIterator.hasNext()) {
+            UsbDevice device = deviceIterator.next();
+
             if (device.getVendorId() == 10755) {
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         mTextViewCommment.setText("Arduino.org製のArduinoは非対応です。");
+                        mOutputButton.setEnabled(false);
                     }
                 });
             } else if (device.getVendorId() == 9025) {
@@ -111,40 +114,12 @@ public class FaBoConnectFragment extends Fragment {
                     @Override
                     public void run() {
                         mTextViewCommment.setText("Arduino.cc製のArduinoを認識しました。");
+                        mOutputButton.setEnabled(true);
                     }
                 });
+                break;
             }
-        } else {
-        */
-            UsbManager manager = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
-            HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
-            Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
-
-            while(deviceIterator.hasNext()) {
-                UsbDevice device = deviceIterator.next();
-
-                if (device.getVendorId() == 10755) {
-                    mActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mTextViewCommment.setText("Arduino.org製のArduinoは非対応です。");
-                            mOutputButton.setEnabled(false);
-                        }
-                    });
-                } else if (device.getVendorId() == 9025) {
-                    mActivity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mTextViewCommment.setText("Arduino.cc製のArduinoを認識しました。");
-                            mOutputButton.setEnabled(true);
-                        }
-                    });
-                    break;
-                }
-            }
-
-
-
+        }
     }
 
     @Override
@@ -166,10 +141,12 @@ public class FaBoConnectFragment extends Fragment {
                 Log.i(TAG, "RESULT!!!!" + resultId);
                 if(resultId == FaBoConst.CAN_NOT_FIND_USB){
                     mTextViewCommment.setText(R.string.not_found_usb);
-                } else if (resultId == FaBoConst.SUCCESS_CONNECT_USB){
-                    mTextViewCommment.setText(R.string.success_connect_usb);
+                } else if (resultId == FaBoConst.FAILED_OPEN_USB){
+                    mTextViewCommment.setText(R.string.failed_open_usb);
+                } else if (resultId == FaBoConst.FAILED_CONNECT_ARDUINO){
+                    mTextViewCommment.setText(R.string.failed_connect_arduino);
                 } else if (resultId == FaBoConst.SUCCESS_CONNECT_ARDUINO){
-                    mTextViewCommment.setText(R.string.success_connect_usb);
+                    mTextViewCommment.setText(R.string.success_connect_arduino);
                 } else if (resultId == FaBoConst.SUCCESS_CONNECT_FIRMATA){
                     mTextViewCommment.setText(R.string.success_connect_usb);
                 }

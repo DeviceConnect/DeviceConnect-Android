@@ -1,0 +1,16 @@
+<resources>
+    <string name="description"></string>
+    <string name="app_name">FaBo Plugin</string>
+    <string name="not_found_usb">Arduino Unoが見つかりませんでした。</string>
+    <string name="can_not_open_usb">USBデバイスが開けませんでした。</string>
+    <string name="page_1">Arduino Uno接続設定</string>
+    <string name="page_2">Firmataファームウェア転送</string>
+    <string name="setting_message_1_1">Arduino Uno(Arduino.cc製)とAndroidをUSB接続します。Arduino.org製のArduino Unoには非対応です。</string>
+    <string name="firmata_connect_button">Arduino Unoと接続</string>
+    <string name="setting_message_2_1">FirmataデバイスとAndroid UnoをUSB接続します。接続に設定するとFirmataファームウェアを転送ボタンが出てくるので選択します。</string>
+    <string name="arduino_connect_button">Arduino Unoデバイスと接続</string>
+    <string name="arduino_sendfirmata_button">Firmataファームウェアを転送</string>
+    <string name="open_usb">USBをオープンしました。</string>
+    <string name="not_connect">未接続。</string>
+    <string name="success_connect_usb">USBデバイスに接続成功。</string>
+</resources>

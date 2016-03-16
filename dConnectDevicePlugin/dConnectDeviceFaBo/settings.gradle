@@ -1,0 +1,5 @@
+include ':app'
+include ':usb-serial-for-android-0.2.0-SNAPSHOT.aar'
+include ':dconnect-device-plugin-sdk-1.0.1'
+include ':dconnect-sdk-for-android-1.0.1'
+include ':stk500-aar-1.0.2'

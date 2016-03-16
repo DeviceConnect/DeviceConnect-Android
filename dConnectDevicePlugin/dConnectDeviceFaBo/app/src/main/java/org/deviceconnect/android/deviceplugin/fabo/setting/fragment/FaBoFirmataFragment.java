@@ -6,6 +6,7 @@ http://opensource.org/licenses/mit-license.php
 */
 package org.deviceconnect.android.deviceplugin.fabo.setting.fragment;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +22,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.fabo.R;
+import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoSettingActivity;
 
 import io.fabo.android.stk500.Stk500v1;
 
@@ -48,6 +50,19 @@ public class FaBoFirmataFragment extends Fragment {
 
     /** STK500. */
     private Stk500v1 mStk500v1;
+
+    private FaBoSettingActivity parent;
+
+
+    /**
+     * newInstance.
+     *
+     * @return fragment Fragment instance.
+     */
+    public static FaBoFirmataFragment newInstance() {
+        FaBoFirmataFragment fragment = new FaBoFirmataFragment();
+        return fragment;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -81,6 +96,7 @@ public class FaBoFirmataFragment extends Fragment {
             public void onClick(View v) {
                 mStk500v1.setData(R.raw.standardfirmata_hex);
                 mStk500v1.sendFirmware();
+                parent.moveConnectFirmata();
             }
         });
 
@@ -141,4 +157,10 @@ public class FaBoFirmataFragment extends Fragment {
             }
         }
     };
+
+    @Override
+    public void onAttach(Activity activity) {
+        parent = (FaBoSettingActivity) activity;
+        super.onAttach(activity);
+    }
 }

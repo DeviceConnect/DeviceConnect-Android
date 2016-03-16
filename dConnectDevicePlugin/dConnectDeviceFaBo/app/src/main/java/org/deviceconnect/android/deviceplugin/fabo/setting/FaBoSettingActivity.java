@@ -6,7 +6,10 @@ http://opensource.org/licenses/mit-license.php
 */
 package org.deviceconnect.android.deviceplugin.fabo.setting;
 
+import android.content.Intent;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
+
 import org.deviceconnect.android.deviceplugin.fabo.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fabo.setting.fragment.FaBoConnectFragment;
 import org.deviceconnect.android.deviceplugin.fabo.setting.fragment.FaBoFirmataFragment;
@@ -79,5 +82,14 @@ public class FaBoSettingActivity extends DConnectSettingPageFragmentActivity {
         return PAGE_COUNT;
     }
 
+    public void moveWriteFirmata() {
+        ViewPager vp = getViewPager();
+        vp.setCurrentItem(1, true);
+    }
+
+    public void moveConnectFirmata() {
+        ViewPager vp = getViewPager();
+        vp.setCurrentItem(0, true);
+    }
 
 }

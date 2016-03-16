@@ -15,6 +15,18 @@ public class FaBoConst {
     public static final String DEVICE_TO_ARDUINO_OPEN_USB
             = "org.deviceconnect.gpio.usb.open";
 
+    /** Command of check usb.  */
+    public static final String DEVICE_TO_ARDUINO_CHECK_USB
+            = "org.deviceconnect.gpio.usb.check";
+
+    /** Command of check usb.  */
+    public static final String DEVICE_TO_ARDUINO_CHECK_USB_RESULT
+            = "org.deviceconnect.gpio.usb.check.result";
+
+    /** Command of close usb.  */
+    public static final String DEVICE_TO_ARDUINO_CLOSE_USB
+            = "org.deviceconnect.gpio.usb.close";
+
     /** Result of usb connection.  */
     public static final String DEVICE_TO_ARDUINO_OPEN_USB_RESULT
             = "org.deviceconnect.gpio.usb.open.result";
@@ -36,5 +48,18 @@ public class FaBoConst {
 
     /** Firmataに接続失敗. */
     public static final int FAILED_CONNECT_FIRMATA = 6;
+
+    /** 初期化中. */
+    public static final int STATUS_INIT = 1;
+
+    /** 起動中. */
+    public static final int STATUS_RUNNING = 2;
+
+    /** 停止中. */
+    public static final int STATUS_STOP = 3;
+
+    /** ACTIVITY非表示. */
+    public static final int STATUS_ACTIVITY_STOP = 4;
+
 
 }

@@ -148,7 +148,7 @@ public class FaBoConnectFragment extends Fragment {
                 } else if (resultId == FaBoConst.SUCCESS_CONNECT_ARDUINO){
                     mTextViewCommment.setText(R.string.success_connect_arduino);
                 } else if (resultId == FaBoConst.SUCCESS_CONNECT_FIRMATA){
-                    mTextViewCommment.setText(R.string.success_connect_usb);
+                    mTextViewCommment.setText(R.string.success_connect_arduino);
                 }
             }
         }

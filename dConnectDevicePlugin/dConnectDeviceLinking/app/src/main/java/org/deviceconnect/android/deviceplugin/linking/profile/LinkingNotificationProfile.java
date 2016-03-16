@@ -17,7 +17,12 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.NotificationProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.util.Random;
+
 public class LinkingNotificationProfile extends NotificationProfile {
+
+    private static final int RANDOM_SEED = 1000000;
+    private final Random mRandom = new Random();
 
     @Override
     protected boolean onPostNotify(Intent request, Intent response, String serviceId, NotificationType type, Direction dir, String lang, String body, String tag, byte[] iconData) {
@@ -40,12 +45,17 @@ public class LinkingNotificationProfile extends NotificationProfile {
                 title = "イベント通知";
                 break;
             case UNKNOWN:
+                MessageUtils.setInvalidRequestParameterError(response,
+                        "type is invalid.");
+                return true;
             default:
                 break;
         }
         String detail = body == null ? "通知が来ています。" : body;
         LinkingManager manager = LinkingManagerFactory.createManager(getContext().getApplicationContext());
         manager.sendNotification(device, new LinkingNotification(title, detail));
+        int notifyId = mRandom.nextInt(RANDOM_SEED);
+        response.putExtra(NotificationProfile.PARAM_NOTIFICATION_ID, notifyId);
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }

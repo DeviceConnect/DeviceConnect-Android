@@ -57,6 +57,10 @@ public class LinkingLightProfile extends LightProfile {
         if (device == null) {
             return true;
         }
+        if (lightId != null && !lightId.equals(device.getBdAddress())) {
+            MessageUtils.setInvalidRequestParameterError(response, "Unknown lightId.");
+            return true;
+        }
         LinkingManager manager = LinkingManagerFactory.createManager(getContext().getApplicationContext());
         if (flashing != null) {
             flashing(serviceId, manager, device, flashing);
@@ -72,6 +76,10 @@ public class LinkingLightProfile extends LightProfile {
                                     String lightId) {
         LinkingDevice device = getDevice(serviceId, response);
         if (device == null) {
+            return true;
+        }
+        if (lightId != null && !lightId.equals(device.getBdAddress())) {
+            MessageUtils.setInvalidRequestParameterError(response, "Unknown lightId.");
             return true;
         }
         LinkingManager manager = LinkingManagerFactory.createManager(getContext().getApplicationContext());

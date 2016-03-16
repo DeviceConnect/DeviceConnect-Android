@@ -103,7 +103,7 @@ public class FaBoDeviceService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
-        
+
         setStatus(FaBoConst.STATUS_STOP);
 
         // USBManagerを取得.

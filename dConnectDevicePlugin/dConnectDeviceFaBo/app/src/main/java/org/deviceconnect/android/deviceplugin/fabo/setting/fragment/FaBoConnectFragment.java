@@ -26,6 +26,7 @@ import org.deviceconnect.android.deviceplugin.fabo.FaBoDeviceService;
 import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoSettingActivity;
+import org.restlet.resource.Resource;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -55,8 +56,6 @@ public class FaBoConnectFragment extends Fragment {
     /** Status. */
     private static int mStatus;
 
-    /** Firmataで接続中. */
-    private static final int STATUS_FIRMATA = 3;
 
     private FaBoSettingActivity parent;
 
@@ -88,7 +87,7 @@ public class FaBoConnectFragment extends Fragment {
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mTextViewCommment.setText("USBに接続中...");
+                        mTextViewCommment.setText("USBに接続");
                     }
                 });
             }
@@ -143,6 +142,18 @@ public class FaBoConnectFragment extends Fragment {
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.i(TAG, "onDestroyView()");
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Log.i(TAG, "onDetach()");
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
         Log.i(TAG, "onPause()");
@@ -175,9 +186,11 @@ public class FaBoConnectFragment extends Fragment {
                 } else if (resultId == FaBoConst.FAILED_CONNECT_ARDUINO){
                     mTextViewCommment.setText(R.string.failed_connect_arduino);
                 } else if (resultId == FaBoConst.SUCCESS_CONNECT_ARDUINO){
-                    mTextViewCommment.setText(R.string.success_connect_arduino);
+                    String lastText = (String) mTextViewCommment.getText();
+                    mTextViewCommment.setText(lastText + "\n" +  getString(R.string.success_connect_arduino));
                 } else if (resultId == FaBoConst.SUCCESS_CONNECT_FIRMATA){
-                    mTextViewCommment.setText(R.string.success_connect_firmata);
+                    String lastText = (String) mTextViewCommment.getText();
+                    mTextViewCommment.setText(lastText + "\n" + getString(R.string.success_connect_firmata));
                     mStatus = FaBoConst.STATUS_RUNNING;
                 } else if (resultId == FaBoConst.FAILED_CONNECT_FIRMATA){
                     parent.moveWriteFirmata();

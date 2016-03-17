@@ -14,6 +14,7 @@ import org.deviceconnect.android.profile.VideoChatProfileConstants;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.PeerConnectionFactory;
 import org.webrtc.SessionDescription;
@@ -163,6 +164,10 @@ public class Peer {
      */
     public boolean hasOffer(final String addressId) {
         return mOfferMap.containsKey(addressId);
+    }
+
+    public void setVideoHwAccelerationOptions(EglBase.Context renderEGLContext) {
+        mFactory.setVideoHwAccelerationOptions(renderEGLContext, renderEGLContext);
     }
 
     /**

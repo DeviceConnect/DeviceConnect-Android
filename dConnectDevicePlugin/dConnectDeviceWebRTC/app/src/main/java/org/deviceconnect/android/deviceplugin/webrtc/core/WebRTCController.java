@@ -55,9 +55,11 @@ public class WebRTCController {
     private String mAddressId;
     private boolean mOffer;
 
-    private WebRTCController(WebRTCApplication app, PeerConfig config, String addressId, boolean offer, WebRTCEventListener listener) {
+    private WebRTCController(final WebRTCApplication app, final PeerConfig config, final PeerOption option,
+                             final String addressId, final boolean offer, final WebRTCEventListener listener) {
         mApplication = app;
         mConfig = config;
+        mOption = option;
         mWebRTCEventListener = listener;
         mAddressId = addressId;
         mOffer = offer;
@@ -86,23 +88,19 @@ public class WebRTCController {
         });
     }
 
-    private void setLocalRender(MySurfaceViewRenderer localRender) {
+    private void setLocalRender(final MySurfaceViewRenderer localRender) {
         mLocalRender = localRender;
     }
 
-    private void setRemoteRender(MySurfaceViewRenderer remoteRender) {
+    private void setRemoteRender(final MySurfaceViewRenderer remoteRender) {
         mRemoteRender = remoteRender;
     }
 
-    private void setAudioTrackExternal(AudioTrackExternal audioTrackExternal) {
+    private void setAudioTrackExternal(final AudioTrackExternal audioTrackExternal) {
         mAudioTrackExternal = audioTrackExternal;
     }
 
-    private void setOption(PeerOption option) {
-        mOption = option;
-    }
-
-    private void runOnUiThread(Runnable run) {
+    private void runOnUiThread(final Runnable run) {
         mExecutorService.execute(run);
     }
 
@@ -419,41 +417,39 @@ public class WebRTCController {
         private PeerOption.AudioBitDepth mAudioBitDepth = PeerOption.AudioBitDepth.PCM_FLOAT;
         private PeerOption.AudioChannel mAudioChannel = PeerOption.AudioChannel.MONAURAL;
 
-        public Builder setVideoWidth(int width) {
+        public Builder setVideoWidth(final int width) {
             mVideoWidth = width;
             return this;
         }
 
-        public Builder setVideoHeight(int height) {
+        public Builder setVideoHeight(final int height) {
             mVideoHeight = height;
             return this;
         }
 
-        public Builder setVideoFps(int fps) {
+        public Builder setVideoFps(final int fps) {
             mVideoFps = fps;
             return this;
         }
 
-        public Builder setVideoFacing(int facing) {
+        public Builder setVideoFacing(final int facing) {
             mVideoFacing = facing;
             return this;
         }
 
-        public void setAddressId(String addressId) {
+        public void setAddressId(final String addressId) {
             mAddressId = addressId;
         }
 
-        public void setOffer(boolean offer) {
+        public void setOffer(final boolean offer) {
             mOffer = offer;
         }
 
-        public void setAudioSampleRate(int audioSampleRate)
-        {
+        public void setAudioSampleRate(final int audioSampleRate) {
             mAudioSampleRate = PeerOption.AudioSampleRate.valueOf(audioSampleRate);
         }
 
-        public void setAudioBitDepth(String audioBitDepth)
-        {
+        public void setAudioBitDepth(final String audioBitDepth) {
             switch (audioBitDepth) {
                 case VideoChatProfile.PARAM_PCM_8BIT:
                     mAudioBitDepth = PeerOption.AudioBitDepth.PCM_8BIT;
@@ -468,7 +464,7 @@ public class WebRTCController {
             }
         }
 
-        public void setAudioChannel(String audioChannel) {
+        public void setAudioChannel(final String audioChannel) {
             switch (audioChannel) {
                 case VideoChatProfile.PARAM_STEREO:
                     mAudioChannel = PeerOption.AudioChannel.STEREO;
@@ -480,7 +476,7 @@ public class WebRTCController {
             }
         }
 
-        public Builder setVideoUri(String uri) {
+        public Builder setVideoUri(final String uri) {
             mVideoUri = uri;
             if ("true".equals(uri)) {
                 mVideoType = PeerOption.VideoType.CAMERA;
@@ -492,7 +488,7 @@ public class WebRTCController {
             return this;
         }
 
-        public Builder setAudioUri(String uri) {
+        public Builder setAudioUri(final String uri) {
             mAudioUri = uri;
             if ("true".equals(uri)) {
                 mAudioType = PeerOption.AudioType.MICROPHONE;
@@ -504,43 +500,43 @@ public class WebRTCController {
             return this;
         }
 
-        public Builder setLocalRender(MySurfaceViewRenderer render) {
+        public Builder setLocalRender(final MySurfaceViewRenderer render) {
             mLocalRender = render;
             return this;
         }
 
-        public Builder setRemoteRender(MySurfaceViewRenderer render) {
+        public Builder setRemoteRender(final MySurfaceViewRenderer render) {
             mRemoteRender = render;
             return this;
         }
 
-        public Builder setAudioTrackExternal(AudioTrackExternal audioTrackExternal) {
+        public Builder setAudioTrackExternal(final AudioTrackExternal audioTrackExternal) {
             mAudioTrackExternal = audioTrackExternal;
             return this;
         }
 
-        public Builder setConfig(PeerConfig config) {
+        public Builder setConfig(final PeerConfig config) {
             mConfig = config;
             return this;
         }
 
-        public Builder setContext(Context context) {
+        public Builder setContext(final Context context) {
             mContext = context;
             return this;
         }
 
-        public Builder setApplication(WebRTCApplication application) {
+        public Builder setApplication(final WebRTCApplication application) {
             mApplication = application;
             return this;
         }
 
-        public Builder setEglBase(EglBase eglBase) {
+        public Builder setEglBase(final EglBase eglBase) {
             mEglBase = eglBase;
             return this;
         }
 
-        public Builder setWebRTCEventListener(WebRTCEventListener lisetner) {
-            mWebRTCEventListener = lisetner;
+        public Builder setWebRTCEventListener(final WebRTCEventListener listener) {
+            mWebRTCEventListener = listener;
             return this;
         }
 
@@ -615,11 +611,11 @@ public class WebRTCController {
             option.setAudioBitDepth(mAudioBitDepth);
             option.setAudioChannel(mAudioChannel);
 
-            WebRTCController ctl = new WebRTCController(mApplication, mConfig, mAddressId, mOffer, mWebRTCEventListener);
+            WebRTCController ctl = new WebRTCController(mApplication, mConfig, option,
+                    mAddressId, mOffer, mWebRTCEventListener);
             ctl.setLocalRender(mLocalRender);
             ctl.setRemoteRender(mRemoteRender);
             ctl.setAudioTrackExternal(mAudioTrackExternal);
-            ctl.setOption(option);
 
             return ctl;
         }

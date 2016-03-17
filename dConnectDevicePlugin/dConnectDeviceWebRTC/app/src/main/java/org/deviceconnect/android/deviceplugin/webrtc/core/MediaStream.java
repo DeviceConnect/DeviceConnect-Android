@@ -396,7 +396,7 @@ public class MediaStream {
                         @Override
                         public void onCameraError(String s) {
                             if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "onCameraError");
+                                Log.d(TAG, "onCameraError: " + s);
                             }
                         }
 
@@ -456,7 +456,7 @@ public class MediaStream {
                         @Override
                         public void onCameraError(String s) {
                             if (BuildConfig.DEBUG) {
-                                Log.d(TAG, "onCameraError");
+                                Log.d(TAG, "onCameraError: " + s);
                             }
                         }
 

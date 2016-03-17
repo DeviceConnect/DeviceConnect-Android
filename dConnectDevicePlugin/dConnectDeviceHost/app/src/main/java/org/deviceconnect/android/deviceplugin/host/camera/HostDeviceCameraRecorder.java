@@ -24,6 +24,10 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServer {
 
+    private static final int DEFAULT_PREVIEW_WIDTH_THRESHOLD = 640;
+
+    private static final int DEFAULT_PREVIEW_HEIGHT_THRESHOLD = 480;
+
     protected final Context mContext;
 
     protected final CameraOverlay mCameraOverlay;
@@ -91,12 +95,44 @@ public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServe
             mSupportedPictureSizes.add(new PictureSize(size.width, size.height));
         }
         Camera.Size preview = params.getPreviewSize();
-        setPreviewSize(new PictureSize(preview.width, preview.height));
         for (Camera.Size size : params.getSupportedPreviewSizes()) {
             mSupportedPreviewSizes.add(new PictureSize(size.width, size.height));
         }
+        PictureSize defaultSize = getDefaultPreviewSize();
+        if (defaultSize != null) {
+            setPreviewSize(defaultSize);
+        } else {
+            setPreviewSize(new PictureSize(preview.width, preview.height));
+        }
+
         camera.release();
         mIsInitialized = true;
+    }
+
+    private PictureSize getDefaultPreviewSize() {
+        if (mSupportedPreviewSizes.size() == 0) {
+            return null;
+        }
+        PictureSize defaultSize = null;
+        for (PictureSize size : mSupportedPreviewSizes) {
+            if (size.getWidth() == DEFAULT_PREVIEW_WIDTH_THRESHOLD
+                && size.getHeight() == DEFAULT_PREVIEW_HEIGHT_THRESHOLD) {
+                defaultSize = size;
+            }
+        }
+        if (defaultSize != null) {
+            return defaultSize;
+        }
+        for (PictureSize size : mSupportedPreviewSizes) {
+            if (size.getWidth() * size.getHeight() <=
+                DEFAULT_PREVIEW_WIDTH_THRESHOLD * DEFAULT_PREVIEW_HEIGHT_THRESHOLD) {
+                defaultSize = size;
+            }
+        }
+        if (defaultSize != null) {
+            return defaultSize;
+        }
+        return mSupportedPreviewSizes.get(0);
     }
 
     @Override

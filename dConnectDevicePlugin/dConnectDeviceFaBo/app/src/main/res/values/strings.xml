@@ -11,11 +11,13 @@
     <string name="arduino_connect_button">Arduino Unoデバイスと接続</string>
     <string name="arduino_sendfirmata_button">Firmataファームウェアを転送</string>
     <string name="open_usb">USBをオープンしました。</string>
-    <string name="not_connect">未接続。</string>
+    <string name="not_connect">FaBoデバイスが接続されていません。\n\n\nArduino.cc製のArduino UnoをUSBでAndroidに接続してください。</string>
+    <string name="arduinocc_find">FaBoデバイスを認識しました。\n\n\nArduino Unoと接続ボタンを押してください。</string>
+    <string name="arduinoorg_find">Arduino.org製のArduino Unoを認識しました。\n\nArduino.org製のArduino Unoは非対応です。Arduino.cc製のArduino Unoを接続してください。</string>
     <string name="failed_open_usb">USBデバイスの接続に失敗しました。</string>
     <string name="failed_connect_arduino">Arduinoに接続に失敗しました。</string>
     <string name="success_connect_arduino">Arduinoへの接続に成功しました。</string>
-    <string name="success_connect_firmata">Firmataへの接続に成功しました。\nFaBoデバイスプラグイン動作中.</string>
+    <string name="success_connect">FaBoデバイスプラグイン動作中。\n動作を終了する場合は、USBを抜いてください。\n</string>
     <string name="failed_connect_firmata">Firmataへの接続に失敗しました。</string>
-    <string name="disconnect_usb">USBデバイスが切断されました。</string>
+    <string name="disconnect_usb">FaBoデバイスが切断されました。</string>
 </resources>

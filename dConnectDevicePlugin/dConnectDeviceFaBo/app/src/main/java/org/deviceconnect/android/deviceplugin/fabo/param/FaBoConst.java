@@ -49,17 +49,20 @@ public class FaBoConst {
     /** Firmataに接続失敗. */
     public static final int FAILED_CONNECT_FIRMATA = 6;
 
+    /** 停止中. */
+    public static final int STATUS_FABO_NOCONNECT = 101;
+
     /** 初期化中. */
-    public static final int STATUS_INIT = 1;
+    public static final int STATUS_FABO_INIT = 102;
 
     /** 起動中. */
-    public static final int STATUS_RUNNING = 2;
-
-    /** 停止中. */
-    public static final int STATUS_STOP = 3;
+    public static final int STATUS_FABO_RUNNING = 103;
 
     /** ACTIVITY非表示. */
-    public static final int STATUS_ACTIVITY_STOP = 4;
+    public static final int STATUS_ACTIVITY_PAUSE = 201;
+
+    /** ACTIVITY表示. */
+    public static final int STATUS_ACTIVITY_DISPLAY = 202;
 
 
 }

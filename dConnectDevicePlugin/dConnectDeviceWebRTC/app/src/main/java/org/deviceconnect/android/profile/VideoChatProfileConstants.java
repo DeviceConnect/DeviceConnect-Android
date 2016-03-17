@@ -83,6 +83,26 @@ public interface VideoChatProfileConstants extends DConnectProfileConstants {
     /**
      * parameter : {@value} .
      */
+    String PARAM_OUTPUTS = "outputs";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_AUDIOSAMPLERATE = "audioSampleRate";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_AUDIOBITDEPTH = "audioBitDepth";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_AUDIOCHANNEL = "audioChannel";
+
+    /**
+     * parameter : {@value} .
+     */
     String PARAM_ADDRESSES = "addresses";
 
     /**
@@ -99,6 +119,111 @@ public interface VideoChatProfileConstants extends DConnectProfileConstants {
      * parameter : {@value} .
      */
     String PARAM_HANGUP = "hangup";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_APP = "app";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_HOST = "host";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_LOCAL = "local";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_REMOTE = "remote";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_MIMETYPE = "mimeType";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_FRAMERATE = "frameRate";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_WIDTH = "width";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_HEIGHT = "height";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_SAMPLERATE = "sampleRate";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_CHANNELS = "channels";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_SAMPLESIZE = "sampleSize";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_BLOCKSIZE = "blockSize";
+
+    /**
+     * parameter : {@value} .
+     */
+    int PARAM_RATE_22050 = 22050;
+
+    /**
+     * parameter : {@value} .
+     */
+    int PARAM_RATE_32000 = 32000;
+
+    /**
+     * parameter : {@value} .
+     */
+    int PARAM_RATE_44100 = 44100;
+
+    /**
+     * parameter : {@value} .
+     */
+    int PARAM_RATE_48000 = 48000;
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_PCM_8BIT = "PCM_8BIT";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_PCM_16BIT = "PCM_16BIT";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_PCM_FLOAT = "PCM_FLOAT";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_MONAURAL = "Monaural";
+
+    /**
+     * parameter : {@value} .
+     */
+    String PARAM_STEREO = "Stereo";
 
     /**
      * Video Chat状態を定義します.

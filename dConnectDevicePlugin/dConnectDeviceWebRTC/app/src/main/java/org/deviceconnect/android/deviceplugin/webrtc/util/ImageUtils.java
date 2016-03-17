@@ -8,6 +8,8 @@ package org.deviceconnect.android.deviceplugin.webrtc.util;
 
 import android.graphics.Bitmap;
 
+import java.nio.ByteBuffer;
+
 /**
  * Utility for image transformation.
  *
@@ -67,7 +69,7 @@ public final class ImageUtils {
      */
     public static byte[] createBuffer(final int width, final int height) {
         int frameSize = frameSize(width, height);
-        byte[] yuv = new byte[frameSize + 10];
+        byte[] yuv = new byte[frameSize];
         return yuv;
     }
 
@@ -143,4 +145,58 @@ public final class ImageUtils {
     private static int roundUp(int x, int alignment) {
         return (int) Math.ceil(x / (double) alignment) * alignment;
     }
+
+    public static void decodeYUV420SP(int[] rgb, byte[] yuv420sp, int width, int height) {
+        final int frameSize = width * height;
+        for (int j = 0, yp = 0; j < height; j++) {
+            int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
+            for (int i = 0; i < width; i++, yp++) {
+                int y = (0xff & ((int) yuv420sp[yp])) - 16;
+                if (y < 0) y = 0;
+                if ((i & 1) == 0) {
+                    v = (0xff & yuv420sp[uvp++]) - 128;
+                    u = (0xff & yuv420sp[uvp++]) - 128;
+                }
+                int y1192 = 1192 * y;
+                int r = (y1192 + 1634 * v);
+                int g = (y1192 - 833 * v - 400 * u);
+                int b = (y1192 + 2066 * u);
+                if (r < 0) r = 0;
+                else if (r > 262143) r = 262143;
+                if (g < 0) g = 0;
+                else if (g > 262143) g = 262143;
+                if (b < 0) b = 0;
+                else if (b > 262143) b = 262143;
+                rgb[yp] = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) & 0xff00) | ((b >> 10) & 0xff);
+            }
+        }
+    }
+
+    public static void decodeYUV420SP(Bitmap bitmap, byte[] yuv420sp, int width, int height) {
+        nativeDecodeYUV420SP(bitmap, yuv420sp, width, height);
+    }
+
+    private static native void nativeDecodeYUV420SP(Bitmap bitmap, byte[] yuv420sp, int width, int height);
+
+
+    public static void decodeYUV420SP2(Bitmap bitmap, ByteBuffer yuv420sp, int width, int height) {
+        nativeDecodeYUV420SP2(bitmap, yuv420sp, width, height);
+    }
+
+    private static native void nativeDecodeYUV420SP2(Bitmap bitmap, ByteBuffer yuv420sp, int width, int height);
+
+    public static void decodeYUV420SP3(Bitmap bitmap, ByteBuffer[] yuv420sp, int width, int height, int[] strides) {
+        if (strides[0] != width) {
+            nativeDecodeYUV420SP4(bitmap, yuv420sp, width, height, strides);
+        } else if (strides[1] != width / 2) {
+            nativeDecodeYUV420SP4(bitmap, yuv420sp, width, height, strides);
+        } else if (strides[2] != width / 2) {
+            nativeDecodeYUV420SP4(bitmap, yuv420sp, width, height, strides);
+        } else {
+            nativeDecodeYUV420SP3(bitmap, yuv420sp, width, height);
+        }
+    }
+
+    private static native void nativeDecodeYUV420SP3(Bitmap bitmap, ByteBuffer[] yuv420sp, int width, int height);
+    private static native void nativeDecodeYUV420SP4(Bitmap bitmap, ByteBuffer[] yuv420sp, int width, int height, int[] strides);
 }

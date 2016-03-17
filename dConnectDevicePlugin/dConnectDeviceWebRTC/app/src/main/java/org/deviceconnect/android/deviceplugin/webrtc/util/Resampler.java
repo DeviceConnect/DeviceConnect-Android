@@ -31,17 +31,16 @@ public class Resampler {
      * Do resampling. Currently the amplitude is stored by short such that maximum bitsPerSample is 16 (bytePerSample is 2)
      *
      * @param sourceData	The source data in bytes
-     * @param length	    The source data length
      * @param bitsPerSample	How many bits represents one sample (currently supports max. bitsPerSample=16)
      * @param sourceRate	Sample rate of the source data
      * @param targetRate	Sample rate of the target data
      * @return re-sampled data
      */
-    public byte[] reSample(byte[] sourceData, int length, int bitsPerSample, int sourceRate, int targetRate) {
+    public byte[] reSample(byte[] sourceData, int bitsPerSample, int sourceRate, int targetRate) {
 
         // make the bytes to amplitudes first
         int bytePerSample = bitsPerSample / 8;
-        int numSamples = length / bytePerSample;
+        int numSamples = sourceData.length / bytePerSample;
         short[] amplitudes = new short[numSamples];	// 16 bit, use a short to store
 
         int pointer = 0;

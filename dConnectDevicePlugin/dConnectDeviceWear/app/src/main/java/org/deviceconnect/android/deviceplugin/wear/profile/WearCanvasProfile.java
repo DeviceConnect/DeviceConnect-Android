@@ -21,32 +21,54 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.io.ByteArrayOutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Android Wear用のCanvasプロファイル.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class WearCanvasProfile extends CanvasProfile {
 
     /**
-     * Android wearは100KB以上の画像は送信できない.
+     * Android wearは1MB以上の画像は送信できない.
      */
     private static final int LIMIT_DATA_SIZE = 1024 * 1024;
 
-    @Override
-    protected boolean onPostDrawImage(final Intent request, final Intent response, 
-            final String serviceId, final String mimeType, final byte[] data,
-            final double x, final double y, final String mode) {
+    private ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
+    @Override
+    protected boolean onPostDrawImage(final Intent request, final Intent response,
+                                      final String serviceId, final String mimeType, final byte[] data, final String uri,
+                                      final double x, final double y, final String mode) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
-
         if (data == null) {
-            MessageUtils.setInvalidRequestParameterError(response, "data is not empty");
-            return true;
+            mImageService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    byte[] result = getData(uri);
+                    if (result == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
+                        sendResponse(response);
+                        return;
+                    }
+                    if (drawImage(response, result, x, y, mode)) {
+                        sendResponse(response);
+                    }
+                }
+            });
+            return false;
+        } else {
+            return drawImage(request, data, x, y, mode);
         }
+    }
+
+    private boolean drawImage(final Intent response, byte[] data, double x, double y, String mode) {
         if (data.length > LIMIT_DATA_SIZE) {
             MessageUtils.setInvalidRequestParameterError(response, "data size more than 1MB");
             return true;
@@ -57,14 +79,20 @@ public class WearCanvasProfile extends CanvasProfile {
             return true;
         }
 
+        //for check binary
         Bitmap bitmap = getBitmap(data);
         if (bitmap == null) {
             MessageUtils.setInvalidRequestParameterError(response, "format invalid");
             return true;
         }
-
         int mm = WearUtils.convertMode(m);
-        getManager().sendImageData(bitmap, (int) x, (int) y, mm, new OnDataItemResultListener() {
+
+        //Adjust image format and compress
+        ByteArrayOutputStream o = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, o);
+        data = o.toByteArray();
+
+        getManager().sendImageData(data, (int) x, (int) y, mm, new OnDataItemResultListener() {
             @Override
             public void onResult(final DataItemResult result) {
                 if (result.getStatus().isSuccess()) {
@@ -74,6 +102,7 @@ public class WearCanvasProfile extends CanvasProfile {
                 }
                 sendResponse(response);
             }
+
             @Override
             public void onError() {
                 MessageUtils.setIllegalDeviceStateError(response);
@@ -85,7 +114,7 @@ public class WearCanvasProfile extends CanvasProfile {
 
     @Override
     protected boolean onDeleteDrawImage(final Intent request, final Intent response,
-            final String serviceId) {
+                                        final String serviceId) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -96,27 +125,29 @@ public class WearCanvasProfile extends CanvasProfile {
             String nodeId = WearUtils.getNodeId(serviceId);
             getManager().sendMessageToWear(nodeId, WearConst.DEVICE_TO_WEAR_CANCAS_DELETE_IMAGE,
                     "", new OnMessageResultListener() {
-                @Override
-                public void onResult(final SendMessageResult result) {
-                    if (result.getStatus().isSuccess()) {
-                        setResult(response, DConnectMessage.RESULT_OK);
-                    } else {
-                        MessageUtils.setIllegalDeviceStateError(response);
-                    }
-                    sendResponse(response);
-                }
-                @Override
-                public void onError() {
-                    MessageUtils.setIllegalDeviceStateError(response);
-                    sendResponse(response);
-                }
-            });
+                        @Override
+                        public void onResult(final SendMessageResult result) {
+                            if (result.getStatus().isSuccess()) {
+                                setResult(response, DConnectMessage.RESULT_OK);
+                            } else {
+                                MessageUtils.setIllegalDeviceStateError(response);
+                            }
+                            sendResponse(response);
+                        }
+
+                        @Override
+                        public void onError() {
+                            MessageUtils.setIllegalDeviceStateError(response);
+                            sendResponse(response);
+                        }
+                    });
             return false;
         }
     }
 
     /**
      * データを画像に変換します.
+     *
      * @param data 画像データ
      * @return Bitmap
      */
@@ -130,6 +161,7 @@ public class WearCanvasProfile extends CanvasProfile {
 
     /**
      * Android Wear管理クラスを取得する.
+     *
      * @return WearManager管理クラス
      */
     private WearManager getManager() {

@@ -19,7 +19,9 @@ import org.deviceconnect.android.profile.LightProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Light Profile.
@@ -27,6 +29,8 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class FPLUGLightProfile extends LightProfile {
+
+    private Map<String, FlashingExecutor> mFlashingMap = new HashMap<String, FlashingExecutor>();
 
     @Override
     protected boolean onGetLight(final Intent request, final Intent response, final String serviceId) {
@@ -65,34 +69,43 @@ public class FPLUGLightProfile extends LightProfile {
             return true;
         }
 
-        if (lightId == null || lightId.length() == 0) {
+        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
+        FPLUGController controller;
+        if (lightId == null) {
+            controller = app.getConnectedController(serviceId);
+        } else if (lightId.length() != 0) {
+            controller = app.getConnectedController(lightId);
+        } else {
             MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
             return true;
         }
-
-        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getConnectedController(lightId);
         if (controller == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
             return true;
         }
-        controller.requestLEDControl(true, new FPLUGRequestCallback() {
-            @Override
-            public void onSuccess(final FPLUGResponse fResponse) {
-                sendResultOK(response);
-            }
+        if (flashing != null) {
+            flashing(controller, flashing);//do not check result of flashing
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        } else {
+            controller.requestLEDControl(true, new FPLUGRequestCallback() {
+                @Override
+                public void onSuccess(final FPLUGResponse fResponse) {
+                    sendResultOK(response);
+                }
 
-            @Override
-            public void onError(final String message) {
-                sendResultError(response);
-            }
+                @Override
+                public void onError(final String message) {
+                    sendResultError(response);
+                }
 
-            @Override
-            public void onTimeout() {
-                sendResultTimeout(response);
-            }
-        });
-        return false;
+                @Override
+                public void onTimeout() {
+                    sendResultTimeout(response);
+                }
+            });
+            return false;
+        }
     }
 
     @Override
@@ -103,13 +116,16 @@ public class FPLUGLightProfile extends LightProfile {
             return true;
         }
 
-        // 必須パラメータの存在チェック
-        if (lightId == null || lightId.length() == 0) {
+        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
+        FPLUGController controller;
+        if (lightId == null) {
+            controller = app.getConnectedController(serviceId);
+        } else if (lightId.length() != 0) {
+            controller = app.getConnectedController(lightId);
+        } else {
             MessageUtils.setInvalidRequestParameterError(response, "lightId is not specified.");
             return true;
         }
-        FPLUGApplication app = ((FPLUGApplication) getContext().getApplicationContext());
-        FPLUGController controller = app.getConnectedController(lightId);
         if (controller == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found fplug: " + lightId);
             return true;
@@ -133,6 +149,36 @@ public class FPLUGLightProfile extends LightProfile {
         return false;
     }
 
+    private void flashing(final FPLUGController controller, long[] flashing) {
+        FlashingExecutor exe = mFlashingMap.get(controller.getAddress());
+        if (exe == null) {
+            exe = new FlashingExecutor();
+            mFlashingMap.put(controller.getAddress(), exe);
+        }
+        exe.setLightControllable(new FlashingExecutor.LightControllable() {
+            @Override
+            public void changeLight(boolean isOn, final FlashingExecutor.CompleteListener listener) {
+                controller.requestLEDControl(isOn, new FPLUGRequestCallback() {
+                    @Override
+                    public void onSuccess(FPLUGResponse response) {
+                        listener.onComplete();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        listener.onComplete();
+                    }
+
+                    @Override
+                    public void onTimeout() {
+                        listener.onComplete();
+                    }
+                });
+            }
+        });
+        exe.start(flashing);
+    }
+
     private void sendResultOK(final Intent response) {
         setResult(response, DConnectMessage.RESULT_OK);
         ((FPLUGDeviceService) getContext()).sendResponse(response);
@@ -147,4 +193,5 @@ public class FPLUGLightProfile extends LightProfile {
         MessageUtils.setTimeoutError(response);
         ((FPLUGDeviceService) getContext()).sendResponse(response);
     }
+
 }

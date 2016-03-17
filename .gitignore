@@ -35,6 +35,7 @@ proguard/
 ### C ###
 # Object files
 *.o
+*.o.d
 *.ko
 *.obj
 *.elf
@@ -45,8 +46,8 @@ proguard/
 
 # Shared objects (inc. Windows DLLs)
 *.dll
-#*.so
-#*.so.*
+*.so
+*.so.*
 *.dylib
 
 # Executables
@@ -66,7 +67,7 @@ proguard/
 *.obj
 
 # Compiled Dynamic libraries
-#*.so
+*.so
 *.dylib
 *.dll
 

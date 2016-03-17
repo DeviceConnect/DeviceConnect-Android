@@ -391,56 +391,48 @@ public class MixedReplaceMediaServer {
                     mStream.write(generateServiceUnavailable().getBytes());
                     mStream.flush();
                     return;
-                } else {
-                    String segment = Uri.parse(mRequest.getUri()).getLastPathSegment();
-                    boolean isGet = header.hasParam("snapshot");
-                    byte[] data = null;
-                    if (mServerEventListener != null) {
-                        data = mServerEventListener.onConnect(mRequest);
-                    }
-                    if (data != null) {
-                        mLogger.info("Requested media is found: " + segment);
-                        offerMedia(segment, data);
-                    } else {
-                        mLogger.warning("Requested media is NOT found: " + segment);
-                        mStream.write(generateNotFound().getBytes());
-                        mStream.flush();
-                        return;
-                    }
+                }
 
+                String segment = Uri.parse(mRequest.getUri()).getLastPathSegment();
+                boolean isGet = header.hasParam("snapshot");
 
-                    if (isGet) {
+                byte[] jpeg = null;
+                if (mServerEventListener != null) {
+                    jpeg = mServerEventListener.onConnect(mRequest);
+                }
+
+                if (isGet) {
+                    if (jpeg == null) {
                         BlockingQueue<byte[]> mediaQueue = mMediaQueues.get(segment);
-                        byte[] media;
                         if (mediaQueue != null) {
-                            media = mediaQueue.take();
+                            jpeg = mediaQueue.take();
                         } else {
-                            media = new byte[0];
+                            jpeg = new byte[0];
                         }
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("HTTP/1.0 200 OK\r\n");
-                        sb.append("Server: " + mServerName + "\r\n");
-                        sb.append("Connection: close\r\n");
-                        sb.append("Content-Type: image/jpeg\r\n");
-                        sb.append("Content-Length: " + media.length + "\r\n");
-                        sb.append("\r\n");
-                        mStream.write(sb.toString().getBytes());
-                        mStream.flush();
-                        mStream.write(media);
-                        mStream.flush();
-                        return;
                     }
-
-                    mStream.write(generateHttpHeader().getBytes());
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("HTTP/1.0 200 OK\r\n");
+                    sb.append("Server: " + mServerName + "\r\n");
+                    sb.append("Connection: close\r\n");
+                    sb.append("Content-Type: image/jpeg\r\n");
+                    sb.append("Content-Length: " + jpeg.length + "\r\n");
+                    sb.append("\r\n");
+                    mStream.write(sb.toString().getBytes());
                     mStream.flush();
+                    mStream.write(jpeg);
+                    mStream.flush();
+                    return;
+                }
 
-                    while (!mIsServerStopped && !mIsMediaStopped) {
-                        BlockingQueue<byte[]> mediaQueue = mMediaQueues.get(segment);
-                        if (mediaQueue != null) {
-                            byte[] media = mediaQueue.take();
-                            if (media.length > 0) {
-                                sendMedia(media);
-                            }
+                mStream.write(generateHttpHeader().getBytes());
+                mStream.flush();
+
+                while (!mIsServerStopped && !mIsMediaStopped) {
+                    BlockingQueue<byte[]> mediaQueue = mMediaQueues.get(segment);
+                    if (mediaQueue != null) {
+                        byte[] media = mediaQueue.take();
+                        if (media.length > 0) {
+                            sendMedia(media);
                         }
                     }
                 }
@@ -463,6 +455,8 @@ public class MixedReplaceMediaServer {
                         mLogger.warning("Error server socket[" + mServerName + "]");
                     }
                 }
+            } catch (Throwable e) {
+                e.printStackTrace();
             } finally {
                 mLogger.fine("socket close.");
                 if (mServerEventListener != null && mRequest != null) {
@@ -732,7 +726,7 @@ public class MixedReplaceMediaServer {
         mServerEventListener = listener;
     }
 
-    public static interface ServerEventListener {
+    public interface ServerEventListener {
 
         byte[] onConnect(Request request);
 

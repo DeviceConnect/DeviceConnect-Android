@@ -6,11 +6,9 @@
  */
 package org.deviceconnect.android.deviceplugin.chromecast;
 
-import org.deviceconnect.android.message.DConnectMessageServiceProvider;
-
 import android.app.Service;
-import android.content.Context;
-import android.content.Intent;
+
+import org.deviceconnect.android.message.DConnectMessageServiceProvider;
 
 /**
  * サービスプロバイダー (Chromecast).
@@ -22,11 +20,6 @@ import android.content.Intent;
  * @author NTT DOCOMO, INC.
  */
 public class ChromeCastProvider<T extends Service> extends DConnectMessageServiceProvider<Service> {
-
-    @Override
-    public void onReceive(final Context context, final Intent intent) {
-        super.onReceive(context, intent);
-    }
 
     @SuppressWarnings("unchecked")
     @Override

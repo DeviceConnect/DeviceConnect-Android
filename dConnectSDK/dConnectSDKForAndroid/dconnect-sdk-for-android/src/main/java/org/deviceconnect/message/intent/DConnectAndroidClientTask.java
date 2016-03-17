@@ -22,8 +22,8 @@ import android.util.SparseArray;
  * メッセージ実行タスク.
  *
  * <p>
- * リクエストメッセージを {@link AsyncTask#execute(Intent...)} の引数に受け、
- * レスポンスメッセージを {@link AsyncTask#onPostExecute(Intent)} の引数で受ける。
+ * リクエストメッセージを {@code AsyncTask#execute(Intent...)} の引数に受け、
+ * レスポンスメッセージを {@code AsyncTask#onPostExecute(Intent)} の引数で受ける。
  * リクエストメッセージを受けてからレスポンスメッセージを受けるまでに {@link #DEFAULT_MESSAGE_TIMEOUT} の時間を越えた場合
  * レスポンスとしてエラーレスポンスメッセージを返却する。
  * @author NTT DOCOMO, INC.
@@ -147,9 +147,9 @@ public class DConnectAndroidClientTask extends AsyncTask<Intent, Integer, Intent
         if (response == null) {
             Bundle bundle = new Bundle();
             bundle.putInt(DConnectMessage.EXTRA_RESULT, DConnectMessage.RESULT_ERROR);
-            bundle.putInt(DConnectMessage.EXTRA_ERROR_CODE, 
+            bundle.putInt(DConnectMessage.EXTRA_ERROR_CODE,
                     DConnectMessage.ErrorCode.TIMEOUT.getCode());
-            bundle.putString(DConnectMessage.EXTRA_ERROR_MESSAGE, 
+            bundle.putString(DConnectMessage.EXTRA_ERROR_MESSAGE,
                     DConnectMessage.ErrorCode.TIMEOUT.toString());
             response = new Intent();
             response.putExtras(bundle);

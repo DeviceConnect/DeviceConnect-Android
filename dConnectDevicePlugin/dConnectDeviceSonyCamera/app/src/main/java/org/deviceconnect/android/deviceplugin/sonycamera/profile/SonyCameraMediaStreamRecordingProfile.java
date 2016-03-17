@@ -6,14 +6,14 @@ http://opensource.org/licenses/mit-license.php
 */
 package org.deviceconnect.android.deviceplugin.sonycamera.profile;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.deviceplugin.sonycamera.SonyCameraDeviceService;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MediaStreamRecordingProfile;
 import org.deviceconnect.message.DConnectMessage;
-
-import android.content.Intent;
 
 /**
  * Sony Camera用 Media Stream Recording プロファイル.
@@ -47,8 +47,9 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
     }
 
     @Override
-    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId) {
-        return ((SonyCameraDeviceService) getContext()).onPutPreview(request, response);
+    protected boolean onPutPreview(final Intent request, final Intent response, final String serviceId,
+                                   final String target) {
+        return ((SonyCameraDeviceService) getContext()).onPutPreview(request, response, target);
     }
 
     @Override
@@ -78,8 +79,9 @@ public class SonyCameraMediaStreamRecordingProfile extends MediaStreamRecordingP
     }
 
     @Override
-    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId) {
-        return ((SonyCameraDeviceService) getContext()).onDeletePreview(request, response);
+    protected boolean onDeletePreview(final Intent request, final Intent response, final String serviceId,
+                                      final String target) {
+        return ((SonyCameraDeviceService) getContext()).onDeletePreview(request, response, target);
     }
 
     @Override

@@ -8,11 +8,11 @@ package org.deviceconnect.android.deviceplugin.theta.opengl;
 
 import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
-import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.theta.BuildConfig;
 
 import java.nio.IntBuffer;
+import java.util.logging.Logger;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -43,7 +43,7 @@ import static javax.microedition.khronos.opengles.GL10.GL_UNSIGNED_BYTE;
  */
 public class PixelBuffer {
 
-    private static final String TAG = "PixelBuffer";
+    private final Logger mLogger = Logger.getLogger("theta.dplugin");
 
     private final int mWidth;
     private final int mHeight;
@@ -58,14 +58,12 @@ public class PixelBuffer {
 
     private GLSurfaceView.Renderer mRenderer;
     private IntBuffer mIb;
-    private IntBuffer mIbt;
     private final Bitmap mBitmap;
 
     public PixelBuffer(final int width, final int height, final boolean isStereo) {
         mWidth = isStereo ? width * 2 : width;
         mHeight = height;
         mIb = IntBuffer.allocate(mWidth * mHeight);
-        mIbt = IntBuffer.allocate(mWidth * mHeight);
         mBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
 
         mEGL = (EGL10) EGLContext.getEGL();
@@ -95,23 +93,24 @@ public class PixelBuffer {
         int error = egl.eglGetError();
         if (BuildConfig.DEBUG) {
             if (error == EGL10.EGL_SUCCESS) {
-                Log.i(TAG, "EGL SUCCESS.");
+                mLogger.info("EGL SUCCESS.");
             } else {
-                Log.e(TAG, "EGL Error: " + error);
+                mLogger.severe("EGL Error: " + error);
             }
         }
     }
 
     public void destroy() {
+        mEGL.eglDestroySurface(mEGLDisplay, mEGLSurface);
         mEGL.eglDestroyContext(mEGLDisplay, mEGLContext);
-        mBitmap.recycle();
+        mEGL.eglTerminate(mEGLDisplay);
     }
 
     public void setRenderer(GLSurfaceView.Renderer renderer) {
         mRenderer = renderer;
 
         if (!Thread.currentThread().getName().equals(mThreadOwner)) {
-            Log.e(TAG, "setRenderer: This thread does not own the OpenGL context.");
+            mLogger.severe("setRenderer: This thread does not own the OpenGL context.");
             return;
         }
 
@@ -120,12 +119,12 @@ public class PixelBuffer {
 
     public void render() {
         if (mRenderer == null) {
-            Log.e(TAG, "PixelBuffer.render: Renderer was not set.");
+            mLogger.severe("PixelBuffer.render: Renderer was not set.");
             return;
         }
 
         if (!Thread.currentThread().getName().equals(mThreadOwner)) {
-            Log.e(TAG, "PixelBuffer.render: This thread does not own the OpenGL context.");
+            mLogger.severe("PixelBuffer.render: This thread does not own the OpenGL context.");
             return;
         }
 
@@ -157,7 +156,6 @@ public class PixelBuffer {
         mGL.glReadPixels(0, 0, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, mIb);
         mBitmap.copyPixelsFromBuffer(mIb);
         mIb.clear();
-        mIbt.clear();
         return mBitmap;
     }
 }

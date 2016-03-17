@@ -9,13 +9,11 @@ package org.deviceconnect.android.manager.setting;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -34,6 +32,7 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 
+import org.deviceconnect.android.manager.BuildConfig;
 import org.deviceconnect.android.manager.DevicePlugin;
 import org.deviceconnect.android.manager.DevicePluginManager;
 import org.deviceconnect.android.manager.IDConnectService;
@@ -59,6 +58,21 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * オープンソースソフトウェア.
      */
     private ArrayList<OpenSourceSoftware> mOpenSourceList;
+
+    /**
+     * origin無効時のLocal OAuth、WhiteList設定ダイアログのタグを定義します.
+     */
+    private static final String TAG_ORIGIN = "origin";
+
+    /**
+     * Local OAuth、WhiteList設定時のorigin設定ダイアログのタグを定義します.
+     */
+    private static final String TAG_REQUIRE_ORIGIN = "require_origin";
+
+    /**
+     * Webサーバ起動確認ダイアログのタグを定義します.
+     */
+    private static final String TAG_WEB_SERVER = "WebServer";
 
     /** 乱数の最大値. */
     private static final int MAX_NUM = 10000;
@@ -88,11 +102,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
 
-        // SharedPreferenceをマルチプロセスでも動作する設定にする
-        getPreferenceManager().setSharedPreferencesMode(Context.MODE_MULTI_PROCESS);
-
         // オープソースのリストを準備
-        mOpenSourceList = new ArrayList<OpenSourceSoftware>();
+        mOpenSourceList = new ArrayList<>();
         mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
                 "android-support-v4.jar", R.raw.andorid_support_v4));
         mOpenSourceList.add(OpenSourceLicenseFragment.createOpenSourceSoftware(
@@ -203,17 +214,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    public void onActivityCreated(final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        showIPAddress();
-    }
-
-    @Override
     public void onPause() {
         getActivity().unbindService(mServiceConnection);
         getActivity().unbindService(mWebServiceConnection);
@@ -245,140 +245,31 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 String value = newValue.toString();
                 try {
                     // 入力値が整数かチェックする
-                    Integer.parseInt(value);
+                    int port = Integer.parseInt(value);
+                    if (port < 1024) {
+                        return false;
+                    }
                     preference.setSummary(value);
                 } catch (NumberFormatException e) {
-                    return true;
+                    return false;
                 }
             } else {
                 preference.setSummary(newValue.toString());
             }
         } else if (preference instanceof SwitchPreference) {
             if (getString(R.string.key_settings_dconn_server_on_off).equals(key)) {
-                boolean checked = ((Boolean) newValue).booleanValue();
-                setEnabled(!checked);
-                try {
-                    // dConnectManagerのON/OFF
-                    if (checked) {
-                        mDConnectService.start();
-                    } else {
-                        mDConnectService.stop();
-                    }
-                } catch (RemoteException e) {
-                }
+                switchDConnectServer((Boolean) newValue);
             } else if (getString(R.string.key_settings_web_server_on_off).equals(key)) {
-                boolean checked = ((Boolean) newValue).booleanValue();
-                try {
-                    setWebUIEnabled(!checked);
-                    if (checked) {
-                        mWebService.start();
-                    } else {
-                        mWebService.stop();
-                    }
-                } catch (RemoteException e) {
-                }
+                switchWebServer((Boolean) newValue);
             }
         } else if (preference instanceof CheckBoxPreference) {
             if (getString(R.string.key_settings_dconn_observer_on_off).equals(key)) {
-                boolean checked = ((Boolean) newValue).booleanValue();
-                // 監視サービスのON/OFF
-                Intent intent = new Intent();
-                intent.setClass(getActivity(), ObserverReceiver.class);
-                if (checked) {
-                    intent.setAction(DConnectObservationService.ACTION_START);
-                    intent.putExtra(DConnectObservationService.PARAM_RESULT_RECEIVER,
-                            new ResultReceiver(new Handler()) {
-                                @Override
-                                protected void onReceiveResult(int resultCode, Bundle resultData) {
-                                    if (resultCode != Activity.RESULT_OK) {
-                                        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                mObserverPreferences.setChecked(false);
-                                            }
-                                        }, 1000);
-                                    }
-                                }
-                            });
-                } else {
-                    intent.setAction(DConnectObservationService.ACTION_STOP);
-                }
-                getActivity().sendBroadcast(intent);
+                switchObserver((Boolean) newValue);
             } else if (getString(R.string.key_settings_dconn_require_origin).equals(key)) {
-                boolean checked = ((Boolean) newValue).booleanValue();
-                if (!checked) {
-                    List<String> settings = new ArrayList<String>();
-                    if (mCheckBoxOauthPreferences.isChecked()) {
-                        settings.add(getString(R.string.activity_settings_local_oauth));
-                    }
-                    if (mCheckBoxOriginBlockingPreferences.isChecked()) {
-                        settings.add(getString(R.string.activity_settings_whitelist_enable));
-                    }
-
-                    if (settings.size() > 0) {
-                        StringBuilder list = new StringBuilder();
-                        for (int i = 0; i < settings.size(); i++) {
-                            list.append(" - ");
-                            list.append(settings.get(i));
-                            list.append("\n");
-                        }
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                        builder.setTitle(getString(R.string.activity_settings_warning));
-                        String message = getString(R.string.activity_settings_warning_require_origin_disabled);
-                        message = message.replace("%1", list);
-                        builder.setMessage(message);
-                        builder.setCancelable(false);
-                        String yes = getString(R.string.activity_settings_yes);
-                        String no = getString(R.string.activity_settings_no);
-                        builder.setPositiveButton(yes, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(final DialogInterface dialog, final int which) {
-                                mCheckBoxOauthPreferences.setChecked(false);
-                                mCheckBoxOriginBlockingPreferences.setChecked(false);
-                            }
-                        });
-                        builder.setNegativeButton(no, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(final DialogInterface dialog, final int which) {
-                                mCheckBoxRequireOriginPreferences.setChecked(true);
-                            }
-                        });
-                        builder.create().show();
-                    }
-                }
+                switchOrigin((Boolean) newValue);
             } else if (getString(R.string.key_settings_dconn_local_oauth).equals(key)
                     || getString(R.string.key_settings_dconn_whitelist_origin_blocking).equals(key)) {
-                boolean checked = ((Boolean) newValue).booleanValue();
-                boolean requiredOrigin = mCheckBoxRequireOriginPreferences.isChecked();
-                if (checked && !requiredOrigin) {
-                    StringBuilder list = new StringBuilder();
-                    list.append(" - ");
-                    list.append(getString(R.string.activity_settings_require_origin));
-                    list.append("\n");
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                    builder.setTitle(getString(R.string.activity_settings_warning));
-                    String message = getString(R.string.activity_settings_warning_require_origin_enabled);
-                    message = message.replace("%1", list);
-                    builder.setMessage(message);
-                    builder.setCancelable(false);
-                    String yes = getString(R.string.activity_settings_yes);
-                    String no = getString(R.string.activity_settings_no);
-                    builder.setPositiveButton(yes, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(final DialogInterface dialog, final int which) {
-                            mCheckBoxRequireOriginPreferences.setChecked(true);
-                        }
-                    });
-                    builder.setNegativeButton(no, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(final DialogInterface dialog, final int which) {
-                            ((CheckBoxPreference) preference).setChecked(false);
-                        }
-                    });
-                    builder.create().show();
-                }
+                requiredOrigin((Boolean) newValue);
             }
         }
         return true;
@@ -418,10 +309,177 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     }
 
     /**
+     * AlertDialogFragmentでPositiveボタンが押下された時の処理を行う.
+     * @param tag タグ
+     */
+    public void onPositiveButton(final String tag) {
+        if (TAG_ORIGIN.equals(tag)) {
+            mCheckBoxOauthPreferences.setChecked(false);
+            mCheckBoxOriginBlockingPreferences.setChecked(false);
+        } else if (TAG_WEB_SERVER.equals(tag)) {
+            try {
+                mWebService.start();
+                setWebUIEnabled(false);
+            } catch (RemoteException e) {
+                SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
+                        .findPreference(getString(R.string.key_settings_web_server_on_off));
+                webPreferences.setChecked(false);
+            }
+        } else if (TAG_REQUIRE_ORIGIN.equals(tag)) {
+            mCheckBoxRequireOriginPreferences.setChecked(true);
+        }
+    }
+
+    /**
+     * AlertDialogFragmentでNegativeボタンが押下された時の処理を行う.
+     * @param tag タグ
+     */
+    public void onNegativeButton(final String tag) {
+        if (TAG_ORIGIN.equals(tag)) {
+            mCheckBoxRequireOriginPreferences.setChecked(true);
+        } else if (TAG_WEB_SERVER.equals(tag)) {
+            SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
+                    .findPreference(getString(R.string.key_settings_web_server_on_off));
+            webPreferences.setChecked(false);
+        } else if (TAG_REQUIRE_ORIGIN.equals(tag)) {
+            mCheckBoxOauthPreferences.setChecked(false);
+            mCheckBoxOriginBlockingPreferences.setChecked(false);
+        }
+    }
+
+    /**
+     * DConnectサーバの有効・無効を設定する.
+     * @param checked trueの場合は有効、falseの場合は無効
+     */
+    private void switchDConnectServer(final boolean checked) {
+        setUIEnabled(!checked);
+        try {
+            if (checked) {
+                mDConnectService.start();
+            } else {
+                mDConnectService.stop();
+            }
+        } catch (RemoteException e) {
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Webサーバの有効・無効を設定する.
+     * @param checked trueの場合は有効、falseの場合は無効
+     */
+    private void switchWebServer(final boolean checked) {
+        if (checked) {
+            String title = getString(R.string.activity_settings_web_server_warning_title);
+            String message = getString(R.string.activity_settings_web_server_warning_message);
+            String positive = getString(R.string.activity_settings_web_server_warning_positive);
+            String negative = getString(R.string.activity_settings_web_server_warning_negative);
+            AlertDialogFragment dialog = AlertDialogFragment.create(TAG_WEB_SERVER,
+                    title, message, positive, negative);
+            dialog.show(getFragmentManager(), TAG_WEB_SERVER);
+        } else {
+            try {
+                mWebService.stop();
+            } catch (RemoteException e) {
+                if (BuildConfig.DEBUG) {
+                    e.printStackTrace();
+                }
+            }
+            setWebUIEnabled(true);
+        }
+    }
+
+    /**
+     * 監視機能の有効・無効を設定する.
+     * @param checked trueの場合は有効、falseの場合は無効
+     */
+    private void switchObserver(final boolean checked) {
+        Intent intent = new Intent();
+        intent.setClass(getActivity(), ObserverReceiver.class);
+        if (checked) {
+            intent.setAction(DConnectObservationService.ACTION_START);
+            intent.putExtra(DConnectObservationService.PARAM_RESULT_RECEIVER,
+                    new ResultReceiver(new Handler()) {
+                        @Override
+                        protected void onReceiveResult(int resultCode, Bundle resultData) {
+                            if (resultCode != Activity.RESULT_OK) {
+                                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mObserverPreferences.setChecked(false);
+                                    }
+                                }, 1000);
+                            }
+                        }
+                    });
+        } else {
+            intent.setAction(DConnectObservationService.ACTION_STOP);
+        }
+        getActivity().sendBroadcast(intent);
+    }
+
+    /**
+     * Originの要求ダイアログを表示する.
+     * @param checked trueの場合は有効、falseの場合は無効
+     */
+    private void switchOrigin(final boolean checked) {
+        if (!checked) {
+            List<String> settings = new ArrayList<>();
+            if (mCheckBoxOauthPreferences.isChecked()) {
+                settings.add(getString(R.string.activity_settings_local_oauth));
+            }
+            if (mCheckBoxOriginBlockingPreferences.isChecked()) {
+                settings.add(getString(R.string.activity_settings_whitelist_enable));
+            }
+
+            if (settings.size() > 0) {
+                StringBuilder list = new StringBuilder();
+                for (int i = 0; i < settings.size(); i++) {
+                    list.append(" - ");
+                    list.append(settings.get(i));
+                    list.append("\n");
+                }
+                String title = getString(R.string.activity_settings_warning);
+                String message = getString(R.string.activity_settings_warning_require_origin_disabled, list);
+                String positive = getString(R.string.activity_settings_yes);
+                String negative = getString(R.string.activity_settings_no);
+                AlertDialogFragment dialog = AlertDialogFragment.create(TAG_ORIGIN,
+                        title, message, positive, negative);
+                dialog.show(getFragmentManager(), TAG_ORIGIN);
+            }
+        }
+    }
+
+    /**
+     * Originの設定を要求する.
+     * @param checked trueの場合は有効、falseの場合は無効
+     */
+    private void requiredOrigin(final boolean checked) {
+        boolean requiredOrigin = mCheckBoxRequireOriginPreferences.isChecked();
+        if (checked && !requiredOrigin) {
+            StringBuilder list = new StringBuilder();
+            list.append(" - ");
+            list.append(getString(R.string.activity_settings_require_origin));
+            list.append("\n");
+
+            String title = getString(R.string.activity_settings_warning);
+            String message = getString(R.string.activity_settings_warning_require_origin_enabled, list);
+            String positive = getString(R.string.activity_settings_yes);
+            String negative = getString(R.string.activity_settings_no);
+
+            AlertDialogFragment dialog = AlertDialogFragment.create(TAG_REQUIRE_ORIGIN,
+                    title, message, positive, negative);
+            dialog.show(getFragmentManager(), TAG_REQUIRE_ORIGIN);
+        }
+    }
+
+    /**
      * UIの有効・無効を設定する.
      * @param enabled trueの場合は有効、falseの場合は無効
      */
-    private void setEnabled(final boolean enabled) {
+    private void setUIEnabled(final boolean enabled) {
         mCheckBoxSslPreferences.setEnabled(enabled);
         mEditPortPreferences.setEnabled(enabled);
         mCheckBoxOauthPreferences.setEnabled(enabled);
@@ -487,7 +545,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      */
     private void restartDevicePlugins() {
         final StartingDialogFragment dialog = new StartingDialogFragment();
-        dialog.show(getFragmentManager(), "dialog");
+        dialog.show(getFragmentManager(), null);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -502,7 +560,6 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 dialog.dismiss();
             }
         }).start();
-
     }
 
     /**
@@ -562,20 +619,24 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             mDConnectService = (IDConnectService) service;
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        boolean running = mDConnectService.isRunning();
-                        setEnabled(!running);
-                        SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
-                                .findPreference(getString(R.string.key_settings_dconn_server_on_off));
-                        serverPreferences.setChecked(running);
-                    } catch (RemoteException e) {
-                        return;
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            boolean running = mDConnectService.isRunning();
+                            setUIEnabled(!running);
+                            SwitchPreference serverPreferences = (SwitchPreference) getPreferenceScreen()
+                                    .findPreference(getString(R.string.key_settings_dconn_server_on_off));
+                            serverPreferences.setChecked(running);
+                        } catch (RemoteException e) {
+                            if (BuildConfig.DEBUG) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                }
-            });
+                });
+            }
         }
         @Override
         public void onServiceDisconnected(final ComponentName name) {
@@ -595,20 +656,24 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         @Override
         public void onServiceConnected(final ComponentName name, final IBinder service) {
             mWebService = (IDConnectWebService) service;
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        boolean running = mWebService.isRunning();
-                        setWebUIEnabled(!running);
-                        SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
-                                .findPreference(getString(R.string.key_settings_web_server_on_off));
-                        webPreferences.setChecked(running);
-                    } catch (RemoteException e) {
-                        return;
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            boolean running = mWebService.isRunning();
+                            setWebUIEnabled(!running);
+                            SwitchPreference webPreferences = (SwitchPreference) getPreferenceScreen()
+                                    .findPreference(getString(R.string.key_settings_web_server_on_off));
+                            webPreferences.setChecked(running);
+                        } catch (RemoteException e) {
+                            if (BuildConfig.DEBUG) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                }
-            });
+                });
+            }
         }
         @Override
         public void onServiceDisconnected(final ComponentName name) {

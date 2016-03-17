@@ -7,7 +7,7 @@
 package org.deviceconnect.profile;
 
 /**
- * Service Information Profile API 定数群.<br/>
+ * Service Information Profile API 定数群.<br>
  * Service Information Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * @author NTT DOCOMO, INC.
  */

@@ -7,6 +7,11 @@
 
 package org.deviceconnect.android.deviceplugin.host.profile;
 
+import android.app.ActivityManager;
+import android.app.Service;
+import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
+
 import org.deviceconnect.android.deviceplugin.host.activity.CanvasProfileActivity;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawImageObject;
 import org.deviceconnect.android.deviceplugin.host.canvas.CanvasDrawUtils;
@@ -14,55 +19,21 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.CanvasProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.app.ActivityManager;
-import android.app.Service;
-import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Canvas Profile.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public class HostCanvasProfile extends CanvasProfile {
 
-    @Override
-    protected boolean onPostRequest(final Intent request, final Intent response) {
-        String attribute = getAttribute(request);
-        boolean result = true;
-        if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
-            String serviceId = getServiceID(request);
-            String mimeType = getMIMEType(request);
-            String uri = request.getStringExtra(CanvasProfile.PARAM_URI);
-
-            if (mimeType != null && !checkMimeTypeFormat(mimeType)) {
-                MessageUtils.setInvalidRequestParameterError(response, "mimeType format is incorrect.");
-                return result;
-            }
-            if (!checkXFormat(request)) {
-                MessageUtils.setInvalidRequestParameterError(response, "x is different type.");
-                return result;
-            }
-            if (!checkYFormat(request)) {
-                MessageUtils.setInvalidRequestParameterError(response, "y is different type.");
-                return result;
-            }
-
-            double x = getX(request);
-            double y = getY(request);
-
-            String mode = getMode(request);
-            result = onPostDrawImageForHost(request, response, serviceId, mimeType, uri, x, y, mode);
-        } else {
-            MessageUtils.setUnknownAttributeError(response);
-        }
-
-        return result;
-    }
+    private ExecutorService mImageService = Executors.newSingleThreadExecutor();
 
     @Override
     protected boolean onDeleteDrawImage(final Intent request, final Intent response,
-            final String serviceId) {
+                                        final String serviceId) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
@@ -82,50 +53,67 @@ public class HostCanvasProfile extends CanvasProfile {
 
     /**
      * Execute a request.
-     * @param request request intent
-     * @param response response
+     *
+     * @param request   request intent
+     * @param response  response
      * @param serviceId serviceId
-     * @param mimeType mime type
-     * @param uri uri of image
-     * @param x x coordinate for drawing
-     * @param y y coordinate for drawing
-     * @param mode mode of rendering
+     * @param mimeType  mime type
+     * @param uri       uri of image
+     * @param x         x coordinate for drawing
+     * @param y         y coordinate for drawing
+     * @param mode      mode of rendering
      * @return true if send response immediately, false otherwise
      */
-    private boolean onPostDrawImageForHost(final Intent request, final Intent response,
-            final String serviceId, final String mimeType, final String uri, 
-            final double x, final double y, final String mode) {
-        if (uri == null) {
-            MessageUtils.setInvalidRequestParameterError(response,
-                    "data is not specied to update a file.");
-            return true;
-        }
+    @Override
+    protected boolean onPostDrawImage(final Intent request, final Intent response,
+                                      final String serviceId, final String mimeType, byte[] data, final String uri,
+                                      final double x, final double y, final String mode) {
 
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
             return true;
         }
 
-        CanvasDrawImageObject.Mode enumMode = CanvasDrawImageObject.convertMode(mode);
+        final CanvasDrawImageObject.Mode enumMode = CanvasDrawImageObject.convertMode(mode);
         if (enumMode == null) {
             MessageUtils.setInvalidRequestParameterError(response);
             return true;
         }
 
-        String type = CanvasDrawUtils.getMimeType(uri);
-        if (type != null
-                && type.indexOf("image") == -1) {
+        if (mimeType != null && !mimeType.contains("image")) {
             MessageUtils.setInvalidRequestParameterError(response,
                     "Data format is invalid.");
             return true;
         }
-        if (!CanvasDrawUtils.checkBitmap(getContext(), uri)) {
-            MessageUtils.setInvalidRequestParameterError(response,
-                    "The width and height of image must be less than 2048px.");
+        if (data == null) {
+            mImageService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    byte[] result = getData(uri);
+                    if (result == null) {
+                        MessageUtils.setInvalidRequestParameterError(response, "could not get image from uri.");
+                        sendResponse(response);
+                        return;
+                    }
+                    drawImage(response, result, enumMode, x, y);
+                    sendResponse(response);
+                }
+            });
+            return false;
+        } else {
+            drawImage(response, data, enumMode, x, y);
             return true;
         }
+    }
 
-        CanvasDrawImageObject drawObj = new CanvasDrawImageObject(uri, enumMode, x, y);
+    private void drawImage(Intent response, byte[] data, CanvasDrawImageObject.Mode enumMode, double x, double y) {
+        if (!CanvasDrawUtils.checkBitmap(data)) {
+            MessageUtils.setInvalidRequestParameterError(response,
+                    "The width and height of image must be less than 2048px.");
+            return;
+        }
+
+        CanvasDrawImageObject drawObj = new CanvasDrawImageObject(data, enumMode, x, y);
 
         String className = getClassnameOfTopActivity();
         if (CanvasProfileActivity.class.getName().equals(className)) {
@@ -141,12 +129,11 @@ public class HostCanvasProfile extends CanvasProfile {
         }
 
         setResult(response, DConnectMessage.RESULT_OK);
-        return true;
     }
 
     /**
      * 画面の一番上にでているActivityのクラス名を取得.
-     * 
+     *
      * @return クラス名
      */
     private String getClassnameOfTopActivity() {

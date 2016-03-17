@@ -28,7 +28,9 @@ In this guide I will continue to discuss the following.
 |dConnectDeviceHeartRate|Device Plug-in for HeartRate such as Mio Alpha.|
 |dConnectDeviceHost|Device Plug-in for Android.|
 |dConnectDeviceHue|Device Plug-in for Hue.|
-|dConnectDeviceHVC|Device Plug-in for HVC.|
+|dConnectDeviceHVC|Device Plug-in for HVC-C.|
+|dConnectDeviceHVCC2W|Device Plug-in for HVC-C2W.|
+|dConnectDeviceHVCP|Device Plug-in for HVC-P.|
 |dConnectDeviceIRKit|Device Plug-in for IRKit.|
 |dConnectDeviceKadecot|Device Plug-in for Kadecot.|
 |dConnectDevicePebble|Device Plug-in for Pebble.|
@@ -36,7 +38,9 @@ In this guide I will continue to discuss the following.
 |dConnectDeviceSonySW|Device Plug-in for SonySmartWatch<br>※SmartWatch3 is not supported.|
 |dConnectDeviceSphero|Device Plug-in for Sphero.|
 |dConnectDeviceTheta|Device Plug-in for THETA.|
+|dConnectDeviceUVC|Device Plug-in for UVC Camera.|
 |dConnectDeviceWear|Device Plug-in for AndroidWear.|
+|dConnectDeviceWebRTC|Device Plug-in for WebRTC.|
 |dConnectDeviceTest|Device Plug-in for test of DeviceConnect.|
 |dConnectDevicePluginSDK|SDK for creating DevicePlugin. dConnectSDKForAndroid necessary.|
 
@@ -65,6 +69,8 @@ People who want to develop the DeviceConnectManager and device Plug-ins, please 
 * [Host](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Host-Build)
 * [Hue](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Hue-Build)
 * [HVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCDevice-Build)
+* [HVC-C2W](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCC2WDevice-Build)
+* [HVC-P](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCPDevice-Build)
 * [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
 * [Kadecot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Kadecot-Build)
 * [Pebble](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Pebble-Build)
@@ -72,7 +78,9 @@ People who want to develop the DeviceConnectManager and device Plug-ins, please 
 * [SonySW](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonySW-Build)
 * [Sphero](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Sphero-Build)
 * [Theta](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Theta-Build)
+* [UVC](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/UVC-Build)
 * [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/AndroidWear-Build)
+* [AndroidWear](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/WebRTC-Build)
 
 　In addition, you can get the apk from [here] (https://github.com/DeviceConnect/DeviceConnect-Docs/tree/master/Bin/Android).
 　With regard to the installation method, you can run from the command line of the command as follows.<br>
@@ -90,13 +98,13 @@ With regard to the adb command, please make sure the Android SDK.
  Please tap the DeviceConnectManager icon.
  <center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image35.png" >
 <img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image35.png" border="0"
-  width="151" height="212" alt="" /></a><br></center>
+  width="200" height="200" alt="" /></a><br></center>
 
 By making it ON the field of DeviceConnectManager, you can start.
 
 <center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image39.png" target="_blank">
 <img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image39.png" border="0"
- width="320" height="550" alt="" /></a></center>
+ width="410" height="146" alt="" /></a></center>
 
 # <a name="section4">Operation check</a>
 

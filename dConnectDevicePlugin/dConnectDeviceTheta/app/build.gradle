@@ -2,23 +2,23 @@ apply plugin: 'com.android.application'
 
 android {
 
-    compileSdkVersion 21
+    compileSdkVersion 23
     buildToolsVersion '23.0.0'
 
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.theta"
         minSdkVersion 14
-        targetSdkVersion 21
-        versionCode 1
-        versionName "1.0.0"
+        targetSdkVersion 23
+        versionCode 7
+        versionName "1.0.1"
     }
 
     signingConfigs {
         releaseConfig {
-            storeFile=file(project.properties.storeFile)
-            storePassword=project.properties.storePassword
-            keyAlias=project.properties.keyAlias
-            keyPassword=project.properties.keyPassword
+            storeFile = file(project.properties.storeFile)
+            storePassword = project.properties.storePassword
+            keyAlias = project.properties.keyAlias
+            keyPassword = project.properties.keyPassword
         }
     }
 
@@ -42,4 +42,5 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':dconnect-device-plugin-sdk')
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
 }

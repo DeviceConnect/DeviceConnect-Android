@@ -31,14 +31,29 @@ public interface TestMediaStreamRecordingProfileConstants {
     String STATE = MediaStreamRecordingProfileConstants.RecorderState.INACTIVE.getValue();
 
     /**
-     * レコーダの横幅.
+     * 撮影時の横幅.
      */
     int IMAGE_WIDTH = 1920;
 
     /**
-     * レコーダの縦幅.
+     * 撮影時の縦幅.
      */
     int IMAGE_HEIGHT = 1080;
+
+    /**
+     * プレビュー時の横幅.
+     */
+    int PREVIEW_WIDTH = 640;
+
+    /**
+     * プレビュー時の縦幅.
+     */
+    int PREVIEW_HEIGHT = 480;
+
+    /**
+     * プレビューの最大フレームレート.
+     */
+    double PREVIEW_MAX_FRAME_RATE = 30.0d;
 
     /**
      * レコーダの状態.
@@ -59,6 +74,16 @@ public interface TestMediaStreamRecordingProfileConstants {
      * 撮影した写真のURI.
      */
     String URI = "content://test/test.mp4";
+
+    /**
+     * プレビュー動画配信URI.
+     */
+    String PREVIEW_URI = "http://localhost:9000/preview";
+
+    /**
+     * 音声配信URI.
+     */
+    String AUDIO_URI = "http://localhost:9000/audio";
 
     /**
      * メディアID.

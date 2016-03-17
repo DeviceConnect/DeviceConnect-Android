@@ -6,12 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.irkit.settings.activity;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.deviceconnect.android.deviceplugin.irkit.settings.widget.HoldableViewPager;
-import org.deviceconnect.android.ui.adapter.DConnectFragmentPagerAdapter;
-import org.deviceconnect.android.ui.adapter.DConnectPageCreater;
-
 import android.app.ActionBar;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -19,11 +13,17 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.view.MenuItem;
 
+import org.deviceconnect.android.deviceplugin.irkit.settings.widget.HoldableViewPager;
+import org.deviceconnect.android.ui.adapter.DConnectFragmentPagerAdapter;
+import org.deviceconnect.android.ui.adapter.DConnectPageCreater;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * ViewPagerを独自拡張するためのActivity.
  * @author NTT DOCOMO, INC.
  */
-public abstract class IRKitAbstractSettingActivity extends FragmentActivity implements 
+public abstract class IRKitAbstractSettingActivity extends FragmentActivity implements
 DConnectPageCreater<Fragment> {
 
     /**

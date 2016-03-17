@@ -283,7 +283,7 @@ public abstract class DConnectMessageService extends Service
             // アクセストークンの取得
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
             CheckAccessTokenResult result = LocalOAuth2Main.checkAccessToken(accessToken, profileName,
-                    DConnectLocalOAuth.IGNORE_PROFILE);
+                    DConnectLocalOAuth.IGNORE_PROFILES);
             if (result.checkResult()) {
                 executeRequest(request, response);
             } else {
@@ -629,7 +629,7 @@ public abstract class DConnectMessageService extends Service
     /**
      * サービスをフォアグランドに設定する。
      */
-    private void showNotification() {
+    protected void showNotification() {
         Intent notificationIntent = new Intent(getApplicationContext(), SettingActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 getApplicationContext(), 0, notificationIntent, 0);
@@ -648,7 +648,7 @@ public abstract class DConnectMessageService extends Service
     /**
      * フォアグランドを停止する。
      */
-    private void hideNotification() {
+    protected void hideNotification() {
         stopForeground(true);
     }
 

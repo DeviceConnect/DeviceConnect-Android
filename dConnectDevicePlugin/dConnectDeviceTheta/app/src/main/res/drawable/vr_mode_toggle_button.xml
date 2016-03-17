@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="false" android:state_pressed="false"
+        android:drawable="@drawable/vr_mode_2d_on" >
+    </item>
+    <item android:state_checked="true" android:state_pressed="false"
+        android:drawable="@drawable/vr_mode_3d_on" >
+    </item>
+    <item  android:state_checked="false" android:state_pressed="true"
+        android:drawable="@drawable/vr_mode_2d_down" >
+    </item>
+    <item  android:state_checked="true" android:state_pressed="true"
+        android:drawable="@drawable/vr_mode_3d_down" >
+    </item>
+</selector>

@@ -285,6 +285,7 @@ public class FaBoDeviceService extends DConnectMessageService {
 
         stopIoManager();
         startIoManager();
+        intFirmata();
 
         // Portの状態をすべて0(Low)にする。
         digitalPortStatus[0] = 0; // 0000 0000
@@ -381,7 +382,6 @@ public class FaBoDeviceService extends DConnectMessageService {
                                         (byte) (data[i + 2] & 0xff) == (byte) 0x04) {
                                     setStatus(FaBoConst.STATUS_RUNNING);
                                     sendResult(FaBoConst.SUCCESS_CONNECT_FIRMATA);
-                                    intFirmata();
                                 }
                             }
                         } else {

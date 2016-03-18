@@ -251,7 +251,7 @@ public class FaBoDeviceService extends DConnectMessageService {
 
     private void closeUsb(){
         Log.i(TAG, "closeUSB");
-        //stopIoManager();
+        stopIoManager();
         if(mSerialPort != null) {
             try {
                 mSerialPort.close();

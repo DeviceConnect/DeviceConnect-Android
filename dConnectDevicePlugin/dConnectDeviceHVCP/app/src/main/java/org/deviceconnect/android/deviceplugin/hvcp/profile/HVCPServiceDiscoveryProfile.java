@@ -49,8 +49,9 @@ public class HVCPServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             setScopes(service, getProfileProvider());
             services[index++] = service;
         }
-        setServices(response, services);
-
+        if (services.length > 0) {
+            setServices(response, services);
+        }
         DConnectProfile.setResult(response, DConnectMessage.RESULT_OK);
 
         return true;

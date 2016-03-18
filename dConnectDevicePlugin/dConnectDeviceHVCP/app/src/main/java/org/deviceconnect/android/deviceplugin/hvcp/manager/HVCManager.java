@@ -456,7 +456,7 @@ public enum HVCManager {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Set threshold cmd:" + cmdThreshold.toString());
         }
-        sendCommand(cmdThreshold.toString(), new Long(1));
+        sendCommand(cmdThreshold.toString(), new Long(100));
 
     }
 
@@ -511,7 +511,7 @@ public enum HVCManager {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Set size cmd:" + cmdThreshold.toString());
         }
-        sendCommand(cmdThreshold.toString(), new Long(1));
+        sendCommand(cmdThreshold.toString(), new Long(50));
 
     }
     /**

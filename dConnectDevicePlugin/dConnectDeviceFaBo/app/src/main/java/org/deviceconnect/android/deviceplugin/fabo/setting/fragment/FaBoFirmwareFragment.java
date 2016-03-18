@@ -173,6 +173,7 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
                         mTextViewCommment.setText(R.string.arduinoorg_find);
                         mButtonConnect.setEnabled(false);
                         mButtonSend.setVisibility(Button.INVISIBLE);
+                        mButtonBack.setVisibility(Button.INVISIBLE);
                     }
                 });
             } else if (device.getVendorId() == 9025) {
@@ -182,6 +183,8 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
                         mTextViewCommment.setText(R.string.arduinocc_find);
                         mButtonConnect.setEnabled(true);
                         mButtonSend.setVisibility(Button.INVISIBLE);
+                        mButtonBack.setVisibility(Button.INVISIBLE);
+
                     }
                 });
                 break;

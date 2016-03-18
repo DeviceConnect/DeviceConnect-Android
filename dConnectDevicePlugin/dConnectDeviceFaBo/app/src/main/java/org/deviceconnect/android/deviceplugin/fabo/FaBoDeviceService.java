@@ -93,23 +93,14 @@ public class FaBoDeviceService extends DConnectMessageService {
     /** Statusを保持. */
     private static int mStatus;
 
-    /** USB Connection. */
-    private static UsbDeviceConnection connection;
-
-    UsbManager mUsbManager;
-
     @Override
     public void onCreate() {
         super.onCreate();
 
-        Log.i(TAG, "onCreate()");
-
+        // Set status.
         setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
 
-        // USBManagerを取得.
-        mUsbManager = (UsbManager) this.getSystemService(Context.USB_SERVICE);
-
-        //ここで、DConnectMessageServiceProviderにプロファイルを追加.
+         //ここで、DConnectMessageServiceProviderにプロファイルを追加.
         addProfile(new FaBoServiceDiscoveryProfile(this));
         addProfile(new FaBoSystemProfile());
         addProfile(new FaBoGPIOProfile());
@@ -132,13 +123,17 @@ public class FaBoDeviceService extends DConnectMessageService {
         mIntentFilter.addAction(FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB);
         mIntentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         registerReceiver(mUSBEvent, mIntentFilter);
+    }
 
-        // Threadを立ち上げ値の変化を保持.
+    /**
+     * 値監視用のThread.
+     */
+    private void startWatchFirmata(){
         if(mThread == null) {
             mThread = new Thread(new Runnable() {
                 public void run() {
-                    while (true) {
-                        for(int s = 0; s < mServiceIdStore.size(); s++) {
+                    do {
+                        for (int s = 0; s < mServiceIdStore.size(); s++) {
 
                             String serviceId = mServiceIdStore.get(s);
                             List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
@@ -170,12 +165,19 @@ public class FaBoDeviceService extends DConnectMessageService {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
+                    } while (true);
                     }
-                }
             }
             );
             mThread.start();
         }
+    }
+
+    /**
+     * Threadを停止.
+     */
+    private void endWatchFirmata(){
+        mThread = null;
     }
 
     @Override
@@ -197,15 +199,15 @@ public class FaBoDeviceService extends DConnectMessageService {
      * USBをOpenする.
      */
     private void openUsb(){
-        Log.i(TAG, "openUsb()");
+
+        // USBManagerを取得.
+        UsbManager mUsbManager = (UsbManager) this.getSystemService(Context.USB_SERVICE);
 
         // 使用可能なUSB Portを取得.
         final List<UsbSerialDriver> drivers =
                 UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
-        //final List<UsbSerialDriver> drivers = new UsbSerialProber(customTable).findAllDrivers(mUsbManager);
-
         final List<UsbSerialPort> result = new ArrayList<UsbSerialPort>();
-        Log.i(TAG, "size:" + drivers.size());
+
         if(drivers.size() == 0) {
             sendResult(FaBoConst.CAN_NOT_FIND_USB);
             return;
@@ -221,7 +223,7 @@ public class FaBoDeviceService extends DConnectMessageService {
             mSerialPort = result.get(count - 1);
 
             // PortをOpen.
-            connection = mUsbManager.openDevice(mSerialPort.getDriver().getDevice());
+            UsbDeviceConnection connection = mUsbManager.openDevice(mSerialPort.getDriver().getDevice());
 
             if (connection == null) {
                 sendResult(FaBoConst.FAILED_OPEN_USB);
@@ -245,27 +247,24 @@ public class FaBoDeviceService extends DConnectMessageService {
                 return;
             }
         }
-
         onDeviceStateChange();
     }
 
+    /**
+     * USBをClose.
+     */
     private void closeUsb(){
-        Log.i(TAG, "closeUSB");
+        endWatchFirmata();
         stopIoManager();
+
         if(mSerialPort != null) {
             try {
                 mSerialPort.close();
                 mSerialPort = null;
-            } catch (IOException e) {
-            }
+            } catch (IOException ignored) {}
         }
-        if(connection != null){
-            connection.close();
-            connection = null;
-        }
+
         setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
-        //stopSelf();
-        //unregisterReceiver(mUSBEvent);
     }
 
     /**
@@ -273,7 +272,7 @@ public class FaBoDeviceService extends DConnectMessageService {
      * @param status ステータス
      */
     private void setStatus(int status){
-        this.mStatus = status;
+        mStatus = status;
         Log.i(TAG, "status:" + status);
     }
 
@@ -281,27 +280,30 @@ public class FaBoDeviceService extends DConnectMessageService {
      * シリアル通信を開始.
      */
     private void onDeviceStateChange() {
-        Log.i(TAG, "onDeviceStateChange()");
 
+        // Init.
         stopIoManager();
         startIoManager();
         intFirmata();
 
-        // Portの状態をすべて0(Low)にする。
+        // Portの状態をすべて0(Low)にする.
         digitalPortStatus[0] = 0; // 0000 0000
         digitalPortStatus[1] = 0; // 0000 0000
         digitalPortStatus[2] = 0; // 0000 0000
 
-        new Handler().postDelayed( checkStatus, 3000);
+        // 3秒だってFirmataを検出できない場合はエラー.
+        new Handler().postDelayed(checkStatus, 3000);
 
+        // Statusをinitへ.
         setStatus(FaBoConst.STATUS_FABO_INIT);
+
+        // FirmataのVersion取得のコマンドを送付
         byte command[] = {(byte)0xF9};
         SendMessage(command);
-
     }
 
     /**
-     * Firmat未検出時のTimeout処理.
+     * Firmata未検出時のTimeout処理.
      */
     private final Runnable checkStatus = new Runnable() {
         @Override
@@ -317,9 +319,7 @@ public class FaBoDeviceService extends DConnectMessageService {
      * シリアル通信をストップする.
      */
     private void stopIoManager() {
-        Log.i(TAG, "stopIoManager");
         if (mSerialIoManager != null) {
-            Log.i(TAG, "Stopping io manager ..");
             mSerialIoManager.stop();
             mSerialIoManager = null;
         }
@@ -329,9 +329,7 @@ public class FaBoDeviceService extends DConnectMessageService {
      * シリアル通信を開始する.
      */
     private void startIoManager() {
-        Log.i(TAG, "startManager");
         if (mSerialPort != null) {
-            Log.i(TAG, "Starting io manager ..");
             mSerialIoManager = new SerialInputOutputManager(mSerialPort, mListener);
             mExecutor.submit(mSerialIoManager);
         }
@@ -341,7 +339,6 @@ public class FaBoDeviceService extends DConnectMessageService {
      * Firmataの初期設定.
      */
     private void intFirmata(){
-        Log.i(TAG, "intFirmata");
         byte[] command = new byte[2];
 
         // AnalogPin A0-A5の値に変化があったら通知する設定をおこなう(Firmata)
@@ -367,14 +364,12 @@ public class FaBoDeviceService extends DConnectMessageService {
 
                 @Override
                 public void onRunError(Exception e) {
-                    Log.i(TAG, "Runner stopped.");
+
                 }
 
                 @Override
                 public void onNewData(final byte[] data) {
-
                     for(int i = 0; i < data.length; i++) {
-
                         if (mStatus == FaBoConst.STATUS_FABO_INIT) {
                             if ((i + 2) < data.length) {
                                 if ((byte) (data[i] & 0xff) == (byte) 0xf9 &&
@@ -382,6 +377,7 @@ public class FaBoDeviceService extends DConnectMessageService {
                                         (byte) (data[i + 2] & 0xff) == (byte) 0x04) {
                                     setStatus(FaBoConst.STATUS_FABO_RUNNING);
                                     sendResult(FaBoConst.SUCCESS_CONNECT_FIRMATA);
+                                    startWatchFirmata();
                                 }
                             }
                         } else {
@@ -423,21 +419,22 @@ public class FaBoDeviceService extends DConnectMessageService {
     private BroadcastReceiver mUSBEvent = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
-            Log.i(TAG, "BroadcastReceiver mUSBEvent");
             String action = intent.getAction();
-            if(action.equals(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB)) {
-                //closeUsb();
-                openUsb();
-            } else if(action.equals(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB)) {
-                sendStatus(mStatus);
-            } else if(action.equals(FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB)) {
-                closeUsb();
-                Log.i(TAG, "FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB");
-                setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
-            } else if(action.equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
-                closeUsb();
-                Log.i(TAG, "UsbManager.ACTION_USB_DEVICE_DETACHED");
-                setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
+            switch (action) {
+                case FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB:
+                    openUsb();
+                    break;
+                case FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB:
+                    sendStatus(mStatus);
+                    break;
+                case FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB:
+                    closeUsb();
+                    setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
+                    break;
+                case UsbManager.ACTION_USB_DEVICE_DETACHED:
+                    closeUsb();
+                    setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
+                    break;
             }
         }
     };
@@ -453,12 +450,10 @@ public class FaBoDeviceService extends DConnectMessageService {
             try{
                 mSerialPort.write(msg.getBytes(), 10000);
             } catch(Exception e){
-                Log.e(TAG, "SendMessage:Error " + e);
                 onDeviceStateChange();
             }
 
         }  else {
-            Log.e(TAG, "Error: mSerialIoManager1 is null");
             setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
         }
     }
@@ -468,17 +463,13 @@ public class FaBoDeviceService extends DConnectMessageService {
      * @param mByte Byte型のメッセージ
      */
     public void SendMessage(byte[] mByte) {
-        Log.i(TAG, "SendMessage:" + mStatus);
         if(mSerialIoManager != null) {
-
             try {
                 mSerialPort.write(mByte, 1000);
             } catch (Exception e){
-                Log.e(TAG, "SendMessage:Error " + e);
                 onDeviceStateChange();
             }
         } else {
-            Log.e(TAG, "Error: mSerialIoManager2 is null");
             setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
         }
     }
@@ -518,12 +509,9 @@ public class FaBoDeviceService extends DConnectMessageService {
      */
     public void registerOnChange(String serviceId) {
         mServiceIdStore.add(serviceId);
-
-        Log.i(TAG, "mServiceIdStore.size()" + mServiceIdStore.size());
         for(int i = 0; i < mServiceIdStore.size(); i++) {
             List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
                     FaBoGPIOProfile.PROFILE_NAME, null, FaBoGPIOProfile.ATTRIBUTE_ON_CHANGE);
-            Log.i(TAG, "size" + events.size());
         }
     }
 
@@ -531,19 +519,15 @@ public class FaBoDeviceService extends DConnectMessageService {
      * onChangeイベントの削除.
      */
     public void unregisterOnChange(String serviceId) {
-        Log.i(TAG, "unregisterOnChange()");
-
         Iterator serviceIds = mServiceIdStore.iterator();
         while(serviceIds.hasNext()){
             String tmpServiceId = (String)serviceIds.next();
             if(tmpServiceId.equals(serviceId)) serviceIds.remove();
         }
 
-        Log.i(TAG, "mServiceIdStore.size()" + mServiceIdStore.size());
         for(int i = 0; i < mServiceIdStore.size(); i++) {
             List<Event> events = EventManager.INSTANCE.getEventList(mServiceId,
                     FaBoGPIOProfile.PROFILE_NAME, null, FaBoGPIOProfile.ATTRIBUTE_ON_CHANGE);
-            Log.i(TAG, "size" + events.size());
         }
 
     }

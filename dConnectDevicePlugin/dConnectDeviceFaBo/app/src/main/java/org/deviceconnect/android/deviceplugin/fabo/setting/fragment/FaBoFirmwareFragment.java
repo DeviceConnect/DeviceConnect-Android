@@ -14,22 +14,17 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-
 import org.deviceconnect.android.deviceplugin.fabo.R;
 import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
 import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoSettingActivity;
-
 import java.util.HashMap;
 import java.util.Iterator;
-
 import io.fabo.android.stk500.StkWriter;
 import io.fabo.android.stk500.StkWriterListenerInterface;
 
@@ -44,7 +39,7 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
     private static Context mContext;
 
     /** LOG. */
-    private static final String TAG = "FABO_PLUGIN_FIRMWARE";
+    private static final String TAG = "FABO_PLUGIN_SETTING";
 
     /** Connect button. */
     private static Button mButtonConnect;
@@ -62,7 +57,7 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
     private static StkWriter mStkWriter;
 
     /** Parent activity. */
-    private static FaBoSettingActivity parent;
+    private static FaBoSettingActivity mParent;
 
     /** Activity. */
     private static Activity mActivity;
@@ -80,15 +75,14 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        Log.i(TAG, "onCreateView:");
-
+        // Root view.
         View root = inflater.inflate(R.layout.firmata, container, false);
 
         // Get context.
         mContext = getActivity().getBaseContext();
-
         mActivity = getActivity();
 
+        // Get ui component.
         mTextViewCommment = (TextView) root.findViewById(R.id.textViewComment);
         mButtonConnect = (Button) root.findViewById(R.id.buttonConnect);
         mButtonSend = (Button) root.findViewById(R.id.buttonSend);
@@ -99,7 +93,7 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
             @Override
             public void onClick(View v) {
 
-                // FaBoとの接続用のUSBをCloseする。
+                // FaBoとの接続用のUSBをCloseする.
                 Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB);
                 mContext.sendBroadcast(intent);
 
@@ -107,21 +101,22 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
                 if (mStkWriter.openUsb()) {
                     mButtonSend.setVisibility(Button.VISIBLE);
                     mButtonSend.setEnabled(true);
-                } else {
-
                 }
             }
         });
 
+        // 戻るボタン.
         mButtonBack.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                // FaBoとの接続用のUSBをCloseする。
-                Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB_RESULT);
+
+                // FaBoとの接続用のUSBをCloseする.
+                Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB);
                 mContext.sendBroadcast(intent);
 
-                parent.moveConnectFirmata();
+                // 前のページに戻る.
+                mParent.moveConnectFirmata();
             }
         });
 
@@ -130,21 +125,18 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
             @Override
             public void onClick(View v) {
                 mButtonSend.setEnabled(false);
+
+                // Firmwareを転送.
                 mStkWriter.setData(R.raw.standardfirmata_hex);
                 mStkWriter.sendFirmware();
-
-                //parent.moveConnectFirmata();
             }
         });
 
-
-        Log.i(TAG, "addReceiver, mUsbReceiver");
         // USBの装着、脱着をReceiverで取得.
         IntentFilter filter = new IntentFilter();
         filter.addAction(StkWriter.ACTION_USB_PERMISSION);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         getActivity().registerReceiver(mUsbReceiver, filter);
-
 
         return root;
     }
@@ -155,17 +147,13 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
 
         // SerialPortの生成
         mStkWriter = new StkWriter(getActivity().getBaseContext());
-        mStkWriter.enableDebug();
         mStkWriter.setListener(this);
 
         // USBデバイスのチェック.
         UsbManager manager = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
         HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
-        Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
 
-        while (deviceIterator.hasNext()) {
-            UsbDevice device = deviceIterator.next();
-            Log.i(TAG, "device.getVendorId()" + device.getVendorId());
+        for (UsbDevice device : deviceList.values()) {
             if (device.getVendorId() == 10755) {
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
@@ -180,32 +168,27 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mTextViewCommment.setText(R.string.arduinocc_find);
+                        mTextViewCommment.setText(R.string.arduinocc_find_sendfirmware);
                         mButtonConnect.setEnabled(true);
                         mButtonSend.setVisibility(Button.INVISIBLE);
                         mButtonBack.setVisibility(Button.INVISIBLE);
-
                     }
                 });
                 break;
             }
         }
-
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
-        Log.i(TAG, "Firmata onPause:");
-
         // SerialPortを閉じる
         mStkWriter.closeUsb();
         mStkWriter = null;
         try {
             getActivity().unregisterReceiver(mUsbReceiver);
-        }catch (Exception e){
-            Log.i(TAG, "Error:" + e);
+        }catch (Exception ignored){
         }
     }
 
@@ -214,37 +197,27 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
-            if (mStkWriter.ACTION_USB_PERMISSION.equals(action)) {
+            if (StkWriter.ACTION_USB_PERMISSION.equals(action)) {
                 synchronized (this) {
-                    //mTextViewCommment.setText("USBに接続しました。");
                 }
             } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
                 // USBを閉じる
                 mStkWriter.closeUsb();
-                mTextViewCommment.setText("USBをクローズしました。");
-            } else {
-                mTextViewCommment.setText("不明なIntent");
+                mTextViewCommment.setText(R.string.disconnect_usb);
+                mButtonConnect.setEnabled(false);
+                mButtonSend.setVisibility(Button.INVISIBLE);
+                mButtonBack.setVisibility(Button.INVISIBLE);
             }
         }
     };
 
     @Override
-    public void onAttach(Activity activity) {
-        parent = (FaBoSettingActivity) activity;
-        super.onAttach(activity);
-    }
-
-    @Override
     public void onChangeStatus(int status) {
-
-        Log.i(TAG, "status:" + status);
 
         switch (status) {
             case StkWriter.STATUS_USB_INIT:
-
                 break;
             case StkWriter.STATUS_USB_OPEN:
-
                 break;
             case StkWriter.STATUS_USB_CONNECT:
                 mActivity.runOnUiThread(new Runnable() {
@@ -252,23 +225,18 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
                     public void run() {
                         mButtonSend.setVisibility(Button.VISIBLE);
                         mButtonSend.setEnabled(true);
-
-                        mTextViewCommment.setText(R.string.firmware_usb_find);
                         mButtonConnect.setEnabled(false);
+                        mTextViewCommment.setText(R.string.firmware_usb_find);
                     }
                 });
                 break;
             case StkWriter.STATUS_USB_CLOSE:
-
                 break;
             case StkWriter.STATUS_UART_START:
-
                 break;
             case StkWriter.STATUS_FIRMWARE_SEND_INIT:
-
                 break;
             case StkWriter.STATUS_FIRMWARE_SEND_START:
-
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -291,13 +259,12 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
 
     @Override
     public void onError(int status) {
-        Log.i(TAG, "error status:" + status);
         switch (status) {
             case StkWriter.ERROR_FAILED_CONNECTION:
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mTextViewCommment.setText("USBの接続に失敗しました。");
+                        mTextViewCommment.setText(R.string.can_not_connet_usb);
                         mButtonConnect.setEnabled(true);
                         mButtonSend.setVisibility(Button.INVISIBLE);
                     }
@@ -307,7 +274,7 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mTextViewCommment.setText("USBのOpenに失敗しました。");
+                        mTextViewCommment.setText(R.string.can_not_open_usb);
                         mButtonConnect.setEnabled(true);
                         mButtonSend.setVisibility(Button.INVISIBLE);
                     }
@@ -317,21 +284,24 @@ public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerI
                 mActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mTextViewCommment.setText("Firmwareの転送に失敗しました。");
+                        mTextViewCommment.setText(R.string.failed_send_firmata);
                         mButtonConnect.setEnabled(true);
                         mButtonSend.setVisibility(Button.INVISIBLE);
                     }
                 });
                 break;
             case StkWriter.ERROR_NO_FOUND_FIRMARE:
-
                 break;
             case StkWriter.ERROR_NOT_INIT_USB:
-
                 break;
             case StkWriter.ERROR_NOT_WRITE_UART:
-
                 break;
         }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        mParent = (FaBoSettingActivity) activity;
+        super.onAttach(activity);
     }
 }

@@ -6,6 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero.data;
 
+import android.util.Log;
+
+import org.deviceconnect.android.deviceplugin.sphero.BuildConfig;
+
 import orbotix.robot.base.CollisionDetectedAsyncData;
 import orbotix.robot.base.ConfigureLocatorCommand;
 import orbotix.robot.sensor.DeviceSensorsData;
@@ -15,17 +19,14 @@ import orbotix.sphero.SensorFlag;
 import orbotix.sphero.SensorListener;
 import orbotix.sphero.Sphero;
 
-import org.deviceconnect.android.deviceplugin.sphero.BuildConfig;
-
-import android.util.Log;
-
 /**
  * デバイス情報.
+ *
  * @author NTT DOCOMO, INC.
  */
 public class DeviceInfo implements SensorListener, CollisionListener {
-    
-    /** 
+
+    /**
      * センサーの周期. {@value} Hz
      */
     private static final int SENSOR_RATE = 2;
@@ -49,30 +50,30 @@ public class DeviceInfo implements SensorListener, CollisionListener {
      * センサーリスナー.
      */
     private DeviceSensorListener mSensorListener;
-    
-    /** 
+
+    /**
      * 衝突リスナー.
      */
     private DeviceCollisionListener mCollisionListener;
-    
-    /** 
+
+    /**
      * センサーが稼働しているか.
      */
     private boolean mIsSensorStarted;
-    
-    /** 
+
+    /**
      * 衝突検知が稼働しているか.
      */
     private boolean mIsCollisionStarted;
-    
-    /** 
+
+    /**
      * 前のセンサーのタイムスタンプ.
      */
     private long mPreSensorTimestamp;
 
     /**
      * デバイスを取得する.
-     * 
+     *
      * @return デバイス
      */
     public Sphero getDevice() {
@@ -81,7 +82,7 @@ public class DeviceInfo implements SensorListener, CollisionListener {
 
     /**
      * デバイスを設定する.
-     * 
+     *
      * @param device デバイス
      */
     public void setDevice(final Sphero device) {
@@ -90,7 +91,7 @@ public class DeviceInfo implements SensorListener, CollisionListener {
 
     /**
      * バックライトの明るさを取得する.
-     * 
+     *
      * @return バックライトの明るさ
      */
     public float getBackBrightness() {
@@ -99,7 +100,7 @@ public class DeviceInfo implements SensorListener, CollisionListener {
 
     /**
      * バックライトの明るさを設定する.
-     * 
+     *
      * @param backBrightness バックライトの明るさ
      */
     public void setBackBrightness(final float backBrightness) {
@@ -109,7 +110,7 @@ public class DeviceInfo implements SensorListener, CollisionListener {
 
     /**
      * 色を設定する.
-     * 
+     *
      * @param r 赤
      * @param g 緑
      * @param b 青
@@ -123,25 +124,25 @@ public class DeviceInfo implements SensorListener, CollisionListener {
 
     /**
      * 色を取得する.
-     * 
+     *
      * @return 色
      */
     public int getColor() {
         return mColor;
     }
-    
+
     /**
      * センサーが稼働しているかチェックする.
-     * 
+     *
      * @return センサーが稼働している場合true、その他はfalseを返す。
      */
     public boolean isSensorStarted() {
         return mIsSensorStarted;
     }
-    
+
     /**
      * 衝突の監視が稼働しているかチェックする.
-     * 
+     *
      * @return 稼働している場合true、その他はfalseを返す。
      */
     public boolean isCollisionStarted() {
@@ -150,25 +151,25 @@ public class DeviceInfo implements SensorListener, CollisionListener {
 
     /**
      * センサーを開始する.
-     * 
+     *
      * @param listener リスナー
      */
     public void startSensor(final DeviceSensorListener listener) {
-        
+
         if (mIsSensorStarted) {
             return;
         }
-        
+
         mIsSensorStarted = true;
         mSensorListener = listener;
         SensorControl sc = mDevice.getSensorControl();
         sc.setRate(SENSOR_RATE);
         sc.enableStreaming(true);
-        sc.addSensorListener(this, SensorFlag.ACCELEROMETER_NORMALIZED, 
+        sc.addSensorListener(this, SensorFlag.ACCELEROMETER_NORMALIZED,
                 SensorFlag.GYRO_NORMALIZED, SensorFlag.ATTITUDE,
-                SensorFlag.QUATERNION, SensorFlag.LOCATOR);
-        
-        ConfigureLocatorCommand.sendCommand(mDevice, 
+                SensorFlag.QUATERNION, SensorFlag.LOCATOR, SensorFlag.VELOCITY);
+
+        ConfigureLocatorCommand.sendCommand(mDevice,
                 ConfigureLocatorCommand.ROTATE_WITH_CALIBRATE_FLAG_OFF, 0, 0, 0);
         mPreSensorTimestamp = System.currentTimeMillis();
     }
@@ -177,7 +178,7 @@ public class DeviceInfo implements SensorListener, CollisionListener {
      * センサーを停止する.
      */
     public void stopSensor() {
-        
+
         if (!mIsSensorStarted) {
             return;
         }
@@ -186,28 +187,28 @@ public class DeviceInfo implements SensorListener, CollisionListener {
         mDevice.getSensorControl().stopStreaming();
         mSensorListener = null;
     }
-    
+
     /**
      * 衝突の監視を開始する.
-     * 
+     *
      * @param listener リスナー
      */
     public void startCollistion(final DeviceCollisionListener listener) {
-        
+
         if (mIsCollisionStarted) {
             return;
         }
-        
+
         if (BuildConfig.DEBUG) {
             Log.d("", "start collision");
         }
-        
+
         mIsCollisionStarted = true;
         mCollisionListener = listener;
         mDevice.getCollisionControl().addCollisionListener(this);
         mDevice.getCollisionControl().startDetection(90, 90, 130, 130, 100);
     }
-    
+
     /**
      * 衝突イベントの検知を終了する.
      */
@@ -215,12 +216,12 @@ public class DeviceInfo implements SensorListener, CollisionListener {
         if (!mIsCollisionStarted) {
             return;
         }
-        
+
         mIsCollisionStarted = false;
         mCollisionListener = null;
         mDevice.getCollisionControl().removeCollisionListener(this);
         mDevice.getCollisionControl().stopDetection();
-        
+
         if (BuildConfig.DEBUG) {
             Log.d("", "stop collision");
         }
@@ -228,12 +229,12 @@ public class DeviceInfo implements SensorListener, CollisionListener {
 
     @Override
     public void sensorUpdated(final DeviceSensorsData data) {
-        
+
         long timestamp = data.getTimeStamp();
         mSensorListener.sensorUpdated(this, data, timestamp - mPreSensorTimestamp);
         mPreSensorTimestamp = timestamp;
     }
-    
+
     @Override
     public void collisionDetected(final CollisionDetectedAsyncData data) {
         if (BuildConfig.DEBUG) {
@@ -249,22 +250,22 @@ public class DeviceInfo implements SensorListener, CollisionListener {
 
         /**
          * センサーがアップデートされたことを通知する.
-         * 
-         * @param info センサーを持つデバイス
-         * @param data センサーデータ
+         *
+         * @param info     センサーを持つデバイス
+         * @param data     センサーデータ
          * @param interval 前のアップデートからの間隔
          */
         void sensorUpdated(final DeviceInfo info, final DeviceSensorsData data, final long interval);
     }
-    
+
     /**
      * デバイスの衝突イベントの通知を受けるリスナー.
      */
     public interface DeviceCollisionListener {
-        
+
         /**
          * デバイスが衝突したことを通知する.
-         * 
+         *
          * @param info デバイス
          * @param data 衝突データ
          */

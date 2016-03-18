@@ -570,7 +570,7 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
             return true;
         }
         if (recorder.getState() == HostDeviceRecorder.RecorderState.INACTTIVE) {
-            MessageUtils.setInvalidRequestParameterError(response, "recorder is stopped already.");
+            MessageUtils.setIllegalDeviceStateError(response, "recorder is stopped already.");
             return true;
         }
 

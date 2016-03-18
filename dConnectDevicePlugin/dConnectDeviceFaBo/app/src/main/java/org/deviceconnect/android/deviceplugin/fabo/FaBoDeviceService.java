@@ -37,8 +37,6 @@ import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 
-import com.hoho.android.usbserial.driver.CdcAcmSerialDriver;
-import com.hoho.android.usbserial.driver.ProbeTable;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
@@ -51,7 +49,7 @@ import com.hoho.android.usbserial.util.SerialInputOutputManager;
 public class FaBoDeviceService extends DConnectMessageService {
 
     /** Tag. */
-    private final static String TAG = "FABO_PLUGIN111";
+    private final static String TAG = "FABO_PLUGIN_SERVICE";
 
     /** USB Port. */
     private static UsbSerialPort mSerialPort = null;
@@ -104,7 +102,9 @@ public class FaBoDeviceService extends DConnectMessageService {
     public void onCreate() {
         super.onCreate();
 
-        setStatus(FaBoConst.STATUS_STOP);
+        Log.i(TAG, "onCreate()");
+
+        setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
 
         // USBManagerを取得.
         mUsbManager = (UsbManager) this.getSystemService(Context.USB_SERVICE);
@@ -197,7 +197,7 @@ public class FaBoDeviceService extends DConnectMessageService {
      * USBをOpenする.
      */
     private void openUsb(){
-        Log.i(TAG, "openUSB");
+        Log.i(TAG, "openUsb()");
 
         // 使用可能なUSB Portを取得.
         final List<UsbSerialDriver> drivers =
@@ -251,7 +251,7 @@ public class FaBoDeviceService extends DConnectMessageService {
 
     private void closeUsb(){
         Log.i(TAG, "closeUSB");
-        //stopIoManager();
+        stopIoManager();
         if(mSerialPort != null) {
             try {
                 mSerialPort.close();
@@ -263,7 +263,7 @@ public class FaBoDeviceService extends DConnectMessageService {
             connection.close();
             connection = null;
         }
-        setStatus(FaBoConst.STATUS_STOP);
+        setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
         //stopSelf();
         //unregisterReceiver(mUSBEvent);
     }
@@ -285,6 +285,7 @@ public class FaBoDeviceService extends DConnectMessageService {
 
         stopIoManager();
         startIoManager();
+        intFirmata();
 
         // Portの状態をすべて0(Low)にする。
         digitalPortStatus[0] = 0; // 0000 0000
@@ -293,7 +294,7 @@ public class FaBoDeviceService extends DConnectMessageService {
 
         new Handler().postDelayed( checkStatus, 3000);
 
-        setStatus(FaBoConst.STATUS_INIT);
+        setStatus(FaBoConst.STATUS_FABO_INIT);
         byte command[] = {(byte)0xF9};
         SendMessage(command);
 
@@ -305,9 +306,9 @@ public class FaBoDeviceService extends DConnectMessageService {
     private final Runnable checkStatus = new Runnable() {
         @Override
         public void run() {
-            if(mStatus == FaBoConst.STATUS_INIT){
+            if(mStatus == FaBoConst.STATUS_FABO_INIT){
                 sendResult(FaBoConst.FAILED_CONNECT_FIRMATA);
-                setStatus(FaBoConst.STATUS_STOP);
+                setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
             }
         }
     };
@@ -374,14 +375,13 @@ public class FaBoDeviceService extends DConnectMessageService {
 
                     for(int i = 0; i < data.length; i++) {
 
-                        if (mStatus == FaBoConst.STATUS_INIT) {
+                        if (mStatus == FaBoConst.STATUS_FABO_INIT) {
                             if ((i + 2) < data.length) {
                                 if ((byte) (data[i] & 0xff) == (byte) 0xf9 &&
                                         (byte) (data[i + 1] & 0xff) == (byte) 0x02 &&
                                         (byte) (data[i + 2] & 0xff) == (byte) 0x04) {
-                                    setStatus(FaBoConst.STATUS_RUNNING);
+                                    setStatus(FaBoConst.STATUS_FABO_RUNNING);
                                     sendResult(FaBoConst.SUCCESS_CONNECT_FIRMATA);
-                                    intFirmata();
                                 }
                             }
                         } else {
@@ -423,6 +423,7 @@ public class FaBoDeviceService extends DConnectMessageService {
     private BroadcastReceiver mUSBEvent = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
+            Log.i(TAG, "BroadcastReceiver mUSBEvent");
             String action = intent.getAction();
             if(action.equals(FaBoConst.DEVICE_TO_ARDUINO_OPEN_USB)) {
                 //closeUsb();
@@ -432,11 +433,11 @@ public class FaBoDeviceService extends DConnectMessageService {
             } else if(action.equals(FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB)) {
                 closeUsb();
                 Log.i(TAG, "FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB");
-                setStatus(FaBoConst.STATUS_STOP);
+                setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
             } else if(action.equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
                 closeUsb();
                 Log.i(TAG, "UsbManager.ACTION_USB_DEVICE_DETACHED");
-                setStatus(FaBoConst.STATUS_STOP);
+                setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
             }
         }
     };
@@ -453,11 +454,12 @@ public class FaBoDeviceService extends DConnectMessageService {
                 mSerialPort.write(msg.getBytes(), 10000);
             } catch(Exception e){
                 Log.e(TAG, "SendMessage:Error " + e);
+                onDeviceStateChange();
             }
 
         }  else {
             Log.e(TAG, "Error: mSerialIoManager1 is null");
-            setStatus(FaBoConst.STATUS_STOP);
+            setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
         }
     }
 
@@ -477,7 +479,7 @@ public class FaBoDeviceService extends DConnectMessageService {
             }
         } else {
             Log.e(TAG, "Error: mSerialIoManager2 is null");
-            setStatus(FaBoConst.STATUS_STOP);
+            setStatus(FaBoConst.STATUS_FABO_NOCONNECT);
         }
     }
 

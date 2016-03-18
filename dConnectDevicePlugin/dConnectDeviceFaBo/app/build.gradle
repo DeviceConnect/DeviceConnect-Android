@@ -37,5 +37,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile project(':dconnect-device-plugin-sdk')
     compile 'com.hoho.android:usb-serial-for-android:0.2.0-SNAPSHOT@aar'
-    compile 'io.fabo.android.stk500:stk500-aar:1.0.2'
+    compile 'io.fabo.android.stk500:stk500-aar:1.0.4'
 }

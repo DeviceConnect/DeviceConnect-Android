@@ -6,13 +6,12 @@ http://opensource.org/licenses/mit-license.php
 */
 package org.deviceconnect.android.deviceplugin.fabo.setting;
 
-import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 
 import org.deviceconnect.android.deviceplugin.fabo.BuildConfig;
 import org.deviceconnect.android.deviceplugin.fabo.setting.fragment.FaBoConnectFragment;
-import org.deviceconnect.android.deviceplugin.fabo.setting.fragment.FaBoFirmataFragment;
+import org.deviceconnect.android.deviceplugin.fabo.setting.fragment.FaBoFirmwareFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
 
 /**
@@ -34,7 +33,7 @@ public class FaBoSettingActivity extends DConnectSettingPageFragmentActivity {
     @SuppressWarnings("rawtypes")
     private static final Class[] PAGES = {
             FaBoConnectFragment.class,
-            FaBoFirmataFragment.class,
+            FaBoFirmwareFragment.class,
     };
 
 

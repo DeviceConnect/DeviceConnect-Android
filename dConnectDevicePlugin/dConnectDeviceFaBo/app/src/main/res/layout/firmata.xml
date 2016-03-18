@@ -49,30 +49,47 @@ android:orientation="vertical" >
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/activity_vertical_margin"
-            android:background="@drawable/button_blue"
-            android:text="@string/arduino_connect_button"
+            android:background="@drawable/button_red"
+            android:text="@string/button_connect"
             android:textColor="@color/text_light" />
 
         <TextView
             android:id="@+id/textViewComment"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:text="@string/not_connect"
-            android:textColor="@color/text_dark"
-            android:textSize="@dimen/text_description" />
+            android:textColor="@color/text_light"
+            android:textSize="@dimen/text_description"
+            android:lines="5"
+            android:background="#000000"
+            />
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/arduino_sendfirmata_button"
+            android:text="@string/button_sendfirmata"
             android:id="@+id/buttonSend"
-            android:background="@drawable/button_blue"
+            android:background="@drawable/button_red"
             android:textColor="@color/text_light"
             android:visibility="invisible"
             android:layout_below="@+id/textViewComment"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/button_back"
+            android:id="@+id/buttonBack"
+            android:background="@drawable/button_blue"
+            android:textColor="@color/text_light"
+            android:visibility="invisible"
+            android:layout_below="@+id/arduino_sendfirmata_button"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="30dp"
+            />
 
 
     </LinearLayout>

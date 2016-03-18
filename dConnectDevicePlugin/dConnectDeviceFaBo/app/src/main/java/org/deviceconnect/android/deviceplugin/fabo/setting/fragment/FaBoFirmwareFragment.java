@@ -1,0 +1,337 @@
+/*
+FaBoFirmwareFragment
+Copyright (c) 2014 NTT DOCOMO,INC.
+Released under the MIT license
+http://opensource.org/licenses/mit-license.php
+*/
+package org.deviceconnect.android.deviceplugin.fabo.setting.fragment;
+
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+
+import org.deviceconnect.android.deviceplugin.fabo.R;
+import org.deviceconnect.android.deviceplugin.fabo.param.FaBoConst;
+import org.deviceconnect.android.deviceplugin.fabo.setting.FaBoSettingActivity;
+
+import java.util.HashMap;
+import java.util.Iterator;
+
+import io.fabo.android.stk500.StkWriter;
+import io.fabo.android.stk500.StkWriterListenerInterface;
+
+/**
+ * 設定画面用Fragment.
+ *
+ * @author NTT DOCOMO, INC.
+ */
+public class FaBoFirmwareFragment extends Fragment implements StkWriterListenerInterface {
+
+    /** Context. */
+    private static Context mContext;
+
+    /** LOG. */
+    private static final String TAG = "FABO_PLUGIN_FIRMWARE";
+
+    /** Connect button. */
+    private static Button mButtonConnect;
+
+    /** Send button. */
+    private static Button mButtonSend;
+
+    /** Back button. */
+    private static Button mButtonBack;
+
+    /** TextView. */
+    private static TextView mTextViewCommment;
+
+    /** STK500. */
+    private static StkWriter mStkWriter;
+
+    /** Parent activity. */
+    private static FaBoSettingActivity parent;
+
+    /** Activity. */
+    private static Activity mActivity;
+
+    /**
+     * newInstance.
+     *
+     * @return fragment Fragment instance.
+     */
+    public static FaBoFirmwareFragment newInstance() {
+        FaBoFirmwareFragment fragment = new FaBoFirmwareFragment();
+        return fragment;
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        Log.i(TAG, "onCreateView:");
+
+        View root = inflater.inflate(R.layout.firmata, container, false);
+
+        // Get context.
+        mContext = getActivity().getBaseContext();
+
+        mActivity = getActivity();
+
+        mTextViewCommment = (TextView) root.findViewById(R.id.textViewComment);
+        mButtonConnect = (Button) root.findViewById(R.id.buttonConnect);
+        mButtonSend = (Button) root.findViewById(R.id.buttonSend);
+        mButtonBack = (Button) root.findViewById(R.id.buttonBack);
+
+        // USBへの接続ボタン
+        mButtonConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // FaBoとの接続用のUSBをCloseする。
+                Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_CLOSE_USB);
+                mContext.sendBroadcast(intent);
+
+                // ボタンがクリックされた時にUSBを開く.
+                if (mStkWriter.openUsb()) {
+                    mButtonSend.setVisibility(Button.VISIBLE);
+                    mButtonSend.setEnabled(true);
+                } else {
+
+                }
+            }
+        });
+
+        mButtonBack.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // FaBoとの接続用のUSBをCloseする。
+                Intent intent = new Intent(FaBoConst.DEVICE_TO_ARDUINO_CHECK_USB_RESULT);
+                mContext.sendBroadcast(intent);
+
+                parent.moveConnectFirmata();
+            }
+        });
+
+        // Firmwareの送信ボタン
+        mButtonSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mButtonSend.setEnabled(false);
+                mStkWriter.setData(R.raw.standardfirmata_hex);
+                mStkWriter.sendFirmware();
+
+                //parent.moveConnectFirmata();
+            }
+        });
+
+
+        Log.i(TAG, "addReceiver, mUsbReceiver");
+        // USBの装着、脱着をReceiverで取得.
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(StkWriter.ACTION_USB_PERMISSION);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        getActivity().registerReceiver(mUsbReceiver, filter);
+
+
+        return root;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // SerialPortの生成
+        mStkWriter = new StkWriter(getActivity().getBaseContext());
+        mStkWriter.enableDebug();
+        mStkWriter.setListener(this);
+
+        // USBデバイスのチェック.
+        UsbManager manager = (UsbManager) mContext.getSystemService(Context.USB_SERVICE);
+        HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
+        Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+
+        while (deviceIterator.hasNext()) {
+            UsbDevice device = deviceIterator.next();
+            Log.i(TAG, "device.getVendorId()" + device.getVendorId());
+            if (device.getVendorId() == 10755) {
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTextViewCommment.setText(R.string.arduinoorg_find);
+                        mButtonConnect.setEnabled(false);
+                        mButtonSend.setVisibility(Button.INVISIBLE);
+                        mButtonBack.setVisibility(Button.INVISIBLE);
+                    }
+                });
+            } else if (device.getVendorId() == 9025) {
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTextViewCommment.setText(R.string.arduinocc_find);
+                        mButtonConnect.setEnabled(true);
+                        mButtonSend.setVisibility(Button.INVISIBLE);
+                        mButtonBack.setVisibility(Button.INVISIBLE);
+
+                    }
+                });
+                break;
+            }
+        }
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        Log.i(TAG, "Firmata onPause:");
+
+        // SerialPortを閉じる
+        mStkWriter.closeUsb();
+        mStkWriter = null;
+        try {
+            getActivity().unregisterReceiver(mUsbReceiver);
+        }catch (Exception e){
+            Log.i(TAG, "Error:" + e);
+        }
+    }
+
+    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            if (mStkWriter.ACTION_USB_PERMISSION.equals(action)) {
+                synchronized (this) {
+                    //mTextViewCommment.setText("USBに接続しました。");
+                }
+            } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                // USBを閉じる
+                mStkWriter.closeUsb();
+                mTextViewCommment.setText("USBをクローズしました。");
+            } else {
+                mTextViewCommment.setText("不明なIntent");
+            }
+        }
+    };
+
+    @Override
+    public void onAttach(Activity activity) {
+        parent = (FaBoSettingActivity) activity;
+        super.onAttach(activity);
+    }
+
+    @Override
+    public void onChangeStatus(int status) {
+
+        Log.i(TAG, "status:" + status);
+
+        switch (status) {
+            case StkWriter.STATUS_USB_INIT:
+
+                break;
+            case StkWriter.STATUS_USB_OPEN:
+
+                break;
+            case StkWriter.STATUS_USB_CONNECT:
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mButtonSend.setVisibility(Button.VISIBLE);
+                        mButtonSend.setEnabled(true);
+
+                        mTextViewCommment.setText(R.string.firmware_usb_find);
+                        mButtonConnect.setEnabled(false);
+                    }
+                });
+                break;
+            case StkWriter.STATUS_USB_CLOSE:
+
+                break;
+            case StkWriter.STATUS_UART_START:
+
+                break;
+            case StkWriter.STATUS_FIRMWARE_SEND_INIT:
+
+                break;
+            case StkWriter.STATUS_FIRMWARE_SEND_START:
+
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTextViewCommment.setText(R.string.firmware_start_send);
+                    }
+                });
+                break;
+            case StkWriter.STATUS_FIRMWARE_SEND_FINISH:
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mStkWriter.closeUsb();
+                        mTextViewCommment.setText(R.string.firmware_success_send);
+                        mButtonBack.setVisibility(Button.VISIBLE);
+                    }
+                });
+                break;
+        }
+    }
+
+    @Override
+    public void onError(int status) {
+        Log.i(TAG, "error status:" + status);
+        switch (status) {
+            case StkWriter.ERROR_FAILED_CONNECTION:
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTextViewCommment.setText("USBの接続に失敗しました。");
+                        mButtonConnect.setEnabled(true);
+                        mButtonSend.setVisibility(Button.INVISIBLE);
+                    }
+                });
+                break;
+            case StkWriter.ERROR_FAILED_OPEN:
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTextViewCommment.setText("USBのOpenに失敗しました。");
+                        mButtonConnect.setEnabled(true);
+                        mButtonSend.setVisibility(Button.INVISIBLE);
+                    }
+                });
+                break;
+            case StkWriter.ERROR_FAILED_SEND_FIRMRARE:
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTextViewCommment.setText("Firmwareの転送に失敗しました。");
+                        mButtonConnect.setEnabled(true);
+                        mButtonSend.setVisibility(Button.INVISIBLE);
+                    }
+                });
+                break;
+            case StkWriter.ERROR_NO_FOUND_FIRMARE:
+
+                break;
+            case StkWriter.ERROR_NOT_INIT_USB:
+
+                break;
+            case StkWriter.ERROR_NOT_WRITE_UART:
+
+                break;
+        }
+    }
+}

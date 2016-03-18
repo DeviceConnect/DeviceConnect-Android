@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.chromecast.profile;
 
 import android.content.Intent;
+import android.webkit.URLUtil;
 
 import org.deviceconnect.android.deviceplugin.chromecast.ChromeCastService;
 import org.deviceconnect.android.deviceplugin.chromecast.core.ChromeCastHttpServer;
@@ -71,6 +72,11 @@ public class ChromeCastCanvasProfile extends CanvasProfile implements ChromeCast
             public void onResponse() {
                 if (data == null && uri == null) {
                     MessageUtils.setInvalidRequestParameterError(response, "data is not specified.");
+                    sendResponse(response);
+                    return;
+                }
+                if (uri != null &&!URLUtil.isHttpsUrl(uri) && !URLUtil.isHttpUrl(uri)) {
+                    MessageUtils.setInvalidRequestParameterError(response, "uri is not invalid.");
                     sendResponse(response);
                     return;
                 }

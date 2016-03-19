@@ -85,7 +85,7 @@ public class HVCC2WServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                 }
                 try {
                     countDownLatch.await();
-                    if (services[0] != null) {
+                    if (services[0] != null && services.length > 0) {
                         setServices(response, services);
                     }
                     setResult(response, DConnectMessage.RESULT_OK);

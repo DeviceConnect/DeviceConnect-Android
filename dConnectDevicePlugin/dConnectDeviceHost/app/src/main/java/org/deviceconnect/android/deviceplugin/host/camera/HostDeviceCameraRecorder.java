@@ -82,6 +82,8 @@ public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServe
         return mCameraId;
     }
 
+    protected abstract List<Camera.Size> getSupportedSizes(Camera.Parameters params);
+
     @Override
     public synchronized void initialize() {
         if (mIsInitialized) {
@@ -91,7 +93,7 @@ public abstract class HostDeviceCameraRecorder implements HostDevicePreviewServe
         Camera.Parameters params = camera.getParameters();
         Camera.Size picture = params.getPictureSize();
         setPictureSize(new PictureSize(picture.width, picture.height));
-        for (Camera.Size size : params.getSupportedPictureSizes()) {
+        for (Camera.Size size : getSupportedSizes(params)) {
             mSupportedPictureSizes.add(new PictureSize(size.width, size.height));
         }
         Camera.Size preview = params.getPreviewSize();

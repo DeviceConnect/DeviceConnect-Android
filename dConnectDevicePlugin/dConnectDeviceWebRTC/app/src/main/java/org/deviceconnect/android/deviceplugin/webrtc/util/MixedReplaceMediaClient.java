@@ -283,7 +283,13 @@ public class MixedReplaceMediaClient {
             public void body(final BodyDescriptor bd, final InputStream is) throws MimeException, IOException {
                 super.body(bd, is);
                 if (bd.getContentLength() > 0) {
-                    readImage(is, bd.getContentLength());
+                    try {
+                        notifyData(is);
+                    } catch (OutOfMemoryError e) {
+                        notifyError(MixedReplaceMediaError.OUT_OF_MEMORY_ERROR);
+                    } catch (Throwable e) {
+                        notifyError(MixedReplaceMediaError.UNKNOWN);
+                    }
                 }
             }
         };

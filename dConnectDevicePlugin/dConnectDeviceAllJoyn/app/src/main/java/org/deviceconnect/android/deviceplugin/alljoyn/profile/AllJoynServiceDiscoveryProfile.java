@@ -31,9 +31,6 @@ public class AllJoynServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         app.performDiscovery();
         List<Bundle> services = new LinkedList<>();
         for (AllJoynServiceEntity serviceEntity : app.getDiscoveredAlljoynServices().values()) {
-            if (serviceEntity.serviceName.indexOf("LuminaireC") != -1) {
-                continue;
-            }
             Bundle service = new Bundle();
             ServiceDiscoveryProfile.setId(service, serviceEntity.appId);
             ServiceDiscoveryProfile.setName(service, serviceEntity.serviceName);

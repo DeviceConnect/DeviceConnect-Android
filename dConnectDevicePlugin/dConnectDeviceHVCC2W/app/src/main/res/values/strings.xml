@@ -4,10 +4,10 @@
     <string name="api_key">[YOUR API KEY]</string>
     <string name="app_id">[YOUR APP ID]</string>
 
-    <string name="page_1">[1/5] HVC-C2W の電源をOnにする</string>
-    <string name="page_2">[2/5] アカウントの作成 or ログイン</string>
-    <string name="page_4">[3/5] HVC-C2W をペアリングモードにする</string>
-    <string name="page_5">[4/5] 接続するための音を鳴らす</string>
+    <string name="page_1">[1/4] HVC-C2W の電源をOnにする</string>
+    <string name="page_2">[2/4] アカウントの作成 or ログイン</string>
+    <string name="page_4">[3/4] HVC-C2W をペアリングモードにする</string>
+    <string name="page_5">[4/4] 接続するための音を鳴らす</string>
     <string name="page_6">[5/5] 顔認証データの登録</string>
 
     <string name="c2w_setting_message_1_1">HVC-C2Wの使用準備をします。HVC-C2WにACアダプタから電源を供給されたMicroUSBケーブルを挿入すると、電源が入ります。30秒後に音がなり準備が整います。</string>

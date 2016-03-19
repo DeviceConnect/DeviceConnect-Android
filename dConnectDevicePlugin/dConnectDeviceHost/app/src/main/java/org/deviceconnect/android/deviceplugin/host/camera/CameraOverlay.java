@@ -39,6 +39,7 @@ import android.support.v4.app.NotificationCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -55,6 +56,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 /**
  * カメラのプレビューをオーバーレイで表示するクラス.
@@ -135,6 +137,8 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
     private double mMaxFps;
 
     private int mFacingDirection = 1;
+
+    private final Logger mLogger = Logger.getLogger("host.dplugin");
 
     /**
      * 終了フラグ.
@@ -386,16 +390,17 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
      */
     private void checkCameraCapability(@NonNull final ResultReceiver resultReceiver) {
         PermissionUtility.requestPermissions(mContext, new Handler(), new String[]{Manifest.permission.CAMERA},
-                new PermissionUtility.PermissionRequestCallback() {
-                    @Override
-                    public void onSuccess() {
-                        resultReceiver.send(Activity.RESULT_OK, null);
-                    }
-                    @Override
-                    public void onFail(@NonNull String deniedPermission) {
-                        resultReceiver.send(Activity.RESULT_CANCELED, null);
-                    }
-                });
+            new PermissionUtility.PermissionRequestCallback() {
+                @Override
+                public void onSuccess() {
+                    resultReceiver.send(Activity.RESULT_OK, null);
+                }
+
+                @Override
+                public void onFail(@NonNull String deniedPermission) {
+                    resultReceiver.send(Activity.RESULT_CANCELED, null);
+                }
+            });
     }
 
     /**
@@ -543,8 +548,39 @@ public class CameraOverlay implements Camera.PreviewCallback, Camera.ErrorCallba
                         common();
                         return;
                     }
+                    int degrees = 0;
+                    switch (mWinMgr.getDefaultDisplay().getRotation()) {
+                        case Surface.ROTATION_0:
+                            degrees = 0;
+                            break;
+                        case Surface.ROTATION_90:
+                            degrees = 90;
+                            break;
+                        case Surface.ROTATION_180:
+                            degrees = 180;
+                            break;
+                        case Surface.ROTATION_270:
+                            degrees = 270;
+                            break;
+                    }
+                    mLogger.info("takePicture: display rotation = " + degrees);
+                    int rotation = mFacingDirection == 1 ? 0 : degrees + 180;
+                    Bitmap original = BitmapFactory.decodeByteArray(data, 0, data.length);
+                    Bitmap rotated;
+                    if (rotation == 0) {
+                        rotated = original;
+                    } else {
+                        Matrix m = new Matrix();
+                        m.setRotate(rotation);
+                        rotated = Bitmap.createBitmap(original, 0, 0, original.getWidth(), original.getHeight(), m, true);
+                        original.recycle();
+                    }
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    rotated.compress(CompressFormat.JPEG, JPEG_COMPRESS_QUALITY, baos);
+                    byte[] jpeg = baos.toByteArray();
+                    rotated.recycle();
 
-                    mFileMgr.saveFile(createNewFileName(), data, new FileManager.SaveFileCallback() {
+                    mFileMgr.saveFile(createNewFileName(), jpeg, new FileManager.SaveFileCallback() {
                         @Override
                         public void onSuccess(@NonNull final String uri) {
                             String filePath = mFileMgr.getBasePath().getAbsolutePath() + "/" + uri;

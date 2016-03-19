@@ -215,9 +215,6 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
 
     @Override
     public void onTextureFrameAvailable(int oesTextureId, float[] transformMatrix, long timestampNs) {
-        if (DEBUG) {
-            Log.d(TAG, "onTextureFrameAvailable: oesTextureId=" + oesTextureId + " timestampNs=" + timestampNs);
-        }
         if (mFrameObserver != null) {
             mFrameObserver.onTextureFrameCaptured(mRequestWidth, mRequestHeight, oesTextureId, transformMatrix, 0, timestampNs);
         }
@@ -245,12 +242,21 @@ public class VideoCapturerExternalResource implements VideoCapturerObject {
             if (bitmap != null) {
                 synchronized (mLockObj) {
                     if (mRequestWidth != bitmap.getWidth() || mRequestHeight != bitmap.getHeight()) {
+                        if (DEBUG) {
+                            Log.d(TAG, "@@@ ChangeSize: " + bitmap.getWidth() + " " + bitmap.getHeight());
+                        }
+
                         mRequestWidth = bitmap.getWidth();
                         mRequestHeight = bitmap.getHeight();
                         mFrameObserver.onOutputFormatRequest(mRequestWidth, mRequestHeight, mFPS);
-                        if (DEBUG) {
-                            Log.d(TAG, "@@@ ChangeSize: " + mRequestWidth + " " + mRequestHeight);
+
+                        if (mSurface != null) {
+                            mSurface.release();
+                            mSurface = null;
                         }
+
+                        mSurfaceHelper.getSurfaceTexture().setDefaultBufferSize(mRequestWidth, mRequestHeight);
+                        mSurface = new Surface(mSurfaceHelper.getSurfaceTexture());
                     }
 
                     Canvas canvas = mSurface.lockCanvas(null);

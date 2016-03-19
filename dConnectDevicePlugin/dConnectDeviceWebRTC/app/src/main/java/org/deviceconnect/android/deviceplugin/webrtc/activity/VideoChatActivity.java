@@ -147,7 +147,7 @@ public class VideoChatActivity extends Activity {
             builder.setAudioBitDepth(audioBitDepth);
             builder.setAudioChannel(audioChannel);
             mWebRTCController = builder.create();
-            updateVideoView();
+            updateVideoView(videoUri);
         } else {
             openWebRTCErrorDialog();
         }
@@ -190,14 +190,14 @@ public class VideoChatActivity extends Activity {
     /**
      * Updated layout of the views.
      */
-    private void updateVideoView() {
+    private void updateVideoView(final String videoUri) {
         mRemoteLayout.setPosition(0, 0, 100, 90);
         mRemoteRender.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
         mRemoteRender.setMirror(false);
 
         mLocalLayout.setPosition(72, 72, 25, 25);
         mLocalRender.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-        mLocalRender.setMirror(true);
+        mLocalRender.setMirror("true".equals(videoUri));
 
         mLocalRender.requestLayout();
         mRemoteRender.requestLayout();

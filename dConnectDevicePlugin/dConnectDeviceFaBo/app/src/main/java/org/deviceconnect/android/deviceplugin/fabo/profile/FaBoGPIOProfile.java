@@ -111,6 +111,7 @@ public class FaBoGPIOProfile extends DConnectProfile {
                         }
                         default:
                             // PIN指定が無効
+                            MessageUtils.setInvalidRequestParameterError(response, "Support pin is 14-19 or A0-A5, not support pin no: " + mAttribute);
                             setResult(response, RESULT_ERROR);
                             return true;
                     }
@@ -261,6 +262,7 @@ public class FaBoGPIOProfile extends DConnectProfile {
                         }
                         default:
                             // PIN指定が無効
+                            MessageUtils.setInvalidRequestParameterError(response, "Support pin is 0-13 or D0-D13, not support pin no: " + mAttribute);
                             setResult(response, RESULT_ERROR);
                             return true;
                     }
@@ -268,6 +270,7 @@ public class FaBoGPIOProfile extends DConnectProfile {
                     return true;
                 default:
                     // Attributeが存在しない
+                    MessageUtils.setNotSupportAttributeError(response, "GET method is supported only /gpio/analog/pin_no or /gpio/digital/pin_no.");
                     setResult(response, RESULT_ERROR);
                     return true;
             }
@@ -290,8 +293,27 @@ public class FaBoGPIOProfile extends DConnectProfile {
         } else {
             switch (mInterface) {
                 case "export": {
+
+                    int mModeValue = 0;
                     String mMode = request.getStringExtra("mode");
-                    int mModeValue = Integer.parseInt(mMode);
+                    if(mMode != null) {
+                        try {
+                            mModeValue = Integer.parseInt(mMode);
+                            if (mModeValue != 1 && mModeValue != 2 && mModeValue != 3) {
+                                MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 1-3.");
+                                setResult(response, RESULT_ERROR);
+                                return true;
+                            }
+                        } catch (Exception e) {
+                            MessageUtils.setInvalidRequestParameterError(response, "The value of mode must be defined 1-3.");
+                            setResult(response, RESULT_ERROR);
+                            return true;
+                        }
+                    } else {
+                        MessageUtils.setInvalidRequestParameterError(response, "The value of mode is null.");
+                        setResult(response, RESULT_ERROR);
+                        return true;
+                    }
 
                     switch (mAttribute) {
                         case "0":
@@ -376,6 +398,7 @@ public class FaBoGPIOProfile extends DConnectProfile {
                             break;
                         default:
                             // PIN指定が無効
+                            MessageUtils.setInvalidRequestParameterError(response, "Support pin is 0-20 or D0-D13 or A0-A5, not support pin no: " + mAttribute);
                             setResult(response, RESULT_ERROR);
                             return true;
                     }
@@ -386,20 +409,29 @@ public class FaBoGPIOProfile extends DConnectProfile {
                 }
                 case "digital": {
 
-                    String mHL;
-                    int mHLValue;
+                    int mHLValue = 0;
+                    String mHL = request.getStringExtra("value");
 
-                    try {
-                        mHL = request.getStringExtra("value");
-                        mHLValue = Integer.parseInt(mHL);
-                    } catch (Exception e) {
-                        // 値が無効
-                        setResult(response, RESULT_ERROR);
-                        return true;
-                    }
+                    if(mHL != null) {
+                        try {
 
-                    if (mHLValue != HIGH && mHLValue != LOW) {
-                        // 値が無効
+                            mHLValue = Integer.parseInt(mHL);
+
+                            if (mHLValue != HIGH && mHLValue != LOW) {
+                                // 値が無効
+                                MessageUtils.setInvalidRequestParameterError(response, "Value must be defined 1 or 0.");
+                                setResult(response, RESULT_ERROR);
+                                return true;
+                            }
+
+                        } catch (Exception e) {
+                            // 値が無効
+                            MessageUtils.setInvalidRequestParameterError(response, "Value must be defined 1 or 0.");
+                            setResult(response, RESULT_ERROR);
+                            return true;
+                        }
+                    } else {
+                        MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
                         setResult(response, RESULT_ERROR);
                         return true;
                     }
@@ -486,7 +518,7 @@ public class FaBoGPIOProfile extends DConnectProfile {
                             digitalWrite(ArduinoUno.PORT_A5, ArduinoUno.BIT_A5, mHLValue);
                             break;
                         default:
-                            // PIN指定が無効
+                            MessageUtils.setInvalidRequestParameterError(response, "Support pin is 0-20 or D0-D13 or A0-A5, not support pin no: " + mAttribute);
                             setResult(response, RESULT_ERROR);
                             return true;
                     }
@@ -495,8 +527,32 @@ public class FaBoGPIOProfile extends DConnectProfile {
                 }
                 case "analog": {
 
+                    int mHLValue = 0;
                     String mHL = request.getStringExtra("value");
-                    int mHLValue = Integer.parseInt(mHL);
+
+                    if(mHL != null) {
+                        try {
+
+                            mHLValue = Integer.parseInt(mHL);
+
+                            if (mHLValue > 255) {
+                                // 値が無効
+                                MessageUtils.setInvalidRequestParameterError(response, "Value must be defined under 255.");
+                                setResult(response, RESULT_ERROR);
+                                return true;
+                            }
+
+                        } catch (Exception e) {
+                            // 値が無効
+                            MessageUtils.setInvalidRequestParameterError(response, "Value must be defined 0-255.");
+                            setResult(response, RESULT_ERROR);
+                            return true;
+                        }
+                    } else {
+                        MessageUtils.setInvalidRequestParameterError(response, "Value is null.");
+                        setResult(response, RESULT_ERROR);
+                        return true;
+                    }
 
                     switch (mAttribute) {
                         case "3":
@@ -524,7 +580,7 @@ public class FaBoGPIOProfile extends DConnectProfile {
                             analogWrite(ArduinoUno.PIN_NO_D11, mHLValue);
                             break;
                         default:
-                            // PINが無効
+                            MessageUtils.setInvalidRequestParameterError(response, "Support pin is [3,5,6,9,10,11] or [D3,D5,D6,D9,D10,D11], not support pin no: " + mAttribute);
                             setResult(response, RESULT_ERROR);
                             return true;
                     }
@@ -533,7 +589,7 @@ public class FaBoGPIOProfile extends DConnectProfile {
                     return true;
                 }
                 default:
-                    // Attributeが存在しない
+                    MessageUtils.setNotSupportAttributeError(response, "POST method is supported only /gpio/export/pin_no or /gpio/analog/pin_no or /gpio/digital/pin_no.");
                     setResult(response, RESULT_ERROR);
                     return true;
             }
@@ -543,7 +599,6 @@ public class FaBoGPIOProfile extends DConnectProfile {
     @Override
     protected boolean onPutRequest(final Intent request, final Intent response) {
 
-        String mProfile = getProfile(request);
         String mInterface = getInterface(request);
         String mAttribute = getAttribute(request);
         String mServiceId = getServiceID(request);
@@ -565,6 +620,7 @@ public class FaBoGPIOProfile extends DConnectProfile {
                     setResult(response, RESULT_OK);
                     return true;
                 } else {
+                    MessageUtils.setError(response, 100, "Failed add event.");
                     setResult(response, RESULT_ERROR);
                     return true;
                 }
@@ -652,14 +708,14 @@ public class FaBoGPIOProfile extends DConnectProfile {
                         digitalWrite(ArduinoUno.PORT_A5, ArduinoUno.BIT_A5, HIGH);
                         break;
                     default:
-                        // PINが無効
+                        MessageUtils.setInvalidRequestParameterError(response, "Support pin is 0-20 or D0-D13 or A0-A5, not support pin no: " + mAttribute);
                         setResult(response, RESULT_ERROR);
                         return true;
                 }
                 setResult(response, RESULT_OK);
                 return true;
             } else {
-                // Attributeが存在しない
+                MessageUtils.setNotSupportAttributeError(response, "PUT method is supported only /gpio/digital/pin_no or /gpio/onchange.");
                 setResult(response, RESULT_ERROR);
                 return true;
             }
@@ -669,7 +725,6 @@ public class FaBoGPIOProfile extends DConnectProfile {
     @Override
     protected boolean onDeleteRequest(final Intent request, final Intent response) {
 
-        String mProfile = getProfile(request);
         String mInterface = getInterface(request);
         String mAttribute = getAttribute(request);
         String mServiceId = getServiceID(request);
@@ -690,6 +745,7 @@ public class FaBoGPIOProfile extends DConnectProfile {
                     setResult(response, RESULT_OK);
                     return true;
                 } else {
+                    MessageUtils.setError(response, 100, "Failed delete event.");
                     setResult(response, RESULT_ERROR);
                     return true;
                 }
@@ -778,14 +834,14 @@ public class FaBoGPIOProfile extends DConnectProfile {
                         digitalWrite(ArduinoUno.PORT_A5, ArduinoUno.BIT_A5, LOW);
                         break;
                     default:
-                        // PINが無効
+                        MessageUtils.setInvalidRequestParameterError(response, "Support pin is 0-20 or D0-D13 or A0-A5, not support pin no: " + mAttribute);
                         setResult(response, RESULT_ERROR);
                         return true;
                 }
                 setResult(response, RESULT_OK);
                 return true;
             } else {
-                // Attributeが存在しない
+                MessageUtils.setNotSupportAttributeError(response, "DELETE method is supported only /gpio/digital/pin_no or /gpio/onchange.");
                 setResult(response, RESULT_ERROR);
                 return true;
             }

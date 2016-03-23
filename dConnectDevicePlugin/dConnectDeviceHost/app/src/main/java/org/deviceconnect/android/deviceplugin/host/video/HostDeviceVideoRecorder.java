@@ -10,6 +10,7 @@ package org.deviceconnect.android.deviceplugin.host.video;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,6 +22,7 @@ import org.deviceconnect.android.provider.FileManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -46,6 +48,12 @@ public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
     public HostDeviceVideoRecorder(final Context context, final int cameraId,
                                    final CameraFacing facing, final FileManager fileMgr) {
         super(context, createId(cameraId), createName(facing), facing, cameraId, fileMgr);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    protected List<Camera.Size> getSupportedSizes(final Camera.Parameters params) {
+        return params.getSupportedVideoSizes();
     }
 
     private static String createId(final int cameraId) {
@@ -97,8 +105,8 @@ public class HostDeviceVideoRecorder extends HostDeviceCameraRecorder
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(VideoConst.EXTRA_RECORDER_ID, getId());
         intent.putExtra(VideoConst.EXTRA_CAMERA_ID, mCameraId);
-        intent.putExtra(VideoConst.EXTRA_PICTURE_SIZE, mPictureSize);
         intent.putExtra(VideoConst.EXTRA_FILE_NAME, filename);
+        intent.putExtra(VideoConst.EXTRA_PICTURE_SIZE, getPictureSize());
         intent.putExtra(VideoConst.EXTRA_CALLBACK, new ResultReceiver(new Handler(Looper.getMainLooper())) {
             @Override
             protected void onReceiveResult(final int resultCode, final Bundle resultData) {

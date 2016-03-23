@@ -155,7 +155,7 @@ public class WebRTCManager {
 
         localLayout.setPosition(72, 72, 25, 25);
         localRender.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT);
-        localRender.setMirror(true);
+        localRender.setMirror("true".equals(videoUri));
 
         localRender.requestLayout();
         remoteRender.requestLayout();

@@ -593,6 +593,19 @@ public class WebRTCController {
                 audioFormat = AudioUtils.getDefaultFormat();
             }
 
+            if (BuildConfig.DEBUG) {
+                Log.i(TAG, "mVideoUri: " + mVideoUri);
+                Log.i(TAG, "mVideoWidth: " + mVideoWidth);
+                Log.i(TAG, "mVideoHeight: " + mVideoHeight);
+                Log.i(TAG, "mVideoFps: " + mVideoFps);
+                Log.i(TAG, "mVideoFacing: " + mVideoFacing);
+                Log.i(TAG, "mVideoType: " + mVideoType);
+                Log.i(TAG, "mAudioUri: " + mAudioUri);
+                Log.i(TAG, "mAudioSampleRate: " + mAudioSampleRate);
+                Log.i(TAG, "mAudioBitDepth: " + mAudioBitDepth);
+                Log.i(TAG, "mAudioChannel: " + mAudioChannel);
+            }
+
             PeerOption option = new PeerOption();
             option.setVideoWidth(mVideoWidth);
             option.setVideoHeight(mVideoHeight);

@@ -569,6 +569,10 @@ public class HostMediaStreamingRecordingProfile extends MediaStreamRecordingProf
                 "target does not support stream recording.");
             return true;
         }
+        if (recorder.getState() == HostDeviceRecorder.RecorderState.INACTTIVE) {
+            MessageUtils.setIllegalDeviceStateError(response, "recorder is stopped already.");
+            return true;
+        }
 
         recorder.stop();
         setResult(response, DConnectMessage.RESULT_OK);

@@ -1,0 +1,6 @@
+include ':app'
+include ':usb-serial-for-android-0.2.0-SNAPSHOT.aar'
+include 'dconnect-sdk-for-android'
+project(':dconnect-sdk-for-android').projectDir = new File('../../dConnectSDK/dConnectSDKForAndroid/dconnect-sdk-for-android')
+include 'dconnect-device-plugin-sdk'
+project(':dconnect-device-plugin-sdk').projectDir = new File('../dConnectDevicePluginSDK/dconnect-device-plugin-sdk')

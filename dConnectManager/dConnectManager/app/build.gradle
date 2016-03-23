@@ -46,3 +46,33 @@ dependencies {
     compile project(':dconnect-server-nano-httpd')
     androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
 }
+
+android.testVariants.all { variant ->
+    task("generateJavadocForJUnit", type: Javadoc, overwrite: true) {
+        title = "Android Device Connect Manager Unit Test"
+        description = "Generates Javadoc for JUnit"
+        source = variant.javaCompile.source
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+
+        options {
+            links("http://docs.oracle.com/javase/jp/8/docs/api/");
+            linksOffline("http://d.android.com/reference", "${android.sdkDirectory}/docs/reference")
+            setMemberLevel(JavadocMemberLevel.PUBLIC)
+            docEncoding = 'UTF-8'
+            encoding = 'UTF-8'
+            charSet = 'UTF-8'
+        }
+
+        exclude '**/org/deviceconnect/android/logger/**'
+        exclude '**/org/deviceconnect/android/test/**'
+        exclude '**/IntentDConnectTestCase.java'
+        exclude '**/RESTfulDConnectTestCase.java'
+        exclude '**/TestURIBuilder.java'
+        exclude '**/*Constants.java'
+        exclude '**/Util.java'
+        exclude '**/HttpUtil.java'
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+}

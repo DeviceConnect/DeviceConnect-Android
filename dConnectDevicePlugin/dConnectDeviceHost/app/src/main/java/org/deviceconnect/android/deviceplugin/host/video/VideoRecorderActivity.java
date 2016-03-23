@@ -217,7 +217,11 @@ public class VideoRecorderActivity extends Activity implements SurfaceHolder.Cal
             mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
             mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
             mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mMediaRecorder.setVideoSize(mPictureSize.getWidth(), mPictureSize.getHeight());
             mMediaRecorder.setOutputFile(mFile.toString());
+
+            mLogger.info("VideoRecorderActivity: width = " + mPictureSize.getWidth()
+                + ", height = " + mPictureSize.getHeight());
         } else {
             Bundle data = new Bundle();
             data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "File name must be specified.");

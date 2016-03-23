@@ -280,7 +280,12 @@ class SWControlExtension extends ControlExtension {
         root.setGravity(Gravity.CENTER);
 
         LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        LinearLayout sensorLayout = (LinearLayout) inflater.inflate(R.layout.generic_sensor_values, root, true);
+        LinearLayout sensorLayout;
+        if (SWConstants.PACKAGE_SMART_WATCH_2.equals(mHostAppPackageName)) {
+            sensorLayout = (LinearLayout) inflater.inflate(R.layout.generic_sensor_values_sw2, root, true);
+        } else {
+            sensorLayout = (LinearLayout) inflater.inflate(R.layout.generic_sensor_values, root, true);
+        }
 
         root.measure(mWidth, mHeight);
         root.layout(0, 0, mWidth, mHeight);

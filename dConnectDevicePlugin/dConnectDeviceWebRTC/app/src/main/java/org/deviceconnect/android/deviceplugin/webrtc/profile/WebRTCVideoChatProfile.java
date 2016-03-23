@@ -182,17 +182,22 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                             String outputs = request.getStringExtra(PARAM_OUTPUTS);
                             String audioSampleRate = request.getStringExtra(PARAM_AUDIOSAMPLERATE);
                             int audioSampleRateValue;
-                            if (audioSampleRate == null) {
+                            if (audioSampleRate == null || audioSampleRate.length() == 0) {
                                 audioSampleRateValue = PARAM_RATE_48000;
                             } else {
-                                audioSampleRateValue = Integer.valueOf(audioSampleRate);
+                                try {
+                                    audioSampleRateValue = Integer.valueOf(audioSampleRate);
+                                } catch(NumberFormatException e) {
+                                    // Characters that can not be converted to a number has been entered.
+                                    audioSampleRateValue = 0;
+                                }
                             }
                             String audioBitDepth = request.getStringExtra(PARAM_AUDIOBITDEPTH);
-                            if (audioBitDepth == null) {
+                            if (audioBitDepth == null || audioBitDepth.length() == 0) {
                                 audioBitDepth = PARAM_PCM_FLOAT;
                             }
                             String audioChannel = request.getStringExtra(PARAM_AUDIOCHANNEL);
-                            if (audioChannel == null) {
+                            if (audioChannel == null || audioChannel.length() == 0) {
                                 audioChannel = PARAM_MONAURAL;
                             }
 

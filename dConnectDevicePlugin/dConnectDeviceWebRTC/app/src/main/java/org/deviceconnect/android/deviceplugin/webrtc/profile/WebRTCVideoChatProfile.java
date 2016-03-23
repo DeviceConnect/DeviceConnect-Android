@@ -184,6 +184,7 @@ public class WebRTCVideoChatProfile extends VideoChatProfile {
                             int audioSampleRateValue;
                             if (audioSampleRate == null || audioSampleRate.length() == 0) {
                                 audioSampleRateValue = PARAM_RATE_48000;
+                                audioSampleRate = String.valueOf(PARAM_RATE_48000);
                             } else {
                                 try {
                                     audioSampleRateValue = Integer.valueOf(audioSampleRate);

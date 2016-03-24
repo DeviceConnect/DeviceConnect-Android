@@ -7,7 +7,7 @@
 package org.deviceconnect.profile;
 
 /**
- * Human Detection Profile API constant group.<br/>
+ * Human Detection Profile API constant group.<br>
  * Parameter name of HumanDetect Profile API, interface names, attribute names, define the profile name.
  *
  * @author NTT DOCOMO, INC.
@@ -90,9 +90,9 @@ public interface HumanDetectProfileConstants extends DConnectProfileConstants {
      * path: {@value} .
      */
     public static final String PATH_ON_FACE_DETECTION = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_FACE_DETECTION;
-    
-    
-    
+
+
+
     /*--- request ---*/
 
 

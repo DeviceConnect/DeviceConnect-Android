@@ -18,14 +18,14 @@ import java.util.List;
  * MediaStream Recording プロファイル.
  * 
  * <p>
- * スマートデバイスによる写真撮影、動画録画、音声録音などの機能を提供するAPI.<br/>
- * スマートデバイスによる写真撮影、動画録画、音声録音などの機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br/>
+ * スマートデバイスによる写真撮影、動画録画、音声録音などの機能を提供するAPI.<br>
+ * スマートデバイスによる写真撮影、動画録画、音声録音などの機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
  * 
  * <h1>各API提供メソッド</h1>
  * <p>
- * MediaStream Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>
+ * MediaStream Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
+ * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
  * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
  * </p>
  * <ul>
@@ -225,7 +225,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     // ------------------------------------
 
     /**
-     * 使用可能レコーダー情報取得リクエストハンドラー.<br/>
+     * 使用可能レコーダー情報取得リクエストハンドラー.<br>
      * 使用可能なレコーダーの情報を提供し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -241,7 +241,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * サポートオプション一覧取得リクエストハンドラー.<br/>
+     * サポートオプション一覧取得リクエストハンドラー.<br>
      * サポートしているオプションの一覧を提供し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -263,7 +263,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     // ------------------------------------
 
     /**
-     * 写真撮影依頼リクエストハンドラー.<br/>
+     * 写真撮影依頼リクエストハンドラー.<br>
      * 写真の撮影を実行し、その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * 
@@ -280,7 +280,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * 動画撮影、音声録音依頼リクエストハンドラー.<br/>
+     * 動画撮影、音声録音依頼リクエストハンドラー.<br>
      * 動画撮影、音声録音を実行し、その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * 
@@ -302,7 +302,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     // ------------------------------------
 
     /**
-     * 動画撮影、音声録音の一時停止依頼リクエストハンドラー.<br/>
+     * 動画撮影、音声録音の一時停止依頼リクエストハンドラー.<br>
      * 動画撮影、音声録音を一時停止し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -320,7 +320,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * 動画撮影、音声録音の再開依頼リクエストハンドラー.<br/>
+     * 動画撮影、音声録音の再開依頼リクエストハンドラー.<br>
      * 動画撮影、音声録音を再開し、その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * 
@@ -337,7 +337,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * 動画撮影、音声録音の停止依頼リクエストハンドラー.<br/>
+     * 動画撮影、音声録音の停止依頼リクエストハンドラー.<br>
      * 動画撮影、音声録音を停止し、その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * 
@@ -354,7 +354,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * 動画撮影、音声録音のミュート依頼リクエストハンドラー.<br/>
+     * 動画撮影、音声録音のミュート依頼リクエストハンドラー.<br>
      * 動画撮影、音声録音をミュートし、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -372,7 +372,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * 動画撮影、音声録音のミュート解除リクエストハンドラー.<br/>
+     * 動画撮影、音声録音のミュート解除リクエストハンドラー.<br>
      * 動画撮影、音声録音をミュートを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -390,7 +390,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * オプション設定リクエストハンドラー.<br/>
+     * オプション設定リクエストハンドラー.<br>
      * オプションを設定し、その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * 
@@ -415,7 +415,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * onphotoコールバック登録リクエストハンドラー.<br/>
+     * onphotoコールバック登録リクエストハンドラー.<br>
      * onphotoコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -433,7 +433,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * onrecordingchangeコールバック登録リクエストハンドラー.<br/>
+     * onrecordingchangeコールバック登録リクエストハンドラー.<br>
      * onrecordingchangeコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -451,7 +451,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * ondataavailableコールバック登録リクエストハンドラー.<br/>
+     * ondataavailableコールバック登録リクエストハンドラー.<br>
      * ondataavailableコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -473,7 +473,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     /**
      * プレビューを開始する.
      * <p>
-     * プレビュー送信用のサーバを起動し、そのURIをレスポンスパラメータに格納する。<br/>
+     * プレビュー送信用のサーバを起動し、そのURIをレスポンスパラメータに格納する。<br>
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
@@ -494,7 +494,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     // ------------------------------------
 
     /**
-     * onphotoコールバック解除リクエストハンドラー.<br/>
+     * onphotoコールバック解除リクエストハンドラー.<br>
      * onphotoコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -512,7 +512,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * onrecordingchangeコールバック解除リクエストハンドラー.<br/>
+     * onrecordingchangeコールバック解除リクエストハンドラー.<br>
      * onPutOnRecordingChangeコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -530,7 +530,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     }
 
     /**
-     * ondataavailableコールバック解除リクエストハンドラー.<br/>
+     * ondataavailableコールバック解除リクエストハンドラー.<br>
      * ondataavailableコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -552,7 +552,7 @@ public class MediaStreamRecordingProfile extends DConnectProfile implements Medi
     /**
      * プレビューを停止する.
      * <p>
-     * プレビュー送信用のサーバを停止する。<br/>
+     * プレビュー送信用のサーバを停止する。<br>
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>

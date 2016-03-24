@@ -7,9 +7,9 @@
 package org.deviceconnect.profile;
 
 /**
- * Device Orientation Profile API 定数群.<br/>
+ * Device Orientation Profile API 定数群.<br>
  * Device Orientation Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public interface DeviceOrientationProfileConstants extends DConnectProfileConstants {
@@ -88,5 +88,5 @@ public interface DeviceOrientationProfileConstants extends DConnectProfileConsta
      * パラメータ: {@value} .
      */
     String PARAM_ACCELERATION_INCLUDING_GRAVITY = "accelerationIncludingGravity";
-    
+
 }

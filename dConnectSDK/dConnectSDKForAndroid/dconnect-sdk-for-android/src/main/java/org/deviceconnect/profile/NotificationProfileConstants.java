@@ -7,7 +7,7 @@
 package org.deviceconnect.profile;
 
 /**
- * Notification Profile API 定数群.<br/>
+ * Notification Profile API 定数群.<br>
  * Notification Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * @author NTT DOCOMO, INC.
  */
@@ -128,7 +128,7 @@ public interface NotificationProfileConstants extends DConnectProfileConstants {
 
         /**
          * 指定された文字列を定数値に持つ定数を定義する.
-         * 
+         *
          * @param value 定数値
          */
         private NotificationType(final int value) {
@@ -137,7 +137,7 @@ public interface NotificationProfileConstants extends DConnectProfileConstants {
 
         /**
          * 値を取得する.
-         * 
+         *
          * @return モードの値
          */
         public int getValue() {
@@ -146,7 +146,7 @@ public interface NotificationProfileConstants extends DConnectProfileConstants {
 
         /**
          * 通知のタイプの定数値からインスタンスを取得する.
-         * 
+         *
          * @param value コード
          * @return 通知タイプ
          */
@@ -162,7 +162,7 @@ public interface NotificationProfileConstants extends DConnectProfileConstants {
 
     /**
      * 向き.
-     * 
+     *
      */
     enum Direction {
         /** 未定数値. */
@@ -179,7 +179,7 @@ public interface NotificationProfileConstants extends DConnectProfileConstants {
 
         /**
          * 指定された文字列を定数値に持つ定数を定義する.
-         * 
+         *
          * @param value 定数値
          */
         private Direction(final String value) {
@@ -188,7 +188,7 @@ public interface NotificationProfileConstants extends DConnectProfileConstants {
 
         /**
          * 定数値を取得する.
-         * 
+         *
          * @return 定数値
          */
         public String getValue() {
@@ -197,7 +197,7 @@ public interface NotificationProfileConstants extends DConnectProfileConstants {
 
         /**
          * 向きの定数値からインスタンスを取得する.
-         * 
+         *
          * @param value コード
          * @return 向き
          */

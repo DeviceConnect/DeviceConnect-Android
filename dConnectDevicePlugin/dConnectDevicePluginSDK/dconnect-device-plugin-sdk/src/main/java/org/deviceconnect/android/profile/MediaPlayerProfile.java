@@ -16,14 +16,14 @@ import org.deviceconnect.profile.MediaPlayerProfileConstants;
  * MediaPlayer プロファイル.
  * 
  * <p>
- * スマートデバイス上のメディアの再生状態の変更要求を通知するAPI.<br/>
- * メディア操作を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br/>
+ * スマートデバイス上のメディアの再生状態の変更要求を通知するAPI.<br>
+ * メディア操作を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
  * 
  * <h1>各API提供メソッド</h1>
  * <p>
- * MediaPlayer Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>
+ * MediaPlayer Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
+ * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
  * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
  * </p>
  * <ul>
@@ -139,7 +139,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -194,7 +194,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -222,7 +222,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -243,7 +243,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -264,7 +264,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -285,7 +285,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -306,7 +306,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -334,7 +334,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </ul>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -361,7 +361,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </ul>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -388,7 +388,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </ul>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -415,7 +415,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </ul>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -441,7 +441,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -468,7 +468,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -491,7 +491,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -512,7 +512,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -535,7 +535,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -556,7 +556,7 @@ public class MediaPlayerProfile extends DConnectProfile implements MediaPlayerPr
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 

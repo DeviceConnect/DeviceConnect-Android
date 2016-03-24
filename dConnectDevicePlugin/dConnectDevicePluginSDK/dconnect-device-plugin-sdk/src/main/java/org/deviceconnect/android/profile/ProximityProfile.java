@@ -16,14 +16,14 @@ import android.os.Bundle;
  * Proximity プロファイル.
  * 
  * <p>
- * スマートデバイスの近接センサーの検知通知を提供するAPI.<br/>
- * スマートデバイスの近接センサーの検知通知を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br/>
+ * スマートデバイスの近接センサーの検知通知を提供するAPI.<br>
+ * スマートデバイスの近接センサーの検知通知を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
  * 
  * <h1>各API提供メソッド</h1>
  * <p>
- * Proximity Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>
+ * Proximity Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
+ * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
  * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
  * </p>
  * <ul>
@@ -117,7 +117,7 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
     // ------------------------------------
 
     /**
-     * ondeviceproximity取得リクエストハンドラー.<br/>
+     * ondeviceproximity取得リクエストハンドラー.<br>
      * ondeviceproximityを実行し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -133,7 +133,7 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
     }
 
     /**
-     * onuserproximity取得リクエストハンドラー.<br/>
+     * onuserproximity取得リクエストハンドラー.<br>
      * onuserproximityを実行し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -153,7 +153,7 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
     // ------------------------------------
 
     /**
-     * ondeviceproximityコールバック登録リクエストハンドラー.<br/>
+     * ondeviceproximityコールバック登録リクエストハンドラー.<br>
      * ondeviceproximityコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -171,7 +171,7 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
     }
 
     /**
-     * onuserproximityコールバック登録リクエストハンドラー.<br/>
+     * onuserproximityコールバック登録リクエストハンドラー.<br>
      * onuserproximityコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -193,7 +193,7 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
     // ------------------------------------
 
     /**
-     * ondeviceproximityコールバック解除リクエストハンドラー.<br/>
+     * ondeviceproximityコールバック解除リクエストハンドラー.<br>
      * ondeviceproximityコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -211,7 +211,7 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
     }
 
     /**
-     * onuserproximityコールバック解除リクエストハンドラー.<br/>
+     * onuserproximityコールバック解除リクエストハンドラー.<br>
      * onuserproximityコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。

@@ -16,14 +16,14 @@ import android.os.Bundle;
  * Battery プロファイル.
  * 
  * <p>
- * スマートデバイスのバッテリー情報を提供するAPI.<br/>
+ * スマートデバイスのバッテリー情報を提供するAPI.<br>
  * バッテリー情報を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。
  * </p>
  * 
  * <h1>各API提供メソッド</h1>
  * <p>
- * Battery Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>
+ * Battery Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
+ * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
  * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
  * </p>
  * <ul>
@@ -135,7 +135,7 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
     // ------------------------------------
 
     /**
-     * 全属性取得リクエストハンドラー.<br/>
+     * 全属性取得リクエストハンドラー.<br>
      * デバイスの全属性を提供し、その結果をレスポンスパラメータに格納する。 レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * 
@@ -150,7 +150,7 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
     }
 
     /**
-     * charging属性取得リクエストハンドラー.<br/>
+     * charging属性取得リクエストハンドラー.<br>
      * デバイスの充電状態フラグを提供し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -166,7 +166,7 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
     }
 
     /**
-     * dischargingTime属性取得リクエストハンドラー.<br/>
+     * dischargingTime属性取得リクエストハンドラー.<br>
      * デバイスの完全放電までの時間(秒)を提供し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -182,7 +182,7 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
     }
 
     /**
-     * chargingTime属性取得リクエストハンドラー. <br/>
+     * chargingTime属性取得リクエストハンドラー. <br>
      * デバイスの完全充電までの時間(秒)を提供し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -198,7 +198,7 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
     }
 
     /**
-     * level属性取得リクエストハンドラー.<br/>
+     * level属性取得リクエストハンドラー.<br>
      * デバイスのバッテリー残量(0~100)を提供し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -218,7 +218,7 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
     // ------------------------------------
 
     /**
-     * onchargingchangeコールバック登録リクエストハンドラー.<br/>
+     * onchargingchangeコールバック登録リクエストハンドラー.<br>
      * onchargingchangeコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -236,7 +236,7 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
     }
 
     /**
-     * onchargingchangeコールバック解除リクエストハンドラー.<br/>
+     * onchargingchangeコールバック解除リクエストハンドラー.<br>
      * onchargingchangeコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -276,7 +276,7 @@ public abstract class BatteryProfile extends DConnectProfile implements BatteryP
     }
 
     /**
-     * onbatterychangeコールバック解除リクエストハンドラー.<br/>
+     * onbatterychangeコールバック解除リクエストハンドラー.<br>
      * onbatterychangeコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。

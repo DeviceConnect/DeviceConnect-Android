@@ -16,16 +16,16 @@ import android.os.Bundle;
  * Connect プロファイル.
  * 
  * <p>
- * スマートデバイスとのネットワーク接続情報を提供するAPI.<br/>
- * ネットワーク接続情報を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br/>
+ * スマートデバイスとのネットワーク接続情報を提供するAPI.<br>
+ * ネットワーク接続情報を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * AndroidManifest.xmlに追加する必要の有るパーミッション： wifi: ACCESS_WIFI_STATE,
  * CHANGE_WIFI_STATE bluetooth: BLUETOOTH, BLUETOOTH_ADMIN nfc: NFC
  * </p>
  * 
  * <h1>各API提供メソッド</h1>
  * <p>
- * Connect Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>
+ * Connect Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
+ * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
  * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
  * </p>
  * <ul>
@@ -204,7 +204,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     // ------------------------------------
 
     /**
-     * WIFI機能有効状態取得リクエストハンドラー.<br/>
+     * WIFI機能有効状態取得リクエストハンドラー.<br>
      * デバイスのWIFI機能有効状態を提供し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -220,7 +220,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * Bluetooth機能有効状態取得リクエストハンドラー.<br/>
+     * Bluetooth機能有効状態取得リクエストハンドラー.<br>
      * デバイスのBluetooth機能有効状態を提供し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -236,7 +236,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * NFC機能有効状態取得リクエストハンドラー.<br/>
+     * NFC機能有効状態取得リクエストハンドラー.<br>
      * デバイスのNFC機能有効状態を提供し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -252,7 +252,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * BLE機能有効状態取得リクエストハンドラー.<br/>
+     * BLE機能有効状態取得リクエストハンドラー.<br>
      * デバイスのBLE機能有効状態を提供し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -272,7 +272,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     // ------------------------------------
 
     /**
-     * WIFI機能有効設定リクエストハンドラー.<br/>
+     * WIFI機能有効設定リクエストハンドラー.<br>
      * デバイスのWIFI機能を有効にし、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -288,7 +288,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * onwifichangeコールバック登録リクエストハンドラー.<br/>
+     * onwifichangeコールバック登録リクエストハンドラー.<br>
      * onwifichangeコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -306,7 +306,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * Bluetooth機能有効設定リクエストハンドラー.<br/>
+     * Bluetooth機能有効設定リクエストハンドラー.<br>
      * デバイスのBluetooth機能を有効にし、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -322,7 +322,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * onbluetoothchangeコールバック登録リクエストハンドラー.<br/>
+     * onbluetoothchangeコールバック登録リクエストハンドラー.<br>
      * onbluetoothchangeコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -340,7 +340,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * Bluetooth検索可能状態有効設定リクエストハンドラー.<br/>
+     * Bluetooth検索可能状態有効設定リクエストハンドラー.<br>
      * デバイスのBluetooth検索可能状態を有効にし、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -356,7 +356,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * NFC機能有効設定リクエストハンドラー.<br/>
+     * NFC機能有効設定リクエストハンドラー.<br>
      * デバイスのNFC機能を有効にし、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -372,7 +372,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * onnfcchangeコールバック登録リクエストハンドラー.<br/>
+     * onnfcchangeコールバック登録リクエストハンドラー.<br>
      * onnfcchangeコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -390,7 +390,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * BLE機能有効設定リクエストハンドラー.<br/>
+     * BLE機能有効設定リクエストハンドラー.<br>
      * デバイスのBLE機能を有効にし、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -406,7 +406,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * onblechangeコールバック登録リクエストハンドラー.<br/>
+     * onblechangeコールバック登録リクエストハンドラー.<br>
      * onblechangeコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -428,7 +428,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     // ------------------------------------
 
     /**
-     * WIFI機能無効設定リクエストハンドラー.<br/>
+     * WIFI機能無効設定リクエストハンドラー.<br>
      * デバイスのWIFI機能を無効にし、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -444,7 +444,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * onwifichangeコールバック解除リクエストハンドラー.<br/>
+     * onwifichangeコールバック解除リクエストハンドラー.<br>
      * onwifichangeコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -462,7 +462,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * Bluetooth機能無効設定リクエストハンドラー.<br/>
+     * Bluetooth機能無効設定リクエストハンドラー.<br>
      * デバイスのBluetooth機能を無効にし、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -478,7 +478,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * onbluetoothchangeコールバック解除リクエストハンドラー.<br/>
+     * onbluetoothchangeコールバック解除リクエストハンドラー.<br>
      * onbluetoothchangeコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -496,7 +496,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * Bluetooth検索可能状態無効設定リクエストハンドラー.<br/>
+     * Bluetooth検索可能状態無効設定リクエストハンドラー.<br>
      * デバイスのBluetooth検索可能状態を無効にし、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -513,7 +513,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * NFC機能無効設定リクエストハンドラー.<br/>
+     * NFC機能無効設定リクエストハンドラー.<br>
      * デバイスのNFC機能を無効にし、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -529,7 +529,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * onnfcchangeコールバック解除リクエストハンドラー.<br/>
+     * onnfcchangeコールバック解除リクエストハンドラー.<br>
      * onnfcchangeコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -547,7 +547,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * BLE機能無効設定リクエストハンドラー.<br/>
+     * BLE機能無効設定リクエストハンドラー.<br>
      * デバイスのBLE機能を無効にし、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -563,7 +563,7 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
     }
 
     /**
-     * onblechangeコールバック解除リクエストハンドラー.<br/>
+     * onblechangeコールバック解除リクエストハンドラー.<br>
      * onblechangeコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。

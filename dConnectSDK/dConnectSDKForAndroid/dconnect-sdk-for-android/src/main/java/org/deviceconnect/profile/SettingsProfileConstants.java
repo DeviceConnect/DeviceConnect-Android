@@ -8,7 +8,7 @@ package org.deviceconnect.profile;
 
 
 /**
- * Settings Profile API 定数群.<br/>
+ * Settings Profile API 定数群.<br>
  * Settings Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
  * @author NTT DOCOMO, INC.
  */
@@ -57,7 +57,7 @@ public interface SettingsProfileConstants extends DConnectProfileConstants {
     /**
      * パス: {@value} .
      */
-    String PATH_VOLUME = PATH_PROFILE + SEPARATOR 
+    String PATH_VOLUME = PATH_PROFILE + SEPARATOR
             + INTERFACE_SOUND + SEPARATOR + ATTRIBUTE_VOLUME;
 
     /**
@@ -68,15 +68,15 @@ public interface SettingsProfileConstants extends DConnectProfileConstants {
     /**
      * パス: {@value} .
      */
-    String PATH_LIGHT = PATH_PROFILE + SEPARATOR 
+    String PATH_LIGHT = PATH_PROFILE + SEPARATOR
             + INTERFACE_DISPLAY + SEPARATOR + ATTRIBUTE_LIGHT;
 
     /**
      * パス: {@value} .
      */
-    String PATHSLEEP = PATH_PROFILE + SEPARATOR 
+    String PATHSLEEP = PATH_PROFILE + SEPARATOR
             + INTERFACE_DISPLAY + SEPARATOR + ATTRIBUTE_SLEEP;
-    
+
     /**
      * パラメータ: {@value} .
      */
@@ -97,19 +97,19 @@ public interface SettingsProfileConstants extends DConnectProfileConstants {
      */
     String PARAM_TIME = "time";
 
-    /** 
+    /**
      * 最大Level.
      */
     double MAX_LEVEL = 1.0;
 
-    /** 
+    /**
      * 最小Level.
      */
     double MIN_LEVEL = 0;
 
     /**
      * 音量の種別定数.
-     * 
+     *
      */
     enum VolumeKind {
         /** 未定義値. */
@@ -134,7 +134,7 @@ public interface SettingsProfileConstants extends DConnectProfileConstants {
 
         /**
          * 指定された数値を定数値にもつ定数を定義する.
-         * 
+         *
          * @param value 定数値
          */
         private VolumeKind(final int value) {
@@ -143,7 +143,7 @@ public interface SettingsProfileConstants extends DConnectProfileConstants {
 
         /**
          * 値を取得する.
-         * 
+         *
          * @return モードの値
          */
         public int getValue() {
@@ -152,7 +152,7 @@ public interface SettingsProfileConstants extends DConnectProfileConstants {
 
         /**
          * 定義値からインスタンスを取得する.
-         * 
+         *
          * @param value
          *            コード
          * @return 音量種別

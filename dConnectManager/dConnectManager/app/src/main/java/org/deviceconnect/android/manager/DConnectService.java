@@ -6,7 +6,11 @@
  */
 package org.deviceconnect.android.manager;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.RemoteException;
 
@@ -129,6 +133,10 @@ public class DConnectService extends DConnectMessageService {
             mRESTfulServer = new DConnectServerNanoHttpd(builder.build(), this);
             mRESTfulServer.setServerEventListener(mWebServerListener);
             mRESTfulServer.start();
+
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            registerReceiver(mWiFiReceiver, filter);
         }
     }
 
@@ -137,6 +145,7 @@ public class DConnectService extends DConnectMessageService {
      */
     private void stopRESTfulServer() {
         if (mRESTfulServer != null) {
+            unregisterReceiver(mWiFiReceiver);
             mRESTfulServer.shutdown();
             mRESTfulServer = null;
         }
@@ -189,6 +198,16 @@ public class DConnectService extends DConnectMessageService {
         @Override
         public void stop() throws RemoteException {
             stopInternal();
+        }
+    };
+
+    /**
+     * ネットワークiの接続状態の変化を受け取るレシーバー.
+     */
+    private final BroadcastReceiver mWiFiReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            showNotification();
         }
     };
 }

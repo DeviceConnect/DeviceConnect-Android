@@ -8,7 +8,11 @@ package org.deviceconnect.android.manager;
 
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -93,6 +97,10 @@ public class DConnectWebService extends Service {
             mWebServer = new DConnectServerNanoHttpd(builder.build(), this);
             mWebServer.start();
             showNotification();
+
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            registerReceiver(mWiFiReceiver, filter);
         }
     }
 
@@ -101,6 +109,7 @@ public class DConnectWebService extends Service {
      */
     private synchronized void stopWebServer() {
         if (mWebServer != null) {
+            unregisterReceiver(mWiFiReceiver);
             mWebServer.shutdown();
             mWebServer = null;
             hideNotification();
@@ -124,7 +133,6 @@ public class DConnectWebService extends Service {
         builder.setContentText(DConnectUtil.getIPAddress(this) + ":" + mSettings.getWebPort());
         int iconType = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ?
                 R.drawable.icon : R.drawable.on_icon;
-
         builder.setSmallIcon(iconType);
 
         startForeground(ONGOING_NOTIFICATION_ID, builder.build());
@@ -137,6 +145,9 @@ public class DConnectWebService extends Service {
         stopForeground(true);
     }
 
+    /**
+     * AIDLで接続を行うためのスタブクラス.
+     */
     private final IDConnectWebService mBinder = new IDConnectWebService.Stub()  {
         @Override
         public IBinder asBinder() {
@@ -172,6 +183,16 @@ public class DConnectWebService extends Service {
         @Override
         public void stop() throws RemoteException {
             stopWebServer();
+        }
+    };
+
+    /**
+     * ネットワークiの接続状態の変化を受け取るレシーバー.
+     */
+    private final BroadcastReceiver mWiFiReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, final Intent intent) {
+            showNotification();
         }
     };
 }

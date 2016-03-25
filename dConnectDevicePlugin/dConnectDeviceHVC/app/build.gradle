@@ -15,8 +15,11 @@ android {
     }
 
     defaultConfig {
+        applicationId "org.deviceconnect.android.deviceplugin.hvc"
         minSdkVersion 18
         targetSdkVersion 23
+        versionCode 3
+        versionName "1.0.2"
     }
 
     signingConfigs {

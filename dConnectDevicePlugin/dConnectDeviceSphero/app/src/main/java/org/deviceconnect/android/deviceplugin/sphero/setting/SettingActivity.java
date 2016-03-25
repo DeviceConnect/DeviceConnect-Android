@@ -6,15 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero.setting;
 
-import java.lang.ref.WeakReference;
-import java.util.List;
-
-import org.deviceconnect.android.deviceplugin.sphero.SpheroDeviceService;
-import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.DeviceSelectionPageFragment;
-import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.PairingFragment;
-import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.WakeupFragment;
-
-import orbotix.sphero.Sphero;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -25,7 +16,15 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.deviceconnect.android.deviceplugin.sphero.BuildConfig;
+import org.deviceconnect.android.deviceplugin.sphero.SpheroDeviceService;
+import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
+import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.DeviceSelectionPageFragment;
+import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.PairingFragment;
+import org.deviceconnect.android.deviceplugin.sphero.setting.fragment.WakeupFragment;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
+
+import java.lang.ref.WeakReference;
+import java.util.List;
 
 /**
  * 設定画面用アクティビティ.
@@ -64,6 +63,10 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
      * Extraキー : {@value} .
      */
     public static final String EXTRA_DEVICE = "device";
+    /**
+     * Extraキー : {@value} .
+     */
+    public static final String EXTRA_IS_CONNECTED = "is_connected";
 
     /**
      * Extraキー : {@value} .
@@ -210,12 +213,11 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
             }
             
             String action = intent.getAction();
-            
             if (action.equals(ACTION_ADD_DEVICE)) {
-                Sphero sd = (Sphero) intent.getParcelableExtra(EXTRA_DEVICE);
+                SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
                 mListener.get().onDeviceFound(sd);
             } else if (action.equals(ACTION_REMOVE_DEVICE)) {
-                Sphero sd = (Sphero) intent.getParcelableExtra(EXTRA_DEVICE);
+                SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
                 mListener.get().onDeviceLost(sd);
             } else if (action.equals(ACTION_REMOVE_DEVICE_ALL)) {
                 mListener.get().onDeviceLostAll();
@@ -223,7 +225,7 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
                 List<Parcelable> devices = intent.getParcelableArrayListExtra(EXTRA_DEVICES);
                 mListener.get().onConnectedDevices(devices);
             } else if (action.equals(ACTION_CONNECTED)) {
-                Sphero sd = (Sphero) intent.getParcelableExtra(EXTRA_DEVICE);
+                SpheroParcelable sd = (SpheroParcelable) intent.getParcelableExtra(EXTRA_DEVICE);
                 mListener.get().onDeviceConnected(sd);
             }
         }
@@ -253,14 +255,14 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
          * 
          * @param device デバイス
          */
-        void onDeviceFound(Sphero device);
+        void onDeviceFound(SpheroParcelable device);
         
         /**
          * デバイスが消失した場合に呼び出される.
          * 
          * @param device デバイス
          */
-        void onDeviceLost(Sphero device);
+        void onDeviceLost(SpheroParcelable device);
         
         /**
          * すべてのデバイスの消失を通知します.
@@ -272,6 +274,6 @@ public class SettingActivity extends DConnectSettingPageFragmentActivity {
          * 
          * @param device デバイス
          */
-        void onDeviceConnected(Sphero device);
+        void onDeviceConnected(SpheroParcelable device);
     }
 }

@@ -6,17 +6,16 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero.profile;
 
-import java.util.Collection;
-
-import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
-import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
-
 import android.content.Intent;
 import android.os.Bundle;
 
+import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
+import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
+
+import java.util.Collection;
 
 /**
  * NetworkServiceDiscovery Profile.
@@ -43,8 +42,8 @@ public class SpheroServceDiscoveryProfile extends ServiceDiscoveryProfile {
         for (DeviceInfo info : devices) {
 
             Bundle service = new Bundle();
-            ServiceDiscoveryProfile.setId(service, info.getDevice().getUniqueId());
-            ServiceDiscoveryProfile.setName(service, info.getDevice().getName());
+            ServiceDiscoveryProfile.setId(service, info.getDevice().getRobot().getIdentifier());
+            ServiceDiscoveryProfile.setName(service, info.getDevice().getRobot().getName());
             ServiceDiscoveryProfile.setType(service, NetworkType.BLUETOOTH);
             ServiceDiscoveryProfile.setOnline(service, true);
             ServiceDiscoveryProfile.setScopes(service, getProfileProvider());

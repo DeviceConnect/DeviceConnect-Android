@@ -6,12 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero.setting.fragment;
 
-import java.util.List;
-import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
-import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity.DeviceControlListener;
-import org.deviceconnect.android.deviceplugin.sphero.setting.widget.DeviceListAdapter;
-import org.deviceconnect.android.deviceplugin.sphero.setting.widget.DeviceListAdapter.OnConnectButtonClickListener;
-import orbotix.sphero.Sphero;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -24,11 +18,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+
 import org.deviceconnect.android.deviceplugin.sphero.R;
+import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
+import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity;
+import org.deviceconnect.android.deviceplugin.sphero.setting.SettingActivity.DeviceControlListener;
+import org.deviceconnect.android.deviceplugin.sphero.setting.widget.DeviceListAdapter;
+import org.deviceconnect.android.deviceplugin.sphero.setting.widget.DeviceListAdapter.OnConnectButtonClickListener;
+
+import java.util.List;
 
 /**
  * デバイス一覧画面.
@@ -158,15 +161,15 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
             startDiscovery();
         } else {
             for (Parcelable device : devices) {
-                if (device instanceof Sphero) {
-                    mAdapter.add((Sphero) device);
+                if (device instanceof SpheroParcelable) {
+                    mAdapter.add((SpheroParcelable) device);
                 }
             }
         }
     }
 
     @Override
-    public void onDeviceFound(final Sphero device) {
+    public void onDeviceFound(final SpheroParcelable device) {
         
         View root = getView();
         if (root != null) {
@@ -176,18 +179,20 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
         
         boolean isExist = false;
         for (int i = 0; i < mAdapter.getCount(); i++) {
-            Sphero s = mAdapter.getItem(i);
-            if (s.getDevice().getAddress().equals(device.getDevice().getAddress())) {
+            SpheroParcelable s = mAdapter.getItem(i);
+            if (s.getSpheroId().equals(device.getSpheroId())) {
                 isExist = true;
             }
         }
         if (!isExist) {
             mAdapter.add(device);
         }
+        stopDiscovery();
+        startDiscovery();
     }
 
     @Override
-    public void onDeviceLost(final Sphero device) {
+    public void onDeviceLost(final SpheroParcelable device) {
         mAdapter.remove(device);
         stopDiscovery();
         startDiscovery();
@@ -208,7 +213,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     }
 
     @Override
-    public void onDeviceConnected(final Sphero device) {
+    public void onDeviceConnected(final SpheroParcelable device) {
 
         if (mIndView != null) {
             mIndView.dismiss();
@@ -254,19 +259,18 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
     }
 
     @Override
-    public void onClicked(final int position, final Sphero device) {
+    public void onClicked(final int position, final SpheroParcelable device) {
 
         Activity activity = getActivity();
         if (activity == null) {
             return;
         }
-
         if (device.isConnected()) {
-            ((SettingActivity) activity).sendDisonnectBroadcast(device.getUniqueId());
+            ((SettingActivity) activity).sendDisonnectBroadcast(device.getSpheroId());
             if (mAdapter.getCount() == 0) {
                 // 現在検知している場合は一旦検知をやめ、新たに検知を開始する.
-                stopDiscovery();
-                startDiscovery();
+//                stopDiscovery();
+//                startDiscovery();
             }
         } else {
             mIndView = new ProgressDialog(activity);
@@ -274,7 +278,7 @@ public class DeviceSelectionPageFragment extends Fragment implements DeviceContr
             mIndView.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             mIndView.setCancelable(false);
             mIndView.show();
-            ((SettingActivity) activity).sendConnectBroadcast(device.getUniqueId());
+            ((SettingActivity) activity).sendConnectBroadcast(device.getSpheroId());
         }
     }
 

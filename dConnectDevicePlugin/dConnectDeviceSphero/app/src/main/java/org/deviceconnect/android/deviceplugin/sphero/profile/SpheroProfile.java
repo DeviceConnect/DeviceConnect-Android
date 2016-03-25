@@ -6,10 +6,11 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero.profile;
 
-import java.util.List;
+import android.content.Intent;
+import android.os.Bundle;
 
-import orbotix.robot.base.CollisionDetectedAsyncData;
-import orbotix.robot.sensor.DeviceSensorsData;
+import com.orbotix.async.CollisionDetectedAsyncData;
+import com.orbotix.async.DeviceSensorAsyncMessage;
 
 import org.deviceconnect.android.deviceplugin.sphero.SpheroDeviceService;
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
@@ -23,8 +24,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.content.Intent;
-import android.os.Bundle;
+import java.util.List;
 
 /**
  * spheroプロファイル.
@@ -341,7 +341,7 @@ public class SpheroProfile extends DConnectProfile {
 
         SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
             @Override
-            public void sensorUpdated(final DeviceInfo info, final DeviceSensorsData data, final long interval) {
+            public void sensorUpdated(final DeviceInfo info, final DeviceSensorAsyncMessage data, final long interval) {
                 SpheroDeviceService service = (SpheroDeviceService) getContext();
                 Bundle quaternion = SpheroManager.createQuaternion(data, interval);
                 setResult(response, DConnectMessage.RESULT_OK);
@@ -369,7 +369,7 @@ public class SpheroProfile extends DConnectProfile {
 
         SpheroManager.INSTANCE.startSensor(device, new DeviceSensorListener() {
             @Override
-            public void sensorUpdated(final DeviceInfo info, final DeviceSensorsData data, final long interval) {
+            public void sensorUpdated(final DeviceInfo info, final DeviceSensorAsyncMessage data, final long interval) {
                 SpheroDeviceService service = (SpheroDeviceService) getContext();
                 Bundle locator = SpheroManager.createLocator(data);
                 setResult(response, DConnectMessage.RESULT_OK);

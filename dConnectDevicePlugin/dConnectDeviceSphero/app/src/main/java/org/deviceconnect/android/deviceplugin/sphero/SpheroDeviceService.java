@@ -13,8 +13,12 @@ import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.orbotix.ConvenienceRobot;
+import com.orbotix.common.Robot;
+
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager.DeviceDiscoveryListener;
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
+import org.deviceconnect.android.deviceplugin.sphero.data.SpheroParcelable;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroDriveControllerProfile;
 import org.deviceconnect.android.deviceplugin.sphero.profile.SpheroLightProfile;
@@ -31,8 +35,6 @@ import org.deviceconnect.android.profile.SystemProfile;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
-import orbotix.sphero.Sphero;
 
 /**
  * Spheroデバイスプラグイン.
@@ -132,13 +134,17 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                                 Log.d(TAG, "************ connected **********");
                             }
                             DeviceInfo info = SpheroManager.INSTANCE.getDevice(id);
-                            Sphero device;
+                            ConvenienceRobot device;
                             if (info == null) {
                                 device = null;
                             } else {
                                 device = info.getDevice();
                             }
-                            sendDevice(SettingActivity.ACTION_CONNECTED, device);
+                            if (device != null) {
+                                sendDevice(SettingActivity.ACTION_CONNECTED, device.getRobot());
+                            } else {
+                                sendDevice(SettingActivity.ACTION_CONNECTED, null);
+                            }
                         } else {
                             if (BuildConfig.DEBUG) {
                                 Log.d(TAG, "************ fialed to connect **********");
@@ -154,9 +160,11 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
                 Collection<DeviceInfo> devices = SpheroManager.INSTANCE.getConnectedDevices();
                 Intent res = new Intent();
                 res.setAction(SettingActivity.ACTION_ADD_CONNECTED_DEVICE);
-                ArrayList<Sphero> devs = new ArrayList<Sphero>();
+                ArrayList<SpheroParcelable> devs = new ArrayList<SpheroParcelable>();
                 for (DeviceInfo info : devices) {
-                    devs.add(info.getDevice());
+                    devs.add(new SpheroParcelable(info.getDevice().getRobot().getIdentifier(),
+                            info.getDevice().getRobot().getName(),
+                            info.getDevice().getRobot().isConnected()));
                 }
                 res.putParcelableArrayListExtra(SettingActivity.EXTRA_DEVICES, devs);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(res);
@@ -191,15 +199,17 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
         SpheroManager.INSTANCE.shutdown();
     }
 
+
     @Override
-    public void onDeviceFound(final Sphero sphero) {
+    public void onDeviceFound(Robot sphero) {
         sendDevice(SettingActivity.ACTION_ADD_DEVICE, sphero);
     }
 
     @Override
-    public void onDeviceLost(final Sphero sphero) {
+    public void onDeviceLost(Robot sphero) {
         sendDevice(SettingActivity.ACTION_REMOVE_DEVICE, sphero);
     }
+
     @Override
     public void onDeviceLostAll() {
         sendDevice(SettingActivity.ACTION_REMOVE_DEVICE_ALL, null);
@@ -211,10 +221,16 @@ public class SpheroDeviceService extends DConnectMessageService implements Devic
      * @param action アクション
      * @param sphero デバイス情報
      */
-    private void sendDevice(final String action, final Sphero sphero) {
+    private void sendDevice(final String action, final Robot sphero) {
         Intent res = new Intent();
         res.setAction(action);
-        res.putExtra(SettingActivity.EXTRA_DEVICE, sphero);
+        SpheroParcelable s = null;
+        if (sphero != null) {
+            s = new SpheroParcelable(sphero.getIdentifier(),
+                    sphero.getName(),
+                    sphero.isConnected());
+        }
+        res.putExtra(SettingActivity.EXTRA_DEVICE, s);
         LocalBroadcastManager.getInstance(this).sendBroadcast(res);
     }
 }

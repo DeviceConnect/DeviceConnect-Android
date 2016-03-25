@@ -6,8 +6,9 @@
  */
 package org.deviceconnect.android.deviceplugin.sphero.profile;
 
-import java.util.Collection;
-import java.util.List;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.sphero.SpheroManager;
 import org.deviceconnect.android.deviceplugin.sphero.data.DeviceInfo;
@@ -18,9 +19,8 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.message.DConnectMessage;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * System プロファイル.
@@ -47,7 +47,7 @@ public class SpheroSystemProfile extends SystemProfile {
                     SpheroManager.INSTANCE.stopSensor(info);
                 }
                 List<Event> events = EventManager.INSTANCE.getEventList(
-                        info.getDevice().getUniqueId(), SpheroProfile.PROFILE_NAME, 
+                        info.getDevice().getRobot().getIdentifier(), SpheroProfile.PROFILE_NAME,
                         SpheroProfile.INTER_COLLISION, SpheroProfile.ATTR_ON_COLLISION);
                 
                 if (events.size() == 0) {

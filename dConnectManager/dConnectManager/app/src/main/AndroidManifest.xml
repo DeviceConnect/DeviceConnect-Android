@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     package="org.deviceconnect.android.manager"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="8"
-    android:versionName="1.0.7">
-
-    <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="18"/>
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>

@@ -18,13 +18,13 @@ import java.util.List;
 /**
  * Light プロファイル. 
  * <p>
- * スマートデバイス上のライトを操作要求するAPI.<br/>
- * ライト操作を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br/>
+ * スマートデバイス上のライトを操作要求するAPI.<br>
+ * ライト操作を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
  * <h1>各API提供メソッド</h1>
  * <p>
- * Light Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>
+ * Light Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
+ * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
  * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
  * </p>
  * <ul>
@@ -258,7 +258,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * ライト情報取得リクエストハンドラー.
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -294,7 +294,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * </p>
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -316,7 +316,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * ライト消灯リクエストハンドラー.
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -352,7 +352,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * flashingには、点灯・消灯が交互に格納されている。
      * </p>
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      * 
@@ -376,7 +376,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * ライトグループ情報取得リクエストハンドラー.
      * 
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      *
@@ -411,7 +411,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * flashingには、点灯・消灯が交互に格納されている。
      * </p>
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      *
@@ -434,7 +434,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * ライトグループ消灯リクエストハンドラー.
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      *
@@ -471,7 +471,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
      * flashingには、点灯・消灯が交互に格納されている。
      * </p>
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      *
@@ -495,7 +495,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * ライトグループ作成リクエストハンドラー.
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      *
@@ -516,7 +516,7 @@ public abstract class LightProfile extends DConnectProfile implements LightProfi
     /**
      * ライトグループ削除リクエストハンドラー.
      * <p>
-     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br/>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
      * </p>
      *

@@ -37,7 +37,7 @@ import android.os.ParcelFileDescriptor;
  * android:authoritiesの部分には、各デバイスプラグインでauthoritiesを設定すること。
  * 
  * <p>
- * デフォルトでは、SDカードの直下にデバイスプラグインのパッケージ名のフォルダを作成して、その下にファイルが保存される。<br/>
+ * デフォルトでは、SDカードの直下にデバイスプラグインのパッケージ名のフォルダを作成して、その下にファイルが保存される。<br>
  * 保存場所を変えたい場合には、providerにメタデータを持たせることで変更できる。
  * </p>
  * 
@@ -52,7 +52,7 @@ import android.os.ParcelFileDescriptor;
  * &lt;provider&gt;
  * </pre>
  * 
- * res/xml/filelocation.xmlを用意する。<br/>
+ * res/xml/filelocation.xmlを用意する。<br>
  * 
  * 以下のようにexternal-locationタグを指定することで、SDカードに保存される。
  * <pre>
@@ -60,20 +60,20 @@ import android.os.ParcelFileDescriptor;
  *     &lt;external-location path=&quot;sample&quot; /&gt;
  * &lt;/file-locations&gt;
  * </pre>
- * 属性pathには、SDカードからのパスを指定することができる。<br/>
- * <br/>
+ * 属性pathには、SDカードからのパスを指定することができる。<br>
+ * <br>
  * 以下のようにinternal-locationタグを指定することで、端末内のアプリ領域に保存される。
  * <pre>
  * &lt;file-locations xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;&gt;
  *     &lt;internal-location path=&quot;sample&quot; /&gt;
  * &lt;/file-locations&gt;
  * </pre>
- * 属性pathには、/data/data/{アプリのパッケージ名}/filesからのパスを指定することができる。<br/>
- * <br/>
+ * 属性pathには、/data/data/{アプリのパッケージ名}/filesからのパスを指定することができる。<br>
+ * <br>
  * なお、属性pathには絶対パス、相対パスのいずれかを指定できる。
  * 絶対パスの先頭の / は省略可能。つまり、<code>path="/path/to/file"</code> と <code>path="path/to/file"</code>
  * は同じ意味になる。<br />
- * <br/>
+ * <br>
  * 
  * 複数のexternal-location や internal-locationタグが記載された場合には、最後のタグが反映される。
  * 

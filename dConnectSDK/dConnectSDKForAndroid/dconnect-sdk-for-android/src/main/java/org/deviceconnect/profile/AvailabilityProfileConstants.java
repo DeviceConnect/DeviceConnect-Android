@@ -7,9 +7,9 @@
 package org.deviceconnect.profile;
 
 /**
- * Constants for Availability Profile API.<br/>
+ * Constants for Availability Profile API.<br>
  * Define profile name for Availability Profile API.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public interface AvailabilityProfileConstants extends DConnectProfileConstants {

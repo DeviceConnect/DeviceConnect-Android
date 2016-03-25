@@ -10,6 +10,9 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.webrtc.BuildConfig;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,6 +74,49 @@ public final class AudioUtils {
             BIT_DEPTH_32FLOAT
     };
 
+    /**
+     * Convert from array of byte to array of short.
+     * @param byteArray byte array
+     * @return short array
+     */
+    public static short[] byteToShort(final byte[] byteArray) {
+        short[] shortOut = new short[byteArray.length / 2];
+        ByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);
+        byteBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shortOut);
+        return shortOut;
+    }
+
+    /**
+     * Convert from array of short to array of float.
+     * @param shortArray short array
+     * @return float array
+     */
+    public static float[] shortToFloat(final short[] shortArray) {
+        float[] floatOut = new float[shortArray.length];
+        for (int i = 0; i < shortArray.length; i++) {
+            floatOut[i] = shortArray[i];
+        }
+        return floatOut;
+    }
+
+    /**
+     * Convert from singed 16-bit PCM to 32-bit float PCM.
+     * @param byteArray byte array
+     * @return byte array
+     */
+    public static byte[] convert16BitTo32Bit(final byte[] byteArray) {
+        float[] audioDataF = shortToFloat(byteToShort(byteArray));
+        for (int i = 0; i < audioDataF.length; i++) {
+            audioDataF[i] /= 32768.0;
+        }
+
+        FloatBuffer fb = FloatBuffer.wrap(audioDataF);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(fb.capacity() * 4);
+        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        byteBuffer.asFloatBuffer().put(fb);
+        return byteBuffer.array();
+    }
+    
     /**
      * Gets the list of AudioFormat.
      * @return list of AudioFormat

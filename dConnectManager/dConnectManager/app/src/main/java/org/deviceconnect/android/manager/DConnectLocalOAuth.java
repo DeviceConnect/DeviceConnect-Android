@@ -38,9 +38,18 @@ public class DConnectLocalOAuth {
     private static final String ACCESS_TOKEN_TABLE_NAME = "access_token_tbl";
 
     /**
-     * Local OAuthを無視するプロファイル名一覧を定義.
+     * DeviceConnectアプリからアクセストークン無しでアクセス可能なプロファイル名一覧を定義.
      */
-    public static final String[] IGNORE_PROFILE = {
+    public static final String[] IGNORE_PROFILES = {
+        AuthorizationProfileConstants.PROFILE_NAME,
+        AvailabilityProfileConstants.PROFILE_NAME,
+        DConnectFilesProfile.PROFILE_NAME,
+    };
+
+    /**
+     * DeviceConnectManagerからアクセストークン無しでアクセス可能なプロファイル名一覧を定義.
+     */
+    public static final String[] IGNORE_PLUGIN_PROFILES = {
         AuthorizationProfileConstants.PROFILE_NAME,
         AvailabilityProfileConstants.PROFILE_NAME,
         SystemProfileConstants.PROFILE_NAME,
@@ -83,7 +92,7 @@ public class DConnectLocalOAuth {
      * @return 無視する場合はtrue、それ以外はfalse
      */
     public boolean checkProfile(final String profileName) {
-        return Arrays.asList(IGNORE_PROFILE).contains(profileName);
+        return Arrays.asList(IGNORE_PROFILES).contains(profileName);
     }
 
     /**

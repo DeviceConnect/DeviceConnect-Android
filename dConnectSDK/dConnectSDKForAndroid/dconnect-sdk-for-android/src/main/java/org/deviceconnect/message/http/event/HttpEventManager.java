@@ -23,25 +23,25 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * イベント管理クラス. 
+ * イベント管理クラス.
  * イベントの登録、解除、WebSocketの開閉等のユーティリティ機能を提供する。
- * 
- * 
+ *
+ *
  * @author NTT DOCOMO, INC.
  */
 public final class HttpEventManager extends AbstractEventManager {
-    
-    /** 
+
+    /**
      * WebSocket通常終了コード.
      */
     private static final int NORMAL_CLOSE_CODE = 1000;
-    
-    /** 
+
+    /**
      * リトライする回数.
      */
     private static final int RETRY_TIMES = 5;
-    
-    /** 
+
+    /**
      * リトライ時に待つ時間.
      * 回数を重ねるたびにこの時間分だけ増えていく。
      * ex. 1回目 {@value} ミリ秒、2回目 {@value} * 2ミリ秒。
@@ -57,8 +57,8 @@ public final class HttpEventManager extends AbstractEventManager {
      * WebSocketクライアント.
      */
     private EventWebSocketClient mWSClient;
-    
-    /** 
+
+    /**
      * コネクションハンドラ.
      */
     private CloseHandler mCloseHandler;
@@ -75,17 +75,17 @@ public final class HttpEventManager extends AbstractEventManager {
 
     /**
      * WebSocketステータス.
-     * 
+     *
      * @author NTT DOCOMO, INC.
-     * 
+     *
      */
     private enum Status {
-        
-        /** 
+
+        /**
          * オープン待ち状態.
          */
         WAITING_OPEN,
-        
+
         /**
          * 開いている.
          */
@@ -95,7 +95,7 @@ public final class HttpEventManager extends AbstractEventManager {
          * 閉じている.
          */
         CLOSE,
-        
+
         /**
          * リトライ中.
          */
@@ -114,13 +114,13 @@ public final class HttpEventManager extends AbstractEventManager {
         mLock = new Object();
         mStatus = Status.CLOSE;
     }
-    
+
     /**
-     * イベントの受信用のコネクションを張る. <br/>
-     * このメソッドでコネクションを張り、イベント登録をすることでイベントを受信できるようになる。<br/>
+     * イベントの受信用のコネクションを張る. <br>
+     * このメソッドでコネクションを張り、イベント登録をすることでイベントを受信できるようになる。<br>
      * イベントの受信が不必要になった場合は{@link #disconnect()}を呼び出し、コネクションを破棄すること。
      * 一つのコネクションを使い回すため、コネクションを破棄すると全てのイベント受信が遮断されるので注意すること。
-     * 
+     *
      * @param host ホスト名
      * @param port ポート番号
      * @param isSSL サーバーがSSLになっているかのフラグ
@@ -182,7 +182,7 @@ public final class HttpEventManager extends AbstractEventManager {
         setSessionKey(null);
         return false;
     }
-    
+
     @Override
     public synchronized void disconnect() {
         if (mWSClient != null && mWSClient.isOpen()) {
@@ -191,7 +191,7 @@ public final class HttpEventManager extends AbstractEventManager {
             mStatus = Status.CLOSE;
         }
     }
-    
+
     /**
      * 再接続を試みる.
      */
@@ -199,7 +199,7 @@ public final class HttpEventManager extends AbstractEventManager {
         mStatus = Status.RETRYING;
         new Thread(new RetryProcess()).start();
     }
-    
+
     /**
      * WebSocketの接続を待つ.
      */
@@ -212,7 +212,7 @@ public final class HttpEventManager extends AbstractEventManager {
             }
         }
     }
-    
+
     @Override
     protected HttpResponse execute(final HttpUriRequest request) throws IOException {
         request.setHeader(DConnectMessage.HEADER_GOTAPI_ORIGIN, getOrigin());
@@ -226,15 +226,15 @@ public final class HttpEventManager extends AbstractEventManager {
 
     /**
      * Event受信用のWebSocketのクライアントクラス.
-     * 
+     *
      * @author NTT DOCOMO, INC.
-     * 
+     *
      */
     private class EventWebSocketClient extends WebSocketClient {
 
         /**
          * WebSocketクライアントを生成する.
-         * 
+         *
          * @param serverURI サーバーのURI
          */
         public EventWebSocketClient(final URI serverURI) {
@@ -263,9 +263,9 @@ public final class HttpEventManager extends AbstractEventManager {
 
         @Override
         public void onClose(final int code, final String reason, final boolean remote) {
-            
+
             synchronized (HttpEventManager.this) {
-                if (mStatus == Status.WAITING_OPEN 
+                if (mStatus == Status.WAITING_OPEN
                         || mStatus == Status.RETRYING) {
                     synchronized (mLock) {
                         mLock.notifyAll();
@@ -279,7 +279,7 @@ public final class HttpEventManager extends AbstractEventManager {
                         mCloseHandler.onClosed();
                     }
                 }
-                
+
                 if (mStatus != Status.RETRYING) {
                     mStatus = Status.CLOSE;
                 }
@@ -293,22 +293,22 @@ public final class HttpEventManager extends AbstractEventManager {
 
         /**
          * セッションキーを送信する.
-         * 
+         *
          * @param sessionKey セッションキー
          */
         public void sendSessionKey(final String sessionKey) {
-            send("{\"" + DConnectMessage.EXTRA_SESSION_KEY + "\":\"" + sessionKey + "\"}");                
+            send("{\"" + DConnectMessage.EXTRA_SESSION_KEY + "\":\"" + sessionKey + "\"}");
         }
     }
-    
+
     /**
      * リトライ処理をするランナブルクラス.
-     * 
+     *
      * @author NTT DOCOMO, INC.
      *
      */
     private class RetryProcess implements Runnable {
-        
+
         @Override
         public void run() {
             mLogger.fine("RetryProcess#run. Retrying...");
@@ -319,35 +319,35 @@ public final class HttpEventManager extends AbstractEventManager {
                     return;
                 }
             }
-            
+
             disconnect();
             if (mCloseHandler != null) {
                 mLogger.fine("RetryProcess#run. Failed to retry.");
                 mCloseHandler.onClosed();
             }
         }
-        
+
         /**
          * リトライ処理を実行する.
-         * 
+         *
          * @param wait 接続前の待ち時間。すぐに再接続を試みてもサーバーが落ちている可能性もあるので少し待つ。
          * @return 接続できたらtrue、失敗したらfalseを返す
          */
         private boolean retry(final long wait) {
-            
+
             try {
                 Thread.sleep(wait);
             } catch (InterruptedException e) {
                 mLogger.warning("RetryProcess#retry Interrupted. : " + e.getMessage());
             }
-            
+
             mWSClient = new EventWebSocketClient(mWSClient.getURI());
             mWSClient.connect();
             waitConnect();
             if (mWSClient.isOpen()) {
                 return true;
             }
-            
+
             return false;
         }
     }

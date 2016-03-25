@@ -55,8 +55,8 @@
     <string name="activity_settings_restart_device_plugin">Restart all the devices plug-ins</string>
     <string name="activity_settings_restart_device_plugin_title">Starting Device Plug-in</string>
     <string name="activity_settings_restart_device_plugin_message">Processing</string>
-    <string name="activity_settings_warning_require_origin_disabled">The below other settings will be turned OFF because these settings reffer origins of apps.\n\n%1\nIs it OK？</string>
-    <string name="activity_settings_warning_require_origin_enabled">The below other settings will be turned ON because this setting reffers origins of apps.\n\n%1\nIs it OK？</string>
+    <string name="activity_settings_warning_require_origin_disabled">The below other settings will be turned OFF because these settings reffer origins of apps.\n\n%1$s\nIs it OK？</string>
+    <string name="activity_settings_warning_require_origin_enabled">The below other settings will be turned ON because this setting reffers origins of apps.\n\n%1$s\nIs it OK？</string>
     <string name="activity_settings_warning">Warning</string>
     <string name="activity_settings_yes">Yes</string>
     <string name="activity_settings_no">No</string>
@@ -67,6 +67,10 @@
     <string name="activity_settings_web_server_default_host">localhost</string>
     <string name="activity_settings_web_server_default_port">8080</string>
     <string name="activity_settings_web_server_document_root">Document Root Path</string>
+    <string name="activity_settings_web_server_warning_title">Warning</string>
+    <string name="activity_settings_web_server_warning_message">Start the web server.\n\nIf you enable this feature you can access from the outside to the file in the SD card.\n\nDo you may be enabled?</string>
+    <string name="activity_settings_web_server_warning_positive">OK</string>
+    <string name="activity_settings_web_server_warning_negative">Cancel</string>
 
     <!-- ================= SharedPreferences ================= -->
 

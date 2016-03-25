@@ -44,6 +44,7 @@ public class UVCDeviceService extends DConnectMessageService
 
     @Override
     public void onDestroy() {
+        mDeviceMgr.removeDeviceListener(this);
         mDeviceMgr.stop();
         super.onDestroy();
     }
@@ -69,8 +70,8 @@ public class UVCDeviceService extends DConnectMessageService
     }
 
     @Override
-    public void onAttach(final UVCDevice device) {
-        if (device.initialize()) {
+    public void onFound(final UVCDevice device) {
+        if (device.connect()) {
             mLogger.severe("UVC device has been initialized: " + device.getName());
             if (!device.canPreview()) {
                 mLogger.info("UVC device CANNOT start preview: " + device.getName());
@@ -81,15 +82,5 @@ public class UVCDeviceService extends DConnectMessageService
         } else {
             mLogger.severe("UVC device COULD NOT be initialized: " + device.getName());
         }
-    }
-
-    @Override
-    public void onOpen(final UVCDevice device) {
-        // Nothing to do.
-    }
-
-    @Override
-    public void onClose(final UVCDevice device) {
-        // Nothing to do.
     }
 }

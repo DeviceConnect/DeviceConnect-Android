@@ -7,13 +7,6 @@
 
 package org.deviceconnect.android.deviceplugin.host.video;
 
-import java.io.File;
-
-import org.deviceconnect.android.activity.PermissionUtility;
-import org.deviceconnect.android.deviceplugin.host.BuildConfig;
-import org.deviceconnect.android.deviceplugin.host.R;
-import org.deviceconnect.android.provider.FileManager;
-
 import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -41,12 +34,25 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.Button;
 
+import org.deviceconnect.android.activity.PermissionUtility;
+import org.deviceconnect.android.deviceplugin.host.BuildConfig;
+import org.deviceconnect.android.deviceplugin.host.HostDeviceRecorder;
+import org.deviceconnect.android.deviceplugin.host.R;
+import org.deviceconnect.android.provider.FileManager;
+
+import java.io.File;
+import java.util.logging.Logger;
+
 /**
  * Video Recorder.
  * 
  * @author NTT DOCOMO, INC.
  */
-public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
+@SuppressWarnings("deprecation")
+public class VideoRecorderActivity extends Activity implements SurfaceHolder.Callback {
+
+    /** ロガー. */
+    private final Logger mLogger = Logger.getLogger("host.dplugin");
 
     /** MediaRecorder. */
     private MediaRecorder mMediaRecorder;
@@ -56,6 +62,9 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
 
     /** Camera. */
     private Camera mCamera;
+
+    /** Picture size. */
+    private HostDeviceRecorder.PictureSize mPictureSize;
 
     /** ファイル管理クラス. */
     private FileManager mFileMgr;
@@ -75,6 +84,9 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
 
     /** コールバック。 */
     private ResultReceiver mCallback;
+
+    /** 本アクティビティを起動したレコーダーID. */
+    private String mRecorderId;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -115,6 +127,12 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
             finish();
             return;
         }
+        mRecorderId = mIntent.getStringExtra(VideoConst.EXTRA_RECORDER_ID);
+        if (mRecorderId == null) {
+            finish();
+            return;
+        }
+        sendRecordingEvent();
 
         if (!mIsInitialized) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -157,17 +175,37 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
                             e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
                     mCallback.send(Activity.RESULT_CANCELED, data);
                     finish();
-                    return;
                 }
             }
         }
+    }
+
+    private void sendRecordingEvent() {
+        sendRecorderStateEvent(HostDeviceRecorder.RecorderState.RECORDING);
+    }
+
+    private void sendInactiveEvent() {
+        sendRecorderStateEvent(HostDeviceRecorder.RecorderState.INACTTIVE);
+    }
+
+    private void sendRecorderStateEvent(final HostDeviceRecorder.RecorderState state) {
+        mLogger.info("sendRecorderStateEvent: recorderId = " + mRecorderId
+            + ", state = " + state.name());
+        Intent intent = new Intent(VideoConst.SEND_VIDEO_TO_HOSTDP);
+        intent.putExtra(VideoConst.EXTRA_RECORDER_ID, mRecorderId);
+        intent.putExtra(VideoConst.EXTRA_VIDEO_RECORDER_STATE, state);
+        sendBroadcast(intent);
     }
 
     private void initVideoContext() {
         mFileMgr = new FileManager(this);
 
         mMediaRecorder = new MediaRecorder();
-        mCamera = getCameraInstance();
+
+        final int cameraId = mIntent.getIntExtra(VideoConst.EXTRA_CAMERA_ID, -1);
+        mPictureSize = mIntent.getParcelableExtra(VideoConst.EXTRA_PICTURE_SIZE);
+        mCamera = getCameraInstance(cameraId);
+        setRequestedPictureSize(mCamera);
         mCamera.unlock();
 
         mFileName = mIntent.getStringExtra(VideoConst.EXTRA_FILE_NAME);
@@ -179,7 +217,11 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
             mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
             mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
             mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mMediaRecorder.setVideoSize(mPictureSize.getWidth(), mPictureSize.getHeight());
             mMediaRecorder.setOutputFile(mFile.toString());
+
+            mLogger.info("VideoRecorderActivity: width = " + mPictureSize.getWidth()
+                + ", height = " + mPictureSize.getHeight());
         } else {
             Bundle data = new Bundle();
             data.putString(VideoConst.EXTRA_CALLBACK_ERROR_MESSAGE, "File name must be specified.");
@@ -189,6 +231,15 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
         }
 
         mIsInitialized = true;
+    }
+
+    private void setRequestedPictureSize(final Camera camera) {
+        HostDeviceRecorder.PictureSize currentSize = mPictureSize;
+        if (camera != null && currentSize != null) {
+            Camera.Parameters params = camera.getParameters();
+            params.setPictureSize(currentSize.getWidth(), currentSize.getHeight());
+            camera.setParameters(params);
+        }
     }
 
     @Override
@@ -219,6 +270,8 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
             values.put(Video.Media.DATA, mFile.toString());
             resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
         }
+
+        sendInactiveEvent();
     }
 
     /**
@@ -247,11 +300,12 @@ public class VideoRecorder extends Activity implements SurfaceHolder.Callback {
 
     /**
      * Cameraのインスタンスを取得.
-     * 
-     * @return cameraのインスタンス
+     *
+     * @return Camera ID.
+     * @return Cameraのインスタンス
      */
-    private synchronized Camera getCameraInstance() {
-        return Camera.open();
+    private synchronized Camera getCameraInstance(final int cameraId) {
+        return Camera.open(cameraId);
     }
 
     /**

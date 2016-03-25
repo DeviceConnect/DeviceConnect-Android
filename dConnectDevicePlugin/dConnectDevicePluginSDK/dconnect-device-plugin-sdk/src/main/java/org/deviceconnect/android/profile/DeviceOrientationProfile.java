@@ -16,14 +16,14 @@ import android.os.Bundle;
  * Device Orientation プロファイル.
  * 
  * <p>
- * スマートデバイスのセンサー操作機能を提供するAPI.<br/>
- * センサー操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br/>
+ * スマートデバイスのセンサー操作機能を提供するAPI.<br>
+ * センサー操作機能を提供するデバイスプラグインは当クラスを継承し、対応APIを実装すること。 <br>
  * </p>
  * 
  * <h1>各API提供メソッド</h1>
  * <p>
- * Device Orientation Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br/>
- * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br/>
+ * Device Orientation Profile の各APIへのリクエストに対し、以下のコールバックメソッド群が自動的に呼び出される。<br>
+ * サブクラスは以下のメソッド群からデバイスプラグインが提供するAPI用のメソッドをオーバーライドし、機能を実装すること。<br>
  * オーバーライドされていない機能は自動的に非対応APIとしてレスポンスを返す。
  * </p>
  * <ul>
@@ -88,7 +88,7 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
     // ------------------------------------
 
     /**
-     * ondeviceorientation属性取得リクエストハンドラー.<br/>
+     * ondeviceorientation属性取得リクエストハンドラー.<br>
      * スマートフォンまたは周辺機器上の加速度センサーなどのデータを取得し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -108,7 +108,7 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
     // ------------------------------------
 
     /**
-     * ondeviceorientationコールバック登録リクエストハンドラー.<br/>
+     * ondeviceorientationコールバック登録リクエストハンドラー.<br>
      * ondeviceorientationコールバックを登録し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
@@ -130,7 +130,7 @@ public class DeviceOrientationProfile extends DConnectProfile implements DeviceO
     // ------------------------------------
 
     /**
-     * ondeviceorientationコールバック解除リクエストハンドラー.<br/>
+     * ondeviceorientationコールバック解除リクエストハンドラー.<br>
      * ondeviceorientationコールバックを解除し、その結果をレスポンスパラメータに格納する。
      * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。
      * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。

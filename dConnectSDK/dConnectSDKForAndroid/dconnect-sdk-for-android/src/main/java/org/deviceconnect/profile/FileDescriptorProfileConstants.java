@@ -8,9 +8,9 @@ package org.deviceconnect.profile;
 
 
 /**
- * File Descriptor Profile API 定数群.<br/>
+ * File Descriptor Profile API 定数群.<br>
  * File Descriptor Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public interface FileDescriptorProfileConstants extends DConnectProfileConstants {
@@ -114,51 +114,51 @@ public interface FileDescriptorProfileConstants extends DConnectProfileConstants
      * パラメータ: {@value} .
      */
     String PARAM_FILE_DATA = "fileData";
-    
-    /** 
+
+    /**
      * パラメータ: {@value} .
      */
     String PARAM_PATH = "path";
-    
-    /** 
+
+    /**
      * パラメータ: {@value} .
      */
     String PARAM_MEDIA = "media";
-    
+
     /**
      * ファイルフラグ.
      */
     enum Flag {
-        /** 
-         * 未定義値. 
+        /**
+         * 未定義値.
          */
         UNKNOWN("Unknown"),
-        /** 
+        /**
          * 読み込みのみ.
          */
         R("r"),
-        /** 
-         * 読み込み書き込み. 
+        /**
+         * 読み込み書き込み.
          */
         RW("rw");
-        
-        /** 
+
+        /**
          * 定義値.
          */
         private String mValue;
-        
+
         /**
          * 指定された文字列を定義する列挙値を生成する.
-         * 
+         *
          * @param value 定義値
          */
         private Flag(final String value) {
             mValue = value;
         }
-        
+
         /**
          * 定義値を取得する.
-         * 
+         *
          * @return 定義値
          */
         public String getValue() {
@@ -167,7 +167,7 @@ public interface FileDescriptorProfileConstants extends DConnectProfileConstants
 
         /**
          * 定義値から定数を取得する.
-         * 
+         *
          * @param value 定義値
          * @return 定数。無い場合はnullを返す。
          */

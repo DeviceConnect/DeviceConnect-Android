@@ -8,7 +8,6 @@ import org.deviceconnect.android.deviceplugin.alljoyn.AllJoynServiceEntity;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,8 +36,7 @@ public class AllJoynServiceDiscoveryProfile extends ServiceDiscoveryProfile {
             ServiceDiscoveryProfile.setName(service, serviceEntity.serviceName);
             ServiceDiscoveryProfile.setScopes(service, getProfileProvider());
             ServiceDiscoveryProfile.setOnline(service, true);
-            // TODO: AllJoynリモートオブジェクトのトランスポート情報を取得できるか調査。
-            //ServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
+            ServiceDiscoveryProfile.setType(service, NetworkType.WIFI);
             services.add(service);
         }
         setServices(response, services);

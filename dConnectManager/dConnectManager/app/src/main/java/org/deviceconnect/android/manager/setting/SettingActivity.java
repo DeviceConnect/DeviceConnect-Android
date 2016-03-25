@@ -18,7 +18,7 @@ import org.deviceconnect.android.manager.R;
  * Device Connect Manager設定管理用Activity.
  * @author NTT DOCOMO, INC.
  */
-public class SettingActivity extends Activity {
+public class SettingActivity extends Activity implements AlertDialogFragment.OnAlertDialogListener {
 
     /**
      * {@inheritDoc}
@@ -38,11 +38,17 @@ public class SettingActivity extends Activity {
         startService(i2);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    public void onPositiveButton(final String tag) {
+        SettingsFragment f = (SettingsFragment) getFragmentManager()
+                .findFragmentById(R.id.activity_settings_category_fragment);
+        f.onPositiveButton(tag);
+    }
+
+    @Override
+    public void onNegativeButton(final String tag) {
+        SettingsFragment f = (SettingsFragment) getFragmentManager()
+                .findFragmentById(R.id.activity_settings_category_fragment);
+        f.onNegativeButton(tag);
     }
 }

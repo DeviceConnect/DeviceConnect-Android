@@ -456,7 +456,7 @@ public enum HVCManager {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Set threshold cmd:" + cmdThreshold.toString());
         }
-        sendCommand(cmdThreshold.toString(), new Long(1));
+        sendCommand(cmdThreshold.toString(), new Long(100));
 
     }
 
@@ -511,7 +511,7 @@ public enum HVCManager {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Set size cmd:" + cmdThreshold.toString());
         }
-        sendCommand(cmdThreshold.toString(), new Long(1));
+        sendCommand(cmdThreshold.toString(), new Long(50));
 
     }
     /**
@@ -559,6 +559,8 @@ public enum HVCManager {
      * Start USB binary read thread.
      */
     private synchronized void startReadThread(final String stCommand, final Long interval) {
+        mTimer.removeCallbacksAndMessages(null);
+
         mTimer.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -567,78 +569,78 @@ public enum HVCManager {
                     int num = mUsbDriver.read(buf, buf.length);
 
                     if (num > 0) {
-                            int buf_pos = 0;
-                            for (int i = 0; i + buf_pos < num; i++) {
-                                //if(i!=0 && (i%62)==0)buf0_pos+=2;
-                                buf[i] = buf[i + buf_pos];
-                                if (((i + 63) % 62) == 0) {
-                                    buf_pos += 2;
+                        int buf_pos = 0;
+                        for (int i = 0; i + buf_pos < num; i++) {
+                            //if(i!=0 && (i%62)==0)buf0_pos+=2;
+                            buf[i] = buf[i + buf_pos];
+                            if (((i + 63) % 62) == 0) {
+                                buf_pos += 2;
+                            }
+                        }
+                        num -= buf_pos;
+                        num += 2;
+                    }
+                    for (String key : mServices.keySet()) {
+                        HVCCameraInfo camera = mServices.get(key);
+                        if (mType == CMD_OKAO_EXECUTE) {
+                            if (buf[0] == (byte) 0xfe) {
+                                OkaoResult result = parseOkaoResult(buf);
+                                if (camera.getBodyEvent() != null) {
+                                    camera.getBodyEvent().onNotifyForBodyDetectResult(key, result);
+                                }
+
+                                if (camera.getHandEvent() != null) {
+                                    camera.getHandEvent().onNotifyForHandDetectResult(key, result);
+                                }
+
+                                if (camera.getFaceEvent() != null) {
+                                    camera.getFaceEvent().onNotifyForFaceDetectResult(key, result);
+                                }
+
+                                if (camera.getBodyGet() != null) {
+                                    camera.getBodyGet().onResponse(key, result);
+                                    camera.setBodyGet(null);
+                                    mOneShotList.remove(key);
+                                }
+                                if (camera.getHandGet() != null) {
+                                    camera.getHandGet().onResponse(key, result);
+                                    camera.setHandGet(null);
+                                    mOneShotList.remove(key);
+                                }
+                                if (camera.getFaceGet() != null) {
+                                    camera.getFaceGet().onResponse(key, result);
+                                    camera.setFaceGet(null);
+                                    mOneShotList.remove(key);
                                 }
                             }
-                            num -= buf_pos;
-                            num += 2;
-                        }
-                        for (String key : mServices.keySet()) {
-                            HVCCameraInfo camera = mServices.get(key);
-                                if (mType == CMD_OKAO_EXECUTE) {
-                                    if (buf[0] == (byte) 0xfe) {
-                                        OkaoResult result = parseOkaoResult(buf);
-                                        if (camera.getBodyEvent() != null) {
-                                            camera.getBodyEvent().onNotifyForBodyDetectResult(key, result);
-                                        }
-
-                                        if (camera.getHandEvent() != null) {
-                                            camera.getHandEvent().onNotifyForHandDetectResult(key, result);
-                                        }
-
-                                        if (camera.getFaceEvent() != null) {
-                                            camera.getFaceEvent().onNotifyForFaceDetectResult(key, result);
-                                        }
-
-                                        if (camera.getBodyGet() != null) {
-                                            camera.getBodyGet().onResponse(key, result);
-                                            camera.setBodyGet(null);
-                                            mOneShotList.remove(key);
-                                        }
-                                        if (camera.getHandGet() != null) {
-                                            camera.getHandGet().onResponse(key, result);
-                                            camera.setHandGet(null);
-                                            mOneShotList.remove(key);
-                                        }
-                                        if (camera.getFaceGet() != null) {
-                                            camera.getFaceGet().onResponse(key, result);
-                                            camera.setFaceGet(null);
-                                            mOneShotList.remove(key);
-                                        }
-                                    }
-                                } else if (mType == CMD_SET_THRESHOLD) {
-                                    if (buf[0] == (byte) 0xfe && camera.getThresholdSet() != null) {
-                                        camera.getThresholdSet().onResponse(buf[1]);
-                                        camera.setThresholdSet(null);
-                                        mOneShotList.remove(key);
-                                        if (BuildConfig.DEBUG) {
-                                            Log.d(TAG, "SET Threshold response");
-                                        }
-                                    } else {
-                                        if (BuildConfig.DEBUG) {
-                                            Log.d(TAG, "SET Threshold no response");
-                                        }
-                                    }
-                                } else if (mType == CMD_SET_SIZE) {
-                                    if (buf[0] == (byte) 0xfe && camera.getSizeSet() != null) {
-                                        camera.getSizeSet().onResponse(buf[1]);
-                                        camera.setSizeSet(null);
-                                        mOneShotList.remove(key);
-                                        if (BuildConfig.DEBUG) {
-                                            Log.d(TAG, "SET size  response");
-                                        }
-                                    } else {
-                                        if (BuildConfig.DEBUG) {
-                                            Log.d(TAG, "SET size no response");
-                                        }
-                                    }
+                        } else if (mType == CMD_SET_THRESHOLD) {
+                            if (buf[0] == (byte) 0xfe && camera.getThresholdSet() != null) {
+                                camera.getThresholdSet().onResponse(buf[1]);
+                                camera.setThresholdSet(null);
+                                mOneShotList.remove(key);
+                                if (BuildConfig.DEBUG) {
+                                    Log.d(TAG, "SET Threshold response");
                                 }
+                            } else {
+                                if (BuildConfig.DEBUG) {
+                                    Log.d(TAG, "SET Threshold no response");
+                                }
+                            }
+                        } else if (mType == CMD_SET_SIZE) {
+                            if (buf[0] == (byte) 0xfe && camera.getSizeSet() != null) {
+                                camera.getSizeSet().onResponse(buf[1]);
+                                camera.setSizeSet(null);
+                                mOneShotList.remove(key);
+                                if (BuildConfig.DEBUG) {
+                                    Log.d(TAG, "SET size  response");
+                                }
+                            } else {
+                                if (BuildConfig.DEBUG) {
+                                    Log.d(TAG, "SET size no response");
+                                }
+                            }
                         }
+                    }
                 } catch (IOException e) {
                     if (BuildConfig.DEBUG) {
                         e.printStackTrace();
@@ -662,7 +664,7 @@ public enum HVCManager {
                             return;
                         }
                     }
-                    mTimer.postDelayed(this, interval.longValue());
+                    mTimer.postDelayed(this, mNowInterval.longValue());
                 }
             }
         }, interval.longValue());

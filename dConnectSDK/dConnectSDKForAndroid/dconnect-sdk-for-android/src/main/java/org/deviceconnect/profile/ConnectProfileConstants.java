@@ -7,9 +7,9 @@
 package org.deviceconnect.profile;
 
 /**
- * Connect Profile API 定数群.<br/>
+ * Connect Profile API 定数群.<br>
  * Connect Profile API のパラメータ名、インタフェース名、属性名、プロファイル名を定義する。
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public interface ConnectProfileConstants extends DConnectProfileConstants {
@@ -83,7 +83,7 @@ public interface ConnectProfileConstants extends DConnectProfileConstants {
      * パス: {@value}.
      */
     String PATH_ON_WIFI_CHANGE = PATH_PROFILE + SEPARATOR + ATTRIBUTE_ON_WIFI_CHANGE;
-    
+
     /**
      * パス: {@value}.
      */

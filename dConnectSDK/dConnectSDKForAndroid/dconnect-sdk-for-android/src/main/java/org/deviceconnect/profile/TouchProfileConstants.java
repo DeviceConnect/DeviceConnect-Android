@@ -7,10 +7,10 @@
 package org.deviceconnect.profile;
 
 /**
- * Constants for Touch Profile API.<br/>
+ * Constants for Touch Profile API.<br>
  * Define parameter name, interface name, attribute and profile name for touch
  * profile API.
- * 
+ *
  * @author NTT DOCOMO, INC.
  */
 public interface TouchProfileConstants extends DConnectProfileConstants {

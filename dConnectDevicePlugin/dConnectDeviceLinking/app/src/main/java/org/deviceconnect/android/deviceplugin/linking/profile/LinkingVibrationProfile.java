@@ -57,7 +57,7 @@ public class LinkingVibrationProfile extends VibrationProfile {
             return null;
         }
         if (!LinkingUtil.hasVibration(device)) {
-            MessageUtils.setIllegalDeviceStateError(response, "device has not vibration");
+            MessageUtils.setNotSupportProfileError(response, "device has not vibration");
             return null;
         }
         return device;

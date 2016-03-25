@@ -44,7 +44,11 @@ public class VideoChatProfile extends DConnectProfile implements VideoChatProfil
             String addressId = request.getStringExtra(PARAM_ADDRESSID);
             String video = request.getStringExtra(PARAM_VIDEO);
             String audio = request.getStringExtra(PARAM_AUDIO);
+            String outputs = request.getStringExtra(PARAM_OUTPUTS);
             String config = request.getStringExtra(PARAM_CONFIG);
+            String audioSampleRate = request.getStringExtra(PARAM_AUDIOSAMPLERATE);
+            String audioBitDepth = request.getStringExtra(PARAM_AUDIOBITDEPTH);
+            String audioChannel = request.getStringExtra(PARAM_AUDIOCHANNEL);
             result = onPostCall(request, response);
         } else {
             MessageUtils.setUnknownAttributeError(response);

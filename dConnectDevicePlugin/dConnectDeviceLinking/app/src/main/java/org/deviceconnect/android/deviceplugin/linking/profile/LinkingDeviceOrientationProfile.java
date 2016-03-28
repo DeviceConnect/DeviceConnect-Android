@@ -155,7 +155,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
             return null;
         }
         if (!LinkingUtil.hasSensor(device)) {
-            MessageUtils.setIllegalDeviceStateError(response, "device has not sensor");
+            MessageUtils.setNotSupportProfileError(response, "device has not sensor");
             return null;
         }
         return device;

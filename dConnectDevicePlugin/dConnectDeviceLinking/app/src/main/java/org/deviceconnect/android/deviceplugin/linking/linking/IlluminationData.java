@@ -6,8 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.linking;
 
-import android.util.Log;
-
 import org.deviceconnect.android.deviceplugin.linking.util.ByteUtil;
 
 public class IlluminationData {
@@ -83,8 +81,6 @@ public class IlluminationData {
         Setting color = new Setting();
         makeSetting(color, illuminance, index, false);
         this.mColor = color;
-
-        Log.i("LinkingTester", "done.");
     }
 
     private int makeSetting(Setting setting, byte[] source, int offset, boolean isChild) {

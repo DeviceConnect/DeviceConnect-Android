@@ -77,7 +77,7 @@ People who want to develop the DeviceConnectManager and device Plug-ins, please 
 * [HVC-P](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/HVCPDevice-Build)
 * [IRKit](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/IRKit-Build)
 * [Kadecot](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Kadecot-Build)
-* [Linking](https://github.com/TakayukiHoshi1984/DeviceConnect-Android/wiki/Linking-Build)
+* [Linking](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Linking-Build)
 * [Pebble](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/Pebble-Build)
 * [SonyCamera](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonyCamera-Build)
 * [SonySW](https://github.com/DeviceConnect/DeviceConnect-Android/wiki/SonySW-Build)

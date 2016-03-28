@@ -41,7 +41,7 @@ import jp.co.omron.hvcw.FileInfo;
 import jp.co.omron.hvcw.HvcwApi;
 import jp.co.omron.hvcw.Int;
 import jp.co.omron.hvcw.OkaoResult;
-import jp.co.omron.hvcw.ResultAeg;
+import jp.co.omron.hvcw.ResultAge;
 import jp.co.omron.hvcw.ResultDetection;
 import jp.co.omron.hvcw.ResultDirection;
 import jp.co.omron.hvcw.ResultFace;
@@ -857,7 +857,7 @@ public enum HVCManager {
                         rd.getLR(),
                         rd.getUD(),
                         rd.getRoll()));
-                ResultAeg ra = rf[i].getAge();
+                ResultAge ra = rf[i].getAge();
                 sb.append(String.format("\nface[%d] age=%d,confidence=%d", i,
                         ra.getAge(),
                         ra.getConfidence()));

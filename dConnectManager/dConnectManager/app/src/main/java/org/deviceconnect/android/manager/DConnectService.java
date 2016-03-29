@@ -16,7 +16,6 @@ import android.os.RemoteException;
 
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.message.DConnectMessage;
-
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
 import org.deviceconnect.server.nanohttpd.DConnectServerNanoHttpd;
@@ -25,6 +24,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * dConnect Manager本体.
@@ -46,6 +47,9 @@ public class DConnectService extends DConnectMessageService {
 
     /** RESTfulサーバからのイベントを受領するリスナー. */
     private DConnectServerEventListenerImpl mWebServerListener;
+
+    /** イベント送信スレッド. */
+    private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -81,20 +85,26 @@ public class DConnectService extends DConnectMessageService {
     @Override
     public void sendEvent(final String receiver, final Intent event) {
         if (receiver == null || receiver.length() <= 0) {
-            String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
-            try {
-                if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
-                    if (BuildConfig.DEBUG) {
-                        mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
+            final String key = event.getStringExtra(DConnectMessage.EXTRA_SESSION_KEY);
+            if (key != null && mRESTfulServer != null && mRESTfulServer.isRunning()) {
+                mEventSender.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            if (BuildConfig.DEBUG) {
+                                mLogger.info(String.format("sendEvent: %s extra: %s", key, event.getExtras()));
+                            }
+                            JSONObject root = new JSONObject();
+                            DConnectUtil.convertBundleToJSON(root, event.getExtras());
+
+                            mRESTfulServer.sendEvent(key, root.toString());
+                        } catch (JSONException e) {
+                            mLogger.warning("JSONException in sendEvent: " + e.toString());
+                        } catch (IOException e) {
+                            mLogger.warning("IOException in sendEvent: " + e.toString());
+                        }
                     }
-                    JSONObject root = new JSONObject();
-                    DConnectUtil.convertBundleToJSON(root, event.getExtras());
-                    mRESTfulServer.sendEvent(key, root.toString());
-                }
-            } catch (JSONException e) {
-                mLogger.warning("JSONException in sendEvent: " + e.toString());
-            } catch (IOException e) {
-                mLogger.warning("IOException in sendEvent: " + e.toString());
+                });
             }
         } else {
             super.sendEvent(receiver, event);

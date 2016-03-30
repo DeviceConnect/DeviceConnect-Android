@@ -64,7 +64,7 @@ public class WearCanvasProfile extends CanvasProfile {
             });
             return false;
         } else {
-            return drawImage(request, data, x, y, mode);
+            return drawImage(response, data, x, y, mode);
         }
     }
 

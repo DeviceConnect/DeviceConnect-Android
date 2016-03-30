@@ -9,12 +9,15 @@ package org.deviceconnect.android.deviceplugin.host.camera;
 
 import android.Manifest;
 import android.content.Context;
+import android.hardware.Camera;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.provider.FileManager;
+
+import java.util.List;
 
 /**
  * Host Device Photo Recorder.
@@ -40,6 +43,12 @@ public class HostDevicePhotoRecorder extends HostDeviceCameraRecorder {
 
     private static String createName(final CameraFacing facing) {
         return NAME_BASE + " - " + facing.getName();
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    protected List<Camera.Size> getSupportedSizes(final Camera.Parameters params) {
+        return params.getSupportedPictureSizes();
     }
 
     @Override

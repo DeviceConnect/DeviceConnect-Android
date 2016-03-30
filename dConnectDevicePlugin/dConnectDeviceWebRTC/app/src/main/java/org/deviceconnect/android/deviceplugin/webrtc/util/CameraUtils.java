@@ -98,10 +98,7 @@ public final class CameraUtils {
      * Gets the default CameraFormat by id.
      * @return default CameraFormat
      */
-    private static CameraFormat getDefaultFormat(final int id) {
-        final int width = 640;
-        final int height = 480;
-
+    private static CameraFormat getDefaultFormat(final int id, final int width, final int height) {
         CameraFormat selectCameraFormat = null;
         int dist = Integer.MAX_VALUE;
 
@@ -125,10 +122,20 @@ public final class CameraUtils {
      * @return default CameraFormat
      */
     public static CameraFormat getDefaultFormat() {
+        return getDefaultFormat(320, 240);
+    }
+
+    /**
+     * Gets the default CameraFormat.
+     * @param width width of camera
+     * @param height height of camera
+     * @return default CameraFormat
+     */
+    public static CameraFormat getDefaultFormat(int width, int height) {
         if (hasFrontFacingDevice()) {
-            return getDefaultFormat(Camera.CameraInfo.CAMERA_FACING_FRONT);
+            return getDefaultFormat(Camera.CameraInfo.CAMERA_FACING_FRONT, width, height);
         } else {
-            return getDefaultFormat(Camera.CameraInfo.CAMERA_FACING_BACK);
+            return getDefaultFormat(Camera.CameraInfo.CAMERA_FACING_BACK, width, height);
         }
     }
 

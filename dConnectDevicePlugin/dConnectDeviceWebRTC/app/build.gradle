@@ -38,10 +38,8 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':dconnect-device-plugin-sdk')
+    compile project(':dconnect-server-nano-httpd')
     compile 'com.koushikdutta.async:androidasync:2.+'
-    compile 'org.apache.httpcomponents:httpmime:4.5'
-    compile 'org.apache.httpcomponents:httpcore:4.4.1'
-    compile 'org.apache.james:apache-mime4j-core:0.7.2'
     compile 'org.msgpack:msgpack-core:0.7.0-p7'
     compile 'com.google.code.gson:gson:2.3.1'
     compile (name:'webrtc',ext:'aar')

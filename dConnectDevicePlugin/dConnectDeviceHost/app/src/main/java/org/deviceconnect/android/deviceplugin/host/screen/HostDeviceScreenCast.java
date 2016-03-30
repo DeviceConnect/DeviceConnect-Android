@@ -93,9 +93,10 @@ public class HostDeviceScreenCast implements HostDeviceRecorder, HostDevicePrevi
         mManager = (MediaProjectionManager) context.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-        mPreviewSize = new PictureSize(metrics.widthPixels, metrics.heightPixels);
+        PictureSize size = new PictureSize(metrics.widthPixels, metrics.heightPixels);
         mDisplayDensityDpi = metrics.densityDpi;
-        initSupportedPreviewSizes(mPreviewSize);
+        initSupportedPreviewSizes(size);
+        mPreviewSize = mSupportedPreviewSizes.get(0);
 
         mMaxFps = DEFAULT_MAX_FPS;
         setPreviewFrameRate(mMaxFps);

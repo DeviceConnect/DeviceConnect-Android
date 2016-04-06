@@ -393,6 +393,7 @@ public class WebRTCController {
         private int mVideoHeight = DEFAULT_HEIGHT;
         private int mVideoFps = DEFAULT_FPS;
         private int mVideoFacing = Camera.CameraInfo.CAMERA_FACING_FRONT;
+        private boolean mIsLandscape = false;
 
         private PeerOption.VideoType mVideoType = PeerOption.VideoType.CAMERA;
         private PeerOption.AudioType mAudioType;
@@ -535,6 +536,11 @@ public class WebRTCController {
             return this;
         }
 
+        public Builder setLandscape(final boolean isLandscape) {
+            mIsLandscape = isLandscape;
+            return this;
+        }
+
         public Builder setWebRTCEventListener(final WebRTCEventListener listener) {
             mWebRTCEventListener = listener;
             return this;
@@ -567,6 +573,12 @@ public class WebRTCController {
 
             if (mAddressId == null) {
                 throw new IllegalArgumentException("addressId is not set.");
+            }
+
+            if (mIsLandscape) {
+                int tmp = mVideoWidth;
+                mVideoWidth = mVideoHeight;
+                mVideoHeight = tmp;
             }
 
             switch (mVideoType) {

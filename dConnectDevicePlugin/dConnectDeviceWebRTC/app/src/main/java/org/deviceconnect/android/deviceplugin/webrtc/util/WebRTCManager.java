@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Handler;
@@ -133,6 +134,7 @@ public class WebRTCManager {
         builder.setAudioSampleRate(audioSampleRateValue);
         builder.setAudioBitDepth(audioBitDepth);
         builder.setAudioChannel(audioChannel);
+        builder.setLandscape(isLandscape());
         builder.create();
 
         Point size = getDisplaySize();
@@ -159,6 +161,10 @@ public class WebRTCManager {
 
         localRender.requestLayout();
         remoteRender.requestLayout();
+    }
+
+    private boolean isLandscape() {
+        return (mApplication.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE);
     }
 
     /**

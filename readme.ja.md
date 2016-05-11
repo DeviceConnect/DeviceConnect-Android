@@ -94,15 +94,15 @@ adbコマンドにつきましては、Android SDKを確認してください。
 
 # <a name="section3">DeviceConnectManagerの起動</a>
  DeviceConnectManagerのアイコンをタップしてください。
- <center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image35.png" target="_blank">
-<img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image35.png" border="0"
+ <center><a href="./assets/icon.png" target="_blank">
+<img src="./assets/icon.png" border="0"
   width="200" height="200" alt="" /></a><br></center>
 
 DeviceConnectManagerの欄をONにすることによって、起動することができます。
 
-<center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image39.png" target="_blank">
-<img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image39.png" border="0"
- width="410" height="146" alt="" /></a></center>
+<center><a href="./assets/manager_setting_ja.png" target="_blank">
+<img src="./assets/manager_setting_ja.png" border="0"
+ width="320" height="550" alt="" /></a></center>
 
 # <a name="section4">動作確認</a>
 

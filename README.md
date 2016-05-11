@@ -101,15 +101,15 @@ With regard to the adb command, please make sure the Android SDK.
 
 # <a name="section3">Start of DeviceConnectManager</a>
  Please tap the DeviceConnectManager icon.
- <center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image35.png" >
-<img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image35.png" border="0"
+ <center><a href="./assets/icon.png" target="_blank">
+<img src="./assets/icon.png" border="0"
   width="200" height="200" alt="" /></a><br></center>
 
 By making it ON the field of DeviceConnectManager, you can start.
 
-<center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image39.png" target="_blank">
-<img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/DevicePluginManual/image39.png" border="0"
- width="410" height="146" alt="" /></a></center>
+<center><a href="./assets/manager_setting_ja.png" target="_blank">
+<img src="./assets/manager_setting_en.png" border="0"
+ width="320" height="550" alt="" /></a></center>
 
 # <a name="section4">Operation check</a>
 
@@ -117,8 +117,8 @@ The address of the Chrome browser, "http://localhost:4035/gotapi/availability" P
 If Kore response is returned in the following, such as JSON, I can confirm that DeviceConnect is running.<br>
 <br>
 
- <center><a href="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/imageX.PNG" target="_blank">
-<img src="https://raw.githubusercontent.com/wiki/DeviceConnect/DeviceConnect-Android/imageX.PNG" border="0"
+<center><a href="./assets/availability.png" target="_blank">
+<img src="./assets/availability.png" border="0"
  width="320" height="550" alt="" /></a></center>
 
  Request

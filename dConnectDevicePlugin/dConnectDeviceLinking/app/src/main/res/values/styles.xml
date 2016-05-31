@@ -11,4 +11,7 @@
         <item name="android:windowIsTranslucent">true</item>
     </style>
 
+    <style name="MyCustomTabLayout" parent="Widget.Design.TabLayout">
+        <item name="tabIndicatorColor">#FF4081</item>
+    </style>
 </resources>

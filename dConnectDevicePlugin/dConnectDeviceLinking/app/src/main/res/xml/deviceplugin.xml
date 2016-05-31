@@ -18,5 +18,6 @@
     <profile name="notification"></profile>
     <profile name="proximity"></profile>
     <profile name="vibration"></profile>
+    <profile name="keyevent"></profile>
 
 </deviceplugin-provider>

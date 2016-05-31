@@ -1,0 +1,158 @@
+/*
+ org.deviceconnect.android.deviceplugin.linking
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
+package org.deviceconnect.android.deviceplugin.linking.setting;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
+
+import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
+import org.deviceconnect.android.deviceplugin.linking.setting.fragment.LinkingHelpFragment;
+
+public class LinkingHelpActivity extends AppCompatActivity {
+
+    public static final String EXTRA_SCREEN_ID = "screenId";
+
+    private static final int[][] HELP_RES_ID = {
+            {
+                    R.layout.fragment_help_1,
+                    R.layout.fragment_help_2,
+                    R.layout.fragment_help_3,
+                    R.layout.fragment_help_4,
+                    R.layout.fragment_help_5,
+                    R.layout.fragment_help_6,
+            },
+            {
+                    R.layout.fragment_help_7,
+                    R.layout.fragment_help_4,
+                    R.layout.fragment_help_5,
+                    R.layout.fragment_help_6,
+            }
+    };
+
+    private int mScreenId;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_help);
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            Bundle args = intent.getExtras();
+            if (args != null) {
+                mScreenId = args.getInt(EXTRA_SCREEN_ID);
+            }
+        }
+
+        FragmentManager manager = getSupportFragmentManager();
+        final ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
+        if (viewPager != null) {
+            viewPager.setAdapter(new MyFragmentPagerAdapter(manager));
+            viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                }
+                @Override
+                public void onPageSelected(int position) {
+                    set();
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+                }
+            });
+        }
+
+        Button linkingAppBtn = (Button) findViewById(R.id.fragment_linking_app);
+        if (linkingAppBtn != null) {
+            linkingAppBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LinkingUtil.startLinakingApp(getApplicationContext());
+                }
+            });
+        }
+
+        Button nextBtn = (Button) findViewById(R.id.fragment_linking_help_next);
+        if (nextBtn != null) {
+            nextBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (viewPager != null) {
+                        int pos = viewPager.getCurrentItem() + 1;
+                        if (pos > HELP_RES_ID[mScreenId].length - 1) {
+                            pos = HELP_RES_ID[mScreenId].length - 1;
+                        }
+                        viewPager.setCurrentItem(pos);
+                    }
+                }
+            });
+        }
+
+        Button preBtn = (Button) findViewById(R.id.fragment_linking_help_pre);
+        if (preBtn != null) {
+            preBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (viewPager != null) {
+                        int pos = viewPager.getCurrentItem() - 1;
+                        if (pos < 0) {
+                            pos = 0;
+                        }
+                        viewPager.setCurrentItem(pos);
+                    }
+                }
+            });
+        }
+
+        set();
+    }
+
+    private void set() {
+        Button nextBtn = (Button) findViewById(R.id.fragment_linking_help_next);
+        Button preBtn = (Button) findViewById(R.id.fragment_linking_help_pre);
+        ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
+        if (viewPager != null && nextBtn != null && preBtn != null) {
+            int position = viewPager.getCurrentItem();
+            if (position == 0) {
+                preBtn.setVisibility(View.GONE);
+            } else {
+                preBtn.setVisibility(View.VISIBLE);
+            }
+            if (position == HELP_RES_ID[mScreenId].length - 1) {
+                nextBtn.setVisibility(View.GONE);
+            } else {
+                nextBtn.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    private class MyFragmentPagerAdapter extends FragmentPagerAdapter {
+        public MyFragmentPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return LinkingHelpFragment.newInstance(HELP_RES_ID[mScreenId][position]);
+        }
+
+        @Override
+        public int getCount() {
+            return HELP_RES_ID[mScreenId].length;
+        }
+    }
+}

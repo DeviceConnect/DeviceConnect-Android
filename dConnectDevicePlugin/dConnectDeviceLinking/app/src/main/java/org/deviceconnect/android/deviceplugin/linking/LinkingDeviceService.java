@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.linking;
 
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingDeviceOrientationProfile;
+import org.deviceconnect.android.deviceplugin.linking.profile.LinkingKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingLightProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingNotificationProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingProximityProfile;
@@ -37,6 +38,7 @@ public class LinkingDeviceService extends DConnectMessageService {
         addProfile(new LinkingVibrationProfile());
         addProfile(new LinkingNotificationProfile());
         addProfile(new LinkingProximityProfile());
+        addProfile(new LinkingKeyEventProfile());
     }
 
     @Override

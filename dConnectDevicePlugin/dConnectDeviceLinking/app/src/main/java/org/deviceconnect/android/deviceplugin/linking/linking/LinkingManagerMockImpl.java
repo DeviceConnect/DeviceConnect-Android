@@ -176,6 +176,11 @@ public class LinkingManagerMockImpl implements LinkingManager {
     }
 
     @Override
+    public void setKeyEventListener(KeyEventListener listener) {
+
+    }
+
+    @Override
     public synchronized void setSensorListener(LinkingDevice device, SensorListener listener) {
         mSensorListener = listener;
         if (listener == null && mSensorService != null) {

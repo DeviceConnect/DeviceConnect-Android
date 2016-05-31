@@ -17,6 +17,7 @@
     <string name="gyro">Gyro</string>
     <string name="acceleration">Acceleration</string>
     <string name="orientation">Orientation</string>
+    <string name="button_id">ButtonID</string>
     <string name="not_selected">unselected</string>
     <string name="register_sensor">Register</string>
     <string name="unregister_sensor">Unregister</string>
@@ -49,4 +50,12 @@
     <string name="vibration_off_description">Specify pattern of led off</string>
     <string name="title_activity_confirm">ConfirmActivity</string>
 
+    <string name="activity_setting_tab_paring">Paring</string>
+    <string name="activity_setting_tab_beacon">Beacon</string>
+
+    <string name="fragment_beacon_list_scan_title">Beacon Scan</string>
+    <string name="fragment_beacon_list_scan_start">Start</string>
+    <string name="fragment_beacon_list_scan_stop">Stop</string>
+
+    <string name="sensor_value">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
 </resources>

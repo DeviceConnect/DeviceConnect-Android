@@ -24,6 +24,10 @@ public interface LinkingManager {
         void onChangeRange(LinkingDevice device, Range range);
     }
 
+    interface KeyEventListener {
+        void onKeyEvent(LinkingDevice device, int keyCode);
+    }
+
     interface SensorListener {
         void onChangeSensor(LinkingDevice device, LinkingSensorData sensor);
     }
@@ -35,6 +39,8 @@ public interface LinkingManager {
     void setConnectListener(ConnectListener listener);
 
     void setRangeListener(RangeListener listener);
+
+    void setKeyEventListener(KeyEventListener listener);
 
     void setSensorListener(LinkingDevice device, SensorListener listener);
 

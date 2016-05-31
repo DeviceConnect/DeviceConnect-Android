@@ -17,6 +17,7 @@ import com.nttdocomo.android.sdaiflib.ControlSensorData;
 import com.nttdocomo.android.sdaiflib.Define;
 import com.nttdocomo.android.sdaiflib.DeviceInfo;
 import com.nttdocomo.android.sdaiflib.GetDeviceInformation;
+import com.nttdocomo.android.sdaiflib.NotifyNotification;
 import com.nttdocomo.android.sdaiflib.NotifyRange;
 import com.nttdocomo.android.sdaiflib.SendNotification;
 
@@ -31,11 +32,15 @@ import java.util.Map;
 
 public class LinkingManagerImpl implements LinkingManager {
 
+    private static final String TAG = "LinkingPlugIn";
+
     private RangeListener mRangeListener;
+    private KeyEventListener mKeyEventListener;
     private Map<String, SensorListener> mSensorListenerMap = new HashMap<>();
     private Context mContext;
     private NotifyRange mNotifyRange;
     private NotifySensorData mNotifySensor;
+    private NotifyNotification mNotifyNotification;
 
     public LinkingManagerImpl(Context context) {
         mContext = context;
@@ -128,9 +133,50 @@ public class LinkingManagerImpl implements LinkingManager {
                         }
                     }
                 }
+            });
+        } else {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "mNotifyRange is already exists.");
             }
+        }
+    }
 
-            );
+    @Override
+    public void setKeyEventListener(KeyEventListener listener) {
+        mKeyEventListener = listener;
+        if (mKeyEventListener == null) {
+            return ;
+        }
+        if (mNotifyNotification == null) {
+            mNotifyNotification = new NotifyNotification(mContext, new NotifyNotification.NotificationInterface() {
+                @Override
+                public void onNotify() {
+                    SharedPreferences preference = mContext.getSharedPreferences(Define.NotificationInfo, Context.MODE_PRIVATE);
+                    int deviceId = preference.getInt("DEVICE_ID", -1);
+                    int uniqueId = preference.getInt("DEVICE_UID", -1);
+                    int keyCode = preference.getInt("DEVICE_BUTTON_ID", -1);
+
+                    if (BuildConfig.DEBUG) {
+                        if (BuildConfig.DEBUG) {
+                            Log.i(TAG, "NotifyNotification.NotificationInterface#onNotify");
+                            Log.i(TAG, "deviceId:" + deviceId);
+                            Log.i(TAG, "uniqueId:" + uniqueId);
+                            Log.i(TAG, "keyCode:" + keyCode);
+                        }
+                    }
+
+                    for (LinkingDevice device : getDevices()) {
+                        if (device.getModelId() == deviceId && device.getUniqueId() == uniqueId) {
+                            notifyOnKeyEvent(device, keyCode);
+                            break;
+                        }
+                    }
+                }
+            });
+        } else {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "mNotifyNotification is already exists.");
+            }
         }
     }
 
@@ -193,10 +239,10 @@ public class LinkingManagerImpl implements LinkingManager {
                 @Override
                 public void onStopSensor(String bd, int type, int reason) {
                     if (BuildConfig.DEBUG) {
-                        Log.i("LinkingPlugin", "onStopSensor");
-                        Log.i("LinkingPlugin", "bd:" + bd);
-                        Log.i("LinkingPlugin", "type:" + type);
-                        Log.i("LinkingPlugin", "reason:" + reason);
+                        Log.i(TAG, "onStopSensor");
+                        Log.i(TAG, "bd:" + bd);
+                        Log.i(TAG, "type:" + type);
+                        Log.i(TAG, "reason:" + reason);
                     }
                 }
 
@@ -222,13 +268,15 @@ public class LinkingManagerImpl implements LinkingManager {
         try {
             this.mContext.startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            e.printStackTrace();
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
         }
     }
 
     private void stopSensors(String address) {
         if (BuildConfig.DEBUG) {
-            Log.i("LinkingPlugIn", "Manager:stopSensors:address:" + address);
+            Log.i(TAG, "Manager:stopSensors:address:" + address);
         }
         Intent intent = new Intent(mContext.getPackageName() + ".sda.action.STOP_SENSOR");
         intent.setComponent(new ComponentName("com.nttdocomo.android.smartdeviceagent", "com.nttdocomo.android.smartdeviceagent.RequestReceiver"));
@@ -236,7 +284,9 @@ public class LinkingManagerImpl implements LinkingManager {
         try {
             mContext.sendBroadcast(intent);
         } catch (ActivityNotFoundException e) {
-            e.printStackTrace();
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -278,11 +328,8 @@ public class LinkingManagerImpl implements LinkingManager {
         if (device.getVibration() == null) {
             return;
         }
-        Map<String, Integer> map = PreferenceUtil.getInstance(mContext).getVibrationOffSetting();
-        if (map == null) {
-            return;
-        }
-        Integer patternId = map.get(device.getBdAddress());
+
+        Integer patternId = getVibrationOffSetting(device);
         if (patternId == null) {
             return;
         }
@@ -293,12 +340,20 @@ public class LinkingManagerImpl implements LinkingManager {
         notify.setVibration(vibration);
     }
 
+    private Integer getVibrationOffSetting(LinkingDevice device) {
+        Map<String, Integer> map = PreferenceUtil.getInstance(mContext).getVibrationOffSetting();
+        if (map == null || map.get(device.getBdAddress()) == null) {
+            return LinkingUtil.getDefaultOffSettingOfLightId(device);
+        }
+        return map.get(device.getBdAddress());
+    }
+
     private void setIllumination(SendNotification notify, LinkingDevice device) {
-        Map<String, Integer> map = PreferenceUtil.getInstance(mContext).getLightOffSetting();
-        if (map == null) {
+        if (device.getIllumination() == null) {
             return;
         }
-        Integer patternId = map.get(device.getBdAddress());
+
+        Integer patternId = getLightOffSetting(device);
         if (patternId == null) {
             return;
         }
@@ -311,6 +366,14 @@ public class LinkingManagerImpl implements LinkingManager {
         notify.setIllumination(illumination);
     }
 
+    private Integer getLightOffSetting(LinkingDevice device) {
+        Map<String, Integer> map = PreferenceUtil.getInstance(mContext).getLightOffSetting();
+        if (map == null || map.get(device.getBdAddress()) == null) {
+            return LinkingUtil.getDefaultOffSettingOfLightId(device);
+        }
+        return map.get(device.getBdAddress());
+    }
+
     private boolean hasSensor(DeviceInfo deviceInfo) {
         int feature = deviceInfo.getFeature();
         final int LED = 1;
@@ -319,11 +382,9 @@ public class LinkingManagerImpl implements LinkingManager {
         final int CONP = LED << 3;
         if ((feature & GYRO) == GYRO) {
             return true;
-        }
-        if ((feature & ACCE) == ACCE) {
+        } else if ((feature & ACCE) == ACCE) {
             return true;
-        }
-        if ((feature & CONP) == CONP) {
+        } else if ((feature & CONP) == CONP) {
             return true;
         }
         return false;
@@ -342,11 +403,17 @@ public class LinkingManagerImpl implements LinkingManager {
         mSensorListenerMap.get(device.getBdAddress()).onChangeSensor(device, data);
     }
 
+    private synchronized void notifyOnKeyEvent(LinkingDevice device, int keyCode) {
+        if (mKeyEventListener == null) {
+            return;
+        }
+        mKeyEventListener.onKeyEvent(device, keyCode);
+    }
+
     private synchronized void notifyOnChangeRange(LinkingDevice device, Range range) {
         if (mRangeListener == null) {
             return;
         }
         mRangeListener.onChangeRange(device, range);
     }
-
 }

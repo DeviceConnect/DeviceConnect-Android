@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="#FFF"
     android:orientation="vertical">
 
     <TextView
@@ -195,7 +196,6 @@
                     android:layout_margin="4dp"
                     android:layout_weight="2"
                     android:background="@drawable/button_blue"
-                    android:gravity="center"
                     android:text="@string/on"
                     android:textColor="#FFF"/>
 
@@ -206,7 +206,6 @@
                     android:layout_margin="4dp"
                     android:layout_weight="2"
                     android:background="@drawable/button_blue"
-                    android:gravity="center"
                     android:text="@string/off"
                     android:textColor="#FFF"/>
 
@@ -220,31 +219,30 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:layout_width="100dp"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="7"
                     android:text="@string/sensor"
                     android:textColor="#666"
                     android:textSize="16sp"/>
 
                 <Button
                     android:id="@+id/sensor_on"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
+                    android:layout_margin="4dp"
+                    android:layout_weight="2"
                     android:background="@drawable/button_blue"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
                     android:text="@string/register_sensor"
                     android:textColor="#FFF"/>
 
                 <Button
                     android:id="@+id/sensor_off"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
+                    android:layout_margin="4dp"
+                    android:layout_weight="2"
                     android:background="@drawable/button_blue"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
                     android:text="@string/unregister_sensor"
                     android:textColor="#FFF"/>
             </LinearLayout>
@@ -268,7 +266,6 @@
                     android:id="@+id/gyro_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="x:0.0\ny:0.0\nz:0.0\ntime:0.0"
                     android:textColor="#666"
                     android:textSize="9sp"/>
 
@@ -294,7 +291,6 @@
                     android:id="@+id/acceleration_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="x:0.0\ny:0.0\nz:0.0\ntime:0.0"
                     android:textColor="#666"
                     android:textSize="9sp"/>
 
@@ -319,12 +315,55 @@
                     android:id="@+id/orientation_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="x:0.0\ny:0.0\nz:0.0\ntime:0.0"
                     android:textColor="#666"
                     android:textSize="9sp"/>
 
             </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="7"
+                    android:text="@string/button_id"
+                    android:textColor="#666"
+                    android:textSize="16sp"/>
+
+                <Button
+                    android:id="@+id/button_id_on"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:layout_weight="2"
+                    android:background="@drawable/button_blue"
+                    android:text="@string/register_sensor"
+                    android:textColor="#FFF"/>
+
+                <Button
+                    android:id="@+id/button_id_off"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:layout_weight="2"
+                    android:background="@drawable/button_blue"
+                    android:text="@string/unregister_sensor"
+                    android:textColor="#FFF"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/linking_button_id"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:background="@drawable/textview_broder"
+                android:ellipsize="end"
+                android:maxLines="5"
+                android:padding="4dp"
+                android:textColor="#000"/>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

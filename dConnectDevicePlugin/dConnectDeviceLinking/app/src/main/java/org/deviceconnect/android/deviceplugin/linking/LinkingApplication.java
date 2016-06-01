@@ -9,8 +9,7 @@ package org.deviceconnect.android.deviceplugin.linking;
 import android.app.Application;
 import android.util.Log;
 
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerMockImpl;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 
 /**
  * Implementation of Application.
@@ -20,7 +19,8 @@ import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerMock
 public class LinkingApplication extends Application {
 
     private static final String TAG = "LinkingApplication";
-    private LinkingManager mManager;
+
+    private LinkingBeaconManager mBeaconManager;
 
     @Override
     public void onCreate() {
@@ -28,7 +28,8 @@ public class LinkingApplication extends Application {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "onCreate");
         }
-        mManager = new LinkingManagerMockImpl();
+
+        mBeaconManager = new LinkingBeaconManager(this);
     }
 
     @Override
@@ -36,7 +37,16 @@ public class LinkingApplication extends Application {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "onTerminate");
         }
+
+        if (mBeaconManager != null) {
+            mBeaconManager.destroy();
+            mBeaconManager = null;
+        }
+
         super.onTerminate();
     }
 
+    public LinkingBeaconManager getLinkingBeaconManager() {
+        return mBeaconManager;
+    }
 }

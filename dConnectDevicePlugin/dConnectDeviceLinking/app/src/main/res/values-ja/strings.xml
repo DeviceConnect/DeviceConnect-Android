@@ -112,4 +112,8 @@
     <string name="activity_beacon_unit_c">%1$.2f℃</string>
     <string name="activity_beacon_unit_centimeter">cm</string>
 
+    <string name="activity_beacon_distance_close">近い</string>
+    <string name="activity_beacon_distance_little_close">やや近い</string>
+    <string name="activity_beacon_distance_far">遠い</string>
+
 </resources>

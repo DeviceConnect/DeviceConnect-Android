@@ -6,6 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.linking;
 
+import android.content.Intent;
+
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingLightProfile;
@@ -39,6 +43,21 @@ public class LinkingDeviceService extends DConnectMessageService {
         addProfile(new LinkingNotificationProfile());
         addProfile(new LinkingProximityProfile());
         addProfile(new LinkingKeyEventProfile());
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null) {
+            String action = intent.getAction();
+            if (LinkingBeaconUtil.ACTION_BEACON_SCAN_RESULT.equals(action) ||
+                    LinkingBeaconUtil.ACTION_BEACON_SCAN_STATE.equals(action)) {
+                LinkingApplication app = (LinkingApplication)  getApplication();
+                LinkingBeaconManager mgr = app.getLinkingBeaconManager();
+                mgr.onReceivedBeacon(intent);
+                return START_STICKY;
+            }
+        }
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override

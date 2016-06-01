@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.linking.setting.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -19,11 +20,15 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
+import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
+import org.deviceconnect.android.deviceplugin.linking.setting.LinkingBeaconActivity;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.NoConnectLinkingBeaconDialogFragment;
 
-public class LinkingBeaconListFragment extends Fragment implements NoConnectLinkingBeaconDialogFragment.OnDialogEventListener {
+public class LinkingBeaconListFragment extends Fragment implements NoConnectLinkingBeaconDialogFragment.OnDialogEventListener,
+        LinkingBeaconManager.OnConnectListener {
     private ListAdapter mAdapter;
 
     public static LinkingBeaconListFragment newInstance() {
@@ -68,6 +73,24 @@ public class LinkingBeaconListFragment extends Fragment implements NoConnectLink
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        refresh();
+        LinkingApplication app = (LinkingApplication) getActivity().getApplication();
+        LinkingBeaconManager mgr = app.getLinkingBeaconManager();
+        mgr.addOnConnectListener(this);
+    }
+
+
+    @Override
+    public void onPause() {
+        LinkingApplication app = (LinkingApplication) getActivity().getApplication();
+        LinkingBeaconManager mgr = app.getLinkingBeaconManager();
+        mgr.removeOnConnectListener(this);
+        super.onPause();
+    }
+
+    @Override
     public void onPositiveClick() {
 
     }
@@ -77,8 +100,48 @@ public class LinkingBeaconListFragment extends Fragment implements NoConnectLink
 
     }
 
+    @Override
+    public void onConnected(LinkingBeacon beacon) {
+        refresh();
+    }
+
+    @Override
+    public void onDisconnected(LinkingBeacon beacon) {
+        refresh();
+    }
+
+    private void refresh() {
+        if (getActivity() == null) {
+            return;
+        }
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mAdapter.clear();
+                mAdapter.notifyDataSetChanged();
+
+                LinkingApplication app = (LinkingApplication) getActivity().getApplication();
+                LinkingBeaconManager mgr = app.getLinkingBeaconManager();
+
+                ListView listView = (ListView) getView().findViewById(R.id.fragment_beacon_list_view);
+                for (LinkingBeacon device : mgr.getLinkingBeacons()) {
+                    DeviceItem item = new DeviceItem();
+                    item.mDevice = device;
+                    mAdapter.add(item);
+                }
+                listView.setAdapter(mAdapter);
+            }
+        });
+    }
+
     private void transitionBeaconControl(DeviceItem item) {
-        if (item.isConnected) {
+        if (item.mDevice.isOnline()) {
+            Intent intent = new Intent();
+            intent.putExtra(LinkingBeaconActivity.EXTRA_ID, item.mDevice.getExtraId());
+            intent.putExtra(LinkingBeaconActivity.VENDOR_ID, item.mDevice.getVendorId());
+            intent.setClass(getActivity(), LinkingBeaconActivity.class);
+            getActivity().startActivity(intent);
         } else {
             NoConnectLinkingBeaconDialogFragment dialog = NoConnectLinkingBeaconDialogFragment.newInstance(this);
             dialog.show(getFragmentManager(), "error");
@@ -86,9 +149,13 @@ public class LinkingBeaconListFragment extends Fragment implements NoConnectLink
     }
 
     private void startScan() {
+        LinkingApplication app = (LinkingApplication) getActivity().getApplication();
+        app.getLinkingBeaconManager().startBeaconScan();
     }
 
     private void stopScan() {
+        LinkingApplication app = (LinkingApplication) getActivity().getApplication();
+        app.getLinkingBeaconManager().stopBeaconScan();
     }
 
     private class ListAdapter extends ArrayAdapter<DeviceItem> {
@@ -109,7 +176,7 @@ public class LinkingBeaconListFragment extends Fragment implements NoConnectLink
             TextView textView = (TextView) convertView.findViewById(R.id.item_device_name);
             textView.setText(deviceName);
             TextView statusView = (TextView) convertView.findViewById(R.id.item_device_status);
-            if (item.isConnected) {
+            if (item.mDevice.isOnline()) {
                 textView.setTextColor(Color.BLACK);
                 statusView.setText(getString(R.string.fragment_device_status_online));
                 statusView.setTextColor(Color.BLACK);
@@ -124,7 +191,6 @@ public class LinkingBeaconListFragment extends Fragment implements NoConnectLink
     }
 
     private class DeviceItem {
-        LinkingDevice mDevice;
-        boolean isConnected = false;
+        LinkingBeacon mDevice;
     }
 }

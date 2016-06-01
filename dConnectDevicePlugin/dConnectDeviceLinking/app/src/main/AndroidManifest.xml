@@ -16,6 +16,9 @@
             android:name="com.nttdocomo.android.smartdeviceagent.feature.support"
             android:value="true"/>
         <meta-data
+            android:name="com.nttdocomo.android.smartdeviceagent.feature.beacon"
+            android:value="true" />
+        <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.notify_distance"
             android:value="true"/>
 
@@ -49,6 +52,7 @@
             android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
@@ -88,6 +92,14 @@
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
         </activity>
+
+        <receiver
+            android:name=".beacon.LinkingBeaconReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_RESULT" />
+                <action android:name="com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_STATE" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

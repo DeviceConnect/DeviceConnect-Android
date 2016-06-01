@@ -64,5 +64,6 @@
         android:id="@+id/fragment_beacon_list_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_below="@id/fragment_beacon_warning"
         android:layout_above="@id/fragment_beacon_scan"/>
 </RelativeLayout>

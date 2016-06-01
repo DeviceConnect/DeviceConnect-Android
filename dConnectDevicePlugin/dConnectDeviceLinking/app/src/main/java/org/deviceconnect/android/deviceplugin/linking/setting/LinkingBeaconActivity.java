@@ -6,29 +6,56 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.setting;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
+import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 
-public class LinkingBeaconActivity extends AppCompatActivity {
+public class LinkingBeaconActivity extends AppCompatActivity implements LinkingBeaconManager.OnBeaconEventListener,
+        LinkingBeaconManager.OnBeaconButtonEventListener {
+
+    private static final String TAG = "LinkingPlugIn";
 
     public static final String EXTRA_ID = "extraId";
+    public static final String VENDOR_ID = "vendorId";
 
     private final SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss", Locale.JAPAN);
+
+    private LinkingBeacon mLinkingBeacon;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_beacon);
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            Bundle args = intent.getExtras();
+            if (args != null) {
+                int extraId = args.getInt(EXTRA_ID);
+                int vendorId = args.getInt(VENDOR_ID);
+                LinkingApplication app = (LinkingApplication) getApplication();
+                LinkingBeaconManager mgr = app.getLinkingBeaconManager();
+                mLinkingBeacon = mgr.findBeacon(extraId, vendorId);
+            }
+        }
+
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "Linking Beacon: " + mLinkingBeacon);
+        }
 
         Button clearBtn = (Button) findViewById(R.id.activity_beacon_clear_btn);
         if (clearBtn != null) {
@@ -43,15 +70,88 @@ public class LinkingBeaconActivity extends AppCompatActivity {
         setData();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LinkingApplication app = (LinkingApplication) getApplication();
+        LinkingBeaconManager mgr = app.getLinkingBeaconManager();
+        mgr.addOnBeaconEventListener(this);
+        mgr.addOnBeaconButtonEventListener(this);
+    }
+
+    @Override
+    protected void onPause() {
+        LinkingApplication app = (LinkingApplication) getApplication();
+        LinkingBeaconManager mgr = app.getLinkingBeaconManager();
+        mgr.removeOnBeaconEventListener(this);
+        mgr.removeOnBeaconButtonEventListener(this);
+        super.onPause();
+    }
+
+    @Override
+    public void onNotify(LinkingBeacon beacon) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setData();
+            }
+        });
+    }
+
+    @Override
+    public void onClickButton(LinkingBeacon beacon, final int keyCode, long timeStamp) {
+        if (beacon.equals(mLinkingBeacon)) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    addButton("buttonId:[" + keyCode + "]");
+                }
+            });
+        }
+    }
+
     private void setData() {
-        setExtraId("12345");
-        setTimeStamp(new Date().getTime());
-        setLowBattery(false);
-        setBatteryLevel(34.5f);
-        setTemperature(30);
-        setAtmosphericPressure(1023.6f);
-        setHumidity(60.0f);
-        setDistance(1);
+        if (mLinkingBeacon == null) {
+            if (BuildConfig.DEBUG) {
+                Log.e(TAG, "Linking beacon is not exist.");
+            }
+            return;
+        }
+
+        setExtraId(String.valueOf(mLinkingBeacon.getExtraId()));
+        setTimeStamp(mLinkingBeacon.getTimeStamp());
+
+        if (mLinkingBeacon.getBatteryData() != null) {
+            setLowBattery(String.valueOf(mLinkingBeacon.getBatteryData().isLowBatteryFlag()));
+            setBatteryLevel(getString(R.string.activity_beacon_unit_percent, mLinkingBeacon.getBatteryData().getLevel()));
+        } else {
+            setLowBattery("-");
+            setBatteryLevel("-");
+        }
+
+        if (mLinkingBeacon.getTemperatureData() != null) {
+            setTemperature(getString(R.string.activity_beacon_unit_c, mLinkingBeacon.getTemperatureData().getValue()));
+        } else {
+            setTemperature("-");
+        }
+
+        if (mLinkingBeacon.getAtmosphericPressureData() != null) {
+            setAtmosphericPressure(getString(R.string.activity_beacon_unit_hectopascal, mLinkingBeacon.getAtmosphericPressureData().getValue()));
+        } else {
+            setAtmosphericPressure("-");
+        }
+
+        if (mLinkingBeacon.getHumidityData() != null) {
+            setHumidity(getString(R.string.activity_beacon_unit_percent, mLinkingBeacon.getHumidityData().getValue()));
+        } else {
+            setHumidity("-");
+        }
+
+        if (mLinkingBeacon.getGattData() != null) {
+            setDistance(getDistanceString(mLinkingBeacon.getGattData().getDistance()));
+        } else {
+            setDistance("-");
+        }
     }
 
     private void clearTextView() {
@@ -75,45 +175,58 @@ public class LinkingBeaconActivity extends AppCompatActivity {
         }
     }
 
-    private void setLowBattery(boolean lowBattery) {
+    private void setLowBattery(String lowBattery) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_battery_low);
         if (view != null) {
-            view.setText(String.valueOf(lowBattery));
+            view.setText(lowBattery);
         }
     }
 
-    private void setBatteryLevel(float level) {
+    private void setBatteryLevel(String level) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_battery_level);
         if (view != null) {
-            view.setText(getString(R.string.activity_beacon_unit_percent, level));
+            view.setText(level);
         }
     }
 
-    private void setAtmosphericPressure(float atmosphericPressure) {
+    private void setAtmosphericPressure(String atmosphericPressure) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_atmospheric_pressure);
         if (view != null) {
-            view.setText(getString(R.string.activity_beacon_unit_hectopascal, atmosphericPressure));
+            view.setText(atmosphericPressure);
         }
     }
 
-    private void setTemperature(float temperature) {
+    private void setTemperature(String temperature) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_temperature);
         if (view != null) {
-            view.setText(getString(R.string.activity_beacon_unit_c, temperature));
+            view.setText(temperature);
         }
     }
 
-    private void setHumidity(float humidity) {
+    private void setHumidity(String humidity) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_humidity);
         if (view != null) {
-            view.setText(getString(R.string.activity_beacon_unit_percent, humidity));
+            view.setText(humidity);
         }
     }
 
-    private void setDistance(int distance) {
+    private void setDistance(String distance) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_distance);
         if (view != null) {
-            view.setText(String.valueOf(distance));
+            view.setText(distance);
+        }
+    }
+
+    private String getDistanceString(int distance) {
+        switch (distance) {
+            case 1:
+                return getString(R.string.activity_beacon_distance_close);
+            case 2:
+                return getString(R.string.activity_beacon_distance_little_close);
+            case 3:
+                return getString(R.string.activity_beacon_distance_far);
+            default:
+                return "-";
         }
     }
 

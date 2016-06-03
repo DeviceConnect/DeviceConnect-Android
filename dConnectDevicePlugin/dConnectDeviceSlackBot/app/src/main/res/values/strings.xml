@@ -1,7 +1,0 @@
-<resources>
-    <string name="description"></string>
-    <string name="app_name">SlackBot Plugin</string>
-    <string name="page_1">設定</string>
-    <string name="setting_message_1">\@device_connect_bot</string>
-    <string name="status">Status</string>
-</resources>

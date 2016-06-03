@@ -1,0 +1,7 @@
+<resources>
+    <string name="description"></string>
+    <string name="app_name">SlackMessageHook Plugin</string>
+    <string name="page_1">設定</string>
+    <string name="setting_message_1">\@SlackMessageHook</string>
+    <string name="status">Status</string>
+</resources>

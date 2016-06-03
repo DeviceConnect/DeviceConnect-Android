@@ -52,14 +52,18 @@
     <string name="activity_setting_tab_paring">ペアリング</string>
     <string name="activity_setting_tab_beacon">ビーコン</string>
 
-    <string name="activity_setting_menu">Linkingアプリ誘導画</string>
+    <string name="activity_setting_menu">Linkingアプリ誘導</string>
+    <string name="activity_setting_menu_app_inform">アプリ情報</string>
+    <string name="activity_detail_name">アプリケーション名</string>
+    <string name="activity_detail_version">バージョン</string>
 
     <string name="fragment_beacon_list_scan_title">ビーコンスキャン</string>
     <string name="fragment_beacon_list_scan_start">開始</string>
     <string name="fragment_beacon_list_scan_stop">停止</string>
     <string name="fragment_beacon_list_warning">ペアリング済みかつ接続済みのLinkingデバイスは、ビーコンとして利用できません。</string>
     <string name="fragment_beacon_error_title">エラー</string>
-    <string name="fragment_beacon_error_message">近くにLinking:ビーコン(32823)が存在しないか、Linkingアプリでペアリング設定されている可能性があります。</string>
+    <string name="fragment_beacon_error_message">近くに%1$sが存在しないか、Linkingアプリでペアリング設定されている可能性があります。</string>
+    <string name="fragment_beacon_error_message_not_start_beacon_scan">ビーコンスキャンが開始されていません。\nビーコンスキャンの開始ボタンを押下してください。</string>
     <string name="fragment_beacon_error_positive">Linkingアプリ誘導画面</string>
     <string name="fragment_beacon_error_negative">閉じる</string>
     <string name="fragment_device_guidance">Linkingデバイスの設定がされていません。\nこのアプリを使用するには、Linkingアプリの設定が必要になります。</string>
@@ -68,7 +72,7 @@
     <string name="fragment_device_status_online">Status: Online</string>
     <string name="fragment_device_status_offline">Status: Offline</string>
     <string name="fragment_device_error_title">エラー</string>
-    <string name="fragment_device_error_message">Linkingデバイスが接続されていません。\nLinkingアプリのペアリング設定を確認してください。</string>
+    <string name="fragment_device_error_message">%1$sが接続されていません。\nLinkingアプリのペアリング設定を確認してください。</string>
     <string name="fragment_device_error_positive">Linkingアプリ誘導画面</string>
     <string name="fragment_device_error_negative">閉じる</string>
 
@@ -104,6 +108,7 @@
     <string name="activity_beacon_humidity">湿度</string>
     <string name="activity_beacon_distance">距離</string>
     <string name="activity_beacon_button">ボタン</string>
+    <string name="activity_beacon_menu">削除</string>
 
     <string name="activity_beacon_clear_button">クリア</string>
 
@@ -116,4 +121,8 @@
     <string name="activity_beacon_distance_little_close">やや近い</string>
     <string name="activity_beacon_distance_far">遠い</string>
 
+    <string name="activity_beacon_delete_dialog_title">削除</string>
+    <string name="activity_beacon_delete_dialog_message">削除しても良いでしょうか？</string>
+    <string name="activity_beacon_delete_dialog_positive">はい</string>
+    <string name="activity_beacon_delete_dialog_negative">いいえ</string>
 </resources>

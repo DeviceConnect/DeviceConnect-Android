@@ -11,16 +11,18 @@ import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
+import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
-import org.deviceconnect.android.profile.DConnectProfile;
-import org.deviceconnect.android.profile.DConnectProfileProvider;
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.DeviceOrientationProfileConstants;
-import org.deviceconnect.profile.LightProfileConstants;
-import org.deviceconnect.profile.VibrationProfileConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +34,21 @@ import java.util.List;
  */
 public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
-    public LinkingServiceDiscoveryProfile(final DConnectProfileProvider provider) {
-        super(provider);
+    public LinkingServiceDiscoveryProfile(final DConnectMessageService service) {
+        super(service);
+
+        LinkingApplication app = (LinkingApplication) service.getApplication();
+        LinkingBeaconManager mgr = app.getLinkingBeaconManager();
+        mgr.addOnBeaconConnectListener(new LinkingBeaconManager.OnBeaconConnectListener() {
+            @Override
+            public void onConnected(LinkingBeacon beacon) {
+                notifyConnectEvent(beacon);
+            }
+            @Override
+            public void onDisconnected(LinkingBeacon beacon) {
+                notifyDisconnectEvent(beacon);
+            }
+        });
     }
 
     @Override
@@ -41,45 +56,87 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         if (BuildConfig.DEBUG) {
             Log.i("LinkingPlugIn", "ServiceDiscovery:onGetServices");
         }
-        List<LinkingDevice> list = LinkingManagerFactory.createManager(getContext().getApplicationContext()).getDevices();
-        if (list.size() == 0) {
-            setResult(response, DConnectMessage.RESULT_OK);
-            return true;
-        }
-        Bundle[] services = new Bundle[list.size()];
-        int index = 0;
-        for (LinkingDevice device : list) {
-            if (BuildConfig.DEBUG) {
-                Log.i("LinkingPlugIn", "name:" + device.getDisplayName() + " feature:" + device.getFeature());
-            }
-            Bundle service = new Bundle();
-            ServiceDiscoveryProfile.setId(service, device.getBdAddress());
-            ServiceDiscoveryProfile.setName(service, device.getDisplayName());
-            ServiceDiscoveryProfile.setType(service, NetworkType.BLE);
-            ServiceDiscoveryProfile.setOnline(service, device.isConnected());
-            DConnectProfileProvider provider = getProfileProvider();
-            List<String> scopes = new ArrayList<>();
-            for (DConnectProfile profile : provider.getProfileList()) {
-                scopes.add(profile.getProfileName());
-            }
-            if (!LinkingUtil.hasLED(device)) {
-                scopes.remove(LightProfileConstants.PROFILE_NAME);
-            }
-            if (!LinkingUtil.hasVibration(device)) {
-                scopes.remove(VibrationProfileConstants.PROFILE_NAME);
-            }
-            if (!LinkingUtil.hasSensor(device)) {
-                scopes.remove(DeviceOrientationProfileConstants.PROFILE_NAME);
-            }
-            String[] array = new String[scopes.size()];
-            array = scopes.toArray(array);
-            service.putStringArray(PARAM_SCOPES, array);
-            services[index] = service;
-            index++;
-        }
+        List<Bundle> services = new ArrayList<>();
+        getServiceFromLinkingDevice(services);
+        getServiceFromLinkingBeacon(services);
+        getServiceFromLinkingApp(services);
         setServices(response, services);
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }
 
+    @Override
+    protected boolean onPutOnServiceChange(Intent request, Intent response, String serviceId, String sessionKey) {
+        return super.onPutOnServiceChange(request, response, serviceId, sessionKey);
+    }
+
+    @Override
+    protected boolean onDeleteOnServiceChange(Intent request, Intent response, String serviceId, String sessionKey) {
+        return super.onDeleteOnServiceChange(request, response, serviceId, sessionKey);
+    }
+
+    private void getServiceFromLinkingDevice(List<Bundle> services) {
+        LinkingManager mgr = LinkingManagerFactory.createManager(getContext().getApplicationContext());
+        List<LinkingDevice> list = mgr.getDevices();
+        for (LinkingDevice device : list) {
+            services.add(createServiceFromLinkingDevice(device));
+        }
+    }
+
+    private Bundle createServiceFromLinkingDevice(LinkingDevice device) {
+        Bundle service = new Bundle();
+        setId(service, device.getBdAddress());
+        setName(service, device.getDisplayName());
+        setType(service, NetworkType.BLE);
+        setOnline(service, device.isConnected());
+        service.putStringArray(PARAM_SCOPES, Util.createLinkingDeviceScopes(device));
+        return service;
+    }
+
+    private void getServiceFromLinkingBeacon(List<Bundle> services) {
+        List<LinkingBeacon> beacons = getLinkingBeaconManager().getLinkingBeacons();
+        synchronized (beacons) {
+            for (LinkingBeacon beacon : beacons) {
+                services.add(createServiceFromLinkingBeacon(beacon));
+            }
+        }
+    }
+
+    private Bundle createServiceFromLinkingBeacon(LinkingBeacon beacon) {
+        Bundle service = new Bundle();
+        setId(service, LinkingBeaconUtil.createServiceIdFromLinkingBeacon(beacon));
+        setName(service, beacon.getDisplayName());
+        setType(service, NetworkType.BLE);
+        setOnline(service, beacon.isOnline());
+        service.putStringArray(PARAM_SCOPES, Util.createLinkingBeaconScopes());
+        return service;
+    }
+
+    private void getServiceFromLinkingApp(List<Bundle> services) {
+        if (LinkingUtil.isApplicationInstalled(getContext())) {
+            Bundle service = new Bundle();
+            setId(service, Util.LINKING_APP_ID);
+            setName(service, "LinkingApp");
+            setOnline(service, true);
+            service.putStringArray(PARAM_SCOPES, Util.createLinkingAppScopes());
+            services.add(service);
+        }
+    }
+
+
+    private void notifyConnectEvent(LinkingBeacon beacon) {
+    }
+
+    private void notifyDisconnectEvent(LinkingBeacon beacon) {
+    }
+
+    private LinkingBeaconManager getLinkingBeaconManager() {
+        LinkingApplication app = getLinkingApplication();
+        return app.getLinkingBeaconManager();
+    }
+
+    private LinkingApplication getLinkingApplication() {
+        LinkingDeviceService service = (LinkingDeviceService) getContext();
+        return (LinkingApplication) service.getApplication();
+    }
 }

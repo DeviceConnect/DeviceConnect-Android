@@ -13,4 +13,8 @@
     <color name="button_circle_press">#FF888888</color>
     <color name="help_text_color">#666666</color>
     <color name="transparent">#00000000</color>
+
+    <color name="detail_value_color">#ff434343</color>
+    <color name="detail_title_color">#ffaaaaaa</color>
+
 </resources>

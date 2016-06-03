@@ -1,5 +1,7 @@
 package org.deviceconnect.android.deviceplugin.linking.beacon.data;
 
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
+
 public class GattData {
     private long mTimeStamp;
     private int mTxPower;
@@ -36,6 +38,19 @@ public class GattData {
 
     public void setDistance(int distance) {
         mDistance = distance;
+    }
+
+    public LinkingManager.Range getRange() {
+        switch (getDistance()) {
+            case 1:
+                return LinkingManager.Range.IMMEDIATE;
+            case 2:
+                return LinkingManager.Range.NEAR;
+            case 3:
+                return LinkingManager.Range.FAR;
+            default:
+                return LinkingManager.Range.UNKNOWN;
+        }
     }
 
     @Override

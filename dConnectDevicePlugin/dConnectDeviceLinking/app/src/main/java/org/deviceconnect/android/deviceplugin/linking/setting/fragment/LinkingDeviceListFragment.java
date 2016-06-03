@@ -27,8 +27,8 @@ import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
 import org.deviceconnect.android.deviceplugin.linking.setting.LinkingDeviceActivity;
 import org.deviceconnect.android.deviceplugin.linking.setting.LinkingSettingActivity;
+import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.DiscoveryDeviceDialogFragment;
-import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.NoConnectLinkingDeviceDialogFragment;
 
 import java.util.List;
 
@@ -37,7 +37,7 @@ import java.util.List;
  *
  * @author NTT DOCOMO, INC.
  */
-public class LinkingDeviceListFragment extends Fragment implements NoConnectLinkingDeviceDialogFragment.OnDialogEventListener {
+public class LinkingDeviceListFragment extends Fragment implements ConfirmationDialogFragment.OnDialogEventListener {
 
     private DiscoveryDeviceDialogFragment mDiscoveryDeviceDialogFragment;
     private ListAdapter mAdapter;
@@ -106,7 +106,11 @@ public class LinkingDeviceListFragment extends Fragment implements NoConnectLink
             intent.setClass(getContext(), LinkingDeviceActivity.class);
             getActivity().startActivity(intent);
         } else {
-            NoConnectLinkingDeviceDialogFragment dialog = NoConnectLinkingDeviceDialogFragment.newInstance(this);
+            String title = getString(R.string.fragment_device_error_title);
+            String message = getString(R.string.fragment_device_error_message, item.mDevice.getDisplayName());
+            String positive = getString(R.string.fragment_device_error_positive);
+            String negative = getString(R.string.fragment_device_error_negative);
+            ConfirmationDialogFragment dialog = ConfirmationDialogFragment.newInstance(title, message, positive, negative, this);
             dialog.show(getFragmentManager(), "error");
         }
     }

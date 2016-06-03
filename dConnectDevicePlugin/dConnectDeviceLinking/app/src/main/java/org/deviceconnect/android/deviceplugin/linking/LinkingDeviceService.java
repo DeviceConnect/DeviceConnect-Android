@@ -10,14 +10,19 @@ import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
+import org.deviceconnect.android.deviceplugin.linking.profile.LinkingAtmosphericPressureProfile;
+import org.deviceconnect.android.deviceplugin.linking.profile.LinkingBatteryProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingDeviceOrientationProfile;
+import org.deviceconnect.android.deviceplugin.linking.profile.LinkingHumidityProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingKeyEventProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingLightProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingNotificationProfile;
+import org.deviceconnect.android.deviceplugin.linking.profile.LinkingProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingProximityProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingServiceInformationProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingSystemProfile;
+import org.deviceconnect.android.deviceplugin.linking.profile.LinkingTemperatureProfile;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingVibrationProfile;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
@@ -41,8 +46,13 @@ public class LinkingDeviceService extends DConnectMessageService {
         addProfile(new LinkingDeviceOrientationProfile());
         addProfile(new LinkingVibrationProfile());
         addProfile(new LinkingNotificationProfile());
-        addProfile(new LinkingProximityProfile());
-        addProfile(new LinkingKeyEventProfile());
+        addProfile(new LinkingProximityProfile(this));
+        addProfile(new LinkingKeyEventProfile(this));
+        addProfile(new LinkingBatteryProfile(this));
+        addProfile(new LinkingAtmosphericPressureProfile());
+        addProfile(new LinkingHumidityProfile());
+        addProfile(new LinkingTemperatureProfile());
+        addProfile(new LinkingProfile());
     }
 
     @Override

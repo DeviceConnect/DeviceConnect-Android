@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author NTT DOCOMO, INC.
  */
-public class VibrationExecutor {
+final class VibrationExecutor {
 
     public interface VibrationControllable {
         void changeVibration(boolean isOn, CompleteListener listener);

@@ -1,5 +1,7 @@
 package org.deviceconnect.android.deviceplugin.linking.beacon;
 
+import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
+
 public final class LinkingBeaconUtil {
     public static final String ACTION_BEACON_SCAN_RESULT = "com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_RESULT";
     public static final String ACTION_BEACON_SCAN_STATE = "com.nttdocomo.android.smartdeviceagent.action.BEACON_SCAN_STATE";
@@ -30,6 +32,8 @@ public final class LinkingBeaconUtil {
 
     public static final String RAW_DATA = "com.nttdocomo.android.smartdeviceagent.extra.SERVICE_ID_15";
 
+    public static final String PREFIX = "linking_beacon";
+    public static final String SEPARATOR = "-";
 
     public static final int DETAIL_OK = 0;
     public static final int DETAIL_TIMEOUT = 1;
@@ -42,6 +46,51 @@ public final class LinkingBeaconUtil {
     public static final int RESULT_NG = 1;
 
     private LinkingBeaconUtil() {
+    }
 
+    public static String createServiceIdFromLinkingBeacon(LinkingBeacon beacon) {
+        return PREFIX + SEPARATOR + beacon.getVendorId() + SEPARATOR + beacon.getExtraId();
+    }
+
+    public static boolean isLinkingBeaconByServiceId(String serviceId) {
+        if (serviceId != null) {
+            String[] split = serviceId.split(SEPARATOR);
+            if (split.length == 3) {
+                return PREFIX.equals(split[0]);
+            }
+        }
+        return false;
+    }
+
+    public static int getVendorIdFromServiceId(String serviceId) throws IllegalArgumentException {
+        if (serviceId == null) {
+            throw new IllegalArgumentException("serviceId is null");
+        }
+        String[] split = serviceId.split(SEPARATOR);
+        if (split.length == 3) {
+            return Integer.parseInt(split[1]);
+        }
+        throw new IllegalArgumentException("Cannot separate the serviceId.");
+    }
+
+    public static int getExtraIdFromServiceId(String serviceId) throws IllegalArgumentException {
+        if (serviceId == null) {
+            throw new IllegalArgumentException("serviceId is null");
+        }
+        String[] split = serviceId.split(SEPARATOR);
+        if (split.length == 3) {
+            return Integer.parseInt(split[2]);
+        }
+        throw new IllegalArgumentException("Cannot separate the serviceId.");
+    }
+
+    public static LinkingBeacon findLinkingBeacon(LinkingBeaconManager mgr, String serviceId) {
+        try {
+            int vendorId = getVendorIdFromServiceId(serviceId);
+            int extraId = getExtraIdFromServiceId(serviceId);
+            return mgr.findBeacon(extraId, vendorId);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }

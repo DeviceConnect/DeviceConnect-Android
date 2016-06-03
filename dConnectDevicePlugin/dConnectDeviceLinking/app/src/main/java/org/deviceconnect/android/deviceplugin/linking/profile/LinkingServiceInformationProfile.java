@@ -6,10 +6,22 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.profile;
 
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
+import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
+import org.deviceconnect.message.DConnectMessage;
 
 /**
  * Linking Service Information Profile.
@@ -23,15 +35,99 @@ public class LinkingServiceInformationProfile extends ServiceInformationProfile 
     }
 
     @Override
-    protected ConnectState getBluetoothState(String serviceId) {
-        if (serviceId == null || serviceId.length() == 0) {
-            return ConnectState.OFF;
+    protected boolean onGetInformation(final Intent request, final Intent response, final String serviceId) {
+        switch (Util.getServiceType(serviceId)) {
+            case Util.LINKING_DEVICE:
+                return createLinkingDevice(request, response, serviceId);
+            case Util.LINKING_BEACON:
+                return createLinkingBeacon(request, response, serviceId);
+            case Util.LINKING_APP:
+                return createLinkingApp(request, response, serviceId);
+            default:
+                MessageUtils.setNotFoundServiceError(response);
+                break;
         }
+        return true;
+    }
+
+    private boolean createLinkingDevice(Intent request, Intent response, String serviceId) {
         LinkingDevice device = LinkingUtil.getLinkingDevice(getContext(), serviceId);
         if (device == null) {
-            return ConnectState.OFF;
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
         }
+
+        Bundle connect = new Bundle();
+        setWifiState(connect, getWifiState(serviceId));
+        setBluetoothState(connect, getBluetoothState(device));
+        setNFCState(connect, getNFCState(serviceId));
+        setBLEState(connect, getBLEState(serviceId));
+        setConnect(response, connect);
+        setVersion(response, getCurrentVersionName());
+        setSupports(response, Util.createLinkingDeviceScopes(device));
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    private boolean createLinkingBeacon(Intent request, Intent response, String serviceId) {
+        LinkingBeaconManager mgr = getLinkingBeaconManager();
+        LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
+        if (beacon == null) {
+            MessageUtils.setNotFoundServiceError(response);
+            return true;
+        }
+
+        Bundle connect = new Bundle();
+        setWifiState(connect, getWifiState(serviceId));
+        setBluetoothState(connect, getBluetoothState(beacon));
+        setNFCState(connect, getNFCState(serviceId));
+        setBLEState(connect, getBLEState(serviceId));
+        setConnect(response, connect);
+        setVersion(response, getCurrentVersionName());
+        setSupports(response, Util.createLinkingBeaconScopes());
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    private boolean createLinkingApp(Intent request, Intent response, String serviceId) {
+        Bundle connect = new Bundle();
+        setWifiState(connect, getWifiState(serviceId));
+        setBluetoothState(connect, getBluetoothState(serviceId));
+        setNFCState(connect, getNFCState(serviceId));
+        setBLEState(connect, getBLEState(serviceId));
+        setConnect(response, connect);
+        setVersion(response, getCurrentVersionName());
+        setSupports(response, Util.createLinkingAppScopes());
+        setResult(response, DConnectMessage.RESULT_OK);
+        return true;
+    }
+
+    private ConnectState getBluetoothState(LinkingDevice device) {
         return device.isConnected() ? ConnectState.ON : ConnectState.OFF;
     }
 
+    private ConnectState getBluetoothState(LinkingBeacon beacon) {
+        return beacon.isOnline() ? ConnectState.ON : ConnectState.OFF;
+    }
+
+    private String getCurrentVersionName() {
+        PackageManager packageManager = getContext().getPackageManager();
+        try {
+            PackageInfo packageInfo = packageManager.getPackageInfo(getContext().getPackageName(),
+                    PackageManager.GET_ACTIVITIES);
+            return packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            return "Unknown";
+        }
+    }
+
+    private LinkingBeaconManager getLinkingBeaconManager() {
+        LinkingApplication app = getLinkingApplication();
+        return app.getLinkingBeaconManager();
+    }
+
+    private LinkingApplication getLinkingApplication() {
+        LinkingDeviceService service = (LinkingDeviceService) getContext();
+        return (LinkingApplication) service.getApplication();
+    }
 }

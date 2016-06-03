@@ -25,10 +25,10 @@ import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.setting.LinkingBeaconActivity;
-import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.NoConnectLinkingBeaconDialogFragment;
+import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
 
-public class LinkingBeaconListFragment extends Fragment implements NoConnectLinkingBeaconDialogFragment.OnDialogEventListener,
-        LinkingBeaconManager.OnConnectListener {
+public class LinkingBeaconListFragment extends Fragment implements ConfirmationDialogFragment.OnDialogEventListener,
+        LinkingBeaconManager.OnBeaconConnectListener {
     private ListAdapter mAdapter;
 
     public static LinkingBeaconListFragment newInstance() {
@@ -78,7 +78,7 @@ public class LinkingBeaconListFragment extends Fragment implements NoConnectLink
         refresh();
         LinkingApplication app = (LinkingApplication) getActivity().getApplication();
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
-        mgr.addOnConnectListener(this);
+        mgr.addOnBeaconConnectListener(this);
     }
 
 
@@ -86,7 +86,7 @@ public class LinkingBeaconListFragment extends Fragment implements NoConnectLink
     public void onPause() {
         LinkingApplication app = (LinkingApplication) getActivity().getApplication();
         LinkingBeaconManager mgr = app.getLinkingBeaconManager();
-        mgr.removeOnConnectListener(this);
+        mgr.removeOnBeaconConnectListener(this);
         super.onPause();
     }
 
@@ -124,13 +124,16 @@ public class LinkingBeaconListFragment extends Fragment implements NoConnectLink
                 LinkingApplication app = (LinkingApplication) getActivity().getApplication();
                 LinkingBeaconManager mgr = app.getLinkingBeaconManager();
 
-                ListView listView = (ListView) getView().findViewById(R.id.fragment_beacon_list_view);
-                for (LinkingBeacon device : mgr.getLinkingBeacons()) {
-                    DeviceItem item = new DeviceItem();
-                    item.mDevice = device;
-                    mAdapter.add(item);
+                View view = getView();
+                if (view != null) {
+                    ListView listView = (ListView) view.findViewById(R.id.fragment_beacon_list_view);
+                    for (LinkingBeacon device : mgr.getLinkingBeacons()) {
+                        DeviceItem item = new DeviceItem();
+                        item.mDevice = device;
+                        mAdapter.add(item);
+                    }
+                    listView.setAdapter(mAdapter);
                 }
-                listView.setAdapter(mAdapter);
             }
         });
     }
@@ -143,7 +146,19 @@ public class LinkingBeaconListFragment extends Fragment implements NoConnectLink
             intent.setClass(getActivity(), LinkingBeaconActivity.class);
             getActivity().startActivity(intent);
         } else {
-            NoConnectLinkingBeaconDialogFragment dialog = NoConnectLinkingBeaconDialogFragment.newInstance(this);
+            String message;
+
+            LinkingApplication app = (LinkingApplication) getActivity().getApplication();
+            if (app.getLinkingBeaconManager().isStartBeaconScan()) {
+                message = getString(R.string.fragment_beacon_error_message, item.mDevice.getDisplayName());
+            } else {
+                message = getString(R.string.fragment_beacon_error_message_not_start_beacon_scan);
+            }
+
+            String title = getString(R.string.fragment_beacon_error_title);
+            String positive = getString(R.string.fragment_beacon_error_positive);
+            String negative = getString(R.string.fragment_beacon_error_negative);
+            ConfirmationDialogFragment dialog = ConfirmationDialogFragment.newInstance(title, message, positive, negative, this);
             dialog.show(getFragmentManager(), "error");
         }
     }

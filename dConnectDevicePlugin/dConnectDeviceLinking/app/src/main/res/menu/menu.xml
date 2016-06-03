@@ -5,4 +5,9 @@
         android:title="@string/activity_setting_menu"
         android:icon="@android:drawable/ic_menu_agenda"
         />
+    <item
+        android:id="@+id/menu_information"
+        android:title="@string/activity_setting_menu_app_inform"
+        android:icon="@android:drawable/ic_menu_agenda"
+        />
 </menu>

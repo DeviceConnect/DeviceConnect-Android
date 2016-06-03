@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.ProximityProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.profile.ProximityProfileConstants;
 
 /**
  * Proximity プロファイル.
@@ -286,5 +286,14 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
      */
     public static void setNear(final Bundle message, final boolean near) {
         message.putBoolean(PARAM_NEAR, near);
+    }
+
+    /**
+     * メッセージに距離識別子を設定する.
+     * @param message メッセージパラメータ
+     * @param range 近接識別子
+     */
+    public static void setRange(final Bundle message, final Range range) {
+        message.putString(PARAM_RANGE, range.getValue());
     }
 }

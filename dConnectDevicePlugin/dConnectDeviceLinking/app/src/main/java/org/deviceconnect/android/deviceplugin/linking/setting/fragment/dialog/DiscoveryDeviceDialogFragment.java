@@ -14,10 +14,12 @@ import android.support.v4.app.DialogFragment;
 
 public class DiscoveryDeviceDialogFragment extends DialogFragment {
 
+    private static final String EXTRA_MESSAGE = "message";
+
     public static DiscoveryDeviceDialogFragment newInstance(String message) {
         DiscoveryDeviceDialogFragment instance = new DiscoveryDeviceDialogFragment();
         Bundle arguments = new Bundle();
-        arguments.putString("message", message);
+        arguments.putString(EXTRA_MESSAGE, message);
         instance.setArguments(arguments);
         return instance;
     }
@@ -25,7 +27,7 @@ public class DiscoveryDeviceDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        String message = getArguments().getString("message");
+        String message = getArguments().getString(EXTRA_MESSAGE);
 
         ProgressDialog progressDialog = new ProgressDialog(getActivity());
         progressDialog.setMessage(message);

@@ -65,6 +65,9 @@ public class SettingActivity extends AppCompatActivity {
             case R.id.menu_setting:
                 transitionLinkingApp();
                 break;
+            case R.id.menu_information:
+                transitionAppInform();
+                break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -73,6 +76,12 @@ public class SettingActivity extends AppCompatActivity {
     private void transitionLinkingApp() {
         Intent intent = new Intent();
         intent.setClass(this, LinkingSettingActivity.class);
+        startActivity(intent);
+    }
+
+    private void transitionAppInform() {
+        Intent intent = new Intent();
+        intent.setClass(this, LinkingDetailActivity.class);
         startActivity(intent);
     }
 

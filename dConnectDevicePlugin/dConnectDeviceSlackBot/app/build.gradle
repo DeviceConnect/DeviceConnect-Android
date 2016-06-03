@@ -30,4 +30,5 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':dconnect-device-plugin-sdk')
+    compile 'com.squareup.picasso:picasso:2.5.2'
 }

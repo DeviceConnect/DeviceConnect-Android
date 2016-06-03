@@ -12,7 +12,8 @@
         android:theme="@style/AppTheme">
 
         <!-- Device Connect Example Device Plugin Provider. -->
-        <receiver android:name=".SlackBotDeviceProvider" >
+        <receiver android:name=".SlackBotDeviceProvider"
+            android:exported="true">
             <meta-data
                 android:name="org.deviceconnect.android.deviceplugin"
                 android:resource="@xml/deviceplugin" />
@@ -43,6 +44,12 @@
             android:name=".setting.SlackBotSettingActivity"
             android:label="@string/app_name"
             android:launchMode="singleInstance">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
         </activity>
     </application>
 

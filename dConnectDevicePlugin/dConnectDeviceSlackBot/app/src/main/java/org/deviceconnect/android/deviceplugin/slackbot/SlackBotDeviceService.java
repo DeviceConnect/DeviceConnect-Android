@@ -6,6 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.slackbot;
 
+import org.deviceconnect.android.deviceplugin.slackbot.profile.SlackBotProfile;
 import org.deviceconnect.android.deviceplugin.slackbot.profile.SlackBotServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.slackbot.profile.SlackBotSystemProfile;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -22,6 +23,7 @@ public class SlackBotDeviceService extends DConnectMessageService {
     @Override
     public void onCreate() {
         super.onCreate();
+        addProfile(new SlackBotProfile());
     }
 
     @Override

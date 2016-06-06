@@ -45,6 +45,31 @@ public final class LinkingBeaconUtil {
     public static final int RESULT_OK = 0;
     public static final int RESULT_NG = 1;
 
+    public enum ScanMode {
+        HIGHT(0),
+        NORMAL(1),
+        LOW(2);
+
+        private int mValue;
+
+        ScanMode(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+
+        public static ScanMode valueOf(int value) {
+            for (ScanMode mode : values()) {
+                if (mode.getValue() == value) {
+                    return mode;
+                }
+            }
+            return null;
+        }
+    }
+
     private LinkingBeaconUtil() {
     }
 

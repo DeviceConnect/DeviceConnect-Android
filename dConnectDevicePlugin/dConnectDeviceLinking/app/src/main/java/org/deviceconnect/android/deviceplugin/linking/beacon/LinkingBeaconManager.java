@@ -36,6 +36,7 @@ public class LinkingBeaconManager {
     private Context mContext;
     private int mScanState;
     private int mScanDetail;
+    private LinkingBeaconUtil.ScanMode mScanMode;
 
     private ScheduledExecutorService mScheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture mScheduledFuture;
@@ -47,6 +48,10 @@ public class LinkingBeaconManager {
     private List<OnBeaconButtonEventListener> mOnBeaconButtonEventListeners = new ArrayList<>();
     private List<OnBeaconProximityEventListener> mOnBeaconProximityEventListeners = new ArrayList<>();
     private List<OnBeaconBatteryEventListener> mOnBeaconBatteryEventListeners = new ArrayList<>();
+    private List<OnBeaconAtmosphericPressureEventListener> mOnBeaconAtmosphericPressureEventListeners = new ArrayList<>();
+    private List<OnBeaconHumidityEventListener> mOnBeaconHumidityEventListeners = new ArrayList<>();
+    private List<OnBeaconTemperatureEventListener> mOnBeaconTemperatureEventListeners = new ArrayList<>();
+    private List<OnBeaconRawDataEventListener> mOnBeaconRawDataEventListeners = new ArrayList<>();
 
     private LinkingDBAdapter mDBAdapter;
 
@@ -97,15 +102,55 @@ public class LinkingBeaconManager {
         mOnBeaconBatteryEventListeners.add(listener);
     }
 
+    public void addOnBeaconAtmosphericPressureEventListener(OnBeaconAtmosphericPressureEventListener listener) {
+        mOnBeaconAtmosphericPressureEventListeners.add(listener);
+    }
+
+    public void removeOnBeaconAtmosphericPressureEventListener(OnBeaconAtmosphericPressureEventListener listener) {
+        mOnBeaconAtmosphericPressureEventListeners.remove(listener);
+    }
+
+    public void addOnBeaconHumidityEventListener(OnBeaconHumidityEventListener listener) {
+        mOnBeaconHumidityEventListeners.add(listener);
+    }
+
+    public void removeOnBeaconHumidityEventListener(OnBeaconHumidityEventListener listener) {
+        mOnBeaconHumidityEventListeners.remove(listener);
+    }
+
+    public void addOnBeaconTemperatureEventListener(OnBeaconTemperatureEventListener listener) {
+        mOnBeaconTemperatureEventListeners.add(listener);
+    }
+
+    public void removeOnBeaconTemperatureEventListener(OnBeaconTemperatureEventListener listener) {
+        mOnBeaconTemperatureEventListeners.remove(listener);
+    }
+
+    public void addOnBeaconRawDataEventListener(OnBeaconRawDataEventListener listener) {
+        mOnBeaconRawDataEventListeners.add(listener);
+    }
+
+    public void removeOnBeaconRawDataEventListener(OnBeaconRawDataEventListener listener) {
+        mOnBeaconRawDataEventListeners.remove(listener);
+    }
+
     public void startBeaconScan() {
+        startBeaconScan(null);
+    }
+
+    public void startBeaconScan(LinkingBeaconUtil.ScanMode scanMode) {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "LinkingBeaconManager#startBeaconScan");
         }
+        mScanMode = scanMode;
 
         Intent intent = new Intent();
         intent.setClassName("com.nttdocomo.android.smartdeviceagent", "com.nttdocomo.android.smartdeviceagent.beacon.BeaconService");
         intent.setAction(mContext.getPackageName() + ".sda.action.START_BEACON_SCAN");
-        intent.putExtra(mContext.getPackageName() + ".sda.extra.SERVICE_ID", new int[] {1, 2, 3, 4, 5, 15});
+        intent.putExtra(mContext.getPackageName() + ".sda.extra.SERVICE_ID", new int[] {0, 1, 2, 3, 4, 5, 15});
+        if (scanMode != null) {
+           intent.putExtra(mContext.getPackageName() + ".sda.extra.SCAN_MODE", scanMode.getValue());
+        }
         mContext.startService(intent);
 
         PreferenceUtil.getInstance(mContext).setBeaconScanStatus(true);
@@ -139,6 +184,10 @@ public class LinkingBeaconManager {
         mOnBeaconButtonEventListeners.clear();
         mOnBeaconProximityEventListeners.clear();
         mOnBeaconBatteryEventListeners.clear();
+        mOnBeaconAtmosphericPressureEventListeners.clear();
+        mOnBeaconHumidityEventListeners.clear();
+        mOnBeaconTemperatureEventListeners.clear();
+        mOnBeaconRawDataEventListeners.clear();
     }
 
     public LinkingBeacon findBeacon(int extraId, int vendorId) {
@@ -160,10 +209,19 @@ public class LinkingBeaconManager {
         }
     }
 
+    public void removeAllBeacons() {
+        mLinkingBeacons.clear();
+        mDBAdapter.deleteAll();
+    }
+
     public void onReceivedBeacon(Intent intent) {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "@@ LinkingBeaconManager#onReceivedBeacon");
             Log.i(TAG, "intent=" + intent);
+        }
+
+        if (intent == null) {
+            return;
         }
 
         String action = intent.getAction();
@@ -178,18 +236,26 @@ public class LinkingBeaconManager {
         mScanState = intent.getIntExtra(LinkingBeaconUtil.SCAN_STATE, 0);
         mScanDetail = intent.getIntExtra(LinkingBeaconUtil.DETAIL, 0);
 
-        if (mScanState == LinkingBeaconUtil.RESULT_OK) {
+        if (mScanState == LinkingBeaconUtil.RESULT_NG) {
             if (mScanDetail == LinkingBeaconUtil.DETAIL_TIMEOUT) {
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "@@ Restart the beacon scan.");
                 }
-                startBeaconScan();
+                startBeaconScan(mScanMode);
+            } else if (mScanDetail == LinkingBeaconUtil.DETAIL_META_DATA_NONE) {
+                if (BuildConfig.DEBUG) {
+                    Log.w(TAG, "@@ meta data is not defined.");
+                }
+            } else {
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "Unknown detail. detail=" + mScanDetail);
+                }
             }
         }
 
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "mScanState: : " + mScanState);
-            Log.d(TAG, "detail: " + mScanDetail);
+            Log.d(TAG, "mScanState: " + mScanState);
+            Log.d(TAG, "mScanDetail: " + mScanDetail);
         }
     }
 
@@ -273,6 +339,10 @@ public class LinkingBeaconManager {
             atm.setValue(value);
 
             mDBAdapter.insertAtmosphericPressure(beacon, atm);
+
+            for (OnBeaconAtmosphericPressureEventListener listener : mOnBeaconAtmosphericPressureEventListeners) {
+                listener.onAtmosphericPressure(beacon, atm);
+            }
         }
     }
 
@@ -314,6 +384,10 @@ public class LinkingBeaconManager {
             humidity.setValue(value);
 
             mDBAdapter.insertHumidity(beacon, humidity);
+
+            for (OnBeaconHumidityEventListener listener : mOnBeaconHumidityEventListeners) {
+                listener.onHumidity(beacon, humidity);
+            }
         }
     }
 
@@ -331,6 +405,10 @@ public class LinkingBeaconManager {
             temp.setValue(value);
 
             mDBAdapter.insertTemperature(beacon, temp);
+
+            for (OnBeaconTemperatureEventListener listener : mOnBeaconTemperatureEventListeners) {
+                listener.onTemperature(beacon, temp);
+            }
         }
     }
 
@@ -347,6 +425,10 @@ public class LinkingBeaconManager {
             raw.setValue(value);
 
             mDBAdapter.insertRawData(beacon, raw);
+
+            for (OnBeaconRawDataEventListener listener : mOnBeaconRawDataEventListeners) {
+                listener.onRawData(beacon, raw);
+            }
         }
     }
 
@@ -417,5 +499,21 @@ public class LinkingBeaconManager {
 
     public interface OnBeaconBatteryEventListener {
         void onBattery(LinkingBeacon beacon, BatteryData battery);
+    }
+
+    public interface OnBeaconAtmosphericPressureEventListener {
+        void onAtmosphericPressure(LinkingBeacon beacon, AtmosphericPressureData atmosphericPressure);
+    }
+
+    public interface OnBeaconHumidityEventListener {
+        void onHumidity(LinkingBeacon beacon, HumidityData humidity);
+    }
+
+    public interface OnBeaconTemperatureEventListener {
+        void onTemperature(LinkingBeacon beacon, TemperatureData temperature);
+    }
+
+    public interface OnBeaconRawDataEventListener {
+        void onRawData(LinkingBeacon beacon, RawData rawData);
     }
 }

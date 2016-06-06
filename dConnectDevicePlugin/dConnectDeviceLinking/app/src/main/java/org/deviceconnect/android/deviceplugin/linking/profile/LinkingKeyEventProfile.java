@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
@@ -95,6 +96,11 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
     }
 
     private boolean onPutOnDownLinkingBeacon(Intent request, Intent response, String serviceId, final String sessionKey) {
+        LinkingBeacon beacon = getLinkingBeacon(response, serviceId);
+        if (beacon == null) {
+            return true;
+        }
+
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -143,13 +149,12 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
 
     private Bundle createKeyEvent(int keyCode) {
         Bundle keyEvent = new Bundle();
-        keyEvent.putString(PARAM_ID, String.valueOf(keyCode));
+        keyEvent.putString(PARAM_ID, String.valueOf(KeyEventProfile.KEYTYPE_STD_KEY + keyCode));
         return keyEvent;
     }
 
     private Bundle createKeyEvent(int keyCode, long timeStamp) {
-        Bundle keyEvent = new Bundle();
-        keyEvent.putString(PARAM_ID, String.valueOf(keyCode));
+        Bundle keyEvent = createKeyEvent(keyCode);
         keyEvent.putString(PARAM_CONFIG, "" + timeStamp);
         return keyEvent;
     }
@@ -171,5 +176,30 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
 
     private void setKeyEvent(Intent intent, Bundle keyEvent) {
         intent.putExtra(PARAM_KEYEVENT, keyEvent);
+    }
+
+    private LinkingBeacon getLinkingBeacon(Intent response, String serviceId) {
+        LinkingBeaconManager mgr = getLinkingBeaconManager();
+        LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
+        if (beacon == null) {
+            MessageUtils.setNotSupportProfileError(response);
+            return null;
+        }
+
+        if (!beacon.isOnline()) {
+            MessageUtils.setIllegalDeviceStateError(response, beacon.getDisplayName() + " is offline.");
+            return null;
+        }
+        return beacon;
+    }
+
+    private LinkingBeaconManager getLinkingBeaconManager() {
+        LinkingApplication app = getLinkingApplication();
+        return app.getLinkingBeaconManager();
+    }
+
+    private LinkingApplication getLinkingApplication() {
+        LinkingDeviceService service = (LinkingDeviceService) getContext();
+        return (LinkingApplication) service.getApplication();
     }
 }

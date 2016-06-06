@@ -40,6 +40,8 @@ import java.util.Map;
 
 public class LinkingDeviceActivity extends AppCompatActivity {
 
+    private static final String TAG = "LinkingPlugIn";
+
     public static final String EXTRA_ADDRESS = "bdAddress";
 
     private LinkingDevice mDevice;
@@ -559,10 +561,15 @@ public class LinkingDeviceActivity extends AppCompatActivity {
             return;
         }
 
-        // TODO デバイス識別
-//        if (deviceId != mDevice.getModelId() || uniqueId != mDevice.getUniqueId()) {
-//            return;
-//        }
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "LinkingDeviceActivity#updateKeyEvent");
+            Log.d(TAG, "deviceId: " + deviceId);
+            Log.d(TAG, "uniqueId: " + uniqueId);
+        }
+
+        if (deviceId != mDevice.getModelId() || uniqueId != mDevice.getUniqueId()) {
+            return;
+        }
 
         TextView tv = (TextView) findViewById(R.id.linking_button_id);
         if (tv != null) {

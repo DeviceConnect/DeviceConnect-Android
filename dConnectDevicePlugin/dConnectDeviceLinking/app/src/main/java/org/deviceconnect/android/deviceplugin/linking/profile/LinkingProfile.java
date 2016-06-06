@@ -5,6 +5,7 @@ import android.content.Intent;
 import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
+import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -15,6 +16,8 @@ public class LinkingProfile extends DConnectProfile {
 
     public static final String ATTRIBUTE_START_SCAN = "startScan";
     public static final String ATTRIBUTE_STOP_SCAN = "stopScan";
+
+    public static final String PARAM_SCAN_MODE = "scanMode";
 
     @Override
     public String getProfileName() {
@@ -27,7 +30,7 @@ public class LinkingProfile extends DConnectProfile {
         String attribute = getAttribute(request);
 
         if (ATTRIBUTE_START_SCAN.equals(attribute)) {
-            result = onPostStartScan(request, response, getServiceID(request));
+            result = onPostStartScan(request, response, getServiceID(request), getScanMode(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -47,10 +50,10 @@ public class LinkingProfile extends DConnectProfile {
         return result;
     }
 
-    private boolean onPostStartScan(Intent request, Intent response, String serviceId) {
+    private boolean onPostStartScan(Intent request, Intent response, String serviceId, LinkingBeaconUtil.ScanMode scanMode) {
         if (Util.getServiceType(serviceId) == Util.LINKING_APP) {
             LinkingBeaconManager mgr = getLinkingBeaconManager();
-            mgr.startBeaconScan();
+            mgr.startBeaconScan(scanMode);
             setResult(response, DConnectMessage.RESULT_OK);
         } else {
             MessageUtils.setNotSupportProfileError(response);
@@ -67,6 +70,10 @@ public class LinkingProfile extends DConnectProfile {
             MessageUtils.setNotSupportProfileError(response);
         }
         return true;
+    }
+
+    protected static LinkingBeaconUtil.ScanMode getScanMode(Intent request) {
+        return LinkingBeaconUtil.ScanMode.valueOf(request.getExtras().getInt(PARAM_SCAN_MODE, -1));
     }
 
     private LinkingBeaconManager getLinkingBeaconManager() {

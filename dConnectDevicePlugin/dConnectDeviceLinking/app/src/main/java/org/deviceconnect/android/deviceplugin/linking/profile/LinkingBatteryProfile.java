@@ -34,10 +34,8 @@ public class LinkingBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onGetAll(Intent request, Intent response, String serviceId) {
-        LinkingBeaconManager mgr = getLinkingBeaconManager();
-        LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
+        LinkingBeacon beacon = getLinkingBeacon(response, serviceId);
         if (beacon == null) {
-            MessageUtils.setNotSupportProfileError(response);
             return true;
         }
 
@@ -55,10 +53,8 @@ public class LinkingBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onGetLevel(Intent request, Intent response, String serviceId) {
-        LinkingBeaconManager mgr = getLinkingBeaconManager();
-        LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
+        LinkingBeacon beacon = getLinkingBeacon(response, serviceId);
         if (beacon == null) {
-            MessageUtils.setNotSupportProfileError(response);
             return true;
         }
 
@@ -76,6 +72,10 @@ public class LinkingBatteryProfile extends BatteryProfile {
 
     @Override
     protected boolean onPutOnBatteryChange(Intent request, Intent response, String serviceId, String sessionKey) {
+        if (getLinkingBeacon(response, serviceId) == null) {
+            return true;
+        }
+
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -119,6 +119,21 @@ public class LinkingBatteryProfile extends BatteryProfile {
         Bundle battery = new Bundle();
         setLevel(battery, batteryData.getLevel());
         return battery;
+    }
+
+    private LinkingBeacon getLinkingBeacon(Intent response, String serviceId) {
+        LinkingBeaconManager mgr = getLinkingBeaconManager();
+        LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
+        if (beacon == null) {
+            MessageUtils.setNotSupportProfileError(response);
+            return null;
+        }
+
+        if (!beacon.isOnline()) {
+            MessageUtils.setIllegalDeviceStateError(response, beacon.getDisplayName() + " is offline.");
+            return null;
+        }
+        return beacon;
     }
 
     private LinkingBeaconManager getLinkingBeaconManager() {

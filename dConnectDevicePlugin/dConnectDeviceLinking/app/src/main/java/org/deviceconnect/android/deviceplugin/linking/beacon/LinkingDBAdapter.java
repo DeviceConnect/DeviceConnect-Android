@@ -58,6 +58,16 @@ public class LinkingDBAdapter {
         deleteBeacon(beacon);
     }
 
+    public void deleteAll() {
+        delete(TABLE_BEACON, null, null);
+        delete(TABLE_GATT, null, null);
+        delete(TABLE_TEMPERATURE, null, null);
+        delete(TABLE_HUMIDITY, null, null);
+        delete(TABLE_ATMOSPHERIC_PRESSURE, null, null);
+        delete(TABLE_BATTERY, null, null);
+        delete(TABLE_RAW_DATA, null, null);
+    }
+
     public boolean insertBeacon(LinkingBeacon beacon) {
         ContentValues values = new ContentValues();
         values.put(BeaconColumns.VENDOR_ID, beacon.getVendorId());

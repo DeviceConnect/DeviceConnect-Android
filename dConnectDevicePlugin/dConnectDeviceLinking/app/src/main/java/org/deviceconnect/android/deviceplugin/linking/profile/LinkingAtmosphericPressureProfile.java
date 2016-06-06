@@ -23,6 +23,11 @@ public class LinkingAtmosphericPressureProfile extends AtmosphericPressureProfil
             return true;
         }
 
+        if (!beacon.isOnline()) {
+            MessageUtils.setIllegalDeviceStateError(response, beacon.getDisplayName() + " is offline.");
+            return true;
+        }
+
         AtmosphericPressureData atmosphericPressureData = beacon.getAtmosphericPressureData();
         if (atmosphericPressureData == null) {
             MessageUtils.setNotSupportProfileError(response);

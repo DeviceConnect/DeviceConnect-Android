@@ -94,6 +94,7 @@
             android:name=".linking.ConfirmActivity"
             android:excludeFromRecents="true"
             android:finishOnCloseSystemDialogs="true"
+            android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_confirm"
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar">

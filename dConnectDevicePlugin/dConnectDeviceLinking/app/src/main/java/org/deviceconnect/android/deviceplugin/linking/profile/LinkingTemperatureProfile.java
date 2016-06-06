@@ -16,10 +16,8 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
 
     @Override
     protected boolean onGetTemperature(Intent request, Intent response, String serviceId) {
-        LinkingBeaconManager mgr = getLinkingBeaconManager();
-        LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
+        LinkingBeacon beacon = getLinkingBeacon(response, serviceId);
         if (beacon == null) {
-            MessageUtils.setNotSupportProfileError(response);
             return true;
         }
 
@@ -35,6 +33,21 @@ public class LinkingTemperatureProfile extends TemperatureProfile {
         setTimeStamp(response, temperatureData.getTimeStamp());
 
         return true;
+    }
+
+    private LinkingBeacon getLinkingBeacon(Intent response, String serviceId) {
+        LinkingBeaconManager mgr = getLinkingBeaconManager();
+        LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
+        if (beacon == null) {
+            MessageUtils.setNotSupportProfileError(response);
+            return null;
+        }
+
+        if (!beacon.isOnline()) {
+            MessageUtils.setIllegalDeviceStateError(response, beacon.getDisplayName() + " is offline.");
+            return null;
+        }
+        return beacon;
     }
 
     private LinkingBeaconManager getLinkingBeaconManager() {

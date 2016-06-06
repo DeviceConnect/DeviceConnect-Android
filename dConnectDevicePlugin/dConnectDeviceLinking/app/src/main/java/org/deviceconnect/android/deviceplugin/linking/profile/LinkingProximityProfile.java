@@ -134,10 +134,8 @@ public class LinkingProximityProfile extends ProximityProfile {
     }
 
     private boolean onGetOnDeviceProximityLinkingBeacon(final Intent request, final Intent response, final String serviceId) {
-        LinkingBeaconManager mgr = getLinkingBeaconManager();
-        LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
+        LinkingBeacon beacon = getLinkingBeacon(response, serviceId);
         if (beacon == null) {
-            MessageUtils.setNotSupportProfileError(response);
             return true;
         }
 
@@ -159,6 +157,7 @@ public class LinkingProximityProfile extends ProximityProfile {
         if (device == null) {
             return true;
         }
+
         final LinkingEvent linkingEvent = new LinkingRangeEvent(getContext().getApplicationContext(), device);
         linkingEvent.setEventInfo(request);
         linkingEvent.setLinkingEventListener(new LinkingEventListener() {
@@ -171,13 +170,17 @@ public class LinkingProximityProfile extends ProximityProfile {
                 sendEvent(event, proximity);
             }
         });
-        LinkingEventManager manager = LinkingEventManager.getInstance();
-        manager.add(linkingEvent);
+        LinkingEventManager.getInstance().add(linkingEvent);
+
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }
 
     private boolean onPutOnDeviceProximityLinkingBeacon(Intent request, Intent response, String serviceId, String sessionKey) {
+        if (getLinkingBeacon(response, serviceId) == null) {
+            return true;
+        }
+
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -224,6 +227,18 @@ public class LinkingProximityProfile extends ProximityProfile {
         return device;
     }
 
+    private Bundle createProximity(LinkingManager.Range range) {
+        Bundle proximity = new Bundle();
+        setRange(proximity, getProximityRange(range));
+        return proximity;
+    }
+
+    private Bundle createProximity(GattData gatt) {
+        Bundle proximity = createProximity(gatt.getRange());
+        setValue(proximity, calcDistance(gatt) * 100);
+        return proximity;
+    }
+
     private void notifyProximityEvent(LinkingBeacon beacon, GattData gatt) {
         String serviceId = LinkingBeaconUtil.createServiceIdFromLinkingBeacon(beacon);
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
@@ -237,18 +252,6 @@ public class LinkingProximityProfile extends ProximityProfile {
                 }
             }
         }
-    }
-
-    private Bundle createProximity(LinkingManager.Range range) {
-        Bundle proximity = new Bundle();
-        setRange(proximity, getProximityRange(range));
-        return proximity;
-    }
-
-    private Bundle createProximity(GattData gatt) {
-        Bundle proximity = createProximity(gatt.getRange());
-        setValue(proximity, calcDistance(gatt) * 100);
-        return proximity;
     }
 
     private ProximityProfileConstants.Range getProximityRange(LinkingManager.Range range) {
@@ -267,6 +270,21 @@ public class LinkingProximityProfile extends ProximityProfile {
 
     private double calcDistance(GattData gatt) {
       return Math.pow(10.0, (gatt.getTxPower() - gatt.getRssi()) / 20.0);
+    }
+
+    private LinkingBeacon getLinkingBeacon(Intent response, String serviceId) {
+        LinkingBeaconManager mgr = getLinkingBeaconManager();
+        LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
+        if (beacon == null) {
+            MessageUtils.setNotSupportProfileError(response);
+            return null;
+        }
+
+        if (!beacon.isOnline()) {
+            MessageUtils.setIllegalDeviceStateError(response, beacon.getDisplayName() + " is offline.");
+            return null;
+        }
+        return beacon;
     }
 
     private LinkingBeaconManager getLinkingBeaconManager() {

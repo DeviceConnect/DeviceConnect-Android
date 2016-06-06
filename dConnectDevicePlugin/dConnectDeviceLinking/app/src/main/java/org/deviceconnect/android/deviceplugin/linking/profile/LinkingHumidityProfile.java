@@ -22,6 +22,11 @@ public class LinkingHumidityProfile extends HumidityProfile {
             return true;
         }
 
+        if (!beacon.isOnline()) {
+            MessageUtils.setIllegalDeviceStateError(response, beacon.getDisplayName() + " is offline.");
+            return true;
+        }
+
         HumidityData humidityData = beacon.getHumidityData();
         if (humidityData == null) {
             MessageUtils.setNotSupportProfileError(response);

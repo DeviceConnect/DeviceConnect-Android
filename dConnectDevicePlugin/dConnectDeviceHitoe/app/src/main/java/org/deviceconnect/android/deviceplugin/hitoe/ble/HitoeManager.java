@@ -86,7 +86,6 @@ public class HitoeManager {
                         break;
                     case HitoeConstants.API_ID_DISCONNECT:
                         // センサーの切断
-
                         break;
                     case HitoeConstants.API_ID_GET_AVAILABLE_DATA:
                         notifyAvailableData(responseId, responseString);
@@ -276,6 +275,8 @@ public class HitoeManager {
     public void stop() {
         for (int i = 0; i < mRegisterDevices.size(); i++) {
             mHitoeSdkAPI.disconnect(mRegisterDevices.get(i).getSessionId());
+            mRegisterDevices.get(i).setRegisterFlag(false);
+            mDBHelper.updateHitoeDevice(mRegisterDevices.get(i));
             mRegisterDevices.get(i).setSessionId(null);
         }
     }
@@ -415,9 +416,13 @@ public class HitoeManager {
             return;
         } else if(responseId == HitoeConstants.RES_ID_SENSOR_CONNECT_NOTICE) {
             // センサー接続が再開
+            if (mDiscoveryListener != null) {
+                mDiscoveryListener.onConnected(mRegisterDevices.get(pos));
+            }
             return;
         } else if (responseId != HitoeConstants.RES_ID_SENSOR_CONNECT) {
             //センサー接続に失敗
+
             if (mDiscoveryListener != null) {
                 mDiscoveryListener.onConnectFailed(mRegisterDevices.get(pos));
             }

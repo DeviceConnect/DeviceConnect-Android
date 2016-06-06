@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">Hitoe (Device Connect Device Plug-in)</string>
+    <string name="summary_title">[1/4] デバイスプラグイン概要</string>
+    <string name="summary_body">このデバイスプラグインはHitoeデバイスと接続し、心拍数などを取得する機能を提供します。</string>
+
+    <string name="summary_not_support_title">デバイスエラー</string>
+    <string name="summary_not_support_message">このデバイスはBluetooth Low Energyをサポートしていません</string>
+
+    <string name="hitoe_title">[1/3] Hitoeの準備</string>
+    <string name="hitoe_body">矢印の位置にあるボタンをランプが点滅するまで、長押してください。\nランプが黄緑色に点滅します。</string>
+
+    <string name="bluetooth_settings_title">[2/3] Bluetooth設定</string>
+    <string name="bluetooth_settings_body">このデバイスプラグインでは、Bluetooth Low Energyを使用しますので、端末のBluetooth設定画面より設定をONにしてください。\n\n既にBluetoothがONになっている場合には次のページにお進みください。\n</string>
+    <string name="bluetooth_settings_button">設定画面を開く</string>
+    <string name="bluetooth_settings_ble_detail">Android 6.0からBLEをスキャンするには、位置情報のパーミッションが必要になりました。\nこのプラグインを使用するためには、以下のパーミッションを許可してください。\n許可を取り消すには、アプリの設定画面から行うことができます。</string>
+    <string name="bluetooth_settings_ble_permission">位置情報の許可</string>
+    <string name="bluetooth_settings_ble_permission_on">取得済み</string>
+    <string name="bluetooth_settings_ble_permission_off">取得</string>
+
+    <string name="hitoe_setting_title">[3/3] デバイス接続</string>
+    <string name="tap_discovery">Hitoeデバイスの検索をタップしてください。</string>
+    <string name="discovery_devices">Hitoeデバイスの検索</string>
+    <string name="device_list_description">デバイスとの接続を行ってください。</string>
+    <string name="hitoe_setting_connect">接続</string>
+    <string name="hitoe_setting_disconnect">解除</string>
+    <string name="hitoe_setting_default_name">Unknown</string>
+    <string name="hitoe_setting_default_address">Unknown</string>
+    <string name="hitoe_setting_connecting_title">BLE接続</string>
+    <string name="hitoe_setting_connecting_message">%1$sと接続中</string>
+    <string name="hitoe_setting_dialog_positive">OK</string>
+    <string name="hitoe_setting_dialog_pin_title">PINコードの入力</string>
+    <string name="hitoe_setting_dialog_error_title">BLE接続エラー</string>
+    <string name="hitoe_setting_dialog_error_message">%1$sとの接続に失敗しました</string>
+    <string name="hitoe_setting_dialog_error_message02">PINコードを入力してください</string>
+    <string name="hitoe_setting_dialog_error_message03">Hitoeデバイスとの接続に失敗しました</string>
+    <string name="hitoe_setting_online">[ONLINE]</string>
+    <string name="hitoe_setting_offline">[OFFLINE]</string>
+    <string name="hitoe_setting_dialog_error_permission">BLE検索するためのパーミッションが許可されていないために検索できません。\nBluetooth設定画面から位置情報の許可を取得してください。</string>
+    <string name="hitoe_setting_dialog_disable_bluetooth">Bluetoothが無効になっているために検索できません。\nBluetooth設定画面からBluetoothを有効に設定してください。</string>
+    <string name="hitoe_setting_searching">デバイス検索中</string>
+</resources>

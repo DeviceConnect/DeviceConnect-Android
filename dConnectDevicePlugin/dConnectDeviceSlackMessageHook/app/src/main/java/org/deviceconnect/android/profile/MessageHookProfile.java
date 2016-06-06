@@ -12,7 +12,7 @@ import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.profile.MessageHookProfileConstants;
 
 /**
- * Bot Profile.
+ * MessageHook Profile.
  * @author NTT DOCOMO, INC.
  */
 public class MessageHookProfile extends DConnectProfile implements MessageHookProfileConstants {
@@ -26,8 +26,13 @@ public class MessageHookProfile extends DConnectProfile implements MessageHookPr
     protected boolean onGetRequest(final Intent request, final Intent response) {
         String interfaceName = getInterface(request);
         String attributeName = getAttribute(request);
-        if (interfaceName == null && ATTRIBUTE_CHANNEL.equals(attributeName)) {
-            return onGetChannel(request, response, getServiceID(request));
+        if (interfaceName == null) {
+            if (ATTRIBUTE_CHANNEL.equals(attributeName)) {
+                return onGetChannel(request, response, getServiceID(request));
+            } else
+            if (ATTRIBUTE_MESSAGE.equals(attributeName)) {
+                return onGetMessage(request, response, getServiceID(request));
+            }
         }
         MessageUtils.setUnknownAttributeError(response);
         return true;
@@ -39,11 +44,11 @@ public class MessageHookProfile extends DConnectProfile implements MessageHookPr
         boolean result = true;
 
         if (ATTRIBUTE_MESSAGE.equals(attribute)) {
-            String channel = request.getStringExtra(PARAM_CHANNEL);
+            String channelid = request.getStringExtra(PARAM_CHANNELID);
             String text = request.getStringExtra(PARAM_TEXT);
             String resource = request.getStringExtra(PARAM_RESOURCE);
             String mime = request.getStringExtra(PARAM_MIME_TYPE);
-            result = onPostMessage(request, response, getServiceID(request), channel, text, resource, mime);
+            result = onPostMessage(request, response, getServiceID(request), channelid, text, resource, mime);
         } else {
             MessageUtils.setUnknownAttributeError(response);
         }
@@ -108,6 +113,23 @@ public class MessageHookProfile extends DConnectProfile implements MessageHookPr
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onGetChannel(final Intent request, final Intent response, final String serviceId) {
+        setUnsupportedError(response);
+        return true;
+    }
+
+    /**
+     * 投稿されたメッセージ取得リクエストハンドラー.
+     * <p>
+     * レスポンスパラメータの送信準備が出来た場合は返り値にtrueを指定する事。<br>
+     * 送信準備ができていない場合は、返り値にfalseを指定し、スレッドを立ち上げてそのスレッドで最終的にレスポンスパラメータの送信を行う事。
+     * </p>
+     *
+     * @param request リクエストパラメータ
+     * @param response レスポンスパラメータ
+     * @param serviceId サービスID
+     * @return レスポンスパラメータを送信するか否か
+     */
+    protected boolean onGetMessage(final Intent request, final Intent response, final String serviceId) {
         setUnsupportedError(response);
         return true;
     }

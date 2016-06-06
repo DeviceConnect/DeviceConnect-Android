@@ -7,7 +7,7 @@
 package org.deviceconnect.profile;
 
 /**
- * Constants for Bot API.
+ * Constants for MessageHook Profile.
  * @author NTT DOCOMO, INC.
  */
 public interface MessageHookProfileConstants extends DConnectProfileConstants {
@@ -30,7 +30,27 @@ public interface MessageHookProfileConstants extends DConnectProfileConstants {
     /**
      * Parameter: {@value} .
      */
-    String PARAM_CHANNEL = "channel";
+    String PARAM_CHANNELS = "channels";
+
+    /**
+     * Parameter: {@value} .
+     */
+    String PARAM_ID = "id";
+
+    /**
+     * Parameter: {@value} .
+     */
+    String PARAM_NAME = "name";
+
+    /**
+     * Parameter: {@value} .
+     */
+    String PARAM_TYPE = "type";
+
+    /**
+     * Parameter: {@value} .
+     */
+    String PARAM_CHANNELID = "channelid";
 
     /**
      * Parameter: {@value} .

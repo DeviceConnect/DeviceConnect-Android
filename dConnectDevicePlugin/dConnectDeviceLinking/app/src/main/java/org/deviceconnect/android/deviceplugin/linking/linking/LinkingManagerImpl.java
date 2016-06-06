@@ -157,12 +157,10 @@ public class LinkingManagerImpl implements LinkingManager {
                     int keyCode = preference.getInt("DEVICE_BUTTON_ID", -1);
 
                     if (BuildConfig.DEBUG) {
-                        if (BuildConfig.DEBUG) {
-                            Log.i(TAG, "NotifyNotification.NotificationInterface#onNotify");
-                            Log.i(TAG, "deviceId:" + deviceId);
-                            Log.i(TAG, "uniqueId:" + uniqueId);
-                            Log.i(TAG, "keyCode:" + keyCode);
-                        }
+                        Log.i(TAG, "NotifyNotification.NotificationInterface#onNotify");
+                        Log.i(TAG, "deviceId:" + deviceId);
+                        Log.i(TAG, "uniqueId:" + uniqueId);
+                        Log.i(TAG, "keyCode:" + keyCode);
                     }
 
                     for (LinkingDevice device : getDevices()) {

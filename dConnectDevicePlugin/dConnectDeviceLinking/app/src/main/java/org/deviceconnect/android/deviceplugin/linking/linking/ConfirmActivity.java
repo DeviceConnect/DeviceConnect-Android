@@ -11,13 +11,14 @@ import org.deviceconnect.android.deviceplugin.linking.R;
 
 public class ConfirmActivity extends Activity {
 
+    private static final String TAG = "LinkingPlugIn";
     private int mCurrentRequestType = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (BuildConfig.DEBUG) {
-            Log.i("LinkingPlugIn", "ConfirmActivity:onCreate");
+            Log.i(TAG, "ConfirmActivity:onCreate");
         }
         setContentView(R.layout.activity_confirm);
         startSensor(mCurrentRequestType);
@@ -27,18 +28,18 @@ public class ConfirmActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (BuildConfig.DEBUG) {
-            Log.i("LinkingPlugIn", "ConfirmActivity:onActivityResult");
-            Log.i("LinkingPlugIn", "requestCode:" + requestCode);
-            Log.i("LinkingPlugIn", "resultCode:" + resultCode);
-            Log.i("LinkingPlugIn", "mCurrentRequestType:" + mCurrentRequestType);
+            Log.i(TAG, "ConfirmActivity:onActivityResult");
+            Log.i(TAG, "requestCode:" + requestCode);
+            Log.i(TAG, "resultCode:" + resultCode);
+            Log.i(TAG, "mCurrentRequestType:" + mCurrentRequestType);
         }
 
-        if (requestCode != 4) {
+        if (requestCode != LinkingUtil.RESULT_DEVICE_OFF) {
             finish();
             return;
         }
-        //RESULT_OK, RESULT_SENSOR_UNSUPPORTED
-        if (resultCode != -1 && resultCode != 8) {
+        if (resultCode != LinkingUtil.RESULT_OK &&
+                resultCode != LinkingUtil.RESULT_SENSOR_UNSUPPORTED) {
             finish();
             return;
         }
@@ -52,7 +53,7 @@ public class ConfirmActivity extends Activity {
 
     private void startSensor(int type) {
         if (BuildConfig.DEBUG) {
-            Log.i("LinkingPlugIn", "ConfirmActivity:startSensor type:" + type);
+            Log.i(TAG, "ConfirmActivity:startSensor type:" + type);
         }
         Intent intent = new Intent("com.nttdocomo.android.smartdeviceagent.action.START_SENSOR");
         intent.setComponent(new ComponentName("com.nttdocomo.android.smartdeviceagent", "com.nttdocomo.android.smartdeviceagent.RequestStartActivity"));
@@ -61,9 +62,10 @@ public class ConfirmActivity extends Activity {
         try {
             startActivityForResult(intent, 4);
         } catch (Exception e) {
-            e.printStackTrace();
+            if (BuildConfig.DEBUG) {
+                e.printStackTrace();
+            }
             finish();
         }
     }
-
 }

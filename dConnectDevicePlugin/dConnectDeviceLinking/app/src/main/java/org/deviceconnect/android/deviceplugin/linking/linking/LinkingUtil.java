@@ -18,6 +18,18 @@ import java.util.List;
 public final class LinkingUtil {
     private static final String PACKAGE_NAME = "com.nttdocomo.android.smartdeviceagent";
 
+    private static final int LED = 0x01;
+
+
+    public static final int RESULT_OK = -1;
+    public static final int RESULT_CANCEL = 1;
+    public static final int RESULT_DEVICE_OFF = 4;
+    public static final int RESULT_CONNECT_FAILURE = 5;
+    public static final int RESULT_CONFLICT = 6;
+    public static final int RESULT_PARAM_ERROR = 7;
+    public static final int RESULT_SENSOR_UNSUPPORTED = 8;
+    public static final int RESULT_OTHER_ERROR = 0;
+
     private LinkingUtil() {
     }
 
@@ -37,7 +49,7 @@ public final class LinkingUtil {
     }
 
     public static boolean hasLED(LinkingDevice device) {
-        return device.getIllumination() != null;
+        return (device.getFeature() & LED) != 0 && device.getIllumination() != null;
     }
 
     public static boolean hasVibration(LinkingDevice device) {

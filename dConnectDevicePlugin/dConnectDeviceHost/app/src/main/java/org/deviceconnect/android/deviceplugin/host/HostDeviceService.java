@@ -297,6 +297,12 @@ public class HostDeviceService extends DConnectMessageService {
         mFileDataManager.stopTimer();
     }
 
+    @Override
+    public void onManagerUninstalled() {
+        // TODO: Managerアンインストール検知時の処理要追加。
+        mLogger.info("Plug-in : onManagerUninstalled");
+    }
+
     /** HostDeviceRecorderManager. */
     private final HostDeviceRecorderManager mRecorderMgr = new HostDeviceRecorderManager() {
 

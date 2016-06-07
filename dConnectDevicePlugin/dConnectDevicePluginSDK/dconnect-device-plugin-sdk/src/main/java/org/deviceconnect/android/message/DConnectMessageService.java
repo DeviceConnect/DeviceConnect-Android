@@ -156,6 +156,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
             onRequest(intent, MessageUtils.createResponseIntent(intent));
         }
 
+        if (checkManagerUninstall(intent)) {
+            onManagerUninstalled();
+        }
         return START_STICKY;
     }
 
@@ -169,6 +172,17 @@ public abstract class DConnectMessageService extends Service implements DConnect
                 || IntentDConnectMessage.ACTION_POST.equals(action)
                 || IntentDConnectMessage.ACTION_PUT.equals(action)
                 || IntentDConnectMessage.ACTION_DELETE.equals(action);
+    }
+
+    /**
+     * Device Connect Managerがアンインストールされたかをチェックします.
+     * @param intent intentパラメータ
+     * @return アンインストール時はtrue、それ以外はfalse
+     */
+    private boolean checkManagerUninstall(final Intent intent) {
+        return Intent.ACTION_PACKAGE_FULLY_REMOVED.equals(intent.getAction()) &&
+                intent.getExtras().getBoolean(Intent.EXTRA_DATA_REMOVED) &&
+                intent.getDataString().contains("package:org.deviceconnect.android.manager");
     }
 
     /**
@@ -381,5 +395,9 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     public boolean isUseLocalOAuth() {
         return mUseLocalOAuth;
+    }
+
+    public void onManagerUninstalled() {
+        mLogger.info("SDK : onManagerUninstalled");
     }
 }

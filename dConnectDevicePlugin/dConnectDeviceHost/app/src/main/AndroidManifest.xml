@@ -66,6 +66,10 @@
 
                 <!-- Phone Profile -->
                 <action android:name="android.intent.action.NEW_OUTGOING_CALL"/>
+
+                <!-- uninstall notification -->
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED"/>
+                <data android:scheme="package"/>
             </intent-filter>
         </receiver>
 

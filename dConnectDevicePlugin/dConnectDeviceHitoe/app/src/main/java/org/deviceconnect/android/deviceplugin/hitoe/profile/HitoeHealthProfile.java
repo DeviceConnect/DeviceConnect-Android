@@ -8,6 +8,9 @@ package org.deviceconnect.android.deviceplugin.hitoe.profile;
 
 import android.content.Intent;
 
+import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
+import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
+import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeManager;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
@@ -103,19 +106,19 @@ public class HitoeHealthProfile extends HealthProfile {
 //    }
 
     /**
-     * Gets a instance of HeartRateManager.
+     * Gets a instance of HitoeManager.
      *
-     * @return {@link HeartRateManager}, or null on error
+     * @return {@link HitoeManager}, or null on error
      */
-//    private HeartRateManager getManager() {
-//        HeartRateDeviceService service = (HeartRateDeviceService) getContext();
-//        if (service == null) {
-//            return null;
-//        }
-//        HeartRateApplication app = (HeartRateApplication) service.getApplication();
-//        if (app == null) {
-//            return null;
-//        }
-//        return app.getHeartRateManager();
-//    }
+    private HitoeManager getManager() {
+        HitoeDeviceService service = (HitoeDeviceService) getContext();
+        if (service == null) {
+            return null;
+        }
+        HitoeApplication app = (HitoeApplication) service.getApplication();
+        if (app == null) {
+            return null;
+        }
+        return app.getHitoeManager();
+    }
 }

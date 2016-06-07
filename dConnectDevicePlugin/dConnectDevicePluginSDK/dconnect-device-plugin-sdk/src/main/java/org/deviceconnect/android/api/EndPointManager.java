@@ -42,4 +42,7 @@ public enum EndPointManager {
         return null;
     }
 
+    public boolean hasEndPoint(final String id) {
+        return getEndPoint(id) != null;
+    }
 }

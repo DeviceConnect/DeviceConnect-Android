@@ -33,6 +33,7 @@
     <string name="hitoe_setting_dialog_error_message">%1$sとの接続に失敗しました</string>
     <string name="hitoe_setting_dialog_error_message02">PINコードを入力してください</string>
     <string name="hitoe_setting_dialog_error_message03">Hitoeデバイスとの接続に失敗しました</string>
+    <string name="hitoe_setting_dialog_error_message04">Hitoeデバイスとの接続に失敗しました。\nPINコードを確認してください。</string>
     <string name="hitoe_setting_online">[ONLINE]</string>
     <string name="hitoe_setting_offline">[OFFLINE]</string>
     <string name="hitoe_setting_dialog_error_permission">BLE検索するためのパーミッションが許可されていないために検索できません。\nBluetooth設定画面から位置情報の許可を取得してください。</string>

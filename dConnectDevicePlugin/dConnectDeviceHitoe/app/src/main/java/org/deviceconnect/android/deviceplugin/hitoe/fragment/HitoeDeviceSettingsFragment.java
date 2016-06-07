@@ -257,12 +257,14 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
         String message = res.getString(R.string.hitoe_setting_connecting_message, name);
         mProgressDialogFragment = ProgressDialogFragment.newInstance(title, message);
         mProgressDialogFragment.show(getFragmentManager(), "dialog");
+        mCheckDialog = true;
     }
 
     /**
      * Dismiss the dialog of connecting a ble device.
      */
     private void dismissProgressDialog() {
+        mCheckDialog = false;
         if (mProgressDialogFragment != null) {
             mProgressDialogFragment.dismiss();
             mProgressDialogFragment = null;
@@ -413,11 +415,11 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
             public void run() {
                 dismissProgressDialog();
                 if (device == null) {
-//                    HitoeDevice container = findDeviceContainerByAddress(mConnectingDevice.getId());
-//                    if (container != null) {
-//                        container.setPinCode(null);
-//                        mDeviceAdapter.notifyDataSetChanged();
-//                    }
+                    HitoeDevice container = findDeviceContainerByAddress(mConnectingDevice.getId());
+                    if (container != null) {
+                        container.setPinCode(null);
+                        mDeviceAdapter.notifyDataSetChanged();
+                    }
                     Resources res = getActivity().getResources();
                     showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message03));
                 } else {
@@ -439,7 +441,12 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
             @Override
             public void run() {
                 mDeviceAdapter.clear();
-                mDeviceAdapter.addAll(getManager().getRegisterDevices());
+//                mDeviceAdapter.addAll(getManager().getRegisterDevices());
+                for (HitoeDevice existDevice: getManager().getRegisterDevices()) {
+                    if (existDevice.isRegisterFlag()) {
+                        mDeviceAdapter.add(existDevice);
+                    }
+                }
                 for (HitoeDevice device : devices) {
                     if (!containAddressForAdapter(device.getId())) {
                         mDeviceAdapter.add(device);
@@ -513,11 +520,29 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
                                     }
                                     device.setPinCode(pin);
                                     connectDevice(device);
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (mCheckDialog) {
+                                                device.setPinCode(null);
+                                                getActivity().runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        dismissProgressDialog();
+                                                        Resources res = getActivity().getResources();
+                                                        showErrorDialog(res.getString(R.string.hitoe_setting_dialog_error_message04));
+
+                                                    }
+                                                });
+                                            }
+                                        }
+                                    },  3000);
                                 }
                             });
                         } else {
                             connectDevice(device);
                         }
+
                     }
                 }
             });

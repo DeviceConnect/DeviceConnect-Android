@@ -6,18 +6,21 @@
  */
 package org.deviceconnect.android.profile;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.ServiceInformationProfileConstants;
-
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+
+import org.deviceconnect.android.api.ApiSpec;
+import org.deviceconnect.android.api.EndPoint;
+import org.deviceconnect.android.api.RequestParamSpec;
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.ServiceInformationProfileConstants;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service Information プロファイル.
@@ -135,6 +138,10 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         return ConnectState.NONE;
     }
 
+    protected EndPoint getEndPoint(final String serviceId) {
+        return null;
+    }
+
     @Override
     protected boolean onGetRequest(final Intent request, final Intent response) {
         String attribute = getAttribute(request);
@@ -180,11 +187,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         setVersion(response, getCurrentVersionName());
 
         // supports
-        ArrayList<String> profiles = new ArrayList<String>();
-        for (DConnectProfile profile : mProvider.getProfileList()) {
-            profiles.add(profile.getProfileName());
-        }
-        setSupports(response, profiles.toArray(new String[0]));
+        setSupportApis(response, mProvider.getApiSpecList(serviceId));
         setResult(response, DConnectMessage.RESULT_OK);
 
         return true;
@@ -209,6 +212,8 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
      * 
      * @param response レスポンスパラメータ
      * @param supports サポートしているI/F一覧
+     * @deprecated
+     * @see #setSupportApis(Intent, List)
      */
     public static void setSupports(final Intent response, final String[] supports) {
         response.putExtra(PARAM_SUPPORTS, supports);
@@ -219,9 +224,52 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
      * 
      * @param response レスポンスパラメータ
      * @param supports サポートしているI/F一覧
+     * @deprecated
+     * @see #setSupportApis(Intent, List)
      */
     public static void setSupports(final Intent response, final List<String> supports) {
         setSupports(response, supports.toArray(new String[supports.size()]));
+    }
+
+    public static void setSupportApis(final Intent response, final List<ApiSpec> apiSpecs) {
+        List<Bundle> supports = new ArrayList<Bundle>();
+        for (ApiSpec spec : apiSpecs) {
+            Bundle support = new Bundle();
+            setSupportApi(support, spec);
+            supports.add(support);
+        }
+        response.putExtra(PARAM_SUPPORTS, supports.toArray(new Bundle[supports.size()]));
+    }
+
+    public static void setSupportApi(final Bundle api, final ApiSpec spec) {
+        setSupportApiName(api, spec.getName());
+        setSupportApiPath(api, spec.getPath());
+        setSupportApiParams(api, spec.getRequestParamList());
+    }
+
+    public static void setSupportApiName(final Bundle api, final String name) {
+        api.putString(PARAM_NAME, name);
+    }
+
+    public static void setSupportApiPath(final Bundle api, final String path) {
+        api.putString(PARAM_PATH, path);
+    }
+
+    public static void setSupportApiParams(final Bundle api, final List<RequestParamSpec> paramSpecs) {
+        ArrayList<Bundle> params = new ArrayList<Bundle>();
+        for (RequestParamSpec paramSpec : paramSpecs) {
+            Bundle param = new Bundle();
+            setRequestParam(param, paramSpec);
+            params.add(param);
+        }
+        api.putParcelableArrayList(PARAM_REQUEST_PARAMS, params);
+    }
+
+    public static void setRequestParam(final Bundle param, final RequestParamSpec paramSpec) {
+        param.putString(PARAM_NAME, paramSpec.getName());
+        param.putString(PARAM_TYPE, paramSpec.getType().getName());
+        param.putBoolean(PARAM_MANDATORY, paramSpec.isMandatory());
+        // TODO 型ごとのパラメータ定義をすべて設定
     }
 
     /**

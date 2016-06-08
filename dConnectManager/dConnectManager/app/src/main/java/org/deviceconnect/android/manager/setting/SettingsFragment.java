@@ -42,6 +42,7 @@ import org.deviceconnect.android.manager.setting.OpenSourceLicenseFragment.OpenS
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.observer.DConnectObservationService;
 import org.deviceconnect.android.observer.receiver.ObserverReceiver;
+import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -358,6 +359,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 mDConnectService.start();
             } else {
                 mDConnectService.stop();
+                notifyManagerTerminate();
             }
         } catch (RemoteException e) {
             if (BuildConfig.DEBUG) {
@@ -570,6 +572,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     private void restartDevicePlugin(final DevicePlugin plugin) {
         Intent service = new Intent();
         service.setClassName(plugin.getPackageName(), plugin.getStartServiceClassName());
+        service.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
         getActivity().startService(service);
     }
 
@@ -581,6 +584,48 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
         public Dialog onCreateDialog(final Bundle savedInstanceState) {
             String title = getString(R.string.activity_settings_restart_device_plugin_title);
             String msg = getString(R.string.activity_settings_restart_device_plugin_message);
+            ProgressDialog progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setTitle(title);
+            progressDialog.setMessage(msg);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            setCancelable(false);
+            return progressDialog;
+        }
+    }
+
+    /**
+     * Manager termination notification to all device plug-ins.
+     */
+    private void notifyManagerTerminate() {
+        final ManagerTerminationFragment dialog = new ManagerTerminationFragment();
+        dialog.show(getFragmentManager(), null);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                DevicePluginManager mgr = new DevicePluginManager(getActivity(), null);
+                mgr.createDevicePluginList();
+                List<DevicePlugin> plugins = mgr.getDevicePlugins();
+                for (DevicePlugin plugin : plugins) {
+                    if (plugin.getStartServiceClassName() != null) {
+                        Intent service = new Intent();
+                        service.setClassName(plugin.getPackageName(), plugin.getStartServiceClassName());
+                        service.setAction(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
+                        getActivity().startService(service);
+                    }
+                }
+                dialog.dismiss();
+            }
+        }).start();
+    }
+
+    /**
+     * Show a dialog of manager termination processing.
+     */
+    public  static class ManagerTerminationFragment extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(final Bundle savedInstanceState) {
+            String title = getString(R.string.activity_settings_manager_terminate_title);
+            String msg = getString(R.string.activity_settings_manager_terminate_message);
             ProgressDialog progressDialog = new ProgressDialog(getActivity());
             progressDialog.setTitle(title);
             progressDialog.setMessage(msg);

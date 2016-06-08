@@ -228,6 +228,7 @@ public class DevicePluginInfoFragment extends Fragment {
     private void restartDevicePlugin(final DevicePlugin plugin) {
         Intent service = new Intent();
         service.setClassName(plugin.getPackageName(), plugin.getStartServiceClassName());
+        service.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
         getActivity().startService(service);
     }
 

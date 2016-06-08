@@ -53,6 +53,16 @@ public interface ServiceInformationProfileConstants extends DConnectProfileConst
      */
     String PARAM_BLE = "ble";
 
+    String PARAM_NAME = "name";
+
+    String PARAM_PATH = "path";
+
+    String PARAM_REQUEST_PARAMS = "requestParams";
+
+    String PARAM_TYPE = "type";
+
+    String PARAM_MANDATORY = "mandatory";
+
     /**
      * 接続状態定数.
      */

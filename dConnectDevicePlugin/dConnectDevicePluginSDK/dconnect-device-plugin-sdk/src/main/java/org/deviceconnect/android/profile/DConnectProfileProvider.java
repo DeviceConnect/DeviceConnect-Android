@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.profile;
 
+import org.deviceconnect.android.api.ApiSpec;
+
 import java.util.List;
 
 /**
@@ -42,5 +44,7 @@ public interface DConnectProfileProvider {
      * @param profile プロファイル
      */
     void removeProfile(final DConnectProfile profile);
+
+    List<ApiSpec> getApiSpecList(final String serviceId);
 
 }

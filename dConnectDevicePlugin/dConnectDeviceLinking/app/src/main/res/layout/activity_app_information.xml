@@ -24,7 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:text="@string/activity_detail_name"
+            android:text="@string/activity_app_info_name"
             android:textColor="@color/detail_title_color"
             android:textSize="14sp"/>
 
@@ -48,7 +48,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
-            android:text="@string/activity_detail_version"
+            android:text="@string/activity_app_info_version"
             android:textColor="@color/detail_title_color"
             android:textSize="14sp"/>
 

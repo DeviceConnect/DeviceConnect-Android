@@ -12,7 +12,6 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -23,13 +22,12 @@ import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
-import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 public class LinkingBeaconActivity extends AppCompatActivity implements LinkingBeaconManager.OnBeaconEventListener,
-        LinkingBeaconManager.OnBeaconButtonEventListener, ConfirmationDialogFragment.OnDialogEventListener {
+        LinkingBeaconManager.OnBeaconButtonEventListener {
 
     private static final String TAG = "LinkingPlugIn";
 
@@ -98,20 +96,11 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_beacon, menu);
-        return true;
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
             case android.R.id.home:
                 finish();
                 return true;
-            case R.id.menu_setting:
-                removeBeacon();
-                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -136,27 +125,6 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
                 }
             });
         }
-    }
-
-    @Override
-    public void onPositiveClick() {
-        LinkingApplication app = (LinkingApplication) getApplication();
-        LinkingBeaconManager mgr = app.getLinkingBeaconManager();
-        mgr.removeBeacon(mLinkingBeacon);
-    }
-
-    @Override
-    public void onNegativeClick() {
-
-    }
-
-    private void removeBeacon() {
-        String title = getString(R.string.activity_beacon_delete_dialog_title);
-        String message = getString(R.string.activity_beacon_delete_dialog_message);
-        String positive = getString(R.string.activity_beacon_delete_dialog_positive);
-        String negative = getString(R.string.activity_beacon_delete_dialog_negative);
-        ConfirmationDialogFragment fragment = ConfirmationDialogFragment.newInstance(title, message, positive, negative);
-        fragment.show(getSupportFragmentManager(), "dialog");
     }
 
     private void setBeaconData() {

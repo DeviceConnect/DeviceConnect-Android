@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:gravity="center_horizontal"
-            android:text="@string/fragment_help_text"
+            android:text="@string/activity_linking_induction_text"
             android:textColor="@color/help_text_color"
             android:textSize="14sp"/>
 
@@ -43,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:gravity="center"
-                android:text="@string/fragment_help_1"
+                android:text="@string/activity_linking_induction_1"
                 android:textColor="@color/help_text_color"
                 android:textSize="14sp"/>
 
@@ -51,7 +51,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
-                android:text="@string/fragment_help_text1"
+                android:text="@string/activity_linking_induction_text1"
                 android:textColor="@color/help_text_color"
                 android:textSize="14sp"/>
 
@@ -67,7 +67,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:gravity="center"
-                android:text="@string/fragment_help_2"
+                android:text="@string/activity_linking_induction_2"
                 android:textColor="@color/help_text_color"
                 android:textSize="14sp"/>
 
@@ -75,7 +75,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
-                android:text="@string/fragment_help_text2"
+                android:text="@string/activity_linking_induction_text2"
                 android:textColor="@color/help_text_color"
                 android:textSize="14sp"/>
         </LinearLayout>
@@ -90,7 +90,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
                 android:gravity="center"
-                android:text="@string/fragment_help_3"
+                android:text="@string/activity_linking_induction_3"
                 android:textColor="@color/help_text_color"
                 android:textSize="14sp"/>
 
@@ -98,7 +98,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="4dp"
-                android:text="@string/fragment_help_text3"
+                android:text="@string/activity_linking_induction_text3"
                 android:textColor="@color/help_text_color"
                 android:textSize="14sp"/>
         </LinearLayout>
@@ -117,7 +117,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_margin="32dp"
-            android:text="@string/fragment_linking_setting_text_not_install"
+            android:text="@string/activity_linking_induction_text_not_install"
             android:textColor="@color/help_text_color"
             android:textSize="14sp"/>
 

@@ -95,7 +95,7 @@
             android:excludeFromRecents="true"
             android:finishOnCloseSystemDialogs="true"
             android:configChanges="orientation|screenSize"
-            android:label="@string/title_activity_confirm"
+            android:label="@string/activity_confirm_title"
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
         </activity>

@@ -1,369 +1,351 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="#FFF"
-    android:orientation="vertical">
+    android:layout_height="match_parent"
+    android:background="#FFF">
 
-    <TextView
-        android:id="@+id/textViewNumber"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#00a0e9"
-        android:gravity="center"
-        android:text="@string/setting_title3"
-        android:textColor="#ffffff"
-        android:textSize="20sp"/>
-
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        >
+        android:padding="16dip">
+
+        <TextView
+            android:id="@+id/device_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/activity_device_name"
+            android:textColor="#666"/>
+
+        <!-- LED Setting -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/activity_device_light_off_pattern"
+                    android:textColor="#666"
+                    android:textSize="16sp"/>
+
+                <TextView
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="4dp"
+                    android:text="@string/activity_device_light_off_description"
+                    android:textSize="9sp"
+                    />
+            </LinearLayout>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                />
+
+            <Button
+                android:id="@+id/select_light_off"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@drawable/button_blue"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:text="@string/activity_device_not_selected"
+                android:textColor="#FFF"/>
+
+        </LinearLayout>
+
+        <!-- Vibration Setting -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/activity_device_vibration_off_pattern"
+                    android:textColor="#666"
+                    android:textSize="16sp"/>
+
+                <TextView
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="4dp"
+                    android:text="@string/activity_device_vibration_off_description"
+                    android:textSize="9sp"
+                    />
+            </LinearLayout>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                />
+
+            <Button
+                android:id="@+id/select_vibration_off"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@drawable/button_blue"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:text="@string/activity_device_not_selected"
+                android:textColor="#FFF"/>
+
+        </LinearLayout>
+
+        <!-- LED -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7"
+                android:text="@string/activity_device_led"
+                android:textColor="@color/setting_text_color"
+                android:textSize="16sp"/>
+
+            <Button
+                android:id="@+id/on"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="2"
+                android:background="@drawable/button_blue"
+                android:gravity="center"
+                android:text="@string/activity_device_on"
+                android:textColor="#FFF"
+                />
+
+            <Button
+                android:id="@+id/off"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="2"
+                android:background="@drawable/button_blue"
+                android:gravity="center"
+                android:text="@string/activity_device_off"
+                android:textColor="#FFF"/>
+
+        </LinearLayout>
+
+        <!-- Vibration -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7"
+                android:text="@string/activity_device_vibration"
+                android:textColor="@color/setting_text_color"
+                android:textSize="16sp"/>
+
+            <Button
+                android:id="@+id/vibration_on"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="2"
+                android:background="@drawable/button_blue"
+                android:text="@string/activity_device_on"
+                android:textColor="#FFF"/>
+
+            <Button
+                android:id="@+id/vibration_off"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="2"
+                android:background="@drawable/button_blue"
+                android:text="@string/activity_device_off"
+                android:textColor="#FFF"/>
+
+        </LinearLayout>
+
+        <!-- sensor buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7"
+                android:text="@string/activity_device_sensor"
+                android:textColor="#666"
+                android:textSize="16sp"/>
+
+            <Button
+                android:id="@+id/sensor_on"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="2"
+                android:background="@drawable/button_blue"
+                android:text="@string/activity_device_register_sensor"
+                android:textColor="#FFF"/>
+
+            <Button
+                android:id="@+id/sensor_off"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="2"
+                android:background="@drawable/button_blue"
+                android:text="@string/activity_device_unregister_sensor"
+                android:textColor="#FFF"/>
+        </LinearLayout>
+
+        <!-- Gyro -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_device_gyro"
+                android:textColor="#666"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/gyro_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#666"
+                android:textSize="9sp"/>
+
+        </LinearLayout>
+
+        <!-- Acceleration -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_device_acceleration"
+                android:textColor="#666"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/acceleration_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#666"
+                android:textSize="9sp"/>
+
+        </LinearLayout>
+
+        <!-- Orientation -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_device_orientation"
+                android:textColor="#666"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/orientation_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#666"
+                android:textSize="9sp"/>
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dip">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/device_name"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/device_name"
-                android:textColor="#666"/>
+                android:layout_weight="7"
+                android:text="@string/activity_device_button_id"
+                android:textColor="#666"
+                android:textSize="16sp"/>
 
-            <!-- LED Setting -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <Button
+                android:id="@+id/button_id_on"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_margin="4dp"
+                android:layout_weight="2"
+                android:background="@drawable/button_blue"
+                android:text="@string/activity_device_register_sensor"
+                android:textColor="#FFF"/>
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/light_off_pattern"
-                        android:textColor="#666"
-                        android:textSize="16sp"/>
-
-                    <TextView
-                        android:layout_width="200dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="4dp"
-                        android:text="@string/light_off_description"
-                        android:textSize="9sp"
-                        />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    />
-
-                <Button
-                    android:id="@+id/select_light_off"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:background="@drawable/button_blue"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    android:text="@string/not_selected"
-                    android:textColor="#FFF"/>
-
-            </LinearLayout>
-
-            <!-- Vibration Setting -->
-            <LinearLayout
-                android:layout_width="match_parent"
+            <Button
+                android:id="@+id/button_id_off"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/vibration_off_pattern"
-                        android:textColor="#666"
-                        android:textSize="16sp"/>
-
-                    <TextView
-                        android:layout_width="200dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="4dp"
-                        android:text="@string/vibration_off_description"
-                        android:textSize="9sp"
-                        />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    />
-
-                <Button
-                    android:id="@+id/select_vibration_off"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:background="@drawable/button_blue"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    android:text="@string/not_selected"
-                    android:textColor="#FFF"/>
-
-            </LinearLayout>
-
-            <!-- LED -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/name"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="7"
-                    android:text="@string/led"
-                    android:textColor="@color/setting_text_color"
-                    android:textSize="16sp"/>
-
-                <Button
-                    android:id="@+id/on"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="4dp"
-                    android:layout_weight="2"
-                    android:background="@drawable/button_blue"
-                    android:gravity="center"
-                    android:text="@string/on"
-                    android:textColor="#FFF"
-                    />
-
-                <Button
-                    android:id="@+id/off"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="4dp"
-                    android:layout_weight="2"
-                    android:background="@drawable/button_blue"
-                    android:gravity="center"
-                    android:text="@string/off"
-                    android:textColor="#FFF"/>
-
-            </LinearLayout>
-
-            <!-- Vibration -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="7"
-                    android:text="@string/vibration"
-                    android:textColor="@color/setting_text_color"
-                    android:textSize="16sp"/>
-
-                <Button
-                    android:id="@+id/vibration_on"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="4dp"
-                    android:layout_weight="2"
-                    android:background="@drawable/button_blue"
-                    android:text="@string/on"
-                    android:textColor="#FFF"/>
-
-                <Button
-                    android:id="@+id/vibration_off"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="4dp"
-                    android:layout_weight="2"
-                    android:background="@drawable/button_blue"
-                    android:text="@string/off"
-                    android:textColor="#FFF"/>
-
-            </LinearLayout>
-
-            <!-- sensor buttons -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="7"
-                    android:text="@string/sensor"
-                    android:textColor="#666"
-                    android:textSize="16sp"/>
-
-                <Button
-                    android:id="@+id/sensor_on"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="4dp"
-                    android:layout_weight="2"
-                    android:background="@drawable/button_blue"
-                    android:text="@string/register_sensor"
-                    android:textColor="#FFF"/>
-
-                <Button
-                    android:id="@+id/sensor_off"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="4dp"
-                    android:layout_weight="2"
-                    android:background="@drawable/button_blue"
-                    android:text="@string/unregister_sensor"
-                    android:textColor="#FFF"/>
-            </LinearLayout>
-
-            <!-- Gyro -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:text="@string/gyro"
-                    android:textColor="#666"
-                    android:textSize="16sp"/>
-
-                <TextView
-                    android:id="@+id/gyro_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#666"
-                    android:textSize="9sp"/>
-
-            </LinearLayout>
-
-            <!-- Acceleration -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-
-                <TextView
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:text="@string/acceleration"
-                    android:textColor="#666"
-                    android:textSize="16sp"/>
-
-                <TextView
-                    android:id="@+id/acceleration_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#666"
-                    android:textSize="9sp"/>
-
-            </LinearLayout>
-
-            <!-- Orientation -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:text="@string/orientation"
-                    android:textColor="#666"
-                    android:textSize="16sp"/>
-
-                <TextView
-                    android:id="@+id/orientation_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#666"
-                    android:textSize="9sp"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="7"
-                    android:text="@string/button_id"
-                    android:textColor="#666"
-                    android:textSize="16sp"/>
-
-                <Button
-                    android:id="@+id/button_id_on"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="4dp"
-                    android:layout_weight="2"
-                    android:background="@drawable/button_blue"
-                    android:text="@string/register_sensor"
-                    android:textColor="#FFF"/>
-
-                <Button
-                    android:id="@+id/button_id_off"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="4dp"
-                    android:layout_weight="2"
-                    android:background="@drawable/button_blue"
-                    android:text="@string/unregister_sensor"
-                    android:textColor="#FFF"/>
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/linking_button_id"
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:background="@drawable/textview_broder"
-                android:ellipsize="end"
-                android:maxLines="5"
-                android:padding="4dp"
-                android:textColor="#000"/>
+                android:layout_margin="4dp"
+                android:layout_weight="2"
+                android:background="@drawable/button_blue"
+                android:text="@string/activity_device_unregister_sensor"
+                android:textColor="#FFF"/>
         </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+
+        <TextView
+            android:id="@+id/linking_button_id"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="@drawable/textview_broder"
+            android:ellipsize="end"
+            android:maxLines="5"
+            android:padding="4dp"
+            android:textColor="#000"/>
+    </LinearLayout>
+</ScrollView>

@@ -170,7 +170,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
 
         byte[] illumination = mDevice.getIllumination();
         if (illumination == null) {
-            btn.setText(getString(R.string.not_selected));
+            btn.setText(getString(R.string.activity_device_not_selected));
             return;
         }
 
@@ -202,7 +202,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
                 btn.setText(setting.names[0].name);
                 updateLightOffSetting(setting.id & 0xFF);
             } else {
-                btn.setText(getString(R.string.not_selected));
+                btn.setText(getString(R.string.activity_device_not_selected));
             }
         }
     }
@@ -215,7 +215,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
 
         byte[] vibration = mDevice.getVibration();
         if (vibration == null) {
-            btn.setText(getString(R.string.not_selected));
+            btn.setText(getString(R.string.activity_device_not_selected));
             return;
         }
 
@@ -247,7 +247,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
                 btn.setText(setting.names[0].name);
                 updateVibrationOffSetting(setting.id & 0xFF);
             } else {
-                btn.setText(getString(R.string.not_selected));
+                btn.setText(getString(R.string.activity_device_not_selected));
             }
         }
     }
@@ -266,18 +266,18 @@ public class LinkingDeviceActivity extends AppCompatActivity {
 
                 byte[] illumination = mDevice.getIllumination();
                 if (illumination == null) {
-                    Toast.makeText(getApplicationContext(), getString(R.string.device_not_support_led), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.activity_device_not_support_led), Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 final IlluminationData data = new IlluminationData(illumination);
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+                AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
                 final String[] items = new String[data.mPattern.children.length];
                 for (int i = 0; i < data.mPattern.children.length; i++) {
                     items[i] = data.mPattern.children[i].names[0].name;
                 }
-                builder.setTitle(getString(R.string.pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
+                builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         IlluminationData.Setting selectedPattern = data.mPattern.children[which];
@@ -325,18 +325,18 @@ public class LinkingDeviceActivity extends AppCompatActivity {
 
                 byte[] vibration = mDevice.getVibration();
                 if (vibration == null) {
-                    Toast.makeText(getApplicationContext(), getString(R.string.device_not_support_vibration), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.activity_device_not_support_vibration), Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 final VibrationData data = new VibrationData(vibration);
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+                AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
                 final String[] items = new String[data.mPattern.children.length];
                 for (int i = 0; i < data.mPattern.children.length; i++) {
                     items[i] = data.mPattern.children[i].names[0].name;
                 }
-                builder.setTitle(getString(R.string.pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
+                builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         VibrationData.Setting selectedPattern = data.mPattern.children[which];
@@ -460,7 +460,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
     }
 
     private String makeParamText(float x, float y, float z, long time) {
-        return getString(R.string.sensor_value, x, y, z, time);
+        return getString(R.string.activity_device_sensor_value, x, y, z, time);
     }
 
     private void onClickLED(boolean isOn) {
@@ -468,7 +468,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
             return;
         }
         if (mDevice.getIllumination() == null) {
-            Toast.makeText(this, getString(R.string.device_not_support_led), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.activity_device_not_support_led), Toast.LENGTH_SHORT).show();
             return;
         }
         LinkingManager manager = LinkingManagerFactory.createManager(getApplicationContext());
@@ -480,7 +480,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
             return;
         }
         if (mDevice.getVibration() == null) {
-            Toast.makeText(this, getString(R.string.device_not_support_vibration), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.activity_device_not_support_vibration), Toast.LENGTH_SHORT).show();
             return;
         }
         LinkingManager manager = LinkingManagerFactory.createManager(getApplicationContext());
@@ -534,11 +534,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
     }
 
     private boolean checkDevice() {
-        if (mDevice == null) {
-            Toast.makeText(this, getString(R.string.device_not_selected), Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        return true;
+        return mDevice != null;
     }
 
     private void stopController() {

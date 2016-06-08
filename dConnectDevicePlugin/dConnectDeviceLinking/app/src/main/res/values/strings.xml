@@ -1,61 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <string name="app_name">Linking (Device Connect Device Plug-in)</string>
 
-    <string name="ok">OK</string>
-    <string name="cancel">Cancel</string>
-    <string name="success">Success</string>
-    <string name="failed">Failed</string>
-    <string name="get_failed">Get Failed</string>
-    <string name="timeout">timeout</string>
-    <string name="get">Get</string>
-    <string name="on">ON</string>
-    <string name="off">OFF</string>
-    <string name="led">LED</string>
-    <string name="vibration">Vibration</string>
-    <string name="sensor">Sensor</string>
-    <string name="gyro">Gyro</string>
-    <string name="acceleration">Acceleration</string>
-    <string name="orientation">Orientation</string>
-    <string name="button_id">ButtonID</string>
-    <string name="not_selected">unselected</string>
-    <string name="register_sensor">Register</string>
-    <string name="unregister_sensor">Unregister</string>
-    <string name="pattern_list">Pattern List</string>
-    <string name="device_not_selected">Device not selected</string>
-    <string name="device_not_connected">Device not connected</string>
-    <string name="device_not_found">Device not found</string>
-
-    <string name="device_not_support_led">Device not support LED</string>
-    <string name="device_not_support_vibration">Device not support Vibration</string>
-
-    <string name="setting_title1">[1/3]Setting by Linking</string>
-    <string name="install_and_launch">Please try download, install and launch of Linking application.</string>
-    <string name="introduction1">1) Install Linking from Google Play. Connect linking device and android follow the instructions by linking.</string>
-    <string name="introduction2">2) Turn on Notification setting in Linking for this device plug-in.</string>
-    <string name="introduction3">3) Select pattern of LED what is possible lighting in linking setting. Light ON API use it.</string>
-    <string name="introduction4">4) If complete connection and settings, go to next page.</string>
-    <string name="launch_linking">Launch Linking</string>
-
-    <string name="setting_title2">[2/3]Discovery linking devices</string>
-    <string name="tap_discovery">Please tap "Discovery Devices"</string>
-    <string name="discovery_devices">Discovery Devices</string>
-    <string name="device_list_description">Blue devices status means connected.\nYou can do settings if you select a device.</string>
-
-    <string name="setting_title3">[3/3]Control Linking Device</string>
-    <string name="device_name">Linking Device Name : </string>
-    <string name="light_off_pattern">LED Off Pattern</string>
-    <string name="light_off_description">Specify pattern of led off</string>
-    <string name="vibration_off_pattern">Vibration Off Pattern</string>
-    <string name="vibration_off_description">Specify pattern of led off</string>
-    <string name="title_activity_confirm">ConfirmActivity</string>
-
-    <string name="activity_setting_tab_paring">Paring</string>
-    <string name="activity_setting_tab_beacon">Beacon</string>
-
-    <string name="fragment_beacon_list_scan_title">Beacon Scan</string>
-    <string name="fragment_beacon_list_scan_start">Start</string>
-    <string name="fragment_beacon_list_scan_stop">Stop</string>
-
-    <string name="sensor_value">x:%1$f\ny:%2$f\nz:%3$f\ntime:%4$d</string>
 </resources>

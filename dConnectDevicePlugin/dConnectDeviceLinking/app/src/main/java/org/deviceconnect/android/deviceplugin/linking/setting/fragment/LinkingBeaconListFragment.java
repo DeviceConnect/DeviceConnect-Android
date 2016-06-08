@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,11 +26,18 @@ import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.setting.LinkingBeaconActivity;
+import org.deviceconnect.android.deviceplugin.linking.setting.LinkingInductionActivity;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
 
 public class LinkingBeaconListFragment extends Fragment implements ConfirmationDialogFragment.OnDialogEventListener,
         LinkingBeaconManager.OnBeaconConnectListener {
+
+    private static final String TAG_DELETE_BEACON = "delete_beacon";
+    private static final String TAG_ERROR_BEACON = "error_beacon";
+
     private ListAdapter mAdapter;
+
+    private LinkingBeacon mLinkingBeacon;
 
     public static LinkingBeaconListFragment newInstance() {
         return new LinkingBeaconListFragment();
@@ -49,6 +57,13 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
                 if (item != null) {
                     transitionBeaconControl(item);
                 }
+            }
+        });
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                confirmDeleteBeacon(mAdapter.getItem(position).mDevice);
+                return true;
             }
         });
         listView.setAdapter(mAdapter);
@@ -91,13 +106,20 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
     }
 
     @Override
-    public void onPositiveClick() {
-
+    public void onPositiveClick(DialogFragment fragment) {
+        String tag = fragment.getTag();
+        if (TAG_ERROR_BEACON.equals(tag)) {
+            transitionLinkingApp();
+        } else if (TAG_DELETE_BEACON.equals(tag)) {
+            LinkingApplication app = (LinkingApplication) getActivity().getApplication();
+            LinkingBeaconManager mgr = app.getLinkingBeaconManager();
+            mgr.removeBeacon(mLinkingBeacon);
+            refresh();
+        }
     }
 
     @Override
-    public void onNegativeClick() {
-
+    public void onNegativeClick(DialogFragment fragment) {
     }
 
     @Override
@@ -138,6 +160,12 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
         });
     }
 
+    private void transitionLinkingApp() {
+        Intent intent = new Intent();
+        intent.setClass(getActivity(), LinkingInductionActivity.class);
+        startActivity(intent);
+    }
+
     private void transitionBeaconControl(DeviceItem item) {
         if (item.mDevice.isOnline()) {
             Intent intent = new Intent();
@@ -159,8 +187,19 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
             String positive = getString(R.string.fragment_beacon_error_positive);
             String negative = getString(R.string.fragment_beacon_error_negative);
             ConfirmationDialogFragment dialog = ConfirmationDialogFragment.newInstance(title, message, positive, negative, this);
-            dialog.show(getFragmentManager(), "error");
+            dialog.show(getFragmentManager(), TAG_ERROR_BEACON);
         }
+    }
+
+    private void confirmDeleteBeacon(LinkingBeacon beacon) {
+        mLinkingBeacon = beacon;
+
+        String title = getString(R.string.activity_beacon_delete_dialog_title);
+        String message = getString(R.string.activity_beacon_delete_dialog_message, beacon.getDisplayName());
+        String positive = getString(R.string.activity_beacon_delete_dialog_positive);
+        String negative = getString(R.string.activity_beacon_delete_dialog_negative);
+        ConfirmationDialogFragment fragment = ConfirmationDialogFragment.newInstance(title, message, positive, negative, this);
+        fragment.show(getFragmentManager(), TAG_DELETE_BEACON);
     }
 
     private void startScan() {

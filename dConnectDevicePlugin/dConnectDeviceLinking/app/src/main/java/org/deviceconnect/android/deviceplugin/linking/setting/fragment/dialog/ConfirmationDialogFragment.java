@@ -56,7 +56,7 @@ public class ConfirmationDialogFragment extends DialogFragment {
                     public void onClick(DialogInterface dialog, int id) {
                         OnDialogEventListener l = getOnDialogEventListener();
                         if (l != null) {
-                            l.onPositiveClick();
+                            l.onPositiveClick(ConfirmationDialogFragment.this);
                         }
                     }
                 })
@@ -65,7 +65,7 @@ public class ConfirmationDialogFragment extends DialogFragment {
                     public void onClick(DialogInterface dialog, int id) {
                         OnDialogEventListener l = getOnDialogEventListener();
                         if (l != null) {
-                            l.onNegativeClick();
+                            l.onNegativeClick(ConfirmationDialogFragment.this);
                         }
                     }
                 });
@@ -88,7 +88,7 @@ public class ConfirmationDialogFragment extends DialogFragment {
     }
 
     public interface OnDialogEventListener {
-        void onPositiveClick();
-        void onNegativeClick();
+        void onPositiveClick(DialogFragment fragment);
+        void onNegativeClick(DialogFragment fragment);
     }
 }

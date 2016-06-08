@@ -13,7 +13,7 @@
         android:layout_centerInParent="true"
         android:layout_margin="12dp"
         android:background="@drawable/button_blue"
-        android:text="@string/discovery_devices"
+        android:text="@string/activity_setting_discovery_devices"
         android:textColor="#FFF"
         android:textSize="18sp"/>
 

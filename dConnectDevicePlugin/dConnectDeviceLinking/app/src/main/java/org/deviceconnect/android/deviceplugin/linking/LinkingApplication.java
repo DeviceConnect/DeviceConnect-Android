@@ -26,7 +26,7 @@ public class LinkingApplication extends Application {
     public void onCreate() {
         super.onCreate();
         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "onCreate");
+            Log.i(TAG, "LinkingApplication#onCreate");
         }
 
         mBeaconManager = new LinkingBeaconManager(this);
@@ -35,7 +35,7 @@ public class LinkingApplication extends Application {
     @Override
     public void onTerminate() {
         if (BuildConfig.DEBUG) {
-            Log.i(TAG, "onTerminate");
+            Log.i(TAG, "LinkingApplication#onTerminate");
         }
 
         if (mBeaconManager != null) {

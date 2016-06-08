@@ -1,3 +1,9 @@
+/*
+ AppInformationActivity.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.deviceplugin.linking.setting;
 
 import android.content.Context;
@@ -12,11 +18,11 @@ import android.widget.TextView;
 
 import org.deviceconnect.android.deviceplugin.linking.R;
 
-public class LinkingDetailActivity extends AppCompatActivity {
+public class AppInformationActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
+        setContentView(R.layout.activity_app_information);
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {

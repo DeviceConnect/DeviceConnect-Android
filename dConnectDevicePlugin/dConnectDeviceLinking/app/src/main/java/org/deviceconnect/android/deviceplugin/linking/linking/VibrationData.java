@@ -6,8 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.linking;
 
-import android.util.Log;
-
 import org.deviceconnect.android.deviceplugin.linking.util.ByteUtil;
 
 public class VibrationData {
@@ -75,7 +73,6 @@ public class VibrationData {
         vibrationNames = new Name[vibrationNameLangCount];
         index = extractName(vibration, index, vibrationNameLangCount, vibrationNames);
 
-        Log.i("LinkingPlugIn", ByteUtil.binaryToHex(source));
         Setting pattern = new Setting();
 
         if (vibrationChildCount > 0) {

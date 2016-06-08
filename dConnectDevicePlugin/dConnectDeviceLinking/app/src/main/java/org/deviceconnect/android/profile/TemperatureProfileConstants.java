@@ -1,3 +1,9 @@
+/*
+ TemperatureProfileConstants.java
+ Copyright (c) 2016 NTT DOCOMO,INC.
+ Released under the MIT license
+ http://opensource.org/licenses/mit-license.php
+ */
 package org.deviceconnect.android.profile;
 
 public interface TemperatureProfileConstants {
@@ -14,7 +20,7 @@ public interface TemperatureProfileConstants {
 
         private int mValue;
 
-        private TemperatureType(int value) {
+        TemperatureType(int value) {
             mValue = value;
         }
 

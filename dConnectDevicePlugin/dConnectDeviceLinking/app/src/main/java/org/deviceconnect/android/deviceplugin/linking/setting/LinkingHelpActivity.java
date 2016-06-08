@@ -1,5 +1,5 @@
 /*
- org.deviceconnect.android.deviceplugin.linking
+ LinkingHelpActivity.java
  Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -49,7 +49,7 @@ public class LinkingHelpActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_help);
+        setContentView(R.layout.activity_linking_help);
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -88,7 +88,7 @@ public class LinkingHelpActivity extends AppCompatActivity {
             linkingAppBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    LinkingUtil.startLinakingApp(getApplicationContext());
+                    LinkingUtil.startLinkingApp(getApplicationContext());
                 }
             });
         }

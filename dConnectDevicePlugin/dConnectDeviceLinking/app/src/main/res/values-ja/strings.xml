@@ -99,6 +99,14 @@
     <string name="fragment_help_7_text1">ペアリングされたデバイスの利用設定の中から設定したいLinkingデバイスを押下して、デバイス詳細設定画面に遷移します。\n\nLinkingデバイスがONになっていないとデバイス詳細設定画面に遷移できませんので、ご注意ください。</string>
     <string name="fragment_help_7_text2">設定したいLinkingデバイスがONになっていることを確認します。</string>
 
+    <string name="fragment_help_1">1)</string>
+    <string name="fragment_help_2">2)</string>
+    <string name="fragment_help_3">3)</string>
+    <string name="fragment_help_text">本アプリで、Linkingデバイスを操作するためには、Linkingアプリで以下の設定を行う必要があります。</string>
+    <string name="fragment_help_text1">Linkingアプリを起動し、アプリの指示に従い対応デバイスと端末を接続してください。</string>
+    <string name="fragment_help_text2">Device Connectで利用したいLinkingデバイスの設定画面にて、Linking(Device Connect Device Plug-in)の通知設定をONにしてください。</string>
+    <string name="fragment_help_text3">設定のLEDのパターンは、点灯するいずれかのものを選択してください。Light ON APIにてそのパターンで点灯します。</string>
+
     <string name="activity_beacon_extra_id">ExtraID</string>
     <string name="activity_beacon_time_stamp">タイムスタンプ</string>
     <string name="activity_beacon_battery_low">ロウバッテリー</string>

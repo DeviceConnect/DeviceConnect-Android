@@ -33,7 +33,7 @@ public class SettingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_device_list);
+        setContentView(R.layout.activity_setting);
 
         pageTitle[0] = getString(R.string.activity_setting_tab_paring);
         pageTitle[1] = getString(R.string.activity_setting_tab_beacon);
@@ -75,13 +75,13 @@ public class SettingActivity extends AppCompatActivity {
 
     private void transitionLinkingApp() {
         Intent intent = new Intent();
-        intent.setClass(this, LinkingSettingActivity.class);
+        intent.setClass(this, LinkingInductionActivity.class);
         startActivity(intent);
     }
 
     private void transitionAppInform() {
         Intent intent = new Intent();
-        intent.setClass(this, LinkingDetailActivity.class);
+        intent.setClass(this, AppInformationActivity.class);
         startActivity(intent);
     }
 

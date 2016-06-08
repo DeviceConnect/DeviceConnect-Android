@@ -1,5 +1,5 @@
 /*
- org.deviceconnect.android.deviceplugin.linking
+ LinkingDeviceActivity.java
  Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -77,7 +77,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_device_controller);
+        setContentView(R.layout.activity_linking_device);
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -88,11 +88,16 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         if (intent != null) {
             Bundle args = intent.getExtras();
             if (args != null) {
-                test(args.getString(EXTRA_ADDRESS));
+                mDevice = getLinkingDeviceByAddress(args.getString(EXTRA_ADDRESS));
+                if (mDevice != null) {
+                    setupUI();
+                }
             }
         }
 
-        setupUI();
+        if (mDevice == null) {
+            finish();
+        }
     }
 
     @Override
@@ -130,28 +135,31 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void test(String address) {
+    private LinkingDevice getLinkingDeviceByAddress(String address) {
         if (address == null) {
-            return;
+            return null;
         }
 
         LinkingManager manager = LinkingManagerFactory.createManager(getApplicationContext());
         for (LinkingDevice device : manager.getDevices()) {
             if (device.getBdAddress().equals(address)) {
-                setTargetDevice(device);
-                return;
+                return device;
             }
         }
+        return null;
     }
 
-    public void setTargetDevice(LinkingDevice device) {
-        mDevice = device;
+    public void setupUI() {
         TextView tv = (TextView) findViewById(R.id.device_name);
         if (tv != null) {
             tv.setText(mDevice.getDisplayName());
         }
         setupLightOffSetting();
         setupVibrationOffSetting();
+        setLightButton();
+        setVibrationButton();
+        setSensorButton();
+        setButtonIdButton();
     }
 
     private void setupLightOffSetting() {
@@ -242,18 +250,6 @@ public class LinkingDeviceActivity extends AppCompatActivity {
                 btn.setText(getString(R.string.not_selected));
             }
         }
-    }
-
-    private void setupUI() {
-        String deviceName = getString(R.string.device_name) + getString(R.string.not_selected);
-        TextView tv = (TextView) findViewById(R.id.device_name);
-        if (tv != null) {
-            tv.setText(deviceName);
-        }
-        setLightButton();
-        setVibrationButton();
-        setSensorButton();
-        setButtonIdButton();
     }
 
     private void setLightButton() {
@@ -556,7 +552,6 @@ public class LinkingDeviceActivity extends AppCompatActivity {
     }
 
     private void updateKeyEvent(int deviceId, int uniqueId, int keyCode) {
-
         if (mDevice == null) {
             return;
         }

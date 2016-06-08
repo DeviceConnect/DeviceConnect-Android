@@ -104,10 +104,12 @@ public final class LinkingUtil {
 
 
     public static void startGooglePlay(Context context) {
-        context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + PACKAGE_NAME)));
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + PACKAGE_NAME));
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
     }
 
-    public static void startLinakingApp(Context context) {
+    public static void startLinkingApp(Context context) {
         context.startActivity(context.getPackageManager().getLaunchIntentForPackage(PACKAGE_NAME));
     }
 

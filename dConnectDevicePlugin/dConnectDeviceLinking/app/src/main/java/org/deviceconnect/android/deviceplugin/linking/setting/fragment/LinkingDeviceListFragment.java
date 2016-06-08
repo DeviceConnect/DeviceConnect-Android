@@ -26,7 +26,7 @@ import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
 import org.deviceconnect.android.deviceplugin.linking.setting.LinkingDeviceActivity;
-import org.deviceconnect.android.deviceplugin.linking.setting.LinkingSettingActivity;
+import org.deviceconnect.android.deviceplugin.linking.setting.LinkingInductionActivity;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.DiscoveryDeviceDialogFragment;
 
@@ -117,7 +117,7 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
 
     private void transitionLinkingApp() {
         Intent intent = new Intent();
-        intent.setClass(getContext(), LinkingSettingActivity.class);
+        intent.setClass(getContext(), LinkingInductionActivity.class);
         getActivity().startActivity(intent);
     }
 

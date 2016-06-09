@@ -58,6 +58,15 @@ public class SlackManager {
     /** 接続状態 */
     private int connectState = CONNECT_STATE_NONE; // 0:None 1:Disconnected 2:Disconnecting 3:Connecting 4:Connected
 
+
+    /** SlackManagerの基底Exception */
+    public abstract class SlackManagerException extends Exception {}
+    /** APITokenが不正 */
+    public class SlackAPITokenValueException extends SlackManagerException {}
+    /** 接続エラー */
+    public class SlackConnectionException extends SlackManagerException {}
+
+
     /** WebSocket */
     private WebSocketClient webSocket;
 
@@ -77,6 +86,23 @@ public class SlackManager {
     /** 接続処理完了コールバック */
     private FinishCallback<Void> connectionFinishCallback;
 
+    /** Slackイベントリスナー */
+    public interface SlackEventListener {
+        /**
+         * メッセージを受信したイベント.
+         * @param text メッセージ
+         * @param channel チャンネル
+         * @param user ユーザー
+         * @param ts タイムスタンプ
+         */
+        void OnReceiveSlackMessage(String text, String channel, String user, String ts);
+    }
+
+    /** Slackイベントリスナー */
+    private SlackEventListener slackEventListener;
+
+
+
 
     /**
      * 初期化。シングルトンのためにprivate.
@@ -84,14 +110,13 @@ public class SlackManager {
     private SlackManager() {
     }
 
-    /** SlackManagerの基底Exception */
-    public abstract class SlackManagerException extends Exception {}
-
-    /** APITokenが不正 */
-    public class SlackAPITokenValueException extends SlackManagerException {}
-
-    /** 接続エラー */
-    public class SlackConnectionException extends SlackManagerException {}
+    /**
+     * イベントリスナーを設定します.
+     * @param listener リスナー
+     */
+    public void setSlackEventListener(SlackEventListener listener) {
+        this.slackEventListener = listener;
+    }
 
     /**
      * SlackBotのAPITokenを設定.
@@ -180,6 +205,7 @@ public class SlackManager {
     /**
      * 切断.
      */
+    @SuppressWarnings("unused")
     public void disconnect() {
         disconnect(null);
     }
@@ -361,6 +387,31 @@ public class SlackManager {
             @Override
             public void onMessage(String message) {
                 Log.d(TAG, String.format("Got string message! %s", message));
+                try {
+                    JSONObject json = new JSONObject(message);
+                    if (json.has("type")) {
+                        String type = json.getString("type");
+                        switch (type) {
+                            // メッセージ受信時
+                            case "message":
+                                // subtypeが無いものが純粋なメッセージ
+                                if (!json.has("subtype")) {
+                                    if (slackEventListener != null) {
+                                        String text = json.getString("text");
+                                        String channel = json.getString("channel");
+                                        String user = json.getString("user");
+                                        String ts = json.getString("ts");
+                                        slackEventListener.OnReceiveSlackMessage(text, channel, user, ts);
+                                    }
+                                }
+                                break;
+                            default:
+                        }
+
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, e.getMessage());
+                }
             }
 
             @Override
@@ -511,7 +562,7 @@ public class SlackManager {
                 con2.setRequestMethod("POST");
                 con2.setInstanceFollowRedirects(false);
                 con2.setDoOutput(true);
-                con2.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDRY);
+                con2.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDARY);
                 BufferedOutputStream bo = new BufferedOutputStream(con2.getOutputStream());
                 stream2 = new DataOutputStream(bo);
 
@@ -578,19 +629,35 @@ public class SlackManager {
             param.callBack(json);
         }
 
-        String BOUNDRY = "==================================";
+        /** 区切り文字 */
+        private static final String BOUNDARY = "==================================";
 
+        /**
+         * パラメータ追加
+         * @param os OutputStream
+         * @param name 名前
+         * @param value 値
+         * @throws IOException 例外
+         */
         private void addDisposition(DataOutputStream os, String name, String value) throws IOException {
             name = URLEncoder.encode(name, "utf-8");
             // TODO: しなくていいのか？
             // value = URLEncoder.encode(value, "utf-8");
-            os.writeBytes("--" + BOUNDRY + "\r\n");
+            os.writeBytes("--" + BOUNDARY + "\r\n");
             os.writeBytes("Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n");
             os.writeBytes(value + "\r\n");
         }
 
+        /**
+         * バイナリデータを追加
+         * @param os OutputStream
+         * @param is InputStream
+         * @param name 名前
+         * @param filename ファイル名
+         * @throws IOException 例外
+         */
         private void  addData(DataOutputStream os, InputStream is, String name, String filename) throws IOException {
-            os.writeBytes("--" + BOUNDRY + "\r\n");
+            os.writeBytes("--" + BOUNDARY + "\r\n");
             os.writeBytes("Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + filename + "\"\r\n");
             os.writeBytes("Content-Type: application/octet-stream\r\n\r\n");
             // リソースを書き出し
@@ -601,8 +668,13 @@ public class SlackManager {
             os.writeBytes("\n");
         }
 
+        /**
+         * 終了文字を追加
+         * @param os OutputStream
+         * @throws IOException 例外
+         */
         private void addEnd(DataOutputStream os) throws IOException {
-            os.writeBytes("--" + BOUNDRY + "--\r\n");
+            os.writeBytes("--" + BOUNDARY + "--\r\n");
         }
     }
 }

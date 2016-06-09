@@ -12,6 +12,8 @@ import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.SlackMessageHookDeviceService;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MessageHookProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -166,6 +168,12 @@ public class SlackMessageHookProfile extends MessageHookProfile {
             return true;
         }
 
+        // channnelIDチェック
+        if (channel == null) {
+            MessageUtils.setInvalidRequestParameterError(response, "Needs to have a \"channel\" parameter");
+            return true;
+        }
+
         if (resource == null) {
             if (text == null) {
                 // 最低限textパラメータは必要
@@ -203,11 +211,35 @@ public class SlackMessageHookProfile extends MessageHookProfile {
 
     @Override
     protected boolean onPutOnMessageReceived(Intent request, Intent response, String serviceId, String sessionKey) {
-        return super.onPutOnMessageReceived(request, response, serviceId, sessionKey);
+        EventError error = EventManager.INSTANCE.addEvent(request);
+        switch (error) {
+            case NONE:
+                setResult(response, DConnectMessage.RESULT_OK);
+                break;
+            case INVALID_PARAMETER:
+                MessageUtils.setInvalidRequestParameterError(response);
+                break;
+            default:
+                MessageUtils.setUnknownError(response);
+                break;
+        }
+        return true;
     }
 
     @Override
     protected boolean onDeleteOnMessageReceived(Intent request, Intent response, String serviceId, String sessionKey) {
-        return super.onDeleteOnMessageReceived(request, response, serviceId, sessionKey);
+        EventError error = EventManager.INSTANCE.removeEvent(request);
+        switch (error) {
+            case NONE:
+                setResult(response, DConnectMessage.RESULT_OK);
+                break;
+            case INVALID_PARAMETER:
+                MessageUtils.setInvalidRequestParameterError(response);
+                break;
+            default:
+                MessageUtils.setUnknownError(response);
+                break;
+        }
+        return true;
     }
 }

@@ -210,7 +210,8 @@ public class DevicePluginInfoFragment extends Fragment {
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
                     if (mPackageName.equals(plugin.getPackageName())
-                            && plugin.getStartServiceClassName() != null) {
+                            && plugin.getStartServiceClassName() != null
+                            && plugin.getServiceId() != null) {
                         restartDevicePlugin(plugin);
                         break;
                     }
@@ -226,10 +227,11 @@ public class DevicePluginInfoFragment extends Fragment {
      * @param plugin device plugin to be started
      */
     private void restartDevicePlugin(final DevicePlugin plugin) {
-        Intent service = new Intent();
-        service.setClassName(plugin.getPackageName(), plugin.getStartServiceClassName());
-        service.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
-        getActivity().startService(service);
+        Intent request = new Intent();
+        request.setComponent(plugin.getComponentName());
+        request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
+        request.putExtra("pluginId", plugin.getServiceId());
+        getActivity().sendBroadcast(request);
     }
 
     /**

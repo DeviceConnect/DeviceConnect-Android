@@ -555,7 +555,8 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 mgr.createDevicePluginList();
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
-                    if (plugin.getStartServiceClassName() != null) {
+                    if (plugin.getStartServiceClassName() != null
+                            && plugin.getServiceId() != null) {
                         restartDevicePlugin(plugin);
                     }
                 }
@@ -570,10 +571,11 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
      * @param plugin device plugin to be started
      */
     private void restartDevicePlugin(final DevicePlugin plugin) {
-        Intent service = new Intent();
-        service.setClassName(plugin.getPackageName(), plugin.getStartServiceClassName());
-        service.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
-        getActivity().startService(service);
+        Intent request = new Intent();
+        request.setComponent(plugin.getComponentName());
+        request.setAction(IntentDConnectMessage.ACTION_DEVICEPLUGIN_RESET);
+        request.putExtra("pluginId", plugin.getServiceId());
+        getActivity().sendBroadcast(request);
     }
 
     /**
@@ -606,11 +608,12 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                 mgr.createDevicePluginList();
                 List<DevicePlugin> plugins = mgr.getDevicePlugins();
                 for (DevicePlugin plugin : plugins) {
-                    if (plugin.getStartServiceClassName() != null) {
-                        Intent service = new Intent();
-                        service.setClassName(plugin.getPackageName(), plugin.getStartServiceClassName());
-                        service.setAction(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
-                        getActivity().startService(service);
+                    if (plugin.getServiceId() != null) {
+                        Intent request = new Intent();
+                        request.setComponent(plugin.getComponentName());
+                        request.setAction(IntentDConnectMessage.ACTION_MANAGER_TERMINATED);
+                        request.putExtra("pluginId", plugin.getServiceId());
+                        getActivity().sendBroadcast(request);
                     }
                 }
                 dialog.dismiss();

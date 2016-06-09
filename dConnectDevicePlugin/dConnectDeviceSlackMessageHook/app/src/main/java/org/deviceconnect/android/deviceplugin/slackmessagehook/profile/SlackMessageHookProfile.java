@@ -15,7 +15,10 @@ import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManage
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.MessageHookProfile;
 import org.deviceconnect.message.DConnectMessage;
+import org.json.JSONObject;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -156,16 +159,44 @@ public class SlackMessageHookProfile extends MessageHookProfile {
     }
 
     @Override
-    protected boolean onPostMessage(Intent request, Intent response, String serviceId, String channel, String text, String resource, String mimeType) {
+    protected boolean onPostMessage(Intent request, final Intent response, String serviceId, String channel, String text, String resource, String mimeType) {
 
         // ServiceIDチェック
         if (checkServiceId(serviceId, response)) {
             return true;
         }
 
-        // メッセージ送信
-        // TODO: リソース対応
-        SlackManager.INSTANCE.sendMessage(text, channel);
+        if (resource == null) {
+            if (text == null) {
+                // 最低限textパラメータは必要
+                MessageUtils.setInvalidRequestParameterError(response, "Needs to have a \"text\" parameter");
+            } else {
+                // メッセージ送信
+                // TODO: 成功、失敗をどうにか取得する
+                SlackManager.INSTANCE.sendMessage(text, channel);
+            }
+        } else {
+            try {
+                // ファイルアップロード
+                URL url = new URL(resource);
+                SlackManager.INSTANCE.uploadFile(text, channel, url, new SlackManager.FinishCallback<JSONObject>() {
+                    @Override
+                    public void onFinish(JSONObject jsonObject, Exception error) {
+                        if (error == null) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            MessageUtils.setUnknownError(response);
+                            setResult(response, DConnectMessage.RESULT_ERROR);
+                        }
+                        SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
+                        service.sendResponse(response);
+                    }
+                });
+                return false;
+            } catch (MalformedURLException e) {
+                MessageUtils.setInvalidRequestParameterError(response, "Invalid resource url");
+            }
+        }
 
         return true;
     }

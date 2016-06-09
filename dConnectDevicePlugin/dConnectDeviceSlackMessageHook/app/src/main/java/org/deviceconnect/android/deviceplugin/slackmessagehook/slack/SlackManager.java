@@ -15,7 +15,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -209,6 +212,48 @@ public class SlackManager {
         webSocket.send(data);
     }
 
+    /**
+     * Slackにファイルをアップロード.
+     * @param msg コメント
+     * @param channel チャンネル
+     * @param url リソースURL
+     * @param callback 終了コールバック
+     */
+    public void uploadFile(String msg, String channel, URL url, final FinishCallback<JSONObject> callback) {
+        new UploadFileTask().execute(new TaskParam(channel, msg, url) {
+            @Override
+            public void callBack(JSONObject json) {
+                if (callback != null) {
+                    SlackManagerException exception = null;
+                    if (json == null) {
+                        exception = new SlackConnectionException();
+                    } else {
+                        try {
+                            if (!json.getBoolean("ok")) {
+                                // TODO: エラー内容を精査
+                                exception = new SlackConnectionException();
+                            }
+                        } catch (JSONException e) {
+                            // TODO: エラー内容を精査
+                            exception = new SlackConnectionException();
+                        }
+                    }
+                    callback.onFinish(json, exception);
+                }
+            }
+        });
+    }
+
+    /**
+     * Slackにファイルをアップロード.
+     * @param msg コメント
+     * @param channel チャンネル
+     * @param url リソースURL
+     */
+    public void uploadFile(String msg, String channel, URL url) {
+        uploadFile(msg, channel, url, null);
+    }
+
 
     /**
      * 受け渡し情報
@@ -248,12 +293,14 @@ public class SlackManager {
                         if (obj.has("user")) {
                             info.name = obj.getString("user");
                         }
-//                        if (obj.has("real_name")) {
-//                            String realName = obj.getString("real_name");
-//                            if (!realName.isEmpty()) {
-//                                info.name = realName;
-//                            }
-//                        }
+                        /* RealNameいる？
+                        if (obj.has("real_name")) {
+                            String realName = obj.getString("real_name");
+                            if (!realName.isEmpty()) {
+                                info.name = realName;
+                            }
+                        }
+                        */
                         if (obj.has("profile")) {
                             JSONObject prof = obj.getJSONObject("profile");
                             info.icon = prof.getString("image_192");
@@ -347,10 +394,16 @@ public class SlackManager {
     private class TaskParam {
         protected String target;
         protected String params;
+        protected URL resource;
         public void callBack(JSONObject json) {}
         public TaskParam(String target, String params) {
             this.target = target;
             this.params = params;
+        }
+        public TaskParam(String target, String params, URL resource) {
+            this.target = target;
+            this.params = params;
+            this.resource = resource;
         }
     }
 
@@ -416,6 +469,140 @@ public class SlackManager {
         @Override
         protected void onPostExecute(JSONObject json) {
             param.callBack(json);
+        }
+    }
+
+
+    /**
+     * ファイルアップロード用Task
+     */
+    private class UploadFileTask extends AsyncTask<TaskParam, Void, JSONObject> {
+
+        /** パラメータ */
+        TaskParam param = null;
+
+        /**
+         * Background処理.
+         *
+         * @param params Params
+         */
+        @Override
+        protected JSONObject doInBackground(TaskParam... params) {
+
+            HttpURLConnection con1 = null;
+            HttpURLConnection con2 = null;
+            BufferedInputStream stream1 = null;
+            DataOutputStream stream2 = null;
+            BufferedReader streamReader = null;
+            JSONObject json = null;
+            param = params[0];
+
+            try {
+                // リソース取得
+                URL url = param.resource;
+                con1 = (HttpURLConnection)url.openConnection();
+                con1.setInstanceFollowRedirects(true);
+                con1.connect();
+                stream1 = new BufferedInputStream(con1.getInputStream());
+
+                // Slack接続
+                url = new URL(BASE_URL + "files.upload");
+                con2 = (HttpURLConnection)url.openConnection();
+                con2.setRequestMethod("POST");
+                con2.setInstanceFollowRedirects(false);
+                con2.setDoOutput(true);
+                con2.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + BOUNDRY);
+                BufferedOutputStream bo = new BufferedOutputStream(con2.getOutputStream());
+                stream2 = new DataOutputStream(bo);
+
+                // パラメータ設定
+                addDisposition(stream2, "token", token);
+                addDisposition(stream2, "channels", param.target);
+                addDisposition(stream2, "initial_comment", param.params);
+                addData(stream2, stream1, "file", param.resource.getFile());
+                addEnd(stream2);
+                stream2.flush();
+
+                // 接続
+                con2.connect();
+                Log.d(TAG, "token:"+token);
+
+                // レスポンス取得
+                streamReader = new BufferedReader(new InputStreamReader(con2.getInputStream(), "UTF-8"));
+                StringBuilder responseStrBuilder = new StringBuilder();
+                String inputStr;
+                while ((inputStr = streamReader.readLine()) != null)
+                    responseStrBuilder.append(inputStr);
+
+                // Json
+                json = new JSONObject(responseStrBuilder.toString());
+                Log.d(TAG, responseStrBuilder.toString());
+
+
+            } catch (IOException | JSONException e) {
+                Log.e(TAG, "error", e);
+            } finally {
+                if (streamReader != null) {
+                    try {
+                        streamReader.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, "stream close error", e);
+                    }
+                }
+                if (stream2 != null) {
+                    try {
+                        stream2.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, "stream close error", e);
+                    }
+                }
+                if (stream1 != null) {
+                    try {
+                        stream1.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, "stream close error", e);
+                    }
+                }
+                if (con2 != null) {
+                    con2.disconnect();
+                }
+                if (con1 != null) {
+                    con1.disconnect();
+                }
+            }
+            return json;
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject json) {
+            param.callBack(json);
+        }
+
+        String BOUNDRY = "==================================";
+
+        private void addDisposition(DataOutputStream os, String name, String value) throws IOException {
+            name = URLEncoder.encode(name, "utf-8");
+            // TODO: しなくていいのか？
+            // value = URLEncoder.encode(value, "utf-8");
+            os.writeBytes("--" + BOUNDRY + "\r\n");
+            os.writeBytes("Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n");
+            os.writeBytes(value + "\r\n");
+        }
+
+        private void  addData(DataOutputStream os, InputStream is, String name, String filename) throws IOException {
+            os.writeBytes("--" + BOUNDRY + "\r\n");
+            os.writeBytes("Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + filename + "\"\r\n");
+            os.writeBytes("Content-Type: application/octet-stream\r\n\r\n");
+            // リソースを書き出し
+            int c;
+            while ((c = is.read()) >= 0) {
+                os.write(c);
+            }
+            os.writeBytes("\n");
+        }
+
+        private void addEnd(DataOutputStream os) throws IOException {
+            os.writeBytes("--" + BOUNDRY + "--\r\n");
         }
     }
 }

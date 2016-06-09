@@ -50,7 +50,7 @@ public interface MessageHookProfileConstants extends DConnectProfileConstants {
     /**
      * Parameter: {@value} .
      */
-    String PARAM_CHANNELID = "channelid";
+    String PARAM_CHANNELID = "channelId";
 
     /**
      * Parameter: {@value} .

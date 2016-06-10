@@ -269,7 +269,6 @@ public class SlackManager {
      */
     public void sendMessage(String msg, String channel, final FinishCallback<String> callback) {
         if (Debug) Log.d(TAG, "*sendMessage");
-        sendMsgFinishCallback = callback;
         if (connectState != CONNECT_STATE_CONNECTED) {
             callSendMsgFinishCallback(null, new SlackConnectionException());
             return;
@@ -278,8 +277,21 @@ public class SlackManager {
             callSendMsgFinishCallback(null, new InvalidParameterException());
             return;
         }
+        msg = escape(msg);
+        channel = escape(channel);
+        sendMsgFinishCallback = callback;
         String data = "{\"type\": \"message\", \"channel\": \"" + channel + "\", \"text\": \"" + msg + "\"}";
         webSocket.send(data);
+    }
+
+    /**
+     * 文字列をエスケープ処理する
+     * @param str 文字列
+     * @return 処理後の文字列
+     */
+    private String escape(String str) {
+        String ret = str.replace("\\", "\\\\");
+        return ret.replace("\"", "\\\"");
     }
 
     /**
@@ -480,6 +492,10 @@ public class SlackManager {
                                     }
                                 }
                                 break;
+                            // エラー時
+                            case "error":
+                                callSendMsgFinishCallback(null, new SlackUnknownException());
+                                break;
                             default:
                         }
                     }
@@ -490,7 +506,6 @@ public class SlackManager {
                             callSendMsgFinishCallback(null, new SlackUnknownException());
                         }
                     }
-
                 } catch (JSONException e) {
                     Log.e(TAG, e.getMessage());
                 }
@@ -742,8 +757,9 @@ public class SlackManager {
          */
         private void addDisposition(DataOutputStream os, String name, String value) throws IOException {
             name = URLEncoder.encode(name, "utf-8");
-            // TODO: しなくていいのか？
             // value = URLEncoder.encode(value, "utf-8");
+            value = escape(value);
+
             os.writeBytes("--" + BOUNDARY + "\r\n");
             os.writeBytes("Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n");
             os.writeBytes(value + "\r\n");
@@ -758,6 +774,7 @@ public class SlackManager {
          * @throws IOException 例外
          */
         private void  addData(DataOutputStream os, InputStream is, String name, String filename) throws IOException {
+            filename = escape(filename);
             os.writeBytes("--" + BOUNDARY + "\r\n");
             os.writeBytes("Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + filename + "\"\r\n");
             os.writeBytes("Content-Type: application/octet-stream\r\n\r\n");

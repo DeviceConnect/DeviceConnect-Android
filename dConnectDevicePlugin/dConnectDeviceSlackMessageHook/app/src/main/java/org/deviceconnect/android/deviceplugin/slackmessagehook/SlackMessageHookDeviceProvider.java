@@ -20,7 +20,7 @@ public class SlackMessageHookDeviceProvider<T extends Service> extends DConnectM
     @SuppressWarnings("unchecked")
     @Override
     protected Class<Service> getServiceClass() {
-        Class<? extends Service> clazz = (Class<? extends Service>) SlackMessageHookDeviceService.class;
+        Class<? extends Service> clazz = SlackMessageHookDeviceService.class;
         return (Class<Service>) clazz;
     }
 }

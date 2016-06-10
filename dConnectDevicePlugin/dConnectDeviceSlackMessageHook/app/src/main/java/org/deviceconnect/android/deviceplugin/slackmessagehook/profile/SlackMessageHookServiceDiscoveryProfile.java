@@ -21,7 +21,7 @@ import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 public class SlackMessageHookServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     /** サービスID. */
-    public static final String SERVICE_ID = "slackmessagehook_service_id";
+    public static final String SERVICE_ID = "slack_messagehook_service_id";
 
     /** デバイス名. */
     private static final String DEVICE_NAME = "SlackMessageHook Device";
@@ -39,7 +39,7 @@ public class SlackMessageHookServiceDiscoveryProfile extends ServiceDiscoveryPro
      */
     @Override
     public boolean onGetServices(final Intent request, final Intent response) {
-        List<Bundle> services = new ArrayList<Bundle>();
+        List<Bundle> services = new ArrayList<>();
         Bundle service = new Bundle();
         setId(service, SERVICE_ID);
         setName(service, DEVICE_NAME);

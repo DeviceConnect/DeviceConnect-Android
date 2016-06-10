@@ -15,7 +15,7 @@ public interface MessageHookProfileConstants extends DConnectProfileConstants {
     /**
      * Profile name: {@value} .
      */
-    String PROFILE_NAME = "messagehook";
+    String PROFILE_NAME = "messageHook";
 
     /**
      * Attribute: {@value} .

@@ -58,6 +58,12 @@ public class SlackMessageHookProfile extends MessageHookProfile {
             return true;
         }
 
+        // 接続チェック
+        if (!SlackManager.INSTANCE.isConnected()) {
+            MessageUtils.setUnknownError(response, "Not connected to the Slack server");
+            return true;
+        }
+
         new Thread() {
             @Override
             public void run() {
@@ -168,9 +174,15 @@ public class SlackMessageHookProfile extends MessageHookProfile {
             return true;
         }
 
-        // channnelIDチェック
+        // channelIDチェック
         if (channel == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Needs to have a \"channel\" parameter");
+            return true;
+        }
+
+        // 接続チェック
+        if (!SlackManager.INSTANCE.isConnected()) {
+            MessageUtils.setUnknownError(response, "Not connected to the Slack server");
             return true;
         }
 
@@ -180,8 +192,20 @@ public class SlackMessageHookProfile extends MessageHookProfile {
                 MessageUtils.setInvalidRequestParameterError(response, "Needs to have a \"text\" parameter");
             } else {
                 // メッセージ送信
-                // TODO: 成功、失敗をどうにか取得する
-                SlackManager.INSTANCE.sendMessage(text, channel);
+                SlackManager.INSTANCE.sendMessage(text, channel, new SlackManager.FinishCallback<String>() {
+                    @Override
+                    public void onFinish(String s, Exception error) {
+                        if (error == null) {
+                            setResult(response, DConnectMessage.RESULT_OK);
+                        } else {
+                            MessageUtils.setUnknownError(response);
+                            setResult(response, DConnectMessage.RESULT_ERROR);
+                        }
+                        SlackMessageHookDeviceService service = (SlackMessageHookDeviceService) getContext();
+                        service.sendResponse(response);
+                    }
+                });
+                return false;
             }
         } else {
             try {

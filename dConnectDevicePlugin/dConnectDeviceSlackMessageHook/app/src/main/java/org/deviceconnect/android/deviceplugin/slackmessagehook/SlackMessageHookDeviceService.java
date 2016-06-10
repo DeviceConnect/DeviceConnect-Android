@@ -69,7 +69,24 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
 
     @Override
     public void OnReceiveSlackMessage(String text, String channel, String user, String ts) {
+        sendMessageEvent(text, channel, user, ts, null, null);
+    }
 
+    @Override
+    public void OnReceiveSlackFile(String comment, String channel, String user, String ts, String url, String mimeType) {
+        sendMessageEvent(comment, channel, user, ts, url, mimeType);
+    }
+
+    /**
+     * 受信メッセージをEventとして送信
+     * @param text テキスト
+     * @param channel チャンネル
+     * @param user 送信者
+     * @param ts 時間
+     * @param url リソースURL
+     * @param mimeType MimeType
+     */
+    private void sendMessageEvent(String text, String channel, String user, String ts, String url, String mimeType) {
         String serviceId = SlackMessageHookServiceDiscoveryProfile.SERVICE_ID;
         String profile = SlackMessageHookProfile.PROFILE_NAME;
         String attribute = SlackMessageHookProfile.ATTRIBUTE_MESSAGE;
@@ -83,6 +100,8 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                 Bundle message = new Bundle();
                 message.putString("messengerType", "slack");
                 message.putString("channelId", channel);
+
+                // TimeStampは少数以下切り捨て
                 float time = Float.parseFloat(ts);
                 message.putInt("timeStamp", (int)time);
 
@@ -97,22 +116,32 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                 }
 
                 // メンション処理
-                Pattern p = Pattern.compile("<@(\\w*)>");
-                Matcher m = p.matcher(text);
-                StringBuffer sb = new StringBuffer();
-                while (m.find()) {
-                    String uid = m.group(1);
-                    info = userMap.get(uid);
-                    if (info != null) {
-                        m.appendReplacement(sb, "@" + info.name);
-                    } else {
-                        m.appendReplacement(sb, m.group());
-                        // 値が無い場合はユーザーリスト再取得
-                        fetchUserList();
+                if (text != null) {
+                    Pattern p = Pattern.compile("<@(\\w*)>");
+                    Matcher m = p.matcher(text);
+                    StringBuffer sb = new StringBuffer();
+                    while (m.find()) {
+                        String uid = m.group(1);
+                        info = userMap.get(uid);
+                        if (info != null) {
+                            m.appendReplacement(sb, "@" + info.name);
+                        } else {
+                            m.appendReplacement(sb, m.group());
+                            // 値が無い場合はユーザーリスト再取得
+                            fetchUserList();
+                        }
                     }
+                    m.appendTail(sb);
+                    message.putString("text", sb.toString());
                 }
-                m.appendTail(sb);
-                message.putString("text", sb.toString());
+
+                // リソース
+                if (url != null) {
+                    message.putString("resource", url);
+                }
+                if (mimeType != null) {
+                    message.putString("mimeType", mimeType);
+                }
 
                 // Eventに値をおくる.
                 for (Event event : events) {
@@ -122,7 +151,6 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                 }
             }
         }
-
     }
 
     // ユーザーリスト取得

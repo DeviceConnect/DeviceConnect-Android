@@ -27,6 +27,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 
 
@@ -40,6 +41,8 @@ public class SlackManager {
 
     /** TAG. */
     private final static String TAG = "SlackManager";
+    /** デバッグフラグ */
+    private final static boolean Debug = true;
 
     /** SlackAPIベースURL */
     private final static String BASE_URL = "https://slack.com/api/";
@@ -65,6 +68,8 @@ public class SlackManager {
     public class SlackAPITokenValueException extends SlackManagerException {}
     /** 接続エラー */
     public class SlackConnectionException extends SlackManagerException {}
+    /** 未知のエラー */
+    public class SlackUnknownException extends SlackManagerException {}
 
 
     /** WebSocket */
@@ -86,6 +91,9 @@ public class SlackManager {
     /** 接続処理完了コールバック */
     private FinishCallback<Void> connectionFinishCallback;
 
+    /** メッセージ送信処理完了コールバック */
+    private FinishCallback<String> sendMsgFinishCallback;
+
     /** Slackイベントリスナー */
     public interface SlackEventListener {
         /**
@@ -96,6 +104,17 @@ public class SlackManager {
          * @param ts タイムスタンプ
          */
         void OnReceiveSlackMessage(String text, String channel, String user, String ts);
+
+        /**
+         * ファイルアップロードを受信したイベント
+         * @param comment コメント
+         * @param channel チャンネル
+         * @param user ユーザー
+         * @param ts タイムスタンプ
+         * @param url リソースURL
+         * @param mimeType MimeType
+         */
+        void OnReceiveSlackFile(String comment, String channel, String user, String ts, String url, String mimeType);
     }
 
     /** Slackイベントリスナー */
@@ -123,7 +142,7 @@ public class SlackManager {
      * @param apiToken APIToken
      */
     public void setApiToken(final String apiToken) throws SlackAPITokenValueException {
-        Log.d(TAG, "*setApiToken");
+        if (Debug) Log.d(TAG, "*setApiToken");
         // 不正文字列を入力できないようにencodeしておく
         try {
             token = URLEncoder.encode(apiToken,"utf-8");
@@ -146,6 +165,14 @@ public class SlackManager {
     }
 
     /**
+     * 接続中かを返します.
+     * @return 接続中ならtrue
+     */
+    public boolean isConnected() {
+        return connectState == CONNECT_STATE_CONNECTED;
+    }
+
+    /**
      * 接続.
      */
     public void connect() throws SlackAPITokenValueException {
@@ -157,7 +184,7 @@ public class SlackManager {
      * @param callback 接続完了コールバック
      */
     public void connect(FinishCallback<Void> callback) throws SlackAPITokenValueException {
-        Log.d(TAG, "*connect");
+        if (Debug) Log.d(TAG, "*connect");
         if (token == null) {
             throw new SlackAPITokenValueException();
         }
@@ -176,26 +203,22 @@ public class SlackManager {
             public void callBack(JSONObject json) {
                 // rtm.startに失敗
                 if (json == null) {
-                    if (connectionFinishCallback != null) {
-                        connectionFinishCallback.onFinish(null, new SlackConnectionException());
-                    }
                     connectState = CONNECT_STATE_DISCONNECTED;
+                    callConnectionFinishCallback(new SlackConnectionException());
                     return;
                 }
                 // WebSocketに接続
-                Log.d(TAG, json.toString());
+                if (Debug) Log.d(TAG, json.toString());
                 // 接続
                 String jsonUrl;
                 try {
                     jsonUrl = json.getString("url");
-                    Log.d(TAG, "url:"+jsonUrl);
+                    if (Debug) Log.d(TAG, "url:"+jsonUrl);
                     connectWebSocket(URI.create(jsonUrl));
                 } catch (JSONException e) {
                     Log.e(TAG, "error", e);
-                    if (connectionFinishCallback != null) {
-                        connectionFinishCallback.onFinish(null, e);
-                    }
                     connectState = CONNECT_STATE_DISCONNECTED;
+                    callConnectionFinishCallback(e);
                 }
             }
         });
@@ -215,7 +238,7 @@ public class SlackManager {
      * @param callback 切断完了コールバック
      */
     public void disconnect(FinishCallback<Void> callback) {
-        Log.d(TAG, "*disconnect");
+        if (Debug) Log.d(TAG, "*disconnect");
         if (webSocket ==null || connectState < CONNECT_STATE_CONNECTING) {
             if (callback != null) {
                 callback.onFinish(null, null);
@@ -230,12 +253,31 @@ public class SlackManager {
     /**
      * Slackにメッセージ送信.
      * @param msg メッセージ
+     * @param channel チャンネル
+     * @param callback 完了コールバック
      */
-    public void sendMessage(String msg, String channel) {
-        Log.d(TAG, "*sendMessage");
-        if (connectState != CONNECT_STATE_CONNECTED) return;
+    public void sendMessage(String msg, String channel, final FinishCallback<String> callback) {
+        if (Debug) Log.d(TAG, "*sendMessage");
+        sendMsgFinishCallback = callback;
+        if (connectState != CONNECT_STATE_CONNECTED) {
+            callSendMsgFinishCallback(null, new SlackConnectionException());
+            return;
+        }
+        if (msg == null || channel == null) {
+            callSendMsgFinishCallback(null, new InvalidParameterException());
+            return;
+        }
         String data = "{\"type\": \"message\", \"channel\": \"" + channel + "\", \"text\": \"" + msg + "\"}";
         webSocket.send(data);
+    }
+
+    /**
+     * Slackにメッセージ送信.
+     * @param msg メッセージ
+     * @param channel チャンネル
+     */
+    public void sendMessage(String msg, String channel) {
+        sendMessage(msg, channel, null);
     }
 
     /**
@@ -246,6 +288,12 @@ public class SlackManager {
      * @param callback 終了コールバック
      */
     public void uploadFile(String msg, String channel, URL url, final FinishCallback<JSONObject> callback) {
+        if (url == null || channel == null) {
+            if (callback != null) {
+                callback.onFinish(null, new InvalidParameterException());
+            }
+            return;
+        }
         new UploadFileTask().execute(new TaskParam(channel, msg, url) {
             @Override
             public void callBack(JSONObject json) {
@@ -301,7 +349,7 @@ public class SlackManager {
         new GetTask().execute(new TaskParam(target, params) {
             @Override
             public void callBack(JSONObject json) {
-                Log.d(TAG, json.toString());
+                if (Debug) Log.d(TAG, json.toString());
 
                 try {
                     JSONArray jsonArray = json.getJSONArray(listname);
@@ -347,7 +395,7 @@ public class SlackManager {
      * @param callback 取得コールバック
      */
     public void getChannelList(final FinishCallback<ArrayList<ListInfo>> callback) {
-        Log.d(TAG, "*getChannelList");
+        if (Debug) Log.d(TAG, "*getChannelList");
         getList("channels.list", "&exclude_archived=1", "channels", callback);
     }
 
@@ -356,7 +404,7 @@ public class SlackManager {
      * @param callback 取得コールバック
      */
     public void getIMList(final FinishCallback<ArrayList<ListInfo>> callback) {
-        Log.d(TAG, "*getIMList");
+        if (Debug) Log.d(TAG, "*getIMList");
         getList("im.list", "", "ims",callback);
     }
 
@@ -365,7 +413,7 @@ public class SlackManager {
      * @param callback 取得コールバック
      */
     public void getUserList(final FinishCallback<ArrayList<ListInfo>> callback) {
-        Log.d(TAG, "*getUserList");
+        if (Debug) Log.d(TAG, "*getUserList");
         getList("users.list", "", "members", callback);
     }
 
@@ -377,16 +425,14 @@ public class SlackManager {
         webSocket = new WebSocketClient(uri, new WebSocketClient.Listener() {
             @Override
             public void onConnect() {
-                Log.d(TAG, "Connected!");
+                if (Debug) Log.d(TAG, "Connected!");
                 connectState = CONNECT_STATE_CONNECTED;
-                if (connectionFinishCallback != null) {
-                    connectionFinishCallback.onFinish(null, null);
-                }
+                callConnectionFinishCallback(null);
             }
 
             @Override
             public void onMessage(String message) {
-                Log.d(TAG, String.format("Got string message! %s", message));
+                if (Debug) Log.d(TAG, String.format("Got string message! %s", message));
                 try {
                     JSONObject json = new JSONObject(message);
                     if (json.has("type")) {
@@ -394,21 +440,42 @@ public class SlackManager {
                         switch (type) {
                             // メッセージ受信時
                             case "message":
-                                // subtypeが無いものが純粋なメッセージ
-                                if (!json.has("subtype")) {
-                                    if (slackEventListener != null) {
+                                if (slackEventListener != null) {
+                                    if (!json.has("subtype")) {
+                                        // subtypeが無いものが純粋なメッセージ
                                         String text = json.getString("text");
                                         String channel = json.getString("channel");
                                         String user = json.getString("user");
                                         String ts = json.getString("ts");
                                         slackEventListener.OnReceiveSlackMessage(text, channel, user, ts);
+                                    } else if (json.getString("subtype").equals("file_share")) {
+                                        // ファイルアップロード
+                                        String channel = json.getString("channel");
+                                        String user = json.getString("user");
+                                        String ts = json.getString("ts");
+                                        String text = null;
+                                        String url = null;
+                                        String mimetype = null;
+                                        if(json.has("file")) {
+                                            JSONObject file = json.getJSONObject("file");
+                                            mimetype = file.getString("mimetype");
+                                            url = file.getString("url_private");
+                                        }
+                                        slackEventListener.OnReceiveSlackFile(text, channel, user, ts, url, mimetype);
                                     }
                                 }
                                 break;
                             default:
                         }
-
                     }
+                    if (json.has("ok")) {
+                        if (json.getBoolean("ok")) {
+                            callSendMsgFinishCallback(json.getString("text"), null);
+                        } else {
+                            callSendMsgFinishCallback(null, new SlackUnknownException());
+                        }
+                    }
+
                 } catch (JSONException e) {
                     Log.e(TAG, e.getMessage());
                 }
@@ -420,24 +487,43 @@ public class SlackManager {
 
             @Override
             public void onDisconnect(int code, String reason) {
-                Log.d(TAG, String.format("Disconnected! Code: %d Reason: %s", code, reason));
+                if (Debug) Log.d(TAG, String.format("Disconnected! Code: %d Reason: %s", code, reason));
                 connectState = CONNECT_STATE_DISCONNECTED;
-                if (connectionFinishCallback != null) {
-                    connectionFinishCallback.onFinish(null, null);
-                }
+                callConnectionFinishCallback(null);
             }
 
             @Override
             public void onError(Exception error) {
                 Log.e(TAG, "Error!", error);
-                if (connectionFinishCallback != null) {
-                    connectionFinishCallback.onFinish(null, error);
-                }
+                callConnectionFinishCallback(error);
+                callSendMsgFinishCallback(null, error);
             }
         }, null);
         webSocket.connect();
     }
 
+    /**
+     * 接続完了コールバックを呼ぶ
+     * @param e 例外
+     */
+    private void callConnectionFinishCallback(Exception e) {
+        if (connectionFinishCallback != null) {
+            connectionFinishCallback.onFinish(null, e);
+            connectionFinishCallback = null;
+        }
+    }
+
+    /**
+     * 送信完了コールバックを呼ぶ
+     * @param text 送信text
+     * @param e 例外
+     */
+    private void callSendMsgFinishCallback(String text, Exception e) {
+        if (sendMsgFinishCallback != null) {
+            sendMsgFinishCallback.onFinish(text, e);
+            sendMsgFinishCallback = null;
+        }
+    }
 
     /**
      * Get用Task用パラメータ
@@ -488,7 +574,7 @@ public class SlackManager {
                 con.setInstanceFollowRedirects(false);
                 con.connect();
                 stream = con.getInputStream();
-                Log.d(TAG, "token:"+token);
+                if (Debug) Log.d(TAG, "token:"+token);
 
                 // レスポンス取得
                 BufferedReader streamReader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
@@ -576,7 +662,7 @@ public class SlackManager {
 
                 // 接続
                 con2.connect();
-                Log.d(TAG, "token:"+token);
+                if (Debug) Log.d(TAG, "token:"+token);
 
                 // レスポンス取得
                 streamReader = new BufferedReader(new InputStreamReader(con2.getInputStream(), "UTF-8"));
@@ -587,7 +673,7 @@ public class SlackManager {
 
                 // Json
                 json = new JSONObject(responseStrBuilder.toString());
-                Log.d(TAG, responseStrBuilder.toString());
+                if (Debug) Log.d(TAG, responseStrBuilder.toString());
 
 
             } catch (IOException | JSONException e) {

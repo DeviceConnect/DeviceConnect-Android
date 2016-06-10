@@ -120,6 +120,9 @@ public class SlackManager {
     /** Slackイベントリスナー */
     private SlackEventListener slackEventListener;
 
+    /** BotのUserID */
+    private String botID = null;
+
 
 
 
@@ -127,6 +130,11 @@ public class SlackManager {
      * 初期化。シングルトンのためにprivate.
      */
     private SlackManager() {
+    }
+
+    /** BotのUserIDを取得 */
+    public String getBotID() {
+        return botID;
     }
 
     /**
@@ -214,6 +222,9 @@ public class SlackManager {
                 try {
                     jsonUrl = json.getString("url");
                     if (Debug) Log.d(TAG, "url:"+jsonUrl);
+                    JSONObject selfJson = json.getJSONObject("self");
+                    botID = selfJson.getString("id");
+                    if (Debug) Log.d(TAG, "botID:"+botID);
                     connectWebSocket(URI.create(jsonUrl));
                 } catch (JSONException e) {
                     Log.e(TAG, "error", e);
@@ -460,6 +471,10 @@ public class SlackManager {
                                             JSONObject file = json.getJSONObject("file");
                                             mimetype = file.getString("mimetype");
                                             url = file.getString("url_private");
+                                            if(file.has("initial_comment")) {
+                                                JSONObject comment = file.getJSONObject("initial_comment");
+                                                text = comment.getString("comment");
+                                            }
                                         }
                                         slackEventListener.OnReceiveSlackFile(text, channel, user, ts, url, mimetype);
                                     }

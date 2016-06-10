@@ -117,6 +117,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
 
                 // メンション処理
                 if (text != null) {
+                    boolean isMentioned = false;
                     Pattern p = Pattern.compile("<@(\\w*)>");
                     Matcher m = p.matcher(text);
                     StringBuffer sb = new StringBuffer();
@@ -130,9 +131,24 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                             // 値が無い場合はユーザーリスト再取得
                             fetchUserList();
                         }
+                        if (!isMentioned) {
+                            isMentioned = SlackManager.INSTANCE.getBotID().equals(uid);
+                        }
                     }
                     m.appendTail(sb);
                     message.putString("text", sb.toString());
+                    //　メッセージタイプ
+                    String messageType = null;
+                    // Dから始まるChannelIDはDirectMessage
+                    if (channel.startsWith("D")) {
+                        messageType = "direct";
+                    } else {
+                        messageType = "normal";
+                    }
+                    if (isMentioned) {
+                        messageType += ",mention";
+                    }
+                    message.putString("messageType", messageType);
                 }
 
                 // リソース

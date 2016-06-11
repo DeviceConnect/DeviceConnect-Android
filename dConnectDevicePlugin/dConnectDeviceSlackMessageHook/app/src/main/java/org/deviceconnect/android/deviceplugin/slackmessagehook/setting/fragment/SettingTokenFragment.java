@@ -7,11 +7,11 @@
 package org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment;
 
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,33 +34,27 @@ public class SettingTokenFragment extends Fragment {
         // Root view.
         final View root = inflater.inflate(R.layout.token, container, false);
 
-        Button button = (Button)root.findViewById(R.id.buttonNext);
-        button.setOnClickListener(new View.OnClickListener() {
+        // 次へボタン
+        Button nextButton = (Button)root.findViewById(R.id.buttonNext);
+        nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EditText text = (EditText)root.findViewById(R.id.textToken);
+                final EditText text = (EditText)root.findViewById(R.id.textToken);
+                final String token = text.getText().toString();
                 // プログレスダイアログを表示
-                final ProgressDialog dialog = new ProgressDialog(root.getContext());
-                dialog.setMessage("Please wait...");
-                dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                dialog.setCancelable(false);
-                dialog.setCanceledOnTouchOutside(false);
-                dialog.show();
+                final ProgressDialog dialog = Utils.showProgressDialog(getActivity());
 
                 // Token設定
-                SlackManager.INSTANCE.setApiToken(text.getText().toString(), new SlackManager.FinishCallback<Void>() {
+                SlackManager.INSTANCE.setApiToken(token, true, new SlackManager.FinishCallback<Void>() {
                     @Override
                     public void onFinish(Void aVoid, Exception error) {
                         // プログレスダイアログを閉じる
                         dialog.dismiss();
                         if (error == null) {
-                            // TODO: Tokenを保存
+                            // Tokenを保存
+                            Utils.saveAccessToken(getActivity(), token);
                             // 画面遷移
-                            FragmentManager manager = getFragmentManager();
-                            FragmentTransaction transaction = manager.beginTransaction();
-                            transaction.replace(R.id.container, new SettingFragment());
-                            transaction.addToBackStack(null);
-                            transaction.commit();
+                            Utils.transition(new SettingFragment(), getFragmentManager(), true);
                         } else {
                             // エラーダイアログ表示
                             // TODO: 詳細なエラー表示
@@ -74,6 +68,18 @@ public class SettingTokenFragment extends Fragment {
                 });
             }
         });
+
+        // トークン取得ボタン
+        Button tokenButton = (Button)root.findViewById(R.id.buttonGetToken);
+        tokenButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Uri uri = Uri.parse("https://slack.com/apps/A0F7YS25R-bots");
+                Intent i = new Intent(Intent.ACTION_VIEW,uri);
+                startActivity(i);
+            }
+        });
+
 
         return root;
     }

@@ -135,7 +135,7 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
                             fetchUserList();
                         }
                         if (!isMentioned) {
-                            isMentioned = SlackManager.INSTANCE.getBotID().equals(uid);
+                            isMentioned = SlackManager.INSTANCE.getBotInfo().id.equals(uid);
                         }
                     }
                     m.appendTail(sb);

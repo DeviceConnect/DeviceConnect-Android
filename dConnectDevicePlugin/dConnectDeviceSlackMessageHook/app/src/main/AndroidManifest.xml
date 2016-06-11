@@ -9,7 +9,7 @@
         android:icon="@drawable/dconnect_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@android:style/Theme.Black.NoTitleBar">
 
         <!-- Device Connect Example Device Plugin Provider. -->
         <receiver android:name=".SlackMessageHookDeviceProvider"

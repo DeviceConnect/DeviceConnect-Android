@@ -120,8 +120,20 @@ public class SlackManager {
     /** Slackイベントリスナー */
     private SlackEventListener slackEventListener;
 
-    /** BotのUserID */
-    private String botID = null;
+    /** Botの情報 */
+    public class BotInfo {
+        public String id;
+        public String name;
+        public String teamName;
+        public String teamDomain;
+        @Override
+        public String toString() {
+            return "BotInfo = {id: "+ id + ", name:" + name + ", teamName:" + teamName + "}";
+        }
+    }
+
+    /** Botの情報 */
+    private BotInfo botInfo = new BotInfo();
 
 
 
@@ -132,9 +144,9 @@ public class SlackManager {
     private SlackManager() {
     }
 
-    /** BotのUserIDを取得 */
-    public String getBotID() {
-        return botID;
+    /** Botの情報を取得 */
+    public BotInfo getBotInfo() {
+        return botInfo;
     }
 
     /**
@@ -149,7 +161,7 @@ public class SlackManager {
      * SlackBotのAPITokenを設定.
      * @param apiToken APIToken
      */
-    public void setApiToken(final String apiToken, final FinishCallback<Void> callback) {
+    public void setApiToken(final String apiToken, boolean needsConnect, final FinishCallback<Void> callback) {
         if (Debug) Log.d(TAG, "*setApiToken");
         if (apiToken == null) {
             if (callback != null) {
@@ -167,21 +179,25 @@ public class SlackManager {
             return;
         }
         // 接続
-        if (connectState > CONNECT_STATE_DISCONNECTING) {
-            // すでに接続中なら切断後に再接続
-            disconnect(new FinishCallback<Void>() {
-                @Override
-                public void onFinish(Void v,Exception error) {
-                    connect(new FinishCallback<Void>() {
-                        @Override
-                        public void onFinish(Void aVoid, Exception error) {
-                            callback.onFinish(null, error);
-                        }
-                    });
-                }
-            });
+        if (needsConnect) {
+            if (connectState > CONNECT_STATE_DISCONNECTING) {
+                // すでに接続中なら切断後に再接続
+                disconnect(new FinishCallback<Void>() {
+                    @Override
+                    public void onFinish(Void v,Exception error) {
+                        connect(new FinishCallback<Void>() {
+                            @Override
+                            public void onFinish(Void aVoid, Exception error) {
+                                callback.onFinish(null, error);
+                            }
+                        });
+                    }
+                });
+            } else {
+                connect(callback);
+            }
         } else {
-            connect(callback);
+            callback.onFinish(null, null);
         }
     }
 
@@ -244,8 +260,12 @@ public class SlackManager {
                     jsonUrl = json.getString("url");
                     if (Debug) Log.d(TAG, "url:"+jsonUrl);
                     JSONObject selfJson = json.getJSONObject("self");
-                    botID = selfJson.getString("id");
-                    if (Debug) Log.d(TAG, "botID:"+botID);
+                    botInfo.id = selfJson.getString("id");
+                    botInfo.name = selfJson.getString("name");
+                    JSONObject teamJson = json.getJSONObject("team");
+                    botInfo.teamName = teamJson.getString("name");
+                    botInfo.teamDomain = teamJson.getString("domain");
+                    if (Debug) Log.d(TAG, "bot:" + botInfo.toString());
                     connectWebSocket(URI.create(jsonUrl));
                 } catch (JSONException e) {
                     Log.e(TAG, "error", e);

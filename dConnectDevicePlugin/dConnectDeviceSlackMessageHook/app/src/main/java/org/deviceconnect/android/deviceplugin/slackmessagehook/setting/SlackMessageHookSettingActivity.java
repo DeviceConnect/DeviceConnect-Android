@@ -7,19 +7,17 @@
 package org.deviceconnect.android.deviceplugin.slackmessagehook.setting;
 
 import android.app.ActionBar;
-import android.content.SharedPreferences;
+import android.app.Activity;
+import android.app.Fragment;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.MenuItem;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.R;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.SettingFragment;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.SettingTokenFragment;
+import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.Utils;
+import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;
 import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
 
 /**
@@ -27,12 +25,12 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
  *
  * @author NTT DOCOMO, INC.
  */
-public class SlackMessageHookSettingActivity extends FragmentActivity {
+public class SlackMessageHookSettingActivity extends Activity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.main);
 
         // CLOSEボタン作成
@@ -42,20 +40,20 @@ public class SlackMessageHookSettingActivity extends FragmentActivity {
             getActionBar().setTitle(DConnectSettingPageActivity.DEFAULT_TITLE);
         }
         // アクセストークンチェック
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String token = preferences.getString("accessToken", null);
-        Fragment fragment;
-        if (token == null) {
-            fragment = new SettingTokenFragment();
-        } else {
-            fragment = new SettingFragment();
-        }
-        // 画面遷移
-        FragmentManager manager = getSupportFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
-        transaction.add(R.id.container, fragment);
-        transaction.commit();
-
+        final String token = Utils.getAccessToken(this);
+        SlackManager.INSTANCE.setApiToken(token, false, new SlackManager.FinishCallback<Void>() {
+            @Override
+            public void onFinish(Void aVoid, Exception error) {
+                Fragment fragment;
+                if (token == null) {
+                    fragment = new SettingTokenFragment();
+                } else {
+                    fragment = new SettingFragment();
+                }
+                // 画面遷移
+                Utils.transition(fragment, getFragmentManager(), false);
+            }
+        });
     }
 
     @Override

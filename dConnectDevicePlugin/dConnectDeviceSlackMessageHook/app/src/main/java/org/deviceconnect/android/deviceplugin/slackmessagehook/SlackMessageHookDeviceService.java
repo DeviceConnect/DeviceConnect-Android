@@ -49,7 +49,10 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
         addProfile(new SlackMessageHookProfile());
 
         // ユーザーリスト取得
-        fetchUserList();
+        // TODO: 接続時に取りに行く
+        if (SlackManager.INSTANCE.isConnected()) {
+            fetchUserList();
+        }
     }
 
     @Override

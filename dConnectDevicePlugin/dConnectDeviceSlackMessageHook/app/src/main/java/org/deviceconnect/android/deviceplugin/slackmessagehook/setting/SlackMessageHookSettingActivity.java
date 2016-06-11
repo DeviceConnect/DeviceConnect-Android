@@ -6,87 +6,64 @@
  */
 package org.deviceconnect.android.deviceplugin.slackmessagehook.setting;
 
+import android.app.ActionBar;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.view.MenuItem;
 
-import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.SlackMessageHookSettingFragment;
-import org.deviceconnect.android.deviceplugin.slackmessagehook.BuildConfig;
-import org.deviceconnect.android.ui.activity.DConnectSettingPageFragmentActivity;
+import org.deviceconnect.android.deviceplugin.slackmessagehook.R;
+import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.SettingFragment;
+import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.SettingTokenFragment;
+import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
 
 /**
  * 設定用Activity.
  *
  * @author NTT DOCOMO, INC.
  */
-public class SlackMessageHookSettingActivity extends DConnectSettingPageFragmentActivity {
-
-    /** サービスID. */
-    private String mServiceId;
-
-    /** ページ数. */
-    private static final int PAGE_COUNT = 1;
-
-    /**
-     * ページのクラスリスト.
-     */
-    @SuppressWarnings("rawtypes")
-    private static final Class[] PAGES = {
-            SlackMessageHookSettingFragment.class,
-    };
-
+public class SlackMessageHookSettingActivity extends FragmentActivity {
 
     @Override
-    public Fragment createPage(final int position) {
-        Fragment page;
-        try {
-            page = (Fragment) PAGES[position].newInstance();
-        } catch (InstantiationException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-            page = null;
-        } catch (IllegalAccessException e) {
-            if (BuildConfig.DEBUG) {
-                e.printStackTrace();
-            }
-            page = null;
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.main);
+
+        // CLOSEボタン作成
+        if (getActionBar() != null) {
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+            getActionBar().setDisplayOptions(0, ActionBar.DISPLAY_SHOW_HOME);
+            getActionBar().setTitle(DConnectSettingPageActivity.DEFAULT_TITLE);
         }
+        // アクセストークンチェック
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String token = preferences.getString("accessToken", null);
+        Fragment fragment;
+        if (token == null) {
+            fragment = new SettingTokenFragment();
+        } else {
+            fragment = new SettingFragment();
+        }
+        // 画面遷移
+        FragmentManager manager = getSupportFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.add(R.id.container, fragment);
+        transaction.commit();
 
-        return page;
-    }
-
-
-    /**
-     * サービスIDを取得する.
-     *
-     * @return サービスID
-     */
-    public String getServiceId() {
-        return mServiceId;
-    }
-
-    /**
-     * サービスIDを設定する.
-     *
-     * @param serviceId サービスID
-     */
-    public void setServiceId(final String serviceId) {
-        mServiceId = serviceId;
     }
 
     @Override
-    public int getPageCount() {
-        return PAGE_COUNT;
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
-
-    public void moveWriteFirmata() {
-        ViewPager vp = getViewPager();
-        vp.setCurrentItem(1, true);
-    }
-
-    public void moveConnectFirmata() {
-        ViewPager vp = getViewPager();
-        vp.setCurrentItem(0, true);
-    }
-
 }

@@ -149,26 +149,39 @@ public class SlackManager {
      * SlackBotのAPITokenを設定.
      * @param apiToken APIToken
      */
-    public void setApiToken(final String apiToken) throws SlackAPITokenValueException {
+    public void setApiToken(final String apiToken, final FinishCallback<Void> callback) {
         if (Debug) Log.d(TAG, "*setApiToken");
+        if (apiToken == null) {
+            if (callback != null) {
+                callback.onFinish(null, new SlackAPITokenValueException());
+            }
+            return;
+        }
         // 不正文字列を入力できないようにencodeしておく
         try {
             token = URLEncoder.encode(apiToken,"utf-8");
         } catch (UnsupportedEncodingException e) {
-            throw new SlackAPITokenValueException();
+            if (callback != null) {
+                callback.onFinish(null, new SlackAPITokenValueException());
+            }
+            return;
         }
-        // 接続中なら再接続
+        // 接続
         if (connectState > CONNECT_STATE_DISCONNECTING) {
+            // すでに接続中なら切断後に再接続
             disconnect(new FinishCallback<Void>() {
                 @Override
                 public void onFinish(Void v,Exception error) {
-                    try {
-                        connect();
-                    } catch (SlackAPITokenValueException e) {
-                        Log.e(TAG, "Error!", e);
-                    }
+                    connect(new FinishCallback<Void>() {
+                        @Override
+                        public void onFinish(Void aVoid, Exception error) {
+                            callback.onFinish(null, error);
+                        }
+                    });
                 }
             });
+        } else {
+            connect(callback);
         }
     }
 
@@ -183,7 +196,7 @@ public class SlackManager {
     /**
      * 接続.
      */
-    public void connect() throws SlackAPITokenValueException {
+    public void connect() {
         connect(null);
     }
 
@@ -191,10 +204,13 @@ public class SlackManager {
      * 接続.
      * @param callback 接続完了コールバック
      */
-    public void connect(FinishCallback<Void> callback) throws SlackAPITokenValueException {
+    public void connect(FinishCallback<Void> callback) {
         if (Debug) Log.d(TAG, "*connect");
         if (token == null) {
-            throw new SlackAPITokenValueException();
+            if (callback != null) {
+                callback.onFinish(null, new SlackAPITokenValueException());
+            }
+            return;
         }
         // 接続済み
         if (connectState > CONNECT_STATE_DISCONNECTING) {
@@ -220,6 +236,11 @@ public class SlackManager {
                 // 接続
                 String jsonUrl;
                 try {
+                    if (json.has("error")) {
+                        connectState = CONNECT_STATE_DISCONNECTED;
+                        callConnectionFinishCallback(new SlackConnectionException());
+                        return;
+                    }
                     jsonUrl = json.getString("url");
                     if (Debug) Log.d(TAG, "url:"+jsonUrl);
                     JSONObject selfJson = json.getJSONObject("self");
@@ -335,7 +356,9 @@ public class SlackManager {
                             exception = new SlackConnectionException();
                         }
                     }
-                    callback.onFinish(json, exception);
+                    if (callback != null) {
+                        callback.onFinish(json, exception);
+                    }
                 }
             }
         });
@@ -369,6 +392,12 @@ public class SlackManager {
      * @param callback 取得コールバック
      */
     private void getList(String target, String params, final String listname, final FinishCallback<ArrayList<ListInfo>> callback) {
+        if (connectState != CONNECT_STATE_CONNECTED) {
+            if (callback != null) {
+                callback.onFinish(null, new SlackConnectionException());
+            }
+            return;
+        }
         new GetTask().execute(new TaskParam(target, params) {
             @Override
             public void callBack(JSONObject json) {
@@ -404,10 +433,14 @@ public class SlackManager {
                         }
                         array.add(info);
                     }
-                    callback.onFinish(array, null);
+                    if (callback != null) {
+                        callback.onFinish(array, null);
+                    }
                 } catch (JSONException e) {
                     Log.e(TAG, "error", e);
-                    callback.onFinish(null, e);
+                    if (callback != null) {
+                        callback.onFinish(null, e);
+                    }
                 }
             }
         });
@@ -538,8 +571,9 @@ public class SlackManager {
      */
     private void callConnectionFinishCallback(Exception e) {
         if (connectionFinishCallback != null) {
-            connectionFinishCallback.onFinish(null, e);
+            FinishCallback callback = connectionFinishCallback;
             connectionFinishCallback = null;
+            callback.onFinish(null, e);
         }
     }
 
@@ -550,8 +584,9 @@ public class SlackManager {
      */
     private void callSendMsgFinishCallback(String text, Exception e) {
         if (sendMsgFinishCallback != null) {
-            sendMsgFinishCallback.onFinish(text, e);
+            FinishCallback callback = sendMsgFinishCallback;
             sendMsgFinishCallback = null;
+            sendMsgFinishCallback.onFinish(text, e);
         }
     }
 

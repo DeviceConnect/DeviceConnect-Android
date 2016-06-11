@@ -1,5 +1,5 @@
 /*
- SlackMessageHookSettingFragment.java
+ SettingFragment.java
  Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -22,22 +22,18 @@ import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManage
  *
  * @author NTT DOCOMO, INC.
  */
-public class SlackMessageHookSettingFragment extends Fragment {
+public class SettingFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         // Root view.
         View root = inflater.inflate(R.layout.setting, container, false);
-
-        // debug code
-        SlackManager.INSTANCE.setApiToken("xoxb-19025583076-5U6YUPkgOXYrZ4M1jPn9x9DP");
-        SlackManager.INSTANCE.connect();
-
         Switch sw = (Switch)root.findViewById(R.id.statusSwitch);
         sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                // TODO: debug code
                 SlackManager.INSTANCE.sendMessage("hello", "D0K0UUWF5");
             }
         });

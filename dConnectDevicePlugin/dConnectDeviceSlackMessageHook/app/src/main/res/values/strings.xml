@@ -1,7 +1,12 @@
 <resources>
-    <string name="description"></string>
     <string name="app_name">SlackMessageHook Plugin</string>
-    <string name="page_1">設定</string>
-    <string name="setting_message_1">\@SlackMessageHook</string>
+    <string name="next">次へ</string>
+    <string name="help">？</string>
     <string name="status">Status</string>
+    <string name="settings">設定</string>
+    <string name="settings_desc">\@SlackMessageHook</string>
+    <string name="token_settings">トークン設定</string>
+    <string name="token_desc">Slack Bot のアクセストークンを設定</string>
+    <string name="token_hint">アクセストークンの設定</string>
+    <string name="token_get">アクセストークンを取得</string>
 </resources>

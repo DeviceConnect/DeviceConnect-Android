@@ -28,7 +28,7 @@ public class Utils {
      */
     public static void transition(Fragment fragment, FragmentManager manager, boolean backStack) {
         FragmentTransaction transaction = manager.beginTransaction();
-        transaction.replace(R.id.container, fragment);
+        transaction.replace(R.id.container, fragment, fragment.getClass().getName());
         if (backStack){
             transaction.addToBackStack(null);
         }

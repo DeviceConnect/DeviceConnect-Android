@@ -9,4 +9,6 @@
     <string name="token_desc">Slack Bot のアクセストークンを設定</string>
     <string name="token_hint">アクセストークンの設定</string>
     <string name="token_get">アクセストークンを取得</string>
+    <string name="menu_change_token">Bot切り替え</string>
+    <string name="menu_open_slack">Slackを開く</string>
 </resources>

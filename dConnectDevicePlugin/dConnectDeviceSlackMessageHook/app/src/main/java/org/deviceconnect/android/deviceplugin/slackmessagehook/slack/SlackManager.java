@@ -96,6 +96,12 @@ public class SlackManager {
 
     /** Slackイベントリスナー */
     public interface SlackEventListener {
+
+        /**
+         * 接続イベント
+         */
+        void OnConnect();
+
         /**
          * メッセージを受信したイベント.
          * @param text メッセージ
@@ -504,6 +510,9 @@ public class SlackManager {
                 if (Debug) Log.d(TAG, "Connected!");
                 connectState = CONNECT_STATE_CONNECTED;
                 callConnectionFinishCallback(null);
+                if (slackEventListener != null) {
+                    slackEventListener.OnConnect();
+                }
             }
 
             @Override

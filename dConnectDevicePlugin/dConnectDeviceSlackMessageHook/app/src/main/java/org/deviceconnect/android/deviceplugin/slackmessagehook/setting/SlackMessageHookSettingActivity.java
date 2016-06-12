@@ -9,8 +9,12 @@ package org.deviceconnect.android.deviceplugin.slackmessagehook.setting;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MenuItem;
 
 import org.deviceconnect.android.deviceplugin.slackmessagehook.R;
@@ -26,6 +30,8 @@ import org.deviceconnect.android.ui.activity.DConnectSettingPageActivity;
  * @author NTT DOCOMO, INC.
  */
 public class SlackMessageHookSettingActivity extends Activity {
+
+    private Menu mainMenu;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,11 +63,58 @@ public class SlackMessageHookSettingActivity extends Activity {
     }
 
     @Override
+    public boolean onMenuOpened(int featureId, Menu menu) {
+        // Token設定画面の時はToken設定メニューを隠す
+        Fragment fragment = getFragmentManager().findFragmentByTag(SettingTokenFragment.class.getName());
+        if (fragment != null && fragment.isVisible()) {
+            menu.getItem(0).setVisible(false);
+        } else {
+            menu.getItem(0).setVisible(true);
+        }
+        return super.onMenuOpened(featureId, menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            finish();
-            return true;
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // 閉じる
+                finish();
+                return true;
+            case R.id.menu_change_token:
+                // 画面遷移
+                Utils.transition(new SettingTokenFragment(), getFragmentManager(), true);
+                return true;
+            case R.id.menu_open_slack:
+                // Slackを開く
+                Uri uri = Uri.parse("https://slack.com/messages");
+                Intent i = new Intent(Intent.ACTION_VIEW,uri);
+                startActivity(i);
+                return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        mainMenu = menu;
+        return true;
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        final int action = event.getAction();
+        final int keyCode = event.getKeyCode();
+        if (action == KeyEvent.ACTION_UP) {
+            // メニュー表示
+            if (keyCode == KeyEvent.KEYCODE_MENU) {
+                if (mainMenu != null) {
+                    mainMenu.performIdentifierAction(R.id.overflow_options, 0);
+                }
+                return true;
+            }
+        }
+        return super.dispatchKeyEvent(event);
     }
 }

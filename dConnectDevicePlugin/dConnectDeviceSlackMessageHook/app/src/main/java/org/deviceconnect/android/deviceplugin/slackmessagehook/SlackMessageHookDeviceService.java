@@ -47,12 +47,6 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
 
         // Profile追加
         addProfile(new SlackMessageHookProfile());
-
-        // ユーザーリスト取得
-        // TODO: 接続時に取りに行く
-        if (SlackManager.INSTANCE.isConnected()) {
-            fetchUserList();
-        }
     }
 
     @Override
@@ -68,6 +62,14 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
     @Override
     protected ServiceDiscoveryProfile getServiceDiscoveryProfile() {
         return new SlackMessageHookServiceDiscoveryProfile(this);
+    }
+
+    @Override
+    public void OnConnect() {
+        // ユーザーリスト取得
+        if (SlackManager.INSTANCE.isConnected()) {
+            fetchUserList();
+        }
     }
 
     @Override

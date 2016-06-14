@@ -8,6 +8,8 @@ package org.deviceconnect.android.manager;
 
 import android.content.ComponentName;
 
+import org.deviceconnect.android.manager.compat.RequestConverter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +34,8 @@ public class DevicePlugin {
      * サポートしているプロファイルを格納する.
      */
     private List<String> mSupports = new ArrayList<String>();
+
+    private RequestConverter mRequestConverter;
 
     /**
      * デバイスプラグインのパッケージ名を取得する.
@@ -148,6 +152,14 @@ public class DevicePlugin {
      */
     public List<String> getSupportProfiles() {
         return mSupports;
+    }
+
+    public void setRequestConverter(final RequestConverter converter) {
+        mRequestConverter = converter;
+    }
+
+    public RequestConverter getRequestConverter() {
+        return mRequestConverter;
     }
     
     @Override

@@ -94,7 +94,7 @@ public abstract class DConnectMessageService extends Service
     private String mDConnectDomain = LOCALHOST_DCONNECT;
 
     /** プロファイルインスタンスマップ. */
-    private Map<String, DConnectProfile> mProfileMap = new HashMap<String, DConnectProfile>();
+    protected Map<String, DConnectProfile> mProfileMap = new HashMap<String, DConnectProfile>();
 
     /** 最後に処理されるプロファイル. */
     private DConnectProfile mDeliveryProfile;
@@ -248,7 +248,7 @@ public abstract class DConnectMessageService extends Service
         response.putExtra(DConnectMessage.EXTRA_REQUEST_CODE, requestCode);
 
         // オリジンの正当性チェック
-        String profileName = request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
+        String profileName = parseProfileName(request);
         OriginError error = checkOrigin(request);
         switch (error) {
         case NOT_SPECIFIED:
@@ -305,6 +305,10 @@ public abstract class DConnectMessageService extends Service
         } else {
             executeRequest(request, response);
         }
+    }
+
+    protected String parseProfileName(final Intent request) {
+        return request.getStringExtra(DConnectMessage.EXTRA_PROFILE);
     }
 
     /**
@@ -605,7 +609,7 @@ public abstract class DConnectMessageService extends Service
      * @param request リクエスト
      * @param response レスポンス
      */
-    private void sendDeliveryProfile(final Intent request, final Intent response) {
+    protected void sendDeliveryProfile(final Intent request, final Intent response) {
         mDeliveryProfile.onRequest(request, response);
     }
 

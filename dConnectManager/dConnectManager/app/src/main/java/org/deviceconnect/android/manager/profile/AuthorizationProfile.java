@@ -6,6 +6,8 @@
  */
 package org.deviceconnect.android.manager.profile;
 
+import android.content.Intent;
+
 import org.deviceconnect.android.manager.DConnectMessageService;
 import org.deviceconnect.android.manager.DConnectService;
 import org.deviceconnect.android.manager.DConnectSettings;
@@ -15,8 +17,6 @@ import org.deviceconnect.android.manager.request.GetAccessTokenRequest;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
-
-import android.content.Intent;
 
 /**
  * Authorization プロファイル.
@@ -47,6 +47,13 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         if (ATTRIBUTE_GRANT.equals(attribute)) {
             onGetCreateClient(request, response);
         } else if (ATTRIBUTE_ACCESS_TOKEN.equals(attribute)) {
+
+            //XXXX パスの大文字小文字を無視
+            String scopes = request.getStringExtra(PARAM_SCOPES);
+            if (scopes != null) {
+                request.putExtra(PARAM_SCOPES, scopes.toLowerCase());
+            }
+
             onGetRequestAccessToken(request, response);
         } else {
             sendUnknownAttributeError(request, response);

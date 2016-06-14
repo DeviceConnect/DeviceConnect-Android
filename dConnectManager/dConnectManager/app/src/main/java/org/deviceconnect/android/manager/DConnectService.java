@@ -14,7 +14,9 @@ import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.RemoteException;
 
+import org.deviceconnect.android.manager.compat.RequestConverter;
 import org.deviceconnect.android.manager.util.DConnectUtil;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
@@ -24,6 +26,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -212,7 +215,7 @@ public class DConnectService extends DConnectMessageService {
     };
 
     /**
-     * ネットワークiの接続状態の変化を受け取るレシーバー.
+     * ネットワークの接続状態の変化を受け取るレシーバー.
      */
     private final BroadcastReceiver mWiFiReceiver = new BroadcastReceiver() {
         @Override
@@ -220,4 +223,65 @@ public class DConnectService extends DConnectMessageService {
             showNotification();
         }
     };
+
+    @Override
+    protected String parseProfileName(final Intent request) {
+        String profileName = super.parseProfileName(request);
+        if (profileName != null) {
+            //XXXX パスの大文字小文字を無視
+            profileName = profileName.toLowerCase();
+        }
+        return profileName;
+    }
+
+    @Override
+    public void addProfile(final DConnectProfile profile) {
+        if (profile != null) {
+            profile.setContext(this);
+            //XXXX パスの大文字小文字を無視
+            mProfileMap.put(profile.getProfileName().toLowerCase(), profile);
+        }
+    }
+
+    @Override
+    public void removeProfile(final DConnectProfile profile) {
+        if (profile != null) {
+            //XXXX パスの大文字小文字を無視
+            mProfileMap.remove(profile.getProfileName().toLowerCase());
+        }
+    }
+
+    @Override
+    public DConnectProfile getProfile(final String name) {
+        if (name == null) {
+            return null;
+        }
+        //XXXX パスの大文字小文字を無視
+        return mProfileMap.get(name.toLowerCase());
+    }
+
+    @Override
+    public void onDeviceFound(final DevicePlugin plugin) {
+        plugin.setRequestConverter(RequestConverter.create(plugin));
+        super.onDeviceFound(plugin);
+    }
+
+    @Override
+    protected void sendDeliveryProfile(final Intent request, final Intent response) {
+        //XXXX パスの互換性を担保
+        convertToCompatibleRequest(request);
+        super.sendDeliveryProfile(request, response);
+    }
+
+    private void convertToCompatibleRequest(final Intent request) {
+        List<DevicePlugin> plugins = mPluginMgr.getDevicePlugins(DConnectProfile.getServiceID(request));
+        if (plugins.size() == 0) {
+            return;
+        }
+        DevicePlugin plugin = plugins.get(0);
+        RequestConverter converter = plugin.getRequestConverter();
+        if (converter != null) {
+            converter.convert(request);
+        }
+    }
 }

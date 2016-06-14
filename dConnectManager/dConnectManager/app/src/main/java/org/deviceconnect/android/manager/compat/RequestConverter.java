@@ -8,7 +8,7 @@ import org.deviceconnect.android.manager.DevicePlugin;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RequestConverter {
+public class RequestConverter implements MessageConverter {
 
     final List<PathConversion> mPathConversions;
 
@@ -19,6 +19,7 @@ public class RequestConverter {
         mPathConversions = conversions;
     }
 
+    @Override
     public boolean convert(final Intent request) {
         for (PathConversion conversion : mPathConversions) {
             if (conversion.canConvert(request)) {
@@ -33,7 +34,7 @@ public class RequestConverter {
         List<String> profileNames = plugin.getSupportProfiles();
         List<PathConversion> allConversions = new ArrayList<PathConversion>();
         for (String profileName : profileNames) {
-            allConversions.addAll(PathConversionTable.INSTANCE.getConversions(profileName));
+            allConversions.addAll(PathConversionTable.getConversions(profileName));
         }
         if (allConversions.size() == 0) {
             return null;

@@ -14,7 +14,9 @@ import android.net.ConnectivityManager;
 import android.os.IBinder;
 import android.os.RemoteException;
 
+import org.deviceconnect.android.manager.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.RequestConverter;
+import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.message.DConnectMessage;
@@ -53,6 +55,9 @@ public class DConnectService extends DConnectMessageService {
 
     /** イベント送信スレッド. */
     private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
+
+    /** Service Informationに含まれるAPIへのパスを新仕様に統一する. */
+    private final MessageConverter mServiceInformationConverter = new ServiceInformationConverter();
 
     @Override
     public IBinder onBind(final Intent intent) {
@@ -271,6 +276,14 @@ public class DConnectService extends DConnectMessageService {
         //XXXX パスの互換性を担保
         convertToCompatibleRequest(request);
         super.sendDeliveryProfile(request, response);
+    }
+
+    @Override
+    protected Intent createResponseIntent(final Intent request, final Intent response) {
+        Intent result = super.createResponseIntent(request, response);
+        //XXXX パスの互換性の担保
+        mServiceInformationConverter.convert(result);
+        return result;
     }
 
     private void convertToCompatibleRequest(final Intent request) {

@@ -9,25 +9,17 @@ class Path {
     final String mInterfaceName;
     final String mAttributeName;
 
-    Path(final String pathExpression) {
-        mExpression = pathExpression;
+    static Path parsePath(final String pathExpression) {
         String[] array = pathExpression.split(SEPARATOR);
-        if (array.length == 1) {
-            mProfileName = array[0];
-            mInterfaceName = null;
-            mAttributeName = null;
-        } else if (array.length == 2) {
-            mProfileName = array[0];
-            mInterfaceName = null;
-            mAttributeName = array[1];
+        if (array.length == 2) {
+            return new Path(array[1]);
         } else if (array.length == 3) {
-            mProfileName = array[0];
-            mInterfaceName = array[1];
-            mAttributeName = array[2];
+            return new Path(array[1], array[2]);
+        } else if (array.length == 4) {
+            return new Path(array[1], array[2], array[3]);
         } else {
             throw new IllegalArgumentException();
         }
-        toLowerCase();
     }
 
     Path(final String profileName, final String interfaceName, final String attributeName) {
@@ -35,15 +27,23 @@ class Path {
         mInterfaceName = interfaceName;
         mAttributeName = attributeName;
         if (profileName != null && interfaceName != null && attributeName != null) {
-            mExpression = profileName + "/" + interfaceName + "/" + attributeName;
+            mExpression = "/" + profileName + "/" + interfaceName + "/" + attributeName;
         } else if (profileName != null && interfaceName == null && attributeName != null) {
-            mExpression = profileName + "/" + attributeName;
+            mExpression = "/" + profileName + "/" + attributeName;
         } else if (profileName != null) {
-            mExpression = profileName;
+            mExpression = "/" + profileName;
         } else {
             throw new IllegalArgumentException();
         }
         toLowerCase();
+    }
+
+    Path(final String profileName, final String attributeName) {
+        this(profileName, null, attributeName);
+    }
+
+    Path(final String profileName) {
+        this(profileName, null, null);
     }
 
     private void toLowerCase() {

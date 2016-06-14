@@ -6,15 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-enum PathConversionTable {
-
-    INSTANCE;
+class PathConversionTable {
 
     private static final Path[][] PATH_PAIRS = {
         {new Path("drive_controller"), new Path("driveController")},
         {new Path("file_descriptor"), new Path("fileDescriptor")},
-        {new Path("media_player/media_list"), new Path("mediaPlayer/mediaList")},
-        {new Path("media_player/play_status"), new Path("mediaPlayer/playStatus")},
+        {new Path("media_player", "media_list"), new Path("mediaPlayer", "mediaList")},
+        {new Path("media_player", "play_status"), new Path("mediaPlayer", "playStatus")},
         {new Path("media_player"), new Path("mediaPlayer")},
         {new Path("mediastream_recording"), new Path("mediaStreamRecording")},
         {new Path("omnidirectional_image"), new Path("omnidirectionalImage")},
@@ -31,7 +29,7 @@ enum PathConversionTable {
         }
     }
 
-    public List<PathConversion> getConversions(final String supportedProfile) {
+    public static List<PathConversion> getConversions(final String supportedProfile) {
         List<PathConversion> conversions = new ArrayList<PathConversion>();
         for(Map.Entry<Path, Path> entry : FORWARD.entrySet()) {
             if (entry.getValue().mProfileName.equals(supportedProfile)) {
@@ -47,6 +45,15 @@ enum PathConversionTable {
             }
         }
         return conversions;
+    }
+
+    public static Path forwardPath(final String pathExpression) {
+        return FORWARD.get(Path.parsePath(pathExpression));
+    }
+
+    public static String forwardProfileName(final String profileName) {
+        Path forward = FORWARD.get(new Path(profileName, null, null));
+        return forward.mProfileName;
     }
 
 }

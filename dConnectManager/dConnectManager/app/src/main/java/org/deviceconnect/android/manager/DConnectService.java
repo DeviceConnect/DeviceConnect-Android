@@ -16,9 +16,12 @@ import android.os.RemoteException;
 
 import org.deviceconnect.android.manager.compat.MessageConverter;
 import org.deviceconnect.android.manager.compat.RequestConverter;
+import org.deviceconnect.android.manager.compat.ServiceDiscoveryConverter;
 import org.deviceconnect.android.manager.compat.ServiceInformationConverter;
 import org.deviceconnect.android.manager.util.DConnectUtil;
 import org.deviceconnect.android.profile.DConnectProfile;
+import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
+import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.server.DConnectServer;
 import org.deviceconnect.server.DConnectServerConfig;
@@ -55,6 +58,9 @@ public class DConnectService extends DConnectMessageService {
 
     /** イベント送信スレッド. */
     private ExecutorService mEventSender = Executors.newSingleThreadExecutor();
+
+    /** サービス一覧に含まれるAPIへのパスを新仕様に統一する. */
+    private final MessageConverter mServiceDiscoveryConverter = new ServiceDiscoveryConverter();
 
     /** Service Informationに含まれるAPIへのパスを新仕様に統一する. */
     private final MessageConverter mServiceInformationConverter = new ServiceInformationConverter();
@@ -281,8 +287,14 @@ public class DConnectService extends DConnectMessageService {
     @Override
     protected Intent createResponseIntent(final Intent request, final Intent response) {
         Intent result = super.createResponseIntent(request, response);
+
         //XXXX パスの互換性の担保
-        mServiceInformationConverter.convert(result);
+        String profileName = parseProfileName(request);
+        if (ServiceDiscoveryProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
+            mServiceDiscoveryConverter.convert(result);
+        } else if (ServiceInformationProfile.PROFILE_NAME.equalsIgnoreCase(profileName)) {
+            mServiceInformationConverter.convert(result);
+        }
         return result;
     }
 

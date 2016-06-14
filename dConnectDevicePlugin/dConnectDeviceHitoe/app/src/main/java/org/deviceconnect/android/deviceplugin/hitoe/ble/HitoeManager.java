@@ -102,11 +102,11 @@ public class HitoeManager {
 
                 final StringBuilder messageTextBuilder = new StringBuilder();
 
-//                if (BuildConfig.DEBUG) {
-//                    Log.d(TAG, "CbCallback:apiId=" + String.valueOf(apiId) + ",responseId="
-//                            + String.valueOf(responseId) + ",resonseObject="
-//                            + responseString.replace(HitoeConstants.BR, HitoeConstants.VB));
-//                }
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "CbCallback:apiId=" + String.valueOf(apiId) + ",responseId="
+                            + String.valueOf(responseId) + ",resonseObject="
+                            + responseString.replace(HitoeConstants.BR, HitoeConstants.VB));
+                }
                 switch (apiId) {
                     case HitoeConstants.API_ID_GET_AVAILABLE_SENSOR:
                         notifyDiscoveryHitoeDevice(responseId, responseString);
@@ -157,13 +157,16 @@ public class HitoeManager {
         @Override
         public void onDataReceive(final String connectionId, final int responseId, final String dataKey, final String rawData) {
 
-//            if (BuildConfig.DEBUG) {
-//                Log.d(TAG, "DataCallback:connectId=" + connectionId
-//                        + ",dataKey=" + dataKey + ",response_id="
-//                        + responseId + ",rawData=" + rawData.replace("\n", ","));
-//            }
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "DataCallback:connectId=" + connectionId
+                        + ",dataKey=" + dataKey + ",response_id="
+                        + responseId + ",rawData=" + rawData.replace("\n", ","));
+            }
             int pos = getPosForConnectionId(connectionId);
             if (pos == -1) {
+                if (BuildConfig.DEBUG) {
+                    Log.d(TAG, "no connectionId");
+                }
                 return;
             }
             HitoeDevice receiveDevice = mRegisterDevices.get(pos);
@@ -259,9 +262,9 @@ public class HitoeManager {
             }
 
             notifyListeners(receiveDevice);
-//            if (BuildConfig.DEBUG) {
-//                Log.d(TAG, "DataCallback:end========================>");
-//            }
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "DataCallback:end========================>");
+            }
 
         }
     };
@@ -1117,7 +1120,7 @@ public class HitoeManager {
         int pos = -1;
         for (int i = 0; i < mRegisterDevices.size(); i++) {
             if (mRegisterDevices.get(i).getRawConnectionId() != null) {
-                if (mRegisterDevices.get(i).getRawConnectionId().equals(serviceId)) {
+                if (mRegisterDevices.get(i).getId().equals(serviceId)) {
                     pos = i;
                     break;
                 }

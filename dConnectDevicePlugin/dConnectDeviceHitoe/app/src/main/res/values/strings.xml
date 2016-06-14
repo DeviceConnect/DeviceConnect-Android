@@ -7,7 +7,7 @@
     <string name="summary_not_support_message">このデバイスはBluetooth Low Energyをサポートしていません</string>
 
     <string name="hitoe_title">[1/3] Hitoeの準備</string>
-    <string name="hitoe_body">矢印の位置にあるボタンをランプが点滅するまで、長押してください。\nランプが黄緑色に点滅します。</string>
+    <string name="hitoe_body">矢印の位置にあるボタンをランプが点滅するまで、長押してください。\nランプが黄緑色に点滅します。\nランプが点灯したら、Hitoeをウェアに装着してください。</string>
 
     <string name="bluetooth_settings_title">[2/3] Bluetooth設定</string>
     <string name="bluetooth_settings_body">このデバイスプラグインでは、Bluetooth Low Energyを使用しますので、端末のBluetooth設定画面より設定をONにしてください。\n\n既にBluetoothがONになっている場合には次のページにお進みください。\n</string>

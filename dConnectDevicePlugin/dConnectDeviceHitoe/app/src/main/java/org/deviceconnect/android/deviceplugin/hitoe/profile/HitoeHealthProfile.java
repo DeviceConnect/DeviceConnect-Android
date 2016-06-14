@@ -119,7 +119,7 @@ public class HitoeHealthProfile extends HealthProfile {
     private void notifyHeartRateData(final HitoeDevice device, final HeartRateData data) {
         HitoeDeviceService service = (HitoeDeviceService) getContext();
         List<Event> events = EventManager.INSTANCE.getEventList(device.getId(),
-                getProfileName(), null, ATTRIBUTE_HEART_RATE);
+                getProfileName(), null, ATTRIBUTE_HEART);
         synchronized (events) {
             for (Event event : events) {
                 Intent intent = EventManager.createEventMessage(event);

@@ -49,8 +49,23 @@ class Path {
     private void toLowerCase() {
         mExpression.toLowerCase();
         mProfileName.toLowerCase();
-        mInterfaceName.toLowerCase();
-        mAttributeName.toLowerCase();
+        if (mInterfaceName != null) {
+            mInterfaceName.toLowerCase();
+        }
+        if (mAttributeName != null) {
+            mAttributeName.toLowerCase();
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Path)) {
+            return false;
+        }
+        return mExpression.equals(((Path) o).mExpression);
     }
 
     @Override

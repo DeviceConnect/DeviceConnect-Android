@@ -49,9 +49,9 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         } else if (ATTRIBUTE_ACCESS_TOKEN.equals(attribute)) {
 
             //XXXX パスの大文字小文字を無視
-            String scopes = request.getStringExtra(PARAM_SCOPES);
+            String scopes = request.getStringExtra(PARAM_SCOPE);
             if (scopes != null) {
-                request.putExtra(PARAM_SCOPES, scopes.toLowerCase());
+                request.putExtra(PARAM_SCOPE, scopes.toLowerCase());
             }
 
             onGetRequestAccessToken(request, response);

@@ -282,6 +282,13 @@ public class DConnectService extends DConnectMessageService {
         RequestConverter converter = plugin.getRequestConverter();
         if (converter != null) {
             converter.convert(request);
+
+            if (BuildConfig.DEBUG) {
+                String profileName = DConnectProfile.getProfile(request);
+                String interfaceName = DConnectProfile.getInterface(request);
+                String attributeName = DConnectProfile.getAttribute(request);
+                mLogger.info("Converted Path: " + profileName + ", " + interfaceName + ", " + attributeName);
+            }
         }
     }
 }

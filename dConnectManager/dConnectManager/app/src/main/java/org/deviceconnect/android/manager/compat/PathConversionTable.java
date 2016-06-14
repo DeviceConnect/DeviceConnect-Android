@@ -13,9 +13,9 @@ enum PathConversionTable {
     private static final Path[][] PATH_PAIRS = {
         {new Path("drive_controller"), new Path("driveController")},
         {new Path("file_descriptor"), new Path("fileDescriptor")},
+        {new Path("media_player/media_list"), new Path("mediaPlayer/mediaList")},
+        {new Path("media_player/play_status"), new Path("mediaPlayer/playStatus")},
         {new Path("media_player"), new Path("mediaPlayer")},
-        {new Path("mediastream_recording/media_list"), new Path("mediaStreamRecording/mediaList")},
-        {new Path("mediastream_recording/play_status"), new Path("mediaStreamRecording/playStatus")},
         {new Path("mediastream_recording"), new Path("mediaStreamRecording")},
         {new Path("omnidirectional_image"), new Path("omnidirectionalImage")},
         {new Path("remote_controller"), new Path("remoteController")}

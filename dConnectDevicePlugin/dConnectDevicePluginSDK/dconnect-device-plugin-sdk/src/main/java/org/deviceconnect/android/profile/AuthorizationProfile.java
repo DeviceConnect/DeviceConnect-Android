@@ -90,6 +90,13 @@ public class AuthorizationProfile extends DConnectProfile implements Authorizati
         if (ATTRIBUTE_GRANT.equalsIgnoreCase(attribute)) {
             send = onGetCreateClient(request, response);
         } else if (ATTRIBUTE_ACCESS_TOKEN.equalsIgnoreCase(attribute)) {
+
+            //XXXX パスの大文字小文字を無視
+            String scopes = request.getStringExtra(PARAM_SCOPE);
+            if (scopes != null) {
+                request.putExtra(PARAM_SCOPE, scopes.toLowerCase());
+            }
+
             send = onGetRequestAccessToken(request, response);
         } else {
             MessageUtils.setUnknownAttributeError(response);

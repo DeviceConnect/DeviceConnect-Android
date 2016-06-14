@@ -58,7 +58,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
+        if (ATTRIBUTE_DRAW_IMAGE.equalsIgnoreCase(attribute)) {
             String serviceId = getServiceID(request);
             String mimeType = getMIMEType(request);
             String uri = request.getStringExtra(PARAM_URI);
@@ -103,7 +103,7 @@ public abstract class CanvasProfile extends DConnectProfile implements CanvasPro
         String attribute = getAttribute(request);
         boolean result = true;
 
-        if (ATTRIBUTE_DRAW_IMAGE.equals(attribute)) {
+        if (ATTRIBUTE_DRAW_IMAGE.equalsIgnoreCase(attribute)) {
             String serviceId = getServiceID(request);
             result = onDeleteDrawImage(request, response, serviceId);
         } else {

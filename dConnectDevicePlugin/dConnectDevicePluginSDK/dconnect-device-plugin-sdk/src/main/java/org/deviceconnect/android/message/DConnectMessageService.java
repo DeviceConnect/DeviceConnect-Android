@@ -268,7 +268,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     @Override
     public DConnectProfile getProfile(final String name) {
-        return mProfileMap.get(name);
+        //XXXX パスの大文字小文字の無視
+        return mProfileMap.get(name.toLowerCase());
     }
 
     /**
@@ -277,7 +278,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
     @Override
     public void addProfile(final DConnectProfile profile) {
         profile.setContext(this);
-        mProfileMap.put(profile.getProfileName(), profile);
+        //XXXX パスの大文字小文字の無視
+        mProfileMap.put(profile.getProfileName().toLowerCase(), profile);
     }
 
     /**
@@ -285,7 +287,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     @Override
     public void removeProfile(final DConnectProfile profile) {
-        mProfileMap.remove(profile.getProfileName());
+        //XXXX パスの大文字小文字の無視
+        mProfileMap.remove(profile.getProfileName().toLowerCase());
     }
 
     /**

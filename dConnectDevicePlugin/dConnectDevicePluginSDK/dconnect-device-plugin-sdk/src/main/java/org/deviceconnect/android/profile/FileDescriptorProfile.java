@@ -63,16 +63,16 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
             MessageUtils.setUnknownAttributeError(response);
         } else {
             String serviceId = getServiceID(request);
-            if (attribute.equals(ATTRIBUTE_OPEN)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_OPEN)) {
                 String path = getPath(request);
                 Flag flag = getFlag(request);
                 result = onGetOpen(request, response, serviceId, path, flag);
-            } else if (attribute.equals(ATTRIBUTE_READ)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_READ)) {
                 String path = getPath(request);
                 Long length = getLength(request);
                 Long position = getPosition(request);
                 result = onGetRead(request, response, serviceId, path, length, position);
-            } else if (attribute.equals(ATTRIBUTE_ON_WATCH_FILE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_WATCH_FILE)) {
                 result = onGetOnWatchFile(request, response, serviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
@@ -92,15 +92,15 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
             MessageUtils.setUnknownAttributeError(response);
         } else {
             String serviceId = getServiceID(request);
-            if (attribute.equals(ATTRIBUTE_CLOSE)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_CLOSE)) {
                 String path = getPath(request);
                 result = onPutClose(request, response, serviceId, path);
-            } else if (attribute.equals(ATTRIBUTE_WRITE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_WRITE)) {
                 String path = getPath(request);
                 byte[] data = getContentData(getUri(request));
                 Long position = getPosition(request);
                 result = onPutWrite(request, response, serviceId, path, data, position);
-            } else if (attribute.equals(ATTRIBUTE_ON_WATCH_FILE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_WATCH_FILE)) {
                 result = onPutOnWatchFile(request, response, serviceId, getSessionKey(request));
             } else {
                 MessageUtils.setUnknownAttributeError(response);
@@ -116,7 +116,7 @@ public abstract class FileDescriptorProfile extends DConnectProfile implements F
 
         String attribute = getAttribute(request);
 
-        if (ATTRIBUTE_ON_WATCH_FILE.equals(attribute)) {
+        if (ATTRIBUTE_ON_WATCH_FILE.equalsIgnoreCase(attribute)) {
             result = onDeleteOnWatchFile(request, response, getServiceID(request), getSessionKey(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);

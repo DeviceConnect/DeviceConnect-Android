@@ -16,7 +16,7 @@ public interface HumanDetectProfileConstants extends DConnectProfileConstants {
     /**
      * profile name: {@value} .
      */
-    public static final String PROFILE_NAME = "humandetect";
+    public static final String PROFILE_NAME = "humanDetect";
 
     /**
      * interface: {@value} .
@@ -41,17 +41,17 @@ public interface HumanDetectProfileConstants extends DConnectProfileConstants {
     /**
      * attribute: {@value} .
      */
-    public static final String ATTRIBUTE_ON_BODY_DETECTION = "onbodydetection";
+    public static final String ATTRIBUTE_ON_BODY_DETECTION = "onBodyDetection";
 
     /**
      * attribute: {@value} .
      */
-    public static final String ATTRIBUTE_ON_HAND_DETECTION = "onhanddetection";
+    public static final String ATTRIBUTE_ON_HAND_DETECTION = "onHandDetection";
 
     /**
      * attribute: {@value} .
      */
-    public static final String ATTRIBUTE_ON_FACE_DETECTION = "onfacedetection";
+    public static final String ATTRIBUTE_ON_FACE_DETECTION = "onFaceDetection";
 
     /**
      * path: {@value}.

@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.ProximityProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.profile.ProximityProfileConstants;
 
 /**
  * Proximity プロファイル.
@@ -54,9 +54,9 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
             MessageUtils.setUnknownAttributeError(response);
         } else {
             String serviceId = getServiceID(request);
-            if (attribute.equals(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
                 result = onGetOnDeviceProximity(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_ON_USER_PROXIMITY)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_USER_PROXIMITY)) {
                 result = onGetOnUserProximity(request, response, serviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
@@ -77,9 +77,9 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             
-            if (attribute.equals(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
                 result = onPutOnDeviceProximity(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_USER_PROXIMITY)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_USER_PROXIMITY)) {
                 result = onPutOnUserProximity(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
@@ -100,9 +100,9 @@ public class ProximityProfile extends DConnectProfile implements ProximityProfil
             String serviceId = getServiceID(request);
             String sessionKey = getSessionKey(request);
             
-            if (attribute.equals(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_DEVICE_PROXIMITY)) {
                 result = onDeleteOnDeviceProximity(request, response, serviceId, sessionKey);
-            } else if (attribute.equals(ATTRIBUTE_ON_USER_PROXIMITY)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_USER_PROXIMITY)) {
                 result = onDeleteOnUserProximity(request, response, serviceId, sessionKey);
             } else {
                 MessageUtils.setUnknownAttributeError(response);

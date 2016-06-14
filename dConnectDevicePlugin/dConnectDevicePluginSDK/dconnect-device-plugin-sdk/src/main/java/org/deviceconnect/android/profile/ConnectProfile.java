@@ -6,11 +6,11 @@
  */
 package org.deviceconnect.android.profile;
 
-import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.profile.ConnectProfileConstants;
-
 import android.content.Intent;
 import android.os.Bundle;
+
+import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.profile.ConnectProfileConstants;
 
 /**
  * Connect プロファイル.
@@ -97,13 +97,13 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
             setUnsupportedError(response);
         } else {
             String serviceId = getServiceID(request);
-            if (attribute.equals(ATTRIBUTE_WIFI)) {
+            if (attribute.equalsIgnoreCase(ATTRIBUTE_WIFI)) {
                 result = onGetWifi(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_BLUETOOTH)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_BLUETOOTH)) {
                 result = onGetBluetooth(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_NFC)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_NFC)) {
                 result = onGetNFC(request, response, serviceId);
-            } else if (attribute.equals(ATTRIBUTE_BLE)) {
+            } else if (attribute.equalsIgnoreCase(ATTRIBUTE_BLE)) {
                 result = onGetBLE(request, response, serviceId);
             } else {
                 MessageUtils.setUnknownAttributeError(response);
@@ -126,27 +126,28 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
             } else {
                 String serviceId = getServiceID(request);
                 String sessionKey = getSessionKey(request);
-                if (attribute.equals(ATTRIBUTE_WIFI)) {
+                if (attribute.equalsIgnoreCase(ATTRIBUTE_WIFI)) {
                     result = onPutWifi(request, response, serviceId);
-                } else if (attribute.equals(ATTRIBUTE_ON_WIFI_CHANGE)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_WIFI_CHANGE)) {
                     result = onPutOnWifiChange(request, response, serviceId, sessionKey);
-                } else if (attribute.equals(ATTRIBUTE_BLUETOOTH)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_BLUETOOTH)) {
                     result = onPutBluetooth(request, response, serviceId);
-                } else if (attribute.equals(ATTRIBUTE_ON_BLUETOOTH_CHANGE)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_BLUETOOTH_CHANGE)) {
                     result = onPutOnBluetoothChange(request, response, serviceId, sessionKey);
-                } else if (attribute.equals(ATTRIBUTE_NFC)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_NFC)) {
                     result = onPutNFC(request, response, serviceId);
-                } else if (attribute.equals(ATTRIBUTE_ON_NFC_CHANGE)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_NFC_CHANGE)) {
                     result = onPutOnNFCChange(request, response, serviceId, sessionKey);
-                } else if (attribute.equals(ATTRIBUTE_BLE)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_BLE)) {
                     result = onPutBLE(request, response, serviceId);
-                } else if (attribute.equals(ATTRIBUTE_ON_BLE_CHANGE)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_BLE_CHANGE)) {
                     result = onPutOnBLEChange(request, response, serviceId, sessionKey);
                 } else {
                     MessageUtils.setUnknownAttributeError(response);
                 }
             }
-        } else if (inter.equals(INTERFACE_BLUETOOTH) && attribute.equals(ATTRIBUTE_DISCOVERABLE)) {
+        } else if (inter.equalsIgnoreCase(INTERFACE_BLUETOOTH)
+            && attribute.equalsIgnoreCase(ATTRIBUTE_DISCOVERABLE)) {
             result = onPutBluetoothDiscoverable(request, response, getServiceID(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);
@@ -170,27 +171,28 @@ public abstract class ConnectProfile extends DConnectProfile implements ConnectP
                 String serviceId = getServiceID(request);
                 String sessionKey = getSessionKey(request);
 
-                if (attribute.equals(ATTRIBUTE_WIFI)) {
+                if (attribute.equalsIgnoreCase(ATTRIBUTE_WIFI)) {
                     result = onDeleteWifi(request, response, serviceId);
-                } else if (attribute.equals(ATTRIBUTE_ON_WIFI_CHANGE)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_WIFI_CHANGE)) {
                     result = onDeleteOnWifiChange(request, response, serviceId, sessionKey);
-                } else if (attribute.equals(ATTRIBUTE_BLUETOOTH)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_BLUETOOTH)) {
                     result = onDeleteBluetooth(request, response, serviceId);
-                } else if (attribute.equals(ATTRIBUTE_ON_BLUETOOTH_CHANGE)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_BLUETOOTH_CHANGE)) {
                     result = onDeleteOnBluetoothChange(request, response, serviceId, sessionKey);
-                } else if (attribute.equals(ATTRIBUTE_NFC)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_NFC)) {
                     result = onDeleteNFC(request, response, serviceId);
-                } else if (attribute.equals(ATTRIBUTE_ON_NFC_CHANGE)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_NFC_CHANGE)) {
                     result = onDeleteOnNFCChange(request, response, serviceId, sessionKey);
-                } else if (attribute.equals(ATTRIBUTE_BLE)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_BLE)) {
                     result = onDeleteBLE(request, response, serviceId);
-                } else if (attribute.equals(ATTRIBUTE_ON_BLE_CHANGE)) {
+                } else if (attribute.equalsIgnoreCase(ATTRIBUTE_ON_BLE_CHANGE)) {
                     result = onDeleteOnBLEChange(request, response, serviceId, sessionKey);
                 } else {
                     MessageUtils.setUnknownAttributeError(response);
                 }
             }
-        } else if (inter.equals(INTERFACE_BLUETOOTH) && attribute.equals(ATTRIBUTE_DISCOVERABLE)) {
+        } else if (inter.equalsIgnoreCase(INTERFACE_BLUETOOTH)
+            && attribute.equalsIgnoreCase(ATTRIBUTE_DISCOVERABLE)) {
             result = onDeleteBluetoothDiscoverable(request, response, getServiceID(request));
         } else {
             MessageUtils.setUnknownAttributeError(response);

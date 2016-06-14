@@ -13,17 +13,17 @@ class Path {
         mExpression = pathExpression;
         String[] array = pathExpression.split(SEPARATOR);
         if (array.length == 1) {
-            mProfileName = array[1];
+            mProfileName = array[0];
             mInterfaceName = null;
             mAttributeName = null;
         } else if (array.length == 2) {
-            mProfileName = array[1];
+            mProfileName = array[0];
             mInterfaceName = null;
-            mAttributeName = array[2];
+            mAttributeName = array[1];
         } else if (array.length == 3) {
-            mProfileName = array[1];
-            mInterfaceName = array[2];
-            mAttributeName = array[3];
+            mProfileName = array[0];
+            mInterfaceName = array[1];
+            mAttributeName = array[2];
         } else {
             throw new IllegalArgumentException();
         }

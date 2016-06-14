@@ -1,10 +1,10 @@
 /*
  BleUtils
- Copyright (c) 2015 NTT DOCOMO,INC.
+ Copyright (c) 2016 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.hitoe.ble;
+package org.deviceconnect.android.deviceplugin.hitoe.util;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;

@@ -19,6 +19,8 @@ public class HeartRateData {
     private HeartData mRRInterval;
     /** Health device's EnergyExpended. */
     private HeartData mEnergyExpended;
+    /** Health device's ECG. */
+    private HeartData mECG;
 
     /**
      * Get Health device's info.
@@ -76,6 +78,7 @@ public class HeartRateData {
         return mRRInterval;
     }
 
+
     /**
      * Set Health device's RRInterval data
      * @param rrInterval Health device's RRInterval data
@@ -83,14 +86,29 @@ public class HeartRateData {
     public void setRRInterval(final HeartData rrInterval) {
         mRRInterval = rrInterval;
     }
+    /**
+     * Set Health device's ecg data
+     * @param ecg Health device's ecg data
+     */
+    public void setECG(final HeartData ecg) {
+        mECG = ecg;
+    }
+    /**
+     * Get Health device's ECG data.
+     * @return Health device's ECG data
+     */
+    public HeartData getECG() {
+        return mECG;
+    }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"tartgetDevice\": " + mTarget.toString() + ", ");
-        builder.append("\"heartRate\": " + mHeartRate.toString() + ", ");
-        builder.append("\"energyExpended\": " + mEnergyExpended.toString() + ", ");
-        builder.append("\"RRInterval\": " + mRRInterval.toString() +  "} ");
+        builder.append("{\"heart\":{");
+        builder.append("\"device\":" + mTarget.toString() + ", ");
+        builder.append("\"rate\":" + mHeartRate.toString() + ", ");
+        builder.append("\"rr\":" + mRRInterval.toString() + ", ");
+        builder.append("\"energy\":" + mEnergyExpended.toString() +  "}} ");
         return builder.toString();
     }
 

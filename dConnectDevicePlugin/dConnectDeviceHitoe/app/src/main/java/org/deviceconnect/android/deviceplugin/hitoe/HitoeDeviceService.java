@@ -13,7 +13,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 
+import org.deviceconnect.android.api.EndPoint;
+import org.deviceconnect.android.api.EndPointManager;
 import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeHealthProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeServiceInformationProfile;
@@ -24,6 +27,10 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.message.DConnectMessage;
+import org.deviceconnect.profile.HealthProfileConstants;
+
+import java.util.List;
 
 /**
  * This service provide Hitoe Profile.
@@ -53,6 +60,40 @@ public class HitoeDeviceService extends DConnectMessageService {
         }
     };
 
+    private final HitoeManager.OnHitoeConnectionListener mOnHitoeConnectionListener = new HitoeManager.OnHitoeConnectionListener() {
+        @Override
+        public void onConnected(HitoeDevice device) {
+            if (!EndPointManager.INSTANCE.hasEndPoint(device.getId())) {
+                EndPoint endPoint = new EndPoint.Builder()
+                        .addApi(DConnectMessage.METHOD_GET,
+                                HealthProfileConstants.PATH_HEART)
+                        .addApi(DConnectMessage.METHOD_PUT,
+                                HealthProfileConstants.PATH_HEART)
+                        .addApi(DConnectMessage.METHOD_DELETE,
+                                HealthProfileConstants.PATH_HEART)
+                        .build();
+                EndPointManager.INSTANCE.addEndPoint(endPoint);
+            }
+
+        }
+
+        @Override
+        public void onConnectFailed(HitoeDevice device) {
+            EndPointManager.INSTANCE.removeEndPoint(device.getId());
+        }
+
+        @Override
+        public void onDiscovery(List<HitoeDevice> devices) {
+            // NOP
+        }
+
+        @Override
+        public void onDisconnected(HitoeDevice device) {
+            EndPointManager.INSTANCE.removeEndPoint(device.getId());
+        }
+    };
+
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -61,7 +102,7 @@ public class HitoeDeviceService extends DConnectMessageService {
         HitoeApplication app = (HitoeApplication) getApplication();
         app.initialize();
 
-        addProfile(new HitoeHealthProfile());
+        addProfile(new HitoeHealthProfile(getManager()));
 
     }
 

@@ -29,7 +29,7 @@ import android.widget.TextView;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
 import org.deviceconnect.android.deviceplugin.hitoe.activity.HitoeDeviceSettingsActivity;
-import org.deviceconnect.android.deviceplugin.hitoe.ble.BleUtils;
+import org.deviceconnect.android.deviceplugin.hitoe.util.BleUtils;
 import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog.ErrorDialogFragment;
@@ -92,11 +92,11 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
                     addFooterView();
                     mDeviceAdapter.clear();
                     mDeviceAdapter.notifyDataSetChanged();
-                    getManager().setHitoeConnectionListener(HitoeDeviceSettingsFragment.this);
+                    getManager().addHitoeConnectionListener(HitoeDeviceSettingsFragment.this);
                     getManager().discoveryHitoeDevices();
                 } else if (state == BluetoothAdapter.STATE_OFF) {
                     addFooterView();
-                    getManager().setHitoeConnectionListener(null);
+                    getManager().addHitoeConnectionListener(null);
 //                    getManager().stopScanBle();
                 }
             }
@@ -119,7 +119,7 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
                 mDeviceAdapter.clear();
                 mDeviceAdapter.notifyDataSetChanged();
 
-                getManager().setHitoeConnectionListener(HitoeDeviceSettingsFragment.this);
+                getManager().addHitoeConnectionListener(HitoeDeviceSettingsFragment.this);
                 getManager().discoveryHitoeDevices();
             }
         });
@@ -135,7 +135,7 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
         super.onResume();
         registerBluetoothFilter();
 
-        getManager().setHitoeConnectionListener(this);
+        getManager().addHitoeConnectionListener(this);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             getManager().discoveryHitoeDevices();
@@ -150,7 +150,7 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
     @Override
     public void onPause() {
         super.onPause();
-        getManager().setHitoeConnectionListener(null);
+        getManager().addHitoeConnectionListener(null);
 //        getManager().stopScanBle();
         dismissProgressDialog();
         dismissErrorDialog();
@@ -456,6 +456,10 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
                 dismissProgressDialog();
             }
         });
+    }
+
+    @Override
+    public void onDisconnected(final HitoeDevice device) {
     }
 
     private class DeviceAdapter extends ArrayAdapter<HitoeDevice> {

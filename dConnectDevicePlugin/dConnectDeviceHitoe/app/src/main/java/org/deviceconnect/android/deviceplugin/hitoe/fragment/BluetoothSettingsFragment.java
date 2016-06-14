@@ -22,7 +22,7 @@ import android.widget.Button;
 
 import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.hitoe.R;
-import org.deviceconnect.android.deviceplugin.hitoe.ble.BleUtils;
+import org.deviceconnect.android.deviceplugin.hitoe.util.BleUtils;
 
 /**
  * This fragment do setting of the Bluetooth.

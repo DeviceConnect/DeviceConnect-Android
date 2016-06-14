@@ -16,7 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.deviceconnect.android.deviceplugin.hitoe.R;
-import org.deviceconnect.android.deviceplugin.hitoe.ble.BleUtils;
+import org.deviceconnect.android.deviceplugin.hitoe.util.BleUtils;
 import org.deviceconnect.android.deviceplugin.hitoe.fragment.dialog.ErrorDialogFragment;
 
 /**

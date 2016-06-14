@@ -6,6 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.hitoe.data;
 
+import android.os.Bundle;
+
+import org.deviceconnect.android.profile.HealthProfile;
+
 /**
  * This class is information of  HeartRate's device.
  * @author NTT DOCOMO, INC.
@@ -32,7 +36,23 @@ public class TargetDeviceData {
     /** Target device's system id. */
     private String mSystemId;
     /** Target device's battery level.*/
-    private String mBatteryLevel;
+    private float mBatteryLevel;
+
+    /**
+     * Constructor.
+     */
+    public TargetDeviceData() {
+        mProductName = "";
+        mManufactureName = "";
+        mModelNumber = "";
+        mFirmwareRevision = "";
+        mSerialNumber = "";
+        mSoftwareRevision = "";
+        mHardwareRevision = "";
+        mPartNumber = "";
+        mProtocolRevision = "";
+        mSystemId = "";
+    }
 
     /**
      * Get Target device's product name.
@@ -198,7 +218,7 @@ public class TargetDeviceData {
      * Get Target device's battery level.
      * @return Target device's battery level
      */
-    public String getBatteryLevel() {
+    public float getBatteryLevel() {
         return mBatteryLevel;
     }
 
@@ -206,7 +226,7 @@ public class TargetDeviceData {
      * Set Target device's battery level.
      * @param batteryLevel Target device's battery level
      */
-    public void setBatteryLevel(final String batteryLevel) {
+    public void setBatteryLevel(final float batteryLevel) {
         mBatteryLevel = batteryLevel;
     }
 
@@ -225,5 +245,21 @@ public class TargetDeviceData {
         builder.append("\"systemId\": " + mSystemId + ", ");
         builder.append("\"batteryLevel\": " + mBatteryLevel +  "} ");
         return builder.toString();
+    }
+
+    public Bundle toBundle() {
+        Bundle device = new Bundle();
+        HealthProfile.setProductName(device, mProductName);
+        HealthProfile.setManufacturerName(device, mManufactureName);
+        HealthProfile.setModelNumber(device, mModelNumber);
+        HealthProfile.setFirmwareRevision(device, mFirmwareRevision);
+        HealthProfile.setSerialNumber(device, mSerialNumber);
+        HealthProfile.setSoftwareRevision(device, mSoftwareRevision);
+        HealthProfile.setHardwareRevision(device, mHardwareRevision);
+        HealthProfile.setPartNumber(device, mPartNumber);
+        HealthProfile.setProtocolRevision(device, mProtocolRevision);
+        HealthProfile.setSystemId(device, mSystemId);
+        HealthProfile.setBatteryLevel(device, mBatteryLevel);
+        return device;
     }
 }

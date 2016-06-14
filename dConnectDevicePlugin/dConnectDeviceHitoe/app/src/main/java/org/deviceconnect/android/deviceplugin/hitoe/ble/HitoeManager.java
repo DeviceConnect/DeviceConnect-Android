@@ -10,10 +10,16 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hitoe.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HeartData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDBHelper;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
+import org.deviceconnect.android.deviceplugin.hitoe.data.PoseEstimationData;
+import org.deviceconnect.android.deviceplugin.hitoe.data.StressEstimationData;
+import org.deviceconnect.android.deviceplugin.hitoe.data.TargetDeviceData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.TempExData;
+import org.deviceconnect.android.deviceplugin.hitoe.data.WalkStateData;
+import org.deviceconnect.android.deviceplugin.hitoe.util.RawDataParseUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,14 +52,38 @@ public class HitoeManager {
      * Hitoe SDK API.
      */
     private HitoeSdkAPI mHitoeSdkAPI;
-    /** Hitoe Discovery Listener. */
-    private OnHitoeConnectionListener mDiscoveryListener;
 
-    private final List<HitoeDevice> mConnectedDevices = Collections.synchronizedList(
-            new ArrayList<HitoeDevice>());
-    private final List<HitoeDevice> mRegisterDevices = Collections.synchronizedList(
-            new ArrayList<HitoeDevice>());
-    private final Map<HitoeDevice, HeartRateData> mHRData = new ConcurrentHashMap<>();
+    // ------------------------------------
+    // Listener.
+    // ------------------------------------
+
+    /** Hitoe Discovery Listener. */
+    private List<OnHitoeConnectionListener> mConnectionListeners;
+    /** Notify HeartRate data listener. */
+    private OnHitoeHeartRateEventListener mHeartRataListener;
+    /** Notify ECG data listener. */
+    private OnHitoeECGEventListener mECGListener;
+    /** Notify Pose Estimation data listener. */
+    private OnHitoePoseEstimationEventListener mPoseEstimationListener;
+    /** Notify Stress Estimation data listener. */
+    private OnHitoeStressEstimationEventListener mStressEstimationListener;
+    /** Notify Walk state data listener. */
+    private OnHitoeWalkStateEventListener mWalkStateListener;
+
+
+    /** Registered Hitoe devices .*/
+    private final List<HitoeDevice> mRegisterDevices;
+
+    /** HeartRate Datas. */
+    private final Map<HitoeDevice, HeartRateData> mHRData;
+    /** ECG Datas. */
+    private final Map<HitoeDevice, HeartRateData> mECGData;
+    /** Pose Estimation datas. */
+    private final Map<HitoeDevice, PoseEstimationData> mPoseEstimationData;
+    /** Stress Estimation datas. */
+    private final Map<HitoeDevice, StressEstimationData> mStressEstimationData;
+    /** Walk State datas. */
+    private final Map<HitoeDevice, WalkStateData> mWalkStateData;
 
     // 拡張分析のための保存データ
     private ArrayList<TempExData> mListForEx;
@@ -72,11 +102,11 @@ public class HitoeManager {
 
                 final StringBuilder messageTextBuilder = new StringBuilder();
 
-                if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "CbCallback:apiId=" + String.valueOf(apiId) + ",responseId="
-                            + String.valueOf(responseId) + ",resonseObject="
-                            + responseString.replace(HitoeConstants.BR, HitoeConstants.VB));
-                }
+//                if (BuildConfig.DEBUG) {
+//                    Log.d(TAG, "CbCallback:apiId=" + String.valueOf(apiId) + ",responseId="
+//                            + String.valueOf(responseId) + ",resonseObject="
+//                            + responseString.replace(HitoeConstants.BR, HitoeConstants.VB));
+//                }
                 switch (apiId) {
                     case HitoeConstants.API_ID_GET_AVAILABLE_SENSOR:
                         notifyDiscoveryHitoeDevice(responseId, responseString);
@@ -127,11 +157,11 @@ public class HitoeManager {
         @Override
         public void onDataReceive(final String connectionId, final int responseId, final String dataKey, final String rawData) {
 
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "DataCallback:connectId=" + connectionId
-                        + ",dataKey=" + dataKey + ",response_id="
-                        + responseId + ",rawData=" + rawData.replace("\n", ","));
-            }
+//            if (BuildConfig.DEBUG) {
+//                Log.d(TAG, "DataCallback:connectId=" + connectionId
+//                        + ",dataKey=" + dataKey + ",response_id="
+//                        + responseId + ",rawData=" + rawData.replace("\n", ","));
+//            }
             int pos = getPosForConnectionId(connectionId);
             if (pos == -1) {
                 return;
@@ -143,19 +173,29 @@ public class HitoeManager {
 
             // データ受信時のコールバック
             if (dataKey.equals("raw.ecg")) {
-//                parseECGStr(rawData);
-
+                extractHealth(HeartData.HeartRateType.ECG, rawData, receiveDevice);
             } else if (dataKey.equals("raw.acc")) {
 //                parseACCStr(rawData);
 
             } else if (dataKey.equals("raw.rri")) {
-
+                extractHealth(HeartData.HeartRateType.RRI, rawData, receiveDevice);
             } else if (dataKey.equals("raw.bat")) {
 //                parseBatStr(rawData);
+                String[] lineList = rawData.split(HitoeConstants.BR);
+                String levelString = lineList[lineList.length - 1];
+                String[] level = levelString.split(",", -1);
+
+                TargetDeviceData current = RawDataParseUtils.parseDeviceData(receiveDevice,
+                                            Float.parseFloat(level[1]));
+                HeartRateData currentHeartRate = mHRData.get(receiveDevice);
+                if (currentHeartRate == null) {
+                    currentHeartRate = new HeartRateData();
+                }
+                currentHeartRate.setDevice(current);
+                mHRData.put(receiveDevice, currentHeartRate);
 
             } else if (dataKey.equals("raw.hr")) {
-//                parseHRStr(rawData);
-
+                extractHealth(HeartData.HeartRateType.Rate, rawData, receiveDevice);
             } else if (dataKey.equals("raw.saved_hr")) {
 
             } else if (dataKey.equals("raw.saved_rri")) {
@@ -217,9 +257,14 @@ public class HitoeManager {
                     addExReceiverProcess(pos, exData);
                 }
             }
+
+            notifyListeners(receiveDevice);
+//            if (BuildConfig.DEBUG) {
+//                Log.d(TAG, "DataCallback:end========================>");
+//            }
+
         }
     };
-
 
     /**
      * Constructor.
@@ -231,6 +276,14 @@ public class HitoeManager {
         mDBHelper = new HitoeDBHelper(context);
         mListForEx = new ArrayList<TempExData>();
         mLockForEx = new ReentrantLock();
+        mRegisterDevices = Collections.synchronizedList(
+                new ArrayList<HitoeDevice>());
+        mHRData = new ConcurrentHashMap<>();
+        mECGData = new ConcurrentHashMap<>();
+        mPoseEstimationData = new ConcurrentHashMap<>();
+        mStressEstimationData = new ConcurrentHashMap<>();
+        mWalkStateData = new ConcurrentHashMap<>();
+        mConnectionListeners = new ArrayList<OnHitoeConnectionListener>();
         mHitoeSdkAPI = HitoeSdkAPIImpl.getInstance(context);
         mHitoeSdkAPI.setAPICallback(mAPICallback);
         List<HitoeDevice> list = mDBHelper.getHitoeDevices(null);
@@ -241,9 +294,56 @@ public class HitoeManager {
         }
 
     }
+    // ------------------------------------
+    // Public Method
+    // ------------------------------------
 
-    public void setHitoeConnectionListener(final OnHitoeConnectionListener l) {
-        mDiscoveryListener = l;
+    /**
+     * Set Hitoe Connection Listener.
+     * @param l listener
+     */
+    public void addHitoeConnectionListener(final OnHitoeConnectionListener l) {
+        mConnectionListeners.add(l);
+    }
+
+    /**
+     * Set Hitoe HeartRate Listener
+     * @param l listener
+     */
+    public void setHitoeHeartRateEventListener(final OnHitoeHeartRateEventListener l) {
+        mHeartRataListener = l;
+    }
+
+    /**
+     * Set Hitoe ECG listener.
+     * @param l listener
+     */
+    public void setHitoeECGEventListener(final OnHitoeECGEventListener l) {
+        mECGListener = l;
+    }
+
+    /**
+     * Set Hitoe Pose Estimation listener.
+     * @param l listener
+     */
+    public void setHitoePoseEstimationEventListener(final OnHitoePoseEstimationEventListener l) {
+        mPoseEstimationListener = l;
+    }
+
+    /**
+     * Set Hitoe Stress Estimation listener.
+     * @param l listener
+     */
+    public void setHitoeStressEstimationEventListener(final OnHitoeStressEstimationEventListener l) {
+        mStressEstimationListener = l;
+    }
+
+    /**
+     * Set Hitoe Walk state listener.
+     * @param l listener
+     */
+    public void setHitoeWalkStateEventListener(final OnHitoeWalkStateEventListener l) {
+        mWalkStateListener = l;
     }
 
     /**
@@ -254,6 +354,21 @@ public class HitoeManager {
     public List<HitoeDevice> getRegisterDevices() {
         return mRegisterDevices;
     }
+
+    /**
+     * Get HeartRateData.
+     * @param serviceId index id
+     * @return HeartRateData
+     */
+    public HeartRateData getHeartRateData(final String serviceId) {
+        int pos = getPosForServiceId(serviceId);
+        if (pos == -1) {
+            return null;
+        }
+        return mHRData.get(mRegisterDevices.get(pos));
+    }
+
+
 
 
     public void start() {
@@ -348,9 +463,34 @@ public class HitoeManager {
         device.setRegisterFlag(false);
         device.setSessionId(null);
         mDBHelper.updateHitoeDevice(device);
+        for (OnHitoeConnectionListener l: mConnectionListeners) {
+            if (l != null) {
+                l.onDisconnected(device);
+            }
+        }
+
+    }
+    /**
+     * Tests whether this mConnectedDevices contains the address.
+     * @param id address will be checked
+     * @return true if address is an element of mConnectedDevices, false otherwise
+     */
+    public boolean containConnectedHitoeDevice(final String id) {
+        synchronized (mRegisterDevices) {
+            for (HitoeDevice d : mRegisterDevices) {
+                if (d.getId().equalsIgnoreCase(id) && d.getSessionId() != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // Private method
+    // ------------------------------------
+    // Notifyメソッド群
+    // ------------------------------------
+
     /**
      *  Notify for found Hitoe Devices.
      * @param responseId Response id
@@ -388,8 +528,10 @@ public class HitoeManager {
                 }
             }
         }
-        if (mDiscoveryListener != null) {
-            mDiscoveryListener.onDiscovery(devices);
+        for (OnHitoeConnectionListener l: mConnectionListeners) {
+            if (l != null) {
+                l.onDiscovery(devices);
+            }
         }
     }
 
@@ -401,27 +543,35 @@ public class HitoeManager {
     private void notifyConnectHitoeDevice(final int responseId, final String responseString) {
         int pos = getCurrentPos(responseId);
         if (pos == -1) {
-            if (mDiscoveryListener != null) {
-                mDiscoveryListener.onConnectFailed(null);
+            for (OnHitoeConnectionListener l: mConnectionListeners) {
+                if (l != null) {
+                    l.onConnectFailed(null);
+                }
             }
             return;
         }
         if (responseId == HitoeConstants.RES_ID_SENSOR_DISCONECT_NOTICE) {
             // センサー接続が途切れた
-            if (mDiscoveryListener != null) {
-                mDiscoveryListener.onConnectFailed(mRegisterDevices.get(pos));
+            for (OnHitoeConnectionListener l: mConnectionListeners) {
+                if (l != null) {
+
+                    l.onConnectFailed(mRegisterDevices.get(pos));
+                }
             }
             return;
         } else if(responseId == HitoeConstants.RES_ID_SENSOR_CONNECT_NOTICE) {
             // センサー接続が再開
-            if (mDiscoveryListener != null) {
-                mDiscoveryListener.onConnected(mRegisterDevices.get(pos));
+            for (OnHitoeConnectionListener l: mConnectionListeners) {
+                l.onConnected(mRegisterDevices.get(pos));
             }
             return;
         } else if (responseId != HitoeConstants.RES_ID_SENSOR_CONNECT) {
             //センサー接続に失敗
-            if (mDiscoveryListener != null) {
-                mDiscoveryListener.onConnectFailed(mRegisterDevices.get(pos));
+            for (OnHitoeConnectionListener l: mConnectionListeners) {
+                if (l != null) {
+
+                    l.onConnectFailed(mRegisterDevices.get(pos));
+                }
             }
             return;
         }
@@ -430,8 +580,10 @@ public class HitoeManager {
         mDBHelper.addHitoeDevice(mRegisterDevices.get(pos));
         mHitoeSdkAPI.getAvailableData(mRegisterDevices.get(pos).getSessionId());
         mRegisterDevices.get(pos).setResponseId(HitoeConstants.RES_ID_SUCCESS);
-        if (mDiscoveryListener != null) {
-            mDiscoveryListener.onConnected(mRegisterDevices.get(pos));
+        for (OnHitoeConnectionListener l: mConnectionListeners) {
+            if (l != null) {
+                l.onConnected(mRegisterDevices.get(pos));
+            }
         }
     }
 
@@ -584,6 +736,31 @@ public class HitoeManager {
             disconnectProcess(pos);
         }
     }
+
+    /**
+     * Notify Listeners.
+     * @param receiveDevice now receive device
+     */
+    private void notifyListeners(final HitoeDevice receiveDevice) {
+        if (mHeartRataListener != null) {
+            mHeartRataListener.onReceivedData(receiveDevice, mHRData.get(receiveDevice));
+        }
+        if (mECGListener != null) {
+            mECGListener.onReceivedData(receiveDevice, mHRData.get(receiveDevice));
+        }
+        if (mPoseEstimationListener != null) {
+            mPoseEstimationListener.onReceivedData(receiveDevice, mPoseEstimationData.get(receiveDevice));
+        }
+        if (mStressEstimationListener != null) {
+            mStressEstimationListener.onReceivedData(receiveDevice, mStressEstimationData.get(receiveDevice));
+        }
+        if (mWalkStateListener != null) {
+            mWalkStateListener.onReceivedData(receiveDevice, mWalkStateData.get(receiveDevice));
+        }
+    }
+
+
+
 
     /**
      * Add ba Receiver process.
@@ -932,22 +1109,61 @@ public class HitoeManager {
     }
 
     /**
-     * Tests whether this mConnectedDevices contains the address.
-     * @param id address will be checked
-     * @return true if address is an element of mConnectedDevices, false otherwise
+     * Get mRegisterDevice's Position for service id.
+     * @param serviceId service Id
+     * @return position
      */
-    public boolean containConnectedHitoeDevice(final String id) {
-        synchronized (mRegisterDevices) {
-            for (HitoeDevice d : mRegisterDevices) {
-                if (d.getId().equalsIgnoreCase(id) && d.getSessionId() != null) {
-                    return true;
+    private int getPosForServiceId(final String serviceId) {
+        int pos = -1;
+        for (int i = 0; i < mRegisterDevices.size(); i++) {
+            if (mRegisterDevices.get(i).getRawConnectionId() != null) {
+                if (mRegisterDevices.get(i).getRawConnectionId().equals(serviceId)) {
+                    pos = i;
+                    break;
                 }
             }
         }
-        return false;
+        return pos;
     }
 
-    // Listeners
+
+    /**
+     * Extract health data.
+     * @param type Health data type
+     * @param rawData raw data
+     * @param receiveDevice Health device
+     */
+    private void extractHealth(final HeartData.HeartRateType type,
+                               final String rawData, final HitoeDevice receiveDevice) {
+        HeartRateData currentHeartRate = mHRData.get(receiveDevice);
+        if (currentHeartRate == null) {
+            currentHeartRate = new HeartRateData();
+        }
+        if (type == HeartData.HeartRateType.Rate) {
+            HeartData heart = RawDataParseUtils.parseHeartRate(rawData);
+            currentHeartRate.setHeartRate(heart);
+            mHRData.put(receiveDevice, currentHeartRate);
+        } else if (type == HeartData.HeartRateType.RRI) {
+            HeartData rri = RawDataParseUtils.parseRRI(rawData);
+            currentHeartRate.setRRInterval(rri);
+            mHRData.put(receiveDevice, currentHeartRate);
+        } else if (type == HeartData.HeartRateType.EnergyExpended) {
+            HeartData energy = RawDataParseUtils.parseEnergyExpended(rawData);
+            currentHeartRate.setEnergyExpended(energy);
+            mHRData.put(receiveDevice, currentHeartRate);
+        } else if (type == HeartData.HeartRateType.ECG) {
+            HeartData ecg = RawDataParseUtils.parseECG(rawData);
+            currentHeartRate.setECG(ecg);
+            mECGData.put(receiveDevice, currentHeartRate);
+
+        }
+    }
+
+
+    // ------------------------------------
+    // Listener.
+    // ------------------------------------
+
 
     /**
      * Hitoe Device Discovery Listener.
@@ -969,5 +1185,71 @@ public class HitoeManager {
          * @param devices Found hitoe devices
          */
         void onDiscovery(List<HitoeDevice> devices);
+
+        /**
+         * Disconnected Listener.
+         * @param device disconnect device
+         */
+        void onDisconnected(final HitoeDevice device);
+    }
+
+    /**
+     * Hitoe Device HeartRate Listener.
+     */
+    public interface OnHitoeHeartRateEventListener {
+        /**
+         * Received data for Hitoe HeartRate data.
+         * @param device Hitoe device
+         * @param data HeartRate data
+         */
+        void onReceivedData(final HitoeDevice device, final HeartRateData data);
+    }
+
+    /**
+     * Hitoe Device ECG Listener.
+     */
+    public interface OnHitoeECGEventListener {
+        /**
+         * Received data for Hitoe ECG Data.
+         * @param device Hitoe device
+         * @param data ECG data
+         */
+        void onReceivedData(final HitoeDevice device, final HeartRateData data);
+    }
+
+    /**
+     * Hitoe Device Pose Estimation Listener.
+     */
+    public interface OnHitoePoseEstimationEventListener {
+        /**
+         * Received data for Hitoe Pose estimation data.
+         * @param device Hitoe device
+         * @param data pose estimation data
+         */
+        void onReceivedData(final HitoeDevice device, final PoseEstimationData data);
+    }
+
+    /**
+     * Hitoe Device Stress Estimation Listener.
+     */
+    public interface OnHitoeStressEstimationEventListener {
+        /**
+         * Received data for Hitoe Stress Estimation data.
+         * @param device Hitoe device
+         * @param data stress estimation data
+         */
+        void onReceivedData(final HitoeDevice device, final StressEstimationData data);
+    }
+
+    /**
+     * Hitoe Device Walk State Listener.
+     */
+    public interface OnHitoeWalkStateEventListener {
+        /**
+         * Received data for Hitoe walk state data.
+         * @param device Hitoe device
+         * @param data walk state
+         */
+        void onReceivedData(final HitoeDevice device, final WalkStateData data);
     }
 }

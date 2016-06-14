@@ -6,42 +6,55 @@
  */
 package org.deviceconnect.android.deviceplugin.hitoe.data;
 
+import android.os.Bundle;
+
+import org.deviceconnect.android.profile.HealthProfile;
+
 /**
- * This class is information of  HeartRate or RRI or Energy Expended.
+ * This class is information of  HeartRate or RRI or Energy Expended or ECG.
  * @author NTT DOCOMO, INC.
  */
 public class HeartData {
     /** HeartRate type.*/
     public enum HeartRateType {
-        Rate, RRI, EnergyExpended;
+        Rate, RRI, EnergyExpended, ECG;
 
     }
 
     /** HeartRate type. */
     private HeartRateType mHeartRateType;
     /** value. */
-    private int mValue;
+    private float mValue;
     /** MDER Float value. */
     private String mMderFloat;
     /** type. */
     private String mType;
     /** type code. */
-    private String mTypeCode;
+    private int mTypeCode;
     /** unit. */
     private String mUnit;
     /** unit code. */
-    private String mUnitCode;
+    private int mUnitCode;
     /** timestamp. */
     private long mTimeStamp;
     /** timestamp string. */
     private String mTimeStampString;
 
+    /**
+     * Constructor.
+     */
+    public HeartData() {
+        mMderFloat = "";
+        mType = "";
+        mUnit = "";
+        mTimeStampString = "";
+    }
 
     /**
      * Get Heart's value.
      * @return heart's value
      */
-    public int getValue() {
+    public float getValue() {
         return mValue;
     }
 
@@ -49,7 +62,7 @@ public class HeartData {
      * Set Heart's value.
      * @param value heart's value
      */
-    public void setValue(final int value) {
+    public void setValue(final float value) {
         mValue = value;
     }
 
@@ -89,7 +102,7 @@ public class HeartData {
      * Get Value's type code.
      * @return Value's type code
      */
-    public String getTypeCode() {
+    public int getTypeCode() {
         return mTypeCode;
     }
 
@@ -97,7 +110,7 @@ public class HeartData {
      * Set Value's type code.
      * @param typeCode value's type code
      */
-    public void setTypeCode(final String typeCode) {
+    public void setTypeCode(final int typeCode) {
         mTypeCode = typeCode;
     }
 
@@ -121,7 +134,7 @@ public class HeartData {
      * Get HeartRate's unit code.
      * @return HeartRate's unit code
      */
-    public String getUnitCode() {
+    public int getUnitCode() {
         return mUnitCode;
     }
 
@@ -129,7 +142,7 @@ public class HeartData {
      * Set HeartRate's unit code.
      * @param unitCode HeartRate's unit code
      */
-    public void setUnitCode(final String unitCode) {
+    public void setUnitCode(final int unitCode) {
         mUnitCode = unitCode;
     }
 
@@ -184,8 +197,7 @@ public class HeartData {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("{\"HeartRateType\": " + mHeartRateType + ", ");
-        builder.append("\"value\": " + mValue + ", ");
+        builder.append("{\"value\": " + mValue + ", ");
         builder.append("\"MderFloat\": " + mMderFloat + ", ");
         builder.append("\"type\": " + mType + ", ");
         builder.append("\"typeCode\": " + mTypeCode + ", ");
@@ -196,4 +208,17 @@ public class HeartData {
         return builder.toString();
     }
 
+
+    public Bundle toBundle() {
+        Bundle heart = new Bundle();
+        HealthProfile.setValue(heart, mValue);
+        HealthProfile.setMDERFloat(heart, mMderFloat);
+        HealthProfile.setType(heart, mType);
+        HealthProfile.setTypeCode(heart, mTypeCode);
+        HealthProfile.setUnit(heart, mUnit);
+        HealthProfile.setUnitCode(heart, mUnitCode);
+        HealthProfile.setTimestamp(heart, mTimeStamp);
+        HealthProfile.setTimestampString(heart, mTimeStampString);
+        return heart;
+    }
 }

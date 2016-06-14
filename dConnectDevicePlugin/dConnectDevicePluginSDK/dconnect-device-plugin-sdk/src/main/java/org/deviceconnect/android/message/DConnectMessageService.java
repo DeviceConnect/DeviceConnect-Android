@@ -13,11 +13,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 
 import org.deviceconnect.android.BuildConfig;
-import org.deviceconnect.android.R;
-import org.deviceconnect.android.api.ApiSpec;
-import org.deviceconnect.android.api.ApiSpecDictionary;
-import org.deviceconnect.android.api.EndPoint;
-import org.deviceconnect.android.api.EndPointManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
@@ -34,8 +29,6 @@ import org.deviceconnect.profile.AuthorizationProfileConstants;
 import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -89,8 +82,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     private boolean mUseLocalOAuth = true;
 
-    private final ApiSpecDictionary mApiSpecs = new ApiSpecDictionary();
-
     /**
      * SystemProfileを取得する.
      * SystemProfileは必須実装となるため、本メソッドでSystemProfileのインスタンスを渡すこと。
@@ -122,14 +113,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
     @Override
     public void onCreate() {
         super.onCreate();
-
-        // API仕様定義の初期化
-        try {
-            addApiSpec(R.raw.vibration);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load DeviceConnect API Specifications.", e);
-        }
-
 
         // LocalOAuthの初期化
         LocalOAuth2Main.initialize(this);
@@ -174,28 +157,6 @@ public abstract class DConnectMessageService extends Service implements DConnect
         }
 
         return START_STICKY;
-    }
-
-    protected void addApiSpec(final int resourceId) throws IOException {
-        InputStream is = getContext().getResources().openRawResource(resourceId);
-        addApiSpec(is);
-    }
-
-    protected void addApiSpec(final InputStream is) throws IOException {
-        mApiSpecs.load(is);
-    }
-
-    protected EndPoint findEndPoint(final String serviceId) {
-        return EndPointManager.INSTANCE.getEndPoint(serviceId);
-    }
-
-    @Override
-    public List<ApiSpec> getApiSpecList(final String serviceId) {
-        EndPoint endPoint = findEndPoint(serviceId);
-        if (endPoint == null) {
-            return null;
-        }
-        return mApiSpecs.getApiSpecList(endPoint);
     }
 
     /**

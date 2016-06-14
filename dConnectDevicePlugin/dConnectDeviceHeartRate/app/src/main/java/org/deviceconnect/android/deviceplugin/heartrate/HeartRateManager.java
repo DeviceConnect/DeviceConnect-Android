@@ -64,8 +64,7 @@ public class HeartRateManager {
      */
     private HeartRateDBHelper mDBHelper;
 
-    private final List<OnHeartRateDiscoveryListener> mHRDiscoveryListeners = Collections.synchronizedList(
-        new ArrayList<OnHeartRateDiscoveryListener>());
+    private OnHeartRateDiscoveryListener mHRDiscoveryListener;
     private OnHeartRateEventListener mHREvtListener;
 
     // TODO: consider synchronized
@@ -107,23 +106,12 @@ public class HeartRateManager {
     }
 
     /**
-     * Adds the OnHeartRateDiscoveryListener.
+     * Sets the OnHeartRateDiscoveryListener.
      *
      * @param listener The listener to be told when found device or connected device
      */
-    public void addOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
-        if (!mHRDiscoveryListeners.contains(listener)) {
-            mHRDiscoveryListeners.add(listener);
-        }
-    }
-
-    /**
-     * Removes the OnHeartRateDiscoveryListener.
-     *
-     * @param listener The listener to be told when found device or connected device
-     */
-    public void removeOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
-        mHRDiscoveryListeners.remove(listener);
+    public void setOnHeartRateDiscoveryListener(OnHeartRateDiscoveryListener listener) {
+        mHRDiscoveryListener = listener;
     }
 
     /**
@@ -357,11 +345,8 @@ public class HeartRateManager {
         @Override
         public void onDiscovery(final List<BluetoothDevice> devices) {
             mLogger.fine("BleDeviceDiscoveryListener#onDiscovery: " + devices.size());
-
-            synchronized (mHRDiscoveryListeners) {
-                for (OnHeartRateDiscoveryListener listener : mHRDiscoveryListeners) {
-                    listener.onDiscovery(devices);
-                }
+            if (mHRDiscoveryListener != null) {
+                mHRDiscoveryListener.onDiscovery(devices);
             }
         }
     };
@@ -380,10 +365,8 @@ public class HeartRateManager {
             if (!mConnectedDevices.contains(hr)) {
                 mConnectedDevices.add(hr);
             }
-            synchronized (mHRDiscoveryListeners) {
-                for (OnHeartRateDiscoveryListener listener : mHRDiscoveryListeners) {
-                    listener.onConnected(device);
-                }
+            if (mHRDiscoveryListener != null) {
+                mHRDiscoveryListener.onConnected(device);
             }
 
             // DEBUG
@@ -413,10 +396,8 @@ public class HeartRateManager {
             }
 
             if (hr == null) {
-                synchronized (mHRDiscoveryListeners) {
-                    for (OnHeartRateDiscoveryListener listener : mHRDiscoveryListeners) {
-                        listener.onConnectFailed(device);
-                    }
+                if (mHRDiscoveryListener != null) {
+                    mHRDiscoveryListener.onConnectFailed(device);
                 }
             } else {
                 // DEBUG
@@ -435,22 +416,14 @@ public class HeartRateManager {
                         }
                     }
                 });
-
-                synchronized (mHRDiscoveryListeners) {
-                    for (OnHeartRateDiscoveryListener listener : mHRDiscoveryListeners) {
-                        listener.onDisconnected(device);
-                    }
-                }
             }
         }
 
         @Override
         public void onConnectFailed(final BluetoothDevice device) {
             mLogger.fine("HeartRateConnectEventListener#onConnectFailed: [" + device + "]");
-            synchronized (mHRDiscoveryListeners) {
-                for (OnHeartRateDiscoveryListener listener : mHRDiscoveryListeners) {
-                    listener.onConnectFailed(device);
-                }
+            if (mHRDiscoveryListener != null) {
+                mHRDiscoveryListener.onConnectFailed(device);
             }
         }
 
@@ -497,8 +470,6 @@ public class HeartRateManager {
         void onConnected(BluetoothDevice device);
 
         void onConnectFailed(BluetoothDevice device);
-
-        void onDisconnected(BluetoothDevice device);
     }
 
     /**

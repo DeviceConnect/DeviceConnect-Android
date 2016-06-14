@@ -7,15 +7,12 @@
 package org.deviceconnect.android.deviceplugin.heartrate;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 
-import org.deviceconnect.android.api.EndPoint;
-import org.deviceconnect.android.api.EndPointManager;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateHealthProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceDiscoveryProfile;
@@ -27,10 +24,7 @@ import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.HealthProfileConstants;
 
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -52,46 +46,12 @@ public class HeartRateDeviceService extends DConnectMessageService {
                 int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
                 if (state == BluetoothAdapter.STATE_ON) {
                     getManager().start();
-                    getManager().addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
                 } else if (state == BluetoothAdapter.STATE_OFF) {
                     getManager().stop();
                 }
             }
         }
     };
-
-    private final HeartRateManager.OnHeartRateDiscoveryListener mOnDiscoveryListener
-        = new HeartRateManager.OnHeartRateDiscoveryListener() {
-            @Override
-            public void onDiscovery(final List<BluetoothDevice> devices) {
-                // NOP.
-            }
-
-            @Override
-            public void onConnected(final BluetoothDevice device) {
-                if (!EndPointManager.INSTANCE.hasEndPoint(device.getAddress())) {
-                    EndPoint endPoint = new EndPoint.Builder()
-                        .addApi(DConnectMessage.METHOD_GET,
-                            HealthProfileConstants.PARAM_HEART_RATE)
-                        .addApi(DConnectMessage.METHOD_PUT,
-                            HealthProfileConstants.PARAM_HEART_RATE)
-                        .addApi(DConnectMessage.METHOD_DELETE,
-                            HealthProfileConstants.PARAM_HEART_RATE)
-                        .build();
-                    EndPointManager.INSTANCE.addEndPoint(endPoint);
-                }
-            }
-
-            @Override
-            public void onConnectFailed(final BluetoothDevice device) {
-                // NOP.
-            }
-
-            @Override
-            public void onDisconnected(final BluetoothDevice device) {
-                EndPointManager.INSTANCE.removeEndPoint(device.getAddress());
-            }
-        };
 
     /**
      * Instance of handler.
@@ -114,8 +74,6 @@ public class HeartRateDeviceService extends DConnectMessageService {
         HeartRateApplication app = (HeartRateApplication) getApplication();
         app.initialize();
 
-        getManager().addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
-
         addProfile(new HeartRateHealthProfile(app.getHeartRateManager()));
 
         registerBluetoothFilter();
@@ -125,7 +83,6 @@ public class HeartRateDeviceService extends DConnectMessageService {
     public void onDestroy() {
         super.onDestroy();
         unregisterBluetoothFilter();
-        getManager().removeOnHeartRateDiscoveryListener(mOnDiscoveryListener);
         getManager().stop();
         mLogger.fine("HeartRateDeviceService end.");
     }

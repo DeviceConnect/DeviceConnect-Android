@@ -10,7 +10,6 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +25,7 @@ import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManage
  *
  * @author NTT DOCOMO, INC.
  */
-public class SettingFragment extends Fragment {
+public class SettingFragment extends Fragment implements SlackManager.SlackEventListener {
 
     /** Switchの設定変更イベントリスナー */
     private CompoundButton.OnCheckedChangeListener checkedChangeListener;
@@ -34,7 +33,6 @@ public class SettingFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        final Handler handler = new Handler();
         View root = inflater.inflate(R.layout.setting, container, false);
 
         // Switchの設定
@@ -49,36 +47,28 @@ public class SettingFragment extends Fragment {
                     SlackManager.INSTANCE.connect(new SlackManager.FinishCallback<Void>() {
                         @Override
                         public void onFinish(Void aVoid, final Exception error) {
-                            handler.post(new Runnable() {
-                                public void run() {
-                                    // プログレスダイアログを閉じる
-                                    dialog.dismiss();
-                                    // 状態を更新
-                                    refreshStatus();
-                                    if (error != null) {
-                                        // TODO: 詳細なエラー表示
-                                        new AlertDialog.Builder(getActivity())
-                                                .setTitle("エラー")
-                                                .setMessage("エラーです")
-                                                .setPositiveButton("OK", null)
-                                                .show();
-                                    }
-                                }
-                            });
+                            // プログレスダイアログを閉じる
+                            dialog.dismiss();
+                            // 状態を更新
+                            refreshStatus();
+                            if (error != null) {
+                                // TODO: 詳細なエラー表示
+                                new AlertDialog.Builder(getActivity())
+                                        .setTitle("エラー")
+                                        .setMessage("エラーです")
+                                        .setPositiveButton("OK", null)
+                                        .show();
+                            }
                         }
                     });
                 } else {
                     SlackManager.INSTANCE.disconnect(new SlackManager.FinishCallback<Void>() {
                         @Override
                         public void onFinish(Void aVoid, Exception error) {
-                            handler.post(new Runnable() {
-                                public void run() {
-                                    // プログレスダイアログを閉じる
-                                    dialog.dismiss();
-                                    // 状態を更新
-                                    refreshStatus();
-                                }
-                            });
+                            // プログレスダイアログを閉じる
+                            dialog.dismiss();
+                            // 状態を更新
+                            refreshStatus();
                         }
                     });
                 }
@@ -86,13 +76,23 @@ public class SettingFragment extends Fragment {
         };
         sw.setOnCheckedChangeListener(checkedChangeListener);
 
+        // Slackイベントを受け取る
+        SlackManager.INSTANCE.addSlackEventListener(this);
+
         return root;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // Slackイベントを受け取り解除
+        SlackManager.INSTANCE.removeSlackEventListener(this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        refreshStatus();;
+        refreshStatus();
     }
 
     @Override
@@ -111,8 +111,10 @@ public class SettingFragment extends Fragment {
             if (SlackManager.INSTANCE.isConnected()) {
                 String name = SlackManager.INSTANCE.getBotInfo().teamDomain;
                 teamText.setText(name + ".slack.com");
+                Utils.saveOnlineStatus(getActivity(), true);
             } else {
                 teamText.setText("");
+                Utils.saveOnlineStatus(getActivity(), false);
             }
             // Switchの設定
             Switch sw = (Switch) v.findViewById(R.id.statusSwitch);
@@ -120,5 +122,20 @@ public class SettingFragment extends Fragment {
             sw.setChecked(SlackManager.INSTANCE.isConnected());
             sw.setOnCheckedChangeListener(checkedChangeListener);
         }
+    }
+
+    @Override
+    public void OnConnect() {
+        refreshStatus();;
+    }
+
+    @Override
+    public void OnReceiveSlackMessage(String text, String channel, String user, String ts) {
+
+    }
+
+    @Override
+    public void OnReceiveSlackFile(String comment, String channel, String user, String ts, String url, String mimeType) {
+
     }
 }

@@ -9,6 +9,7 @@ package org.deviceconnect.android.deviceplugin.slackmessagehook.setting;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -46,10 +47,18 @@ public class SlackMessageHookSettingActivity extends Activity {
             getActionBar().setTitle(DConnectSettingPageActivity.DEFAULT_TITLE);
         }
         // アクセストークンチェック
+        boolean needsConnect = Utils.getOnlineStatus(this);
         final String token = Utils.getAccessToken(this);
-        SlackManager.INSTANCE.setApiToken(token, false, new SlackManager.FinishCallback<Void>() {
+        // プログレスダイアログを表示
+        ProgressDialog dialog = null;
+        if (needsConnect) {
+            dialog = Utils.showProgressDialog(this);
+        }
+        final ProgressDialog finalDialog = dialog;
+        SlackManager.INSTANCE.setApiToken(token, needsConnect, new SlackManager.FinishCallback<Void>() {
             @Override
             public void onFinish(Void aVoid, Exception error) {
+                if (finalDialog != null) finalDialog.dismiss();
                 Fragment fragment;
                 if (token == null) {
                     fragment = new SettingTokenFragment();

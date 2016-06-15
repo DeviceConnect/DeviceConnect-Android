@@ -76,4 +76,25 @@ public class Utils {
         editor.apply();
     }
 
+    /**
+     * オンラインステータスを取得
+     * @param context Context
+     * @return オンラインステータス
+     */
+    public static boolean getOnlineStatus(Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return preferences.getBoolean("onlineStatus", false);
+    }
+
+    /**
+     * オンラインステータスを保存
+     * @param context Context
+     * @param status オンラインステータス
+     */
+    public static void saveOnlineStatus(Context context, boolean status) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("onlineStatus", status);
+        editor.apply();
+    }
 }

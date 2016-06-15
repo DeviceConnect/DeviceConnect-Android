@@ -13,6 +13,7 @@ import android.util.Log;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.profile.SlackMessageHookProfile;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.profile.SlackMessageHookServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.profile.SlackMessageHookSystemProfile;
+import org.deviceconnect.android.deviceplugin.slackmessagehook.setting.fragment.Utils;
 import org.deviceconnect.android.deviceplugin.slackmessagehook.slack.SlackManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
@@ -43,10 +44,22 @@ public class SlackMessageHookDeviceService extends DConnectMessageService implem
 
         // Eventの設定.
         EventManager.INSTANCE.setController(new MemoryCacheController());
-        SlackManager.INSTANCE.setSlackEventListener(this);
+        SlackManager.INSTANCE.addSlackEventListener(this);
 
         // Profile追加
         addProfile(new SlackMessageHookProfile());
+
+        // 接続
+        if (Utils.getOnlineStatus(getContext())) {
+            final String token = Utils.getAccessToken(this);
+            SlackManager.INSTANCE.setApiToken(token, true, null);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        SlackManager.INSTANCE.removeSlackEventListener(this);
     }
 
     @Override

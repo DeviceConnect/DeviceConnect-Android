@@ -121,6 +121,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
      *
      * @param request リクエストパラメータ
      * @param response レスポンスパラメータ
+     * @param service サービス
      * @return レスポンスパラメータを送信するか否か
      */
     public boolean onRequest(final Intent request, final Intent response, final DConnectService service) {

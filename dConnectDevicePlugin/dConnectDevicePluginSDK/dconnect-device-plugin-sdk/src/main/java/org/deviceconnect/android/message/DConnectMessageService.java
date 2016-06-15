@@ -138,6 +138,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
     private DConnectApiSpecList loadApiSpecList() {
         try {
             final int[] json = {
+                R.raw.battery,
                 R.raw.health,
                 R.raw.vibration
             };
@@ -147,6 +148,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
             }
             return specList;
         } catch (IOException e) {
+            e.printStackTrace();
             mLogger.warning("Failed to load Device Connect API Specs.");
             return null;
         }

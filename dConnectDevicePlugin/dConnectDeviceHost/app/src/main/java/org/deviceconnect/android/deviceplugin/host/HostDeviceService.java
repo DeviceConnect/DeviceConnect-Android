@@ -151,6 +151,7 @@ public class HostDeviceService extends DConnectMessageService {
 
         DConnectService hostService = new DConnectService("Host");
         hostService.addProfile(new ServiceInformationProfile() {});
+        hostService.addProfile(new HostBatteryProfile());
         hostService.addProfile(new HostVibrationProfile());
         DConnectServiceManager.INSTANCE.addService(hostService);
 
@@ -158,7 +159,6 @@ public class HostDeviceService extends DConnectMessageService {
         addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
         addProfile(new HostNotificationProfile());
         addProfile(new HostDeviceOrientationProfile());
-        addProfile(new HostBatteryProfile());
         addProfile(new HostMediaStreamingRecordingProfile(mRecorderMgr));
         addProfile(new HostPhoneProfile());
         addProfile(new HostSettingsProfile());

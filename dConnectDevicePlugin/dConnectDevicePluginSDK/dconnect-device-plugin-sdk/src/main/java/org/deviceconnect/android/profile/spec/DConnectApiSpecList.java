@@ -32,7 +32,8 @@ public class DConnectApiSpecList {
                 String name = apiObj.getString("name");
                 String path = apiObj.getString("path");
                 String method = apiObj.getString("method");
-                DConnectApiSpec apiSpec = new DConnectApiSpec(name, method, path);
+                String type = apiObj.getString("type");
+                DConnectApiSpec apiSpec = new DConnectApiSpec(name, type, method, path);
                 if (apiObj.has("requestParams")) {
                     JSONArray requestParams = apiObj.getJSONArray("requestParams");
                     for (int k = 0; k < requestParams.length(); k++) {

@@ -10,14 +10,17 @@ public class DConnectApiSpec {
 
     private String mName;
 
+    private Type mType;
+
     private Method mMethod;
 
     private String mPath;
 
     private List<DConnectRequestParamSpec> mRequestParamList = new ArrayList<DConnectRequestParamSpec>();
 
-    public DConnectApiSpec(final String name, final String method, final String path) {
+    public DConnectApiSpec(final String name, final String type, final String method, final String path) {
         mName = name;
+        mType = Type.parse(type);
         mMethod = Method.parse(method);
         mPath = path;
         if (mMethod == null) {
@@ -27,6 +30,10 @@ public class DConnectApiSpec {
 
     public String getName() {
         return mName;
+    }
+
+    public Type getType() {
+        return mType;
     }
 
     public Method getMethod() {
@@ -43,6 +50,31 @@ public class DConnectApiSpec {
 
     public void addRequestParam(final DConnectRequestParamSpec requestParam) {
         mRequestParamList.add(requestParam);
+    }
+
+    public enum Type {
+
+        ONESHOT("one-shot"),
+        EVENT("event");
+
+        private String mName;
+
+        Type(final String name) {
+            mName = name;
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public static Type parse(final String value) {
+            for (Type type : values()) {
+                if (type.mName.equalsIgnoreCase(value)) {
+                    return type;
+                }
+            }
+            return null;
+        }
     }
 
     public enum Method {

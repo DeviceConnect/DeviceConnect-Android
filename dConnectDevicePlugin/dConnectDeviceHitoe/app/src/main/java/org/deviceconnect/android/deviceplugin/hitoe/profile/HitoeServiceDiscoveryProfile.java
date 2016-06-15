@@ -68,16 +68,14 @@ public class HitoeServiceDiscoveryProfile extends ServiceDiscoveryProfile {
                 List<HitoeDevice> devices = getManager().getRegisterDevices();
                 synchronized (devices) {
                     for (HitoeDevice device : devices) {
-                        if (device.isRegisterFlag()) {
-                            Bundle service = new Bundle();
-                            service.putString(PARAM_ID, device.getId());
-                            service.putString(PARAM_NAME, device.getName());
-                            service.putString(PARAM_TYPE, NetworkType.BLE.getValue());
-                            service.putBoolean(PARAM_ONLINE, device.isRegisterFlag());
-                            service.putString(PARAM_CONFIG, "");
-                            setScopes(service, getProfileProvider());
-                            services.add(service);
-                        }
+                        Bundle service = new Bundle();
+                        service.putString(PARAM_ID, device.getId());
+                        service.putString(PARAM_NAME, device.getName());
+                        service.putString(PARAM_TYPE, NetworkType.BLE.getValue());
+                        service.putBoolean(PARAM_ONLINE, device.isRegisterFlag());
+                        service.putString(PARAM_CONFIG, "");
+                        setScopes(service, getProfileProvider());
+                        services.add(service);
                     }
                 }
                 setResult(response, DConnectMessage.RESULT_OK);

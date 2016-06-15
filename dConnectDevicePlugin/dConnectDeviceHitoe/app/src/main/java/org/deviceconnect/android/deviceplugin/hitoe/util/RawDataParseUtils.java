@@ -7,6 +7,7 @@
 package org.deviceconnect.android.deviceplugin.hitoe.util;
 
 import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeConstants;
+import org.deviceconnect.android.deviceplugin.hitoe.data.AccelerationData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HeartData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.deviceplugin.hitoe.data.TargetDeviceData;
@@ -59,6 +60,12 @@ public final class RawDataParseUtils {
     }
 
 
+    /**
+     * Parse Hitoe Device info data.
+     * @param hitoe hitoe device
+     * @param batteryLevel battery level
+     * @return Hitoe device info object
+     */
     public static TargetDeviceData parseDeviceData(final HitoeDevice hitoe, final float batteryLevel) {
         TargetDeviceData device = new TargetDeviceData();
         device.setProductName(hitoe.getName());
@@ -67,6 +74,35 @@ public final class RawDataParseUtils {
         }
         return device;
     }
+
+
+    /**
+     * Parse Acceleration Data.
+     * @param raw raw data
+     * @return Acceleration object
+     */
+    public static AccelerationData parseAccelerationData(final String raw) {
+        AccelerationData accel = new AccelerationData();
+
+        if(raw == null) {
+            return accel;
+        }
+        String[] lineList=raw.split(HitoeConstants.BR);
+
+        String[] list = lineList[0].split(HitoeConstants.COMMA, -1);
+        long timestamp = Long.parseLong(list[0]);
+        String[] accList = list[1].split(HitoeConstants.COLON, -1);
+        double[] accelList = new double[3];
+        for(int i = 0; i < accList.length; i++) {
+            accelList[i] = Double.valueOf(accList[i]);
+        }
+        accel.setTimeStamp(timestamp);
+        accel.setAccelX(accelList[0]);
+        accel.setAccelY(accelList[1]);
+        accel.setAccelZ(accelList[2]);
+        return accel;
+    }
+
 
 
     /**

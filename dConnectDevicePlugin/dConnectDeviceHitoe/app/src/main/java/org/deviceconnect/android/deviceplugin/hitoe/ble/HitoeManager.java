@@ -10,6 +10,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hitoe.BuildConfig;
+import org.deviceconnect.android.deviceplugin.hitoe.data.AccelerationData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HeartData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDBHelper;
@@ -61,6 +62,8 @@ public class HitoeManager {
     private List<OnHitoeConnectionListener> mConnectionListeners;
     /** Notify HeartRate data listener. */
     private OnHitoeHeartRateEventListener mHeartRataListener;
+    /** Notify Accleration data listener. */
+    private OnHitoeDeviceOrientationEventListener mDeviceOrientationListener;
     /** Notify ECG data listener. */
     private OnHitoeECGEventListener mECGListener;
     /** Notify Pose Estimation data listener. */
@@ -76,6 +79,8 @@ public class HitoeManager {
 
     /** HeartRate Datas. */
     private final Map<HitoeDevice, HeartRateData> mHRData;
+    /** Acceleration Datas. */
+    private final Map<HitoeDevice, AccelerationData> mAccelData;
     /** ECG Datas. */
     private final Map<HitoeDevice, HeartRateData> mECGData;
     /** Pose Estimation datas. */
@@ -91,7 +96,8 @@ public class HitoeManager {
     private ReentrantLock mLockForEx;
     // 拡張分析中フラグ
     private boolean mFlagForEx;
-
+    // interval
+    private long mInterval = 0;
 
 
     /** Hitoe API Callback. */
@@ -174,44 +180,18 @@ public class HitoeManager {
                 return;
             }
 
-            // データ受信時のコールバック
             if (dataKey.equals("raw.ecg")) {
                 extractHealth(HeartData.HeartRateType.ECG, rawData, receiveDevice);
             } else if (dataKey.equals("raw.acc")) {
-//                parseACCStr(rawData);
-
+                AccelerationData currentAccel = RawDataParseUtils.parseAccelerationData(rawData);
+                currentAccel.setTimeStamp((System.currentTimeMillis() - mInterval));
+                mAccelData.put(receiveDevice, currentAccel);
             } else if (dataKey.equals("raw.rri")) {
                 extractHealth(HeartData.HeartRateType.RRI, rawData, receiveDevice);
             } else if (dataKey.equals("raw.bat")) {
-//                parseBatStr(rawData);
-                String[] lineList = rawData.split(HitoeConstants.BR);
-                String levelString = lineList[lineList.length - 1];
-                String[] level = levelString.split(",", -1);
-
-                TargetDeviceData current = RawDataParseUtils.parseDeviceData(receiveDevice,
-                                            Float.parseFloat(level[1]));
-                HeartRateData currentHeartRate = mHRData.get(receiveDevice);
-                if (currentHeartRate == null) {
-                    currentHeartRate = new HeartRateData();
-                }
-                currentHeartRate.setDevice(current);
-                mHRData.put(receiveDevice, currentHeartRate);
-
+                extractBattery(rawData, receiveDevice);
             } else if (dataKey.equals("raw.hr")) {
                 extractHealth(HeartData.HeartRateType.Rate, rawData, receiveDevice);
-            } else if (dataKey.equals("raw.saved_hr")) {
-
-            } else if (dataKey.equals("raw.saved_rri")) {
-
-            } else if (dataKey.equals("ba.extracted_rri")) {
-//                Log.d("MainActivity", "ba.extracted_rri:" + rawData);
-
-            } else if (dataKey.equals("ba.cleaned_rri")) {
-//                Log.d("MainActivity", "ba.cleaned_rri:" + rawData);
-
-            } else if (dataKey.equals("ba.interpolated_rri")) {
-//                Log.d("MainActivity", "ba.interpolated_rri:" + rawData);
-
             } else if (dataKey.equals("ba.freq_domain")) {
 //                parseFreqDomain(rawData);
 
@@ -265,9 +245,11 @@ public class HitoeManager {
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "DataCallback:end========================>");
             }
+            mInterval = System.currentTimeMillis();
 
         }
     };
+
 
     /**
      * Constructor.
@@ -286,6 +268,7 @@ public class HitoeManager {
         mPoseEstimationData = new ConcurrentHashMap<>();
         mStressEstimationData = new ConcurrentHashMap<>();
         mWalkStateData = new ConcurrentHashMap<>();
+        mAccelData = new ConcurrentHashMap<>();
         mConnectionListeners = new ArrayList<OnHitoeConnectionListener>();
         mHitoeSdkAPI = HitoeSdkAPIImpl.getInstance(context);
         mHitoeSdkAPI.setAPICallback(mAPICallback);
@@ -315,6 +298,13 @@ public class HitoeManager {
      */
     public void setHitoeHeartRateEventListener(final OnHitoeHeartRateEventListener l) {
         mHeartRataListener = l;
+    }
+    /**
+     * Set Hitoe Acceleration Listener
+     * @param l listener
+     */
+    public void setHitoeDeviceOrientationEventListener(final OnHitoeDeviceOrientationEventListener l) {
+        mDeviceOrientationListener = l;
     }
 
     /**
@@ -371,7 +361,18 @@ public class HitoeManager {
         return mHRData.get(mRegisterDevices.get(pos));
     }
 
-
+    /**
+     * Get AccelerationData.
+     * @param serviceId index id
+     * @return AccelerationData
+     */
+    public AccelerationData getAccelerationData(final String serviceId) {
+        int pos = getPosForServiceId(serviceId);
+        if (pos == -1) {
+            return null;
+        }
+        return mAccelData.get(mRegisterDevices.get(pos));
+    }
 
 
     public void start() {
@@ -760,6 +761,9 @@ public class HitoeManager {
         if (mWalkStateListener != null) {
             mWalkStateListener.onReceivedData(receiveDevice, mWalkStateData.get(receiveDevice));
         }
+        if (mDeviceOrientationListener != null) {
+            mDeviceOrientationListener.onReceivedData(receiveDevice, mAccelData.get(receiveDevice));
+        }
     }
 
 
@@ -1134,7 +1138,7 @@ public class HitoeManager {
      * Extract health data.
      * @param type Health data type
      * @param rawData raw data
-     * @param receiveDevice Health device
+     * @param receiveDevice Hitoe device
      */
     private void extractHealth(final HeartData.HeartRateType type,
                                final String rawData, final HitoeDevice receiveDevice) {
@@ -1162,6 +1166,25 @@ public class HitoeManager {
         }
     }
 
+    /**
+     * Extract Battery data.
+     * @param rawData raw data
+     * @param receiveDevice Hitoe device
+     */
+    private void extractBattery(String rawData, HitoeDevice receiveDevice) {
+        String[] lineList = rawData.split(HitoeConstants.BR);
+        String levelString = lineList[lineList.length - 1];
+        String[] level = levelString.split(",", -1);
+
+        TargetDeviceData current = RawDataParseUtils.parseDeviceData(receiveDevice,
+                Float.parseFloat(level[1]));
+        HeartRateData currentHeartRate = mHRData.get(receiveDevice);
+        if (currentHeartRate == null) {
+            currentHeartRate = new HeartRateData();
+        }
+        currentHeartRate.setDevice(current);
+        mHRData.put(receiveDevice, currentHeartRate);
+    }
 
     // ------------------------------------
     // Listener.
@@ -1254,5 +1277,17 @@ public class HitoeManager {
          * @param data walk state
          */
         void onReceivedData(final HitoeDevice device, final WalkStateData data);
+    }
+
+    /**
+     * Hitoe Device Device Orientation Listener.
+     */
+    public interface OnHitoeDeviceOrientationEventListener {
+        /**
+         * Received data for Hitoe device orientation data.
+         * @param device Hitoe device
+         * @param data device orientation
+         */
+        void onReceivedData(final HitoeDevice device, final AccelerationData data);
     }
 }

@@ -47,7 +47,7 @@ public interface HealthProfileConstants extends DConnectProfileConstants {
     /**
      * パラメータ: {@value} .
      */
-    String PARAM_MDER_FLOAT = "heart";
+    String PARAM_MDER_FLOAT = "mderFloat";
     /**
      * パラメータ: {@value} .
      */

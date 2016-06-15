@@ -14,6 +14,8 @@ import android.content.IntentFilter;
 import android.os.Handler;
 
 import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeBatteryProfile;
+import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeDeviceOrientationProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeHealthProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeServiceInformationProfile;
@@ -96,6 +98,8 @@ public class HitoeDeviceService extends DConnectMessageService {
         app.initialize();
 
         addProfile(new HitoeHealthProfile(getManager()));
+        addProfile(new HitoeDeviceOrientationProfile(getManager()));
+        addProfile(new HitoeBatteryProfile());
 
     }
 

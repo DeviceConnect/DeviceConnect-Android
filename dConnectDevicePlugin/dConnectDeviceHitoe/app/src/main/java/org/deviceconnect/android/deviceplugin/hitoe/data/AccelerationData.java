@@ -37,6 +37,9 @@ public class AccelerationData {
     private long mTimeStamp;
 
 
+    public AccelerationData() {
+        mTimeStamp = 0;
+    }
 
 
     /**
@@ -201,13 +204,11 @@ public class AccelerationData {
 
 
     public Bundle toBundle() {
-        long interval = System.currentTimeMillis() - mTimeStamp;
-
         Bundle orientation = new Bundle();
         Bundle a = new Bundle();
-        DeviceOrientationProfile.setX(a, mAccelX - mGravityX);
-        DeviceOrientationProfile.setY(a, mAccelY - mGravityY);
-        DeviceOrientationProfile.setZ(a, mAccelZ - mGravityZ);
+//        DeviceOrientationProfile.setX(a, mAccelX - mGravityX);
+//        DeviceOrientationProfile.setY(a, mAccelY - mGravityY);
+//        DeviceOrientationProfile.setZ(a, mAccelZ - mGravityZ);
 
         Bundle ag = new Bundle();
         DeviceOrientationProfile.setX(ag, mAccelX);
@@ -215,14 +216,14 @@ public class AccelerationData {
         DeviceOrientationProfile.setZ(ag, mAccelZ);
 
         Bundle r = new Bundle();
-        DeviceOrientationProfile.setAlpha(r, mGyroAlpha);
-        DeviceOrientationProfile.setBeta(r, mGyroBeta);
-        DeviceOrientationProfile.setGamma(r, mGyroGamma);
+//        DeviceOrientationProfile.setAlpha(r, mGyroAlpha);
+//        DeviceOrientationProfile.setBeta(r, mGyroBeta);
+//        DeviceOrientationProfile.setGamma(r, mGyroGamma);
 
-        DeviceOrientationProfile.setAcceleration(orientation, a);
-        DeviceOrientationProfile.setAccelerationIncludingGravity(orientation, ag);
-        DeviceOrientationProfile.setRotationRate(orientation, r);
-        DeviceOrientationProfile.setInterval(orientation, interval);
+        DeviceOrientationProfile.setAcceleration(orientation, ag);
+//        DeviceOrientationProfile.setAccelerationIncludingGravity(orientation, ag);
+//        DeviceOrientationProfile.setRotationRate(orientation, r);
+        DeviceOrientationProfile.setInterval(orientation, mTimeStamp);
         return orientation;
     }
 }

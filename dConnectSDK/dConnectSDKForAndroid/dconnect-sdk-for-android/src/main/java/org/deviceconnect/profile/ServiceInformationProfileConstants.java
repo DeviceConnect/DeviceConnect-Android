@@ -55,13 +55,15 @@ public interface ServiceInformationProfileConstants extends DConnectProfileConst
 
     String PARAM_NAME = "name";
 
+    String PARAM_METHOD = "method";
+
     String PARAM_PATH = "path";
 
     String PARAM_REQUEST_PARAMS = "requestParams";
 
     String PARAM_TYPE = "type";
 
-    String PARAM_MANDATORY = "mandatory";
+    String PARAM_REQUIRED = "required";
 
     /**
      * 接続状態定数.

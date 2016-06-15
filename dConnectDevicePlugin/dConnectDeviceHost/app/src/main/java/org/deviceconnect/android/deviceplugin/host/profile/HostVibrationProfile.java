@@ -19,8 +19,6 @@ import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 
 import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Vibration Profile.
@@ -110,71 +108,42 @@ public class HostVibrationProfile extends VibrationProfile {
         }
     };
 
+    private final DConnectApi mVibrationStopApi = new DConnectApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_VIBRATE;
+        }
+
+        @Override
+        public DConnectApiSpec.Method getMethod() {
+            return DConnectApiSpec.Method.DELETE;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response,
+                                 final DConnectService service) {
+            Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+
+            if (vibrator == null || !vibrator.hasVibrator()) {
+                setResult(response, IntentDConnectMessage.RESULT_ERROR);
+            } else {
+                vibrator.cancel();
+            }
+
+            // cancel()は現在されているの振調パターンの1節しかキャンセルしないので、
+            // それ以降の振動パターンの節の再生を防ぐ為に、キャンセルされたことを示す
+            // フラグをたてる。
+            mIsCancelled = true;
+
+            setResult(response, IntentDConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+
     public HostVibrationProfile() {
         addApi(mVibrationStartApi);
+        addApi(mVibrationStopApi);
     }
 
-    @Override
-    protected boolean onDeleteVibrate(final Intent request, final Intent response, final String serviceId) {
-
-        if (serviceId == null) {
-            createEmptyServiceId(response);
-        } else if (!checkServiceId(serviceId)) {
-            createNotFoundService(response);
-        } else {
-
-            // Vibration Stop API
-            if (ATTRIBUTE_VIBRATE.equals(getAttribute(request))) {
-                Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
-
-                if (vibrator == null || !vibrator.hasVibrator()) {
-                    setResult(response, IntentDConnectMessage.RESULT_ERROR);
-                } else {
-                    vibrator.cancel();
-                }
-
-                // cancel()は現在されているの振調パターンの1節しかキャンセルしないので、
-                // それ以降の振動パターンの節の再生を防ぐ為に、キャンセルされたことを示す
-                // フラグをたてる。
-                mIsCancelled = true;
-
-                setResult(response, IntentDConnectMessage.RESULT_OK);
-            } else {
-                setResult(response, IntentDConnectMessage.RESULT_ERROR);
-            }
-        }
-        return true;
-    }
-
-    /**
-     * サービスIDをチェックする.
-     * 
-     * @param serviceId サービスID
-     * @return <code>serviceId</code>がテスト用サービスIDに等しい場合はtrue、そうでない場合はfalse
-     */
-    private boolean checkServiceId(final String serviceId) {
-        String regex = HostServiceDiscoveryProfile.SERVICE_ID;
-        Pattern mPattern = Pattern.compile(regex);
-        Matcher match = mPattern.matcher(serviceId);
-
-        return match.find();
-    }
-
-    /**
-     * サービスIDが空の場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createEmptyServiceId(final Intent response) {
-        MessageUtils.setEmptyServiceIdError(response);
-    }
-
-    /**
-     * デバイスが発見できなかった場合のエラーを作成する.
-     * 
-     * @param response レスポンスを格納するIntent
-     */
-    private void createNotFoundService(final Intent response) {
-        MessageUtils.setNotFoundServiceError(response);
-    }
 }

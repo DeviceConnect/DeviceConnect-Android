@@ -165,7 +165,6 @@ public class HostDeviceService extends DConnectMessageService {
         addProfile(new HostMediaPlayerProfile());
         addProfile(new HostFileProfile(mFileMgr));
         addProfile(new HostFileDescriptorProfile(mFileDataManager));
-        addProfile(new HostVibrationProfile());
         addProfile(new HostProximityProfile());
         addProfile(new HostCanvasProfile());
         addProfile(new HostTouchProfile());

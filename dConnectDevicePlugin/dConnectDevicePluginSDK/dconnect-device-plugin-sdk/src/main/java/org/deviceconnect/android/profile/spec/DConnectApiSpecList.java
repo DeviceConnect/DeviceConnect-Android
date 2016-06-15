@@ -1,6 +1,8 @@
 package org.deviceconnect.android.profile.spec;
 
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,27 +20,28 @@ public class DConnectApiSpecList {
     public DConnectApiSpecList() {}
 
     public void load(final InputStream in) throws IOException {
+        String file = loadFile(in);
+
+        Log.d("AAA", "Loaded JSON: " + file);
+
         try {
-            JSONArray array = new JSONArray(loadFile(in));
+            JSONArray array = new JSONArray(file);
+            Log.d("AAA", "Loaded JSON Array: " + array.length());
             for (int i = 0; i < array.length(); i++) {
                 JSONObject apiObj = array.getJSONObject(i);
                 String name = apiObj.getString("name");
                 String path = apiObj.getString("path");
                 String method = apiObj.getString("method");
                 DConnectApiSpec apiSpec = new DConnectApiSpec(name, method, path);
-                JSONArray requestParams = apiObj.getJSONArray("requestParams");
-                for (int k = 0; k < requestParams.length(); k++) {
-                    JSONObject paramObj = requestParams.getJSONObject(k);
-                    String typeName = paramObj.getString("type");
-                    DConnectRequestParamSpec.Type paramType = DConnectRequestParamSpec.Type.fromName(typeName);
-                    if (paramType == null) {
-                        continue;
+                if (apiObj.has("requestParams")) {
+                    JSONArray requestParams = apiObj.getJSONArray("requestParams");
+                    for (int k = 0; k < requestParams.length(); k++) {
+                        JSONObject paramObj = requestParams.getJSONObject(k);
+                        DConnectRequestParamSpec paramSpec = DConnectRequestParamSpec.fromJson(paramObj);
+                        apiSpec.addRequestParam(paramSpec);
                     }
-                    DConnectRequestParamSpec paramSpec = DConnectRequestParamSpec.fromType(paramType);
-                    apiSpec.addRequestParam(paramSpec);
-
-                    addApiSpec(apiSpec);
                 }
+                addApiSpec(apiSpec);
             }
         } catch (JSONException e) {
             throw new IOException(e);

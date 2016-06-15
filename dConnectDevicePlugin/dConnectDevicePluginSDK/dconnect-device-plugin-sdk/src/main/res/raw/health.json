@@ -7,7 +7,7 @@
             {
                 "name": "serviceId",
                 "type": "string",
-                "mandatory": true
+                "required": true
             }
         ]
     }

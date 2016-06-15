@@ -292,12 +292,17 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
 
     public static void setSupportApi(final Bundle api, final DConnectApiSpec spec) {
         setSupportApiName(api, spec.getName());
+        setSupportApiMethod(api, spec.getMethod().getName());
         setSupportApiPath(api, spec.getPath());
         setSupportApiParams(api, spec.getRequestParamList());
     }
 
     public static void setSupportApiName(final Bundle api, final String name) {
         api.putString(PARAM_NAME, name);
+    }
+
+    public static void setSupportApiMethod(final Bundle api, final String method) {
+        api.putString(PARAM_METHOD, method);
     }
 
     public static void setSupportApiPath(final Bundle api, final String path) {
@@ -308,7 +313,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         ArrayList<Bundle> params = new ArrayList<Bundle>();
         for (DConnectRequestParamSpec paramSpec : paramSpecs) {
             Bundle param = new Bundle();
-            //setRequestParam(param, paramSpec);
+            setRequestParam(param, paramSpec);
             params.add(param);
         }
         api.putParcelableArrayList(PARAM_REQUEST_PARAMS, params);
@@ -317,7 +322,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
     public static void setRequestParam(final Bundle param, final DConnectRequestParamSpec paramSpec) {
         param.putString(PARAM_NAME, paramSpec.getName());
         param.putString(PARAM_TYPE, paramSpec.getType().getName());
-        param.putBoolean(PARAM_MANDATORY, paramSpec.isMandatory());
+        param.putBoolean(PARAM_REQUIRED, paramSpec.isRequired());
         // TODO 型ごとのパラメータ定義をすべて設定
     }
 

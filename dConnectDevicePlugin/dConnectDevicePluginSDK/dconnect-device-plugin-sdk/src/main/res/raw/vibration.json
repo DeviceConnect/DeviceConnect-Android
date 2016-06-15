@@ -7,7 +7,7 @@
             {
                 "name": "pattern",
                 "type": "string",
-                "mandatory": false
+                "required": false
             }
         ]
     },

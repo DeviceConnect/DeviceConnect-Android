@@ -1,16 +1,21 @@
 package org.deviceconnect.android.profile.spec;
 
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public abstract class DConnectRequestParamSpec {
 
     String mName;
 
     Type mType;
 
-    boolean mIsMandatory;
+    boolean mIsRequired;
 
-    protected DConnectRequestParamSpec() {
-
+    protected DConnectRequestParamSpec(final String name, final Type type, final boolean isRequired) {
+        mName = name;
+        mType = type;
+        mIsRequired = isRequired;
     }
 
     public String getName() {
@@ -21,23 +26,11 @@ public abstract class DConnectRequestParamSpec {
         return mType;
     }
 
-    public boolean isMandatory() {
-        return mIsMandatory;
+    public boolean isRequired() {
+        return mIsRequired;
     }
 
-    public static DConnectRequestParamSpec fromType(final Type type) {
-        switch (type) {
-            case BOOLEAN:
-                return new BooleanRequestParamSpec();
-            case STRING:
-                return new StringRequestParamSpec();
-            case INTEGER:
-                return new IntegerRequestParamSpec();
-            case NUMBER:
-                return new NumberRequestParamSpec();
-            default:
-                throw new IllegalArgumentException();
-        }
+    void loadJson(final JSONObject json) {
     }
 
     public enum Type {
@@ -61,4 +54,32 @@ public abstract class DConnectRequestParamSpec {
         }
     }
 
+    static DConnectRequestParamSpec fromJson(final JSONObject json) throws JSONException {
+        String type = json.getString("type");
+        DConnectRequestParamSpec.Type paramType = DConnectRequestParamSpec.Type.fromName(type);
+        if (paramType == null) {
+            return null;
+        }
+        String name = json.getString("name");
+        boolean required = json.getBoolean("required");
+        DConnectRequestParamSpec spec;
+        switch (paramType) {
+            case BOOLEAN:
+                spec = new BooleanRequestParamSpec(name, required);
+                break;
+            case STRING:
+                spec = new StringRequestParamSpec(name, required);
+                break;
+            case INTEGER:
+                spec = new IntegerRequestParamSpec(name, required);
+                break;
+            case NUMBER:
+                spec = new NumberRequestParamSpec(name, required);
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
+        spec.loadJson(json);
+        return spec;
+    }
 }

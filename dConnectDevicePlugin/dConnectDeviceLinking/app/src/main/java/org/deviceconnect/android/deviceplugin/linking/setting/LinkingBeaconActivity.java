@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.linking.setting;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -39,7 +38,7 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
     private LinkingBeacon mLinkingBeacon;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_linking_beacon);
 
@@ -96,7 +95,7 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
         switch(item.getItemId()) {
             case android.R.id.home:
                 finish();
@@ -106,7 +105,7 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
     }
 
     @Override
-    public void onNotify(LinkingBeacon beacon) {
+    public void onNotify(final LinkingBeacon beacon) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -116,7 +115,7 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
     }
 
     @Override
-    public void onClickButton(LinkingBeacon beacon, final int keyCode, long timeStamp) {
+    public void onClickButton(final LinkingBeacon beacon, final int keyCode, final long timeStamp) {
         if (beacon.equals(mLinkingBeacon)) {
             runOnUiThread(new Runnable() {
                 @Override
@@ -178,63 +177,63 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
         }
     }
 
-    private void setExtraId(String extraId) {
+    private void setExtraId(final String extraId) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_extra_id);
         if (view != null) {
             view.setText(extraId);
         }
     }
 
-    private void setTimeStamp(long timeStamp) {
+    private void setTimeStamp(final long timeStamp) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_time_stamp);
         if (view != null) {
             view.setText(mDateFormat.format(timeStamp));
         }
     }
 
-    private void setLowBattery(String lowBattery) {
+    private void setLowBattery(final String lowBattery) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_battery_low);
         if (view != null) {
             view.setText(lowBattery);
         }
     }
 
-    private void setBatteryLevel(String level) {
+    private void setBatteryLevel(final String level) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_battery_level);
         if (view != null) {
             view.setText(level);
         }
     }
 
-    private void setAtmosphericPressure(String atmosphericPressure) {
+    private void setAtmosphericPressure(final String atmosphericPressure) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_atmospheric_pressure);
         if (view != null) {
             view.setText(atmosphericPressure);
         }
     }
 
-    private void setTemperature(String temperature) {
+    private void setTemperature(final String temperature) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_temperature);
         if (view != null) {
             view.setText(temperature);
         }
     }
 
-    private void setHumidity(String humidity) {
+    private void setHumidity(final String humidity) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_humidity);
         if (view != null) {
             view.setText(humidity);
         }
     }
 
-    private void setDistance(String distance) {
+    private void setDistance(final String distance) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_distance);
         if (view != null) {
             view.setText(distance);
         }
     }
 
-    private String getDistanceString(int distance) {
+    private String getDistanceString(final int distance) {
         switch (distance) {
             case 1:
                 return getString(R.string.activity_beacon_distance_close);
@@ -247,7 +246,7 @@ public class LinkingBeaconActivity extends AppCompatActivity implements LinkingB
         }
     }
 
-    private void addButton(String value) {
+    private void addButton(final String value) {
         TextView view = (TextView) findViewById(R.id.activity_beacon_button_event);
         if (view != null) {
             String text = (String) view.getText();

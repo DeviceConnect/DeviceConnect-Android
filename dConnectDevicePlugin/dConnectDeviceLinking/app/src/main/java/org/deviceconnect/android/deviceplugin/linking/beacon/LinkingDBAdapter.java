@@ -45,11 +45,11 @@ public class LinkingDBAdapter {
 
     private LinkingDatabaseHelper mHelper;
 
-    public LinkingDBAdapter(Context context) {
+    public LinkingDBAdapter(final Context context) {
         mHelper = new LinkingDatabaseHelper(context);
     }
 
-    public void delete(LinkingBeacon beacon) {
+    public void delete(final LinkingBeacon beacon) {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "LinkingDBAdapter#delete");
             Log.d(TAG, beacon.toString());
@@ -73,7 +73,7 @@ public class LinkingDBAdapter {
         delete(TABLE_RAW_DATA, null, null);
     }
 
-    public boolean insertBeacon(LinkingBeacon beacon) {
+    public boolean insertBeacon(final LinkingBeacon beacon) {
         ContentValues values = new ContentValues();
         values.put(BeaconColumns.VENDOR_ID, beacon.getVendorId());
         values.put(BeaconColumns.EXTRA_ID, beacon.getExtraId());
@@ -125,7 +125,7 @@ public class LinkingDBAdapter {
         return list;
     }
 
-    public boolean deleteBeacon(LinkingBeacon beacon) {
+    public boolean deleteBeacon(final LinkingBeacon beacon) {
         String selection = LinkingBaseColumns.VENDOR_ID + "=? AND " + LinkingBaseColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(beacon.getVendorId()),
@@ -142,11 +142,11 @@ public class LinkingDBAdapter {
         return false;
     }
 
-    public boolean insertGatt(LinkingBeacon beacon, GattData gatt) {
+    public boolean insertGatt(final LinkingBeacon beacon, GattData gatt) {
         return insertGatt(beacon.getVendorId(), beacon.getExtraId(), gatt);
     }
 
-    public boolean insertGatt(int vendorId, int extraId, GattData gatt) {
+    public boolean insertGatt(final int vendorId, final int extraId, final GattData gatt) {
         ContentValues values = new ContentValues();
         values.put(GattColumns.VENDOR_ID, vendorId);
         values.put(GattColumns.EXTRA_ID, extraId);
@@ -165,11 +165,11 @@ public class LinkingDBAdapter {
         return ret > 0;
     }
 
-    public GattData queryGatt(LinkingBeacon beacon) {
+    public GattData queryGatt(final LinkingBeacon beacon) {
         return queryGatt(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public GattData queryGatt(int vendorId, int extraId) {
+    public GattData queryGatt(final int vendorId, final int extraId) {
         String selection = GattColumns.VENDOR_ID + "=? AND " + GattColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -202,11 +202,11 @@ public class LinkingDBAdapter {
         return null;
     }
 
-    public boolean deleteGatt(LinkingBeacon beacon) {
+    public boolean deleteGatt(final LinkingBeacon beacon) {
         return deleteGatt(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public boolean deleteGatt(int vendorId, int extraId) {
+    public boolean deleteGatt(final int vendorId, final int extraId) {
         String selection = LinkingBaseColumns.VENDOR_ID + "=? AND " + LinkingBaseColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -226,11 +226,11 @@ public class LinkingDBAdapter {
         return false;
     }
 
-    public boolean insertTemperature(LinkingBeacon beacon, TemperatureData temp) {
+    public boolean insertTemperature(final LinkingBeacon beacon, final TemperatureData temp) {
         return insertTemperature(beacon.getVendorId(), beacon.getExtraId(), temp);
     }
 
-    public boolean insertTemperature(int vendorId, int extraId, TemperatureData temp) {
+    public boolean insertTemperature(final int vendorId, final int extraId, final TemperatureData temp) {
         ContentValues values = new ContentValues();
         values.put(TemperatureColumns.VENDOR_ID, vendorId);
         values.put(TemperatureColumns.EXTRA_ID, extraId);
@@ -247,11 +247,11 @@ public class LinkingDBAdapter {
         return ret > 0;
     }
 
-    public TemperatureData queryTemperature(LinkingBeacon beacon) {
+    public TemperatureData queryTemperature(final LinkingBeacon beacon) {
         return queryTemperature(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public TemperatureData queryTemperature(int vendorId, int extraId) {
+    public TemperatureData queryTemperature(final int vendorId, final int extraId) {
         String selection = GattColumns.VENDOR_ID + "=? AND " + GattColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -282,11 +282,11 @@ public class LinkingDBAdapter {
         return null;
     }
 
-    public boolean deleteTemperature(LinkingBeacon beacon) {
+    public boolean deleteTemperature(final LinkingBeacon beacon) {
         return deleteTemperature(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public boolean deleteTemperature(int vendorId, int extraId) {
+    public boolean deleteTemperature(final int vendorId, final int extraId) {
         String selection = LinkingBaseColumns.VENDOR_ID + "=? AND " + LinkingBaseColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -306,11 +306,11 @@ public class LinkingDBAdapter {
         return false;
     }
 
-    public boolean insertHumidity(LinkingBeacon beacon, HumidityData humidity) {
+    public boolean insertHumidity(final LinkingBeacon beacon, final HumidityData humidity) {
         return insertHumidity(beacon.getVendorId(), beacon.getExtraId(), humidity);
     }
 
-    public boolean insertHumidity(int vendorId, int extraId, HumidityData humidity) {
+    public boolean insertHumidity(final int vendorId, final int extraId, final HumidityData humidity) {
         ContentValues values = new ContentValues();
         values.put(HumidityColumns.VENDOR_ID, vendorId);
         values.put(HumidityColumns.EXTRA_ID, extraId);
@@ -327,11 +327,11 @@ public class LinkingDBAdapter {
         return ret > 0;
     }
 
-    public HumidityData queryHumidity(LinkingBeacon beacon) {
+    public HumidityData queryHumidity(final LinkingBeacon beacon) {
         return queryHumidity(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public HumidityData queryHumidity(int vendorId, int extraId) {
+    public HumidityData queryHumidity(final int vendorId, final int extraId) {
         String selection = HumidityColumns.VENDOR_ID + "=? AND " + HumidityColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -362,11 +362,11 @@ public class LinkingDBAdapter {
         return null;
     }
 
-    public boolean deleteHumidity(LinkingBeacon beacon) {
+    public boolean deleteHumidity(final LinkingBeacon beacon) {
         return deleteHumidity(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public boolean deleteHumidity(int vendorId, int extraId) {
+    public boolean deleteHumidity(final int vendorId, final int extraId) {
         String selection = LinkingBaseColumns.VENDOR_ID + "=? AND " + LinkingBaseColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -386,11 +386,11 @@ public class LinkingDBAdapter {
         return false;
     }
 
-    public boolean insertAtmosphericPressure(LinkingBeacon beacon, AtmosphericPressureData ap) {
+    public boolean insertAtmosphericPressure(final LinkingBeacon beacon, final AtmosphericPressureData ap) {
         return insertAtmosphericPressure(beacon.getVendorId(), beacon.getExtraId(), ap);
     }
 
-    public boolean insertAtmosphericPressure(int vendorId, int extraId, AtmosphericPressureData ap) {
+    public boolean insertAtmosphericPressure(final int vendorId, final int extraId, final AtmosphericPressureData ap) {
         ContentValues values = new ContentValues();
         values.put(AtmosphericPressure.VENDOR_ID, vendorId);
         values.put(AtmosphericPressure.EXTRA_ID, extraId);
@@ -407,11 +407,11 @@ public class LinkingDBAdapter {
         return ret > 0;
     }
 
-    public AtmosphericPressureData queryAtmosphericPressure(LinkingBeacon beacon) {
+    public AtmosphericPressureData queryAtmosphericPressure(final LinkingBeacon beacon) {
         return queryAtmosphericPressure(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public AtmosphericPressureData queryAtmosphericPressure(int vendorId, int extraId) {
+    public AtmosphericPressureData queryAtmosphericPressure(final int vendorId, final int extraId) {
         String selection = AtmosphericPressure.VENDOR_ID + "=? AND " + AtmosphericPressure.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -442,11 +442,11 @@ public class LinkingDBAdapter {
         return null;
     }
 
-    public boolean deleteAtmosphericPressure(LinkingBeacon beacon) {
+    public boolean deleteAtmosphericPressure(final LinkingBeacon beacon) {
         return deleteAtmosphericPressure(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public boolean deleteAtmosphericPressure(int vendorId, int extraId) {
+    public boolean deleteAtmosphericPressure(final int vendorId, final int extraId) {
         String selection = LinkingBaseColumns.VENDOR_ID + "=? AND " + LinkingBaseColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -466,11 +466,11 @@ public class LinkingDBAdapter {
         return false;
     }
 
-    public boolean insertBattery(LinkingBeacon beacon, BatteryData battery) {
+    public boolean insertBattery(final LinkingBeacon beacon, final BatteryData battery) {
         return insertBattery(beacon.getVendorId(), beacon.getExtraId(), battery);
     }
 
-    public boolean insertBattery(int vendorId, int extraId, BatteryData battery) {
+    public boolean insertBattery(final int vendorId, final int extraId, final BatteryData battery) {
         ContentValues values = new ContentValues();
         values.put(BatteryColumns.VENDOR_ID, vendorId);
         values.put(BatteryColumns.EXTRA_ID, extraId);
@@ -488,11 +488,11 @@ public class LinkingDBAdapter {
         return ret > 0;
     }
 
-    public BatteryData queryBattery(LinkingBeacon beacon) {
+    public BatteryData queryBattery(final LinkingBeacon beacon) {
         return queryBattery(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public BatteryData queryBattery(int vendorId, int extraId) {
+    public BatteryData queryBattery(final int vendorId, final int extraId) {
         String selection = BatteryColumns.VENDOR_ID + "=? AND " + BatteryColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -524,11 +524,11 @@ public class LinkingDBAdapter {
         return null;
     }
 
-    public boolean deleteBattery(LinkingBeacon beacon) {
+    public boolean deleteBattery(final LinkingBeacon beacon) {
         return  deleteBattery(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public boolean deleteBattery(int vendorId, int extraId) {
+    public boolean deleteBattery(final int vendorId, final int extraId) {
         String selection = LinkingBaseColumns.VENDOR_ID + "=? AND " + LinkingBaseColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -548,11 +548,11 @@ public class LinkingDBAdapter {
         return false;
     }
 
-    public boolean insertRawData(LinkingBeacon beacon, RawData raw) {
+    public boolean insertRawData(final LinkingBeacon beacon, final RawData raw) {
         return insertRawData(beacon.getVendorId(), beacon.getExtraId(), raw);
     }
 
-    public boolean insertRawData(int vendorId, int extraId, RawData raw) {
+    public boolean insertRawData(final int vendorId, final int extraId, final RawData raw) {
         ContentValues values = new ContentValues();
         values.put(RawDataColumns.VENDOR_ID, vendorId);
         values.put(RawDataColumns.EXTRA_ID, extraId);
@@ -569,11 +569,11 @@ public class LinkingDBAdapter {
         return ret > 0;
     }
 
-    public RawData queryRawData(LinkingBeacon beacon) {
+    public RawData queryRawData(final LinkingBeacon beacon) {
         return queryRawData(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public RawData queryRawData(int vendorId, int extraId) {
+    public RawData queryRawData(final int vendorId, final int extraId) {
         String selection = RawDataColumns.VENDOR_ID + "=? AND " + RawDataColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -604,11 +604,11 @@ public class LinkingDBAdapter {
         return null;
     }
 
-    public boolean deleteRawData(LinkingBeacon beacon) {
+    public boolean deleteRawData(final LinkingBeacon beacon) {
         return deleteRawData(beacon.getVendorId(), beacon.getExtraId());
     }
 
-    public boolean deleteRawData(int vendorId, int extraId) {
+    public boolean deleteRawData(final int vendorId, final int extraId) {
         String selection = LinkingBaseColumns.VENDOR_ID + "=? AND " + LinkingBaseColumns.EXTRA_ID + "=?";
         String[] selectionArgs = {
                 String.valueOf(vendorId),
@@ -628,8 +628,8 @@ public class LinkingDBAdapter {
         return false;
     }
 
-    private Cursor query(String tbl, String[] projection, String selection,
-                        String[] selectionArgs, String sortOrder) {
+    private Cursor query(final String tbl, final String[] projection, final String selection,
+                         final String[] selectionArgs, final String sortOrder) {
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         qb.setTables(tbl);
 
@@ -644,19 +644,19 @@ public class LinkingDBAdapter {
         return qb.query(mdb, projection, selection, selectionArgs, null, null, orderBy);
     }
 
-    private int delete(String tbl, String selection, String[] selectionArgs) {
+    private int delete(final String tbl, final String selection, final String[] selectionArgs) {
         SQLiteDatabase mdb = mHelper.getWritableDatabase();
         return mdb.delete(tbl, selection, selectionArgs);
     }
 
     private class LinkingDatabaseHelper extends SQLiteOpenHelper {
 
-        public LinkingDatabaseHelper(Context context) {
+        public LinkingDatabaseHelper(final Context context) {
             super(context, DB_FILE_NAME, null, DB_VERSION);
         }
 
         @Override
-        public void onCreate(SQLiteDatabase db) {
+        public void onCreate(final SQLiteDatabase db) {
             createBeaconTable(db);
             createGattTable(db);
             createTemperatureTable(db);
@@ -667,15 +667,15 @@ public class LinkingDBAdapter {
         }
 
         @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
         }
 
         @Override
-        public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        public void onDowngrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
             super.onDowngrade(db, oldVersion, newVersion);
         }
 
-        private void createBeaconTable(SQLiteDatabase db) {
+        private void createBeaconTable(final SQLiteDatabase db) {
             String sql = "CREATE TABLE " + TABLE_BEACON + " (_id INTEGER PRIMARY KEY,"
                     + BeaconColumns.VENDOR_ID + " INTEGER,"
                     + BeaconColumns.EXTRA_ID + " INTEGER,"
@@ -684,7 +684,7 @@ public class LinkingDBAdapter {
             db.execSQL(sql);
         }
 
-        private void createGattTable(SQLiteDatabase db) {
+        private void createGattTable(final SQLiteDatabase db) {
             String sql = "CREATE TABLE " + TABLE_GATT + " (_id INTEGER PRIMARY KEY,"
                     + GattColumns.VENDOR_ID + " INTEGER,"
                     + GattColumns.EXTRA_ID + " INTEGER,"
@@ -696,7 +696,7 @@ public class LinkingDBAdapter {
             db.execSQL(sql);
         }
 
-        private void createTemperatureTable(SQLiteDatabase db) {
+        private void createTemperatureTable(final SQLiteDatabase db) {
             String sql = "CREATE TABLE " + TABLE_TEMPERATURE + " (_id INTEGER PRIMARY KEY,"
                     + TemperatureColumns.VENDOR_ID + " INTEGER,"
                     + TemperatureColumns.EXTRA_ID + " INTEGER,"
@@ -706,7 +706,7 @@ public class LinkingDBAdapter {
             db.execSQL(sql);
         }
 
-        private void createHumidityTable(SQLiteDatabase db) {
+        private void createHumidityTable(final SQLiteDatabase db) {
             String sql = "CREATE TABLE " + TABLE_HUMIDITY + " (_id INTEGER PRIMARY KEY,"
                     + HumidityColumns.VENDOR_ID + " INTEGER,"
                     + HumidityColumns.EXTRA_ID + " INTEGER,"
@@ -716,7 +716,7 @@ public class LinkingDBAdapter {
             db.execSQL(sql);
         }
 
-        private void createAtmosphericPressureTable(SQLiteDatabase db) {
+        private void createAtmosphericPressureTable(final SQLiteDatabase db) {
             String sql = "CREATE TABLE " + TABLE_ATMOSPHERIC_PRESSURE + " (_id INTEGER PRIMARY KEY,"
                     + AtmosphericPressure.VENDOR_ID + " INTEGER,"
                     + AtmosphericPressure.EXTRA_ID + " INTEGER,"
@@ -726,7 +726,7 @@ public class LinkingDBAdapter {
             db.execSQL(sql);
         }
 
-        private void createBatteryTable(SQLiteDatabase db) {
+        private void createBatteryTable(final SQLiteDatabase db) {
             String sql = "CREATE TABLE " + TABLE_BATTERY + " (_id INTEGER PRIMARY KEY,"
                     + BatteryColumns.VENDOR_ID + " INTEGER,"
                     + BatteryColumns.EXTRA_ID + " INTEGER,"
@@ -737,7 +737,7 @@ public class LinkingDBAdapter {
             db.execSQL(sql);
         }
 
-        private void createRawDataTable(SQLiteDatabase db) {
+        private void createRawDataTable(final SQLiteDatabase db) {
             String sql = "CREATE TABLE " + TABLE_RAW_DATA + " (_id INTEGER PRIMARY KEY,"
                     + RawDataColumns.VENDOR_ID + " INTEGER,"
                     + RawDataColumns.EXTRA_ID + " INTEGER,"

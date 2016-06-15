@@ -14,7 +14,7 @@ public class AtmosphericPressureData {
         return mTimeStamp;
     }
 
-    public void setTimeStamp(long timeStamp) {
+    public void setTimeStamp(final long timeStamp) {
         mTimeStamp = timeStamp;
     }
 
@@ -22,7 +22,7 @@ public class AtmosphericPressureData {
         return mValue;
     }
 
-    public void setValue(float value) {
+    public void setValue(final float value) {
         mValue = value;
     }
     @Override

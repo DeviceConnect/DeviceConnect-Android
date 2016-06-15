@@ -7,7 +7,6 @@
 package org.deviceconnect.android.deviceplugin.linking.setting;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
@@ -19,7 +18,7 @@ import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 
 public class LinkingInductionActivity extends AppCompatActivity {
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_linking_induction);
 
@@ -56,7 +55,7 @@ public class LinkingInductionActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
         switch(item.getItemId()) {
             case android.R.id.home:
                 finish();

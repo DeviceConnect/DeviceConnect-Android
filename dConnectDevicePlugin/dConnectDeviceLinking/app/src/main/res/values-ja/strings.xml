@@ -20,17 +20,17 @@
     <string name="fragment_beacon_error_title">エラー</string>
     <string name="fragment_beacon_error_message">近くに%1$sが存在しないか、Linkingアプリでペアリング設定されている可能性があります。</string>
     <string name="fragment_beacon_error_message_not_start_beacon_scan">ビーコンスキャンが開始されていません。\nビーコンスキャンの開始ボタンを押下してください。</string>
-    <string name="fragment_beacon_error_positive">Linkingアプリ誘導画面</string>
+    <string name="fragment_beacon_error_positive">Linkingアプリ誘導</string>
     <string name="fragment_beacon_error_negative">閉じる</string>
 
     <string name="fragment_device_guidance">Linkingデバイスの設定がされていません。\nこのアプリを使用するには、Linkingアプリの設定が必要になります。</string>
     <string name="fragment_device_discovery">デバイスを更新しています</string>
-    <string name="fragment_device_linking_app">Linkingアプリ誘導画面</string>
+    <string name="fragment_device_linking_app">Linkingアプリ誘導</string>
     <string name="fragment_device_status_online">Status: Online</string>
     <string name="fragment_device_status_offline">Status: Offline</string>
     <string name="fragment_device_error_title">エラー</string>
     <string name="fragment_device_error_message">%1$sが接続されていません。\nLinkingアプリのペアリング設定を確認してください。</string>
-    <string name="fragment_device_error_positive">Linkingアプリ誘導画面</string>
+    <string name="fragment_device_error_positive">Linkingアプリ誘導</string>
     <string name="fragment_device_error_negative">閉じる</string>
 
     <string name="fragment_help_linking_app">Linkingアプリを起動</string>

@@ -37,7 +37,7 @@ public class LinkingBeacon {
         return mOnline;
     }
 
-    public void setOnline(boolean online) {
+    public void setOnline(final boolean online) {
         mOnline = online;
     }
 
@@ -45,7 +45,7 @@ public class LinkingBeacon {
         return mExtraId;
     }
 
-    public void setExtraId(int extraId) {
+    public void setExtraId(final int extraId) {
         mExtraId = extraId;
     }
 
@@ -53,7 +53,7 @@ public class LinkingBeacon {
         return mVendorId;
     }
 
-    public void setVendorId(int vendorId) {
+    public void setVendorId(final int vendorId) {
         mVendorId = vendorId;
     }
 
@@ -61,7 +61,7 @@ public class LinkingBeacon {
         return mVersion;
     }
 
-    public void setVersion(int version) {
+    public void setVersion(final int version) {
         mVersion = version;
     }
 
@@ -69,7 +69,7 @@ public class LinkingBeacon {
         return mGattData;
     }
 
-    public void setGattData(GattData gattData) {
+    public void setGattData(final GattData gattData) {
         mGattData = gattData;
     }
 
@@ -77,7 +77,7 @@ public class LinkingBeacon {
         return mTemperatureData;
     }
 
-    public void setTemperatureData(TemperatureData temperatureData) {
+    public void setTemperatureData(final TemperatureData temperatureData) {
         mTemperatureData = temperatureData;
     }
 
@@ -85,7 +85,7 @@ public class LinkingBeacon {
         return mHumidityData;
     }
 
-    public void setHumidityData(HumidityData humidityData) {
+    public void setHumidityData(final HumidityData humidityData) {
         mHumidityData = humidityData;
     }
 
@@ -93,7 +93,7 @@ public class LinkingBeacon {
         return mBatteryData;
     }
 
-    public void setBatteryData(BatteryData batteryData) {
+    public void setBatteryData(final BatteryData batteryData) {
         mBatteryData = batteryData;
     }
 
@@ -101,7 +101,7 @@ public class LinkingBeacon {
         return mAtmosphericPressureData;
     }
 
-    public void setAtmosphericPressureData(AtmosphericPressureData atmosphericPressureData) {
+    public void setAtmosphericPressureData(final AtmosphericPressureData atmosphericPressureData) {
         mAtmosphericPressureData = atmosphericPressureData;
     }
 
@@ -109,7 +109,7 @@ public class LinkingBeacon {
         return mRawData;
     }
 
-    public void setRawData(RawData rawData) {
+    public void setRawData(final RawData rawData) {
         mRawData = rawData;
     }
 

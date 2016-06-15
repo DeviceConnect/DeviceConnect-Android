@@ -8,7 +8,6 @@ package org.deviceconnect.android.deviceplugin.linking.setting;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -47,7 +46,7 @@ public class LinkingHelpActivity extends AppCompatActivity {
     private int mScreenId;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(final  Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_linking_help);
 
@@ -129,7 +128,7 @@ public class LinkingHelpActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
         switch(item.getItemId()) {
             case android.R.id.home:
                 finish();
@@ -158,12 +157,12 @@ public class LinkingHelpActivity extends AppCompatActivity {
     }
 
     private class MyFragmentPagerAdapter extends FragmentPagerAdapter {
-        public MyFragmentPagerAdapter(FragmentManager fm) {
+        public MyFragmentPagerAdapter(final FragmentManager fm) {
             super(fm);
         }
 
         @Override
-        public Fragment getItem(int position) {
+        public Fragment getItem(final int position) {
             return LinkingHelpFragment.newInstance(HELP_RES_ID[mScreenId][position]);
         }
 

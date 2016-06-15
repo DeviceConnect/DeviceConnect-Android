@@ -16,7 +16,7 @@ public class DiscoveryDeviceDialogFragment extends DialogFragment {
 
     private static final String EXTRA_MESSAGE = "message";
 
-    public static DiscoveryDeviceDialogFragment newInstance(String message) {
+    public static DiscoveryDeviceDialogFragment newInstance(final String message) {
         DiscoveryDeviceDialogFragment instance = new DiscoveryDeviceDialogFragment();
         Bundle arguments = new Bundle();
         arguments.putString(EXTRA_MESSAGE, message);
@@ -26,9 +26,8 @@ public class DiscoveryDeviceDialogFragment extends DialogFragment {
 
     @NonNull
     @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
         String message = getArguments().getString(EXTRA_MESSAGE);
-
         ProgressDialog progressDialog = new ProgressDialog(getActivity());
         progressDialog.setMessage(message);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);

@@ -18,7 +18,7 @@ public class GattData {
         return mTimeStamp;
     }
 
-    public void setTimeStamp(long timeStamp) {
+    public void setTimeStamp(final long timeStamp) {
         mTimeStamp = timeStamp;
     }
 
@@ -26,7 +26,7 @@ public class GattData {
         return mTxPower;
     }
 
-    public void setTxPower(int txPower) {
+    public void setTxPower(final int txPower) {
         mTxPower = txPower;
     }
 
@@ -34,7 +34,7 @@ public class GattData {
         return Rssi;
     }
 
-    public void setRssi(int rssi) {
+    public void setRssi(final int rssi) {
         Rssi = rssi;
     }
 
@@ -42,7 +42,7 @@ public class GattData {
         return mDistance;
     }
 
-    public void setDistance(int distance) {
+    public void setDistance(final int distance) {
         mDistance = distance;
     }
 

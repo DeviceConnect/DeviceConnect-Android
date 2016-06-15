@@ -53,13 +53,13 @@ public class SettingActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(final Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
 
         switch (item.getItemId()) {
             case R.id.menu_setting:
@@ -86,12 +86,12 @@ public class SettingActivity extends AppCompatActivity {
     }
 
     private class MyFragmentPagerAdapter extends FragmentPagerAdapter {
-        public MyFragmentPagerAdapter(FragmentManager fragmentManager) {
+        public MyFragmentPagerAdapter(final FragmentManager fragmentManager) {
             super(fragmentManager);
         }
 
         @Override
-        public Fragment getItem(int position) {
+        public Fragment getItem(final int position) {
             return mFragments[position];
         }
 
@@ -101,7 +101,7 @@ public class SettingActivity extends AppCompatActivity {
         }
 
         @Override
-        public CharSequence getPageTitle(int position) {
+        public CharSequence getPageTitle(final int position) {
             return pageTitle[position];
         }
     }

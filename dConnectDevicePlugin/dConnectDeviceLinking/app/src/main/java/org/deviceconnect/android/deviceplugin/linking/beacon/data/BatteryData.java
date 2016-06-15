@@ -15,7 +15,7 @@ public class BatteryData {
         return mTimeStamp;
     }
 
-    public void setTimeStamp(long timeStamp) {
+    public void setTimeStamp(final long timeStamp) {
         mTimeStamp = timeStamp;
     }
 
@@ -23,7 +23,7 @@ public class BatteryData {
         return mLowBatteryFlag;
     }
 
-    public void setLowBatteryFlag(boolean lowBatteryFlag) {
+    public void setLowBatteryFlag(final boolean lowBatteryFlag) {
         mLowBatteryFlag = lowBatteryFlag;
     }
 
@@ -31,7 +31,7 @@ public class BatteryData {
         return mLevel;
     }
 
-    public void setLevel(float level) {
+    public void setLevel(final float level) {
         mLevel = level;
     }
     @Override

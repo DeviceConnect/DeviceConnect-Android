@@ -14,7 +14,7 @@ public class RawData {
         return mTimeStamp;
     }
 
-    public void setTimeStamp(long timeStamp) {
+    public void setTimeStamp(final long timeStamp) {
         mTimeStamp = timeStamp;
     }
 
@@ -22,7 +22,7 @@ public class RawData {
         return mValue;
     }
 
-    public void setValue(int value) {
+    public void setValue(final int value) {
         mValue = value;
     }
 

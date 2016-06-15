@@ -91,16 +91,16 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
     }
 
     @Override
-    public void onPositiveClick(DialogFragment fragment) {
+    public void onPositiveClick(final DialogFragment fragment) {
         transitionLinkingApp();
     }
 
     @Override
-    public void onNegativeClick(DialogFragment fragment) {
+    public void onNegativeClick(final DialogFragment fragment) {
         // do nothing
     }
 
-    private void transitionDeviceControl(DeviceItem item) {
+    private void transitionDeviceControl(final DeviceItem item) {
         if (item.isConnected) {
             Intent intent = new Intent();
             intent.putExtra(LinkingDeviceActivity.EXTRA_ADDRESS, item.mDevice.getBdAddress());
@@ -153,7 +153,7 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
             }
 
             @Override
-            protected List<LinkingDevice> doInBackground(Void... params) {
+            protected List<LinkingDevice> doInBackground(final Void... params) {
                 try {
                     LinkingManager manager = LinkingManagerFactory.createManager(getActivity());
                     return manager.getDevices();
@@ -163,7 +163,7 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
             }
 
             @Override
-            protected void onPostExecute(List<LinkingDevice> devices) {
+            protected void onPostExecute(final List<LinkingDevice> devices) {
                 mDiscoveryDeviceDialogFragment.dismiss();
                 mDiscoveryDeviceDialogFragment = null;
 
@@ -185,12 +185,12 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
 
     private class ListAdapter extends ArrayAdapter<DeviceItem> {
 
-        public ListAdapter(Context context, int textViewId) {
+        public ListAdapter(final Context context, final int textViewId) {
             super(context, textViewId);
         }
 
         @Override
-        public View getView(final int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, final ViewGroup parent) {
             if (convertView == null) {
                 LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(R.layout.item_linking_device, null);

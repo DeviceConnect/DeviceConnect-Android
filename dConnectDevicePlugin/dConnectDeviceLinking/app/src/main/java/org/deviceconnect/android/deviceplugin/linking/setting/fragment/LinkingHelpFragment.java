@@ -27,7 +27,7 @@ public class LinkingHelpFragment extends Fragment {
 
     private boolean mDestroy;
 
-    public static LinkingHelpFragment newInstance(int resId) {
+    public static LinkingHelpFragment newInstance(final int resId) {
         LinkingHelpFragment fragment = new LinkingHelpFragment();
 
         Bundle arguments = new Bundle();
@@ -39,7 +39,7 @@ public class LinkingHelpFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         int resId = getArguments().getInt(EXTRA_RES_ID);
 
         View root = inflater.inflate(resId, container, false);
@@ -60,7 +60,7 @@ public class LinkingHelpFragment extends Fragment {
         super.onDestroyView();
     }
 
-    private void createAnimation(View v) {
+    private void createAnimation(final View v) {
         float size = 12.0f * getResources().getDisplayMetrics().density;
         long time = 1000;
 

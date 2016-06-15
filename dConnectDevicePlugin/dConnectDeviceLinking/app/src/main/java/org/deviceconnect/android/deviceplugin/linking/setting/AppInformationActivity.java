@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
@@ -20,7 +19,7 @@ import org.deviceconnect.android.deviceplugin.linking.R;
 
 public class AppInformationActivity extends AppCompatActivity {
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app_information);
 
@@ -37,7 +36,7 @@ public class AppInformationActivity extends AppCompatActivity {
 
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
@@ -46,7 +45,7 @@ public class AppInformationActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public static String getVersionName(Context context) {
+    public static String getVersionName(final Context context) {
         PackageManager pm = context.getPackageManager();
         try {
             PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);

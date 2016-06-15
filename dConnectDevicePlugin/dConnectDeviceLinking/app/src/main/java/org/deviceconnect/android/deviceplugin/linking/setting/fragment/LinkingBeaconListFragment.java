@@ -106,7 +106,7 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
     }
 
     @Override
-    public void onPositiveClick(DialogFragment fragment) {
+    public void onPositiveClick(final DialogFragment fragment) {
         String tag = fragment.getTag();
         if (TAG_ERROR_BEACON.equals(tag)) {
             transitionLinkingApp();
@@ -119,16 +119,16 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
     }
 
     @Override
-    public void onNegativeClick(DialogFragment fragment) {
+    public void onNegativeClick(final DialogFragment fragment) {
     }
 
     @Override
-    public void onConnected(LinkingBeacon beacon) {
+    public void onConnected(final LinkingBeacon beacon) {
         refresh();
     }
 
     @Override
-    public void onDisconnected(LinkingBeacon beacon) {
+    public void onDisconnected(final LinkingBeacon beacon) {
         refresh();
     }
 
@@ -166,7 +166,7 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
         startActivity(intent);
     }
 
-    private void transitionBeaconControl(DeviceItem item) {
+    private void transitionBeaconControl(final DeviceItem item) {
         if (item.mDevice.isOnline()) {
             Intent intent = new Intent();
             intent.putExtra(LinkingBeaconActivity.EXTRA_ID, item.mDevice.getExtraId());
@@ -191,7 +191,7 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
         }
     }
 
-    private void confirmDeleteBeacon(LinkingBeacon beacon) {
+    private void confirmDeleteBeacon(final LinkingBeacon beacon) {
         mLinkingBeacon = beacon;
 
         String title = getString(R.string.activity_beacon_delete_dialog_title);
@@ -214,12 +214,12 @@ public class LinkingBeaconListFragment extends Fragment implements ConfirmationD
 
     private class ListAdapter extends ArrayAdapter<DeviceItem> {
 
-        public ListAdapter(Context context, int textViewId) {
+        public ListAdapter(final Context context, final int textViewId) {
             super(context, textViewId);
         }
 
         @Override
-        public View getView(final int position, View convertView, ViewGroup parent) {
+        public View getView(final int position, View convertView, final ViewGroup parent) {
             if (convertView == null) {
                 LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(R.layout.item_linking_device, null);

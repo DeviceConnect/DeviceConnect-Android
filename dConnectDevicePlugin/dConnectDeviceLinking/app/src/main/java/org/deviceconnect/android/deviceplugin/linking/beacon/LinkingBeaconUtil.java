@@ -79,11 +79,11 @@ public final class LinkingBeaconUtil {
     private LinkingBeaconUtil() {
     }
 
-    public static String createServiceIdFromLinkingBeacon(LinkingBeacon beacon) {
+    public static String createServiceIdFromLinkingBeacon(final LinkingBeacon beacon) {
         return PREFIX + SEPARATOR + beacon.getVendorId() + SEPARATOR + beacon.getExtraId();
     }
 
-    public static boolean isLinkingBeaconByServiceId(String serviceId) {
+    public static boolean isLinkingBeaconByServiceId(final String serviceId) {
         if (serviceId != null) {
             String[] split = serviceId.split(SEPARATOR);
             if (split.length == 3) {
@@ -93,7 +93,7 @@ public final class LinkingBeaconUtil {
         return false;
     }
 
-    public static int getVendorIdFromServiceId(String serviceId) throws IllegalArgumentException {
+    public static int getVendorIdFromServiceId(final String serviceId) throws IllegalArgumentException {
         if (serviceId == null) {
             throw new IllegalArgumentException("serviceId is null");
         }
@@ -104,7 +104,7 @@ public final class LinkingBeaconUtil {
         throw new IllegalArgumentException("Cannot separate the serviceId.");
     }
 
-    public static int getExtraIdFromServiceId(String serviceId) throws IllegalArgumentException {
+    public static int getExtraIdFromServiceId(final String serviceId) throws IllegalArgumentException {
         if (serviceId == null) {
             throw new IllegalArgumentException("serviceId is null");
         }
@@ -115,7 +115,7 @@ public final class LinkingBeaconUtil {
         throw new IllegalArgumentException("Cannot separate the serviceId.");
     }
 
-    public static LinkingBeacon findLinkingBeacon(LinkingBeaconManager mgr, String serviceId) {
+    public static LinkingBeacon findLinkingBeacon(final LinkingBeaconManager mgr, final String serviceId) {
         try {
             int vendorId = getVendorIdFromServiceId(serviceId);
             int extraId = getExtraIdFromServiceId(serviceId);

@@ -21,7 +21,9 @@ public class ConfirmationDialogFragment extends DialogFragment {
     private static final String EXTRA_POSITIVE = "positive";
     private static final String EXTRA_NEGATIVE = "negative";
 
-    public static ConfirmationDialogFragment newInstance(String title, String message, String positive, String negative, Fragment fragment) {
+    public static ConfirmationDialogFragment newInstance(
+            final String title, final String message, final String positive,
+            final String negative, final Fragment fragment) {
         Bundle args = new Bundle();
         args.putString(EXTRA_TITLE, title);
         args.putString(EXTRA_MESSAGE, message);
@@ -36,13 +38,14 @@ public class ConfirmationDialogFragment extends DialogFragment {
         return f;
     }
 
-    public static ConfirmationDialogFragment newInstance(String title, String message, String positive, String negative) {
+    public static ConfirmationDialogFragment newInstance(
+            final String title, final String message, final String positive, final String negative) {
         return newInstance(title, message, positive, negative, null);
     }
 
     @NonNull
     @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
         String title = getArguments().getString(EXTRA_TITLE);
         String message = getArguments().getString(EXTRA_MESSAGE);
         String positive = getArguments().getString(EXTRA_POSITIVE);

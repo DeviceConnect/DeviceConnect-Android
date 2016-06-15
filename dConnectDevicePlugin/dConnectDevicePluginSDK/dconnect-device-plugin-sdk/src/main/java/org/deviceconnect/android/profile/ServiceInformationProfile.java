@@ -12,10 +12,11 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 
-import org.deviceconnect.android.api.ApiSpec;
-import org.deviceconnect.android.api.EndPoint;
-import org.deviceconnect.android.api.RequestParamSpec;
 import org.deviceconnect.android.message.MessageUtils;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.spec.DConnectApiSpec;
+import org.deviceconnect.android.profile.spec.DConnectRequestParamSpec;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.ServiceInformationProfileConstants;
 
@@ -56,21 +57,64 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
     private final DConnectProfileProvider mProvider;
 
     /**
-     * 指定されたプロファイルプロバイダーをもつSystemプロファイルを生成する.
-     * 
-     * @param provider プロファイルプロバイダー
+     * Service Information API.
      */
-    public ServiceInformationProfile(final DConnectProfileProvider provider) {
-        this.mProvider = provider;
+    private final DConnectApi mServiceInformationApi = new DConnectApi() {
+
+        @Override
+        public DConnectApiSpec.Method getMethod() {
+            return DConnectApiSpec.Method.GET;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response,
+                                 final DConnectService service) {
+            String serviceId = service.getId();
+
+            // connect
+            Bundle connect = new Bundle();
+            setWifiState(connect, getWifiState(serviceId));
+            setBluetoothState(connect, getBluetoothState(serviceId));
+            setNFCState(connect, getNFCState(serviceId));
+            setBLEState(connect, getBLEState(serviceId));
+            setConnect(response, connect);
+
+            // version
+            setVersion(response, getCurrentVersionName());
+
+            // supports
+            List<DConnectApiSpec> supports = new ArrayList<DConnectApiSpec>();
+            for (DConnectProfile profile : service.getProfileList()) {
+                for (DConnectApi api : profile.getApiList()) {
+                    DConnectApiSpec spec = api.getApiSpec();
+                    if (spec != null) {
+                        supports.add(spec);
+                    }
+                }
+            }
+            setSupportApis(response, supports);
+
+            setResult(response, DConnectMessage.RESULT_OK);
+            return true;
+        }
+    };
+
+    /**
+     * ServiceInformationプロファイルを生成する.
+     */
+    public ServiceInformationProfile() {
+        mProvider = null;
+        addApi(mServiceInformationApi);
     }
 
     /**
-     * プロファイルプロバイダーを取得する.
-     * 
-     * @return プロファイルプロバイダー
+     * 指定されたプロファイルプロバイダーをもつServiceInformationプロファイルを生成する.
+     *
+     * @param provider プロファイルプロバイダー
+     * @deprecated
      */
-    protected DConnectProfileProvider getProfileProvider() {
-        return mProvider;
+    public ServiceInformationProfile(final DConnectProfileProvider provider) {
+        mProvider = provider;
     }
 
     @Override
@@ -138,7 +182,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         return ConnectState.NONE;
     }
 
-    protected EndPoint getEndPoint(final String serviceId) {
+    protected DConnectService getEndPoint(final String serviceId) {
         return null;
     }
 
@@ -174,7 +218,6 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
      * @return レスポンスパラメータを送信するか否か
      */
     protected boolean onGetInformation(final Intent request, final Intent response, final String serviceId) {
-
         // connect
         Bundle connect = new Bundle();
         setWifiState(connect, getWifiState(serviceId));
@@ -187,7 +230,13 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         setVersion(response, getCurrentVersionName());
 
         // supports
-        setSupportApis(response, mProvider.getApiSpecList(serviceId));
+        List<DConnectProfile> profiles = mProvider.getProfileList();
+        String[] profileNames = new String[profiles.size()];
+        for (int i = 0; i < profileNames.length; i++) {
+            profileNames[i] = profiles.get(i).getProfileName();
+        }
+        setSupports(response, profileNames);
+
         setResult(response, DConnectMessage.RESULT_OK);
 
         return true;
@@ -231,9 +280,9 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         setSupports(response, supports.toArray(new String[supports.size()]));
     }
 
-    public static void setSupportApis(final Intent response, final List<ApiSpec> apiSpecs) {
+    public static void setSupportApis(final Intent response, final List<DConnectApiSpec> apiSpecs) {
         List<Bundle> supports = new ArrayList<Bundle>();
-        for (ApiSpec spec : apiSpecs) {
+        for (DConnectApiSpec spec : apiSpecs) {
             Bundle support = new Bundle();
             setSupportApi(support, spec);
             supports.add(support);
@@ -241,7 +290,7 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         response.putExtra(PARAM_SUPPORTS, supports.toArray(new Bundle[supports.size()]));
     }
 
-    public static void setSupportApi(final Bundle api, final ApiSpec spec) {
+    public static void setSupportApi(final Bundle api, final DConnectApiSpec spec) {
         setSupportApiName(api, spec.getName());
         setSupportApiPath(api, spec.getPath());
         setSupportApiParams(api, spec.getRequestParamList());
@@ -255,17 +304,17 @@ public abstract class ServiceInformationProfile extends DConnectProfile implemen
         api.putString(PARAM_PATH, path);
     }
 
-    public static void setSupportApiParams(final Bundle api, final List<RequestParamSpec> paramSpecs) {
+    public static void setSupportApiParams(final Bundle api, final List<DConnectRequestParamSpec> paramSpecs) {
         ArrayList<Bundle> params = new ArrayList<Bundle>();
-        for (RequestParamSpec paramSpec : paramSpecs) {
+        for (DConnectRequestParamSpec paramSpec : paramSpecs) {
             Bundle param = new Bundle();
-            setRequestParam(param, paramSpec);
+            //setRequestParam(param, paramSpec);
             params.add(param);
         }
         api.putParcelableArrayList(PARAM_REQUEST_PARAMS, params);
     }
 
-    public static void setRequestParam(final Bundle param, final RequestParamSpec paramSpec) {
+    public static void setRequestParam(final Bundle param, final DConnectRequestParamSpec paramSpec) {
         param.putString(PARAM_NAME, paramSpec.getName());
         param.putString(PARAM_TYPE, paramSpec.getType().getName());
         param.putBoolean(PARAM_MANDATORY, paramSpec.isMandatory());

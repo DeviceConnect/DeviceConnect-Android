@@ -64,6 +64,8 @@ import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
 import org.deviceconnect.android.provider.FileManager;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceManager;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.profile.PhoneProfileConstants.CallState;
 
@@ -146,6 +148,11 @@ public class HostDeviceService extends DConnectMessageService {
         mFileDataManager = new FileDataManager(mFileMgr);
 
         createRecorders(mFileMgr);
+
+        DConnectService hostService = new DConnectService("Host");
+        hostService.addProfile(new ServiceInformationProfile() {});
+        hostService.addProfile(new HostVibrationProfile());
+        DConnectServiceManager.INSTANCE.addService(hostService);
 
         // add supported profiles
         addProfile(new HostConnectProfile(BluetoothAdapter.getDefaultAdapter()));
@@ -502,8 +509,7 @@ public class HostDeviceService extends DConnectMessageService {
 
     @Override
     protected ServiceInformationProfile getServiceInformationProfile() {
-        return new ServiceInformationProfile(this) {
-        };
+        return new ServiceInformationProfile(this) {};
     }
 
     @Override

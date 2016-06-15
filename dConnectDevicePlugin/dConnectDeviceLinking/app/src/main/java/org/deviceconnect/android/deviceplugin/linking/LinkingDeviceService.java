@@ -6,7 +6,7 @@
  */
 package org.deviceconnect.android.deviceplugin.linking;
 
-import org.deviceconnect.android.api.EndPoint;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.profile.LinkingDeviceOrientationProfile;
@@ -71,13 +71,13 @@ public class LinkingDeviceService extends DConnectMessageService {
     }
 
     @Override
-    public EndPoint findEndPoint(final String serviceId) {
+    public DConnectService getService(final String serviceId) {
         LinkingDevice device = LinkingUtil.getLinkingDevice(getContext(), serviceId);
         if (device == null) {
             return null;
         }
 
-        EndPoint.Builder endPoint = new EndPoint.Builder()
+        DConnectService.Builder service = createServiceBuilder()
             .addApi(DConnectMessage.METHOD_GET,
                 ServiceDiscoveryProfileConstants.PATH_PROFILE)
             .addApi(DConnectMessage.METHOD_GET,
@@ -94,24 +94,27 @@ public class LinkingDeviceService extends DConnectMessageService {
                 ProximityProfileConstants.PATH_ON_DEVICE_PROXIMITY);
 
         if (LinkingUtil.hasSensor(device)) {
-            endPoint.addApi(DConnectMessage.METHOD_GET,
-                DeviceOrientationProfileConstants.PATH_ON_DEVICE_ORIENTATION)
+            service
+                .addApi(DConnectMessage.METHOD_GET,
+                    DeviceOrientationProfileConstants.PATH_ON_DEVICE_ORIENTATION)
                 .addApi(DConnectMessage.METHOD_PUT,
                     DeviceOrientationProfileConstants.PATH_ON_DEVICE_ORIENTATION)
                 .addApi(DConnectMessage.METHOD_DELETE,
                     DeviceOrientationProfileConstants.PATH_ON_DEVICE_ORIENTATION);
         }
         if (LinkingUtil.hasLED(device)) {
-            endPoint.addApi(DConnectMessage.METHOD_GET, "/gotapi/light")
+            service
+                .addApi(DConnectMessage.METHOD_GET, "/gotapi/light")
                 .addApi(DConnectMessage.METHOD_POST, "/gotapi/light")
                 .addApi(DConnectMessage.METHOD_DELETE, "/gotapi/light");
         }
         if (LinkingUtil.hasVibration(device)) {
-            endPoint.addApi(DConnectMessage.METHOD_PUT,
-                VibrationProfileConstants.PATH_VIBRATE)
+            service
+                .addApi(DConnectMessage.METHOD_PUT,
+                    VibrationProfileConstants.PATH_VIBRATE)
                 .addApi(DConnectMessage.METHOD_PUT,
                     VibrationProfileConstants.PATH_VIBRATE);
         }
-        return endPoint.build();
+        return service.build();
     }
 }

@@ -14,8 +14,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 
-import org.deviceconnect.android.api.EndPoint;
-import org.deviceconnect.android.api.EndPointManager;
 import org.deviceconnect.android.deviceplugin.heartrate.ble.BleUtils;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateHealthProfile;
 import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateServiceDiscoveryProfile;
@@ -24,11 +22,12 @@ import org.deviceconnect.android.deviceplugin.heartrate.profile.HeartRateSystemP
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.profile.DConnectProfile;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
-import org.deviceconnect.message.DConnectMessage;
-import org.deviceconnect.profile.HealthProfileConstants;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceManager;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -40,6 +39,8 @@ import java.util.logging.Logger;
 public class HeartRateDeviceService extends DConnectMessageService {
     /** Logger. */
     private final Logger mLogger = Logger.getLogger("heartrate.dplugin");
+
+    private DConnectProfile mHeartRateProfile;
 
     /**
      * Received a event that Bluetooth has been changed.
@@ -69,16 +70,10 @@ public class HeartRateDeviceService extends DConnectMessageService {
 
             @Override
             public void onConnected(final BluetoothDevice device) {
-                if (!EndPointManager.INSTANCE.hasEndPoint(device.getAddress())) {
-                    EndPoint endPoint = new EndPoint.Builder()
-                        .addApi(DConnectMessage.METHOD_GET,
-                            HealthProfileConstants.PARAM_HEART_RATE)
-                        .addApi(DConnectMessage.METHOD_PUT,
-                            HealthProfileConstants.PARAM_HEART_RATE)
-                        .addApi(DConnectMessage.METHOD_DELETE,
-                            HealthProfileConstants.PARAM_HEART_RATE)
-                        .build();
-                    EndPointManager.INSTANCE.addEndPoint(endPoint);
+                String serviceId = device.getAddress();
+                if (!DConnectServiceManager.INSTANCE.existsService(serviceId)) {
+                    DConnectService service = new DConnectService(serviceId);
+                    service.addProfile(mHeartRateProfile);
                 }
             }
 
@@ -89,7 +84,7 @@ public class HeartRateDeviceService extends DConnectMessageService {
 
             @Override
             public void onDisconnected(final BluetoothDevice device) {
-                EndPointManager.INSTANCE.removeEndPoint(device.getAddress());
+                DConnectServiceManager.INSTANCE.removeService(device.getAddress());
             }
         };
 
@@ -116,7 +111,7 @@ public class HeartRateDeviceService extends DConnectMessageService {
 
         getManager().addOnHeartRateDiscoveryListener(mOnDiscoveryListener);
 
-        addProfile(new HeartRateHealthProfile(app.getHeartRateManager()));
+        mHeartRateProfile = new HeartRateHealthProfile(app.getHeartRateManager());
 
         registerBluetoothFilter();
     }

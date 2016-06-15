@@ -18,6 +18,9 @@ import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.HealthProfile;
+import org.deviceconnect.android.profile.api.DConnectApi;
+import org.deviceconnect.android.profile.spec.ApiSpec;
+import org.deviceconnect.android.service.DConnectService;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
@@ -44,13 +47,26 @@ public class HeartRateHealthProfile extends HealthProfile {
      */
     public HeartRateHealthProfile(final HeartRateManager mgr) {
         mgr.setOnHeartRateEventListener(mHeartRateEventListener);
+
+        addApi(mHeartRateGetApi);
     }
 
-    @Override
-    public boolean onGetHeartRate(final Intent request, final Intent response, final String serviceId) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
-        } else {
+    private final DConnectApi mHeartRateGetApi = new DConnectApi() {
+
+        @Override
+        public String getAttribute() {
+            return ATTRIBUTE_HEART_RATE;
+        }
+
+        @Override
+        public ApiSpec.Method getMethod() {
+            return ApiSpec.Method.GET;
+        }
+
+        @Override
+        public boolean onRequest(final Intent request, final Intent response,
+                                 final DConnectService service) {
+            String serviceId = service.getId();
             HeartRateData data = getManager().getHeartRateData(serviceId);
             if (data == null) {
                 MessageUtils.setNotFoundServiceError(response);
@@ -58,9 +74,9 @@ public class HeartRateHealthProfile extends HealthProfile {
                 setResult(response, DConnectMessage.RESULT_OK);
                 setHeartRate(response, data.getHeartRate());
             }
+            return true;
         }
-        return true;
-    }
+    };
 
     @Override
     public boolean onPutHeartRate(final Intent request, final Intent response,

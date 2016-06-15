@@ -14,10 +14,6 @@ import android.os.IBinder;
 
 import org.deviceconnect.android.BuildConfig;
 import org.deviceconnect.android.R;
-import org.deviceconnect.android.api.ApiSpec;
-import org.deviceconnect.android.api.ApiSpecDictionary;
-import org.deviceconnect.android.api.EndPoint;
-import org.deviceconnect.android.api.EndPointManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.localoauth.CheckAccessTokenResult;
@@ -28,6 +24,10 @@ import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
 import org.deviceconnect.android.profile.SystemProfile;
+import org.deviceconnect.android.profile.spec.DConnectApiSpecList;
+import org.deviceconnect.android.service.DConnectService;
+import org.deviceconnect.android.service.DConnectServiceManager;
+import org.deviceconnect.android.service.DConnectServiceProvider;
 import org.deviceconnect.message.DConnectMessage;
 import org.deviceconnect.message.intent.message.IntentDConnectMessage;
 import org.deviceconnect.profile.AuthorizationProfileConstants;
@@ -35,7 +35,6 @@ import org.deviceconnect.profile.ServiceDiscoveryProfileConstants;
 import org.deviceconnect.profile.SystemProfileConstants;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,7 +49,8 @@ import java.util.logging.Logger;
  * {@link DConnectMessageServiceProvider}から呼び出されるサービスとし、UIレイヤーから明示的な呼び出しは行わない。
  * @author NTT DOCOMO, INC.
  */
-public abstract class DConnectMessageService extends Service implements DConnectProfileProvider {
+public abstract class DConnectMessageService extends Service implements DConnectProfileProvider,
+    DConnectServiceProvider {
     
     /** 
      * LocalOAuthで無視するプロファイル群.
@@ -89,7 +89,7 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     private boolean mUseLocalOAuth = true;
 
-    private final ApiSpecDictionary mApiSpecs = new ApiSpecDictionary();
+
 
     /**
      * SystemProfileを取得する.
@@ -122,14 +122,8 @@ public abstract class DConnectMessageService extends Service implements DConnect
     @Override
     public void onCreate() {
         super.onCreate();
-
-        // API仕様定義の初期化
-        try {
-            addApiSpec(R.raw.vibration);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load DeviceConnect API Specifications.", e);
-        }
-
+        DConnectServiceManager.INSTANCE.setApiSpecDictionary(loadApiSpecList());
+        DConnectServiceManager.INSTANCE.setContext(getContext());
 
         // LocalOAuthの初期化
         LocalOAuth2Main.initialize(this);
@@ -138,8 +132,24 @@ public abstract class DConnectMessageService extends Service implements DConnect
         addProfile(new AuthorizationProfile(this));
         // 必須プロファイルの追加
         addProfile(getSystemProfile());
-        addProfile(getServiceInformationProfile());
         addProfile(getServiceDiscoveryProfile());
+    }
+
+    private DConnectApiSpecList loadApiSpecList() {
+        try {
+            final int[] json = {
+                R.raw.health,
+                R.raw.vibration
+            };
+            final DConnectApiSpecList specList = new DConnectApiSpecList();
+            for (int id : json) {
+                specList.load(getResources().openRawResource(id));
+            }
+            return specList;
+        } catch (IOException e) {
+            mLogger.warning("Failed to load Device Connect API Specs.");
+            return null;
+        }
     }
 
     @Override
@@ -176,26 +186,14 @@ public abstract class DConnectMessageService extends Service implements DConnect
         return START_STICKY;
     }
 
-    protected void addApiSpec(final int resourceId) throws IOException {
-        InputStream is = getContext().getResources().openRawResource(resourceId);
-        addApiSpec(is);
-    }
-
-    protected void addApiSpec(final InputStream is) throws IOException {
-        mApiSpecs.load(is);
-    }
-
-    protected EndPoint findEndPoint(final String serviceId) {
-        return EndPointManager.INSTANCE.getEndPoint(serviceId);
-    }
 
     @Override
-    public List<ApiSpec> getApiSpecList(final String serviceId) {
-        EndPoint endPoint = findEndPoint(serviceId);
-        if (endPoint == null) {
-            return null;
-        }
-        return mApiSpecs.getApiSpecList(endPoint);
+    public DConnectService getService(final String serviceId) {
+        return DConnectServiceManager.INSTANCE.getService(serviceId);
+    }
+
+    private DConnectService getService(final Intent request) {
+        return getService(DConnectProfile.getServiceID(request));
     }
 
     /**
@@ -252,17 +250,20 @@ public abstract class DConnectMessageService extends Service implements DConnect
             }
         }
 
-        // プロファイルを取得する
+        // 指定されたサービスの各プロファイルでリクエストを処理する
         DConnectProfile profile = getProfile(profileName);
+        boolean send = true;
         if (profile == null) {
-            MessageUtils.setNotSupportProfileError(response);
-            sendResponse(response);
-            return;
+            DConnectService service = getService(request);
+            if (service != null) {
+                send = service.onRequest(request, response);
+            } else {
+                MessageUtils.setNotFoundServiceError(response);
+            }
         }
 
-        // 各プロファイルでリクエストを処理する
-        boolean send = true;
-        if (isUseLocalOAuth()) {
+        // プラグイン本体の各プロファイルでリクエストを処理する
+        else if (isUseLocalOAuth()) {
             // アクセストークン
             String accessToken = request.getStringExtra(AuthorizationProfile.PARAM_ACCESS_TOKEN);
             // LocalOAuth処理
@@ -307,7 +308,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     @Override
     public DConnectProfile getProfile(final String name) {
-        return mProfileMap.get(name);
+        if (name == null) {
+            return null;
+        }
+        return mProfileMap.get(name.toLowerCase());
     }
 
     /**
@@ -315,8 +319,11 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     @Override
     public void addProfile(final DConnectProfile profile) {
+        if (profile == null) {
+            return;
+        }
         profile.setContext(this);
-        mProfileMap.put(profile.getProfileName(), profile);
+        mProfileMap.put(profile.getProfileName().toLowerCase(), profile);
     }
 
     /**
@@ -324,7 +331,10 @@ public abstract class DConnectMessageService extends Service implements DConnect
      */
     @Override
     public void removeProfile(final DConnectProfile profile) {
-        mProfileMap.remove(profile.getProfileName());
+        if (profile == null) {
+            return;
+        }
+        mProfileMap.remove(profile.getProfileName().toLowerCase());
     }
 
     /**

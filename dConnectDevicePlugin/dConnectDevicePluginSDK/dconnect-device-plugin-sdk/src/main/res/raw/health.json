@@ -1,0 +1,14 @@
+[
+    {
+        "name": "Health HeartRate OneShot API",
+        "method": "GET",
+        "path": "/gotapi/health/heartrate",
+        "requestParams": [
+            {
+                "name": "serviceId",
+                "type": "string",
+                "mandatory": true
+            }
+        ]
+    }
+]

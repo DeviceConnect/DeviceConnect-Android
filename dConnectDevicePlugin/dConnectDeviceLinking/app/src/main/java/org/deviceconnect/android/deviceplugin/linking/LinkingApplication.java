@@ -10,6 +10,7 @@ import android.app.Application;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManager;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 
 /**
  * Implementation of Application.
@@ -21,6 +22,7 @@ public class LinkingApplication extends Application {
     private static final String TAG = "LinkingApplication";
 
     private LinkingBeaconManager mBeaconManager;
+    private LinkingDeviceManager mDeviceManager;
 
     @Override
     public void onCreate() {
@@ -30,6 +32,7 @@ public class LinkingApplication extends Application {
         }
 
         mBeaconManager = new LinkingBeaconManager(this);
+        mDeviceManager = new LinkingDeviceManager(this);
     }
 
     @Override
@@ -43,10 +46,19 @@ public class LinkingApplication extends Application {
             mBeaconManager = null;
         }
 
+        if (mDeviceManager != null) {
+            mDeviceManager.destroy();
+            mDeviceManager = null;
+        }
+
         super.onTerminate();
     }
 
     public LinkingBeaconManager getLinkingBeaconManager() {
         return mBeaconManager;
+    }
+
+    public LinkingDeviceManager getLinkingDeviceManager() {
+        return mDeviceManager;
     }
 }

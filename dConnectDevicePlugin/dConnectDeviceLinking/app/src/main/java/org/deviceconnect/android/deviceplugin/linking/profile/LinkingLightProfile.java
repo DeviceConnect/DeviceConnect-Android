@@ -9,9 +9,10 @@ package org.deviceconnect.android.deviceplugin.linking.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
@@ -51,13 +52,14 @@ public class LinkingLightProfile extends LightProfile {
 
     @Override
     protected boolean onPostLight(final Intent request, final Intent response, final String serviceId,
-                                  String lightId, final Integer color, final Double brightness,
+                                  final String lightId, final Integer color, final Double brightness,
                                   final long[] flashing) {
         LinkingDevice device = getDevice(serviceId, response);
         if (device == null) {
             return true;
         }
-        LinkingManager manager = LinkingManagerFactory.createManager(getContext().getApplicationContext());
+
+        LinkingDeviceManager manager = getLinkingDeviceManager();
         if (flashing != null) {
             flashing(serviceId, manager, device, flashing);
         } else {
@@ -69,18 +71,18 @@ public class LinkingLightProfile extends LightProfile {
 
     @Override
     protected boolean onDeleteLight(final Intent request, final Intent response, final String serviceId,
-                                    String lightId) {
+                                    final String lightId) {
         LinkingDevice device = getDevice(serviceId, response);
         if (device == null) {
             return true;
         }
-        LinkingManager manager = LinkingManagerFactory.createManager(getContext().getApplicationContext());
+        LinkingDeviceManager manager = getLinkingDeviceManager();
         manager.sendLEDCommand(device, false);
         sendResultOK(response);
         return true;
     }
 
-    private void flashing(String serviceId, final LinkingManager manager, final LinkingDevice device, long[] flashing) {
+    private void flashing(final String serviceId, final LinkingDeviceManager manager, final LinkingDevice device, final long[] flashing) {
         FlashingExecutor exe = mFlashingMap.get(serviceId);
         if (exe == null) {
             exe = new FlashingExecutor();
@@ -101,22 +103,13 @@ public class LinkingLightProfile extends LightProfile {
         ((DConnectMessageService) getContext()).sendResponse(response);
     }
 
-    private void sendResultError(final Intent response) {
-        MessageUtils.setUnknownError(response);
-        ((DConnectMessageService) getContext()).sendResponse(response);
-    }
-
-    private void sendResultTimeout(final Intent response) {
-        MessageUtils.setTimeoutError(response);
-        ((DConnectMessageService) getContext()).sendResponse(response);
-    }
-
     private LinkingDevice getDevice(String serviceId, Intent response) {
         if (serviceId == null || serviceId.length() == 0) {
             MessageUtils.setEmptyServiceIdError(response);
             return null;
         }
-        LinkingDevice device = LinkingUtil.getLinkingDevice(getContext(), serviceId);
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        LinkingDevice device = mgr.findDeviceByBdAddress(serviceId);
         if (device == null) {
             MessageUtils.setIllegalDeviceStateError(response, "device not found");
             return null;
@@ -132,4 +125,9 @@ public class LinkingLightProfile extends LightProfile {
         return device;
     }
 
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingDeviceService service = (LinkingDeviceService) getContext();
+        LinkingApplication app = (LinkingApplication) service.getApplication();
+        return app.getLinkingDeviceManager();
+    }
 }

@@ -22,10 +22,10 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.setting.LinkingDeviceActivity;
 import org.deviceconnect.android.deviceplugin.linking.setting.LinkingInductionActivity;
 import org.deviceconnect.android.deviceplugin.linking.setting.fragment.dialog.ConfirmationDialogFragment;
@@ -155,7 +155,8 @@ public class LinkingDeviceListFragment extends Fragment implements ConfirmationD
             @Override
             protected List<LinkingDevice> doInBackground(final Void... params) {
                 try {
-                    LinkingManager manager = LinkingManagerFactory.createManager(getActivity());
+                    LinkingApplication app = (LinkingApplication) getActivity().getApplicationContext();
+                    LinkingDeviceManager manager = app.getLinkingDeviceManager();
                     return manager.getDevices();
                 } catch (Exception e) {
                     return null;

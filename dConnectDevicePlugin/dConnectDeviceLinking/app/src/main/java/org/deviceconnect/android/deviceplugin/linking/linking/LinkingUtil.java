@@ -13,13 +13,10 @@ import android.net.Uri;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
 
-import java.util.List;
-
 public final class LinkingUtil {
     private static final String PACKAGE_NAME = "com.nttdocomo.android.smartdeviceagent";
 
     private static final int LED = 0x01;
-
 
     public static final int RESULT_OK = -1;
     public static final int RESULT_CANCEL = 1;
@@ -33,30 +30,19 @@ public final class LinkingUtil {
     private LinkingUtil() {
     }
 
-    public static LinkingDevice getLinkingDevice(Context context, String serviceId) {
-        LinkingManager manager = LinkingManagerFactory.createManager(context);
-        List<LinkingDevice> list = manager.getDevices();
-        for (LinkingDevice device : list) {
-            if (device.getBdAddress().equals(serviceId)) {
-                return device;
-            }
-        }
-        return null;
-    }
-
-    public static boolean hasSensor(LinkingDevice device) {
+    public static boolean hasSensor(final LinkingDevice device) {
         return device.getSensor() != null;
     }
 
-    public static boolean hasLED(LinkingDevice device) {
-        return (device.getFeature() & LED) != 0 && device.getIllumination() != null;
+    public static boolean hasLED(final LinkingDevice device) {
+        return device.isLED() && device.getIllumination() != null;
     }
 
     public static boolean hasVibration(LinkingDevice device) {
         return device.getVibration() != null;
     }
 
-    public static IlluminationData.Setting getDefaultOffSettingOfLight(LinkingDevice device) {
+    public static IlluminationData.Setting getDefaultOffSettingOfLight(final LinkingDevice device) {
         byte[] illumination = device.getIllumination();
         if (illumination == null) {
             return null;
@@ -71,7 +57,7 @@ public final class LinkingUtil {
         return null;
     }
 
-    public static Integer getDefaultOffSettingOfLightId(LinkingDevice device) {
+    public static Integer getDefaultOffSettingOfLightId(final LinkingDevice device) {
         IlluminationData.Setting setting = getDefaultOffSettingOfLight(device);
         if (setting != null) {
             return (int) setting.id;
@@ -79,7 +65,7 @@ public final class LinkingUtil {
         return null;
     }
 
-    public static VibrationData.Setting getDefaultOffSettingOfVibration(LinkingDevice device) {
+    public static VibrationData.Setting getDefaultOffSettingOfVibration(final LinkingDevice device) {
         byte[] vibration = device.getVibration();
         if (vibration == null) {
             return null;
@@ -94,7 +80,7 @@ public final class LinkingUtil {
         return null;
     }
 
-    public static Integer getDefaultOffSettingOfVibrationId(LinkingDevice device) {
+    public static Integer getDefaultOffSettingOfVibrationId(final LinkingDevice device) {
         VibrationData.Setting setting = getDefaultOffSettingOfVibration(device);
         if (setting != null) {
             return (int) setting.id;
@@ -102,14 +88,13 @@ public final class LinkingUtil {
         return null;
     }
 
-
-    public static void startGooglePlay(Context context) {
+    public static void startGooglePlay(final Context context) {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + PACKAGE_NAME));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 
-    public static void startLinkingApp(Context context) {
+    public static void startLinkingApp(final Context context) {
         context.startActivity(context.getPackageManager().getLaunchIntentForPackage(PACKAGE_NAME));
     }
 

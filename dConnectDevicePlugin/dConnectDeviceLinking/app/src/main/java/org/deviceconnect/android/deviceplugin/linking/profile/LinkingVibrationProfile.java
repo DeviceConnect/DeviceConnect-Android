@@ -8,9 +8,10 @@ package org.deviceconnect.android.deviceplugin.linking.profile;
 
 import android.content.Intent;
 
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.VibrationProfile;
@@ -29,7 +30,7 @@ public class LinkingVibrationProfile extends VibrationProfile {
         if (device == null) {
             return true;
         }
-        LinkingManager manager = LinkingManagerFactory.createManager(getContext().getApplicationContext());
+        LinkingDeviceManager manager = getLinkingDeviceManager();
         if (pattern != null) {
             patternVibrate(serviceId, manager, device, pattern);
         } else {
@@ -45,13 +46,13 @@ public class LinkingVibrationProfile extends VibrationProfile {
         if (device == null) {
             return true;
         }
-        LinkingManager manager = LinkingManagerFactory.createManager(getContext().getApplicationContext());
+        LinkingDeviceManager manager = getLinkingDeviceManager();
         manager.sendVibrationCommand(device, false);
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }
 
-    private void patternVibrate(String serviceId, final LinkingManager manager, final LinkingDevice device, long[] pattern) {
+    private void patternVibrate(final String serviceId, final LinkingDeviceManager manager, final LinkingDevice device, final long[] pattern) {
         VibrationExecutor exe = mVibrationMap.get(serviceId);
         if (exe == null) {
             exe = new VibrationExecutor();
@@ -72,7 +73,8 @@ public class LinkingVibrationProfile extends VibrationProfile {
             MessageUtils.setEmptyServiceIdError(response);
             return null;
         }
-        LinkingDevice device = LinkingUtil.getLinkingDevice(getContext(), serviceId);
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        LinkingDevice device = mgr.findDeviceByBdAddress(serviceId);
         if (device == null) {
             MessageUtils.setIllegalDeviceStateError(response, "device not found");
             return null;
@@ -93,4 +95,9 @@ public class LinkingVibrationProfile extends VibrationProfile {
         return 3 * 60 * 1000;
     }
 
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingDeviceService service = (LinkingDeviceService) getContext();
+        LinkingApplication app = (LinkingApplication) service.getApplication();
+        return app.getLinkingDeviceManager();
+    }
 }

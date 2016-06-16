@@ -17,7 +17,7 @@ import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManage
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DConnectProfileProvider;
 import org.deviceconnect.android.profile.ServiceInformationProfile;
@@ -50,8 +50,8 @@ public class LinkingServiceInformationProfile extends ServiceInformationProfile 
         return true;
     }
 
-    private boolean createLinkingDevice(Intent request, Intent response, String serviceId) {
-        LinkingDevice device = LinkingUtil.getLinkingDevice(getContext(), serviceId);
+    private boolean createLinkingDevice(final Intent request, final Intent response, final String serviceId) {
+        LinkingDevice device = getLinkingDeviceManager().findDeviceByBdAddress(serviceId);
         if (device == null) {
             MessageUtils.setNotFoundServiceError(response);
             return true;
@@ -69,7 +69,7 @@ public class LinkingServiceInformationProfile extends ServiceInformationProfile 
         return true;
     }
 
-    private boolean createLinkingBeacon(Intent request, Intent response, String serviceId) {
+    private boolean createLinkingBeacon(final Intent request, final Intent response, final String serviceId) {
         LinkingBeaconManager mgr = getLinkingBeaconManager();
         LinkingBeacon beacon = LinkingBeaconUtil.findLinkingBeacon(mgr, serviceId);
         if (beacon == null) {
@@ -89,7 +89,7 @@ public class LinkingServiceInformationProfile extends ServiceInformationProfile 
         return true;
     }
 
-    private boolean createLinkingApp(Intent request, Intent response, String serviceId) {
+    private boolean createLinkingApp(final Intent request, final Intent response, final String serviceId) {
         Bundle connect = new Bundle();
         setWifiState(connect, getWifiState(serviceId));
         setBluetoothState(connect, getBluetoothState(serviceId));
@@ -102,11 +102,11 @@ public class LinkingServiceInformationProfile extends ServiceInformationProfile 
         return true;
     }
 
-    private ConnectState getBluetoothState(LinkingDevice device) {
+    private ConnectState getBluetoothState(final LinkingDevice device) {
         return device.isConnected() ? ConnectState.ON : ConnectState.OFF;
     }
 
-    private ConnectState getBluetoothState(LinkingBeacon beacon) {
+    private ConnectState getBluetoothState(final LinkingBeacon beacon) {
         return beacon.isOnline() ? ConnectState.ON : ConnectState.OFF;
     }
 
@@ -119,6 +119,11 @@ public class LinkingServiceInformationProfile extends ServiceInformationProfile 
         } catch (PackageManager.NameNotFoundException e) {
             return "Unknown";
         }
+    }
+
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingApplication app = getLinkingApplication();
+        return app.getLinkingDeviceManager();
     }
 
     private LinkingBeaconManager getLinkingBeaconManager() {

@@ -8,95 +8,148 @@ package org.deviceconnect.android.deviceplugin.linking.linking;
 
 public class LinkingDevice {
 
-    private String displayName;
-    private String name;
-    private String bdAddress;
-    private Integer modelId;
-    private Integer uniqueId;
-    private byte[] illumination;
-    private byte[] vibration;
-    private Object sensor;
-    private boolean isConnected;
-    private int feature;
+    private String mDisplayName;
+    private String mName;
+    private String mBdAddress;
+    private Integer mModelId;
+    private Integer mUniqueId;
+    private byte[] mIllumination;
+    private byte[] mVibration;
+    private Object mSensor;
+    private boolean mIsConnected;
+    private int mFeature;
+
+    public static final int LED = 1;
+    public static final int GYRO = LED << 1;
+    public static final int ACCELERATION = LED << 2;
+    public static final int COMPASS = LED << 3;
 
     public String getDisplayName() {
-        return displayName;
+        return mDisplayName;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public void setDisplayName(final String displayName) {
+        mDisplayName = displayName;
     }
 
     public String getName() {
-        return name;
+        return mName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setName(final String name) {
+        mName = name;
     }
 
     public String getBdAddress() {
-        return bdAddress;
+        return mBdAddress;
     }
 
-    public void setBdAddress(String bdAddress) {
-        this.bdAddress = bdAddress;
+    public void setBdAddress(final String bdAddress) {
+        mBdAddress = bdAddress;
     }
 
     public Integer getModelId() {
-        return modelId;
+        return mModelId;
     }
 
-    public void setModelId(Integer modelId) {
-        this.modelId = modelId;
+    public void setModelId(final Integer modelId) {
+        mModelId = modelId;
     }
 
     public Integer getUniqueId() {
-        return uniqueId;
+        return mUniqueId;
     }
 
-    public void setUniqueId(Integer uniqueId) {
-        this.uniqueId = uniqueId;
+    public void setUniqueId(final Integer uniqueId) {
+        mUniqueId = uniqueId;
     }
 
     public byte[] getIllumination() {
-        return illumination;
+        return mIllumination;
     }
 
-    public void setIllumination(byte[] illumination) {
-        this.illumination = illumination;
+    public void setIllumination(final byte[] illumination) {
+        mIllumination = illumination;
     }
 
     public byte[] getVibration() {
-        return vibration;
+        return mVibration;
     }
 
     public void setVibration(byte[] vibration) {
-        this.vibration = vibration;
+        mVibration = vibration;
     }
 
     public Object getSensor() {
-        return sensor;
+        return mSensor;
     }
 
-    public void setSensor(Object sensor) {
-        this.sensor = sensor;
+    public void setSensor(final Object sensor) {
+        this.mSensor = sensor;
     }
 
     public boolean isConnected() {
-        return isConnected;
+        return mIsConnected;
     }
 
-    public void setIsConnected(boolean isConnected) {
-        this.isConnected = isConnected;
+    public void setIsConnected(final boolean isConnected) {
+        mIsConnected = isConnected;
     }
 
     public int getFeature() {
-        return feature;
+        return mFeature;
     }
 
-    public void setFeature(int feature) {
-        this.feature = feature;
+    public void setFeature(final int feature) {
+        mFeature = feature;
     }
 
+    public boolean isLED() {
+        return (mFeature & LED) == LED;
+    }
+
+    public boolean isGyro() {
+        return (mFeature & GYRO) == GYRO;
+    }
+
+    public boolean isAcceleration() {
+        return (mFeature & ACCELERATION) == ACCELERATION;
+    }
+
+    public boolean isCompass() {
+        return (mFeature & COMPASS) == COMPASS;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (obj == this) {
+            return true;
+        }
+
+        if (!(obj instanceof LinkingDevice)) {
+            return false;
+        }
+
+        LinkingDevice device = (LinkingDevice) obj;
+        return (device.mBdAddress.equals(mBdAddress) &&
+                device.getModelId().equals(mModelId) &&
+                device.getUniqueId().equals(mUniqueId));
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((mBdAddress == null) ? 0 : mBdAddress.hashCode());
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Address: " + getBdAddress() + "\n ModelId: " + getModelId() + "\nUniqueId: " + getUniqueId();
+    }
 }

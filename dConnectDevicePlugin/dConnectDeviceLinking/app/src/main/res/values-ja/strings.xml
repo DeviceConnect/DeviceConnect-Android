@@ -79,6 +79,12 @@
     <string name="activity_device_button_id">ボタンID</string>
     <string name="activity_device_register_sensor">登録</string>
     <string name="activity_device_unregister_sensor">解除</string>
+    <string name="activity_device_proximity">Proximity</string>
+    <string name="activity_device_proximity_range">Range</string>
+    <string name="activity_device_proximity_immediate">近く</string>
+    <string name="activity_device_proximity_near">やや近く</string>
+    <string name="activity_device_proximity_far">遠く</string>
+    <string name="activity_device_proximity_unknown">不明</string>
     <string name="activity_device_pattern_list">パターンリスト</string>
     <string name="activity_device_not_support_led">このデバイスはLEDをサポートしていません。</string>
     <string name="activity_device_not_support_vibration">このデバイスはバイブレーションをサポートしていません。</string>

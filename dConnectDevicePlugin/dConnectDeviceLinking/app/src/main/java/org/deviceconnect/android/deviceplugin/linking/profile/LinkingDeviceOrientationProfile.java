@@ -11,140 +11,168 @@ import android.os.Bundle;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
+import org.deviceconnect.android.deviceplugin.linking.LinkingDeviceService;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingEvent;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingEventListener;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingEventManager;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingSensorData;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingSensorEvent;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
+import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.DeviceOrientationProfile;
 import org.deviceconnect.message.DConnectMessage;
 
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
 
-    private static final int TIMEOUT = 30;//second
-    private ScheduledExecutorService mScheduleService = Executors.newScheduledThreadPool(4);
+    private static final String TAG = "LinkingPlugIn";
+
+    private static final String PARAM_COMPASS = "compass";
+
+    private static final int TIMEOUT = 10;
+
+    private ConcurrentHashMap<String, SensorHolder> mSensorHolderMap = new ConcurrentHashMap<>();
+
+    public LinkingDeviceOrientationProfile(final DConnectMessageService service) {
+        LinkingApplication app = (LinkingApplication) service.getApplication();
+        LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
+        deviceManager.addSensorListener(new LinkingDeviceManager.SensorListener() {
+            @Override
+            public void onChangeSensor(final LinkingDevice device, final LinkingSensorData sensor) {
+                notifyOrientation(device, sensor);
+            }
+        });
+    }
 
     @Override
-    protected boolean onGetOnDeviceOrientation(Intent request, final Intent response, String serviceId) {
+    protected boolean onGetOnDeviceOrientation(final Intent request, final Intent response, final String serviceId) {
         LinkingDevice device = getDevice(serviceId, response);
         if (device == null) {
             return true;
         }
-        final LinkingEvent linkingEvent = new LinkingSensorEvent(getContext().getApplicationContext(), device);
-        linkingEvent.setEventInfo(request);
-        linkingEvent.setLinkingEventListener(new LinkingEventListener() {
-            boolean receivedFirstData = false;
-            Bundle orientation = new Bundle();
+
+        final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
+        deviceManager.addSensorListener(new SensorListenerImpl(device) {
+
+            private boolean mDestroyFlag;
+
+            private void destroy() {
+                if (mDestroyFlag) {
+                    return;
+                }
+                mDestroyFlag = true;
+
+                if (isEmptyEventList(mDevice.getBdAddress())) {
+                    getLinkingDeviceManager().stopSensor(mDevice);
+                }
+                deviceManager.removeSensorListener(this);
+
+                mScheduledFuture.cancel(false);
+                mExecutorService.shutdown();
+            }
 
             @Override
-            public void onReceiveEvent(Event event, Bundle parameters) {
-                if (receivedFirstData) {
-                    LinkingSensorData data = parameters.getParcelable(LinkingSensorEvent.EXTRA_SENSOR);
-                    if (data == null) {
-                        throw new IllegalArgumentException("data must be specified");
-                    }
-                    updateOrientation(orientation, data, 0);
-                } else {
-                    //wait 3 seconds for waiting to receive 3 types of values.
-                    mScheduleService.schedule(new Runnable() {
-                        @Override
-                        public void run() {
-                            linkingEvent.invalidate();
-                            setOrientation(response, orientation);
-                            setResult(response, DConnectMessage.RESULT_OK);
-                            sendResponse(response);
-                        }
-                    }, 3, TimeUnit.SECONDS);
-                    receivedFirstData = true;
+            public synchronized void run() {
+                if (mDestroyFlag) {
+                    return;
+                }
+
+                MessageUtils.setTimeoutError(response);
+                sendResponse(response);
+                destroy();
+            }
+
+            @Override
+            public synchronized void onChangeSensor(final LinkingDevice device, final LinkingSensorData sensor) {
+                if (mDestroyFlag) {
+                    return;
+                }
+
+                if (!mDevice.equals(device)) {
+                    return;
+                }
+
+                updateOrientation(mSensorHolder.getOrientation(), sensor, 0);
+                mSensorHolder.setFlag(sensor);
+
+                if (mSensorHolder.isFlag()) {
+                    mSensorHolder.clearFlag();
+
+                    setResult(response, DConnectMessage.RESULT_OK);
+                    setOrientation(response, mSensorHolder.getOrientation());
+                    sendResponse(response);
+
+                    destroy();
                 }
             }
         });
-        linkingEvent.listen();
-        mScheduleService.schedule(new Runnable() {
-            @Override
-            public void run() {
-                linkingEvent.invalidate();
-                MessageUtils.setTimeoutError(response);
-                sendResponse(response);
-            }
-        }, TIMEOUT, TimeUnit.SECONDS);
+        getLinkingDeviceManager().startSensor(device);
+
         return false;
     }
 
     @Override
-    protected boolean onPutOnDeviceOrientation(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onPutOnDeviceOrientation(final Intent request, final Intent response,
+                                               final String serviceId, final String sessionKey) {
         LinkingDevice device = getDevice(serviceId, response);
         if (device == null) {
             return true;
         }
-        final LinkingEvent linkingEvent = new LinkingSensorEvent(getContext().getApplicationContext(), device);
-        linkingEvent.setEventInfo(request);
-        linkingEvent.setLinkingEventListener(new LinkingEventListener() {
 
-            boolean isKeep = false;
-            Bundle orientation;
-            int INTERVAL = 100;
-
-            @Override
-            public void onReceiveEvent(final Event event, Bundle parameters) {
-                LinkingSensorData data = parameters.getParcelable(LinkingSensorEvent.EXTRA_SENSOR);
-                if (data == null) {
-                    throw new IllegalArgumentException("data must be specified");
-                }
-                if (BuildConfig.DEBUG) {
-                    Log.i("LinkingPlugin", "onReceiveEvent : bd:" + data.getBdAddress() + "type:" + data.getType() + " x:" + data.getX() + " y:" + data.getY() + " z:" + data.getZ());
-                }
-
-                if (isKeep) {
-                    updateOrientation(orientation, data, INTERVAL);
-                } else {
-                    isKeep = true;
-                    orientation = new Bundle();
-                    updateOrientation(orientation, data, INTERVAL);
-                    mScheduleService.schedule(new Runnable() {
-                        @Override
-                        public void run() {
-                            Bundle eventObj = new Bundle();
-                            eventObj.putBundle(PARAM_ORIENTATION, orientation);
-                            sendEvent(event, eventObj);
-                            isKeep = false;
-                        }
-                    }, INTERVAL, TimeUnit.MILLISECONDS);
-                }
+        EventError error = EventManager.INSTANCE.addEvent(request);
+        if (error == EventError.NONE) {
+            if (!getLinkingDeviceManager().isStartSensor(device)) {
+                getLinkingDeviceManager().startSensor(device);
+                mSensorHolderMap.put(device.getBdAddress(), createSensorHolder(device));
             }
-        });
-
-        LinkingEventManager manager = LinkingEventManager.getInstance();
-        manager.add(linkingEvent);
-        setResult(response, DConnectMessage.RESULT_OK);
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else if (error == EventError.INVALID_PARAMETER) {
+            MessageUtils.setInvalidRequestParameterError(response);
+        } else {
+            MessageUtils.setUnknownError(response);
+        }
         return true;
     }
 
     @Override
-    protected boolean onDeleteOnDeviceOrientation(Intent request, Intent response, String serviceId, String sessionKey) {
-        if (serviceId == null) {
-            MessageUtils.setEmptyServiceIdError(response);
+    protected boolean onDeleteOnDeviceOrientation(final Intent request, final Intent response,
+                                                  final String serviceId, final String sessionKey) {
+        LinkingDevice device = getDevice(serviceId, response);
+        if (device == null) {
             return true;
         }
-        LinkingEventManager.getInstance().remove(request);
-        setResult(response, DConnectMessage.RESULT_OK);
+
+        EventError error = EventManager.INSTANCE.removeEvent(request);
+        if (error == EventError.NONE) {
+            if (isEmptyEventList(serviceId)) {
+                getLinkingDeviceManager().stopSensor(device);
+                mSensorHolderMap.remove(device.getBdAddress());
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else if (error == EventError.INVALID_PARAMETER) {
+            MessageUtils.setInvalidRequestParameterError(response);
+        } else {
+            MessageUtils.setUnknownError(response);
+        }
         return true;
     }
 
-    private Bundle createOrientation(LinkingSensorData data, long interval) {
-        Bundle orientation = new Bundle();
-        return updateOrientation(orientation, data, interval);
+    private boolean isEmptyEventList(final String serviceId) {
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_ORIENTATION);
+        return events.isEmpty();
     }
 
-    private Bundle updateOrientation(Bundle orientation, LinkingSensorData data, long interval) {
+    private Bundle updateOrientation(final Bundle orientation, final LinkingSensorData data, final long interval) {
         switch (data.getType()) {
             case GYRO:
                 setGyroValuesToBundle(orientation, data);
@@ -162,7 +190,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         return orientation;
     }
 
-    private void setGyroValuesToBundle(Bundle bundle, LinkingSensorData data) {
+    private void setGyroValuesToBundle(final Bundle bundle, final LinkingSensorData data) {
         Bundle gyro = new Bundle();
         setBeta(gyro, data.getX());
         setGamma(gyro, data.getY());
@@ -170,7 +198,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         setRotationRate(bundle, gyro);
     }
 
-    private void setAccelerationValuesToBundle(Bundle bundle, LinkingSensorData data) {
+    private void setAccelerationValuesToBundle(final Bundle bundle, final LinkingSensorData data) {
         Bundle acceleration = new Bundle();
         setX(acceleration, data.getX() * 10);
         setY(acceleration, data.getY() * 10);
@@ -178,21 +206,53 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         setAccelerationIncludingGravity(bundle, acceleration);
     }
 
-    private void setCompassValuesToBundle(Bundle bundle, LinkingSensorData data) {
+    private void setCompassValuesToBundle(final Bundle bundle, final LinkingSensorData data) {
         Bundle compass = new Bundle();
         setX(compass, data.getX());
         compass.putDouble("beta", data.getX());
         compass.putDouble("gamma", data.getY());
         compass.putDouble("alpha", data.getZ());
-        bundle.putBundle("compass", compass);
+        bundle.putBundle(PARAM_COMPASS, compass);
     }
 
-    private LinkingDevice getDevice(String serviceId, Intent response) {
+    private void notifyOrientation(final LinkingDevice device, final LinkingSensorData sensor) {
+        final SensorHolder holder = mSensorHolderMap.get(device.getBdAddress());
+        if (holder == null) {
+            if (BuildConfig.DEBUG) {
+                Log.w(TAG, "holder is not exist.");
+            }
+            return;
+        }
+
+        updateOrientation(holder.getOrientation(), sensor, 0);
+        holder.setFlag(sensor);
+
+        if (holder.isFlag()) {
+            holder.clearFlag();
+
+            setInterval(holder.getOrientation(), holder.getInterval());
+
+            String serviceId = device.getBdAddress();
+            List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                    PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_ORIENTATION);
+            if (events != null && events.size() > 0) {
+                synchronized (events) {
+                    for (Event event : events) {
+                        Intent intent = EventManager.createEventMessage(event);
+                        setOrientation(intent, holder.getOrientation());
+                        sendEvent(intent, event.getAccessToken());
+                    }
+                }
+            }
+        }
+    }
+
+    private LinkingDevice getDevice(final String serviceId, final Intent response) {
         if (serviceId == null || serviceId.length() == 0) {
             MessageUtils.setEmptyServiceIdError(response);
             return null;
         }
-        LinkingDevice device = LinkingUtil.getLinkingDevice(getContext(), serviceId);
+        LinkingDevice device = getLinkingDeviceManager().findDeviceByBdAddress(serviceId);
         if (device == null) {
             MessageUtils.setIllegalDeviceStateError(response, "device not found");
             return null;
@@ -208,4 +268,104 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         return device;
     }
 
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingApplication app = getLinkingApplication();
+        return app.getLinkingDeviceManager();
+    }
+
+    private LinkingApplication getLinkingApplication() {
+        LinkingDeviceService service = (LinkingDeviceService) getContext();
+        return (LinkingApplication) service.getApplication();
+    }
+
+    private SensorHolder createSensorHolder(final LinkingDevice device) {
+        SensorHolder holder = new SensorHolder();
+        holder.setSupportGyro(device.isGyro());
+        holder.setSupportAcceleration(device.isAcceleration());
+        holder.setSupportCompass(device.isCompass());
+        holder.setTime(System.currentTimeMillis());
+        return holder;
+    }
+
+    private abstract class SensorListenerImpl implements Runnable, LinkingDeviceManager.SensorListener {
+        protected LinkingDevice mDevice;
+        protected SensorHolder mSensorHolder;
+        protected ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
+        protected ScheduledFuture<?> mScheduledFuture;
+        SensorListenerImpl(final LinkingDevice device) {
+            mDevice = device;
+            mSensorHolder = createSensorHolder(device);
+            mScheduledFuture = mExecutorService.schedule(this, TIMEOUT, TimeUnit.SECONDS);
+        }
+    }
+
+    private class SensorHolder {
+        private long mTime = System.currentTimeMillis();
+        private Bundle mOrientation = new Bundle();
+        private int mFlag;
+
+        private boolean mSupportGyro;
+        private boolean mSupportAcceleration;
+        private boolean mSupportCompass;
+
+        public Bundle getOrientation() {
+            return mOrientation;
+        }
+
+        public void setTime(long time) {
+            mTime = time;
+        }
+
+        public long getInterval() {
+            long interval = System.currentTimeMillis() - mTime;
+            mTime = System.currentTimeMillis();
+            return interval;
+        }
+
+        public void setSupportGyro(boolean supportGyro) {
+            mSupportGyro = supportGyro;
+        }
+
+        public void setSupportAcceleration(boolean supportAcceleration) {
+            mSupportAcceleration = supportAcceleration;
+        }
+
+        public void setSupportCompass(boolean supportCompass) {
+            mSupportCompass = supportCompass;
+        }
+
+        public void clearFlag() {
+            mFlag = 0;
+        }
+
+        public boolean isFlag() {
+            int f = 0;
+            if (mSupportGyro) {
+                f |= LinkingDevice.GYRO;
+            }
+            if (mSupportAcceleration) {
+                f |= LinkingDevice.ACCELERATION;
+            }
+            if (mSupportCompass) {
+                f |= LinkingDevice.COMPASS;
+            }
+            return mFlag == f;
+        }
+
+        private void setFlag(final LinkingSensorData sensor) {
+            switch (sensor.getType()) {
+                case GYRO:
+                    mFlag |= LinkingDevice.GYRO;
+                    break;
+                case ACCELERATION:
+                    mFlag |= LinkingDevice.ACCELERATION;
+                    break;
+                case COMPASS:
+                    mFlag |= LinkingDevice.COMPASS;
+                    break;
+                default:
+                    throw new IllegalArgumentException("unknown type");
+            }
+        }
+    }
 }

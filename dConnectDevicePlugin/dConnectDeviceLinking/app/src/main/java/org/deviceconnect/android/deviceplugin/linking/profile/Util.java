@@ -33,7 +33,7 @@ final class Util {
     private Util() {
     }
 
-    public static int getServiceType(String serviceId) {
+    public static int getServiceType(final String serviceId) {
         if (LINKING_APP_ID.equals(serviceId)) {
             return LINKING_APP;
         } else if (LinkingBeaconUtil.isLinkingBeaconByServiceId(serviceId)) {
@@ -43,7 +43,7 @@ final class Util {
         }
     }
 
-    public static String[] createLinkingDeviceScopes(LinkingDevice device) {
+    public static String[] createLinkingDeviceScopes(final LinkingDevice device) {
         List<String> scopes = new ArrayList<>();
         scopes.add(AuthorizationProfile.PROFILE_NAME);
         scopes.add(KeyEventProfile.PROFILE_NAME);

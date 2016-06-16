@@ -8,34 +8,39 @@ package org.deviceconnect.android.deviceplugin.linking.linking;
 
 import android.content.Context;
 import android.content.IntentFilter;
+import android.util.Log;
 
 import com.nttdocomo.android.sdaiflib.ControlSensorData;
 import com.nttdocomo.android.sdaiflib.ReceiveSensorData;
 
+import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+
 public class NotifySensorData {
+
+    private static final String TAG = "LinkingPlugIn";
 
     private Context mContext;
     private ReceiveSensorData mReceiver;
 
-    public NotifySensorData(Context context, ControlSensorData.SensorDataInterface observer) {
-        this.mContext = context;
+    public NotifySensorData(final Context context, final ControlSensorData.SensorDataInterface observer) {
+        mContext = context;
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.nttdocomo.android.smartdeviceagent.action.SENSOR_DATA");
         filter.addAction("com.nttdocomo.android.smartdeviceagent.action.STOP_SENSOR");
-        this.mReceiver = new ReceiveSensorData(observer);
-        this.mContext.registerReceiver(this.mReceiver, filter);
+        mReceiver = new ReceiveSensorData(observer);
+        mContext.registerReceiver(mReceiver, filter);
     }
 
     public void release() {
-        if (this.mContext != null && this.mReceiver != null) {
+        if (mContext != null && mReceiver != null) {
             try {
-                this.mContext.unregisterReceiver(this.mReceiver);
-                this.mReceiver = null;
-            } catch (IllegalArgumentException var2) {
-
+                mContext.unregisterReceiver(mReceiver);
+                mReceiver = null;
+            } catch (IllegalArgumentException e) {
+                if (BuildConfig.DEBUG) {
+                    Log.e(TAG, "", e);
+                }
             }
         }
     }
-
-
 }

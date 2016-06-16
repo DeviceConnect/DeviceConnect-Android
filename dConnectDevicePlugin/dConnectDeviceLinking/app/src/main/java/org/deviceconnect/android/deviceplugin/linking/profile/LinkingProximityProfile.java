@@ -16,12 +16,7 @@ import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.GattData;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingEvent;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingEventListener;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingEventManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingRangeEvent;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -34,26 +29,32 @@ import org.deviceconnect.profile.ProximityProfileConstants;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class LinkingProximityProfile extends ProximityProfile {
 
-    private static final int TIMEOUT = 30;//second
-    private ScheduledExecutorService mScheduleService = Executors.newScheduledThreadPool(4);
-
     public LinkingProximityProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
-        LinkingBeaconManager mgr = app.getLinkingBeaconManager();
-        mgr.addOnBeaconProximityEventListener(new LinkingBeaconManager.OnBeaconProximityEventListener() {
+        LinkingBeaconManager beaconManager = app.getLinkingBeaconManager();
+        beaconManager.addOnBeaconProximityEventListener(new LinkingBeaconManager.OnBeaconProximityEventListener() {
             @Override
             public void onProximity(LinkingBeacon beacon, GattData gatt) {
                 notifyProximityEvent(beacon, gatt);
             }
         });
+
+        LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
+        deviceManager.addRangeListener(new LinkingDeviceManager.RangeListener() {
+            @Override
+            public void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
+                notifyProximityEvent(device, range);
+            }
+        });
     }
 
     @Override
-    protected boolean onGetOnDeviceProximity(Intent request, final Intent response, String serviceId) {
+    protected boolean onGetOnDeviceProximity(final Intent request, final Intent response,final  String serviceId) {
         switch (Util.getServiceType(serviceId)) {
             case Util.LINKING_DEVICE:
                 return onGetOnDeviceProximityLinkingDevice(request, response, serviceId);
@@ -70,7 +71,8 @@ public class LinkingProximityProfile extends ProximityProfile {
     }
 
     @Override
-    protected boolean onPutOnDeviceProximity(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onPutOnDeviceProximity(final Intent request, final Intent response,
+                                             final String serviceId, final String sessionKey) {
         switch (Util.getServiceType(serviceId)) {
             case Util.LINKING_DEVICE:
                 return onPutOnDeviceProximityLinkingDevice(request, response, serviceId, sessionKey);
@@ -87,7 +89,8 @@ public class LinkingProximityProfile extends ProximityProfile {
     }
 
     @Override
-    protected boolean onDeleteOnDeviceProximity(Intent request, Intent response, String serviceId, String sessionKey) {
+    protected boolean onDeleteOnDeviceProximity(final Intent request, final Intent response,
+                                                final String serviceId, final String sessionKey) {
         switch (Util.getServiceType(serviceId)) {
             case Util.LINKING_DEVICE:
                 return onDeleteOnDeviceProximityLinkingDevice(request, response, serviceId, sessionKey);
@@ -108,28 +111,51 @@ public class LinkingProximityProfile extends ProximityProfile {
         if (device == null) {
             return true;
         }
-        final LinkingEvent linkingEvent = new LinkingRangeEvent(getContext().getApplicationContext(), device);
-        linkingEvent.setEventInfo(request);
-        linkingEvent.setLinkingEventListener(new LinkingEventListener() {
+
+        final LinkingDeviceManager deviceManager = getLinkingDeviceManager();
+        deviceManager.addRangeListener(new RangeListenerImpl(device) {
+
+            private boolean mDestroy;
+
+            private void destroy() {
+                if (mDestroy) {
+                    return;
+                }
+                mDestroy = true;
+
+                if (isEmptyEventList()) {
+                    deviceManager.stopRange();
+                }
+                deviceManager.removeRangeListener(this);
+            }
+
             @Override
-            public void onReceiveEvent(Event event, Bundle parameters) {
-                linkingEvent.invalidate();
-                int order = parameters.getInt(LinkingRangeEvent.EXTRA_RANGE);
-                LinkingManager.Range range = LinkingManager.Range.values()[order];
+            public synchronized void run() {
+                if (mDestroy) {
+                    return;
+                }
+                MessageUtils.setTimeoutError(response);
+                sendResponse(response);
+                destroy();
+            }
+
+            @Override
+            public synchronized void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
+                if (mDestroy) {
+                    return;
+                }
+
+                if (!device.equals(mDevice)) {
+                    return;
+                }
+
                 setProximity(response, createProximity(range));
                 setResult(response, DConnectMessage.RESULT_OK);
                 sendResponse(response);
+                destroy();
             }
         });
-        linkingEvent.listen();
-        mScheduleService.schedule(new Runnable() {
-            @Override
-            public void run() {
-                linkingEvent.invalidate();
-                MessageUtils.setTimeoutError(response);
-                sendResponse(response);
-            }
-        }, TIMEOUT, TimeUnit.SECONDS);
+        deviceManager.startRange();
         return false;
     }
 
@@ -152,31 +178,27 @@ public class LinkingProximityProfile extends ProximityProfile {
         return true;
     }
 
-    private boolean onPutOnDeviceProximityLinkingDevice(Intent request, Intent response, String serviceId, String sessionKey) {
+    private boolean onPutOnDeviceProximityLinkingDevice(final Intent request, final Intent response,
+                                                        final String serviceId, final String sessionKey) {
         LinkingDevice device = getDevice(serviceId, response);
         if (device == null) {
             return true;
         }
 
-        final LinkingEvent linkingEvent = new LinkingRangeEvent(getContext().getApplicationContext(), device);
-        linkingEvent.setEventInfo(request);
-        linkingEvent.setLinkingEventListener(new LinkingEventListener() {
-            @Override
-            public void onReceiveEvent(Event event, Bundle parameters) {
-                int order = parameters.getInt(LinkingRangeEvent.EXTRA_RANGE);
-                LinkingManager.Range range = LinkingManager.Range.values()[order];
-                Bundle proximity = new Bundle();
-                proximity.putBundle(PARAM_PROXIMITY, createProximity(range));
-                sendEvent(event, proximity);
-            }
-        });
-        LinkingEventManager.getInstance().add(linkingEvent);
-
-        setResult(response, DConnectMessage.RESULT_OK);
+        EventError error = EventManager.INSTANCE.addEvent(request);
+        if (error == EventError.NONE) {
+            getLinkingDeviceManager().startRange();
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else if (error == EventError.INVALID_PARAMETER) {
+            MessageUtils.setInvalidRequestParameterError(response);
+        } else {
+            MessageUtils.setUnknownError(response);
+        }
         return true;
     }
 
-    private boolean onPutOnDeviceProximityLinkingBeacon(Intent request, Intent response, String serviceId, String sessionKey) {
+    private boolean onPutOnDeviceProximityLinkingBeacon(final Intent request, final Intent response,
+                                                        final String serviceId, final String sessionKey) {
         if (getLinkingBeacon(response, serviceId) == null) {
             return true;
         }
@@ -192,17 +214,29 @@ public class LinkingProximityProfile extends ProximityProfile {
         return true;
     }
 
-    private boolean onDeleteOnDeviceProximityLinkingDevice(Intent request, Intent response, String serviceId, String sessionKey) {
+    private boolean onDeleteOnDeviceProximityLinkingDevice(final Intent request, final Intent response,
+                                                           final String serviceId, final String sessionKey) {
         LinkingDevice device = getDevice(serviceId, response);
         if (device == null) {
             return true;
         }
-        LinkingEventManager.getInstance().remove(request);
-        setResult(response, DConnectMessage.RESULT_OK);
+
+        EventError error = EventManager.INSTANCE.removeEvent(request);
+        if (error == EventError.NONE) {
+            if (isEmptyEventList()) {
+                getLinkingDeviceManager().stopRange();
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else if (error == EventError.INVALID_PARAMETER) {
+            MessageUtils.setInvalidRequestParameterError(response);
+        } else {
+            MessageUtils.setUnknownError(response);
+        }
         return true;
     }
 
-    private boolean onDeleteOnDeviceProximityLinkingBeacon(Intent request, Intent response, String serviceId, String sessionKey) {
+    private boolean onDeleteOnDeviceProximityLinkingBeacon(final Intent request, final Intent response,
+                                                           final String serviceId, final String sessionKey) {
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
             setResult(response, DConnectMessage.RESULT_OK);
@@ -214,12 +248,19 @@ public class LinkingProximityProfile extends ProximityProfile {
         return true;
     }
 
-    private LinkingDevice getDevice(String serviceId, Intent response) {
+    private boolean isEmptyEventList() {
+        List<Event> events = EventManager.INSTANCE.getEventList(
+                PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_PROXIMITY);
+        return events.isEmpty();
+    }
+
+    private LinkingDevice getDevice(final String serviceId, final Intent response) {
         if (serviceId == null || serviceId.length() == 0) {
             MessageUtils.setEmptyServiceIdError(response);
             return null;
         }
-        LinkingDevice device = LinkingUtil.getLinkingDevice(getContext(), serviceId);
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        LinkingDevice device = mgr.findDeviceByBdAddress(serviceId);
         if (device == null) {
             MessageUtils.setIllegalDeviceStateError(response, "device not found");
             return null;
@@ -227,9 +268,9 @@ public class LinkingProximityProfile extends ProximityProfile {
         return device;
     }
 
-    private Bundle createProximity(LinkingManager.Range range) {
+    private Bundle createProximity(LinkingDeviceManager.Range range) {
         Bundle proximity = new Bundle();
-        setRange(proximity, getProximityRange(range));
+        setRange(proximity, convertProximityRange(range));
         return proximity;
     }
 
@@ -239,7 +280,7 @@ public class LinkingProximityProfile extends ProximityProfile {
         return proximity;
     }
 
-    private void notifyProximityEvent(LinkingBeacon beacon, GattData gatt) {
+    private void notifyProximityEvent(final LinkingBeacon beacon, final GattData gatt) {
         String serviceId = LinkingBeaconUtil.createServiceIdFromLinkingBeacon(beacon);
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
                 PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_PROXIMITY);
@@ -254,7 +295,22 @@ public class LinkingProximityProfile extends ProximityProfile {
         }
     }
 
-    private ProximityProfileConstants.Range getProximityRange(LinkingManager.Range range) {
+    private void notifyProximityEvent(final LinkingDevice device, final LinkingDeviceManager.Range range) {
+        String serviceId = device.getBdAddress();
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                PROFILE_NAME, null, ATTRIBUTE_ON_DEVICE_PROXIMITY);
+        if (events != null && events.size() > 0) {
+            synchronized (events) {
+                for (Event event : events) {
+                    Intent intent = EventManager.createEventMessage(event);
+                    setProximity(intent, createProximity(range));
+                    sendEvent(intent, event.getAccessToken());
+                }
+            }
+        }
+    }
+
+    private ProximityProfileConstants.Range convertProximityRange(LinkingDeviceManager.Range range) {
         switch (range) {
             case IMMEDIATE:
                 return ProximityProfileConstants.Range.IMMEDIATE;
@@ -287,6 +343,11 @@ public class LinkingProximityProfile extends ProximityProfile {
         return beacon;
     }
 
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingApplication app = getLinkingApplication();
+        return app.getLinkingDeviceManager();
+    }
+
     private LinkingBeaconManager getLinkingBeaconManager() {
         LinkingApplication app = getLinkingApplication();
         return app.getLinkingBeaconManager();
@@ -295,5 +356,15 @@ public class LinkingProximityProfile extends ProximityProfile {
     private LinkingApplication getLinkingApplication() {
         LinkingDeviceService service = (LinkingDeviceService) getContext();
         return (LinkingApplication) service.getApplication();
+    }
+
+    private abstract class RangeListenerImpl implements Runnable, LinkingDeviceManager.RangeListener {
+        protected LinkingDevice mDevice;
+        protected ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
+        protected ScheduledFuture<?> mScheduledFuture;
+        RangeListenerImpl(final LinkingDevice device) {
+            mDevice = device;
+            mScheduledFuture = mExecutorService.schedule(this, 30, TimeUnit.SECONDS);
+        }
     }
 }

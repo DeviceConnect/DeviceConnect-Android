@@ -61,8 +61,10 @@ public class ConfirmActivity extends Activity {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "ConfirmActivity:startSensor type:" + type);
         }
+
         Intent intent = new Intent("com.nttdocomo.android.smartdeviceagent.action.START_SENSOR");
-        intent.setComponent(new ComponentName("com.nttdocomo.android.smartdeviceagent", "com.nttdocomo.android.smartdeviceagent.RequestStartActivity"));
+        intent.setComponent(new ComponentName("com.nttdocomo.android.smartdeviceagent",
+                "com.nttdocomo.android.smartdeviceagent.RequestStartActivity"));
         intent.putExtras(getIntent().getExtras());
         intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_TYPE", type);
         try {

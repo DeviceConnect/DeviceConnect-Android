@@ -43,7 +43,7 @@ public class LinkingDeviceService extends DConnectMessageService {
         super.onCreate();
         EventManager.INSTANCE.setController(new MemoryCacheController());
         addProfile(new LinkingLightProfile());
-        addProfile(new LinkingDeviceOrientationProfile());
+        addProfile(new LinkingDeviceOrientationProfile(this));
         addProfile(new LinkingVibrationProfile());
         addProfile(new LinkingNotificationProfile());
         addProfile(new LinkingProximityProfile(this));

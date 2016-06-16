@@ -15,11 +15,7 @@ import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManage
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingEvent;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingEventListener;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingEventManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingKeyEvent;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
@@ -29,16 +25,28 @@ import org.deviceconnect.android.profile.KeyEventProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class LinkingKeyEventProfile extends KeyEventProfile {
 
     public LinkingKeyEventProfile(DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
-        LinkingBeaconManager mgr = app.getLinkingBeaconManager();
-        mgr.addOnBeaconButtonEventListener(new LinkingBeaconManager.OnBeaconButtonEventListener() {
+        LinkingBeaconManager beaconManager = app.getLinkingBeaconManager();
+        beaconManager.addOnBeaconButtonEventListener(new LinkingBeaconManager.OnBeaconButtonEventListener() {
             @Override
             public void onClickButton(LinkingBeacon beacon, int keyCode, long timeStamp) {
                 notifyKeyEvent(beacon, keyCode, timeStamp);
+            }
+        });
+
+        LinkingDeviceManager deviceManager = app.getLinkingDeviceManager();
+        deviceManager.addKeyEventListener(new LinkingDeviceManager.KeyEventListener() {
+            @Override
+            public void onKeyEvent(LinkingDevice device, int keyCode) {
+                notifyKeyEvent(device, keyCode);
             }
         });
     }
@@ -78,20 +86,16 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         if (device == null) {
             return true;
         }
-        final LinkingEvent linkingEvent = new LinkingKeyEvent(getContext().getApplicationContext(), device);
-        linkingEvent.setEventInfo(request);
-        linkingEvent.setLinkingEventListener(new LinkingEventListener() {
-            @Override
-            public void onReceiveEvent(Event event, Bundle parameters) {
-                int keyCode = parameters.getInt(LinkingKeyEvent.EXTRA_KEY_CODE);
-                Bundle keyEvent = new Bundle();
-                keyEvent.putBundle(PARAM_KEYEVENT, createKeyEvent(keyCode));
-                sendEvent(event, keyEvent);
-            }
-        });
-        LinkingEventManager manager = LinkingEventManager.getInstance();
-        manager.add(linkingEvent);
-        setResult(response, DConnectMessage.RESULT_OK);
+
+        EventError error = EventManager.INSTANCE.addEvent(request);
+        if (error == EventError.NONE) {
+            getLinkingDeviceManager().startKeyEvent();
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else if (error == EventError.INVALID_PARAMETER) {
+            MessageUtils.setInvalidRequestParameterError(response);
+        } else {
+            MessageUtils.setUnknownError(response);
+        }
         return true;
     }
 
@@ -117,8 +121,18 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         if (device == null) {
             return true;
         }
-        LinkingEventManager.getInstance().remove(request);
-        setResult(response, DConnectMessage.RESULT_OK);
+
+        EventError error = EventManager.INSTANCE.removeEvent(request);
+        if (error == EventError.NONE) {
+            if (isEmptyEventList()) {
+                getLinkingDeviceManager().stopKeyEvent();
+            }
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else if (error == EventError.INVALID_PARAMETER) {
+            MessageUtils.setInvalidRequestParameterError(response);
+        } else {
+            MessageUtils.setUnknownError(response);
+        }
         return true;
     }
 
@@ -134,12 +148,18 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         return true;
     }
 
+    private boolean isEmptyEventList() {
+        List<Event> events = EventManager.INSTANCE.getEventList(
+                PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
+        return events.isEmpty();
+    }
+
     private LinkingDevice getDevice(String serviceId, Intent response) {
         if (serviceId == null || serviceId.length() == 0) {
             MessageUtils.setEmptyServiceIdError(response);
             return null;
         }
-        LinkingDevice device = LinkingUtil.getLinkingDevice(getContext(), serviceId);
+        LinkingDevice device = getLinkingDeviceManager().findDeviceByBdAddress(serviceId);
         if (device == null) {
             MessageUtils.setIllegalDeviceStateError(response, "device not found");
             return null;
@@ -159,6 +179,10 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         return keyEvent;
     }
 
+    private void setKeyEvent(Intent intent, Bundle keyEvent) {
+        intent.putExtra(PARAM_KEYEVENT, keyEvent);
+    }
+
     private void notifyKeyEvent(LinkingBeacon beacon, int keyCode, long timeStamp) {
         String serviceId = LinkingBeaconUtil.createServiceIdFromLinkingBeacon(beacon);
         List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
@@ -174,8 +198,19 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         }
     }
 
-    private void setKeyEvent(Intent intent, Bundle keyEvent) {
-        intent.putExtra(PARAM_KEYEVENT, keyEvent);
+    private void notifyKeyEvent(LinkingDevice device, int keyCode) {
+        String serviceId = device.getBdAddress();
+        List<Event> events = EventManager.INSTANCE.getEventList(serviceId,
+                PROFILE_NAME, null, ATTRIBUTE_ON_DOWN);
+        if (events != null && events.size() > 0) {
+            synchronized (events) {
+                for (Event event : events) {
+                    Intent intent = EventManager.createEventMessage(event);
+                    setKeyEvent(intent, createKeyEvent(keyCode));
+                    sendEvent(intent, event.getAccessToken());
+                }
+            }
+        }
     }
 
     private LinkingBeacon getLinkingBeacon(Intent response, String serviceId) {
@@ -193,6 +228,11 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
         return beacon;
     }
 
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingApplication app = getLinkingApplication();
+        return app.getLinkingDeviceManager();
+    }
+
     private LinkingBeaconManager getLinkingBeaconManager() {
         LinkingApplication app = getLinkingApplication();
         return app.getLinkingBeaconManager();
@@ -201,5 +241,16 @@ public class LinkingKeyEventProfile extends KeyEventProfile {
     private LinkingApplication getLinkingApplication() {
         LinkingDeviceService service = (LinkingDeviceService) getContext();
         return (LinkingApplication) service.getApplication();
+    }
+
+
+    private abstract class KeyEventListenerImpl implements Runnable, LinkingDeviceManager.KeyEventListener {
+        protected LinkingDevice mDevice;
+        protected ScheduledExecutorService mExecutorService = Executors.newSingleThreadScheduledExecutor();
+        protected ScheduledFuture<?> mScheduledFuture;
+        KeyEventListenerImpl(final LinkingDevice device) {
+            mDevice = device;
+            mScheduledFuture = mExecutorService.schedule(this, 30, TimeUnit.SECONDS);
+        }
     }
 }

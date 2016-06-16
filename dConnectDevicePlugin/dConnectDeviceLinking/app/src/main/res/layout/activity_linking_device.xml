@@ -16,6 +16,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/activity_device_name"
+            android:textSize="18sp"
+            android:textStyle="bold"
             android:textColor="#666"/>
 
         <!-- LED Setting -->
@@ -300,6 +302,66 @@
                 android:layout_height="wrap_content"
                 android:textColor="#666"
                 android:textSize="9sp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="7"
+                android:text="@string/activity_device_proximity"
+                android:textColor="#666"
+                android:textSize="16sp"/>
+
+            <Button
+                android:id="@+id/proximity_on"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="2"
+                android:background="@drawable/button_blue"
+                android:text="@string/activity_device_register_sensor"
+                android:textColor="#FFF"/>
+
+            <Button
+                android:id="@+id/proximity_off"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="2"
+                android:background="@drawable/button_blue"
+                android:text="@string/activity_device_unregister_sensor"
+                android:textColor="#FFF"/>
+        </LinearLayout>
+
+        <!-- Proximity -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_device_proximity_range"
+                android:textColor="#666"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/activity_device_proximity_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_device_proximity_unknown"
+                android:textColor="#666"/>
 
         </LinearLayout>
 

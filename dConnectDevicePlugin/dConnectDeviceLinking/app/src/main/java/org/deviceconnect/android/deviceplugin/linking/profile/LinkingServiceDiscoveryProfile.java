@@ -17,10 +17,13 @@ import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconManage
 import org.deviceconnect.android.deviceplugin.linking.beacon.LinkingBeaconUtil;
 import org.deviceconnect.android.deviceplugin.linking.beacon.data.LinkingBeacon;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
+import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventError;
+import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
+import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.ServiceDiscoveryProfile;
 import org.deviceconnect.message.DConnectMessage;
 
@@ -33,6 +36,8 @@ import java.util.List;
  * @author NTT DOCOMO, INC.
  */
 public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
+
+    private static final String TAG = "LinkingPlugIn";
 
     public LinkingServiceDiscoveryProfile(final DConnectMessageService service) {
         super(service);
@@ -54,7 +59,7 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
     @Override
     protected boolean onGetServices(final Intent request, final Intent response) {
         if (BuildConfig.DEBUG) {
-            Log.i("LinkingPlugIn", "ServiceDiscovery:onGetServices");
+            Log.i(TAG, "ServiceDiscovery:onGetServices");
         }
         List<Bundle> services = new ArrayList<>();
         getServiceFromLinkingDevice(services);
@@ -67,16 +72,38 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
 
     @Override
     protected boolean onPutOnServiceChange(Intent request, Intent response, String serviceId, String sessionKey) {
-        return super.onPutOnServiceChange(request, response, serviceId, sessionKey);
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "ServiceDiscovery:onPutOnServiceChange");
+        }
+        EventError error = EventManager.INSTANCE.addEvent(request);
+        if (error == EventError.NONE) {
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else if (error == EventError.INVALID_PARAMETER) {
+            MessageUtils.setInvalidRequestParameterError(response);
+        } else {
+            MessageUtils.setUnknownError(response);
+        }
+        return true;
     }
 
     @Override
     protected boolean onDeleteOnServiceChange(Intent request, Intent response, String serviceId, String sessionKey) {
-        return super.onDeleteOnServiceChange(request, response, serviceId, sessionKey);
+        if (BuildConfig.DEBUG) {
+            Log.i(TAG, "ServiceDiscovery:onDeleteOnServiceChange");
+        }
+        EventError error = EventManager.INSTANCE.removeEvent(request);
+        if (error == EventError.NONE) {
+            setResult(response, DConnectMessage.RESULT_OK);
+        } else if (error == EventError.INVALID_PARAMETER) {
+            MessageUtils.setInvalidRequestParameterError(response);
+        } else {
+            MessageUtils.setUnknownError(response);
+        }
+        return true;
     }
 
     private void getServiceFromLinkingDevice(List<Bundle> services) {
-        LinkingManager mgr = LinkingManagerFactory.createManager(getContext().getApplicationContext());
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
         List<LinkingDevice> list = mgr.getDevices();
         for (LinkingDevice device : list) {
             services.add(createServiceFromLinkingDevice(device));
@@ -123,11 +150,37 @@ public class LinkingServiceDiscoveryProfile extends ServiceDiscoveryProfile {
         }
     }
 
-
     private void notifyConnectEvent(LinkingBeacon beacon) {
+        List<Event> events = EventManager.INSTANCE.getEventList(null,
+                PROFILE_NAME, null, ATTRIBUTE_ON_SERVICE_CHANGE);
+        if (events != null && events.size() > 0) {
+            synchronized (events) {
+                for (Event event : events) {
+                    Intent intent = EventManager.createEventMessage(event);
+                    setNetworkService(intent, createServiceFromLinkingBeacon(beacon));
+                    sendEvent(intent, event.getAccessToken());
+                }
+            }
+        }
     }
 
     private void notifyDisconnectEvent(LinkingBeacon beacon) {
+        List<Event> events = EventManager.INSTANCE.getEventList(null,
+                PROFILE_NAME, null, ATTRIBUTE_ON_SERVICE_CHANGE);
+        if (events != null && events.size() > 0) {
+            synchronized (events) {
+                for (Event event : events) {
+                    Intent intent = EventManager.createEventMessage(event);
+                    setNetworkService(intent, createServiceFromLinkingBeacon(beacon));
+                    sendEvent(intent, event.getAccessToken());
+                }
+            }
+        }
+    }
+
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingApplication app = getLinkingApplication();
+        return app.getLinkingDeviceManager();
     }
 
     private LinkingBeaconManager getLinkingBeaconManager() {

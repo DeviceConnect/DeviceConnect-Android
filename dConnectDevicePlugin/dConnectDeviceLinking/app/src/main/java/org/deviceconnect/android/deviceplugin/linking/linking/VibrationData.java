@@ -10,14 +10,14 @@ import org.deviceconnect.android.deviceplugin.linking.util.ByteUtil;
 
 public class VibrationData {
 
-    byte[] source;
-    byte[] header = new byte[4];//ヘッダ。固定値(0xB1,0x03,0x00,0x00)
+    private byte[] source;
+    private byte[] header = new byte[4];//ヘッダ。固定値(0xB1,0x03,0x00,0x00)
 
-    byte vibrationId;//バイブレーション項目ID。固定値(0x10)
-    int vibrationChildCount;//バイブレーションパターン選択数
-    byte vibrationDefaultSettingId;//バイブレーションデフォルト設定ID。子項目の中でのデフォルト設定IDを示す。
-    int vibrationNameLangCount;//項目名言語数。"2"固定。
-    Name[] vibrationNames;
+    private byte vibrationId;//バイブレーション項目ID。固定値(0x10)
+    private int vibrationChildCount;//バイブレーションパターン選択数
+    private byte vibrationDefaultSettingId;//バイブレーションデフォルト設定ID。子項目の中でのデフォルト設定IDを示す。
+    private int vibrationNameLangCount;//項目名言語数。"2"固定。
+    private Name[] vibrationNames;
     public Setting mPattern;
 
     public class Setting {

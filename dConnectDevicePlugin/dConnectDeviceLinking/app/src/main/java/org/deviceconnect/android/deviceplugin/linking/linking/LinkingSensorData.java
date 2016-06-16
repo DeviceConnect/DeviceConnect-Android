@@ -10,9 +10,25 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class LinkingSensorData implements Parcelable {
-
     public enum SensorType {
-        GYRO, ACCELERATION, COMPASS, EXTENDS
+        GYRO(0), ACCELERATION(1), COMPASS(2), EXTENDS(3);
+
+        private int mValue;
+        SensorType(int value) {
+            mValue = value;
+        }
+        public int getValue() {
+            return mValue;
+        }
+
+        public static SensorType valueOf(int value) {
+            for (SensorType type : values()) {
+                if (type.getValue() == value) {
+                    return type;
+                }
+            }
+            return EXTENDS;
+        }
     }
 
     private String bdAddress;

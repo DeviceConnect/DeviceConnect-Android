@@ -6,32 +6,24 @@
  */
 package org.deviceconnect.android.deviceplugin.linking.setting;
 
-import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.nttdocomo.android.sdaiflib.ControlSensorData;
-import com.nttdocomo.android.sdaiflib.Define;
-import com.nttdocomo.android.sdaiflib.NotifyNotification;
-
-import org.deviceconnect.android.deviceplugin.linking.BuildConfig;
+import org.deviceconnect.android.deviceplugin.linking.LinkingApplication;
 import org.deviceconnect.android.deviceplugin.linking.R;
 import org.deviceconnect.android.deviceplugin.linking.linking.IlluminationData;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDevice;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManager;
-import org.deviceconnect.android.deviceplugin.linking.linking.LinkingManagerFactory;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManager;
+import org.deviceconnect.android.deviceplugin.linking.linking.LinkingSensorData;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.deviceplugin.linking.linking.VibrationData;
 import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
@@ -39,43 +31,13 @@ import org.deviceconnect.android.deviceplugin.linking.util.PreferenceUtil;
 import java.util.Map;
 
 public class LinkingDeviceActivity extends AppCompatActivity {
-
     private static final String TAG = "LinkingPlugIn";
-
     public static final String EXTRA_ADDRESS = "bdAddress";
 
     private LinkingDevice mDevice;
-    private ControlSensorData mController;
-    private NotifyNotification mNotifyNotification;
-    private int mCurrentRequestType = 0;
-
-    private ControlSensorData.SensorDataInterface mSensorInterface = new ControlSensorData.SensorDataInterface() {
-        @Override
-        public void onStopSensor(String bd, int type, int reason) {
-            updateDataText(0, 0, 0, 0, 0);
-            updateDataText(1, 0, 0, 0, 0);
-            updateDataText(2, 0, 0, 0, 0);
-        }
-
-        @Override
-        public void onSensorData(String bd, int type, float x, float y, float z, byte[] originalData, long time) {
-            updateDataText(type, x, y, z, time);
-        }
-    };
-
-    private NotifyNotification.NotificationInterface mNotificationInterface = new NotifyNotification.NotificationInterface() {
-        @Override
-        public void onNotify() {
-            SharedPreferences preference = getSharedPreferences(Define.NotificationInfo, Context.MODE_PRIVATE);
-            int deviceId = preference.getInt("DEVICE_ID", -1);
-            int uniqueId = preference.getInt("DEVICE_UID", -1);
-            int keyCode = preference.getInt("DEVICE_BUTTON_ID", -1);
-            updateKeyEvent(deviceId, uniqueId, keyCode);
-        }
-    };
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_linking_device);
 
@@ -101,32 +63,25 @@ public class LinkingDeviceActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != 4) {
-            return;
-        }
-        // RESULT_OK, RESULT_SENSOR_UNSUPPORTED
-        if (resultCode != -1 && resultCode != 8) {
-            mCurrentRequestType = 0;
-            return;
-        }
-        if (mCurrentRequestType == 2) {
-            mCurrentRequestType = 0;
-            return;
-        }
-        if (mController == null) {
-            mCurrentRequestType = 0;
-            return;
-        }
-        mCurrentRequestType += 1;
-        mController.setType(mCurrentRequestType);
-        int result = mController.start();
-        printResult(result);
+    protected void onResume() {
+        super.onResume();
+
+        getLinkingDeviceManager().addSensorListener(mSensorListener);
+        getLinkingDeviceManager().addKeyEventListener(mKeyEventListener);
+        getLinkingDeviceManager().addRangeListener(mRangeListener);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    protected void onPause() {
+        super.onPause();
+
+        getLinkingDeviceManager().removeSensorListener(mSensorListener);
+        getLinkingDeviceManager().removeKeyEventListener(mKeyEventListener);
+        getLinkingDeviceManager().removeRangeListener(mRangeListener);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
         switch(item.getItemId()) {
             case android.R.id.home:
                 finish();
@@ -135,18 +90,14 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private LinkingDevice getLinkingDeviceByAddress(String address) {
-        if (address == null) {
-            return null;
-        }
+    private LinkingDeviceManager getLinkingDeviceManager() {
+        LinkingApplication app = (LinkingApplication) getApplication();
+        return app.getLinkingDeviceManager();
+    }
 
-        LinkingManager manager = LinkingManagerFactory.createManager(getApplicationContext());
-        for (LinkingDevice device : manager.getDevices()) {
-            if (device.getBdAddress().equals(address)) {
-                return device;
-            }
-        }
-        return null;
+    private LinkingDevice getLinkingDeviceByAddress(final String address) {
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        return mgr.findDeviceByBdAddress(address);
     }
 
     public void setupUI() {
@@ -160,6 +111,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         setVibrationButton();
         setSensorButton();
         setButtonIdButton();
+        setProximityButton();
     }
 
     private void setupLightOffSetting() {
@@ -194,7 +146,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         return map == null ? null : map.get(mDevice.getBdAddress());
     }
 
-    private void setupDefaultOffSettingOfLight(LinkingDevice device) {
+    private void setupDefaultOffSettingOfLight(final LinkingDevice device) {
         Button btn = (Button) findViewById(R.id.select_light_off);
         if (btn != null) {
             IlluminationData.Setting setting = LinkingUtil.getDefaultOffSettingOfLight(device);
@@ -239,7 +191,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         return map == null ? null : map.get(mDevice.getBdAddress());
     }
 
-    private void setupDefaultOffSettingOfVibration(LinkingDevice device) {
+    private void setupDefaultOffSettingOfVibration(final LinkingDevice device) {
         Button btn = (Button) findViewById(R.id.select_vibration_off);
         if (btn != null) {
             VibrationData.Setting setting = LinkingUtil.getDefaultOffSettingOfVibration(device);
@@ -254,120 +206,122 @@ public class LinkingDeviceActivity extends AppCompatActivity {
 
     private void setLightButton() {
         View view = findViewById(R.id.select_light_off);
-        if (view == null) {
-            return;
+        if (view != null) {
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View v) {
+                    showLEDPattern();
+                }
+            });
         }
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!checkDevice()) {
-                    return;
-                }
 
-                byte[] illumination = mDevice.getIllumination();
-                if (illumination == null) {
-                    Toast.makeText(getApplicationContext(), getString(R.string.activity_device_not_support_led), Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                final IlluminationData data = new IlluminationData(illumination);
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
-                final String[] items = new String[data.mPattern.children.length];
-                for (int i = 0; i < data.mPattern.children.length; i++) {
-                    items[i] = data.mPattern.children[i].names[0].name;
-                }
-                builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        IlluminationData.Setting selectedPattern = data.mPattern.children[which];
-                        Button btn = ((Button) findViewById(R.id.select_light_off));
-                        if (btn != null) {
-                            btn.setText(selectedPattern.names[0].name);
-                        }
-                        updateLightOffSetting(selectedPattern.id & 0xFF);
-                    }
-                });
-                builder.create().show();
-            }
-        });
         Button onBtn = (Button) findViewById(R.id.on);
         if (onBtn != null) {
             onBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(final View v) {
                     onClickLED(true);
                 }
             });
         }
+
         Button offBtn = (Button) findViewById(R.id.off);
         if (offBtn != null) {
             offBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(final View v) {
                     onClickLED(false);
                 }
             });
         }
     }
 
-    private void setVibrationButton() {
-        View view = findViewById(R.id.select_vibration_off);
-        if (view == null) {
+    private void showLEDPattern() {
+        byte[] illumination = mDevice.getIllumination();
+        if (illumination == null) {
+            Toast.makeText(getApplicationContext(), getString(R.string.activity_device_not_support_led), Toast.LENGTH_SHORT).show();
             return;
         }
-        view.setOnClickListener(new View.OnClickListener() {
+
+        final IlluminationData data = new IlluminationData(illumination);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
+        final String[] items = new String[data.mPattern.children.length];
+        for (int i = 0; i < data.mPattern.children.length; i++) {
+            items[i] = data.mPattern.children[i].names[0].name;
+        }
+        builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                if (!checkDevice()) {
-                    return;
+            public void onClick(final DialogInterface dialog, final int which) {
+                IlluminationData.Setting selectedPattern = data.mPattern.children[which];
+                Button btn = ((Button) findViewById(R.id.select_light_off));
+                if (btn != null) {
+                    btn.setText(selectedPattern.names[0].name);
                 }
-
-                byte[] vibration = mDevice.getVibration();
-                if (vibration == null) {
-                    Toast.makeText(getApplicationContext(), getString(R.string.activity_device_not_support_vibration), Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                final VibrationData data = new VibrationData(vibration);
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
-                final String[] items = new String[data.mPattern.children.length];
-                for (int i = 0; i < data.mPattern.children.length; i++) {
-                    items[i] = data.mPattern.children[i].names[0].name;
-                }
-                builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        VibrationData.Setting selectedPattern = data.mPattern.children[which];
-                        Button btn = (Button) findViewById(R.id.select_vibration_off);
-                        if (btn != null) {
-                            btn.setText(selectedPattern.names[0].name);
-                        }
-                        updateVibrationOffSetting(selectedPattern.id & 0xFF);
-                    }
-                });
-                builder.create().show();
+                updateLightOffSetting(selectedPattern.id & 0xFF);
             }
         });
+        builder.create().show();
+    }
+
+    private void setVibrationButton() {
+        View view = findViewById(R.id.select_vibration_off);
+        if (view != null) {
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View v) {
+                    showVibrationPattern();
+                }
+            });
+        }
+
         Button onBtn = (Button) findViewById(R.id.vibration_on);
         if (onBtn != null) {
             onBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(final View v) {
                     onClickVibration(true);
                 }
             });
         }
+
         Button offBtn = (Button) findViewById(R.id.vibration_off);
         if (offBtn != null) {
             offBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {
+                public void onClick(final View v) {
                     onClickVibration(false);
                 }
             });
         }
+    }
+
+    private void showVibrationPattern() {
+        byte[] vibration = mDevice.getVibration();
+        if (vibration == null) {
+            Toast.makeText(getApplicationContext(), getString(R.string.activity_device_not_support_vibration), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final VibrationData data = new VibrationData(vibration);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(LinkingDeviceActivity.this);
+        final String[] items = new String[data.mPattern.children.length];
+        for (int i = 0; i < data.mPattern.children.length; i++) {
+            items[i] = data.mPattern.children[i].names[0].name;
+        }
+        builder.setTitle(getString(R.string.activity_device_pattern_list)).setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                VibrationData.Setting selectedPattern = data.mPattern.children[which];
+                Button btn = (Button) findViewById(R.id.select_vibration_off);
+                if (btn != null) {
+                    btn.setText(selectedPattern.names[0].name);
+                }
+                updateVibrationOffSetting(selectedPattern.id & 0xFF);
+            }
+        });
+        builder.create().show();
     }
 
     private void setSensorButton() {
@@ -390,9 +344,9 @@ public class LinkingDeviceActivity extends AppCompatActivity {
             });
         }
 
-        updateDataText(0, 0, 0, 0, 0);
-        updateDataText(1, 0, 0, 0, 0);
-        updateDataText(2, 0, 0, 0, 0);
+        updateDataText(LinkingSensorData.SensorType.GYRO, 0, 0, 0, 0);
+        updateDataText(LinkingSensorData.SensorType.ACCELERATION, 0, 0, 0, 0);
+        updateDataText(LinkingSensorData.SensorType.COMPASS, 0, 0, 0, 0);
     }
 
     private void setButtonIdButton() {
@@ -416,7 +370,28 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         }
     }
 
-    private void updateLightOffSetting(Integer id) {
+    private void setProximityButton() {
+        Button onBtn = (Button) findViewById(R.id.proximity_on);
+        if (onBtn != null) {
+            onBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    onClickProximity(true);
+                }
+            });
+        }
+        Button offBtn = (Button) findViewById(R.id.proximity_off);
+        if (offBtn != null) {
+            offBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    onClickProximity(false);
+                }
+            });
+        }
+    }
+
+    private void updateLightOffSetting(final Integer id) {
         PreferenceUtil util = PreferenceUtil.getInstance(getApplicationContext());
         Map<String, Integer> map = util.getLightOffSetting();
         if (map == null) {
@@ -426,7 +401,7 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         util.setLightOffSetting(map);
     }
 
-    private void updateVibrationOffSetting(Integer id) {
+    private void updateVibrationOffSetting(final Integer id) {
         PreferenceUtil util = PreferenceUtil.getInstance(getApplicationContext());
         Map<String, Integer> map = util.getVibrationOffSetting();
         if (map == null) {
@@ -436,128 +411,32 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         util.setVibrationOffSetting(map);
     }
 
-    private void updateDataText(int type, float x, float y, float z, long time) {
+    private void updateDataText(final LinkingSensorData.SensorType type, final float x, final float y, final float z, final long time) {
         switch (type) {
-            case 0: {
+            case GYRO: {
                 TextView view = (TextView) findViewById(R.id.gyro_text);
                 if (view != null) {
                     view.setText(makeParamText(x, y, z, time));
                 }
             }   break;
-            case 1: {
+            case ACCELERATION: {
                 TextView view = (TextView) findViewById(R.id.acceleration_text);
                 if (view != null) {
                     view.setText(makeParamText(x, y, z, time));
                 }
             }   break;
-            case 2: {
+            case COMPASS: {
                 TextView view = (TextView) findViewById(R.id.orientation_text);
                 if (view != null) {
                     view.setText(makeParamText(x, y, z, time));
                 }
             }   break;
+            default:
+                break;
         }
     }
 
-    private String makeParamText(float x, float y, float z, long time) {
-        return getString(R.string.activity_device_sensor_value, x, y, z, time);
-    }
-
-    private void onClickLED(boolean isOn) {
-        if (!checkDevice()) {
-            return;
-        }
-        if (mDevice.getIllumination() == null) {
-            Toast.makeText(this, getString(R.string.activity_device_not_support_led), Toast.LENGTH_SHORT).show();
-            return;
-        }
-        LinkingManager manager = LinkingManagerFactory.createManager(getApplicationContext());
-        manager.sendLEDCommand(mDevice, isOn);
-    }
-
-    private void onClickVibration(boolean isOn) {
-        if (!checkDevice()) {
-            return;
-        }
-        if (mDevice.getVibration() == null) {
-            Toast.makeText(this, getString(R.string.activity_device_not_support_vibration), Toast.LENGTH_SHORT).show();
-            return;
-        }
-        LinkingManager manager = LinkingManagerFactory.createManager(getApplicationContext());
-        manager.sendVibrationCommand(mDevice, isOn);
-    }
-
-    private void onClickSensor(boolean isOn) {
-        if (!checkDevice()) {
-            return;
-        }
-
-        // TODO:check device's feature
-
-        if (isOn) {
-            if (mController == null) {
-                mController = new ControlSensorData(this, mSensorInterface);
-                mController.setInterval(100);
-                mController.setType(0);
-            } else {
-                stopController();
-            }
-            mController.setBDaddress(mDevice.getBdAddress());
-            mCurrentRequestType = 0;
-            int result = mController.start();
-            printResult(result);
-        } else {
-            stopController();
-            mController = null;
-        }
-    }
-
-    private void onClickButtonId(boolean isOn) {
-        if (!checkDevice()) {
-            return;
-        }
-
-        if (isOn) {
-            if (mNotifyNotification == null) {
-                mNotifyNotification = new NotifyNotification(this, mNotificationInterface);
-                TextView tv = (TextView) findViewById(R.id.linking_button_id);
-                if (tv != null) {
-                    tv.setText("");
-                }
-            }
-        } else {
-            if (mNotifyNotification != null) {
-                mNotifyNotification.release();
-                mNotifyNotification = null;
-            }
-        }
-    }
-
-    private boolean checkDevice() {
-        return mDevice != null;
-    }
-
-    private void stopController() {
-        if (mController != null) {
-            int result = mController.stop();
-            printResult(result);
-            updateDataText(0, 0, 0, 0, 0);
-            updateDataText(1, 0, 0, 0, 0);
-            updateDataText(2, 0, 0, 0, 0);
-        }
-    }
-
-    private void updateKeyEvent(int deviceId, int uniqueId, int keyCode) {
-        if (mDevice == null) {
-            return;
-        }
-
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, "LinkingDeviceActivity#updateKeyEvent");
-            Log.d(TAG, "deviceId: " + deviceId);
-            Log.d(TAG, "uniqueId: " + uniqueId);
-        }
-
+    private void updateKeyEvent(final int deviceId, final int uniqueId, final int keyCode) {
         if (deviceId != mDevice.getModelId() || uniqueId != mDevice.getUniqueId()) {
             return;
         }
@@ -570,37 +449,95 @@ public class LinkingDeviceActivity extends AppCompatActivity {
         }
     }
 
-    private void printResult(int result) {
-        if (!BuildConfig.DEBUG) {
-            return;
-        }
-        switch (result) {
-            case -1:
-                Log.i("LinkingPlugIn", "RESULT_OK(-1)");
-                break;
-            case 1:
-                Log.i("LinkingPlugIn", "RESULT_CANCEL(1)");
-                break;
-            case 4:
-                Log.i("LinkingPlugIn", "RESULT_DEVICE_OFF(4)");
-                break;
-            case 5:
-                Log.i("LinkingPlugIn", "RESULT_CONNECT_FAILURE(5)");
-                break;
-            case 6:
-                Log.i("LinkingPlugIn", "RESULT_CONFLICT(6)");
-                break;
-            case 7:
-                Log.i("LinkingPlugIn", "RESULT_PARAM_ERROR(7)");
-                break;
-            case 8:
-                Log.i("LinkingPlugIn", "RESULT_SENSOR_UNSUPPORTED(8)");
-                break;
-            case 0:
-                Log.i("LinkingPlugIn", "RESULT_OTHER_ERROR(0)");
-                break;
-            default:
-                Log.i("LinkingPlugIn", "UNKNOWN_ERROR(" + result + ")");
+    private void updateRange(final LinkingDeviceManager.Range range) {
+        TextView tv = (TextView) findViewById(R.id.activity_device_proximity_text);
+        if (tv != null) {
+            switch (range) {
+                case IMMEDIATE:
+                    tv.setText(getString(R.string.activity_device_proximity_immediate));
+                    break;
+                case NEAR:
+                    tv.setText(getString(R.string.activity_device_proximity_near));
+                    break;
+                case FAR:
+                    tv.setText(getString(R.string.activity_device_proximity_far));
+                    break;
+                default:
+                    tv.setText(getString(R.string.activity_device_proximity_unknown));
+                    break;
+            }
         }
     }
+
+    private String makeParamText(final float x, final float y, final float z, final long time) {
+        return getString(R.string.activity_device_sensor_value, x, y, z, time);
+    }
+
+    private void onClickLED(boolean isOn) {
+        if (mDevice.getIllumination() == null) {
+            Toast.makeText(this, getString(R.string.activity_device_not_support_led), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        mgr.sendLEDCommand(mDevice, isOn);
+    }
+
+    private void onClickVibration(final boolean isOn) {
+        if (mDevice.getVibration() == null) {
+            Toast.makeText(this, getString(R.string.activity_device_not_support_vibration), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        mgr.sendVibrationCommand(mDevice, isOn);
+    }
+
+    private void onClickSensor(final boolean isOn) {
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        if (isOn) {
+            mgr.startSensor(mDevice);
+        } else {
+            mgr.stopSensor(mDevice);
+        }
+    }
+
+    private void onClickButtonId(final boolean isOn) {
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        if (isOn) {
+            mgr.startKeyEvent();
+        } else {
+            mgr.stopKeyEvent();
+        }
+    }
+
+    private void onClickProximity(final boolean isOn) {
+        LinkingDeviceManager mgr = getLinkingDeviceManager();
+        if (isOn) {
+            mgr.startRange();
+        } else {
+            mgr.stopRange();
+        }
+    }
+
+    private LinkingDeviceManager.SensorListener mSensorListener = new LinkingDeviceManager.SensorListener() {
+        @Override
+        public void onChangeSensor(final LinkingDevice device, final LinkingSensorData sensor) {
+            updateDataText(sensor.getType(), sensor.getX(), sensor.getY(), sensor.getZ(), sensor.getTime());
+        }
+    };
+
+    private LinkingDeviceManager.KeyEventListener mKeyEventListener = new LinkingDeviceManager.KeyEventListener() {
+        @Override
+        public void onKeyEvent(final LinkingDevice device, final int keyCode) {
+            updateKeyEvent(device.getModelId(), device.getUniqueId(), keyCode);
+        }
+    };
+
+    private LinkingDeviceManager.RangeListener mRangeListener = new LinkingDeviceManager.RangeListener() {
+        @Override
+        public void onChangeRange(final LinkingDevice device, final LinkingDeviceManager.Range range) {
+            updateRange(range);
+        }
+    };
 }

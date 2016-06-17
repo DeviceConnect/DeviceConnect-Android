@@ -37,7 +37,7 @@ public class ConfirmActivity extends Activity {
         if (BuildConfig.DEBUG) {
             Log.i(TAG, "ConfirmActivity:onCreate");
         }
-        setContentView(R.layout.activity_confirm);
+        setContentView(R.layout.activity_linking_confirm);
 
         mScheduledFuture = mExecutorService.schedule(new Runnable() {
             @Override

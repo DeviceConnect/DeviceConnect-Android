@@ -15,7 +15,6 @@ android {
         return "${version}"
     }
 
-
     defaultConfig {
         applicationId "org.deviceconnect.android.deviceplugin.linking"
         minSdkVersion 19
@@ -52,8 +51,6 @@ android {
     configurations {
         androidTestCompile.exclude group: 'com.android.support', module: 'support-annotations'
     }
-
-
 }
 
 dependencies {

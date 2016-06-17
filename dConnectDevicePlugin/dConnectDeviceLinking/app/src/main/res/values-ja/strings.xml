@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Linking (Device Connect Device Plug-in)</string>
+    <string name="linking_app_name">Linking (Device Connect Device Plug-in)</string>
 
-    <string name="ok">OK</string>
-    <string name="cancel">Cancel</string>
+    <string name="activity_linking_ok">OK</string>
+    <string name="activity_linking_cancel">Cancel</string>
 
-    <string name="activity_confirm_title">ConfirmActivity</string>
+    <string name="activity_linking_confirm_title">ConfirmActivity</string>
 
     <string name="activity_setting_tab_paring">ペアリング</string>
     <string name="activity_setting_tab_beacon">ビーコン</string>

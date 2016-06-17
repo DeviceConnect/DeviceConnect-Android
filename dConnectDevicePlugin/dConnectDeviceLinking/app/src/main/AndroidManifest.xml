@@ -7,17 +7,21 @@
         android:name=".LinkingApplication"
         android:allowBackup="true"
         android:icon="@mipmap/dconnect_icon"
-        android:label="@string/app_name"
+        android:label="@string/linking_app_name"
         android:theme="@style/Theme.AppCompat">
+
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.setting_activity"
             android:value="\#Intent;action=android.intent.action.MAIN;component=org.deviceconnect.android.deviceplugin.linking/.setting.SettingActivity;end"/>
+
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.support"
             android:value="true"/>
+
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.beacon"
             android:value="true" />
+
         <meta-data
             android:name="com.nttdocomo.android.smartdeviceagent.feature.notify_distance"
             android:value="true"/>
@@ -36,19 +40,10 @@
             android:enabled="true"
             android:exported="false"/>
 
-        <!-- 再起動用のService. -->
-        <service
-            android:name="org.deviceconnect.android.message.DConnectLaunchService"
-            android:exported="true">
-            <meta-data
-                android:name="org.deviceconnect.android.deviceplugin"
-                android:value="enable"/>
-        </service>
-
         <activity
             android:name=".setting.SettingActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name"
+            android:label="@string/linking_app_name"
             android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -58,35 +53,35 @@
         <activity
             android:name=".setting.LinkingDeviceActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name"
+            android:label="@string/linking_app_name"
             android:launchMode="singleInstance">
         </activity>
 
         <activity
             android:name=".setting.LinkingBeaconActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name"
+            android:label="@string/linking_app_name"
             android:launchMode="singleInstance">
         </activity>
 
         <activity
             android:name=".setting.LinkingInductionActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name"
+            android:label="@string/linking_app_name"
             android:launchMode="singleInstance">
         </activity>
 
         <activity
             android:name=".setting.LinkingHelpActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name"
+            android:label="@string/linking_app_name"
             android:launchMode="singleInstance">
         </activity>
 
         <activity
             android:name=".setting.AppInformationActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name"
+            android:label="@string/linking_app_name"
             android:launchMode="singleInstance">
         </activity>
 
@@ -95,7 +90,7 @@
             android:excludeFromRecents="true"
             android:finishOnCloseSystemDialogs="true"
             android:configChanges="orientation|screenSize"
-            android:label="@string/activity_confirm_title"
+            android:label="@string/activity_linking_confirm_title"
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar">
         </activity>

@@ -33,7 +33,7 @@ public class SettingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_setting);
+        setContentView(R.layout.activity_linking_setting);
 
         pageTitle[0] = getString(R.string.activity_setting_tab_paring);
         pageTitle[1] = getString(R.string.activity_setting_tab_beacon);
@@ -54,7 +54,7 @@ public class SettingActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
-        getMenuInflater().inflate(R.menu.menu, menu);
+        getMenuInflater().inflate(R.menu.menu_linking_main, menu);
         return true;
     }
 

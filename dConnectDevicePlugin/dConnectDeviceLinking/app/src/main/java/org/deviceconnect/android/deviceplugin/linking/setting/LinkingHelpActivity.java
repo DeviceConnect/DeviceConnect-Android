@@ -28,18 +28,18 @@ public class LinkingHelpActivity extends AppCompatActivity {
 
     private static final int[][] HELP_RES_ID = {
             {
-                    R.layout.fragment_help_1,
-                    R.layout.fragment_help_2,
-                    R.layout.fragment_help_3,
-                    R.layout.fragment_help_4,
-                    R.layout.fragment_help_5,
-                    R.layout.fragment_help_6,
+                    R.layout.fragment_linking_help_1,
+                    R.layout.fragment_linking_help_2,
+                    R.layout.fragment_linking_help_3,
+                    R.layout.fragment_linking_help_4,
+                    R.layout.fragment_linking_help_5,
+                    R.layout.fragment_linking_help_6,
             },
             {
-                    R.layout.fragment_help_7,
-                    R.layout.fragment_help_4,
-                    R.layout.fragment_help_5,
-                    R.layout.fragment_help_6,
+                    R.layout.fragment_linking_help_7,
+                    R.layout.fragment_linking_help_4,
+                    R.layout.fragment_linking_help_5,
+                    R.layout.fragment_linking_help_6,
             }
     };
 

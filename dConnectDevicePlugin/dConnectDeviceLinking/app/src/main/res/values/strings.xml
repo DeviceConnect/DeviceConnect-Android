@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Linking (Device Connect Device Plug-in)</string>
+    <string name="linking_app_name">Linking (Device Connect Device Plug-in)</string>
 
 </resources>

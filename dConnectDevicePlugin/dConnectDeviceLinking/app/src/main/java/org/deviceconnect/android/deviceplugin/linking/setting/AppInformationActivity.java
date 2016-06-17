@@ -21,7 +21,7 @@ public class AppInformationActivity extends AppCompatActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_app_information);
+        setContentView(R.layout.activity_linking_app_information);
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {

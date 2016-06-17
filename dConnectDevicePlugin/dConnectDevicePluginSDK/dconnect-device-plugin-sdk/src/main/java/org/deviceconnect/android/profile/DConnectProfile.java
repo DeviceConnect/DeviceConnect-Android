@@ -58,9 +58,7 @@ public abstract class DConnectProfile implements DConnectProfileConstants {
 
     public List<DConnectApi> getApiList() {
         List<DConnectApi> list = new ArrayList<DConnectApi>();
-        for (DConnectApi api : mApis.values()) {
-            list.add(api);
-        }
+        list.addAll(mApis.values());
         return list;
     }
 

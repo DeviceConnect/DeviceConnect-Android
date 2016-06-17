@@ -153,6 +153,9 @@ public final class RawDataParseUtils {
         }
         String[] lineList=raw.split(HitoeConstants.BR);
         String[] stressList = lineList[0].split(HitoeConstants.COMMA, -1);
+        if (stressList[0].isEmpty() || stressList[1].isEmpty()) {
+            return stress;
+        }
         long timestamp = Long.parseLong(stressList[0]);
         double lfhf = Double.parseDouble(stressList[1]);
         stress.setLFHFValue(lfhf);

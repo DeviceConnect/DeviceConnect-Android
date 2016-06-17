@@ -29,15 +29,16 @@ public class HitoeBatteryProfile extends BatteryProfile {
             MessageUtils.setEmptyServiceIdError(response);
         } else {
             HeartRateData data = getManager().getHeartRateData(serviceId);
-            double level = (double) data.getDevice().getBatteryLevel();
             if (data == null) {
                 MessageUtils.setNotFoundServiceError(response);
-            } else if (level < 0) {
+                return true;
+            }
+            double level = (double) data.getDevice().getBatteryLevel();
+            if (level < 0) {
                 MessageUtils.setUnknownError(response, "Battery level is unknown.");
             } else {
                 setResult(response, DConnectMessage.RESULT_OK);
-                // TODO Unknown Hitoe's battery Scale
-                setLevel(response, level / 3 / 100);
+                setLevel(response,  ( level / 3.0f ));
             }
         }
         return true;
@@ -50,14 +51,16 @@ public class HitoeBatteryProfile extends BatteryProfile {
             MessageUtils.setEmptyServiceIdError(response);
         } else {
             HeartRateData data = getManager().getHeartRateData(serviceId);
-            double level = (double) data.getDevice().getBatteryLevel();
             if (data == null) {
                 MessageUtils.setNotFoundServiceError(response);
-            } else if (level < 0) {
+                return true;
+            }
+            double level = (double) data.getDevice().getBatteryLevel();
+            if (level < 0) {
                 MessageUtils.setUnknownError(response, "Battery level is unknown.");
             } else {
                 setResult(response, DConnectMessage.RESULT_OK);
-                setLevel(response, level / 3 / 100);
+                setLevel(response,  ( level / 3.0f ));
             }
         }
         return true;

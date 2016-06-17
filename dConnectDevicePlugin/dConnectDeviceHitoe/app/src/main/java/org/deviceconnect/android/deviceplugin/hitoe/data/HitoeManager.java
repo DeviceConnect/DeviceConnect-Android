@@ -80,25 +80,25 @@ public class HitoeManager {
     /** Walk State datas. */
     private final Map<HitoeDevice, WalkStateData> mWalkStateData;
 
-    // 拡張分析のための保存データ
+    // Save data for extended analysis
     private ArrayList<TempExData> mListForEx;
-    // 拡張分析のためのロック
+    // Lock for the extension analysis
     private ReentrantLock mLockForEx;
-    // 拡張分析中フラグ
+    // Expanded analysis flag
     private boolean mFlagForEx;
-    // interval
+    // Acceleration's interval
     private long mInterval = 0;
-    // 姿勢推定のための一時保存データ
+    // Temporary storage data for pose estimation
     private ArrayList<String> mListForPosture;
-    // 姿勢推定のためのロック
+    // Lock for pose estimation
     private ReentrantLock mLockForPosture;
-    // 歩行状態推定のための一時保存データ
+    // Temporary storage data for walking state estimation
     private ArrayList<String> mListForWalk;
-    // 歩行状態推定のためのロック
+    // Lock for walking state estimation
     private ReentrantLock mLockForWalk;
-    // 左右バランス推定のための一時保存データ
+    // Temporary storage data for the left and right balance estimation
     private ArrayList<String> mListForLRBalance;
-    // 左右バランス推定のためのロック
+    // Lock for the left and right balance estimation
     private ReentrantLock mLockForLRBalance;
 
     /** Hitoe API Callback. */
@@ -122,7 +122,7 @@ public class HitoeManager {
                         notifyConnectHitoeDevice(responseId, responseString);
                         break;
                     case HitoeConstants.API_ID_DISCONNECT:
-                        // センサーの切断
+                        // disconnect sensor
                         break;
                     case HitoeConstants.API_ID_GET_AVAILABLE_DATA:
                         notifyAvailableData(responseId, responseString);
@@ -135,12 +135,6 @@ public class HitoeManager {
                         notifyRemoveReceiver(responseId, responseString);
                         break;
                     case HitoeConstants.API_ID_GET_STATUS:
-
-                        if (responseId != HitoeConstants.RES_ID_SUCCESS || responseString == null) {
-                            // 確認に失敗
-                        } else {
-                            messageTextBuilder.append(responseString);
-                        }
                         break;
                     default:
                         if (BuildConfig.DEBUG) {
@@ -220,12 +214,12 @@ public class HitoeManager {
             }
 
             if (dataKey.startsWith(HitoeConstants.EX_DATA_PREFFIX)) {
-                // 拡張分析はコネクションを破棄する
+                // Expanded analysis discard the connection
                 receiveDevice.removeConnectionId(connectionId);
             } else {
 
-                // 拡張があれば実行
-                // 既に実行中であれば実行しない
+                // Perform any extension
+                //Do not run if it is already running
                 TempExData exData = null;
                 try {
 
@@ -257,140 +251,7 @@ public class HitoeManager {
         }
     };
 
-    /**
-     * Analyze Acceleration data.
-     * Get Posture Data, Walk State data, LR Balance data.
-     * @param rawData raw data
-     * @param receiveDevice receive device
-     */
-    private void analyzeAccelerationData(final String rawData, final HitoeDevice receiveDevice) {
-        String[] lineList = rawData.split(HitoeConstants.BR);
-        ArrayList<String> postureInputList  = new ArrayList<String>();
-        ArrayList<String> walkInputList  = new ArrayList<String>();
-        ArrayList<String> lrBalanceInputList  = new ArrayList<String>();
 
-        ArrayList<String> workList = new ArrayList<String>();
-
-        for(int i=0; i < lineList.length; i++) {
-
-            if(receiveDevice.getAvailableExDataList().contains("ex.posture")) {
-                try {
-                    mLockForPosture.lock();
-                    mListForPosture.add(lineList[i]);
-                    if (mListForPosture.size() > HitoeConstants.EX_POSTURE_UNIT_NUM + 5) {
-
-                        for (int j = 0; j < HitoeConstants.EX_POSTURE_UNIT_NUM; j++) {
-
-                            postureInputList.add(mListForPosture.get(j));
-                        }
-                        for (int j = HitoeConstants.EX_POSTURE_UNIT_NUM; j < HitoeConstants.EX_POSTURE_UNIT_NUM + 5; j++) {
-
-                            postureInputList.add(mListForPosture.get(j));
-                        }
-                        workList = new ArrayList<String>();
-                        for (int j = 25; j < mListForPosture.size(); j++) {
-
-                            workList.add(mListForPosture.get(j));
-                        }
-                        mListForPosture = workList;
-                    }
-                } finally {
-
-                    mLockForPosture.unlock();
-                }
-                if(postureInputList.size() > 0) {
-
-                    try {
-                        mLockForEx.lock();
-                        mListForEx.add(new TempExData("ex.posture", postureInputList));
-                    } finally {
-                        mLockForEx.unlock();
-                    }
-
-                    postureInputList.clear();
-                }
-            }
-            if(receiveDevice.getAvailableExDataList().contains("ex.walk")) {
-                try {
-                    mLockForWalk.lock();
-                    mListForWalk.add(lineList[i]);
-                    if (mListForWalk.size() > HitoeConstants.EX_WALK_UNIT_NUM + 5) {
-
-                        for (int j = 0; j < HitoeConstants.EX_WALK_UNIT_NUM; j++) {
-
-                            walkInputList.add(mListForWalk.get(j));
-                        }
-                        for (int j = HitoeConstants.EX_WALK_UNIT_NUM; j < HitoeConstants.EX_WALK_UNIT_NUM + 5; j++) {
-
-                            walkInputList.add(mListForWalk.get(j));
-                        }
-
-                        workList = new ArrayList<String>();
-                        for (int j = 25; j < mListForWalk.size(); j++) {
-
-                            workList.add(mListForWalk.get(j));
-                        }
-                        mListForWalk = workList;
-                    }
-                } finally {
-
-                    mLockForWalk.unlock();
-                }
-                if(walkInputList.size() > 0) {
-
-                    try {
-                        mLockForEx.lock();
-                        mListForEx.add(new TempExData("ex.walk", walkInputList));
-                    } finally {
-                        mLockForEx.unlock();
-                    }
-
-                    walkInputList.clear();
-                }
-            }
-            if(receiveDevice.getAvailableExDataList().contains("ex.lr_balance")) {
-                try {
-                    mLockForLRBalance.lock();
-                    mListForLRBalance.add(lineList[i]);
-                    if (mListForLRBalance.size() > HitoeConstants.EX_LR_BALANCE_UNIT_NUM + 5) {
-
-                        for (int j = 0; j < HitoeConstants.EX_LR_BALANCE_UNIT_NUM; j++) {
-
-                            lrBalanceInputList.add(mListForLRBalance.get(j));
-                        }
-                        // 少し多めに追加
-                        for (int j = HitoeConstants.EX_LR_BALANCE_UNIT_NUM; j < HitoeConstants.EX_LR_BALANCE_UNIT_NUM + 5; j++) {
-
-                            lrBalanceInputList.add(mListForLRBalance.get(j));
-                        }
-
-                        // 1秒分を削除
-                        workList = new ArrayList<String>();
-                        for (int j = 25; j < mListForLRBalance.size(); j++) {
-
-                            workList.add(mListForLRBalance.get(j));
-                        }
-                        mListForLRBalance = workList;
-
-                    }
-                } finally {
-
-                    mLockForLRBalance.unlock();
-                }
-                if(lrBalanceInputList.size() > 0) {
-
-                    try {
-                        mLockForEx.lock();
-                        mListForEx.add(new TempExData("ex.lr_balance", lrBalanceInputList));
-                    } finally {
-                        mLockForEx.unlock();
-                    }
-
-                    lrBalanceInputList.clear();
-                }
-            }
-        }
-    }
 
 
     /**
@@ -600,7 +461,6 @@ public class HitoeManager {
      */
     public void discoveryHitoeDevices() {
         StringBuilder paramStringBuilder = new StringBuilder();
-        // 利用可能センサを問い合わせ
         if(HitoeConstants.GET_AVAILABLE_SENSOR_PARAM_SEARCH_TIME != -1) {
             paramStringBuilder.append("search_time=" + String.valueOf(HitoeConstants.GET_AVAILABLE_SENSOR_PARAM_SEARCH_TIME));
         }
@@ -1141,7 +1001,6 @@ public class HitoeManager {
 
         if(!mRegisterDevices.get(pos).getAvailableExDataList().contains(keyString)) {
 
-            // 対象でなければ登録しない
             try{
 
                 mLockForEx.lock();
@@ -1434,7 +1293,137 @@ public class HitoeManager {
         currentHeartRate.setDevice(current);
         mHRData.put(receiveDevice, currentHeartRate);
     }
+    /**
+     * Analyze Acceleration data.
+     * Get Posture Data, Walk State data, LR Balance data.
+     * @param rawData raw data
+     * @param receiveDevice receive device
+     */
+    private void analyzeAccelerationData(final String rawData, final HitoeDevice receiveDevice) {
+        String[] lineList = rawData.split(HitoeConstants.BR);
+        ArrayList<String> postureInputList  = new ArrayList<String>();
+        ArrayList<String> walkInputList  = new ArrayList<String>();
+        ArrayList<String> lrBalanceInputList  = new ArrayList<String>();
 
+        ArrayList<String> workList = new ArrayList<String>();
+
+        for(int i=0; i < lineList.length; i++) {
+
+            if(receiveDevice.getAvailableExDataList().contains("ex.posture")) {
+                try {
+                    mLockForPosture.lock();
+                    mListForPosture.add(lineList[i]);
+                    if (mListForPosture.size() > HitoeConstants.EX_POSTURE_UNIT_NUM + 5) {
+
+                        for (int j = 0; j < HitoeConstants.EX_POSTURE_UNIT_NUM; j++) {
+
+                            postureInputList.add(mListForPosture.get(j));
+                        }
+                        for (int j = HitoeConstants.EX_POSTURE_UNIT_NUM; j < HitoeConstants.EX_POSTURE_UNIT_NUM + 5; j++) {
+
+                            postureInputList.add(mListForPosture.get(j));
+                        }
+                        workList = new ArrayList<String>();
+                        for (int j = 25; j < mListForPosture.size(); j++) {
+
+                            workList.add(mListForPosture.get(j));
+                        }
+                        mListForPosture = workList;
+                    }
+                } finally {
+
+                    mLockForPosture.unlock();
+                }
+                if(postureInputList.size() > 0) {
+
+                    try {
+                        mLockForEx.lock();
+                        mListForEx.add(new TempExData("ex.posture", postureInputList));
+                    } finally {
+                        mLockForEx.unlock();
+                    }
+
+                    postureInputList.clear();
+                }
+            }
+            if(receiveDevice.getAvailableExDataList().contains("ex.walk")) {
+                try {
+                    mLockForWalk.lock();
+                    mListForWalk.add(lineList[i]);
+                    if (mListForWalk.size() > HitoeConstants.EX_WALK_UNIT_NUM + 5) {
+
+                        for (int j = 0; j < HitoeConstants.EX_WALK_UNIT_NUM; j++) {
+
+                            walkInputList.add(mListForWalk.get(j));
+                        }
+                        for (int j = HitoeConstants.EX_WALK_UNIT_NUM; j < HitoeConstants.EX_WALK_UNIT_NUM + 5; j++) {
+
+                            walkInputList.add(mListForWalk.get(j));
+                        }
+
+                        workList = new ArrayList<String>();
+                        for (int j = 25; j < mListForWalk.size(); j++) {
+
+                            workList.add(mListForWalk.get(j));
+                        }
+                        mListForWalk = workList;
+                    }
+                } finally {
+
+                    mLockForWalk.unlock();
+                }
+                if(walkInputList.size() > 0) {
+
+                    try {
+                        mLockForEx.lock();
+                        mListForEx.add(new TempExData("ex.walk", walkInputList));
+                    } finally {
+                        mLockForEx.unlock();
+                    }
+
+                    walkInputList.clear();
+                }
+            }
+            if(receiveDevice.getAvailableExDataList().contains("ex.lr_balance")) {
+                try {
+                    mLockForLRBalance.lock();
+                    mListForLRBalance.add(lineList[i]);
+                    if (mListForLRBalance.size() > HitoeConstants.EX_LR_BALANCE_UNIT_NUM + 5) {
+
+                        for (int j = 0; j < HitoeConstants.EX_LR_BALANCE_UNIT_NUM; j++) {
+
+                            lrBalanceInputList.add(mListForLRBalance.get(j));
+                        }
+                        for (int j = HitoeConstants.EX_LR_BALANCE_UNIT_NUM; j < HitoeConstants.EX_LR_BALANCE_UNIT_NUM + 5; j++) {
+
+                            lrBalanceInputList.add(mListForLRBalance.get(j));
+                        }
+                        workList = new ArrayList<String>();
+                        for (int j = 25; j < mListForLRBalance.size(); j++) {
+
+                            workList.add(mListForLRBalance.get(j));
+                        }
+                        mListForLRBalance = workList;
+
+                    }
+                } finally {
+
+                    mLockForLRBalance.unlock();
+                }
+                if(lrBalanceInputList.size() > 0) {
+
+                    try {
+                        mLockForEx.lock();
+                        mListForEx.add(new TempExData("ex.lr_balance", lrBalanceInputList));
+                    } finally {
+                        mLockForEx.unlock();
+                    }
+
+                    lrBalanceInputList.clear();
+                }
+            }
+        }
+    }
     // ------------------------------------
     // Listener.
     // ------------------------------------

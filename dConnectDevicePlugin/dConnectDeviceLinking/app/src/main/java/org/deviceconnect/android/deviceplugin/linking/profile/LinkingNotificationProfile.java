@@ -43,11 +43,13 @@ public class LinkingNotificationProfile extends NotificationProfile {
                 break;
             case UNKNOWN:
             default:
-                break;
+                MessageUtils.setInvalidRequestParameterError(response, "type is invalid.");
+                return true;
         }
         String detail = body == null ? "通知が来ています。" : body;
         LinkingDeviceManager manager = getLinkingDeviceManager();
         manager.sendNotification(device, new LinkingNotification(title, detail));
+        setNotificationId(response, "0");
         setResult(response, DConnectMessage.RESULT_OK);
         return true;
     }

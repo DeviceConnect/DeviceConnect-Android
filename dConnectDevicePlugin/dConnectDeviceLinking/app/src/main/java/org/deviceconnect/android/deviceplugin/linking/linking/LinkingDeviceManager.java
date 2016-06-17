@@ -10,6 +10,7 @@ import android.util.Log;
 import com.nttdocomo.android.sdaiflib.ControlSensorData;
 import com.nttdocomo.android.sdaiflib.Define;
 import com.nttdocomo.android.sdaiflib.DeviceInfo;
+import com.nttdocomo.android.sdaiflib.ErrorCode;
 import com.nttdocomo.android.sdaiflib.GetDeviceInformation;
 import com.nttdocomo.android.sdaiflib.NotifyNotification;
 import com.nttdocomo.android.sdaiflib.NotifyRange;
@@ -239,39 +240,41 @@ public class LinkingDeviceManager {
         }
     }
 
-    public void sendLEDCommand(final LinkingDevice device, final boolean on) {
+    public boolean sendLEDCommand(final LinkingDevice device, final boolean on) {
         SendNotification notify = new SendNotification(mContext);
         notify.setDispNameEn("Linking Device Plug-in");
         notify.setDispNameJa("Linking Device Plug-in");
         notify.setIcon(R.mipmap.dconnect_icon);
         notify.setTitle("title");
-        notify.setText("test");
+        notify.setText("linking");
         notify.setDeviceID(device.getModelId());
         notify.setDeviceUID(device.getUniqueId());
         setVibration(notify, device);
         if (!on) {
             setIllumination(notify, device);
         }
-        notify.send();
+        int result = notify.send();
+        return (result != ErrorCode.RESULT_OK);
     }
 
-    public void sendVibrationCommand(final LinkingDevice device, final boolean on) {
+    public boolean sendVibrationCommand(final LinkingDevice device, final boolean on) {
         SendNotification notify = new SendNotification(mContext);
         notify.setDispNameEn("Linking Device Plug-in");
         notify.setDispNameJa("Linking Device Plug-in");
         notify.setIcon(R.mipmap.dconnect_icon);
         notify.setTitle("title");
-        notify.setText("test");
+        notify.setText("linking");
         notify.setDeviceID(device.getModelId());
         notify.setDeviceUID(device.getUniqueId());
         if (!on) {
             setVibration(notify, device);
         }
         setIllumination(notify, device);
-        notify.send();
+        int result = notify.send();
+        return (result != ErrorCode.RESULT_OK);
     }
 
-    public void sendNotification(final LinkingDevice device, final LinkingNotification notification) {
+    public boolean sendNotification(final LinkingDevice device, final LinkingNotification notification) {
         SendNotification notify = new SendNotification(mContext);
         notify.setDispNameEn("Linking Device Plug-in");
         notify.setDispNameJa("Linking Device Plug-in");
@@ -280,7 +283,8 @@ public class LinkingDeviceManager {
         notify.setText(notification.getDetail());
         notify.setDeviceID(device.getModelId());
         notify.setDeviceUID(device.getUniqueId());
-        notify.send();
+        int result = notify.send();
+        return (result != ErrorCode.RESULT_OK);
     }
 
     public void addKeyEventListener(final KeyEventListener listener) {

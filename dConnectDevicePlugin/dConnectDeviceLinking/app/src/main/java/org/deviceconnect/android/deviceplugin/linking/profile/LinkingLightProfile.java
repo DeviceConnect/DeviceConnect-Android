@@ -59,6 +59,11 @@ public class LinkingLightProfile extends LightProfile {
             return true;
         }
 
+        if (!device.getBdAddress().equals(lightId)) {
+            MessageUtils.setInvalidRequestParameterError(response, "lightId is invalid.");
+            return true;
+        }
+
         LinkingDeviceManager manager = getLinkingDeviceManager();
         if (flashing != null) {
             flashing(serviceId, manager, device, flashing);
@@ -76,6 +81,12 @@ public class LinkingLightProfile extends LightProfile {
         if (device == null) {
             return true;
         }
+
+        if (!device.getBdAddress().equals(lightId)) {
+            MessageUtils.setInvalidRequestParameterError(response, "lightId is invalid.");
+            return true;
+        }
+
         LinkingDeviceManager manager = getLinkingDeviceManager();
         manager.sendLEDCommand(device, false);
         sendResultOK(response);

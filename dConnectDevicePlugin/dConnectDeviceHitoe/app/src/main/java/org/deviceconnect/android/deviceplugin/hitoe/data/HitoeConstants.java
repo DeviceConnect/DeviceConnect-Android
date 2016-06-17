@@ -4,7 +4,7 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.hitoe.ble;
+package org.deviceconnect.android.deviceplugin.hitoe.data;
 
 /**
  * Hitoe's constant.

@@ -17,7 +17,7 @@ import org.deviceconnect.android.activity.PermissionUtility;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
 import org.deviceconnect.android.deviceplugin.hitoe.util.BleUtils;
-import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.message.DConnectMessageService;
 import org.deviceconnect.android.message.MessageUtils;

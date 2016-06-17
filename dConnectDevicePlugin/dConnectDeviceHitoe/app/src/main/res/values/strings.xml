@@ -6,10 +6,10 @@
     <string name="summary_not_support_title">デバイスエラー</string>
     <string name="summary_not_support_message">このデバイスはBluetooth Low Energyをサポートしていません</string>
 
-    <string name="hitoe_title">[1/3] Hitoeの準備</string>
-    <string name="hitoe_body">矢印の位置にあるボタンをランプが点滅するまで、長押してください。\nランプが黄緑色に点滅します。\nランプが点灯したら、Hitoeをウェアに装着してください。</string>
+    <string name="hitoe_title">Hitoeの準備</string>
+    <string name="hitoe_body">ボタンをランプが点滅するまで、長押してください。\nランプが黄緑色に点滅します。\nランプが点灯したら、Hitoeをウェアに装着してください。</string>
 
-    <string name="bluetooth_settings_title">[2/3] Bluetooth設定</string>
+    <string name="bluetooth_settings_title">Bluetoothの設定</string>
     <string name="bluetooth_settings_body">このデバイスプラグインでは、Bluetooth Low Energyを使用しますので、端末のBluetooth設定画面より設定をONにしてください。\n\n既にBluetoothがONになっている場合には次のページにお進みください。\n</string>
     <string name="bluetooth_settings_button">設定画面を開く</string>
     <string name="bluetooth_settings_ble_detail">Android 6.0からBLEをスキャンするには、位置情報のパーミッションが必要になりました。\nこのプラグインを使用するためには、以下のパーミッションを許可してください。\n許可を取り消すには、アプリの設定画面から行うことができます。</string>
@@ -17,7 +17,7 @@
     <string name="bluetooth_settings_ble_permission_on">取得済み</string>
     <string name="bluetooth_settings_ble_permission_off">取得</string>
 
-    <string name="hitoe_setting_title">[3/3] デバイス接続</string>
+    <string name="hitoe_setting_title">デバイスの接続</string>
     <string name="tap_discovery">Hitoeデバイスの検索をタップしてください。</string>
     <string name="discovery_devices">Hitoeデバイスの検索</string>
     <string name="device_list_description">デバイスとの接続を行ってください。</string>

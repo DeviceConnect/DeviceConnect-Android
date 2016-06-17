@@ -1,5 +1,5 @@
 /*
- HitoeHealthProfile
+ HitoeWalkStateProfile
  Copyright (c) 2015 NTT DOCOMO,INC.
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
@@ -7,37 +7,35 @@
 package org.deviceconnect.android.deviceplugin.hitoe.profile;
 
 import android.content.Intent;
-import android.os.Bundle;
-import android.support.annotation.NonNull;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
+import org.deviceconnect.android.deviceplugin.hitoe.data.WalkStateData;
 import org.deviceconnect.android.event.Event;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.MessageUtils;
-import org.deviceconnect.android.profile.HealthProfile;
+import org.deviceconnect.android.profile.WalkStateProfile;
 import org.deviceconnect.message.DConnectMessage;
 
 import java.util.List;
 
 /**
- * Implement HealthProfile.
+ * Implement WalkStateProfile.
  * @author NTT DOCOMO, INC.
  */
-public class HitoeHealthProfile extends HealthProfile {
+public class HitoeWalkStateProfile extends WalkStateProfile {
 
     /**
-     * Implementation of {@link HitoeManager.OnHitoeHeartRateEventListener}.
+     * Implementation of {@link HitoeManager.OnHitoeWalkStateEventListener}.
      */
-    private final HitoeManager.OnHitoeHeartRateEventListener mHeartRateEventListener =
-            new HitoeManager.OnHitoeHeartRateEventListener() {
+    private final HitoeManager.OnHitoeWalkStateEventListener mWalkStateEventListener =
+            new HitoeManager.OnHitoeWalkStateEventListener() {
                 @Override
-                public void onReceivedData(final HitoeDevice device, final HeartRateData data) {
-                    notifyHeartRateData(device, data);
+                public void onReceivedData(final HitoeDevice device, final WalkStateData data) {
+                    notifyWalkStateData(device, data);
                 }
             };
 
@@ -45,34 +43,34 @@ public class HitoeHealthProfile extends HealthProfile {
      * Constructor.
      * @param mgr instance of {@link HitoeManager}
      */
-    public HitoeHealthProfile(final HitoeManager mgr) {
-        mgr.setHitoeHeartRateEventListener(mHeartRateEventListener);
+    public HitoeWalkStateProfile(final HitoeManager mgr) {
+        mgr.setHitoeWalkStateEventListener(mWalkStateEventListener);
     }
     @Override
-    public boolean onGetHeart(final Intent request, final Intent response, final String serviceId) {
+    public boolean onGetWalkState(final Intent request, final Intent response, final String serviceId) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
         } else {
-            HeartRateData data = getManager().getHeartRateData(serviceId);
+            WalkStateData data = getManager().getWalkStateData(serviceId);
             if (data == null) {
                 MessageUtils.setNotFoundServiceError(response);
             } else {
                 setResult(response, DConnectMessage.RESULT_OK);
-                setHeart(response, getHeartRateBundle(data));
+                setWalk(response, data.toBundle());
             }
         }
         return true;
     }
 
     @Override
-    public boolean onPutHeart(final Intent request, final Intent response,
+    public boolean onPutWalkState(final Intent request, final Intent response,
                                   final String serviceId, final String sessionKey) {
         if (serviceId == null) {
             MessageUtils.setNotFoundServiceError(response, "Not found serviceID:" + serviceId);
         } else if (sessionKey == null) {
             MessageUtils.setInvalidRequestParameterError(response, "Not found sessionKey:" + sessionKey);
         } else {
-            HeartRateData data = getManager().getHeartRateData(serviceId);
+            WalkStateData data = getManager().getWalkStateData(serviceId);
             if (data == null) {
                 MessageUtils.setNotFoundServiceError(response);
             } else {
@@ -88,7 +86,7 @@ public class HitoeHealthProfile extends HealthProfile {
     }
 
     @Override
-    public boolean onDeleteHeart(final Intent request, final Intent response,
+    public boolean onDeleteWalkState(final Intent request, final Intent response,
                                      final String serviceId, final String sessionKey) {
         if (serviceId == null) {
             MessageUtils.setEmptyServiceIdError(response);
@@ -112,14 +110,14 @@ public class HitoeHealthProfile extends HealthProfile {
     }
 
     /**
-     * Notify the heart rate event to DeviceConnectManager.
+     * Notify the stress estimation event to DeviceConnectManager.
      * @param device Identifies the remote device
-     * @param data Data of heart rate
+     * @param data Data of Stress Estimation
      */
-    private void notifyHeartRateData(final HitoeDevice device, final HeartRateData data) {
+    private void notifyWalkStateData(final HitoeDevice device, final WalkStateData data) {
         HitoeDeviceService service = (HitoeDeviceService) getContext();
         List<Event> events = EventManager.INSTANCE.getEventList(device.getId(),
-                getProfileName(), null, ATTRIBUTE_HEART);
+                getProfileName(), null, ATTRIBUTE_ON_WALK_STATE);
         synchronized (events) {
             for (Event event : events) {
                 if (data == null) {
@@ -128,27 +126,13 @@ public class HitoeHealthProfile extends HealthProfile {
 
                 Intent intent = EventManager.createEventMessage(event);
 
-                setHeart(intent, getHeartRateBundle(data));
+                setWalk(intent, data.toBundle());
                 service.sendEvent(intent, event.getAccessToken());
             }
         }
     }
 
-    @NonNull
-    private Bundle getHeartRateBundle(final HeartRateData data) {
-        Bundle heart = new Bundle();
-        HealthProfile.setRate(heart, data.getHeartRate().toBundle());
-        if (data.getRRInterval() != null) {
-            HealthProfile.setRRI(heart, data.getRRInterval().toBundle());
-        }
-        if (data.getEnergyExpended() != null) {
-            HealthProfile.setEnergyExtended(heart, data.getEnergyExpended().toBundle());
-        }
-        if (data.getDevice() != null) {
-            HealthProfile.setDevice(heart, data.getDevice().toBundle());
-        }
-        return heart;
-    }
+
 
     /**
      * Gets a instance of HitoeManager.

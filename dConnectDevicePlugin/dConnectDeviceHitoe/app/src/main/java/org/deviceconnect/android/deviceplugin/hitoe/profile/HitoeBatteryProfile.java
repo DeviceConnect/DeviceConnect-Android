@@ -10,7 +10,7 @@ import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
-import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
 import org.deviceconnect.android.message.MessageUtils;
 import org.deviceconnect.android.profile.BatteryProfile;
@@ -37,7 +37,7 @@ public class HitoeBatteryProfile extends BatteryProfile {
             } else {
                 setResult(response, DConnectMessage.RESULT_OK);
                 // TODO Unknown Hitoe's battery Scale
-                setLevel(response, level / 100);
+                setLevel(response, level / 3 / 100);
             }
         }
         return true;
@@ -57,8 +57,7 @@ public class HitoeBatteryProfile extends BatteryProfile {
                 MessageUtils.setUnknownError(response, "Battery level is unknown.");
             } else {
                 setResult(response, DConnectMessage.RESULT_OK);
-                // TODO Unknown Hitoe's battery Scale
-                setLevel(response, level / 100);
+                setLevel(response, level / 3 / 100);
             }
         }
         return true;

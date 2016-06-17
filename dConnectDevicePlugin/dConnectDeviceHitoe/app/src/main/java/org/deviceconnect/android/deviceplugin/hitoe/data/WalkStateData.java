@@ -6,46 +6,21 @@
  */
 package org.deviceconnect.android.deviceplugin.hitoe.data;
 
+import android.os.Bundle;
+
+import org.deviceconnect.android.profile.WalkStateProfile;
+import org.deviceconnect.profile.WalkStateProfileConstants;
+
 /**
  * This class is information of WalkState.
  * @author NTT DOCOMO, INC.
  */
 public class WalkStateData {
-    /** Walk State enum. */
-    public enum WalkState {
-        /** Stop. */
-        Stop("Stop"),
-        /** Walking. */
-        Walking("Walking"),
-        /** Running. */
-        Running("Running");
-
-        /**
-         * Text.
-         */
-        private final String mState;
-
-        /**
-         * Constructor.
-         * @param state State
-         */
-        private WalkState(final String state) {
-            mState = state;
-        }
-
-        /**
-         * Get Walk State.
-         * @return Walk state
-         */
-        public String getState() {
-            return mState;
-        }
-    }
 
     /** Step. */
     private int mStep;
     /** Walk state. */
-    private WalkState mState;
+    private WalkStateProfileConstants.WalkState mState;
     /** Walk speed. */
     private double mSpeed;
     /** Walk distance. */
@@ -77,7 +52,7 @@ public class WalkStateData {
      * Get Walk state.
      * @return Walk state
      */
-    public WalkState getState() {
+    public WalkStateProfileConstants.WalkState getState() {
         return mState;
     }
 
@@ -85,7 +60,7 @@ public class WalkStateData {
      * Set Walk state.
      * @param state Walk state
      */
-    public void setState(final WalkState state) {
+    public void setState(final WalkStateProfileConstants.WalkState state) {
         mState = state;
     }
 
@@ -181,15 +156,16 @@ public class WalkStateData {
         return builder.toString();
     }
 
-    /**
-     * Notify walk state listener.
-     */
-    public interface OnWalkStateListener {
-        /**
-         * Notify walk state.
-         * @param device Hitoe device
-         * @param notify walk state data
-         */
-        void onNotifyWalkStateData(final HitoeDevice device, final WalkStateData notify);
+    public Bundle toBundle() {
+        Bundle walk = new Bundle();
+        WalkStateProfile.setStep(walk, mStep);
+        WalkStateProfile.setState(walk, mState.getState());
+        WalkStateProfile.setSpeed(walk, mSpeed);
+        WalkStateProfile.setDistance(walk, mDistance);
+        WalkStateProfile.setBalance(walk, mBalance);
+        WalkStateProfile.setTimestamp(walk, mTimeStamp);
+        WalkStateProfile.setTimestampString(walk, mTimeStampString);
+        return walk;
     }
+
 }

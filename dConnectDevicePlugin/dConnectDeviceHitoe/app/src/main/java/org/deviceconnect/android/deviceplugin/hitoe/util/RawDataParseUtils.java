@@ -6,11 +6,16 @@
  */
 package org.deviceconnect.android.deviceplugin.hitoe.util;
 
-import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeConstants;
 import org.deviceconnect.android.deviceplugin.hitoe.data.AccelerationData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HeartData;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeConstants;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
+import org.deviceconnect.android.deviceplugin.hitoe.data.PoseEstimationData;
+import org.deviceconnect.android.deviceplugin.hitoe.data.StressEstimationData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.TargetDeviceData;
+import org.deviceconnect.android.deviceplugin.hitoe.data.WalkStateData;
+import org.deviceconnect.profile.PoseEstimationProfileConstants;
+import org.deviceconnect.profile.WalkStateProfileConstants;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -88,10 +93,9 @@ public final class RawDataParseUtils {
             return accel;
         }
         String[] lineList=raw.split(HitoeConstants.BR);
-
         String[] list = lineList[0].split(HitoeConstants.COMMA, -1);
-        long timestamp = Long.parseLong(list[0]);
         String[] accList = list[1].split(HitoeConstants.COLON, -1);
+        long timestamp = Long.parseLong(list[0]);
         double[] accelList = new double[3];
         for(int i = 0; i < accList.length; i++) {
             accelList[i] = Double.valueOf(accList[i]);
@@ -137,6 +141,109 @@ public final class RawDataParseUtils {
 
     }
 
+    /**
+     * Parse Stress Estimation data.
+     * @param raw raw data
+     * @return Stress Estimation object
+     */
+    public static StressEstimationData parseStressEstimation(final String raw) {
+        StressEstimationData stress = new StressEstimationData();
+        if(raw == null) {
+            return stress;
+        }
+        String[] lineList=raw.split(HitoeConstants.BR);
+        String[] stressList = lineList[0].split(HitoeConstants.COMMA, -1);
+        long timestamp = Long.parseLong(stressList[0]);
+        double lfhf = Double.parseDouble(stressList[1]);
+        stress.setLFHFValue(lfhf);
+        stress.setTimeStamp(timestamp);
+        stress.setTimeStampString(nowTimeStampString(timestamp));
+        return stress;
+    }
+
+
+    /**
+     * Parse Pose Estimation data.
+     * @param raw raw data
+     * @return Pose Estimation object
+     */
+    public static PoseEstimationData parsePoseEstimation(final String raw) {
+        PoseEstimationData pose = new PoseEstimationData();
+        if (raw == null) {
+            return pose;
+        }
+        String[] lineList=raw.split(HitoeConstants.BR);
+        String[] poseList = lineList[0].split(HitoeConstants.COMMA, -1);
+        long timestamp  = Long.parseLong(poseList[0]);
+        pose.setTimeStamp(timestamp);
+        pose.setTimeStampString(nowTimeStampString(timestamp));
+
+        String type = poseList[1];
+        int backForward = Integer.parseInt(poseList[2]);
+        int leftRight = Integer.parseInt(poseList[3]);
+
+        if (type.equals("LyingLeft")) {
+            pose.setPoseState(PoseEstimationProfileConstants.PoseState.FaceLeft);
+        } else if (type.equals("LyingRight")) {
+            pose.setPoseState(PoseEstimationProfileConstants.PoseState.FaceRight);
+        } else if (type.equals("LyingFaceUp")) {
+            pose.setPoseState(PoseEstimationProfileConstants.PoseState.FaceUp);
+        } else if (type.equals("LyingFaceDown")) {
+            pose.setPoseState(PoseEstimationProfileConstants.PoseState.FaceDown);
+        } else {
+            if (backForward > HitoeConstants.BACK_FORWARD_THRESHOLD) {
+                pose.setPoseState(PoseEstimationProfileConstants.PoseState.Forward);
+            } else if (backForward < -1 * HitoeConstants.BACK_FORWARD_THRESHOLD) {
+                pose.setPoseState(PoseEstimationProfileConstants.PoseState.Backward);
+            } else if (leftRight > HitoeConstants.LEFT_RIGHT_THRESHOLD) {
+                pose.setPoseState(PoseEstimationProfileConstants.PoseState.Leftside);
+            } else if (leftRight < -1 * HitoeConstants.LEFT_RIGHT_THRESHOLD) {
+                pose.setPoseState(PoseEstimationProfileConstants.PoseState.Rightside);
+            } else {
+                pose.setPoseState(PoseEstimationProfileConstants.PoseState.Standing);
+            }
+        }
+
+        return pose;
+    }
+
+    /**
+     * Parse Walk State data.
+     * @param data exist walk state data
+     * @param raw raw data
+     * @return walk state object
+     */
+    public static WalkStateData parseWalkState(final WalkStateData data, final String raw) {
+        String[] lineList=raw.split(HitoeConstants.BR);
+        String[] walkList = lineList[0].split(HitoeConstants.COMMA, -1);
+        long timestamp  = Long.parseLong(walkList[0]);
+        data.setTimeStamp(timestamp);
+        data.setTimeStampString(nowTimeStampString(timestamp));
+        data.setStep(Integer.parseInt(walkList[1]));
+        if (walkList[4].equals("Walking")) {
+            data.setState(WalkStateProfileConstants.WalkState.Walking);
+        } else if (walkList[4].equals("Running")) {
+            data.setState(WalkStateProfileConstants.WalkState.Running);
+        } else {
+            data.setState(WalkStateProfileConstants.WalkState.Stop);
+        }
+        data.setSpeed(Double.parseDouble(walkList[6]));
+        data.setDistance(Double.parseDouble(walkList[7]));
+        return data;
+    }
+
+    /**
+     * Parse Walk State data for balance.
+     * @param data walk state data
+     * @param raw raw data
+     * @return walk state object
+     */
+    public static WalkStateData parseWalkStateForBalance(final WalkStateData data, final String raw) {
+        String[] lineList=raw.split(HitoeConstants.BR);
+        String[] walkList = lineList[0].split(HitoeConstants.COMMA, -1);
+        data.setBalance(Double.parseDouble(walkList[1]));
+        return data;
+    }
 
     /**
      * Parse HeartRate data.
@@ -171,6 +278,8 @@ public final class RawDataParseUtils {
         return heart;
 
     }
+
+
 
     /**
      * Split Comma.

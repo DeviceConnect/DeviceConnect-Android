@@ -8,7 +8,7 @@ package org.deviceconnect.android.deviceplugin.hitoe;
 
 import android.app.Application;
 
-import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 
 /**
  * Implementation of Application.

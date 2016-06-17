@@ -13,13 +13,17 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 
-import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeBatteryProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeDeviceOrientationProfile;
+import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeECGProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeHealthProfile;
+import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoePoseEstimationProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeServiceDiscoveryProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeServiceInformationProfile;
+import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeStressEstimationProfile;
 import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeSystemProfile;
+import org.deviceconnect.android.deviceplugin.hitoe.profile.HitoeWalkStateProfile;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.event.cache.MemoryCacheController;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -100,6 +104,10 @@ public class HitoeDeviceService extends DConnectMessageService {
         addProfile(new HitoeHealthProfile(getManager()));
         addProfile(new HitoeDeviceOrientationProfile(getManager()));
         addProfile(new HitoeBatteryProfile());
+        addProfile(new HitoeECGProfile(getManager()));
+        addProfile(new HitoeStressEstimationProfile(getManager()));
+        addProfile(new HitoePoseEstimationProfile(getManager()));
+        addProfile(new HitoeWalkStateProfile(getManager()));
 
     }
 

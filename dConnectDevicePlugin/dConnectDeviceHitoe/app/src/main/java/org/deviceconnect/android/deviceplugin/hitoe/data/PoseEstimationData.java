@@ -6,57 +6,20 @@
  */
 package org.deviceconnect.android.deviceplugin.hitoe.data;
 
+import android.os.Bundle;
+
+import org.deviceconnect.android.profile.PoseEstimationProfile;
+import org.deviceconnect.profile.PoseEstimationProfileConstants;
+
 /**
  * This class is information of Pose Estimation.
  * @author NTT DOCOMO, INC.
  */
 public class PoseEstimationData {
-    /** Pose State enum. */
-    public enum PoseState {
-        /** Forward. */
-        Forward("Forward"),
-        /** Backward. */
-        Backward("Backward"),
-        /** Rightside. */
-        Rightside("Rightside"),
-        /** Leftside. */
-        Leftside("Leftside"),
-        /** FaceUp. */
-        FaceUp("FaceUp"),
-        /** FaceLeft. */
-        FaceLeft("FaceLeft"),
-        /** FaceDown. */
-        FaceDown("FaceDown"),
-        /** FaceRight. */
-        FaceRight("FaceRight"),
-        /** Standing. */
-        Standing("Standing");
-
-        /**
-         * Text.
-         */
-        private final String mState;
-
-        /**
-         * Constructor.
-         * @param state State
-         */
-        private PoseState(final String state) {
-            mState = state;
-        }
-
-        /**
-         * Get Pose State.
-         * @return Pose state
-         */
-        public String getState() {
-            return mState;
-        }
-    }
 
 
     /** Pose state. */
-    private PoseState mState;
+    private PoseEstimationProfileConstants.PoseState mState;
     /** Poses TimeStamp. */
     private long mTimeStamp;
     /** Poses TimeStamp String. */
@@ -66,7 +29,7 @@ public class PoseEstimationData {
      * Get Pose state.
      * @return Pose state
      */
-    public PoseState getPoseState() {
+    public PoseEstimationProfileConstants.PoseState getPoseState() {
         return mState;
     }
 
@@ -74,7 +37,7 @@ public class PoseEstimationData {
      * Set Pose state.
      * @param state Pose state
      */
-    public void setPoseState(final PoseState state) {
+    public void setPoseState(final PoseEstimationProfileConstants.PoseState state) {
         mState = state;
     }
 
@@ -120,17 +83,12 @@ public class PoseEstimationData {
     }
 
 
-
-
-    /**
-     * Notify pose estimation data listener.
-     */
-    public interface OnPoseEstimationDataListener {
-        /**
-         * Notify pose estimation data.
-         * @param device hitoe device
-         * @param notify pose estimation data
-         */
-        void onNotifyPoseEstimationData(final HitoeDevice device, final PoseEstimationData notify);
+    public Bundle toBundle() {
+        Bundle pose = new Bundle();
+        PoseEstimationProfile.setState(pose, mState.getState());
+        PoseEstimationProfile.setTimestamp(pose, mTimeStamp);
+        PoseEstimationProfile.setTimestampString(pose, mTimeStampString);
+        return pose;
     }
+
 }

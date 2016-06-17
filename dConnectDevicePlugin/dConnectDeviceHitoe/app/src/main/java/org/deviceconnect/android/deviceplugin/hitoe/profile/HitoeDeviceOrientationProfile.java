@@ -10,7 +10,7 @@ import android.content.Intent;
 
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeApplication;
 import org.deviceconnect.android.deviceplugin.hitoe.HitoeDeviceService;
-import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeManager;
+import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeManager;
 import org.deviceconnect.android.deviceplugin.hitoe.data.AccelerationData;
 import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
 import org.deviceconnect.android.event.Event;
@@ -121,6 +121,10 @@ public class HitoeDeviceOrientationProfile extends DeviceOrientationProfile {
                 getProfileName(), null, ATTRIBUTE_ON_DEVICE_ORIENTATION);
         synchronized (events) {
             for (Event event : events) {
+                if (data == null) {
+                    break;
+                }
+
                 Intent intent = EventManager.createEventMessage(event);
 
                 DeviceOrientationProfile.setOrientation(intent, data.toBundle());

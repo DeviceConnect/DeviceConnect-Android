@@ -6,8 +6,6 @@
  */
 package org.deviceconnect.android.deviceplugin.hitoe.data;
 
-import org.deviceconnect.android.deviceplugin.hitoe.ble.HitoeConstants;
-
 import java.util.ArrayList;
 import java.util.List;
 

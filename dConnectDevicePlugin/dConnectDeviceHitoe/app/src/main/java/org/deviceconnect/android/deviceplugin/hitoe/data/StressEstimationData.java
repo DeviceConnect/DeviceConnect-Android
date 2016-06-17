@@ -6,6 +6,10 @@
  */
 package org.deviceconnect.android.deviceplugin.hitoe.data;
 
+import android.os.Bundle;
+
+import org.deviceconnect.android.profile.StressEstimationProfile;
+
 /**
  * This class is information of Stress Estimation.
  * @author NTT DOCOMO, INC.
@@ -75,15 +79,11 @@ public class StressEstimationData {
         return builder.toString();
     }
 
-    /**
-     * Notify LFHF Data listener.
-     */
-    public interface OnLFHFDataListener {
-        /**
-         * Notify LFHF data.
-         * @param device Hitoe device
-         * @param notify LFHF data
-         */
-        void onNotifyLFHFData(final HitoeDevice device, final StressEstimationData notify);
+    public Bundle toBundle() {
+        Bundle stress = new Bundle();
+        StressEstimationProfile.setLFHF(stress, mLFHF);
+        StressEstimationProfile.setTimestamp(stress, mTimeStamp);
+        StressEstimationProfile.setTimestampString(stress, mTimeStampString);
+        return stress;
     }
 }

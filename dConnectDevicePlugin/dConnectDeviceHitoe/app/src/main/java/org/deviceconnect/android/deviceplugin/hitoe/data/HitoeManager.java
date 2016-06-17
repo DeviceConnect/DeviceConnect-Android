@@ -4,22 +4,12 @@
  Released under the MIT license
  http://opensource.org/licenses/mit-license.php
  */
-package org.deviceconnect.android.deviceplugin.hitoe.ble;
+package org.deviceconnect.android.deviceplugin.hitoe.data;
 
 import android.content.Context;
 import android.util.Log;
 
 import org.deviceconnect.android.deviceplugin.hitoe.BuildConfig;
-import org.deviceconnect.android.deviceplugin.hitoe.data.AccelerationData;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HeartData;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HeartRateData;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDBHelper;
-import org.deviceconnect.android.deviceplugin.hitoe.data.HitoeDevice;
-import org.deviceconnect.android.deviceplugin.hitoe.data.PoseEstimationData;
-import org.deviceconnect.android.deviceplugin.hitoe.data.StressEstimationData;
-import org.deviceconnect.android.deviceplugin.hitoe.data.TargetDeviceData;
-import org.deviceconnect.android.deviceplugin.hitoe.data.TempExData;
-import org.deviceconnect.android.deviceplugin.hitoe.data.WalkStateData;
 import org.deviceconnect.android.deviceplugin.hitoe.util.RawDataParseUtils;
 
 import java.util.ArrayList;
@@ -98,7 +88,18 @@ public class HitoeManager {
     private boolean mFlagForEx;
     // interval
     private long mInterval = 0;
-
+    // 姿勢推定のための一時保存データ
+    private ArrayList<String> mListForPosture;
+    // 姿勢推定のためのロック
+    private ReentrantLock mLockForPosture;
+    // 歩行状態推定のための一時保存データ
+    private ArrayList<String> mListForWalk;
+    // 歩行状態推定のためのロック
+    private ReentrantLock mLockForWalk;
+    // 左右バランス推定のための一時保存データ
+    private ArrayList<String> mListForLRBalance;
+    // 左右バランス推定のためのロック
+    private ReentrantLock mLockForLRBalance;
 
     /** Hitoe API Callback. */
     HitoeSdkAPI.APICallback mAPICallback = new HitoeSdkAPI.APICallback() {
@@ -183,6 +184,8 @@ public class HitoeManager {
             if (dataKey.equals("raw.ecg")) {
                 extractHealth(HeartData.HeartRateType.ECG, rawData, receiveDevice);
             } else if (dataKey.equals("raw.acc")) {
+                analyzeAccelerationData(rawData, receiveDevice);
+
                 AccelerationData currentAccel = RawDataParseUtils.parseAccelerationData(rawData);
                 currentAccel.setTimeStamp((System.currentTimeMillis() - mInterval));
                 mAccelData.put(receiveDevice, currentAccel);
@@ -193,23 +196,27 @@ public class HitoeManager {
             } else if (dataKey.equals("raw.hr")) {
                 extractHealth(HeartData.HeartRateType.Rate, rawData, receiveDevice);
             } else if (dataKey.equals("ba.freq_domain")) {
-//                parseFreqDomain(rawData);
-
-            } else if (dataKey.equals("ba.time_domain")) {
-//                Log.d("MainActivity", "ba.time_domain:" + rawData);
-
+                parseFreqDomain(receiveDevice, rawData);
             } else if (dataKey.equals("ex.stress")) {
-//                parseStress(rawData);
-
+                StressEstimationData stress = RawDataParseUtils.parseStressEstimation(rawData);
+                mStressEstimationData.put(receiveDevice, stress);
             } else if (dataKey.equals("ex.posture")) {
-//                parsePosture(rawData);
-
+                PoseEstimationData pose = RawDataParseUtils.parsePoseEstimation(rawData);
+                mPoseEstimationData.put(receiveDevice, pose);
             } else if (dataKey.equals("ex.walk")) {
-//                parseWalk(rawData);
-
+                WalkStateData walk = mWalkStateData.get(receiveDevice);
+                if (walk == null) {
+                    walk = new WalkStateData();
+                }
+                walk = RawDataParseUtils.parseWalkState(walk, rawData);
+                mWalkStateData.put(receiveDevice, walk);
             } else if (dataKey.equals("ex.lr_balance")) {
-//                parseLRBalance(rawData);
-
+                WalkStateData walk = mWalkStateData.get(receiveDevice);
+                if (walk == null) {
+                    walk = new WalkStateData();
+                }
+                walk = RawDataParseUtils.parseWalkStateForBalance(walk, rawData);
+                mWalkStateData.put(receiveDevice, walk);
             }
 
             if (dataKey.startsWith(HitoeConstants.EX_DATA_PREFFIX)) {
@@ -250,6 +257,141 @@ public class HitoeManager {
         }
     };
 
+    /**
+     * Analyze Acceleration data.
+     * Get Posture Data, Walk State data, LR Balance data.
+     * @param rawData raw data
+     * @param receiveDevice receive device
+     */
+    private void analyzeAccelerationData(final String rawData, final HitoeDevice receiveDevice) {
+        String[] lineList = rawData.split(HitoeConstants.BR);
+        ArrayList<String> postureInputList  = new ArrayList<String>();
+        ArrayList<String> walkInputList  = new ArrayList<String>();
+        ArrayList<String> lrBalanceInputList  = new ArrayList<String>();
+
+        ArrayList<String> workList = new ArrayList<String>();
+
+        for(int i=0; i < lineList.length; i++) {
+
+            if(receiveDevice.getAvailableExDataList().contains("ex.posture")) {
+                try {
+                    mLockForPosture.lock();
+                    mListForPosture.add(lineList[i]);
+                    if (mListForPosture.size() > HitoeConstants.EX_POSTURE_UNIT_NUM + 5) {
+
+                        for (int j = 0; j < HitoeConstants.EX_POSTURE_UNIT_NUM; j++) {
+
+                            postureInputList.add(mListForPosture.get(j));
+                        }
+                        for (int j = HitoeConstants.EX_POSTURE_UNIT_NUM; j < HitoeConstants.EX_POSTURE_UNIT_NUM + 5; j++) {
+
+                            postureInputList.add(mListForPosture.get(j));
+                        }
+                        workList = new ArrayList<String>();
+                        for (int j = 25; j < mListForPosture.size(); j++) {
+
+                            workList.add(mListForPosture.get(j));
+                        }
+                        mListForPosture = workList;
+                    }
+                } finally {
+
+                    mLockForPosture.unlock();
+                }
+                if(postureInputList.size() > 0) {
+
+                    try {
+                        mLockForEx.lock();
+                        mListForEx.add(new TempExData("ex.posture", postureInputList));
+                    } finally {
+                        mLockForEx.unlock();
+                    }
+
+                    postureInputList.clear();
+                }
+            }
+            if(receiveDevice.getAvailableExDataList().contains("ex.walk")) {
+                try {
+                    mLockForWalk.lock();
+                    mListForWalk.add(lineList[i]);
+                    if (mListForWalk.size() > HitoeConstants.EX_WALK_UNIT_NUM + 5) {
+
+                        for (int j = 0; j < HitoeConstants.EX_WALK_UNIT_NUM; j++) {
+
+                            walkInputList.add(mListForWalk.get(j));
+                        }
+                        for (int j = HitoeConstants.EX_WALK_UNIT_NUM; j < HitoeConstants.EX_WALK_UNIT_NUM + 5; j++) {
+
+                            walkInputList.add(mListForWalk.get(j));
+                        }
+
+                        workList = new ArrayList<String>();
+                        for (int j = 25; j < mListForWalk.size(); j++) {
+
+                            workList.add(mListForWalk.get(j));
+                        }
+                        mListForWalk = workList;
+                    }
+                } finally {
+
+                    mLockForWalk.unlock();
+                }
+                if(walkInputList.size() > 0) {
+
+                    try {
+                        mLockForEx.lock();
+                        mListForEx.add(new TempExData("ex.walk", walkInputList));
+                    } finally {
+                        mLockForEx.unlock();
+                    }
+
+                    walkInputList.clear();
+                }
+            }
+            if(receiveDevice.getAvailableExDataList().contains("ex.lr_balance")) {
+                try {
+                    mLockForLRBalance.lock();
+                    mListForLRBalance.add(lineList[i]);
+                    if (mListForLRBalance.size() > HitoeConstants.EX_LR_BALANCE_UNIT_NUM + 5) {
+
+                        for (int j = 0; j < HitoeConstants.EX_LR_BALANCE_UNIT_NUM; j++) {
+
+                            lrBalanceInputList.add(mListForLRBalance.get(j));
+                        }
+                        // 少し多めに追加
+                        for (int j = HitoeConstants.EX_LR_BALANCE_UNIT_NUM; j < HitoeConstants.EX_LR_BALANCE_UNIT_NUM + 5; j++) {
+
+                            lrBalanceInputList.add(mListForLRBalance.get(j));
+                        }
+
+                        // 1秒分を削除
+                        workList = new ArrayList<String>();
+                        for (int j = 25; j < mListForLRBalance.size(); j++) {
+
+                            workList.add(mListForLRBalance.get(j));
+                        }
+                        mListForLRBalance = workList;
+
+                    }
+                } finally {
+
+                    mLockForLRBalance.unlock();
+                }
+                if(lrBalanceInputList.size() > 0) {
+
+                    try {
+                        mLockForEx.lock();
+                        mListForEx.add(new TempExData("ex.lr_balance", lrBalanceInputList));
+                    } finally {
+                        mLockForEx.unlock();
+                    }
+
+                    lrBalanceInputList.clear();
+                }
+            }
+        }
+    }
+
 
     /**
      * Constructor.
@@ -270,6 +412,15 @@ public class HitoeManager {
         mWalkStateData = new ConcurrentHashMap<>();
         mAccelData = new ConcurrentHashMap<>();
         mConnectionListeners = new ArrayList<OnHitoeConnectionListener>();
+        mListForPosture = new ArrayList<String>();
+        mLockForPosture = new ReentrantLock();
+        mListForWalk = new ArrayList<String>();
+        mLockForWalk = new ReentrantLock();
+        mListForLRBalance = new ArrayList<String>();
+        mLockForLRBalance = new ReentrantLock();
+        mListForEx = new ArrayList<TempExData>();
+        mLockForEx = new ReentrantLock();
+
         mHitoeSdkAPI = HitoeSdkAPIImpl.getInstance(context);
         mHitoeSdkAPI.setAPICallback(mAPICallback);
         List<HitoeDevice> list = mDBHelper.getHitoeDevices(null);
@@ -360,7 +511,54 @@ public class HitoeManager {
         }
         return mHRData.get(mRegisterDevices.get(pos));
     }
-
+    /**
+     * Get ECG Data.
+     * @param serviceId index id
+     * @return ECGData
+     */
+    public HeartRateData getECGData(final String serviceId) {
+        int pos = getPosForServiceId(serviceId);
+        if (pos == -1) {
+            return null;
+        }
+        return mECGData.get(mRegisterDevices.get(pos));
+    }
+    /**
+     * Get Stress Estimation Data.
+     * @param serviceId index id
+     * @return StressEstimationData
+     */
+    public StressEstimationData getStressEstimationData(final String serviceId) {
+        int pos = getPosForServiceId(serviceId);
+        if (pos == -1) {
+            return null;
+        }
+        return mStressEstimationData.get(mRegisterDevices.get(pos));
+    }
+    /**
+     * Get Pose Estimation Data.
+     * @param serviceId index id
+     * @return Pose Estimation Data
+     */
+    public PoseEstimationData getPoseEstimationData(final String serviceId) {
+        int pos = getPosForServiceId(serviceId);
+        if (pos == -1) {
+            return null;
+        }
+        return mPoseEstimationData.get(mRegisterDevices.get(pos));
+    }
+    /**
+     * Get Walk State Data.
+     * @param serviceId index id
+     * @return Walk State data
+     */
+    public WalkStateData getWalkStateData(final String serviceId) {
+        int pos = getPosForServiceId(serviceId);
+        if (pos == -1) {
+            return null;
+        }
+        return mWalkStateData.get(mRegisterDevices.get(pos));
+    }
     /**
      * Get AccelerationData.
      * @param serviceId index id
@@ -764,6 +962,15 @@ public class HitoeManager {
         if (mDeviceOrientationListener != null) {
             mDeviceOrientationListener.onReceivedData(receiveDevice, mAccelData.get(receiveDevice));
         }
+        if (mECGListener != null) {
+            mECGListener.onReceivedData(receiveDevice, mECGData.get(receiveDevice));
+        }
+        if (mStressEstimationListener != null) {
+            mStressEstimationListener.onReceivedData(receiveDevice, mStressEstimationData.get(receiveDevice));
+        }
+        if (mPoseEstimationListener != null) {
+            mPoseEstimationListener.onReceivedData(receiveDevice, mPoseEstimationData.get(receiveDevice));
+        }
     }
 
 
@@ -1110,6 +1317,24 @@ public class HitoeManager {
                      pos = i;
                      break;
                  }
+
+            }
+            if (mRegisterDevices.get(i).getBaConnectionId() != null) {
+                if (mRegisterDevices.get(i).getBaConnectionId().equals(connectionId)) {
+                    pos = i;
+                    break;
+                }
+            }
+            if (mRegisterDevices.get(i).getExConnectionList().size() > 0) {
+                for (String exConnectionId: mRegisterDevices.get(i).getExConnectionList()) {
+                    if (exConnectionId == null) {
+                        continue;
+                    }
+                    if (exConnectionId.equals(connectionId)) {
+                        pos = i;
+                        break;
+                    }
+                }
             }
         }
         return pos;
@@ -1123,7 +1348,7 @@ public class HitoeManager {
     private int getPosForServiceId(final String serviceId) {
         int pos = -1;
         for (int i = 0; i < mRegisterDevices.size(); i++) {
-            if (mRegisterDevices.get(i).getRawConnectionId() != null) {
+            if (mRegisterDevices.get(i).getId() != null) {
                 if (mRegisterDevices.get(i).getId().equals(serviceId)) {
                     pos = i;
                     break;
@@ -1133,7 +1358,31 @@ public class HitoeManager {
         return pos;
     }
 
+    /**
+     *  周波数領域特徴量データをパースする
+     * @param data 周波数領域特徴量データ
+     */
+    private void parseFreqDomain(final HitoeDevice receiveDevice, final String data) {
 
+        String[] lineList=data.split(HitoeConstants.BR);
+        ArrayList<String> stressInputList = new ArrayList<String>();
+
+        if(receiveDevice.getAvailableExDataList().contains("ex.stress")) {
+            for (int i = 0; i < lineList.length; i++) {
+
+                stressInputList.add(lineList[i]);
+            }
+
+            try {
+                mLockForEx.lock();
+                mListForEx.add(new TempExData("ex.stress", stressInputList));
+            } finally {
+                mLockForEx.unlock();
+            }
+        }
+
+        return;
+    }
     /**
      * Extract health data.
      * @param type Health data type

@@ -148,7 +148,11 @@ public class LinkingDeviceManager {
         return mNotifyRange != null;
     }
 
-    public synchronized void startSensor(final LinkingDevice device) {
+    public void startSensor(final LinkingDevice device) {
+        startSensor(device, 100);
+    }
+
+    public synchronized void startSensor(final LinkingDevice device, int interval) {
         if (isStartSensor(device)) {
             if (BuildConfig.DEBUG) {
                 Log.w(TAG, device.getDisplayName() + " sensor is already running.");
@@ -156,7 +160,11 @@ public class LinkingDeviceManager {
             return;
         }
 
-        startAllSensor(device.getBdAddress(), 100);
+        if (interval <= 100) {
+            interval = 100;
+        }
+
+        startAllSensor(device.getBdAddress(), interval);
 
         mSensorDevices.add(device);
 

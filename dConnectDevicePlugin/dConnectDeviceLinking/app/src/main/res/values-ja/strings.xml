@@ -11,7 +11,7 @@
     <string name="activity_setting_tab_beacon">ビーコン</string>
     <string name="activity_setting_menu">Linkingアプリ誘導</string>
     <string name="activity_setting_menu_app_inform">アプリ情報</string>
-    <string name="activity_setting_discovery_devices">Linkingデバイスの検索</string>
+    <string name="activity_setting_refresh_devices">Linkingデバイスの更新</string>
 
     <string name="fragment_beacon_list_scan_title">ビーコンスキャン</string>
     <string name="fragment_beacon_list_scan_start">開始</string>
@@ -57,10 +57,12 @@
     <string name="activity_linking_induction_1">1)</string>
     <string name="activity_linking_induction_2">2)</string>
     <string name="activity_linking_induction_3">3)</string>
+    <string name="activity_linking_induction_4">4)</string>
     <string name="activity_linking_induction_text">本アプリで、Linkingデバイスを操作するためには、Linkingアプリで以下の設定を行う必要があります。</string>
     <string name="activity_linking_induction_text1">Linkingアプリを起動し、アプリの指示に従い対応デバイスと端末を接続してください。</string>
     <string name="activity_linking_induction_text2">Device Connectで利用したいLinkingデバイスの設定画面にて、Linking(Device Connect Device Plug-in)の通知設定をONにしてください。</string>
     <string name="activity_linking_induction_text3">設定のLEDのパターンは、点灯するいずれかのものを選択してください。Light ON APIにてそのパターンで点灯します。</string>
+    <string name="activity_linking_induction_text4">設定のバイブレーションのパターンは、振動するいずれかのものを選択してください。Vibration APIにてそのパターンで振動します。</string>
 
     <string name="activity_device_name">Linkingデバイス名 : </string>
     <string name="activity_device_light_off_pattern">LED Off Pattern</string>

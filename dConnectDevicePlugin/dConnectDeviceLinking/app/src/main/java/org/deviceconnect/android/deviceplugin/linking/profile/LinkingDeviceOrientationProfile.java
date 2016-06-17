@@ -18,6 +18,9 @@ import org.deviceconnect.android.deviceplugin.linking.linking.LinkingDeviceManag
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingSensorData;
 import org.deviceconnect.android.deviceplugin.linking.linking.LinkingUtil;
 import org.deviceconnect.android.event.Event;
+import org.deviceconnect.android.event.EventDispatcher;
+import org.deviceconnect.android.event.EventDispatcherFactory;
+import org.deviceconnect.android.event.EventDispatcherManager;
 import org.deviceconnect.android.event.EventError;
 import org.deviceconnect.android.event.EventManager;
 import org.deviceconnect.android.message.DConnectMessageService;
@@ -38,9 +41,11 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
 
     private static final String PARAM_COMPASS = "compass";
 
-    private static final int TIMEOUT = 10;
+    private static final int TIMEOUT = 30;
 
     private ConcurrentHashMap<String, SensorHolder> mSensorHolderMap = new ConcurrentHashMap<>();
+
+    private EventDispatcherManager mDispatcherManager;
 
     public LinkingDeviceOrientationProfile(final DConnectMessageService service) {
         LinkingApplication app = (LinkingApplication) service.getApplication();
@@ -51,6 +56,8 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
                 notifyOrientation(device, sensor);
             }
         });
+
+        mDispatcherManager = new EventDispatcherManager();
     }
 
     @Override
@@ -101,8 +108,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
                     return;
                 }
 
-                updateOrientation(mSensorHolder.getOrientation(), sensor, 0);
-                mSensorHolder.setFlag(sensor);
+                updateOrientation(mSensorHolder, sensor, 0);
 
                 if (mSensorHolder.isFlag()) {
                     mSensorHolder.clearFlag();
@@ -131,9 +137,10 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         EventError error = EventManager.INSTANCE.addEvent(request);
         if (error == EventError.NONE) {
             if (!getLinkingDeviceManager().isStartSensor(device)) {
-                getLinkingDeviceManager().startSensor(device);
-                mSensorHolderMap.put(device.getBdAddress(), createSensorHolder(device));
+                getLinkingDeviceManager().startSensor(device, getInterval(request));
+                mSensorHolderMap.put(device.getBdAddress(), createSensorHolder(device, getInterval(request)));
             }
+            addEventDispatcher(request);
             setResult(response, DConnectMessage.RESULT_OK);
         } else if (error == EventError.INVALID_PARAMETER) {
             MessageUtils.setInvalidRequestParameterError(response);
@@ -150,6 +157,8 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         if (device == null) {
             return true;
         }
+
+        removeEventDispatcher(request);
 
         EventError error = EventManager.INSTANCE.removeEvent(request);
         if (error == EventError.NONE) {
@@ -172,22 +181,34 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         return events.isEmpty();
     }
 
-    private Bundle updateOrientation(final Bundle orientation, final LinkingSensorData data, final long interval) {
+    private void addEventDispatcher(final Intent request) {
+        Event event = EventManager.INSTANCE.getEvent(request);
+        EventDispatcher dispatcher = EventDispatcherFactory.createEventDispatcher(
+                (DConnectMessageService)getContext(), request);
+        mDispatcherManager.addEventDispatcher(event, dispatcher);
+    }
+
+    private void removeEventDispatcher(final Intent request) {
+        Event event = EventManager.INSTANCE.getEvent(request);
+        mDispatcherManager.removeEventDispatcher(event);
+    }
+
+    private void updateOrientation(final SensorHolder holder, final LinkingSensorData data, final long interval) {
         switch (data.getType()) {
             case GYRO:
-                setGyroValuesToBundle(orientation, data);
+                setGyroValuesToBundle(holder.getOrientation(), data);
                 break;
             case ACCELERATION:
-                setAccelerationValuesToBundle(orientation, data);
+                setAccelerationValuesToBundle(holder.getOrientation(), data);
                 break;
             case COMPASS:
-                setCompassValuesToBundle(orientation, data);
+                setCompassValuesToBundle(holder.getOrientation(), data);
                 break;
             default:
                 throw new IllegalArgumentException("unknown type");
         }
-        setInterval(orientation, interval);
-        return orientation;
+        setInterval(holder.getOrientation(), interval);
+        holder.setFlag(data);
     }
 
     private void setGyroValuesToBundle(final Bundle bundle, final LinkingSensorData data) {
@@ -224,8 +245,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
             return;
         }
 
-        updateOrientation(holder.getOrientation(), sensor, 0);
-        holder.setFlag(sensor);
+        updateOrientation(holder, sensor, 0);
 
         if (holder.isFlag()) {
             holder.clearFlag();
@@ -240,7 +260,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
                     for (Event event : events) {
                         Intent intent = EventManager.createEventMessage(event);
                         setOrientation(intent, holder.getOrientation());
-                        sendEvent(intent, event.getAccessToken());
+                        mDispatcherManager.sendEvent(event, intent);
                     }
                 }
             }
@@ -278,13 +298,23 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         return (LinkingApplication) service.getApplication();
     }
 
-    private SensorHolder createSensorHolder(final LinkingDevice device) {
+    private SensorHolder createSensorHolder(final LinkingDevice device, final int interval) {
         SensorHolder holder = new SensorHolder();
         holder.setSupportGyro(device.isGyro());
         holder.setSupportAcceleration(device.isAcceleration());
         holder.setSupportCompass(device.isCompass());
         holder.setTime(System.currentTimeMillis());
+        holder.setInterval(interval);
         return holder;
+    }
+
+    private static int getInterval(final Intent request) {
+        try {
+            String interval = request.getStringExtra("interval");
+            return Integer.parseInt(interval);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 
     private abstract class SensorListenerImpl implements Runnable, LinkingDeviceManager.SensorListener {
@@ -294,7 +324,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         protected ScheduledFuture<?> mScheduledFuture;
         SensorListenerImpl(final LinkingDevice device) {
             mDevice = device;
-            mSensorHolder = createSensorHolder(device);
+            mSensorHolder = createSensorHolder(device, 0);
             mScheduledFuture = mExecutorService.schedule(this, TIMEOUT, TimeUnit.SECONDS);
         }
     }
@@ -303,6 +333,7 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
         private long mTime = System.currentTimeMillis();
         private Bundle mOrientation = new Bundle();
         private int mFlag;
+        private int mInterval;
 
         private boolean mSupportGyro;
         private boolean mSupportAcceleration;
@@ -316,10 +347,18 @@ public class LinkingDeviceOrientationProfile extends DeviceOrientationProfile {
             mTime = time;
         }
 
+        public void setInterval(int interval) {
+            mInterval = interval;
+        }
+
         public long getInterval() {
-            long interval = System.currentTimeMillis() - mTime;
-            mTime = System.currentTimeMillis();
-            return interval;
+            if (mInterval <= 0) {
+                long interval = System.currentTimeMillis() - mTime;
+                mTime = System.currentTimeMillis();
+                return interval;
+            } else {
+                return mInterval;
+            }
         }
 
         public void setSupportGyro(boolean supportGyro) {

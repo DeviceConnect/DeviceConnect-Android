@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ConfirmActivity extends Activity {
 
-    private static final String TAG = "ABC";
+    private static final String TAG = "ConfirmActivity";
 
     private static final int REQUEST_CODE = 4;
 

@@ -103,6 +103,28 @@
                 android:textSize="14sp"/>
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:gravity="center"
+                android:text="@string/activity_linking_induction_4"
+                android:textColor="@color/help_text_color"
+                android:textSize="14sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="@string/activity_linking_induction_text4"
+                android:textColor="@color/help_text_color"
+                android:textSize="14sp"/>
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout

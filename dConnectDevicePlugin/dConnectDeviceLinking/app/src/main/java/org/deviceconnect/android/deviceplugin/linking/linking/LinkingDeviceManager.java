@@ -33,8 +33,6 @@ public class LinkingDeviceManager {
     private NotifySensorData mNotifySensor;
     private NotifyNotification mNotifyNotification;
 
-    private List<DeviceInfo> mDeviceInfoList;
-
     private final List<KeyEventListener> mKeyEventListeners = new CopyOnWriteArrayList<>();
     private final List<SensorListener> mSensorListeners = new CopyOnWriteArrayList<>();
     private final List<RangeListener> mRangeListeners = new CopyOnWriteArrayList<>();
@@ -52,10 +50,10 @@ public class LinkingDeviceManager {
     }
 
     public List<LinkingDevice> getDevices() {
-        mDeviceInfoList = new GetDeviceInformation(mContext).getInformation();
+        List<DeviceInfo> deviceInfoList = new GetDeviceInformation(mContext).getInformation();
 
         List<LinkingDevice> list = new ArrayList<>();
-        for (DeviceInfo info : mDeviceInfoList) {
+        for (DeviceInfo info : deviceInfoList) {
             LinkingDevice device = new LinkingDevice();
             device.setBdAddress(info.getBdaddress());
             device.setIsConnected(info.getState() == 1);
@@ -158,7 +156,7 @@ public class LinkingDeviceManager {
             return;
         }
 
-        startAllSensor(device.getBdAddress());
+        startAllSensor(device.getBdAddress(), 100);
 
         mSensorDevices.add(device);
 
@@ -199,10 +197,7 @@ public class LinkingDeviceManager {
             @Override
             public void onStopSensor(final String bd, final int type, final int reason) {
                 if (BuildConfig.DEBUG) {
-                    Log.i(TAG, "onStopSensor: " + bd);
-                    Log.i(TAG, "bd:" + bd);
-                    Log.i(TAG, "type:" + type);
-                    Log.i(TAG, "reason:" + reason);
+                    Log.i(TAG, "onStopSensor: type:[" + type + "] reason:[" + reason + "] bd: " + bd);
                 }
             }
         });
@@ -304,16 +299,16 @@ public class LinkingDeviceManager {
         mRangeListeners.remove(listener);
     }
 
-    private void startAllSensor(final String address) {
-        startSensor(address, 0);
+    private void startAllSensor(final String address, final int interval) {
+        startSensor(address, 0, interval);
     }
 
-    private void startSensor(final String address, final int type) {
+    private void startSensor(final String address, final int type, final int interval) {
         Intent intent = new Intent(mContext, ConfirmActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.BD_ADDRESS", address);
         intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_TYPE", type);
-        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_INTERVAL", 100);
+        intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_INTERVAL", interval);
         intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.SENSOR_DURATION", -1);
         intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.X_THRESHOLD", 0.0F);
         intent.putExtra("com.nttdocomo.android.smartdeviceagent.extra.Y_THRESHOLD", 0.0F);

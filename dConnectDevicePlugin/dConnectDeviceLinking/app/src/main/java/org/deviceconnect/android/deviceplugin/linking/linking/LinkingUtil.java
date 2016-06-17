@@ -49,8 +49,8 @@ public final class LinkingUtil {
         }
 
         IlluminationData data = new IlluminationData(illumination);
-        for (IlluminationData.Setting setting : data.mPattern.children) {
-            if (setting.names[0].name.toLowerCase().contains("off")) {
+        for (IlluminationData.Setting setting : data.getPattern().getChildren()) {
+            if (setting.getName(0).getName().toLowerCase().contains("off")) {
                 return setting;
             }
         }
@@ -60,7 +60,7 @@ public final class LinkingUtil {
     public static Integer getDefaultOffSettingOfLightId(final LinkingDevice device) {
         IlluminationData.Setting setting = getDefaultOffSettingOfLight(device);
         if (setting != null) {
-            return (int) setting.id;
+            return (int) setting.getId();
         }
         return null;
     }
@@ -72,8 +72,8 @@ public final class LinkingUtil {
         }
 
         VibrationData data = new VibrationData(vibration);
-        for (VibrationData.Setting setting : data.mPattern.children) {
-            if (setting.names[0].name.toLowerCase().contains("off")) {
+        for (VibrationData.Setting setting : data.getPattern().getChildren()) {
+            if (setting.getName(0).getName().toLowerCase().contains("off")) {
                 return setting;
             }
         }
@@ -83,7 +83,7 @@ public final class LinkingUtil {
     public static Integer getDefaultOffSettingOfVibrationId(final LinkingDevice device) {
         VibrationData.Setting setting = getDefaultOffSettingOfVibration(device);
         if (setting != null) {
-            return (int) setting.id;
+            return (int) setting.getId();
         }
         return null;
     }

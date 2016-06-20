@@ -286,7 +286,7 @@ public class HitoeManager {
         mHitoeSdkAPI.setAPICallback(mAPICallback);
         List<HitoeDevice> list = mDBHelper.getHitoeDevices(null);
         for (HitoeDevice device : list) {
-            if (device.isRegisterFlag() && !mRegisterDevices.contains(device)) {
+            if (device.isRegisterFlag()) {
                 mRegisterDevices.add(device);
             }
         }
@@ -567,7 +567,7 @@ public class HitoeManager {
         String[] sensorList = responseString.split(HitoeConstants.BR, -1);
         List<HitoeDevice> devices = new ArrayList<HitoeDevice>();
         List<HitoeDevice> pins = mDBHelper.getHitoeDevices(null);
-        mRegisterDevices.clear();
+//        mRegisterDevices.clear();
         for (int i = 0; i < sensorList.length; i++) {
             String sensorStr = sensorList[i].trim();
             if (sensorStr.length() == 0) {
@@ -655,9 +655,7 @@ public class HitoeManager {
      * @param responseString Response string
      */
     private void notifyAvailableData(final int responseId, final String responseString) {
-        // 基本分析と拡張分析どちらの場合もある
         if (responseId != HitoeConstants.RES_ID_SUCCESS || responseString == null) {
-            //利用可能データ取得の失敗
             return;
         }
         int pos = getCurrentPos(responseId);

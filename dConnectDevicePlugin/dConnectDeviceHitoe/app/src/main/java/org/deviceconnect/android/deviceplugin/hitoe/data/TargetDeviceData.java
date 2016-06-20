@@ -51,7 +51,8 @@ public class TargetDeviceData {
         mHardwareRevision = "";
         mPartNumber = "";
         mProtocolRevision = "";
-        mSystemId = "";
+        mSystemId = "0x0";
+        mBatteryLevel = -1.0f;
     }
 
     /**

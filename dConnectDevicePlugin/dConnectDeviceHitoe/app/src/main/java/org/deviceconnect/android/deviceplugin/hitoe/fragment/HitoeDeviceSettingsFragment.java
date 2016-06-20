@@ -397,7 +397,7 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
             public void run() {
                 HitoeDevice container = findDeviceContainerByAddress(device.getId());
                 if (container != null) {
-                    container.setRegisterFlag(true);
+//                    container.setRegisterFlag(true);
                     mDeviceAdapter.notifyDataSetChanged();
                 }
                 dismissProgressDialog();
@@ -540,7 +540,7 @@ public class HitoeDeviceSettingsFragment extends Fragment implements HitoeManage
                                                 });
                                             }
                                         }
-                                    },  3000);
+                                    },  10000);
                                 }
                             });
                         } else {
